@@ -4117,7 +4117,7 @@ the tile, its brightest, so one dense sector can't take the whole budget
 while a sparse sector, which has fewer stars than that, keeps all it has
 and the leftover room goes to the brighter stars of the dense ones."""
 
-GALAXY_TILE_POINT_BUDGET = {10: 40, 11: 100}
+GALAXY_TILE_POINT_BUDGET = {8: 30, 9: 40, 10: 40, 11: 100}
 """dict: Most point phenomena (black holes, neutron stars, quasars) a tile
 of that level lists (MAP.116); a finest tile lists up to
 `GALAXY_TILE_MAX_POINTS`. The most luminous come first, so a remnant shows
@@ -4258,12 +4258,14 @@ def _generated_star_entry(row):
     }
 
 
-POINT_PHENOMENON_MIN_LEVEL = 10
-"""int: The coarsest tile level (64 pc tiles) that lists the point-like
+POINT_PHENOMENON_MIN_LEVEL = 8
+"""int: The coarsest tile level (160 pc tiles) that lists the point-like
 phenomena -- black holes, neutron stars (pulsars) and quasars (MAP.80).
-That is the level the map fetches once it is zoomed to a sector, so a
-sector shows every one of them; farther out they would be lost among the
-stars anyway."""
+Since MAP.155 that is level 8, not 10: a black hole or neutron star fades
+in with the stars around it by the same rank rule (`static/starfade.js`
+`tileRanks`, whose `POINT_RANK_MIN_LEVEL` must equal this) instead of
+appearing all at once at sector depth. Tiles coarser than this list only
+the biggest scattered classes (`SCATTERED_POINT_COARSE_CLASSES`)."""
 
 GALAXY_TILE_MAX_POINTS = 200
 """int: Most point-like phenomena one tile lists, the most luminous

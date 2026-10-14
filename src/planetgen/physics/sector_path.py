@@ -198,9 +198,10 @@ def sector_inside(address, edge_pc):
     `edge_pc` (`galaxy.geometry`).
     """
     to_pc = 1.0 / constants.PARSEC_M
+    contains = geometry.sector_cell_test(tuple(address), edge_pc)
 
     def inside(position_m):
-        return geometry.sector_address_at(tuple(c * to_pc for c in position_m), edge_pc) == tuple(address)
+        return contains((position_m[0] * to_pc, position_m[1] * to_pc, position_m[2] * to_pc))
 
     return inside
 
@@ -246,11 +247,13 @@ def relevant_masses(position, velocity, masses, edge_m, softening_m=DEFAULT_SOFT
 
 
 def _acceleration(position, masses, softening_sq):
+    """The pull at `position`; `masses` as `(x, y, z, mu)` tuples (`integrate_path` unpacks them once)."""
     ax = ay = az = 0.0
-    for mass in masses:
-        dx, dy, dz = mass.position[0] - position[0], mass.position[1] - position[1], mass.position[2] - position[2]
+    px, py, pz = position
+    for mx, my, mz, mu in masses:
+        dx, dy, dz = mx - px, my - py, mz - pz
         r2 = dx * dx + dy * dy + dz * dz + softening_sq
-        k = mass.mu / (r2 * math.sqrt(r2))
+        k = mu / (r2 * math.sqrt(r2))
         ax += k * dx
         ay += k * dy
         az += k * dz
@@ -259,12 +262,25 @@ def _acceleration(position, masses, softening_sq):
 
 def _step_size(position, speed, masses, softening_sq, max_step):
     step = max_step
-    for mass in masses:
-        dx, dy, dz = mass.position[0] - position[0], mass.position[1] - position[1], mass.position[2] - position[2]
+    px, py, pz = position
+    for mx, my, mz, mu in masses:
+        dx, dy, dz = mx - px, my - py, mz - pz
         r2 = dx * dx + dy * dy + dz * dz + softening_sq
         r = math.sqrt(r2)
-        step = min(step, STEP_FRACTION * math.sqrt(r * r2 / mass.mu), STEP_FRACTION * r / speed)
+        step = min(step, STEP_FRACTION * math.sqrt(r * r2 / mu), STEP_FRACTION * r / speed)
     return max(step, max_step * 1.0e-6)
+
+
+def _hermite_position(a, b, t_s):
+    """`hermite(a, b, t_s)[0]` alone, by the same arithmetic (the bisection below asks for nothing else)."""
+    h = b.t_s - a.t_s
+    if h <= 0.0:
+        return a.position
+    s = min(1.0, max(0.0, (t_s - a.t_s) / h))
+    s2, s3 = s * s, s * s * s
+    h00, h10, h01, h11 = 2 * s3 - 3 * s2 + 1, s3 - 2 * s2 + s, -2 * s3 + 3 * s2, s3 - s2
+    return tuple(h00 * pa + h10 * h * va + h01 * pb + h11 * h * vb
+                 for pa, va, pb, vb in zip(a.position, a.velocity, b.position, b.velocity))
 
 
 def _exit_state(inside, t0, p0, v0, t1, p1, v1):
@@ -274,7 +290,7 @@ def _exit_state(inside, t0, p0, v0, t1, p1, v1):
     low, high = t0, t1
     for _ in range(40):
         middle = 0.5 * (low + high)
-        if inside(hermite(a, b, middle)[0]):
+        if inside(_hermite_position(a, b, middle)):
             low = middle
         else:
             high = middle
@@ -357,6 +373,7 @@ def integrate_path(position, velocity, masses, inside, edge_m, softening_m=DEFAU
         tolerance_m = DEFAULT_TOLERANCE_FRACTION * edge_m
     softening_sq = softening_m * softening_m
     active = relevant_masses(position, velocity, masses, edge_m, softening_m, tolerance_m, exclude_key=exclude_key)
+    active = [(m.position[0], m.position[1], m.position[2], m.mu) for m in active]
     max_step = edge_m / (speed * 20.0)
     max_time = CROSSINGS_ALLOWED * edge_m / speed
 

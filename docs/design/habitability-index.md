@@ -242,6 +242,25 @@ Life, and how far it gets, should follow the scores rather than the class,
 and its chemistry should follow the atmosphere, radiation and solvent
 rather than the star's letter alone.
 
+**Built first (GEN.206, 2026-10-14).** The descriptions now follow the scores, in
+`generation/life.py` (`life_ceiling`, `apply_life_data`):
+
+- `phi_bio` below `tuning.HABITABILITY_LIFE_SCORE_MIN` (0.005, what shows as 0.00):
+  the world carries no life chemistry, speed, spectrum or timeline, and a class
+  text that claims life (F "bacterial life", G "simple life", L "with vegetation")
+  is replaced by `NO_LIFE_CLASS_DESCRIPTIONS`.
+- `phi_cpx` below the same line with microbial life allowed: the timeline stops at
+  "photosynthesis" (`get_evolutionary_timeline(..., max_stage=)`, the lower of this
+  and the class ceiling `PLANET_CLASS_MAX_LIFE_STAGE`) and Class L loses its
+  vegetation (`MICROBIAL_ONLY_CLASS_DESCRIPTIONS`).
+- A body with no scores (a gas giant, or one saved without them) keeps the old class
+  rules. Of 31 bodies of a habitable class in 120 generated systems, 14 score no
+  microbial life, 6 allow microbial life only and 11 are unlimited, so fewer worlds
+  carry life than before (a class used to be enough).
+
+The chemistry itself (which pigment, which solvent) still follows the star's letter;
+that, and a stage that follows the scores rather than the star's age, are left.
+
 ## 6. Nebulae
 
 None of the documents cover nebulae. The only link they support is cosmic

@@ -143,6 +143,10 @@ def test_molecular_clouds_are_dark_family_nebulae(monkeypatch):
 
 def test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing(monkeypatch):
     monkeypatch.setattr(run_sector, "_sample_poisson_count", lambda mean: 0)
+    # The hosting chance (GEN.204: 0.25 for O stars) is checked in test_nebula_rates; here every host rule hits.
+    monkeypatch.setattr(run_sector.program_constants, "NEBULA_HOST_RULES",
+                        tuple((*rule[:4], 1.0) if rule[4] >= 0.1 else rule
+                              for rule in run_sector.program_constants.NEBULA_HOST_RULES))
     sector = SpaceSector("Hosted Nebula Sector")
     for star_type in ("O5V", "G2V", "M3V"):
         system, cfg = _make_cheap_system(star_type)

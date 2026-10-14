@@ -130,11 +130,35 @@ def sample_star_age_gy(age_bias=None, rng=draw, population=None):
     return rng.uniform(low, high)
 
 
-def main_sequence_luminosity_sol(mass_sol):
-    """The piecewise mass-luminosity relation (`MS_MASS_LUMINOSITY_PIECES`)."""
-    for piece in tuning.MS_MASS_LUMINOSITY_PIECES:
+def _piecewise_luminosity_sol(pieces, mass_sol):
+    for piece in pieces:
         if piece["max_mass_sol"] is None or mass_sol < piece["max_mass_sol"]:
             return piece["coeff"] * mass_sol ** piece["exponent"]
+
+
+def main_sequence_luminosity_sol(mass_sol):
+    """The piecewise mass-luminosity relation (`MS_MASS_LUMINOSITY_PIECES`)."""
+    return _piecewise_luminosity_sol(tuning.MS_MASS_LUMINOSITY_PIECES, mass_sol)
+
+
+def map_luminosity_sol(mass_sol):
+    """
+    The luminosity (Lsun) a main-sequence star of `mass_sol` would have by the
+    map's relation (`MAP_MASS_LUMINOSITY_PIECES`, GEN.200): the one function
+    that gives a faint but massive object (a neutron star, a black hole) the
+    visibility on the Galaxy Map of the star of its mass, so major
+    gravitational places are always on the map. It is not the star
+    generators' relation (`main_sequence_luminosity_sol`): the two differ
+    above 2 Msun (1.5 M^3.5 against 1.4 M^3.5, and a linear law from 20 Msun
+    against 55), by about 7% from 2 to 20 Msun and by a factor of 12 at 4 million Msun.
+
+    Args:
+        mass_sol (float): The mass, solar masses (positive).
+
+    Returns:
+        float: The luminosity, solar luminosities; increasing with mass.
+    """
+    return _piecewise_luminosity_sol(tuning.MAP_MASS_LUMINOSITY_PIECES, mass_sol)
 
 
 def main_sequence_radius_sol(mass_sol):

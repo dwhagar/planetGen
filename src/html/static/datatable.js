@@ -23,7 +23,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { createTable, getCoreRowModel } = await import(`./vendor/tanstack/table-core.min.js${VERSION_QUERY}`);
 const { Virtualizer, elementScroll, observeElementOffset, observeElementRect } =
   await import(`./vendor/tanstack/virtual-core.min.js${VERSION_QUERY}`);
-const { PAGE_SIZE, createPageStore, dataQuery, pageAddress, pagesFor } =
+const { PAGE_SIZE, createPageStore, dataQuery, fetchWhileBusy, pageAddress, pagesFor } =
   await import(`./datatablestate.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
@@ -138,6 +138,7 @@ function enhance(root) {
   const tbody = tableEl.querySelector("tbody");
   const headers = Array.from(tableEl.querySelectorAll("th[data-col]"));
   const countLine = root.querySelector(".datatable-count-line");
+  const busyLine = root.querySelector(".datatable-busy");
   const filterForm = root.querySelector(".datatable-filters");
   const facetNodes = Array.from(root.querySelectorAll(".datatable-facet"));
   const noun = (count) => (count === 1 ? root.dataset.nounOne : root.dataset.nounMany);
@@ -207,14 +208,23 @@ function enhance(root) {
   let wantFacets = true;
   const store = createPageStore(PAGE_SIZE, (page, generation, after) => {
     const withFacets = page === 0 && wantFacets;
-    return fetch(`${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, withFacets, after)}`,
-      { headers: { Accept: "application/json" } }).then((response) => {
-      if (!response.ok) {
-        throw new Error(`table ${response.status}`);
-      }
-      return response.json();
-    });
+    const address = `${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, withFacets, after)}`;
+    // A database too busy to answer (a 504) keeps the rows already loaded and asks again after a growing pause (UX.96).
+    return fetchWhileBusy(() => fetch(address, { headers: { Accept: "application/json" } }),
+      () => !store.stale(generation), (busy) => showBusy(page, busy));
   });
+
+  const busyPages = new Set();
+  function showBusy(page, busy) {
+    if (busy) {
+      busyPages.add(page);
+    } else {
+      busyPages.delete(page);
+    }
+    if (busyLine) {
+      busyLine.hidden = busyPages.size === 0;
+    }
+  }
 
   // --- TanStack Virtual: which rows are on screen -------------------------
   const virtualizer = new Virtualizer({

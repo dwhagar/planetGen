@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.102 |
+| UX | UX.103 |
 | MAP | MAP.195 |
 | NAV | NAV.60 |
 | GEN | GEN.213 |
@@ -22,9 +22,9 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.53 |
 | SEC | SEC.33 |
-| TEST | TEST.142 |
-| USR | USR.11 |
-| OPS | OPS.43 |
+| TEST | TEST.145 |
+| USR | USR.12 |
+| OPS | OPS.45 |
 | DOC | DOC.18 |
 | VIEW | VIEW.11 |
 | POP | POP.12 |
@@ -705,13 +705,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.197 | Object IDs on ejection, merger and split events | none | open |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | none | open |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | none | open |
-| GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | open |
+| GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | done, PR #1252 |
 | GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | none | open |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | done, PR #1239 |
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
-| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | open |
+| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | done, PR #1278 |
 | GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
@@ -872,7 +872,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
 | MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) | none | done, PR #998 |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | none | open |
-| MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | open |
+| MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | done, PR #1253 |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | done, PR #1112 |
 | MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | done, PR #1123 |
@@ -902,7 +902,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
 | MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | open |
-| MAP.185 | Black holes vanish in the Sector Map (bug) | none | open |
+| MAP.185 | Black holes vanish in the Sector Map (bug) | none | done, PR #1279 |
 | MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | open |
 | MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | open |
 | MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | open |
@@ -1012,7 +1012,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | done, PR #981 |
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | done, PR #989 |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations | none | open |
-| OPS.42 | Install numba: raise the minimum Python to 3.10 and warm its cache in update.sh | none | open |
+| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code | none | open |
+| OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) | none | open |
+| OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1079,7 +1081,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) | none | done, PR #1161 |
 | PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | done, PR #1197 |
 | PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | done, PR #1197 |
-| PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | open |
+| PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | done, PR #1249 |
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | done, PR #1193 |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | done, PR #1206 |
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | done, PR #1193 (built as a group-by-group read: no stored sector-name column, exact and needs no upkeep) |
@@ -1092,12 +1094,12 @@ Parents marked "new parent" had no old number of their own.
 | PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | done, PR #1199 |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
 | PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | done, PR #1206 |
-| PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
+| PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | done, PR #1251 |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | done, PR #1236 |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
-| PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | open |
-| PERF.84 | Neighbour linking stalls on a large run (bug) | none | open |
-| PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | open |
+| PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | done, PR #1259 |
+| PERF.84 | Neighbour linking stalls on a large run (bug) | none | done, PR #1274 |
+| PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | done, PR #1265 |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls | none | open |
 | PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | none | open |
@@ -1157,6 +1159,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.8 | Every signed-in user can generate a one-off system | none | open |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | none | open |
 | USR.10 | Users add their own objects (ships and stations) and track their movement on the map | none | open |
+| USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
@@ -1253,12 +1256,13 @@ Parents marked "new parent" had no old number of their own.
 | UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | open |
-| UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | open |
+| UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | open |
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | open |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
 | UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | none | open |
+| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1497,6 +1501,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules | none | open |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) | none | open |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) | none | open |
+| TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) | none | open |
+| TEST.143 | test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug) | none | open |
+| TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
