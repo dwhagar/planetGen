@@ -37,8 +37,15 @@ STAGE_TOTAL_ENV = "PLANETGEN_STAGE_TOTAL"
 JOB_KEY = "job"
 """str: The `stage_key` the whole-job row is stored under (`finish`)."""
 
+SCATTER_KEY = "scatter"
+"""str: The `stage_key` of the row that adds up every scatter stage of a run (`finish`)."""
+
+SCATTER_KEYS = ("mass", "luminosity", "phenomena", "backfill")
+"""tuple[str]: The stage keys that are scatters: the massive stars, the bright stars, the phenomena and the
+backfill, each also stored on its own."""
+
 _state = {"stages": [], "next": 0, "args": None, "command": None, "open": None,
-          "job_layers": 0, "job_seconds": 0.0, "overall": None, "ran": 0}
+          "job_layers": 0, "job_seconds": 0.0, "overall": None, "ran": 0, "scatters": []}
 """The run's stage list, the next one to enter, its arguments (for the settings each stage is recorded
 with), its command, the stage open now (`_open`), the layers and seconds of the stages finished so far (the
 whole-job stat), the command-line overall bar's clock and estimate (`overall`) and how many stages have
@@ -202,23 +209,45 @@ def _close_open():
         _state["ran"] += 1
         record["seconds"] = time.perf_counter() - record["t0"]
         _state["job_seconds"] += record["seconds"]
-        _state["job_layers"] += int(record["metrics"].get("layers") or 0)
+        layers = int(record["metrics"].get("layers") or 0)
+        _state["job_layers"] += layers
+        if layers > 0 and record["seconds"] > 0:
+            record["metrics"]["seconds_per_layer"] = record["seconds"] / layers
+        if record["key"] in SCATTER_KEYS:
+            _state["scatters"].append(record)
         _write(record)
 
 
 def _write_job():
     """
-    Stores the whole job's layers per second (PERF.55): every layer the scatter stages visited, the ones that
-    placed nothing too, over the seconds of all the stages the run did. One row under `JOB_KEY`, with the
-    settings the run had, for `stats.job_layers_per_second`. Nothing when no stage visited a layer.
+    Stores the totals of the run: the whole process under `JOB_KEY` (its seconds, the stages it ran, and the
+    layers per second of the stages that visited layers, PERF.55) and, when scatter stages ran, one row under
+    `SCATTER_KEY` that adds them all up (operations, layers, objects, seconds, seconds per layer and per
+    operation), so a later estimate has the scatter kinds' common figure when one kind has no record of its
+    own. Both carry the settings the run had; nothing when no stage ran.
     """
     layers, seconds = _state["job_layers"], _state["job_seconds"]
-    if layers <= 0 or seconds <= 0 or not _state["stages"]:
+    if _state["ran"] < 1 or not _state["stages"]:
         return
     total = len(_state["stages"])
-    settings = stage_settings(JOB_KEY, _state["args"]) if _state["args"] is not None else {}
-    _write({"key": JOB_KEY, "n": total, "total": total, "label": "Whole job", "skipped": None, "settings": settings,
-            "metrics": {"layers": layers, "layers_per_second": layers / seconds}, "seconds": seconds})
+    args = _state["args"]
+    settings = stage_settings(JOB_KEY, args) if args is not None else {}
+    metrics = {"stages_run": _state["ran"], "layers": layers}
+    if layers > 0 and seconds > 0:
+        metrics["layers_per_second"] = layers / seconds
+    _write({"key": JOB_KEY, "n": total, "total": total, "label": "Whole job", "skipped": None,
+            "settings": settings, "metrics": metrics, "seconds": seconds})
+    scatters = _state["scatters"]
+    if scatters:
+        scatter_seconds = sum(record["seconds"] for record in scatters)
+        scatter_layers = sum(int(record["metrics"].get("layers") or 0) for record in scatters)
+        scatter_metrics = {"operations": len(scatters), "layers": scatter_layers,
+                           "objects": sum(int(record["metrics"].get("objects") or 0) for record in scatters),
+                           "seconds_per_operation": scatter_seconds / len(scatters)}
+        if scatter_layers > 0 and scatter_seconds > 0:
+            scatter_metrics["seconds_per_layer"] = scatter_seconds / scatter_layers
+        _write({"key": SCATTER_KEY, "n": total, "total": total, "label": "All scatters", "skipped": None,
+                "settings": settings, "metrics": scatter_metrics, "seconds": scatter_seconds})
 
 
 # ---------------------------------------------------------------------
@@ -328,7 +357,7 @@ def begin(stages, args=None, command=None):
     """Starts a run's stage list and logs it (skipped ones with their reasons). With `args`, each stage's time
     is stored with the settings it ran with (PERF.56)."""
     _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_layers=0,
-                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0)
+                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[])
     if not stages:
         return
     offset, total = _numbering()
@@ -393,7 +422,7 @@ def finish(reason=None):
     _close_open()
     _write_job()
     _state.update(stages=[], next=0, args=None, command=None, open=None, job_layers=0, job_seconds=0.0,
-                  overall=None, ran=0)
+                  overall=None, ran=0, scatters=[])
 
 
 def stage_estimates(conn, command, args):
