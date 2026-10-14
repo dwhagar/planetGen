@@ -477,7 +477,8 @@ jobs:
         run: pip install pip-audit && pip-audit --ignore-vuln PYSEC-2026-3740
 
       - name: Scan the locked dependencies for known vulnerabilities
-        # requirements.lock is what servers install (scripts/
+        # requirements.lock is the libraries of what servers install
+        # (requirements-server.lock adds gunicorn; scripts/
         # install-python-deps.sh, --require-hashes); same ignore as above.
         run: pip-audit --require-hashes -r requirements.lock --ignore-vuln PYSEC-2026-3740
 
