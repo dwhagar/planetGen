@@ -1041,6 +1041,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pyramid accepting cells 0.84
   to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
   sizes?
+  Split (Foundations lane 2, 2026-10-14): each piece merges on its own
+  green suite, in this order. MAP.151a: the round-region description
+  (centre sector, width, height) as layer, ring and slot-arc ranges that
+  wrap past slot 0, with an instant count (the lane starts here).
+  MAP.151b: the 3-ary block ladder 729/243/81/27/9/3/1 replacing
+  drill.py and galaxyprisms.js, with stage cache keys and one cache
+  stamp bump. MAP.151c: per-level aggregates and the window query.
+  MAP.151d: the map reads the windows. None of it is visible until
+  Boss's installer is fixed (issue #1211 stays open until he tests).
   Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
   GEN.126, MAP.131, MAP.134, MAP.146.
   Dependency (2026-10-09, fly-through-view-distance.md): The region data
@@ -1073,6 +1082,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
   tiles need the nested server lists (MAP.154, merged in #1303: a child
   tile contains the parent's stars in its box).
+  Split (Foundations lane 2, 2026-10-14): MAP.152 server, then client.
+  Server: drop the generated_star_floor_sol brightness floors, settle
+  the 400-star cap, and choose tiles by distance. Client: the
+  cross-fades with hysteresis and the per-tile origins.
   Prerequisite: MAP.150. Related: MAP.102, MAP.125,
   MAP.146.
   Foundations lane 2 (2026-10-10, MAP.148 first
