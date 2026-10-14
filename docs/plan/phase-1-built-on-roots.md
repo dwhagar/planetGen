@@ -122,7 +122,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | MAP.172 | Foundations lane 2. |
 | MAP.172 | Nebula cell aggregates in the region pyramid | MAP.151 | Foundations lane 1. |
-| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | DB.23, GEN.201, MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
+| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 
 ### System Map
 
@@ -195,6 +195,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) |  |  |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) |  | Test Suite Rebuild thread |
+| TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) |  |  |
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) |  |  |
 | PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job |  |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
@@ -253,17 +254,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.97 | PERF.86 step 4 |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | PERF.96 | PERF.86 step 3 |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | PERF.95 | PERF.86 step 2 |
-| PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | PERF.93, PERF.94 | PERF.86 step 1 |
+| PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | PERF.94 | PERF.86 step 1 |
 | ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) |  | Redis review 5.11 item 5, optional |
 | PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle |  | Redis review 5.11 item 3 |
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) |  | Redis review 5.11 item 2 |
 | OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) |  |  |
-| PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) |  | Redis review F4 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
-| GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | DB.23 | Foundations lane 1. |
-| DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) |  | Needs a migration. Foundations lane 1. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
 
 ## Open questions for Boss
