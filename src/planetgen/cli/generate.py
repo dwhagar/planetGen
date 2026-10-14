@@ -1050,7 +1050,7 @@ def add_plan_arguments(parser):
                                       "that readers never wait for. Resumable: it only fills rows still empty. A "
                                       "new scatter writes the value with each row.")
     phenomena_group.add_argument('--fill-block-stats', action='store_true',
-                                 help="Rebuild the stored block totals (DB.25) the Galaxy Map's block ladder reads, "
+                                 help="Rebuild the stored block totals the Galaxy Map's block ladder reads, "
                                       "from the generated sectors and their stats. A `galaxy` run keeps them "
                                       "current; this is for a table that is missing rows.")
     store.add_mysql_connection_args(parser)
