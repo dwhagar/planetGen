@@ -1448,38 +1448,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: DB.24, MAP.173.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
-- [ ] **MAP.184 "Mark rogue planets" on the Sector Map is redundant (bug)**
-  GitHub issue [#1218](https://github.com/dwhagar/planetGen/issues/1218)
-  (Boss, 2026-10-11 02:43Z): "In the sector view the mark rogue planets
-  is redundant and should be removed." Done: the control and its code
-  are gone from the Sector Map (rogue planets keep their normal marker),
-  with the browser tests and help text updated. Owner: Foundations lane
-  2, in its map queue.
-  Prerequisites: none. Related: MAP.132, MAP.123.
-
-- [ ] **MAP.186 A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug)**
-  GitHub issue [#1215](https://github.com/dwhagar/planetGen/issues/1215)
-  (Boss, 2026-10-11 01:08Z, with a screenshot; reproduced on any binary
-  system): the same two stars are placed differently in two views.
-  Boss's guess: the systems use a compressed distance model for the
-  orbit and the match would be exact with the real distance model,
-  probably a render flag. Done: the cause is confirmed, both views place
-  the pair by the same rule (the real separation unless a view says it
-  is compressed, with the compression shown in the legend), and a test
-  compares the two placements for a binary system. Owner: Foundations
-  lane 2, in its map queue.
-  Screenshot (Boss, 2026-10-14 13:36Z, copy in
-  /mnt/project-files/screenshots/issue-1215/): the Sector Map selecting
-  the B9V system Ulalio Ngatho. A lone blue star sits far to the left of
-  the drawing, away from everything else, while two groups of planet
-  orbits overlap in the middle (one around a bright blue star with tight
-  orbits and one wide ellipse reaching across, one lower right around a
-  small blue-and-green pair), so the stars of this one system are not
-  drawn where the orbits say they are. Check both: which dot is the
-  companion, and whether the lone star is placed by the compressed rule
-  while the orbits use the real separation.
-  Prerequisites: none. Related: MAP.89, GEN.62.
-
 - [ ] **MAP.187 The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug)**
   GitHub issue [#1211](https://github.com/dwhagar/planetGen/issues/1211)
   (Boss, 2026-10-11 00:16Z, three screenshots) and GitHub issue
