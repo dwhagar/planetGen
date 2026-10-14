@@ -1,0 +1,2 @@
+### Changed
+- **The see-through window in front of the camera no longer hides stars or leaves a halo (MAP.187).** The near-field window now thins only the blocks' density and cell boxes; a star is never faded by it, so stars stay visible in the middle of a filled block and in front of the camera, and a star close to the line to the focus can be picked. The window's edge is wider and shallower (it never fades below a quarter), which removes the visible rim around it.
