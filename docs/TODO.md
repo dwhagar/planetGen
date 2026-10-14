@@ -3891,7 +3891,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.92 Save generation timing per object and per object type, as well as per operation, stage and job**
-  Boss (2026-10-14 18:21Z): statistics must be saved on a per-object
+  Boss (2026-10-14 18:21Z, issue #1328): statistics must be saved on a per-object
   basis, which is pretty universal, and per type of object generated, in
   addition to what is kept now (PERF.67 and PERF.56: per operation,
   stage, whole job and scatter kind). So the stats store records the
