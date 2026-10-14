@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1052] - 2026-10-14
+
+### Fixed
+- A fresh install no longer breaks every page that shows rendered Markdown (system descriptions, the population text): `markdown` 3.11.1 removed two inline patterns the renderer named as required, and the renderer now removes only the ones the installed release has.
+
 ## [8.0.1051] - 2026-10-14
 
 ### Changed
