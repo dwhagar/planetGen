@@ -33,6 +33,7 @@ from planetgen.galaxy.geometry import (
     ring_master_count,
     ring_sector_count,
     sector_address_at,
+    sector_cell_test,
     sector_cell_vertices_pc,
     sector_orientation,
     sector_position_pc,
@@ -392,3 +393,26 @@ def test_cells_touching_sphere_validates_like_the_listing():
         list(cells_touching_sphere((0, 0, 0), -1.0, EDGE_PC))
     with pytest.raises(ValueError):
         list(cells_touching_sphere((0, 0, 0), 5.0, 0.0))
+
+
+@pytest.mark.parametrize("address", [(0, 0, 0), (1, -1, 2), (12, 3, 7), (790, 3, 255), (1500, -2, 700)])
+def test_sector_cell_test_agrees_with_sector_address_at_inside_outside_and_on_faces(address):
+    """PERF.80: the predicate a path integration asks thousands of times is exactly `sector_address_at == address`."""
+    contains = sector_cell_test(address, EDGE_PC)
+    center = sector_position_pc(*address, EDGE_PC)
+    rng = random.Random(address[0])
+    points = [tuple(c + rng.uniform(-0.8, 0.8) * EDGE_PC for c in center) for _ in range(3000)]
+    # Points on the cell's own faces, and one step either side of each, where a rounding could tip it.
+    inner, outer = ring_bounds_pc(address[0], EDGE_PC)
+    bottom, top = layer_bounds_pc(address[1], EDGE_PC)
+    for theta in slot_angle_bounds(address[0], address[2]):
+        for radius in (inner, outer, (inner + outer) / 2):
+            for z in (bottom, top, (bottom + top) / 2):
+                for nudge in (-1e-12, 0.0, 1e-12):
+                    points.append(((radius + nudge) * math.cos(theta), (radius + nudge) * math.sin(theta), z + nudge))
+    inside = 0
+    for point in points:
+        expected = sector_address_at(point, EDGE_PC) == address
+        inside += expected
+        assert contains(point) is expected
+    assert inside > 100  # the sample really lands in the cell, not only around it
