@@ -15,6 +15,9 @@ from planetgen.db import store
 from planetgen.generation import stats as generationStats
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy, _run_cli
 
+# These measure the bytes a fill adds, so they need a database no earlier test has grown (TEST.139 stage 3).
+pytestmark = pytest.mark.fresh_database
+
 MARGIN = 1.5
 """float: The estimate may be off by at most this factor either way."""
 

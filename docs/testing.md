@@ -19,7 +19,7 @@ serially and 5 min 57 s with `-n 4` (2026-10-01).
 
 Workers never share database state:
 
-- each test that uses `mysql_config` gets its own uniquely named database;
+- each test process keeps its own uniquely named database for `mysql_config` (see "The database tests");
 - each worker process gets its own control database
   (`PLANETGEN_CONTROL_DATABASE` is set to `pgtest_control_<worker>_<random>`
   by `conftest.py`, overriding any value in your environment, and dropped
@@ -68,9 +68,32 @@ export PLANETGEN_TEST_MYSQL_PASSWORD=...
 Each one falls back to the matching `PLANETGEN_MYSQL_*` variable, then to
 the built-in default (`127.0.0.1:3306`, user `planetgen`).
 
-The user needs to create and drop databases: each test gets its own
-uniquely named, throwaway database, so the database tests are safe under
-`pytest -n auto` (see "Running in parallel" above).
+The user needs to create and drop databases. Each test process (each
+`pytest -n` worker) keeps one uniquely named database with the schema in it,
+and `mysql_config` hands it to one test at a time, so the database tests are
+safe under `pytest -n auto` (see "Running in parallel" above). After each
+test `src/tests/dbpool.py` puts the database back the way a new one is: the
+tables the test filled are emptied, the auto-increment counters it advanced
+go back to 1, the baseline `schema_migrations` row returns, and the
+process's cached facts about that database name (id blocks, stored counts,
+facet caches, what was put in Redis under the name) are dropped. This
+replaced creating, filling with the schema and dropping a database for every
+test, which cost 0.66 s each on an idle machine.
+
+- A test that changes the schema leaves a database that cannot be reused;
+  the pool notices (table, column, index, routine, trigger or constraint
+  added, dropped or altered) and drops it, and the next test gets a new one.
+- A test that needs a database with **no schema at all** (it checks what a
+  first connection does, or builds an old schema and migrates it) takes the
+  old fixture with `@pytest.mark.fresh_database`, or `pytestmark` for a
+  whole file. So does a test that measures the bytes a fill adds, which a
+  reused database has grown.
+- `PLANETGEN_TEST_FRESH_DB=1` gives every test a new database again: the
+  way to tell a problem in the pool from a problem in a test.
+- `PLANETGEN_TEST_DEEP_CHECK=1` makes every reset compare each table's
+  `SHOW CREATE TABLE`, the tables holding rows and the auto-increment
+  counters with a new database, and fail the test that left a difference.
+  Run it after changing the schema or adding a cache keyed by database.
 
 ## The math check runs first
 
@@ -162,8 +185,9 @@ ALONE" (a real failure). A lane quoting a flake in a TODO item should paste
 that line and the record from `.test-failures.jsonl` instead of "failed once,
 passed alone". `--no-rerun` skips the second step.
 
-A pull request still needs the whole suite green (`scripts/test.py full`, or
-`pytest -n auto` as before).
+A pull request needs a green `scripts/test.py changed` (below) or, at the end of
+a sequence of related items, a green `scripts/test.py full` (or `pytest -n auto`
+as before).
 
 ### Only the tests a change touches, `scripts/test.py changed`
 
@@ -184,8 +208,11 @@ used file imports) a changed file, every test that starts a subprocess when
 `src/planetgen/`, `src/html/` or `scripts/` changed, and every test the record
 has not seen or saw fail. A change to `conftest.py`, `pytest.ini`, a support
 module or the test fixtures runs everything, and so does a missing record
-(which that run then writes). Run it as a quick loop while you work: **it is not
-the merge gate.** `scripts/test.py full --check` is how that is proved: it
+(which that run then writes). A green `changed` run is the merge gate for small changes and for the steps
+of a sequence of related items (Boss, 2026-10-14); the whole suite
+(`scripts/test.py full --check`) is run when a sequence is finished, and the
+daily CI run on main backstops both. A PR description says which one it used.
+`scripts/test.py full --check` is also how the selection is proved: it
 should never print a `MISSED:` line, and if it does, tell the test-suite thread.
 
 ## Setting up a cloud session
