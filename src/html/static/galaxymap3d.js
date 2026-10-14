@@ -135,10 +135,6 @@ export function mapControlHandlers(ctx) {
     "center-on": function () { ctx.stageView.recenter(); },
     "zoom-in": function () { ctx.stageView.zoomIn(); },
     "zoom-out": function () { ctx.stageView.zoomOut(); },
-    "toggle-rogue-markers": function (button) {
-      ctx.stageView.setRoguesMarked(!ctx.stageView.roguesMarked());
-      button.setAttribute("aria-pressed", String(ctx.stageView.roguesMarked()));
-    },
   };
 }
 

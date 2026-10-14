@@ -821,16 +821,11 @@ _PHENOMENON_LIGHTS = {
     "neutronStar": {"color": "#a9d4ff", "corePx": 2.2, "sizePx": 22.0, "glow": 0.7, "bright": 1.0},
 }
 
-# A rogue planet gives off no light of its own, so unmarked it is a dim,
-# tiny point with no glow, barely noticeable (MAP.82): Boss, "Rogue planet
-# detail is for them to be dim barely noticeable". The "Mark rogue
-# planets" button (off by default, MAP.83) swaps in `_ROGUE_MARKED_LIGHT`:
-# bigger, fully lit and glowing, ringed, and easy to pick (MAP.84; the
-# pick reach is sectorscene.js's ROGUE_PICK_PX).
+# A rogue planet gives off no light of its own, so it is a dim, tiny point
+# with no glow, barely noticeable (MAP.82): Boss, "Rogue planet detail is for
+# them to be dim barely noticeable". The Menu's per-kind Mark makes it bigger
+# (MAP.184 took the rogue-only button, its ring and its bigger light away).
 _ROGUE_LIGHT = {"color": "#a993f0", "corePx": 1.5, "sizePx": 3.5, "glow": 0.0, "bright": 0.2, "whiten": 0.0}
-_ROGUE_MARKED_LIGHT = {
-    "color": "#b59cff", "corePx": 5.0, "sizePx": 18.0, "glow": 0.6, "bright": 1.0, "whiten": 0.3,
-}
 
 
 def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
@@ -1019,7 +1014,6 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
         data["light"] = dict(light)
     elif data["kind"] == "roguePlanet":
         data["light"] = dict(_ROGUE_LIGHT)
-        data["markedLight"] = dict(_ROGUE_MARKED_LIGHT)
     return data
 
 

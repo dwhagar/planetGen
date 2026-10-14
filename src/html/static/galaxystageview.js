@@ -2996,7 +2996,7 @@ export function createStageView(host) {
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },
     // The opened sector's entries (MAP.68): "Show on map" buttons select
-    // one by key, and "Mark rogue planets" rings the rogue planets.
+    // one by key.
     // The world point under a screen point (MAP.150); read by the tests.
     anchorUnder: anchorUnder,
     zoomIn: function () { zoomBy(1 / BUTTON_ZOOM); },
@@ -3017,8 +3017,6 @@ export function createStageView(host) {
     pickChanged: pickChanged,
     entryByKey: sectorStage.entryByKey,
     selectEntry: sectorStage.select,
-    setRoguesMarked: sectorStage.setRoguesMarked,
-    roguesMarked: sectorStage.roguesMarked,
     // Inside a block or an arc (not the whole galaxy), where phenomena
     // take the pointer before the blocks.
     inContainer: function () { return !!stage.at; },

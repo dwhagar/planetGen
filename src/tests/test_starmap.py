@@ -549,12 +549,9 @@ def test_an_unmarked_rogue_planet_is_a_faint_speck_with_no_glow():
     assert light["sizePx"] < star["corePx"] * 2, "smaller than a star"
 
 
-def test_a_marked_rogue_planet_is_bigger_brighter_and_glows():
-    rogue = _rogue_scene()
-    unmarked, marked = rogue["light"], rogue["markedLight"]
-    assert marked["corePx"] >= 3 * unmarked["corePx"]
-    assert marked["bright"] == 1.0 and marked["glow"] > 0.3
-    assert marked["sizePx"] > 4 * unmarked["sizePx"]
+def test_a_rogue_planet_has_only_its_one_dim_light():
+    """MAP.184: no bigger "marked" light is sent any more; the Menu's per-kind Mark grows the one light."""
+    assert "markedLight" not in _rogue_scene()
 
 
 def test_the_toggle_highlight_follows_aria_pressed_in_the_stylesheet():
