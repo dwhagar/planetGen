@@ -501,20 +501,6 @@ with `clamp()`.
   any of it (UX.93).
   Prerequisite: MAP.168. Related: MAP.167, UX.93.
 
-- [ ] **UX.97 Search results: each panel runs under its own time limit and is fetched on its own**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): `search()` builds one panel per
-  object type (sector, system, star, planet, moon) and one slow panel
-  times out the whole page; a 2-letter word took 8.4 s on the Systems
-  panel. Done: each panel is fetched separately under its own statement
-  limit, a panel that times out says "This took too long; try again or
-  narrow the search" and the others show, and short words use a prefix
-  match instead of `%x%`. Owner: Bugfixes lane 2, after what it has
-  queued.
-  Prerequisites: none. Related: PERF.64, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **UX.98 The Generate log has odd wording and mixed section headers (bug)**
   GitHub issue [#1216](https://github.com/dwhagar/planetGen/issues/1216)
   (Boss, 2026-10-11 01:17Z): the log goes "Step 1 of 12, 2 of 12", then
