@@ -609,7 +609,7 @@ with `clamp()`.
   only in the page display, labelled). Owner: Bugfixes lane 1 builds
   UX.98 first as the first slice, then the rest is a Phase 2 item for
   the interface builders.
-  Prerequisites: UX.98. Related: ['UX.98', 'PERF.66', 'UX.93'].
+  Prerequisite: UX.98. Related: ['UX.98', 'PERF.66', 'UX.93'].
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -4025,21 +4025,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.31, PERF.73.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
-- [ ] **PERF.84 Neighbour linking stalls on a large run (bug)**
-  GitHub issue [#1224](https://github.com/dwhagar/planetGen/issues/1224)
-  (Boss, 2026-10-11 21:05Z): "Neighbor linking stalled out twice, it was
-  a lot of data it was processing but it used to do it just fine with
-  the same amount of data." Done: the stall is reproduced on a run of
-  the same size, the cause is found (a query that stopped using an
-  index, a lock, a missing batch, a worker waiting on a full queue) and
-  fixed, and the stage shows steady progress instead of freezing. A test
-  or timing record keeps the link stage inside a budget. Boss
-  (2026-10-14 13:18Z): it was a normal default new galaxy with default
-  settings, it worked fine on a recent version he cannot name, and he
-  thinks it is a reporting issue, so check first whether the stage works
-  but its progress or ETA freezes (PERF.85 had the same signs: a stale bar in the progress file, fixed in #1265). Owner: Foundations lane 1 (PERF.83 is fixed: time-sized chunks).
-  Prerequisites: none. Related: PERF.68, PERF.79.
-
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
   (Boss, 2026-10-13 02:41Z): "I was mistaken about how Redis worked and
@@ -5216,7 +5201,10 @@ clears each one.
   min):
   tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
   failed once in a full run and passed alone; the traceback was not
-  kept. Done: the next failure's traceback is captured, the cause is
+  kept. Seen again (Foundations lane 1, 2026-10-14 14:04Z full run, 27
+  min): the failure showed a facility host id 003 where 009 was
+  expected, and the test passed twice alone; unrelated to that lane's
+  change. Done: the next failure's traceback is captured, the cause is
   found (a shared table between workers, a timeout, or a real defect in
   the ID lookup) and the test is made reliable without loosening it.
   Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
