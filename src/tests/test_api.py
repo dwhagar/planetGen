@@ -277,6 +277,7 @@ def test_health_ok(mysql_config, client):
     assert body["schema_version"] == _db.SCHEMA_VERSION
 
 
+@pytest.mark.fresh_database
 def test_health_reports_an_uninitialized_schema_without_erroring(client):
     """
     `client`'s own database starts completely empty -- no `schema_migrations`
