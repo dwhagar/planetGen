@@ -2,6 +2,91 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1025] - 2026-10-14
+
+### Changed
+- **Black holes no longer vanish in the Sector Map (MAP.185).** A quiescent black hole, the common kind, was drawn as a black sphere with a faint dark-purple rim, which cannot be seen against the dark scene, while the Galaxy Map showed it as a purple point. It is now a lit purple point in the Sector Map too, the same colour as on the Galaxy Map (and as a scattered one in a sector not yet made); it was not a coordinate split, the Sector Map has always placed it correctly.
+
+## [8.0.1024] - 2026-10-14
+
+### Changed
+- **A planet's description no longer claims life where the habitability index says none can live (GEN.206).** A world whose microbial score shows 0.00 now gets no life chemistry, no evolutionary pace or timeline and no light-harvesting pigment, and its class text drops "bacterial life", "simple life" and "with vegetation" (Classes F, G and L); a world that allows microbial life only gets a timeline that stops at microbes, with no flora or fauna, and Class L loses its vegetation. A test over generated systems checks every description against its own index. In a sample, about four in ten worlds of a habitable class score no microbial life, so fewer worlds now carry a life chemistry and fewer species are placed on them.
+
+## [8.0.1023] - 2026-10-14
+
+### Changed
+- The docs site build no longer fails on the template examples in the web interface page.
+
+## [8.0.1022] - 2026-10-14
+
+### Changed
+- The to-do list no longer lists the neighbour linking stall, whose likely cause is fixed.
+
+## [8.0.1021] - 2026-10-14
+
+### Fixed
+- Linking a big run's sectors to their neighbours no longer looks frozen: it works in batches of 20 neighbouring sectors instead of 200 scattered ones (a batch was about ten minutes on a dense run, with the progress bar standing still and the neighbour lock held throughout), so the bar moves every minute or so and the lock is short. The links stored are the same.
+
+## [8.0.1020] - 2026-10-14
+
+### Changed
+- The to-do list records the approved logging standard.
+
+## [8.0.1019] - 2026-10-14
+
+### Changed
+- The to-do list gains an item to move every log and report onto one industry-standard format.
+
+## [8.0.1018] - 2026-10-14
+
+### Changed
+- The to-do list links the markdown install bug to its GitHub issue.
+
+## [8.0.1017] - 2026-10-14
+
+### Changed
+- The to-do list records which test fixes the test suite rebuild will implement, and adds a bug for a fresh install getting a markdown version that breaks page rendering.
+
+## [8.0.1016] - 2026-10-14
+
+### Changed
+- The to-do list moves every test fix to the test suite rebuild, which decides which to implement, and drops the table retry item that is built.
+
+## [8.0.1015] - 2026-10-14
+
+### Fixed
+- **A table that hits the database's time limit says the database is busy and asks again, instead of failing.** The table route answered a statement timeout with a 502 and no retry hint, and the table threw the rows away. It now answers 504 with `Retry-After`; the table keeps the rows already loaded, shows "The database is busy. Showing the rows loaded so far; trying again." and asks again after 2 s, 4 s, 8 s ... 30 s, as the Galaxy Map does.
+
+## [8.0.1014] - 2026-10-14
+
+### Changed
+- The to-do list no longer lists the stale generation progress bar, which is fixed.
+
+## [8.0.1013] - 2026-10-14
+
+### Fixed
+- A step that has no progress to report (the phenomena index build, which can take a quarter of an hour on a full galaxy) no longer leaves the Generate page showing the step before it, finished, with its clock still running as if the job had stalled; the page now shows the running step from the moment it starts, and the log says the index build is one pass with no progress until it ends.
+
+## [8.0.1012] - 2026-10-14
+
+### Changed
+- The to-do list records that the more permissive protective gear limits are used where the research notes and the built habitability table differ.
+
+## [8.0.1011] - 2026-10-14
+
+### Changed
+- The to-do list records that the stalled job in the generation screenshot never finished.
+
+## [8.0.1010] - 2026-10-14
+
+### Changed
+- The to-do list now points at the new research notes on the camera fade, the protective gear ladder and the long-term suitability of a planet.
+
+## [8.0.1009] - 2026-10-14
+
+### Added
+- **A measurement and plan for rebuilding the test suite** (`docs/design/test-suite-rebuild.md`, TEST.139): where the 55-minute full run goes (browser tests 42%, database create and drop about 15%), how to run only the tests a change touches (a recorded map of the files each test uses, no new dependency), and the five stages to build it. Nothing in the suite itself changes yet.
+
 ## [8.0.1008] - 2026-10-14
 
 ### Changed

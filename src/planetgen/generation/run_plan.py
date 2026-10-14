@@ -1040,6 +1040,8 @@ def scatter_phenomena(args):
                 with steps.Step("Writing the special phenomena", "phenomena-insert", max(len(special), 1), args=args,
                                 progress=progress):
                     store.insert_phenomenon_scatter(conn, special)
+                log.normal("Building the phenomena indexes: one pass over the whole table, no progress until it is "
+                           "done; a full galaxy takes a while.")
                 with steps.Step("Building the phenomena indexes", "phenomena-index",
                                 max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
                                 progress=progress):
