@@ -281,6 +281,59 @@ def population_densities(position_pc, shape):
     return densities
 
 
+def population_densities_array(x, y, z, shape):
+    """
+    `population_densities` at arrays of points `x`, `y` and one height `z`
+    (PERF.89): the same terms in the same order, so a point's densities match
+    the one-point form (a test compares them).
+
+    Returns:
+        dict: `{"young", "intermediate", "old", "bulge"}` -> array of densities.
+    """
+    terms = model_terms(shape)
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    r_cyl = np.hypot(x, y)
+    thin = np.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
+    thick = (terms["thick_disk_amplitude"] * np.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
+             * _vertical(z, terms["thick_disk_scale_height_pc"]))
+    along = (x * terms["bar_cos"] + y * terms["bar_sin"]) / shape.bulge_scale_radius_pc
+    across = (y * terms["bar_cos"] - x * terms["bar_sin"]) / terms["bulge_scale_y_pc"]
+    up = z / terms["bulge_scale_z_pc"]
+    in_plane = along * along + across * across
+    bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(in_plane * in_plane + up ** 4))
+    if shape.core_amplitude:
+        bulge = bulge + shape.core_amplitude * np.exp(
+            -0.5 * (x * x + y * y + z * z) / terms["core_scale_radius_pc"] ** 2)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        theta_arm = (shape.spiral_reference_angle_rad
+                     + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
+        arm_cos = np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
+    disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
+    model = shape.k_norm * (bulge + thick) + disk
+    halo = np.maximum(model, tuning.MIN_RELATIVE_DENSITY) - model
+
+    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
+    formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
+    weights = {}
+    for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
+        height = shape.disk_scale_height_pc * ratio
+        share = (ages[name][1] - ages[name][0]) / formation_span
+        weights[name] = (share * _vertical(z, height) / height
+                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
+    total = sum(weights.values())
+    # Every profile underflowed: the thickest (old) disk is all that's left.
+    empty = total <= 0.0
+    if np.any(empty):
+        weights = {name: np.where(empty, 1.0 if name == "old" else 0.0, weight)
+                   for name, weight in weights.items()}
+        total = np.where(empty, 1.0, total)
+    densities = {name: np.maximum(disk, 0.0) * weight / total for name, weight in weights.items()}
+    densities["old"] = densities["old"] + (np.maximum(shape.k_norm * thick, 0.0) + np.maximum(halo, 0.0))
+    densities["bulge"] = shape.k_norm * bulge
+    return densities
+
+
 def component_masses(shape, steps=40):
     """
     Each component's share of the model's stars, by integrating its

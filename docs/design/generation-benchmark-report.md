@@ -125,3 +125,17 @@ it (a fill compared with the old loop, and a borderline check). Benchmark,
 68.0 s to 64.0 s (the plan stages are untouched and moved by noise, 40 to 45 s).
 `_ring_centerline_edges` joins `ring_master_count` and `ring_sector_count` in
 the cache.
+
+## PERF.89: population densities as arrays
+
+`density.population_densities_array` gives the four population densities for
+every angle bin of a ring in one call; `bright_stars._ring_bins` and
+`layer_expected_stars` use it. NumPy's `exp`, `log`, `cos` and `arctan2` are not
+bit-for-bit the maths library's: about 12% of values differ in the last digit,
+so the tests hold the array form to 1e-12 relative of the one-point form rather
+than to the last digit (Math Research asked for the last digit; flagged). A
+bin weight moving by 1e-16 can change a star's placement only if a random draw
+lands within 1e-16 of a bin edge. Benchmark bright-star stage, 2 sectors at
+ring 12: 8.5 s to 7.5 s (the other plan stages moved by up to 5 s between runs,
+so this is within noise at benchmark scale; the default-scale galaxy has far
+more bins).
