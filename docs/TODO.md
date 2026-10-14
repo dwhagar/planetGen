@@ -3920,20 +3920,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
   ADM.15, PERF.24.
 
-- [ ] **PERF.87 Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md).
-  `SpaceSector._random_position` walks `_massive_neighbors()` and calls
-  `distance_between` for each (919,000 calls in the benchmark fill).
-  PERF.81 fixed the nearest-neighbour list; this loop is separate. Done:
-  the check runs on NumPy arrays of positions and required separations,
-  drawing the same random numbers in the same order so the placed
-  positions, and the stored galaxy, are identical (a test compares a
-  fill before and after), measured with the PERF.31 benchmark. Owner:
-  Foundations lane 1, near its PERF items.
-  Prerequisites: none. Related: PERF.31.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
-
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
   Math Research (2026-10-14;
   docs/design/math-and-library-efficiency.md).
@@ -3963,17 +3949,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unchanged to the last digit (a test compares them), timings recorded
   with the benchmark. Owner: Foundations lane 1, near its PERF items.
   Prerequisites: none. Related: PERF.58, PERF.31.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
-
-- [ ] **PERF.90 Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill)**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md).
-  `geometry.ring_sector_count`, `ring_master_count` and
-  `_ring_centerline_edges` cost 1.15 us a call, 0.064 us when cached.
-  Done: they are cached (a one-line change each), with identical
-  results. Owner: Foundations lane 1, in the same PR as the placement
-  loop item.
-  Prerequisites: none. Related: PERF.87.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
