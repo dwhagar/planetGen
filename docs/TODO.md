@@ -4996,15 +4996,17 @@ clears each one.
   failed under load twice (12:00Z and 17:03Z), passes alone; not checked
   on main. Also tests/test_web_browser_maps.py::test_galaxy_map_buttons
   again (TEST.126). For the rebuild's flake list.
-  Stage 3 (2026-10-09): Stage 3 merged (#1339, 2026-10-14): one database
-  per worker, emptied between tests; docs/testing.md and
-  docs/design/test-suite-rebuild.md sections 11 to 13 carry it. The Test
-  Suite Rebuild thread reports Boss decided (2026-10-14 19:44Z) that a
-  green `scripts/test.py changed` run replaces the full local suite as
-  the merge gate for small changes and for steps of a sequence of
-  related items, and a full run (`scripts/test.py full --check`) happens
-  when a sequence is finished. Not confirmed by me from Boss's own
-  message; docs-only PRs still merge at once.
+  Stage 3 merged (#1339, 2026-10-14): one database per worker, emptied
+  between tests; docs/testing.md and docs/design/test-suite-rebuild.md
+  sections 11 to 13 carry it. Boss (2026-10-14 19:44Z, in the Test Suite
+  Rebuild thread): "yes changed can replace a full run for small changes
+  also changes in a workflow, I don't want to do a full chain test every
+  time we merge, but when a sequence is finished of related items." So a
+  green `scripts/test.py changed` run is the merge gate for small changes
+  and for steps inside a sequence of related items, and a full run
+  (`scripts/test.py full --check`) happens when a sequence is finished
+  (whether "changes in a workflow" also covers CI workflow files is
+  asked of Boss in that thread). Docs-only PRs still merge at once.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
