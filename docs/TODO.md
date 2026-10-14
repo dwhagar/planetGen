@@ -5577,6 +5577,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the macOS installer as it is. The change note says the install layout
   changed and that update.sh does it for the server. Interacts with
   OPS.43 (a fresh install gets markdown 3.11.1) and OPS.42 (merged).
+  Boss (2026-10-14 15:29Z): he has already cleared the system packages on
+  his server by hand, so the clean-up step must be safe when nothing is
+  installed, and update.sh must build the venv on a server that has no
+  libraries at all.
   GitHub issue [#1295](https://github.com/dwhagar/planetGen/issues/1295).
   Prerequisites: none. Related: OPS.42, OPS.43, OPS.44.
 
