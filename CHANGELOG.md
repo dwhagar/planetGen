@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1031] - 2026-10-14
+
+### Changed
+- Retired PERF.54 and recorded test-suite rebuild stage 1 on the roadmap.
+
 ## [8.0.1030] - 2026-10-14
 
 ### Changed
