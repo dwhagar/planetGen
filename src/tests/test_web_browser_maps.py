@@ -351,7 +351,7 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     steps.append((_query(page), _crumbs(page)))
     queries = [q for q, _ in steps]
     at = len(steps) - 1
-    for _ in range(3):
+    for _ in range(2):  # (three would reach the galaxy, where the map's own Back is off)
         before = _state(page)
         page.go_back()
         _wait_settled(page, before)

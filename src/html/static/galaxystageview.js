@@ -1599,7 +1599,21 @@ export function createStageView(host) {
   function takePick(pick, at) {
     if (pinned) return;
     const base = display && display.resolved ? display.resolved.stage : stage;
-    const into = S.windowInto(base, pick.block, at, edgePc);
+    let into = S.windowInto(base, pick.block, at, edgePc);
+    // A click near the galaxy's edge can fall on a cell that holds no sector:
+    // the window goes to the nearest cell towards the block's middle that does.
+    if (into && at && S.resolveStage(into, getOutline(), edgePc).problem) {
+      const b = S.drillBlockBounds(pick.block, edgePc);
+      const t = (b.t0 + b.t1) / 2;
+      const middle = { x: ((b.r0 + b.r1) / 2) * Math.cos(t), y: ((b.r0 + b.r1) / 2) * Math.sin(t) };
+      for (let k = 1; k <= 4; k++) {
+        const nearer = S.windowInto(base, pick.block, { x: at.x + ((middle.x - at.x) * k) / 4, y: at.y + ((middle.y - at.y) * k) / 4 }, edgePc);
+        if (nearer && !S.resolveStage(nearer, getOutline(), edgePc).problem) {
+          into = nearer;
+          break;
+        }
+      }
+    }
     if (into) go(into);
   }
 
