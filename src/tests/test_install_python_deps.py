@@ -270,3 +270,35 @@ def test_the_library_check_fails_a_pymysql_that_cannot_use_cryptography():
             f"exec(open({os.path.join(ROOT, 'scripts', 'probe_requirements.py')!r}).read())\n")
     done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
     assert done.stdout.startswith("broken pymysql>=1.1.1 ImportError:pymysql_has_no_cryptography"), done.stdout + done.stderr
+
+
+def test_every_library_the_code_imports_is_in_the_lock():
+    """A library planetgen imports but the lock lacks is missing from a venv built from the lock alone (OPS.47: the
+    first real update.sh found none of this until the database step). Imports anywhere in the package count,
+    including inside functions."""
+    from importlib import metadata
+    lock_pins = _lock_pins()
+    locked = {name for name, _, _, _ in lock_pins.read_lock(os.path.join(ROOT, "requirements-server.lock"))}
+    distributions = metadata.packages_distributions()
+    missing = {}
+    for folder, _dirs, files in os.walk(os.path.join(ROOT, "src", "planetgen")):
+        for name in files:
+            if not name.endswith(".py"):
+                continue
+            path = os.path.join(folder, name)
+            with open(path, encoding="utf-8") as f:
+                tree = ast.parse(f.read())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    modules = [alias.name.split(".")[0] for alias in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                    modules = [node.module.split(".")[0]]
+                else:
+                    continue
+                for module in modules:
+                    if module in sys.stdlib_module_names or module == "planetgen":
+                        continue
+                    owners = distributions.get(module)
+                    if owners and not any(lock_pins.normalize(owner) in locked for owner in owners):
+                        missing.setdefault(module, os.path.relpath(path, ROOT))
+    assert not missing, f"imported but not in requirements-server.lock: {missing}"
