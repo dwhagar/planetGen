@@ -474,43 +474,13 @@ with `clamp()`.
   otherwise.
   Prerequisite: UX.45. Related: UX.47.
 
-- [ ] **UX.93 No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does**
-  Boss (2026-10-10 20:28Z): "TODO codes should never appear in the
-  finished product, so add a TODO item to scrub output lines with things
-  like PERF.67 etc etc etc". Done: every user-facing line is scrubbed of
-  TODO IDs (a category from the TODO table, a dot and a number, such as
-  PERF.67 or NAV.42): page and template text, tooltips, error and
-  refusal messages, CLI and job-log lines, API error and help text,
-  setting descriptions, the in-app help and any docs shown to users of
-  the site. Code comments, docstrings, TODO.md, `changes/` notes, the
-  changelog and the design docs may keep them. A pytest scans the
-  templates, the static files and the string literals the code shows to
-  users (settings descriptions, messages, CLI output) and fails on a
-  TODO-ID pattern there, with a short allowlist for the places where an
-  ID is wanted (none expected). The first pass found about 44 hits in
-  the templates and static files, most of them in template comments (`{#
-  ... #}`), which stay, and about 130 string literals in the Python code
-  to check by hand. Owner: Bugfixes lane 2, after its current items.
-  Docs sweep (2026-10-09): Docs sweep (2026-10-14, reference audit
-  finding 9 and 39): TODO codes are still in many CLI --help strings
-  (GEN.195, NAV.48, ADM.29, GEN.30, GEN.96, GEN.97, GEN.186, ADM.30,
-  GEN.196, OPS.13, DB.8, GEN.183, GEN.39, NAV.43, SEC.22, SEC.26 in
-  cli/generate.py, cli/query.py and cli/lockouts.py), in one run
-  message, and web/templates/admin_stats.html line 162 renders (PERF.56)
-  on the admin Stats page; the help text also shows the internal
-  constant name LARGE_RING_WARNING_THRESHOLD. Remove them as part of
-  this item, with a test that scans CLI help and templates for TODO
-  codes. Details in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md.
-  Prerequisites: none.
-
 - [ ] **UX.94 Gravity map wording: the legend, the mode names and the Map help text**
   Done: the legend names the unit (metric or Customary through the UX.36
   number formatting), the three modes have plain in-universe names with
   a one-line explanation each, the Map help dialog explains what the
   colours mean and what a saddle point is, and no TODO code appears in
-  any of it (UX.93).
-  Prerequisite: MAP.168. Related: MAP.167, UX.93.
+  any of it (UX.93, done).
+  Prerequisite: MAP.168. Related: MAP.167.
 
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -575,7 +545,7 @@ with `clamp()`.
   only in the page display, labelled). Bugfixes lane 1 built
   UX.98 as the first slice (done, #1369: one stage formatter); the rest is
   a Phase 2 item for the interface builders.
-  Prerequisites: none. Related: PERF.66, UX.93.
+  Prerequisites: none. Related: PERF.66.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
