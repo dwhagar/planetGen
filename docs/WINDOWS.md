@@ -12,7 +12,7 @@ Ubuntu distribution, then work entirely inside it as you would on a Linux
 machine:
 
 1. Open the Ubuntu shell and follow [INSTALL.md](../INSTALL.md) from the
-   top: Python 3.9 or later, MySQL 8.0.16+ or MariaDB 10.4+, Redis, and a
+   top: Python 3.12 or later, MySQL 8.0.16+ or MariaDB 10.4+, Redis, and a
    git checkout of the repository.
 2. For the website, set up Apache with mod_wsgi as in
    [deployment/apache.md](deployment/apache.md), or another Linux option
