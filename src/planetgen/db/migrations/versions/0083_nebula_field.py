@@ -34,7 +34,7 @@ def upgrade():
             center_y_pc   DOUBLE NOT NULL,
             center_z_pc   DOUBLE NOT NULL,
             uid           BINARY(10),
-            stored        TINYINT(1) NOT NULL DEFAULT 0,
+            is_stored     TINYINT(1) NOT NULL DEFAULT 0,
             PRIMARY KEY (cell_i, cell_j, cell_k, n),
             KEY idx_nebula_field_uid (uid)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")

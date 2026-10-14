@@ -79,7 +79,7 @@ def test_the_table_holds_the_kept_classes_m_and_n_and_the_rows_equal_the_fields_
             assert (row["cell_i"], row["cell_j"], row["cell_k"]) == nebula_field.cell_index(center)
             checked += 1
     assert checked
-    assert all(row["uid"] is None and not row["stored"] for row in rows)
+    assert all(row["uid"] is None and not row["is_stored"] for row in rows)
 
 
 def test_a_saved_sector_marks_the_clouds_it_stores_with_their_object_ids(mysql_config):
@@ -91,7 +91,7 @@ def test_a_saved_sector_marks_the_clouds_it_stores_with_their_object_ids(mysql_c
         nebula.nebula_class in nebula_field.TABLE_CLASSES
         for nebula, _ in nebula_field.clouds_reaching(_seed(mysql_config), SHAPE, sector_position_pc(*address, EDGE_PC), REACH_PC)))
     run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
-    marked = _table(mysql_config, "stored = 1")
+    marked = _table(mysql_config, "is_stored = 1")
     assert marked
     conn = store.get_connection(mysql_config)
     try:

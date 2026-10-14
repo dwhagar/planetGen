@@ -5522,7 +5522,7 @@ def link_nebula_field_stored(conn):
     over a galaxy that already holds some of its clouds. Returns the rows linked."""
     cursor = conn.execute(
         "UPDATE nebula_field f JOIN nebulae n ON n.center_x_pc = f.center_x_pc AND n.center_y_pc = f.center_y_pc"
-        " AND n.center_z_pc = f.center_z_pc SET f.stored = 1, f.uid = n.uid")
+        " AND n.center_z_pc = f.center_z_pc SET f.is_stored = 1, f.uid = n.uid")
     conn.commit()
     return cursor.rowcount
 
@@ -6342,7 +6342,7 @@ def _mark_nebula_field_stored(conn, nebula_id, center):
     x, y, z = center
     i, j, k = nebulaField.cell_index(center)
     conn.execute(
-        "UPDATE nebula_field SET stored = 1, uid = (SELECT uid FROM nebulae WHERE id = ?)"
+        "UPDATE nebula_field SET is_stored = 1, uid = (SELECT uid FROM nebulae WHERE id = ?)"
         " WHERE cell_i = ? AND cell_j = ? AND cell_k = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ?",
         (nebula_id, i, j, k, x, y, z))
 

@@ -149,4 +149,4 @@ first-index slab of 50 pc field cells, through the work queue). Benchmark
 table has no object IDs for clouds no sector has stored: working an ID out costs
 a nebula shape (`interior_centroid` over the fit grid, about 112 ms), which for
 every drawn cloud would be about 30 hours of CPU at the default scale. A save
-sets `uid` and `stored` on the row of each cloud it stores.
+sets `uid` and `is_stored` on the row of each cloud it stores.

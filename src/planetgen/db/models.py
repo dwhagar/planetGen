@@ -669,7 +669,7 @@ nebula_field = sa.Table(
     sa.Column('center_y_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('center_z_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('uid', mysql.BINARY(10), nullable=True),
-    sa.Column('stored', mysql.TINYINT(), server_default=sa.text('0'), nullable=False),
+    sa.Column('is_stored', mysql.TINYINT(), server_default=sa.text('0'), nullable=False),
     sa.Index('idx_nebula_field_uid', 'uid'),
     mysql_engine="InnoDB",
 )
