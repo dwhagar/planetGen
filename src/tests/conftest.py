@@ -37,7 +37,7 @@ import pytest
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
-from tests import publicids
+from tests import areas, failure_capture, publicids
 
 # The always-on activity log (planetgen/admin/activity_log.py) would
 # otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
@@ -92,6 +92,11 @@ os.environ.setdefault(_db.SQL_MODE_ENV_VAR, _db.STRICT_SQL_MODE)
 _XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "main")
 SESSION_CONTROL_DATABASE = f"pgtest_control_{_XDIST_WORKER}_{uuid.uuid4().hex[:8]}"
 os.environ[_db.CONTROL_DB_ENV_VAR] = SESSION_CONTROL_DATABASE
+
+
+def pytest_configure(config):
+    """Failure capture (TEST.139): with PLANETGEN_FAILURE_LOG set (scripts/test.py does), every failure's full report is kept."""
+    failure_capture.register(config)
 
 
 def _test_server_kwargs():
@@ -152,12 +157,20 @@ def pytest_collection_modifyitems(config, items):
     - `generation`: files that run generation (`generate`, the work queue
       or `bughunt_support.run_cli`), which CI also runs at several worker
       counts (TEST.74).
+    - `heavy`: the files that took over 100 s each in the 2026-10-14
+      baseline (`tests/areas.py`); `scripts/test.py quick` leaves them out.
+    - `area_<name>`: the part of planetGen a file covers (`tests/areas.py`),
+      by file name, so `-m area_web` picks the web tests without moving a file.
     """
     generation_refs = _generation_refs()
     for item in items:
-        if "mysql_config" in getattr(item, "fixturenames", ()):
+        fixturenames = getattr(item, "fixturenames", ())
+        if "mysql_config" in fixturenames or "_mysql_server_available" in fixturenames:
             item.add_marker(pytest.mark.db)
         name = item.path.name
+        item.add_marker(getattr(pytest.mark, "area_" + areas.area_of(name)))
+        if areas.is_heavy(name):
+            item.add_marker(pytest.mark.heavy)
         if name.startswith(("test_fuzz_", "test_bughunt_")):
             item.add_marker(pytest.mark.slow)
         if name == "test_web_a11y.py" or name.startswith("test_web_browser"):

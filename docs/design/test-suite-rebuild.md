@@ -167,3 +167,16 @@ Each PR is merged on a green full run and reports the TODO items it resolves and
 1. **Run the browser tests as their own phase with 2 workers, and only when web or map code changed, in `changed` runs?** Default: yes. The `full` command still runs them.
 2. **Keep test files where they are and group by markers?** Default: yes (section 5).
 3. **Let `changed` replace the full run for small changes after the proof period?** Default: no change to the gate until the proof report is clean; I will ask again then.
+
+## 9. Stage 1 result (2026-10-14, `scripts/test.py full`, started 13:47Z)
+
+| Phase | Tests | Result | Time |
+|---|---|---|---|
+| Non-browser, 4 workers | 15,123 | 15,115 passed, 8 skipped, 0 failed | 21 min 33 s |
+| Browser, 2 workers | 571 | 513 passed, 52 skipped, 6 failed | 34 min 43 s |
+| Whole run | 15,694 | | 56 min 24 s |
+
+- **The wall time did not shrink** (55 min 12 s before). The machine now does the same work without the contention: the browser phase on 2 workers spends 2,083 s of wall time where the browser files spent 5,390 s of summed test time before, but two cores sit idle during it. Stage 1 is about reliability and the fast loops, not the full-run time; that comes from stages 3 and 4 and from `changed` runs.
+- **Browser failures went from 13 timeouts to 6**: four fail alone on main (TEST.125 three moon tests, TEST.142 the `after` argument), two are load failures that pass alone (`test_bookmarks_keep_a_course_pick_on_the_galaxy_map`, `test_galaxy_map_buttons`), confirmed by running them alone. Two workers is better than four but not enough; stage 4 gives the heavy WebGL tests state-based waits.
+- Non-browser tests have no failures at all in this run (the 14 of the baseline were 13 browser timeouts and my own database grant).
+- `quick` (not database, browser or heavy) is the fast loop; its time is printed by the runner.
