@@ -3,6 +3,19 @@
 Research only, 2026-10-09 (Research Lane 3). No code, TODO.md or PR changes. Boss decides.
 Scripts and raw numbers: `research/map-wire-format/bench/`.
 
+## 0. Built (MAP.159, 2026-10-14)
+
+Step 2 is in: `planetgen/web/lib/tilepack.py` writes it, `html/static/tilepack.js` reads it, and the layout is the module docstring. Choices that differ from the V3 sketch below:
+
+- **Spans per tile, not the tile cube.** A tile's x, y and z are 16-bit steps between the smallest and largest value in that list (stored as two doubles per axis), so a sector that reaches past its tile's edge still fits and the step is never coarser than the cube's.
+- **Ids.** A bright star's id is a whole number (two u32 columns, 64 bits); a generated star's id is a printed object ID, kept as text of one length (22 bytes a star before gzip) because the page keys the zoom fade by it and a printed ID depends on the galaxy's layout; anything else is a JSON list. That is 20 bytes a star for bright stars and 34 for generated stars before gzip, against the 16.7 of V3, which did not carry the generated stars' ids.
+- **Class is the first letter of the star type** (one byte), `system_id` is one flag (`charted`); the page reads nothing else of them.
+- **Rank is list order**, so the nested lists of MAP.154 and the rank fade (MAP.153) work unchanged. Child tiles still list every star of their parent inside them; leaving those out of the wire (the 31 to 100% of section 4.3) is not done, because the page would then need the parent in hand for every child.
+- **Log codes.** Luminosity 16 bits over -8 to 8 dex (a step is 0.00024 dex, 0.056%), temperature 8 bits over 2 to 6 dex (a step is 3.7%, so within 1.8% of the true value), radius 8 bits over -3 to 4 dex (a step is 6.5%, within 3.2%). Code 0 means "none".
+- **Storage.** The tile cache keeps the packed bytes (`t<level>_<ix>_<iy>_<iz>.bin`) and `/galaxy/tiles` joins them behind a JSON header (`application/vnd.planetgen.tiles`, "PGTB"), without unpacking; the page's IndexedDB store keeps them too and reads them when a tile is wanted. The opening tiles embedded in the page are still JSON.
+- **Size**: 2,000 random stars (random positions, temperatures and radii, which compress worse than real ones) come to 273 KB of trimmed JSON, 57 KB gzipped, against 40 KB packed, 24 KB gzipped: 57% fewer gzipped bytes and 85% fewer raw. Real tiles repeat more (shared ids, the same class letters), so the cut on a real galaxy will differ in both forms.
+- **Not measured**: the real byte counts on a large galaxy, and decode time on a phone. The unit tests hold the layout and the two readers together (tests/test_tilepack.py, tests/js/tilepack.test.mjs).
+
 ## 1. Answer in brief
 
 **Section 5.6's 52 bytes a star is the GPU buffer, not the download.** On the wire each star is a JSON object of about **270 bytes** (45 bytes after gzip), five times what 5.6 assumes. At the 70,000-star cap that is about 19 MB of JSON, 3.2 MB gzipped, not the 3.6 MB of 5.6 or the "about 8 MB" in the `GALAXY_VIEW_MAX_STARS` docstring. Quantising the GPU attributes (52 to 20 bytes) would not touch any of that; shrinking the tile format will.

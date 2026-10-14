@@ -2,6 +2,97 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1059] - 2026-10-14
+
+### Changed
+- TODO: TEST.125, TEST.142 and TEST.143 retired (PR #1313); TEST.129 and TEST.130 notes; MAP.151a done (PR #1312); new bug for galaxystages.js reference parsing.
+
+## [8.0.1058] - 2026-10-14
+
+### Fixed
+- **The System Map's "Start Here" and "End Here" buttons were missing from every body's info panel** (TEST.125, NAV.50). `systemnav.js` only accepted an object reference made of digits (`moon:40`), and since API.23 a body's reference is its printed ID (`moon:0008000000-4000000-00D`), so the buttons were dropped for every body. It now accepts the printed ID. The three browser tests that caught it (`test_system_map_selection_drill_and_measure`, `test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram`, `test_a_body_link_opens_highlights_and_selects_it`) now match the printed ID as well.
+- **The orbit update stored a time up to half a second ahead on MySQL 8.4** (TEST.129): the column holds whole seconds, MySQL 8.4 rounds a fraction up where MariaDB drops it, and the next run read a clock that had gone backwards. `finish_orbit_update` drops the fraction itself, so both servers store the same second.
+- Test fixes: the Phenomena table fixture's fake `get_systems` takes the keyset `after` argument (TEST.142); the installer test pins which checkout `planetgen` imports from, so it passes from a git worktree (TEST.143); the comet position test builds a system with comets by construction and a second test compares the generated and scene positions of 4,000 comets of both orbit types (TEST.130, not reproduced in 400 random systems and 60,000 comets, so it stays open until it recurs).
+
+## [8.0.1057] - 2026-10-14
+
+### Changed
+- **A round region is now one description of layer, ring and slot-arc ranges (MAP.151, first part).** The cylinder the radial fills cut (`--cylinder-sectors`, the Generate page's "radius (sectors)") is `planetgen/galaxy/region.py`: the layers either side of the centre's, the rings the circle reaches and, in each ring, one arc of slots that may wrap past slot 0 or be the whole ring. The fills read it instead of walking a sphere round the centre and discarding what falls outside the can, so a wide fill near the axis costs a few steps a ring. Its count is instant and it converts to the `Span` ranges the span fills use and to the two `BETWEEN` ranges SQL needs where an arc wraps. The sectors a fill picks are unchanged.
+
+## [8.0.1056] - 2026-10-14
+
+### Changed
+- TODO: GEN.211 (constants table instead of astropy at run time) and GEN.156 retired; PR #1310.
+
+## [8.0.1055] - 2026-10-14
+
+### Changed
+- The physical constants are a table in `physics/constants.py` (CODATA 2018 and IAU 2015 values) instead of being read from astropy, so astropy is no longer installed on a server: each process starts about 280 ms sooner and uses about 29 MB less, and the install is 53 MB smaller. No stored value changes. astropy stays in the `test` extra, where `test_astropy_constants.py` holds the table against astropy's own values (GEN.211).
+
+### Removed
+- The astropy and pyerfa run-time dependencies (`setup.py`, `install-python-deps.sh`, both lock files).
+
+## [8.0.1054] - 2026-10-14
+
+### Changed
+- Retired PERF.89 from the roadmap and noted a work-queue test sighting.
+
+## [8.0.1053] - 2026-10-14
+
+### Changed
+- The bright and massive star scatters work out each ring's population densities as one NumPy array instead of one call per angle bin (PERF.89). The numbers agree with the one-point form to 1e-12 relative (NumPy's exp, log and cos differ from the maths library's in the last digit or two), so a progress-bar estimate or a star's bin weight can move in the 16th digit.
+
+## [8.0.1052] - 2026-10-14
+
+### Fixed
+- A fresh install no longer breaks every page that shows rendered Markdown (system descriptions, the population text): `markdown` 3.11.1 removed two inline patterns the renderer named as required, and the renderer now removes only the ones the installed release has.
+
+## [8.0.1051] - 2026-10-14
+
+### Changed
+- A test now fails when a page under docs/ holds Jinja or Liquid delimiters outside a raw block, which is what stopped the docs site from building.
+
+## [8.0.1050] - 2026-10-14
+
+### Changed
+- Recorded the split of the two Galaxy Map data items into smaller steps.
+
+## [8.0.1049] - 2026-10-14
+
+### Changed
+- **The Galaxy Map's tiles are sent packed (MAP.159).** A tile was JSON, about 150 bytes a star (28 gzipped). It is now a packed tile, 20 bytes a star (about 12 gzipped): positions as 16-bit steps inside the tile's own span, luminosity, temperature and radius as log codes, the star class as its letter, and the id as a number or a printed ID. Clouds and point objects stay JSON inside the tile. The tile cache stores the packed bytes (`.bin` files) and `/galaxy/tiles` sends them one after the other behind a small JSON header, as `application/vnd.planetgen.tiles`; the example Apache and nginx configs compress that type. The browser keeps the packed bytes in its IndexedDB store (about seven times more tiles in the same space) and reads them with `static/tilepack.js`. The cache stamp changes with the release, so every cache refills once. A star's position is exact to under a hundredth of a pixel at the zoom its tile is used, its luminosity to 0.06%, its temperature to 2% and its radius to 4%. The page now reads `charted` where a star's `system_id` was.
+
+## [8.0.1048] - 2026-10-14
+
+### Changed
+- Retired MAP.154 from the roadmap.
+
+## [8.0.1047] - 2026-10-14
+
+### Changed
+- **A Galaxy Map tile's bright-star list now holds every star its parent listed inside it (MAP.154).** The lists used an equal share per population and three height bands, so a child tile could drop a star its parent showed, and the zoom fade had to cover for it. Every tile level now ranks the pre-placed bright stars by one key, luminosity times a population weight (young 1, intermediate 10, old and bulge 400, so an old giant at 2,500 Lsun ranks beside a young star at a million), and a tile inside another lists all of the outer tile's stars in its box. The rank fade is now exact. Old giants still appear, but a crowd of young stars of high enough luminosity can now outrank them in a tile.
+
+## [8.0.1046] - 2026-10-14
+
+### Changed
+- Retired PERF.87 and PERF.90 from the roadmap.
+
+## [8.0.1045] - 2026-10-14
+
+### Changed
+- Retired UX.95 from the roadmap and noted two more browser-map test sightings.
+
+## [8.0.1044] - 2026-10-14
+
+### Changed
+- Placing a system or compact remnant in a sector now tests the new position against every neighbour as one NumPy array instead of one distance call each; the same random numbers are drawn in the same order, so the placed positions and the stored galaxy are identical (PERF.87).
+- The ring centerline length is cached like the ring and slot counts already were (PERF.90).
+
+## [8.0.1043] - 2026-10-14
+
+### Changed
+- **A table paints its rows first and fills the filter-menu counts a moment later.** The first page used to ask for the filter-menu counts in the same request, so a slow count held the rows back. The rows now come on their own; the menus show "..." in place of their counts after a sort or filter change and fill in when their own request answers (and ask again by themselves if the database is busy).
+
 ## [8.0.1042] - 2026-10-14
 
 ### Changed

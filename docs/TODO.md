@@ -501,18 +501,6 @@ with `clamp()`.
   any of it (UX.93).
   Prerequisite: MAP.168. Related: MAP.167, UX.93.
 
-- [ ] **UX.95 Tables show their rows first and fill the filter-menu counts a moment later**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): the first page of a table asks for
-  the filter-menu counts (`facets=1`) in the same request, so a slow
-  count holds the rows back. Done: `static/datatable.js` fetches the
-  first rows without `facets=1`, paints them at once, then fetches the
-  menus in a second request and shows "..." in place of the counts until
-  they arrive. Owner: Bugfixes lane 2, after what it has queued.
-  Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **UX.97 Search results: each panel runs under its own time limit and is fetched on its own**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
   #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
@@ -933,13 +921,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the small wire format steps, no prerequisites), then MAP.153 and
   MAP.149 (client side only, no prerequisites), then MAP.148 (needs
   MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
-  MAP.154 (needs MAP.153), MAP.159 (packed binary tiles; needs MAP.154
-  and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
-  keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
-  MAP.150 and MAP.154); this umbrella closes last.
+  MAP.159 (packed binary tiles; needs MAP.158; one cache stamp bump with
+  MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
+  and MAP.150); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
   Prerequisites: MAP.150, MAP.151, MAP.152, MAP.153,
-  MAP.154, MAP.155, MAP.157, MAP.159. Related:
+  MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -1054,6 +1041,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pyramid accepting cells 0.84
   to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
   sizes?
+  Split (Foundations lane 2, 2026-10-14): each piece merges on its own
+  green suite, in this order. MAP.151a: the round-region description
+  (centre sector, width, height) as layer, ring and slot-arc ranges that
+  wrap past slot 0, with an instant count (the lane starts here).
+  MAP.151b: the 3-ary block ladder 729/243/81/27/9/3/1 replacing
+  drill.py and galaxyprisms.js, with stage cache keys and one cache
+  stamp bump. MAP.151c: per-level aggregates and the window query.
+  MAP.151d: the map reads the windows. None of it is visible until
+  Boss's installer is fixed (issue #1211 stays open until he tests).
   Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
   GEN.126, MAP.131, MAP.134, MAP.146.
   Dependency (2026-10-09, fly-through-view-distance.md): The region data
@@ -1072,6 +1068,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Note (2026-10-09): From ADM.31 (PR #942, 2026-10-10): the 'made' rings
   on the Galaxy Map cover only the first 2,000 sectors of a run; the
   region data layer should replace that cap with ranges.
+  Status (2026-10-09): MAP.151a done (Foundations lane 2, 2026-10-14,
+  #1312): planetgen/galaxy/region.py holds the round region as layer,
+  ring and wrapping slot-arc ranges (count, Span conversion, SQL
+  ranges); the radial fills use it. MAP.151b to d remain; next is
+  MAP.151c.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1084,9 +1085,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   close range. Includes the distance-cut tile choice that completes the
   visibility law.
   Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
-  tiles need MAP.154 (nested server lists: a child tile must contain the
-  parent's stars in its box).
-  Prerequisites: MAP.150, MAP.154. Related: MAP.102, MAP.125,
+  tiles need the nested server lists (MAP.154, merged in #1303: a child
+  tile contains the parent's stars in its box).
+  Split (Foundations lane 2, 2026-10-14): MAP.152 server, then client.
+  Server: drop the generated_star_floor_sol brightness floors, settle
+  the 400-star cap, and choose tiles by distance. Client: the
+  cross-fades with hysteresis and the per-tile origins.
+  Prerequisite: MAP.150. Related: MAP.102, MAP.125,
   MAP.146.
   Foundations lane 2 (2026-10-10, MAP.148 first
   stage, PR #1160): MAP.148 is retired as built. The client-side law
@@ -1098,27 +1103,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
   2 flagged.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
-
-- [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
-  Source: docs/design/zoom-star-visibility.md (3 scheme J, section 5
-  stage 2). Done: the bright lists use one key for every tile level (a
-  population weight in the key instead of equal-share picking) and the
-  per-level budgets never fall, so a child list always holds the
-  parent's stars inside its box and the rank fade of the previous item
-  is exact instead of degrading gracefully. This changes the tile cache
-  stamp. The key and list shapes are decided together with MAP.147 (wire
-  format) and MAP.151 (region data layer), and with MAP.148 if the
-  magnitude law changes what a tile lists. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default build it only after MAP.153 is seen
-  working): go ahead?
-  Wire format (2026-10-09, galaxy-map-wire-format.md): MAP.147's
-  investigation is done (docs/design/galaxy-map-wire-format.md): the
-  packed binary tile format ships with these nested lists as MAP.159, on
-  one cache stamp bump, so list order is rank. (The planned omission of
-  stars a coarser tile already sent is not part of MAP.159: see the
-  follow-up item MAP.195.)
-  Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
-  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
@@ -1149,13 +1133,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finer tile does not omit the stars a coarser tile already sent, because
   the page would need the parent tile in hand for every child; that
   saving, 31 to 43% of bright records at levels 3 to 6 and all at 7 to
-  12, is the follow-up item MAP.195.) It ships together with MAP.154 (the nested lists)
-  and MAP.151's tile keys so the cache is invalidated once. Decided
+  12, is the follow-up item MAP.195.) It ships together with MAP.151's tile keys so the cache is invalidated
+  once (MAP.154, the nested lists, merged in #1303). Decided
   (Boss, 2026-10-10 18:44Z, defaults approved; default yes, with MAP.154
-  and MAP.151 on one bump):
+  merged and MAP.151 on one bump):
   go ahead?
-  Prerequisite: MAP.154. Related: MAP.147, MAP.154, MAP.151,
-  MAP.153, MAP.157.
+  Related: MAP.147, MAP.151, MAP.153, MAP.157.
   Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
   Lane 3 and Research Lane 2: x/y/z uint16 inside the tile cube, log
   luminosity uint16, log temperature and radius uint8, class and flags
@@ -1300,7 +1283,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class and cover, updated when a nebula is stored. Done: the
   aggregates, and a Monte Carlo check that the stored cover is within 5%
   of the true cover. Owner: Foundations lane 1, with MAP.151.
-  Prerequisites: MAP.151, DB.24. Related: MAP.159, MAP.154.
+  Prerequisites: MAP.151, DB.24. Related: MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
@@ -1315,7 +1298,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
   the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
   with MAP.151 and MAP.159.
-  Prerequisites: DB.24, MAP.172, MAP.154. Related: MAP.147, MAP.151,
+  Prerequisites: DB.24, MAP.172. Related: MAP.147, MAP.151,
   MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -1536,7 +1519,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so a child never draws without them, with a test that a tile and its
   parents together hold exactly the stars the full list holds. Measure
   the saving against the cost of holding the parents before building it.
-  Prerequisites: MAP.159. Related: MAP.154, MAP.159.
+  Prerequisite: MAP.159. Related: MAP.159.
+
+- [ ] **MAP.196 galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug)**
+  Reported by the Test Suite Rebuild thread via the coordinator
+  (2026-10-14, from TEST.125, #1313): since the object ID change
+  (80-bit, 20 hex digits) systemnav.js only accepted number-only
+  references, so the System Map's Start Here and End Here buttons
+  vanished from every body's info panel; that is fixed. galaxystages.js
+  still reads the system= and object= parts of a sector link as digits
+  only and may have the same problem. Done: every place in the browser
+  code that parses a system or object reference accepts the current ID
+  form (hex digits), checked by grep and by a test that opens a sector
+  link carrying a hex object ID; no other digits-only reference parser
+  is left behind. Owner: Bugfixes lane 2 or the next lane taking
+  JavaScript fixes.
+  Prerequisites: none.
 
 ## NAV: Navigation and courses
 
@@ -3156,23 +3154,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **GEN.156 Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up)**
-  `requirements.lock` resolves astropy 6.0.1 (Python 3.9), 6.1.7 (3.10)
-  and 8.0.1 (3.11+), and 8.0 defaults to CODATA 2022 (the proton and
-  electron masses differ by about 1.4e-9). Done:
-  `astropy.physical_constants` pinned to CODATA 2018 and
-  `astropy.astronomical_constants` to IAU 2015 before the first astropy
-  import, with tests that the constants agree to 1e-12 across the
-  supported interpreters, and the `HYDROGEN_ATOM_MASS_KG` tolerance in
-  `test_astropy_constants.py` tightened from 1e-4 to 1e-12 (the loose
-  one hides the difference). May be done by the deterministic math
-  helpers' frozen constants.
-  Math Research (2026-10-14): GEN.211 drops astropy at run time for a
-  constants table, which makes this pin moot; GEN.156 is retired when GEN.211
-  merges.
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
 - [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
   One Alembic revision, no change to existing tables, and the data file
   checked against McConnachie 2012 (VizieR J/AJ/144/4) and NED. Hold
@@ -3571,24 +3552,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after the repeatable-galaxy chain starts.
   Prerequisites: none. Related: GEN.24, ADM.30, GEN.135, OPS.37.
 
-- [ ] **GEN.211 Constants table instead of astropy: faster start, 29 MB less memory per process**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md). `physics/constants.py` is
-  astropy's only user (about 20 constants). Decided (Boss, 2026-10-14
-  13:00Z): drop astropy at run time. The double check is done: under astropy
-  6.0.1, 6.1.7 and 8.0.1 `constants.py` gives identical values for 89 of 90
-  numbers, and only HYDROGEN_ATOM_MASS_KG differs (1.35e-9), so astropy
-  does us no good. Done: the table is generated once from the pinned
-  CODATA 2018 and IAU 2015 values; astropy leaves setup.py,
-  install-python-deps.sh (REQUIREMENTS table and NUMPY_STACK) and
-  test_install_python_deps.py NUMPY_LINKED but stays in the `test` extra so
-  `test_astropy_constants.py` still checks the table; no stored value
-  changes; the change note says it removes a dependency. Saves 280 ms and
-  29 MB per process start and 53 MB of install. Replaces GEN.156. Owner:
-  Foundations lane 1.
-  Prerequisites: none. Related: GEN.156, GEN.66.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
-
 - [ ] **GEN.212 Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update)**
   Math Research (2026-10-14;
   docs/design/math-and-library-efficiency.md).
@@ -3932,20 +3895,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
   ADM.15, PERF.24.
 
-- [ ] **PERF.87 Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md).
-  `SpaceSector._random_position` walks `_massive_neighbors()` and calls
-  `distance_between` for each (919,000 calls in the benchmark fill).
-  PERF.81 fixed the nearest-neighbour list; this loop is separate. Done:
-  the check runs on NumPy arrays of positions and required separations,
-  drawing the same random numbers in the same order so the placed
-  positions, and the stored galaxy, are identical (a test compares a
-  fill before and after), measured with the PERF.31 benchmark. Owner:
-  Foundations lane 1, near its PERF items.
-  Prerequisites: none. Related: PERF.31.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
-
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
   Math Research (2026-10-14;
   docs/design/math-and-library-efficiency.md).
@@ -3964,28 +3913,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   user (as OPS.42 does), by keeping it out of the web app's import path or by
   writable `__pycache__` directories, with a test.
   Related: PERF.31, GEN.105.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
-
-- [ ] **PERF.89 Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s)**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md). `bright_stars._ring_bins`
-  and `layer_expected_stars` call `density.population_densities` 556,000
-  times (7.9 us each); `total_density_array` is 47 times faster per
-  point. Done: both stages call the array form, the expected counts
-  unchanged to the last digit (a test compares them), timings recorded
-  with the benchmark. Owner: Foundations lane 1, near its PERF items.
-  Prerequisites: none. Related: PERF.58, PERF.31.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
-
-- [ ] **PERF.90 Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill)**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md).
-  `geometry.ring_sector_count`, `ring_master_count` and
-  `_ring_centerline_edges` cost 1.15 us a call, 0.064 us when cached.
-  Done: they are cached (a one-line change each), with identical
-  results. Owner: Foundations lane 1, in the same PR as the placement
-  loop item.
-  Prerequisites: none. Related: PERF.87.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
@@ -4789,30 +4716,6 @@ clears each one.
   product, not test luck. Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
-- [ ] **TEST.125 Three browser-map tests fail on main with "no generated system has a moon" (bug)**
-  Bugfixes lane 2 (2026-10-10, found in NAV.9's full suite):
-  test_selection_drill, test_3d_view_draws and test_body_link_opens in
-  tests/test_web_browser_maps.py fail on main with "no generated system
-  has a moon". The fixture galaxy has no system with a moon, so it looks
-  like a fixture problem, not a product bug. Find out whether a seed
-  change (the scatter or object-first sampler work) removed the moons,
-  and fix the fixture so the tests do not depend on luck; never skip
-  them. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 1 in the thread's order; the fixture
-  must contain a moon by construction (it failed in the thread's
-  baseline too). Owner: the Test Suite Rebuild thread.
-  Note (2026-10-10): the names that fail on main (Foundations lane 2,
-  20:50Z; they fail on plain main in a clean worktree
-  and also alone, so they are not load flakes):
-  tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure
-  (assert None ... re.fullmatch('/nav?from=moon:d+', '')),
-  ::test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram
-  and ::test_a_body_link_opens_highlights_and_selects_it ("no generated
-  system has a moon"). The three names above in the title are the
-  earlier shorthand.
-  Prerequisites: none. Related: TEST.111, TEST.122.
-
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
   Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
   test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
@@ -4863,7 +4766,12 @@ clears each one.
   Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
   tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
   failed once in the NAV.9 run under load, passed alone.
-  Prerequisites: none. Related: TEST.111, TEST.121, TEST.122, TEST.125.
+  Sighting (Bugfixes lane 2, 2026-10-14, full suite of 50 min 43 s with
+  UX.95): tests/test_web_browser_maps.py::test_galaxy_map_buttons (a
+  playwright error) and ::test_nav_ends_picked_from_bookmarks_on_every_page
+  failed once and pass alone, not checked on main. Same family; the
+  rebuild's captured traceback and serial re-run tell load from real.
+  Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-10 20:50Z):
@@ -4898,6 +4806,10 @@ clears each one.
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: the Test Suite Rebuild
   thread.
+  Sighting (Foundations lane 1, 2026-10-14, full suite of 39 min 51 s
+  with PERF.89): tests/test_work_queue_admin.py::
+  test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
+  passes alone: the same parallel-run family on the shared database.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -4919,6 +4831,10 @@ clears each one.
   implement, one small PR, number 4 in the thread's order; the stored
   last-updated time is compared the way MySQL 8.4 rounds it; the thread
   installs MySQL 8.4 to verify. Owner: the Test Suite Rebuild thread.
+  Status (2026-10-09): Fixed by the Test Suite Rebuild thread
+  (2026-10-14, #1313, suite green): the stored last-updated time is
+  compared the way MySQL 8.4 rounds it. Retire this item once the
+  scheduled MySQL 8.4 CI run on main is green.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -4938,6 +4854,10 @@ clears each one.
   implement, one small PR, number 5 in the thread's order; the test
   draws a system with a comet every time. Owner: the Test Suite Rebuild
   thread.
+  Status (2026-10-09): Test Suite Rebuild thread (2026-10-14, #1313):
+  not reproducible; the test now builds comets by construction so it
+  exercises the comet path every time. Stays open until the cause is
+  found or five clean full runs pass.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -5138,40 +5058,6 @@ clears each one.
   the captured traceback on recurrence. Owner: the Test Suite Rebuild
   thread.
   Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
-
-- [ ] **TEST.142 test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug)**
-  Reported by the coordinator from Bugfixes lane 1 (2026-10-14 13:11Z,
-  PERF.67 suite, 50 min):
-  tests/test_web_browser_tables.py::test_a_table_keeps_its_sort_and_filter_across_a_reload
-  fails on main because its fake `get_systems` does not accept the
-  `after` argument added by PERF.75's keyset paging. Done: the fake
-  takes the new argument (or the test uses the real function) so the
-  test passes without loosening what it checks, and a grep shows no
-  other fake of a paged reader is left behind. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 2 in the thread's order; the fake
-  get_systems gets the `after` parameter, plus a search for other fakes
-  of a paged reader (the lane's 14:03Z run failed on it too). Owner: the
-  Test Suite Rebuild thread.
-  Prerequisites: none. Related: PERF.75, TEST.126.
-
-- [ ] **TEST.143 test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug)**
-  Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite, plain
-  main 8.0.998):
-  tests/test_install_python_deps.py::test_install_checkout_leaves_a_current_editable_install_alone
-  asserts that no pip call happens, but one does ('-m pip install
-  --quiet --no-deps -e /tmp/wt-...') when the suite runs from a git
-  worktree, because the container's editable install points at
-  /home/user/planetGen, not at the checkout. Probably an environment
-  artifact, not a product bug. Done: the test pins its own install
-  location (a temporary checkout and a stub for the installed package's
-  path) so it passes from any checkout and any worktree, without
-  loosening what it checks. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 3 in the thread's order; the test pins
-  the install location, so it passes from a git worktree. Owner: the
-  Test Suite Rebuild thread.
-  Prerequisites: none. Related: TEST.142.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite -n 4,

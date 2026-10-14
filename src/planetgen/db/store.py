@@ -8364,11 +8364,17 @@ def orbit_clock(conn, elapsed_years=None):
 def finish_orbit_update(conn, clock):
     """Records `clock.end_unix` as the time every stored position without its
     own epoch holds (`orbit_simulation_state.last_updated_at`): the start of
-    the next update. `planetgen.cli.orbits` calls it after the last step."""
+    the next update. `planetgen.cli.orbits` calls it after the last step.
+
+    The column holds whole seconds. MariaDB drops a fraction on insert but
+    MySQL 8.4 rounds it, which could store a second after "now" and make the
+    next run read a clock that went backwards (TEST.129), so the fraction
+    is dropped here, the same way on both."""
+    whole_seconds = math.floor(clock.end_unix)
     conn.execute(
         "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, FROM_UNIXTIME(?)) "
         "ON DUPLICATE KEY UPDATE last_updated_at = FROM_UNIXTIME(?)",
-        (clock.end_unix, clock.end_unix),
+        (whole_seconds, whole_seconds),
     )
     conn.commit()
 

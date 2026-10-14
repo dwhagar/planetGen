@@ -1641,89 +1641,89 @@ def _bright_row_at(z_pc, luminosity_sol, slot=1):
             luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)
 
 
-def test_bright_stars_in_a_tall_box_span_the_heights_it_reaches(mysql_config):
-    """GEN.117: a crowd of luminous stars on the plane no longer crowds out
-    the dimmer old giants above and below it."""
-    from planetgen.db import query as queryDb
-
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
-                         " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
-                         " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
-                         " expected_system_count_at_density_1, outer_ring_index)"
-                         " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
-            # One star per layer (4 pc apart), so every address is its own.
-            rows = [_bright_row_at(4.0 * n, 5000.0 + n) for n in range(60)]
-            rows += [_bright_row_at(400.0 + 4.0 * n, 1500.0) for n in range(10)]
-            rows += [_bright_row_at(-400.0 - 4.0 * n, 1400.0) for n in range(10)]
-            store.insert_bright_stars(conn, rows)
-        lo, hi = (0.0, 0.0, -1000.0), (100.0, 100.0, 1000.0)
-        picked = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=20)
-        heights = sorted(star["z"] for star in picked)
-        assert len(picked) == 20
-        assert sum(z > 250 for z in heights) == 5 and sum(z < -250 for z in heights) == 5, heights
-        assert [s["luminosity_sol"] for s in picked] == sorted((s["luminosity_sol"] for s in picked), reverse=True)
-        # A box inside the plane's band picks the brightest as before.
-        flat = queryDb.galaxy_bright_stars_in_box(conn, (0.0, 0.0, -100.0), (100.0, 100.0, 100.0), 4.0, limit=20)
-        assert len(flat) == 20 and all(abs(s["z"]) < 100 for s in flat)
-        # Few stars off the plane leave their room to the plane.
-        tall = queryDb.galaxy_bright_stars_in_box(conn, (0.0, 0.0, 300.0), (100.0, 100.0, 1000.0), 4.0, limit=20)
-        assert len(tall) == 10 and all(s["z"] > 250 for s in tall)
-    finally:
-        conn.close()
-
-
-def test_every_population_is_listed_beside_the_brighter_young_stars(mysql_config):
-    """A crowd of luminous young stars no longer crowds out the dimmer stars
-    of the bulge and the thick disk, in the galaxy-wide sample or in a tile
-    (whether the tile reads its own addresses or walks the luminosity
-    index)."""
-    from planetgen.db import query as queryDb
-
+def _bright_galaxy(conn):
+    """Four populations over several heights, with luminosities near each one's top so their
+    weighted keys (`BRIGHT_STAR_POPULATION_WEIGHT`) compete."""
     def row(z_pc, luminosity_sol, population, slot):
         stored = list(_bright_row_at(z_pc, luminosity_sol, slot))
         stored[6] = population
         return tuple(stored)
 
+    with conn:
+        conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
+                     " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
+                     " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
+                     " expected_system_count_at_density_1, outer_ring_index)"
+                     " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
+        rows = [row(4.0 * n, 9.5e5 + 1000.0 * n, "young", 1) for n in range(40)]
+        rows += [row(4.0 * n, 2500.0 + 5.0 * n, "bulge", 2) for n in range(10)]
+        rows += [row(-4.0 * n, 2400.0 + 5.0 * n, "old", 3) for n in range(10)]
+        rows += [row(400.0 + 4.0 * n, 2300.0 + 5.0 * n, "old", 4) for n in range(10)]
+        rows += [row(8.0 * n, 3000.0 + n, "intermediate", 5) for n in range(10)]
+        store.insert_bright_stars(conn, rows)
+
+
+def _weighted_top(stars, limit):
+    """What the lists must be, worked out here from the weights alone."""
+    from planetgen.db import query as queryDb
+
+    weight = queryDb.BRIGHT_STAR_POPULATION_WEIGHT
+    return [s["id"] for s in sorted(stars, key=lambda s: (-s["luminosity_sol"] * weight[s["population"]], -s["id"]))][:limit]
+
+
+def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_config):
+    """MAP.154: one key for every box -- an old giant that is 400 times fainter than a young star
+    ranks beside it -- in a tile that reads its own addresses, one that walks the luminosity index
+    and the galaxy-wide sample."""
+    from planetgen.db import query as queryDb
+
     conn = store.get_connection(mysql_config)
     try:
-        with conn:
-            conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
-                         " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
-                         " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
-                         " expected_system_count_at_density_1, outer_ring_index)"
-                         " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
-            rows = [row(4.0 * n, 50000.0 + n, "young", 1) for n in range(40)]
-            rows += [row(4.0 * n, 1500.0 + n, "bulge", 2) for n in range(10)]
-            rows += [row(-4.0 * n, 1400.0 + n, "old", 3) for n in range(10)]
-            rows += [row(400.0 + 4.0 * n, 1300.0 + n, "old", 4) for n in range(10)]
-            store.insert_bright_stars(conn, rows)
-
-        def populations(stars):
-            return sorted({star["population"] for star in stars})
-
-        sample = queryDb.galaxy_brightest_stars(conn, 8)
-        assert populations(sample) == ["bulge", "old", "young"], populations(sample)
-        assert sum(star["population"] == "young" for star in sample) <= 4 + 4
-        assert [s["luminosity_sol"] for s in sample] == sorted((s["luminosity_sol"] for s in sample), reverse=True)
-
-        for lo, hi in [((0.0, 0.0, -200.0), (100.0, 100.0, 200.0)), ((-5000.0, -5000.0, -200.0), (5000.0, 5000.0, 200.0))]:
+        _bright_galaxy(conn)
+        for lo, hi in [((0.0, 0.0, -1000.0), (100.0, 100.0, 1000.0)), ((-5000.0, -5000.0, -1000.0), (5000.0, 5000.0, 1000.0)),
+                       ((0.0, 0.0, 300.0), (100.0, 100.0, 1000.0))]:
+            everything = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=1000)
             picked = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=12)
-            assert len(picked) == 12
-            assert {"young", "bulge", "old"} <= set(populations(picked)), (lo, populations(picked))
-            assert sum(star["population"] == "young" for star in picked) <= 6
-        # Past the row budget the galaxy-wide sample answers instead, still sharing the picks out.
+            assert [s["id"] for s in picked] == _weighted_top(everything, 12), (lo, hi)
+        wide = queryDb.galaxy_bright_stars_in_box(conn, (-5000.0, -5000.0, -1000.0), (5000.0, 5000.0, 1000.0), 4.0, limit=30)
+        assert {"young", "bulge", "old"} <= {s["population"] for s in wide}, "the old giants are listed beside the young stars"
+        sample = queryDb.galaxy_brightest_stars(conn, 12)
+        assert [s["id"] for s in sample] == _weighted_top(sample, 12)
         old_budget = queryDb.GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET
         queryDb.GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = 0
         try:
-            lo, hi = (0.0, 0.0, -200.0), (100.0, 100.0, 200.0)
+            lo, hi = (0.0, 0.0, -1000.0), (100.0, 100.0, 1000.0)
             sampled = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=12,
                                                          brightest=lambda: queryDb.galaxy_brightest_stars(conn, 60))
-            assert {"young", "bulge", "old"} <= set(populations(sampled)), populations(sampled)
+            everything = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=1000)
+            assert [s["id"] for s in sampled] == _weighted_top(everything, 12)
         finally:
             queryDb.GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = old_budget
+    finally:
+        conn.close()
+
+
+def test_a_child_tile_lists_every_star_of_its_parent_inside_it(mysql_config):
+    """MAP.154: the bright lists are nested -- walking down a chain of boxes, each box lists all
+    the stars of the one around it that lie inside it (the budget never falls)."""
+    from planetgen.db import query as queryDb
+
+    conn = store.get_connection(mysql_config)
+    try:
+        _bright_galaxy(conn)
+        chain = [((-5000.0, -5000.0, -1000.0), (5000.0, 5000.0, 1000.0)),
+                 ((-200.0, -200.0, -1000.0), (200.0, 200.0, 1000.0)),
+                 ((0.0, 0.0, -1000.0), (100.0, 100.0, 1000.0)),
+                 ((0.0, 0.0, -100.0), (100.0, 100.0, 100.0))]
+        shared = 0
+        for limit in (6, 12, 40):
+            lists = [queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=limit) for lo, hi in chain]
+            for (parent_lo, parent_hi), parent, (child_lo, child_hi), child in zip(chain, lists, chain[1:], lists[1:]):
+                inside = [s["id"] for s in parent
+                          if all(child_lo[a] <= s[k] < child_hi[a] for a, k in enumerate(("x", "y", "z")))]
+                shared += len(inside)
+                assert set(inside) <= {s["id"] for s in child}, (limit, child_lo, child_hi)
+        assert shared > 20, "the chain keeps stars from level to level"
     finally:
         conn.close()
 
@@ -1776,3 +1776,16 @@ def test_linking_in_small_batches_gives_the_same_lists_as_one_batch(mysql_config
     assert lists() == whole and whole
     assert len({done for done, _total, _label in steps}) > 8  # the bar moves every two sectors, not once at the end
     assert edge_ly > 0
+
+
+@pytest.mark.parametrize("end_unix, stored", [(1_800_000_000.9, 1_800_000_000), (1_800_000_000.5, 1_800_000_000),
+                                              (1_800_000_000.0, 1_800_000_000)])
+def test_the_orbit_update_stores_the_whole_second_not_a_rounded_up_one(mysql_config, end_unix, stored):
+    """TEST.129: MySQL 8.4 rounds a fraction on insert where MariaDB truncates, which stored a time up to half
+    a second ahead of the clock and made the next run read "in the future". The fraction is dropped by the code."""
+    conn = store.get_connection(mysql_config)
+    try:
+        store.finish_orbit_update(conn, store.OrbitClock(end_unix - 10, end_unix))
+        assert store.get_orbit_epoch_unix(conn) == stored
+    finally:
+        conn.close()

@@ -73,6 +73,7 @@ def fixtures():
         "shape": shape,
         "designations": designations,
         "orbitPositions": orbit_positions(),
+        "tilePack": tile_pack(),
         "galaxyControls": {
             "public": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view)),
             "admin": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view, generate={"url": "/x"})),
@@ -89,6 +90,40 @@ def orbit_positions():
     scene = sample_scene()
     return {"scene": scene, "cases": [{"years": y, "positions": positions_at(scene, y)}
                                       for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0)]}
+
+
+def tile_pack():
+    """MAP.159's packed `/galaxy/tiles` answer (`tilepack.pack_response`) of three
+    tiles -- stars with and without a temperature, radius, class and
+    system, an id past 32 bits, generated stars with printed IDs, clouds,
+    points, an incomplete tile, an empty one and one with mixed ids -- as base64, with the tiles
+    `tilepack.unpack_response` reads from it, for static/tilepack.js to
+    match."""
+    import base64
+    from planetgen.web.lib import tilepack
+
+    def star(star_id, x, y, z, luminosity, **rest):
+        return {"id": star_id, "x": x, "y": y, "z": z, "luminosity_sol": luminosity, **rest}
+
+    full = {
+        "clouds": [{"type": "nebula", "id": 4, "x": 1.0, "y": 2.0, "z": 3.0, "radius_pc": 5.5}],
+        "points": [{"type": "black_hole", "id": "0D01F3", "x": -1.5, "y": 0.25, "z": 9.0}],
+        "stars": [
+            star(7, 1234.567, -8000.125, 40.0, 1.2e5, temperature_k=21500, radius_sol=14.0, star_type="B", system_id=3),
+            star(2 ** 40 + 3, 1230.0, -7999.5, 41.5, 0.0004, star_type="M"),
+            star(9, 1240.25, -7990.0, 39.0, 3.0, temperature_k=5778, radius_sol=1.0, star_type="G"),
+        ],
+        "generated": [star("FE81000A2B-0000005-000", 1.0, 2.0, 3.0, 0.85, temperature_k=5200, star_type="K", system_id=12),
+                      star("FE81000A2B-0000006-000", 1.5, 2.0, 3.0, 0.5, star_type="M")],
+    }
+    parts = [("3/1/2/3", tilepack.pack_tile(full)),
+             ("3/1/2/4", tilepack.pack_tile({"stars": [star(1, 5.0, 5.0, 5.0, 1.0)], "incomplete": ["stars"]})),
+             ("3/1/2/5", tilepack.pack_tile({})),
+             ("3/1/2/6", tilepack.pack_tile({"stars": [star(3, 1.0, 1.0, 1.0, 1.0), star("odd", 2.0, 2.0, 2.0, 1.0)]}))]
+    body = tilepack.pack_response({"stamp": "0123456789abcdef", "generation": "g1", "edge_pc": 4.0}, parts)
+    header, tiles = tilepack.unpack_response(body)
+    return {"body": base64.b64encode(body).decode("ascii"), "header": header, "tiles": tiles,
+            "sizes": {key: len(raw) for key, raw in parts}}
 
 
 def star_light():

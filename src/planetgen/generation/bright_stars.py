@@ -53,7 +53,7 @@ import numpy as np
 
 from planetgen.physics import constants
 from planetgen import tuning
-from planetgen.galaxy.density import population_densities
+from planetgen.galaxy.density import population_densities, population_densities_array
 from planetgen.galaxy.geometry import (
     galaxy_to_local_pc,
     layer_bounds_pc,
@@ -152,6 +152,17 @@ def _densities(position_pc, shape):
     return {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
 
 
+def _densities_at(points, z, shape):
+    """`_densities` at each of `points` (`(x, y)` pairs at height `z`), as a list of dicts,
+    from one array evaluation (PERF.89)."""
+    if not points:
+        return []
+    xs, ys = zip(*points)
+    arrays = population_densities_array(np.array(xs), np.array(ys), z, shape)
+    columns = {population: np.maximum(array, 0.0).tolist() for population, array in arrays.items()}
+    return [{population: column[i] for population, column in columns.items()} for i in range(len(points))]
+
+
 def _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc):
     """Per angle bin, the population densities at the ring's centerline.
     No bin is zeroed for being sparse (GEN.78): every cell in the outline
@@ -160,12 +171,11 @@ def _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc):
     count = min(slots, ANGLE_BINS)
     radius = ring_radius_pc(ring_index, edge_pc)
     z = layer_center_z_pc(layer_index, edge_pc)
-    bins = []
+    points = []
     for k in range(count):
         theta = (k + 0.5) * 2 * math.pi / count
-        point = (radius * math.cos(theta), radius * math.sin(theta), z)
-        bins.append(_densities(point, shape))
-    return slots, bins
+        points.append((radius * math.cos(theta), radius * math.sin(theta)))
+    return slots, _densities_at(points, z, shape)
 
 
 def _place_one(rng, weights, ring_index, layer_index, slots, edge_pc):
@@ -331,10 +341,9 @@ def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_de
         bins = min(slots, angle_bins)
         radius = ring_radius_pc(ring_index, edge_pc)
         ring_expected = 0.0
-        for j in range(bins):
-            theta = (j + 0.5) * 2 * math.pi / bins
-            point = (radius * math.cos(theta), radius * math.sin(theta), z)
-            densities = _densities(point, shape)
+        points = [(radius * math.cos(theta), radius * math.sin(theta))
+                  for theta in ((j + 0.5) * 2 * math.pi / bins for j in range(bins))]
+        for densities in _densities_at(points, z, shape):
             ring_expected += sum(densities[population] * fractions[population] for population in POPULATIONS)
         expected += expected_at_density_1 * slots / bins * ring_expected * step
     return expected

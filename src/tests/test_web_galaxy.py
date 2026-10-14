@@ -24,6 +24,7 @@ from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
+from tests.tile_support import tile_payload  # noqa: E402
 from planetgen.db import store as _db  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
@@ -294,15 +295,15 @@ def test_tiles_endpoint_serves_and_caches(client, fake):
     query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1"
     first = client.get(query)
     assert first.status_code == 200
-    assert first.mimetype == "application/json"
+    assert first.mimetype == "application/vnd.planetgen.tiles"
     assert first.headers["Cache-Control"] == "no-store"
     assert first.headers["Content-Security-Policy"] == "default-src 'none'"
-    body = first.get_json()
+    body = tile_payload(first)
     assert set(body["tiles"]) == {"12/2048/2048/2048", "1/1/1/1"}
     assert body["cached"] == 0 and body["stamp"] == STAMP
     assert "history" in body  # no stamp sent: the browser gets the history
 
-    second = client.get(query + f"&stamp={STAMP}").get_json()
+    second = tile_payload(client.get(query + f"&stamp={STAMP}"))
     assert second["cached"] == 2
     assert second["tiles"] == body["tiles"]
     assert "history" not in second
@@ -661,10 +662,10 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     assert "Real &lt;Placed&gt;" in listing
 
     query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1"
-    first = db_client.get(query).get_json()
+    first = tile_payload(db_client.get(query))
     assert set(first["tiles"]) == {"12/2048/2048/2048", "1/1/1/1"}
     assert len(first["stamp"]) == 16
-    second = db_client.get(query).get_json()
+    second = tile_payload(db_client.get(query))
     assert second["cached"] == 2
     assert any(names for _root, _dirs, names in os.walk(tmp_path / "tiles"))
 

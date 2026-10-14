@@ -3798,147 +3798,73 @@ def uncharted_sector_contents(conn, ring_index, layer_index, ring_slot_index):
     return {"stars": stars, "scattered": scattered}
 
 
-def _stratified(stars, limit):
-    """
-    At most `limit` of `stars`, an equal share from each population: the
-    most luminous of each, a population with fewer than its share leaving
-    the rest to the others. Ranking all of them by luminosity alone puts
-    the young blue stars first and leaves no room for the old giants of
-    the bulge and the thick disk, which top out near 2,500 Lsun while a
-    young star reaches a million.
+BRIGHT_STAR_POPULATION_WEIGHT = {"young": 1.0, "intermediate": 10.0, "old": 400.0, "bulge": 400.0}
+"""dict: The map key of a bright star is its luminosity times its population's
+weight (MAP.154). Ranking by luminosity alone puts the young blue stars first
+and leaves no room for the old giants of the bulge and the thick disk, which
+top out near 2,500 Lsun while a young star reaches a million; the weights
+bring the top of each population to about the same key (400 x 2,500 =
+1,000,000). One key for every tile level is what makes the lists nested: a
+child tile lists every star its parent listed inside the child's box."""
 
-    Returns:
-        list[dict]: Most luminous first (ties by descending id).
+
+def _map_key(star):
+    """A bright star's rank key (`BRIGHT_STAR_POPULATION_WEIGHT`), larger is listed first."""
+    return star["luminosity_sol"] * BRIGHT_STAR_POPULATION_WEIGHT.get(star["population"], 1.0)
+
+
+def _top_by_key(stars, limit):
     """
-    groups = {}
-    for star in sorted(stars, key=lambda star: (-star["luminosity_sol"], -star["id"])):
-        groups.setdefault(star["population"], []).append(star)
-    picks, remaining = [], limit
-    # Smallest group first, so what it leaves unused is shared by the rest.
-    pending = sorted(groups.values(), key=len)
-    for index, group in enumerate(pending):
-        share = -(-remaining // (len(pending) - index))
-        picks += group[:share]
-        remaining -= min(len(group), share)
-    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
-    return picks
+    At most `limit` of `stars`, the highest `_map_key` first (ties by
+    descending id). The same key at every tile level, so the list of a tile
+    inside a bigger one holds all of the bigger one's stars inside it (as long
+    as its own limit is no smaller).
+    """
+    return sorted(stars, key=lambda star: (-_map_key(star), -star["id"]))[:limit]
 
 
 def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     """
-    The galaxy's most luminous bright stars of each population, most
-    luminous first (ties by descending id) -- `galaxy_tiles`' sample for
-    tiles too big to query on their own. One walk down
-    `idx_bright_stars_population` per population and height: the `count`
-    stars on the plane, split equally among the four populations, and half
-    as many 250 pc or more off it (GEN.117). Ranked together by
-    luminosity, the sample held only young stars: the old giants of the
-    bulge and the thick disk never reach the luminosity of the young
-    ones, so the bulge and everything off the plane's thin young layer
-    were missing from every zoomed-out tile.
+    The galaxy's bright stars with the highest map key
+    (`BRIGHT_STAR_POPULATION_WEIGHT`), highest first (ties by descending
+    id) -- `galaxy_tiles`' sample for tiles too big to query on their own.
+    One walk down `idx_bright_stars_population` per population and height:
+    the `count` most luminous of each, ranked together by the weighted key and
+    cut to `count` (the old giants never reach the young stars' luminosity, so
+    unweighted the sample held only young stars).
 
     Returns:
         list[dict]: As `galaxy_bright_stars_in_box`.
     """
-    def top(population, off_plane, limit):
-        return [
-            _bright_star_entry(row) for row in conn.execute(
-                """
-                SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
-                       radius_km, star_type, population, yerkes_class, ring_index, layer_index,
-                       ring_slot_index, star_system_id
-                FROM bright_stars FORCE INDEX (idx_bright_stars_population)
-                WHERE population = ? AND off_plane = ?
-                ORDER BY luminosity_w DESC, id DESC
-                LIMIT ?
-                """,
-                (population, off_plane, limit),
-            ).fetchall()
-        ]
-
     picks = []
-    for off_plane, total in ((0, int(count)), (1, int(count) // 2)):
-        limits = {population: -(-total // len(BRIGHT_STAR_POPULATIONS)) for population in BRIGHT_STAR_POPULATIONS}
-        found = {population: top(population, off_plane, limit) for population, limit in limits.items()}
-        # A population short of its share leaves the rest to those that
-        # filled theirs, once.
-        spare = total - sum(len(stars) for stars in found.values())
-        full = [population for population, stars in found.items() if len(stars) >= limits[population]]
-        if spare >= len(full) > 0:
-            for population in full:
-                found[population] = top(population, off_plane, limits[population] + spare // len(full))
-        for stars in found.values():
-            picks += stars
-    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
-    return picks
-
-
-BRIGHT_STAR_PLANE_HALF_THICKNESS_PC = 250.0
-"""float: A tile's bright stars are picked in three height bands (GEN.117):
-the plane, `|z|` below this, and the two sides above and below it. The
-Galaxy Map's old picks, the most luminous first, kept only the young blue
-stars on the plane and none of the old giants above it."""
-
-BRIGHT_STAR_OFF_PLANE_SHARE = 0.5
-"""float: The share of a tile's bright-star budget (`limit`) split between
-the bands off the plane, when the tile reaches them: each gets half of
-it, and the plane the rest. A band holding fewer stars than its share
-leaves the rest to the plane."""
-
-
-def _height_bands(lo, hi):
-    """The box `[lo, hi)` cut at the plane band's edges: `[(lo, hi, on_plane)]`,
-    only the bands the box reaches."""
-    edge = BRIGHT_STAR_PLANE_HALF_THICKNESS_PC
-    cuts = [-edge, edge]
-    bounds = [lo[2]] + [z for z in cuts if lo[2] < z < hi[2]] + [hi[2]]
-    bands = []
-    for bottom, top in zip(bounds, bounds[1:]):
-        bands.append(((lo[0], lo[1], bottom), (hi[0], hi[1], top), -edge <= bottom and top <= edge))
-    return bands
+    for population in BRIGHT_STAR_POPULATIONS:
+        for off_plane in (0, 1):
+            picks += [
+                _bright_star_entry(row) for row in conn.execute(
+                    """
+                    SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+                           radius_km, star_type, population, yerkes_class, ring_index, layer_index,
+                           ring_slot_index, star_system_id
+                    FROM bright_stars FORCE INDEX (idx_bright_stars_population)
+                    WHERE population = ? AND off_plane = ?
+                    ORDER BY luminosity_w DESC, id DESC
+                    LIMIT ?
+                    """,
+                    (population, off_plane, int(count)),
+                ).fetchall()
+            ]
+    return _top_by_key(picks, int(count))
 
 
 def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False,
                                brightest=None):
     """
-    The most luminous pre-placed bright stars (`bright_stars`) in the box
-    `[lo, hi)`, at most `limit` -- the stars the Galaxy Map draws before
-    (and after) their sectors are filled.
-
-    A box reaching beyond the galactic plane's band picks within each
-    height band (`BRIGHT_STAR_PLANE_HALF_THICKNESS_PC`) so the old giants
-    above and below the plane are not all crowded out by the young stars
-    on it (GEN.117): each band off the plane gets its share of `limit`
-    (`BRIGHT_STAR_OFF_PLANE_SHARE`), and what a band leaves unused goes
-    to the plane. See `_galaxy_bright_stars_in_band` for the rest.
-    """
-    bands = _height_bands(lo, hi)
-    if len(bands) == 1:
-        return _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest,
-                                            off_plane=0 if bands[0][2] else 1)
-    off = [band for band in bands if not band[2]]
-    share = int(limit * BRIGHT_STAR_OFF_PLANE_SHARE) // max(1, len(off))
-    picks = []
-    for band_lo, band_hi, on_plane in bands:
-        if not on_plane:
-            picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, share, unfilled_only, brightest,
-                                                  off_plane=1)
-    plane = [band for band in bands if band[2]]
-    room = limit - len(picks)
-    for band_lo, band_hi, _on in plane:
-        picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, room, unfilled_only, brightest,
-                                              off_plane=0)
-    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
-    return picks[:limit]
-
-
-def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest, off_plane):
-    """
-    The most luminous pre-placed bright stars in the box `[lo, hi)`, at
-    most `limit`, with no height banding (`galaxy_bright_stars_in_box`):
-    `off_plane` says which band the box is in (1 for 250 pc or more off
-    the plane). The picks are an equal share from each population, the
-    most luminous of each (`_stratified`).
+    The pre-placed bright stars (`bright_stars`) in the box `[lo, hi)` with
+    the highest map key (`BRIGHT_STAR_POPULATION_WEIGHT`), at most `limit` --
+    the stars the Galaxy Map draws before (and after) their sectors are
+    filled. The key is the same for every box, so the list of a box inside a
+    bigger one holds all of the bigger one's stars inside it whenever its
+    `limit` is no smaller (MAP.154).
 
     `bright_stars` is indexed by address and by luminosity, not by
     position, so the box is turned into address ranges: one per ring and
@@ -3962,10 +3888,10 @@ def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, br
             more than `GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET` rows either way,
             the answer is the sample's stars inside the box instead: the
             same stars whenever the sample holds `limit` of them there,
-            else only those (thinned by luminosity).
+            else only those.
 
     Returns:
-        list[dict]: Most luminous first (ties by descending id): `id`, `x`/`y`/`z` (parsecs),
+        list[dict]: Highest key first (ties by descending id): `id`, `x`/`y`/`z` (parsecs),
             `luminosity_sol`, `temperature_k`, `radius_sol`, `star_type`,
             `yerkes_class`, `ring_index`, `layer_index`,
             `ring_slot_index` and `system_id` (the star's system once its
@@ -4010,7 +3936,7 @@ def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, br
             if all(math.ceil(lo[a] * MPC_PER_PC) <= round(star[k] * MPC_PER_PC) < math.ceil(hi[a] * MPC_PER_PC)
                    for a, k in enumerate(("x", "y", "z"))):
                 found.append(star)
-        return _stratified(found, limit)
+        return _top_by_key(found, limit)
 
     columns = ("id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km, "
                "star_type, population, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id")
@@ -4019,17 +3945,19 @@ def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, br
     # sort every star in the box first, millions in a zoomed-out tile.
     order = "luminosity_w DESC, id DESC"
     if by_luminosity < by_address:
-        # One walk per population down (population, off_plane, luminosity),
-        # each stopping at `limit`: a single walk down the luminosity index
-        # would meet only young stars (`_stratified`).
+        # One walk per population and height down (population, off_plane,
+        # luminosity), each stopping at `limit`: a single walk down the
+        # luminosity index would meet only young stars (the weights of
+        # `BRIGHT_STAR_POPULATION_WEIGHT` apply once they are merged).
         selects, params = [], []
         for population in BRIGHT_STAR_POPULATIONS:
-            selects.append(
-                f"(SELECT {columns} FROM bright_stars FORCE INDEX (idx_bright_stars_population) "
-                f"WHERE population = ? AND off_plane = ? AND {box} ORDER BY {order} LIMIT ?)")
-            params += [population, off_plane] + box_params + [int(limit)]
+            for off_plane in (0, 1):
+                selects.append(
+                    f"(SELECT {columns} FROM bright_stars FORCE INDEX (idx_bright_stars_population) "
+                    f"WHERE population = ? AND off_plane = ? AND {box} ORDER BY {order} LIMIT ?)")
+                params += [population, off_plane] + box_params + [int(limit)]
         rows = conn.execute(" UNION ALL ".join(selects), params).fetchall()
-        return _stratified([_bright_star_entry(row) for row in rows], limit)
+        return _top_by_key([_bright_star_entry(row) for row in rows], limit)
     clauses, params = [], []
     exact = sum(t - b + 1 for _r, b, t in bands) <= BRIGHT_STAR_MAX_EXACT_RANGES
     for ring, bottom, top in bands:
@@ -4041,7 +3969,7 @@ def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, br
             clauses.append(f"(ring_index = ? AND layer_index BETWEEN ? AND ? AND ({slot_test}))")
             params += [ring, first, last] + slot_params
     # The address path reads the box's stars once and keeps the `limit`
-    # most luminous of each population.
+    # most luminous of each population, then the `limit` of highest key.
     rows = conn.execute(
         f"""
         SELECT * FROM (
@@ -4054,7 +3982,7 @@ def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, br
         """,
         params + box_params + [int(limit)],
     ).fetchall()
-    return _stratified([_bright_star_entry(row) for row in rows], limit)
+    return _top_by_key([_bright_star_entry(row) for row in rows], limit)
 
 
 GALAXY_TILE_MAX_GENERATED_STARS = 1000

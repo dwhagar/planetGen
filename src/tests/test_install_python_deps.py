@@ -246,7 +246,7 @@ def test_server_lock_has_the_app_servers():
 
 # --- OPS.26: the NumPy stack comes from one place ------------------------------
 
-NUMPY_LINKED = {"numpy", "scipy", "astropy", "scikit-image", "numba"}
+NUMPY_LINKED = {"numpy", "scipy", "scikit-image", "numba"}
 """Runtime requirements with compiled code built against NumPy's C API."""
 
 
@@ -260,14 +260,14 @@ def _numpy_stack():
 def test_the_numpy_stack_lists_every_numpy_built_requirement():
     specs, names = _numpy_stack()
     assert NUMPY_LINKED <= {spec.split(">=")[0] for spec in _script_requirements()}
-    assert {spec.split(">=")[0] for spec in specs} == NUMPY_LINKED | {"pyerfa"} == set(names)
+    assert {spec.split(">=")[0] for spec in specs} == NUMPY_LINKED == set(names)
     # Each at setup.py's own floor.
     for spec in specs:
         if spec.split(">=")[0] in NUMPY_LINKED:
             assert spec in _script_requirements(), spec
     lock_pins = _lock_pins()
     locked = {name for name, _, _, _ in lock_pins.read_lock(os.path.join(ROOT, "requirements.lock"))}
-    assert "pyerfa" in locked
+    assert not {"astropy", "pyerfa"} & locked  # GEN.211: a test-only dependency now
 
 
 def test_managed_paths_install_the_numpy_stack_whole():
@@ -319,8 +319,11 @@ def _run_install_checkout(tmp_path, script_dir, mode="unmanaged"):
     script = _read("scripts", "install-python-deps.sh")
     calls = tmp_path / "pip-calls"
     python = tmp_path / "python"
+    # PYTHONPATH pins which checkout `import planetgen` finds (TEST.143): the editable install of whatever
+    # checkout this machine was set up from would otherwise decide, and a test run from another checkout
+    # or a git worktree saw "planetgen is not imported from here" and reinstalled.
     python.write_text(f'#!/bin/sh\nif [ "$1" = -m ] && [ "$2" = pip ]; then echo "$*" >> "{calls}"; exit 0; fi\n'
-                      f'exec "{sys.executable}" "$@"\n')
+                      f'PYTHONPATH="{os.path.join(os.path.realpath(ROOT), "src")}" exec "{sys.executable}" "$@"\n')
     python.chmod(0o755)
     command = tmp_path / "bin" / "planetgen"
     harness = "\n".join([
@@ -332,16 +335,6 @@ def _run_install_checkout(tmp_path, script_dir, mode="unmanaged"):
     return (calls.read_text().splitlines() if calls.exists() else []), command
 
 
-def _installed_from_this_checkout():
-    try:
-        import planetgen
-    except ImportError:
-        return False
-    src = os.path.realpath(os.path.join(ROOT, "src"))
-    return os.path.dirname(os.path.dirname(os.path.realpath(planetgen.__file__))) == src
-
-
-@pytest.mark.skipif(not _installed_from_this_checkout(), reason="needs `pip install -e .` of this checkout")
 def test_install_checkout_leaves_a_current_editable_install_alone(tmp_path):
     """update.sh reinstalls nothing when planetgen already imports from
     this checkout; the `planetgen` command links to pip's console script."""

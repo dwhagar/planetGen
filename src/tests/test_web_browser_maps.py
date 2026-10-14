@@ -90,6 +90,11 @@ def _active_scene(page):
     }""")
 
 
+PUBLIC_ID = r"[0-9A-F]{10}-[0-9A-F]{7}-[0-9A-F]{3}"
+"""str: An object's public ID (API.23): 80 bits as `<birth sector>-<serial>-<body>`, not a row number. TEST.125:
+these tests matched `\\d+` and so found no moon on every page, long after the generator was fine."""
+
+
 def _click_body(marker):
     """Click a System Map body on its dot. A marker's `<g>` also holds its
     label, which the layout can push to one side, so the middle of the
@@ -133,8 +138,8 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     assert "Orbits" in info and "Radius" in info and "Mass" in info, info
     # NAV.50: a moon can start or end a course.
     links = {link.inner_text(): link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()}
-    assert re.fullmatch(r"/nav\?from=moon:\d+", links.get("Start Here", "")), links
-    assert re.fullmatch(r"/nav\?to=moon:\d+", links.get("End Here", "")), links
+    assert re.fullmatch(rf"/nav\?from=moon:{PUBLIC_ID}", links.get("Start Here", "")), links
+    assert re.fullmatch(rf"/nav\?to=moon:{PUBLIC_ID}", links.get("End Here", "")), links
     page.click("#sysmap-crumb .sysmap-back-btn")
     assert _active_scene(page) == "system"
     assert page.locator("#sysmap-crumb button").count() == 0
@@ -613,7 +618,7 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert "object=" in page.url
     # NAV.50: the picked body can start or end a course.
     hrefs = [link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()]
-    assert any(re.fullmatch(r"/nav\?to=[a-z]+:\d+", href or "") for href in hrefs), hrefs
+    assert any(re.fullmatch(rf"/nav\?to=[a-z]+:{PUBLIC_ID}", href or "") for href in hrefs), hrefs
 
     # MAP.138: Center moves the view's center to the picked body.
     before_center = _canvas_pixels(page)
@@ -700,7 +705,7 @@ def test_a_body_link_opens_highlights_and_selects_it(page, base_url, site_app):
     target = moon_id = None
     for system in client.get("/api/systems?limit=100").get_json()["items"]:
         html = client.get(f"/system/{system['id']}").get_data(as_text=True)
-        found = re.search(r'<li id="moon-(\d+)"', html)
+        found = re.search(rf'<li id="moon-({PUBLIC_ID})"', html)
         if found:
             target, moon_id = system["id"], found.group(1)
             break
