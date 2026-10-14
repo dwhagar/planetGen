@@ -87,6 +87,8 @@ def load_runs():
 
 def save_run(key, seconds, ok):
     runs = load_runs()
+    if not ok and runs.get(key, {}).get("ok"):
+        return  # a run that stopped early says nothing about how long the command usually takes
     runs[key] = {"seconds": round(seconds), "ok": ok,
                  "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")}
     try:
