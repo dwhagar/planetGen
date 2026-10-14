@@ -1195,6 +1195,11 @@
 --   benchmark run (`PLANETGEN_OBJECT_TIMING_FULL=1`). Written by
 --   `generation/object_timing.py` with each sector a run saves.
 --
+-- v86: `galaxy_block_stats` (DB.25): the sums a drill-down stage shows (sectors,
+--   systems, expected systems, stars, star age sum, luminosity) stored per block of
+--   each ladder level above the sector, so a Galaxy Map window reads its cells in one
+--   statement (`query.galaxy_block_stats`). Kept by `db/block_stats.py`.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3377,6 +3382,32 @@ CREATE TABLE IF NOT EXISTS object_timing_samples (
     KEY idx_object_timing_samples_sector (sector_id),
     CONSTRAINT fk_object_timing_samples_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE,
     CONSTRAINT fk_object_timing_samples_sector FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- galaxy_block_stats (v86, DB.25): one row per block `(m, ring_index, wedge,
+-- slab)` of a level of the Galaxy Map's block ladder above the sector (`m`
+-- sectors a side, `galaxy.drill`) that holds at least one generated sector,
+-- with the sums of what those sectors hold: `sector_count`, `systems`,
+-- `expected_systems`, `stars`, `age_sum` (each sector's mean age times its stars) and
+-- `luminosity_sol`. A stage's child stats are these over the child blocks
+-- (`query.galaxy_stage` computes the same sums from `sector_stats`; a test holds
+-- the two equal). Written by `db/block_stats.py` when sectors are saved or
+-- deleted, and by `planetgen plan --fill-block-stats`; no foreign key, as the
+-- blocks are not rows of their own.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS galaxy_block_stats (
+    m                 SMALLINT UNSIGNED NOT NULL,
+    ring_index        INT NOT NULL,
+    wedge             INT NOT NULL,
+    slab              INT NOT NULL,
+    sector_count      INT UNSIGNED NOT NULL,
+    systems           BIGINT UNSIGNED NOT NULL,
+    expected_systems  DOUBLE NOT NULL,
+    stars             BIGINT UNSIGNED NOT NULL,
+    age_sum           DOUBLE NOT NULL,
+    luminosity_sol    DOUBLE NOT NULL,
+    PRIMARY KEY (m, ring_index, wedge, slab)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

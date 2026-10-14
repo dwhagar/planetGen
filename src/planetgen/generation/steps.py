@@ -91,6 +91,8 @@ STEP_KINDS = {
     "nebula-field-clean": "Nebula field cleanup",
     "link": "Neighbour linking",
     "paths": "Sector paths",
+    "blocks": "Block totals",
+    "block-stats": "Block totals rebuild",
     "backfill": "Bright-star backfill",
     "topup": "Backfill top-up",
     "save": "Sector save",

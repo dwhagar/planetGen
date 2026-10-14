@@ -39,6 +39,7 @@ from planetgen.galaxy.geometry import (
     provisional_sector_designation, ring_sector_count, sector_address_at, sector_position_pc,
 )
 from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.db import block_stats
 from planetgen.generation import object_timing
 from planetgen.generation import run_common
 from planetgen.generation import run_plan
@@ -501,7 +502,60 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
                                         progress=save_step)
     run_common._count_sector(sector)
     _save_object_timing(args, timings, sector_id)
+    if not getattr(args, "link_later", False):
+        _refresh_block_stats(args, address)    # DB.25; a `galaxy` run does all its sectors once, at its end
     return sector_id, sector.name, sector
+
+
+def _refresh_block_stats(args, address):
+    """Updates the stored block totals above one saved sector (DB.25); never fails the run (a later
+    `plan --fill-block-stats` rebuilds them)."""
+    try:
+        conn = store.get_connection(store.mysql_config_from_args(args))
+        try:
+            block_stats.refresh_chain(conn, address)
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the totals can be rebuilt
+        log.debug(f"Block totals: can't update them above sector {address} ({exc}).")
+
+
+def block_stats_after_run(args, started_at):
+    """
+    The block totals of the sectors a `galaxy` run created (DB.25), once at its end, after the bright-star and
+    population steps (a step of the last stage, not a stage of its own): each block above them is recomputed once (`block_stats.refresh_sectors`), so the workers
+    never queue on the shared top-level rows. A table with no rows, or a run touching more than
+    `block_stats.FULL_REBUILD_ABOVE` blocks, is rebuilt whole. Only warns on a failure.
+
+    Returns:
+        int: Rows written (0 when the run created no sectors).
+    """
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        created = conn.execute(
+            "SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE created_at >= ?"
+            " AND ring_index IS NOT NULL", (started_at,)).fetchall()
+        if not created:
+            return 0
+        log.normal("Updating the block totals...")
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                with steps.Step("Block totals", "blocks", len(created), args=args, progress=progress) as bar:
+                    written = block_stats.refresh_sectors(
+                        conn, [(r["ring_index"], r["layer_index"], r["ring_slot_index"]) for r in created],
+                        lambda done, total: bar.update(completed=done, total=total))
+                conn.commit()
+            finally:
+                log.reset_console()
+    except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be rebuilt
+        log.normal(f"Warning: updating the block totals failed: {exc}")
+        return 0
+    finally:
+        conn.close()
+    log.normal(f"Updated {written:,} block totals.")
+    return written
 
 
 def _save_object_timing(args, timings, sector_id):
@@ -1724,6 +1778,7 @@ def run_galaxy(args):
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_after(args)
     settle_after_run(args, started_at)
+    block_stats_after_run(args, started_at)
     stages.finish()
     run_common._finish_stats(args)    # the steps after the sectors recorded their speeds too
 

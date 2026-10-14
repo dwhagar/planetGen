@@ -1,0 +1,2 @@
+### Added
+- The sums the Galaxy Map's drill-down stages show (sectors, systems, stars, mean age, luminosity) are now stored per block of each ladder level (`galaxy_block_stats`, schema 86), so a map window reads its cells in one query. A `galaxy` run, a sector visit and a sector deletion keep them current, and the migration fills them for the sectors already there. `planetgen plan --fill-block-stats` rebuilds them.
