@@ -439,7 +439,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge | none | done, PR #1116 |
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | open |
-| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | open |
+| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | done, PR #1374 |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
 | ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) | none | open |
@@ -1143,7 +1143,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) | none | done, PR #1308 |
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) | none | done, PR #1300 |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) | none | open |
-| PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | open |
+| PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | done, PR #1371 |
 | PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | done, PR #1364 |
 | PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | open |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | open |

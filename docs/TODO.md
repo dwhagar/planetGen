@@ -3857,35 +3857,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.92 Save generation timing per object and per object type, as well as per operation, stage and job**
-  Boss (2026-10-14 18:21Z, issue #1328): statistics must be saved on a per-object
-  basis, which is pretty universal, and per type of object generated, in
-  addition to what is kept now (PERF.67 and PERF.56: per operation,
-  stage, whole job and scatter kind). So the stats store records the
-  time to generate each object (and similar measures such as the number
-  of draws or the memory it took), aggregates them per object type
-  (star, planet, moon, belt, nebula, phenomenon and so on), and keeps
-  the existing stage and job records. Done: a migration with the table
-  or tables (Foundations lane 1 is the only lane adding migrations);
-  generation writes the records through one shared path so every
-  generator reports the same way; the admin Stats page and the ETA
-  estimates can read per-type means; a test that every object kind the
-  generators create reports; the records cost no more than about 1
-  percent of generation time (benchmark). Open question for Boss,
-  default chosen: at billions of objects a row per object is too much.
-  Default: store
-  per-type aggregates per run and per sector (count, total and mean
-  time, min and max, and a fixed-size histogram), plus a sampled row per
-  object (1 in 1,000 by a hash of the object id, so it is repeatable)
-  with its full timing; a full row per object only behind an opt-in flag
-  for benchmark runs. The alternative is a row for every object, which
-  costs storage and write time.
-  Decided (Boss, 2026-10-14 19:53Z, on a decision
-  card relayed by the coordinator): aggregates plus a sample. Per-type
-  aggregates per run and per sector, a repeatable 1-in-1,000 sample with
-  full timing, and a full row per object only behind an opt-in flag.
-  Prerequisites: none. Related: PERF.33.
-
 - [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
   1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
@@ -3989,7 +3960,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the work-horse-killed handler, and every job gets a real job_timeout.
   Done when: every generation command runs on the new queue and the old
   executor is unused.
-  Prerequisite: PERF.97. Related: PERF.86, PERF.92.
+  Prerequisite: PERF.97. Related: PERF.86.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4148,7 +4119,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   galaxies; the window query reads it in one statement; a test that the
   stored aggregates equal the ones computed from the stage files. Owner:
   Foundations lane 1 (the only lane that adds migrations); queue it
-  right after PERF.92 because MAP.151b waits on it.
+  right after PERF.92 (done, #1371) because MAP.151b waits on it.
   Prerequisites: none. Related: MAP.151, MAP.172.
 
 ## API: The JSON API
@@ -4665,19 +4636,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
   DOC.14, GEN.135.
 
-- [ ] **ADM.51 Regenerating with a class the object cannot support asks to confirm, then does it (bug)**
-  GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
-  (Boss, 2026-10-13 02:27Z, labelled bug): "if the user asks to
-  regenerate anything, and selects a class not supported by the size or
-  some other parameter, ask the user to confirm and do it anyway if they
-  confirm." Done: every regenerate and Generate path that takes a class
-  or type checks it against the generation rules, shows what the object
-  would break (size, zone, mass), and does it anyway after an explicit
-  confirmation, on the web, the CLI (a confirm flag) and the API (a
-  force field); a refusal without confirmation changes nothing. Owner:
-  Bugfixes lane 2, after its current items.
-  Prerequisites: none. Related: ADM.35, ADM.32, GEN.181, ADM.52.
-
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
   (Boss, 2026-10-13 02:27Z): "We need a star system editor that the user
@@ -4689,7 +4647,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   radial distance, then saves the system with random positions on the
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
-  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
+  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18.
 
 - [ ] **ADM.54 A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional)**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
@@ -5552,13 +5510,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
   version, not the schema. Reproduce it against MySQL 8 and the lock
   file, check the locked versions against ones known to work with that
-  plugin, fix the cause, and make the update print a clear error naming
-  the login problem instead of the bare exception.
+  plugin, fix the cause by adapting to the current library, and make the update
+  print a clear error naming the login problem instead of the bare
+  exception.
   Cause found by Bugfixes lane 1 (2026-10-14 22:41Z, reproduced on a real
   MySQL 8.0): pymysql 1.2.1 to 1.2.3 return nothing from the caching_sha2
-  full login on a connection without TLS. The fix in test pins pymysql
-  below 1.2.1 (1.2.0), has the library check reinstall a newer one, and
-  makes every database login failure name the server and account.
+  full login on a connection without TLS. Decided (Boss, 2026-10-14
+  22:46Z): no pin below 1.2.1; keep the current pymysql and adapt our
+  connection code to it, and make every database login failure name the
+  server and account.
   Prerequisites: none.
 
 ## DOC: Documentation

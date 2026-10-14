@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1117] - 2026-10-14
+
+### Changed
+- The TODO list drops ADM.51 (confirming a class change that would break an object, merged in #1374).
+
+## [8.0.1116] - 2026-10-14
+
+### Fixed
+- Changing a planet's or moon's class to one it can't take (its mass outside the class's range, the class not forming in its zone, too small for its moons, too big for its planet) now says what it would break and asks to confirm, then does it when confirmed. The Change class form has a "Set it anyway" box; the API takes `"force": true`. A confirmed class whose mass range excludes the body's mass sets the mass to the nearest end of that range. Until now such a class was refused even when forced.
+
+## [8.0.1115] - 2026-10-14
+
+### Changed
+- The TODO list records Boss's decision for OPS.49: use the current pymysql and adapt our connection code, with no version pin.
+
+## [8.0.1114] - 2026-10-14
+
+### Changed
+- The TODO list drops PERF.92 (per-object generation timing, merged in #1371); the schema is now v85 and the next migration is 0086.
+
+## [8.0.1113] - 2026-10-14
+
+### Added
+- How long each generated object takes is now saved per object type (system, star, planet, moon, belt, comet, binary star, asteroid field, black hole, neutron star, nebula, quasar, rogue planet, interstellar comet, supernova remnant): count, total, mean, fastest, slowest and a histogram for every sector a run saves, plus a repeatable 1-in-1,000 sample of the objects with their full timing. Set `PLANETGEN_OBJECT_TIMING_FULL=1` to keep a row for every object in a benchmark run. The admin Stats data (`/api/admin/generation-stats`) carries the mean time per object type. The database moves to schema 85 (two new tables).
+
 ## [8.0.1112] - 2026-10-14
 
 ### Changed

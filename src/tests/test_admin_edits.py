@@ -507,19 +507,51 @@ def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name
     assert planet.surface_temperature is not None
 
 
-def test_class_change_the_mass_cant_fit_is_refused_and_changes_nothing():
-    """ADM.27: a gas giant class for a rocky world is refused, even forced,
-    with a message, and the body is left as it was."""
+def test_class_change_the_mass_cant_fit_asks_to_confirm_and_changes_nothing():
+    """ADM.51: a gas giant class for a rocky world is refused without a
+    confirmation, with what it would break, and the body is left as it was."""
     system = _unsaved_system_with_planet()
     planet = next(p for p in system.planets if p.body_type == 't')
     assert not adminEdits.class_fits_mass("J", planet.mass)
     before = dict(vars(planet))
-    with pytest.raises(ValueError, match="Earth masses; class J needs"):
-        adminEdits.change_class(system, planet, system.planets, "J", force=True)
+    with pytest.raises(ValueError, match="Earth masses; class J needs.*Confirm to set it anyway"):
+        adminEdits.change_class(system, planet, system.planets, "J")
     assert "J" not in adminEdits.recommended_classes(system, planet, system.planets)
     after = vars(planet)
     assert {k: v for k, v in after.items() if not isinstance(v, list)} == \
         {k: v for k, v in before.items() if not isinstance(v, list)}
+
+
+def test_class_change_the_mass_cant_fit_is_done_when_confirmed():
+    """ADM.51: confirmed, the class is set and the mass goes to the nearest end of its range."""
+    system = _unsaved_system_with_planet()
+    planet = next(p for p in system.planets if p.body_type == 't')
+    low, _high = adminEdits.planetPhysics.planet_mass_ranges["J"]
+    assert planet.mass < low
+    assert any("mass" in note for note in adminEdits.class_conflicts(planet, system.planets, "J"))
+    result = adminEdits.change_class(system, planet, system.planets, "J", force=True)
+    assert planet.planet_class == "J"
+    assert planet.mass == pytest.approx(low, rel=1e-6)
+    assert "Its mass is now" in result.summary
+
+
+def _with_planet_too_light_for_a_giant(system):
+    return any(p.body_type != 'a' and not adminEdits.class_fits_mass("J", p.mass) for p in system.planets)
+
+
+def test_the_api_asks_to_confirm_a_class_that_breaks_the_body_then_does_it(admin, mysql_config):
+    _sector_id, system_id = _saved_system(mysql_config, _with_planet_too_light_for_a_giant)
+    planet = next(p for p in _load(mysql_config, system_id).planets
+                  if p.body_type != 'a' and not adminEdits.class_fits_mass("J", p.mass))
+    path = f"/api/planets/{pid('planet', planet.db_id)}/class"
+    assert not adminEdits.class_fits_mass("J", planet.mass)
+    refused = admin.post(path, json={"class": "J"})
+    assert refused.status_code == 409 and "Confirm to set it anyway" in refused.get_json()["error"]
+    assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
+                 (planet.db_id,))[0]["planet_class"] == planet.planet_class
+    assert admin.post(path, json={"class": "J", "force": True}).status_code == 200
+    assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
+                 (planet.db_id,))[0]["planet_class"] == "J"
 
 
 def test_change_star_keeps_classes_and_saves_the_type(admin, mysql_config):
@@ -568,9 +600,16 @@ def test_system_page_changes_a_class(web_app, mysql_config):
     other = next(c for c in sorted(tuning.PLANET_CLASSES)
                  if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
     response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"planet:{pid('planet', planet.db_id)}",
-                     planet_class=f"force:{other}")
+                     planet_class=other)
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)
+    assert planet.planet_class != other
+    if f"to class {other}" not in page:  # not a recommended class: it asks, and nothing changed (ADM.51)
+        assert "tick “Set it anyway”" in page
+        response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class",
+                         f"planet:{pid('planet', planet.db_id)}", planet_class=other, confirm_class="1")
+        assert response.status_code == 303
+        page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert f"to class {other}" in page
     response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"system:{system_id}", planet_class="J")
     page = client.get(response.headers["Location"]).get_data(as_text=True)
