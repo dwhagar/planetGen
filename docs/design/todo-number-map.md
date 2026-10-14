@@ -1095,7 +1095,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | done, PR #1251 |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | done, PR #1236 |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
-| PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | open |
+| PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | done, PR #1259 |
 | PERF.84 | Neighbour linking stalls on a large run (bug) | none | open |
 | PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | open |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |

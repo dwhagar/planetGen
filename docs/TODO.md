@@ -3970,21 +3970,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.31, PERF.73.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
-- [ ] **PERF.83 The phenomena scatter takes about 5 minutes to start (bug)**
-  GitHub issue [#1225](https://github.com/dwhagar/planetGen/issues/1225)
-  (Boss, 2026-10-11 21:13Z): "It took about 5 minutes to start. I want
-  to look into that, find out what might cause that and if it's a bug or
-  if it needs a progress bar." Done: the cause of the wait between the
-  scatter stage starting and its first progress is found and measured
-  (the mass-limit pass reading the density skeleton, the sector marking,
-  an index build, a queue wait); if it is a fault it is fixed, otherwise
-  the wait gets its own stage line and progress bar so the job is never
-  silent for more than a few seconds. A test or timing record shows the
-  first progress within seconds on the benchmark galaxy. Owner:
-  Foundations lane 1, right after the nebula tuning chain (merged in
-  #1239), before DB.24.
-  Prerequisites: none. Related: PERF.66, PERF.79, PERF.82.
-
 - [ ] **PERF.84 Neighbour linking stalls on a large run (bug)**
   GitHub issue [#1224](https://github.com/dwhagar/planetGen/issues/1224)
   (Boss, 2026-10-11 21:05Z): "Neighbor linking stalled out twice, it was
@@ -3997,8 +3982,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (2026-10-14 13:18Z): it was a normal default new galaxy with default
   settings, it worked fine on a recent version he cannot name, and he
   thinks it is a reporting issue, so check first whether the stage works
-  but its progress or ETA freezes (PERF.85 has the same signs). Owner: Foundations lane 1, right after PERF.83.
-  Prerequisites: none. Related: PERF.83, PERF.85, PERF.68, PERF.79.
+  but its progress or ETA freezes (PERF.85 has the same signs). Owner: Foundations lane 1 (PERF.83 is fixed: time-sized chunks).
+  Prerequisites: none. Related: PERF.85, PERF.68, PERF.79.
 
 - [ ] **PERF.85 Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug)**
   GitHub issue [#1214](https://github.com/dwhagar/planetGen/issues/1214)
@@ -4006,7 +3991,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stalled after the scattering of phenomena and there is a problem in
   the layer count on the progress bar." Done: the stall after the
   scatter is reproduced and its cause found (it may be the same cause as
-  PERF.83 or PERF.84; check them first), and the layer count shown on
+  PERF.84, or the chunk-size cause PERF.83 fixed in #1259 (silent
+  chunks of about 128 layers); check those first), and the layer count shown on
   the progress bar matches the layers the stage really works through.
   Screenshot (Boss, 2026-10-14 13:02Z): the log says "Phenomena (2,041 of
   2,041 layers) 100% elapsed 0:21:03", then the stage bar reads "Writing
@@ -4021,7 +4007,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the issue.
   Owner: Bugfixes lane 1, after PERF.54, together with
   UX.98.
-  Prerequisites: none. Related: PERF.83, PERF.84, PERF.66.
+  Prerequisites: none. Related: PERF.84, PERF.66.
 
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
