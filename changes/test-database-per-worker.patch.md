@@ -1,2 +1,0 @@
-### Changed
-- **Tests share one database per worker instead of creating and dropping one per test** (TEST.139). `mysql_config` hands each test process one database with the schema already in it and puts it back the way a new one is after every test, so a database test no longer pays 0.66 s for creating, filling and dropping a database. A test that needs no schema at all takes `@pytest.mark.fresh_database`; `PLANETGEN_TEST_FRESH_DB=1` turns the sharing off, and `PLANETGEN_TEST_DEEP_CHECK=1` proves every reset against a new database.
