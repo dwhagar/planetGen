@@ -27,6 +27,7 @@ from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed, se
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
+from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.galaxy.density import arm_terms, build_galaxy_shape, relative_density
@@ -1011,6 +1012,76 @@ def build_nebula_field(args, conn, skeleton, extents, progress):
     return written[0]
 
 
+def redo_nebula_field(args):
+    """
+    Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205). Every stored dark
+    nebula that is a field cloud (found in its cell's draw by its centre) is checked against `cloud_kept`; the ones
+    the rule now rejects are counted per class (the dry run, always done first). With `--redo-nebula-field apply` they are deleted,
+    which clears the `inside_nebula_id` of everything inside them (the foreign key sets it to NULL), containment is
+    refreshed in the sectors they reached, and `nebula_field` is drawn again. Nothing else is touched: a nebula
+    with no cell draw at its centre was not made by the field and stays.
+
+    Returns:
+        dict: `stored` and `rejected` (per class, field clouds only) and `deleted` (the count removed).
+    """
+    apply = args.redo_nebula_field == "apply"
+    mysql_config = store.mysql_config_from_args(args)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
+        galaxy_seed = store.get_galaxy_seed(conn)
+        draws = {}
+        stored, rejected, doomed = collections.Counter(), collections.Counter(), []
+        for row in conn.execute(
+                "SELECT id, nebula_class, radius_ly, center_x_pc, center_y_pc, center_z_pc FROM nebulae"
+                " WHERE nebula_type = ? AND center_x_pc IS NOT NULL ORDER BY id", (nebulaField.FIELD_FAMILY,)).fetchall():
+            center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+            index = nebulaField.cell_index(center)
+            if index not in draws:
+                draws[index] = nebulaField.cell_draw(galaxy_seed, skeleton.shape, index)
+            match = next(((n, nebula) for n, nebula, drawn in draws[index]
+                          if all(abs(a - b) <= store.FIELD_NEBULA_MATCH_PC for a, b in zip(drawn, center))), None)
+            if match is None:
+                continue
+            stored[row["nebula_class"]] += 1
+            if not nebulaField.cloud_kept(galaxy_seed, index, match[0], match[1]):
+                rejected[row["nebula_class"]] += 1
+                doomed.append((row["id"], center, row["radius_ly"]))
+        log.normal("Nebula field cleanup (dry run): " + (
+            ", ".join(f"class {letter}: {rejected[letter]:,} of {stored[letter]:,} stored field clouds rejected"
+                      for letter in sorted(stored)) or "no stored field clouds") + f"; {len(doomed):,} would be deleted.")
+        if not apply:
+            log.normal("Nothing was changed. Run again with --redo-nebula-field apply to delete them and draw "
+                       "the nebula_field table again.")
+            return {"stored": dict(stored), "rejected": dict(rejected), "deleted": 0}
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                with steps.Step("Deleting the rejected field clouds", "nebula-field-clean", max(len(doomed), 1),
+                                args=args, progress=progress) as bar:
+                    sector_ids = set()
+                    for _nebula_id, center, radius_ly in doomed:
+                        sector_ids.update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
+                    for start in range(0, len(doomed), 500):
+                        ids = [nebula_id for nebula_id, _c, _r in doomed[start:start + 500]]
+                        conn.execute(f"DELETE FROM nebulae WHERE id IN ({','.join('?' * len(ids))})", ids)
+                        conn.commit()
+                        bar.update(advance=len(ids))
+                    store.refresh_containment(conn, sorted(sector_ids))
+                    conn.commit()
+                extents = store.get_galaxy_layers(conn)
+                if extents:
+                    build_nebula_field(args, conn, skeleton, extents, progress)
+            finally:
+                log.reset_console()
+        log.normal(f"Deleted {len(doomed):,} stored field clouds the current keep rates reject.")
+        return {"stored": dict(stored), "rejected": dict(rejected), "deleted": len(doomed)}
+    finally:
+        conn.close()
+
+
 def scatter_phenomena(args):
     """
     Pre-places the galaxy's black holes, neutron stars, planetary nebulae
@@ -1197,6 +1268,12 @@ def run_plan(args):
         stages.enter("band")
         with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
             add_bright_star_band(args)
+        stages.finish()
+        return
+    if getattr(args, "redo_nebula_field", None):
+        stages.enter("nebula-field")
+        with workQueue.job_node("nebula-field", "Nebula field"):
+            redo_nebula_field(args)
         stages.finish()
         return
     if getattr(args, "redo_scatters", None):

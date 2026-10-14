@@ -2820,6 +2820,7 @@ and the Generate page's compact-object control accept only these, or "star" to u
 stellar mass limit."""
 
 REDO_SCATTERS = ("mass", "luminosity", "phenomena")
+REDO_NEBULA_FIELD_MODES = ("dry-run", "apply")
 """tuple: The scatters `planetgen plan --redo-scatters` can redo (GEN.196), in the order they are listed."""
 
 COMPACT_MIN_MASS_STAR = "star"
