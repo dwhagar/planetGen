@@ -131,12 +131,14 @@ class _GeneratedMarkdown(Extension):
 
     def extendMarkdown(self, md):
         md.registerExtension(self)
+        # `strict=False`: a name this `markdown` release does not have (3.11.1 dropped `not_strong` and
+        # `em_strong2`) is already gone, and any other name must still come out.
         for name in _REMOVED_PREPROCESSORS:
-            md.preprocessors.deregister(name)
+            md.preprocessors.deregister(name, strict=False)
         for name in _REMOVED_BLOCKS:
-            md.parser.blockprocessors.deregister(name)
+            md.parser.blockprocessors.deregister(name, strict=False)
         for name in _REMOVED_INLINE:
-            md.inlinePatterns.deregister(name)
+            md.inlinePatterns.deregister(name, strict=False)
         md.parser.blockprocessors.register(_HeaderProcessor(md.parser, self), 'generated_header', 70)
         md.inlinePatterns.register(_SupProcessor(r'<sup>(.*?)</sup>', md), 'generated_sup', 190)
         md.treeprocessors.register(_TableScrollProcessor(md), 'generated_table_scroll', 5)

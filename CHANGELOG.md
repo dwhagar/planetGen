@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1055] - 2026-10-14
+
+### Changed
+- The physical constants are a table in `physics/constants.py` (CODATA 2018 and IAU 2015 values) instead of being read from astropy, so astropy is no longer installed on a server: each process starts about 280 ms sooner and uses about 29 MB less, and the install is 53 MB smaller. No stored value changes. astropy stays in the `test` extra, where `test_astropy_constants.py` holds the table against astropy's own values (GEN.211).
+
+### Removed
+- The astropy and pyerfa run-time dependencies (`setup.py`, `install-python-deps.sh`, both lock files).
+
+## [8.0.1054] - 2026-10-14
+
+### Changed
+- Retired PERF.89 from the roadmap and noted a work-queue test sighting.
+
+## [8.0.1053] - 2026-10-14
+
+### Changed
+- The bright and massive star scatters work out each ring's population densities as one NumPy array instead of one call per angle bin (PERF.89). The numbers agree with the one-point form to 1e-12 relative (NumPy's exp, log and cos differ from the maths library's in the last digit or two), so a progress-bar estimate or a star's bin weight can move in the 16th digit.
+
+## [8.0.1052] - 2026-10-14
+
+### Fixed
+- A fresh install no longer breaks every page that shows rendered Markdown (system descriptions, the population text): `markdown` 3.11.1 removed two inline patterns the renderer named as required, and the renderer now removes only the ones the installed release has.
+
+## [8.0.1051] - 2026-10-14
+
+### Changed
+- A test now fails when a page under docs/ holds Jinja or Liquid delimiters outside a raw block, which is what stopped the docs site from building.
+
 ## [8.0.1050] - 2026-10-14
 
 ### Changed

@@ -1106,7 +1106,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls | none | done, PR #1300 |
 | PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | none | open |
-| PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) | none | open |
+| PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) | none | done, PR #1308 |
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) | none | done, PR #1300 |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |

@@ -105,10 +105,10 @@ setup(
         'alembic>=1.13.0',
         # Input validation (ADM.21).
         'pydantic>=2.7.0',
-        # Physics (GEN.66) and nebula meshes (marching cubes).
+        # Physics and nebula meshes (marching cubes). The physical constants are a
+        # table in physics/constants.py (GEN.211), not astropy's.
         'numpy>=1.26.0',
         'scipy>=1.13.0',
-        'astropy>=6.0.0',
         'scikit-image>=0.22.0',
         # Compiled numeric kernels (OPS.42): required, with no pure-Python
         # fallback. Built against NumPy's C API, so it installs with the
@@ -126,7 +126,10 @@ setup(
                  # `pytest -n auto` (docs/testing.md); the suite still
                  # runs serially without it.
                  'pytest-xdist>=3.5.0',
-                 'pytest-timeout>=2.3.1'],
+                 'pytest-timeout>=2.3.1',
+                 # tests/test_astropy_constants.py holds the constants table
+                 # against astropy's own values (GEN.211); nothing else uses it.
+                 'astropy>=6.0.0'],
         'api': ['flask>=3.0.3', 'flask-limiter>=3.7.0'],
         # tests/test_web_a11y.py alone (headless-browser layout and
         # accessibility checks of the Flask pages); it skips without it.
