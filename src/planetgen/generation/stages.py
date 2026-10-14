@@ -86,7 +86,6 @@ def galaxy_stages(args):
               None if getattr(args, "population", False) else "the population pass was not asked for"),
         Stage("settle", "Save the sector paths",
               "turned off with --no-settle" if getattr(args, "no_settle", False) else None),
-        Stage("blocks", "Update the block totals"),
     ]
 
 

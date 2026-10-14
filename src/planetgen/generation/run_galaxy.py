@@ -524,7 +524,7 @@ def _refresh_block_stats(args, address):
 def block_stats_after_run(args, started_at):
     """
     The block totals of the sectors a `galaxy` run created (DB.25), once at its end, after the bright-star and
-    population steps: each block above them is recomputed once (`block_stats.refresh_sectors`), so the workers
+    population steps (a step of the last stage, not a stage of its own): each block above them is recomputed once (`block_stats.refresh_sectors`), so the workers
     never queue on the shared top-level rows. A table with no rows, or a run touching more than
     `block_stats.FULL_REBUILD_ABOVE` blocks, is rebuilt whole. Only warns on a failure.
 
@@ -537,10 +537,7 @@ def block_stats_after_run(args, started_at):
             "SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE created_at >= ?"
             " AND ring_index IS NOT NULL", (started_at,)).fetchall()
         if not created:
-            stages.skip("blocks", "the run created no sectors")
             return 0
-        stages.enter("blocks")
-        stages.note(sectors=len(created))
         log.normal("Updating the block totals...")
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
