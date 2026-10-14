@@ -129,3 +129,43 @@ def test_the_redo_option_refuses_the_other_plan_modes():
         parser.parse_args(["--redo-scatters", "everything"])
     assert tuple(parser.parse_args(["--redo-scatters", "mass", "phenomena"]).redo_scatters) == ("mass", "phenomena")
     assert tuning.REDO_SCATTERS == ("mass", "luminosity", "phenomena")
+
+
+def _recording_stats(monkeypatch):
+    """The generation stats of the run, kept in memory: `(kind, seconds)` of everything a run records."""
+    from planetgen.generation import run_common
+    from planetgen.generation.stats import GenerationStats
+
+    class Recorder(GenerationStats):
+        def __init__(self):
+            super().__init__()
+            self.seen = []
+
+        def record(self, kind, density, seconds, **kwargs):
+            self.seen.append((kind, seconds))
+            super().record(kind, density, seconds, **kwargs)
+
+        def flush(self):
+            pass
+
+    recorder = Recorder()
+    monkeypatch.setattr(run_common, "_generation_stats", lambda args: recorder)
+    return recorder
+
+
+def test_the_mass_pass_and_the_luminosity_pass_record_their_own_rows(mysql_config, monkeypatch):
+    recorder = _recording_stats(monkeypatch)
+    _first_scatter(mysql_config)
+    kinds = {kind for kind, _seconds in recorder.seen}
+    assert {"scatter-mass", "scatter-bright"} <= kinds and "scatter" not in kinds
+    assert recorder.pool_rate("scatter-mass", 1) is not None and recorder.pool_rate("scatter-bright", 1) is not None
+
+
+def test_the_phenomena_layers_record_their_writing_time_apart_from_the_whole(mysql_config, monkeypatch):
+    recorder = _recording_stats(monkeypatch)
+    _seed(mysql_config)
+    run_plan.scatter_phenomena(_args(mysql_config))
+    whole = [seconds for kind, seconds in recorder.seen if kind == "phenomena"]
+    written = [seconds for kind, seconds in recorder.seen if kind == "phenomena-write"]
+    assert whole and len(written) == len(whole)
+    assert 0 <= sum(written) <= sum(whole)

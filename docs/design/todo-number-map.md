@@ -901,9 +901,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
-| MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | open |
+| MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | done, PR #1282 |
 | MAP.185 | Black holes vanish in the Sector Map (bug) | none | done, PR #1279 |
-| MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | open |
+| MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | done, PR #1283 |
 | MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | open |
 | MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | open |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | none | open |
@@ -1068,7 +1068,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | none | done, PR #919 |
 | PERF.52 | Admin generation-stats table is wrong (bug) | none | done, PR #994 |
 | PERF.53 | Timing stats are skewed by layers and sectors that generated nothing (bug) | none | done, PR #1015 |
-| PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter | none | open |
+| PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter | none | done, PR #1284 |
 | PERF.55 | One global progress bar for generation jobs that run in phases, with an ETA across all phases | none | done, PR #1131 |
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with | none | done, PR #1077 |
 | PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups | none | done, PR #1101; removed by PERF.58 (PR #1108) |

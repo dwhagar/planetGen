@@ -217,8 +217,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) |  |  |
 | MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) |  |  |
 | MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) |  |  |
-| MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) |  |  |
-| MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) |  |  |
 | UX.99 | Rogue planets do not show their surface gravity (bug) |  |  |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
@@ -236,7 +234,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost |  | Generation performance study. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
-| PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter |  | Bugfixes lane 1 report 06:36Z. |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | DB.24 | Foundations lane 1. |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |

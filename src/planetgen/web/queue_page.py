@@ -33,6 +33,7 @@ KIND_LABELS = {
     "step": "Step",
     "queue": "Work queue",
     "skeleton": "Skeleton",
+    "mass-stars": "Massive stars",
     "bright-stars": "Bright stars",
     "phenomena": "Phenomena",
     "population": "Population",

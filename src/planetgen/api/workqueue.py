@@ -78,7 +78,8 @@ def work():
                     "limit": limit, "offset": offset})
 
 
-STATS_KIND = {"sector": "sector", "bright-stars": "scatter", "phenomena": "phenomena"}
+STATS_KIND = {"sector": "sector", "mass-stars": "scatter-mass", "bright-stars": "scatter-bright",
+              "phenomena": "phenomena"}
 """dict: Work queue task kind -> the generation stats kind its speeds are recorded under."""
 
 
