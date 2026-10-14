@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1082] - 2026-10-14
+
+### Changed
+- TODO: filed OPS.46 (installer checks for the Apache mod_wsgi venv rules) in Bugfixes lane 1 after PERF.82; TODO items resolved: none / Added: OPS.46.
+
 ## [8.0.1081] - 2026-10-14
 
 ### Changed
