@@ -711,7 +711,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | done, PR #1239 |
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
-| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
+| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | done, PR #1325 |
 | GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | done, PR #1278 |
 | GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |

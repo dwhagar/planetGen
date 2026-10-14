@@ -3435,27 +3435,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **GEN.205 `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  a dry run first, then delete the stored field-origin dark nebulae the
-  new rule rejects (about 35% of stored field clouds) that hold nothing
-  of their own, clear `inside_nebula_id` and refresh containment.
-  Default for a test galaxy is just a new plan. Owner: Foundations lane
-  1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the cleanup of an existing galaxy; it
-  always runs a dry run first.
-  Prerequisite: DB.24. Related: GEN.196, GEN.176.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
-
 - [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
   (Boss, 2026-10-11 03:24Z): extend PHI-4 to six dimensions: Pressure,
@@ -4998,6 +4977,11 @@ clears each one.
   proof period, which starts now. Gate run 17:04Z took 60 min 54 s with
   one failure (a heading missing from its own release note, fixed);
   first complete map 15,861 tests. Stage 2 of 5 done.
+  Flake (2026-10-09): Flake sighting (Foundations lane 1, 2026-10-14,
+  GEN.205 suite, 26 min):
+  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
+  failed once under full-suite load and passes alone. For the rebuild's
+  flake list.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
