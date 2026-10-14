@@ -1,9 +1,9 @@
 """
 scripts/install-python-deps.sh keeps its own list of runtime requirements
-(pip requirement plus the apt package that provides it) for installing on
-an externally managed Python. This checks that list matches setup.py's
-install_requires plus its 'api' extra, so a dependency added or bumped in
-setup.py can't be silently missed on a managed-Python install.
+to check the venv it makes (OPS.45). This checks that list matches
+setup.py's install_requires plus its 'api' extra, so a dependency added or
+bumped in setup.py can't be silently missed, and that every part of the
+deployment runs from that venv.
 
 Run with: pytest src/tests/test_install_python_deps.py
 """
@@ -35,17 +35,16 @@ def _script_requirements():
     with open(os.path.join(ROOT, "scripts", "install-python-deps.sh"), encoding="utf-8") as f:
         text = f.read()
     block = re.search(r"^REQUIREMENTS=\((.*?)^\)", text, re.S | re.M).group(1)
-    return dict(re.findall(r'"(\S+) (python3-\S+)"', block))
+    return re.findall(r'"(\S+)"', block)
 
 
 def test_script_requirements_match_setup_py():
     assert {r.lower() for r in _script_requirements()} == _setup_requirements()
 
 
-def test_every_requirement_has_a_floor_and_apt_package():
-    for spec, package in _script_requirements().items():
+def test_every_requirement_has_a_floor():
+    for spec in _script_requirements():
         assert re.fullmatch(r"[a-z0-9-]+>=[0-9.]+", spec), spec
-        assert package.startswith("python3-"), package
 
 
 def _read(*parts):
@@ -79,39 +78,36 @@ def _function(script, name):
     return body[:body.index("\n}\n")]
 
 
-def test_no_virtual_environment():
-    """Boss's call: on Linux, libraries go into the system Python, apt
-    first. Only macOS's path (install_venv, picked on Darwin) makes one."""
+def test_everything_runs_from_the_venv():
+    """OPS.45: libraries go into planetGen's own venv on every platform, never into the system Python."""
     code = _code(_read("scripts", "install-python-deps.sh"))
-    venv = _function(code, "install_venv")
-    assert "-m venv" in venv
-    assert "-m venv" not in code.replace(venv, "")
-    assert 'if [[ "$(uname -s)" == Darwin ]]; then MODE=venv' in code
+    assert "-m venv" in _function(code, "make_venv")
+    assert "-m venv" not in code.replace(_function(code, "make_venv"), "")
+    for word in ("--break-system-packages", "--ignore-installed", "apt-get install -y --no-install-recommends ${"):
+        assert word not in code, word
+    # The only package apt is asked for is the one that makes a venv possible.
+    assert re.findall(r"apt-get install[^\n]*", code) == ["apt-get install -y --no-install-recommends python3-venv || true"]
     assert "sys.path.insert" not in code  # no .pth written any more
+    assert "(3, 12)" in code  # setup.py's python_requires
 
 
-def test_pip_never_removes_apt_files():
-    """
-    pip must never uninstall or upgrade in place on a managed Python: for
-    an apt package with egg-info metadata (python3-pymysql) that deletes
-    apt's own files. It resolves with --dry-run --report and installs the
-    pinned result alongside with --ignore-installed --no-deps.
-    """
-    pip = _function(_code(_read("scripts", "install-python-deps.sh")), "pip_install_system")
-    resolver = _read("scripts", "lock_pins.py")
-    assert '"--dry-run"' in resolver and '"--report"' in resolver
-    assert "--ignore-installed --no-deps" in pip
-    assert "--upgrade" not in pip
-    # The only uninstall is of copies outside apt's directory.
-    assert '"/usr/lib/python3/"' in pip
+def test_the_apache_example_runs_the_app_in_the_venv():
+    conf = _read("examples", "apache", "planetgen.conf.example")
+    line = next(l for l in conf.splitlines() if l.strip().startswith("WSGIDaemonProcess planetgen-api"))
+    assert "python-home=/usr/local/planetgen/venv" in line
+    common = _code(_read("scripts", "deploy-common.sh"))
+    assert 'python-home=$VENV' in _function(common, "check_apache_venv_rules")
+    assert "check_apache_venv_rules" in _function(common, "ensure_apache_modules")
 
 
-def test_managed_paths_try_apt_first():
-    script = _code(_read("scripts", "install-python-deps.sh"))
-    for name in ("install_managed", "check_requirements"):
-        body = _function(script, name)
-        assert body.index("apt_install") < body.index("pip_install_needed"), name
-        assert "remove_legacy_venv" in body, name
+def test_the_services_and_scripts_use_the_venv_python():
+    assert "ExecStart=/usr/local/planetgen/venv/bin/gunicorn" in _read("examples", "systemd", "planetgen-gunicorn.service")
+    assert "ExecStart=/usr/local/planetgen/venv/bin/python -m planetgen.cli.orbits" in _read(
+        "examples", "maintenance", "planetgen-orbits@.service")
+    for script in ("install.sh", "update.sh"):
+        code = _code(_read(script))
+        assert code.index("install-python-deps.sh") < code.index("use_site_python"), script
+    assert 'PYTHON="$VENV/bin/python"' in _function(_code(_read("scripts", "deploy-common.sh")), "use_site_python")
 
 
 def _lock_pins():
@@ -154,57 +150,14 @@ def test_every_locked_pin_has_hashes():
 def test_every_pip_install_uses_the_lock():
     """
     Every pip install of a library checks the lock's hashes; the only
-    unhashed ones are pip itself, planetGen's own checkout (--no-deps) and
-    the fallback for a pip too old to report, which is held to the lock's
-    versions.
+    unhashed ones are pip itself and planetGen's own checkout (--no-deps).
     """
     code = _code(_read("scripts", "install-python-deps.sh"))
     installs = [line.strip() for line in code.splitlines() if "-m pip install" in line]
     assert installs
     for line in installs:
         assert ("--require-hashes" in line or "--upgrade pip" in line
-                or ("--no-deps" in line and '"$SCRIPT_DIR"' in line)
-                or '-c "$hashed"' in line), line
-
-
-def test_resolve_writes_hashed_pins(tmp_path, monkeypatch):
-    lock_pins = _lock_pins()
-    lock = tmp_path / "requirements.lock"
-    lock.write_text(
-        "# header\n"
-        "flask==3.1.3 \\\n    --hash=sha256:aa \\\n    --hash=sha256:bb\n"
-        "    # via planetgen\n"
-        "click==8.1.8 ; python_full_version < '3.10' \\\n    --hash=sha256:cc\n"
-        "click==8.5.0 ; python_full_version >= '3.10' \\\n    --hash=sha256:dd\n",
-        encoding="utf-8",
-    )
-    seen = []
-
-    def fake_dry_run(flags, requirements, lines):
-        seen.append(lines)
-        return [("flask", "3.1.3"), ("click", "8.5.0")]
-
-    monkeypatch.setattr(lock_pins, "_dry_run", fake_dry_run)
-    monkeypatch.setattr(lock_pins, "_installed", lambda name: name == "click")
-    out = tmp_path / "out.txt"
-    assert lock_pins.resolve(str(lock), str(out), [], ["flask>=3.0.3"]) == 0
-    # click was installed, so it isn't held on the first pass; pip chose
-    # to replace it anyway, so the second pass holds it to the lock.
-    assert seen[0] == ["flask==3.1.3"]
-    assert "click==8.5.0 ; python_full_version >= '3.10'" in seen[1]
-    assert out.read_text(encoding="utf-8").splitlines() == [
-        "flask==3.1.3 --hash=sha256:aa --hash=sha256:bb",
-        "click==8.5.0 --hash=sha256:dd",
-    ]
-
-
-def test_resolve_refuses_unlocked_versions(tmp_path, monkeypatch):
-    lock_pins = _lock_pins()
-    lock = tmp_path / "requirements.lock"
-    lock.write_text("flask==3.1.3 \\\n    --hash=sha256:aa\n", encoding="utf-8")
-    monkeypatch.setattr(lock_pins, "_dry_run", lambda *a: [("flask", "3.2.0")])
-    monkeypatch.setattr(lock_pins, "_installed", lambda name: False)
-    assert lock_pins.resolve(str(lock), str(tmp_path / "out"), [], ["flask"]) == 1
+                or ("--no-deps" in line and '"$SCRIPT_DIR"' in line)), line
 
 
 MACOS_SCRIPTS = [
@@ -228,7 +181,7 @@ def test_bash_scripts_avoid_bash4_only_features(parts):
     code = _code(_read(*parts))
     for word in ("mapfile", "readarray", "declare -A", "local -A", "declare -n", "local -n", ",,}", "^^}"):
         assert word not in code, (parts, word)
-    never_empty = {"REQUIREMENTS", "SPECS", "NUMPY_STACK", "enabled", "need", "pins", "owned", "databases", "wanted", "lacking", "before"}
+    never_empty = {"REQUIREMENTS", "SPECS", "enabled", "need", "databases", "args"}
     for name in re.findall(r'(?<!\+)"\$\{(\w+)\[@\]', code):
         if name not in never_empty:
             unguarded = re.search(r'(?<!\+)"\$\{%s\[@\]' % name, code.replace('+"${%s[@]' % name, ""))
@@ -244,81 +197,13 @@ def test_server_lock_has_the_app_servers():
         assert hashes, f"{name}=={version}"
 
 
-# --- OPS.26: the NumPy stack comes from one place ------------------------------
-
-NUMPY_LINKED = {"numpy", "scipy", "scikit-image", "numba"}
-"""Runtime requirements with compiled code built against NumPy's C API."""
-
-
-def _numpy_stack():
-    text = _read("scripts", "install-python-deps.sh")
-    block = re.search(r"^NUMPY_STACK=\((.*?)\)", text, re.M).group(1)
-    names = re.search(r'^NUMPY_STACK_NAMES=" (.*) "', text, re.M).group(1).split()
-    return re.findall(r'"(\S+)"', block), names
-
-
-def test_the_numpy_stack_lists_every_numpy_built_requirement():
-    specs, names = _numpy_stack()
-    assert NUMPY_LINKED <= {spec.split(">=")[0] for spec in _script_requirements()}
-    assert {spec.split(">=")[0] for spec in specs} == NUMPY_LINKED == set(names)
-    # Each at setup.py's own floor.
-    for spec in specs:
-        if spec.split(">=")[0] in NUMPY_LINKED:
-            assert spec in _script_requirements(), spec
-    lock_pins = _lock_pins()
-    locked = {name for name, _, _, _ in lock_pins.read_lock(os.path.join(ROOT, "requirements.lock"))}
-    assert not {"astropy", "pyerfa"} & locked  # GEN.211: a test-only dependency now
-
-
-def test_managed_paths_install_the_numpy_stack_whole():
-    script = _code(_read("scripts", "install-python-deps.sh"))
-    for name in ("install_managed", "check_requirements"):
-        body = _function(script, name)
-        assert "pip_install_needed" in body and "pip_install_system" not in body, name
-    pip = _function(script, "pip_install_system")
-    assert "--ignore-installed" in pip and "return 4" in pip
-
-
-def _run_needed(tmp_path, specs, rest_status):
-    """Runs the script's pip_install_needed with a stub pip_install_system
-    that records each call and returns `rest_status` for one without
-    --whole."""
-    script = _read("scripts", "install-python-deps.sh")
-    stack = re.search(r"^NUMPY_STACK=.*$", script, re.M).group(0)
-    names = re.search(r"^NUMPY_STACK_NAMES=.*$", script, re.M).group(0)
-    needed = _function(script, "pip_install_needed") + "\n}\n"
-    calls = tmp_path / "calls"
-    harness = "\n".join([
-        "set -euo pipefail", stack, names,
-        f'pip_install_system() {{ echo "$*" >> "{calls}"; [[ "$1" == --whole ]] || return {rest_status}; }}',
-        needed, "pip_install_needed " + " ".join(f'"{spec}"' for spec in specs),
-    ])
-    subprocess.run(["bash", "-c", harness], check=True, capture_output=True, text=True)
-    return calls.read_text().splitlines() if calls.exists() else []
-
-
-def test_a_stack_library_brings_the_whole_stack(tmp_path):
-    specs, _names = _numpy_stack()
-    calls = _run_needed(tmp_path, ["redis>=5.0.0", "scipy>=1.13.0"], 0)
-    assert calls == ["redis>=5.0.0", "--whole " + " ".join(specs)]
-
-
-def test_a_library_that_would_pull_in_numpy_brings_the_whole_stack(tmp_path):
-    specs, _names = _numpy_stack()
-    calls = _run_needed(tmp_path, ["redis>=5.0.0"], 4)
-    assert calls == ["redis>=5.0.0", "--whole " + " ".join(specs)]
-
-
-def test_other_libraries_leave_the_stack_alone(tmp_path):
-    assert _run_needed(tmp_path, ["redis>=5.0.0"], 0) == ["redis>=5.0.0"]
-
-
-def _run_install_checkout(tmp_path, script_dir, mode="unmanaged"):
-    """Runs the script's install_checkout with PYTHON a stand-in that
+def _run_install_checkout(tmp_path, script_dir):
+    """Runs the script's install_checkout with the venv's python a stand-in that
     records `-m pip` calls and hands everything else to this Python."""
     script = _read("scripts", "install-python-deps.sh")
     calls = tmp_path / "pip-calls"
-    python = tmp_path / "python"
+    (tmp_path / "venv" / "bin").mkdir(parents=True)
+    python = tmp_path / "venv" / "bin" / "python"
     # PYTHONPATH pins which checkout `import planetgen` finds (TEST.143): the editable install of whatever
     # checkout this machine was set up from would otherwise decide, and a test run from another checkout
     # or a git worktree saw "planetgen is not imported from here" and reinstalled.
@@ -327,7 +212,7 @@ def _run_install_checkout(tmp_path, script_dir, mode="unmanaged"):
     python.chmod(0o755)
     command = tmp_path / "bin" / "planetgen"
     harness = "\n".join([
-        "set -euo pipefail", f'PYTHON="{python}"', f'SCRIPT_DIR="{script_dir}"', f'MODE={mode}',
+        "set -euo pipefail", f'VENV="{tmp_path / "venv"}"', f'SCRIPT_DIR="{script_dir}"',
         f'PLANETGEN_COMMAND="{command}"', _function(script, "install_checkout") + "\n}\n", "install_checkout",
     ])
     result = subprocess.run(["bash", "-c", harness], capture_output=True, text=True)
@@ -346,17 +231,15 @@ def test_install_checkout_leaves_a_current_editable_install_alone(tmp_path):
     assert os.readlink(command) == os.path.join(sysconfig.get_path("scripts"), "planetgen")
 
 
-@pytest.mark.parametrize("mode, flag", [("unmanaged", False), ("managed", True)])
-def test_install_checkout_installs_another_checkout_editable(tmp_path, mode, flag):
+def test_install_checkout_installs_another_checkout_editable(tmp_path):
     """A checkout planetgen doesn't import from is pip-installed editable,
-    without its dependencies (they come from the lock); a PEP 668 Python
-    needs --break-system-packages."""
+    without its dependencies (they come from the lock)."""
     other = tmp_path / "checkout"
     (other / "src").mkdir(parents=True)
-    calls, _ = _run_install_checkout(tmp_path, other, mode)
+    calls, _ = _run_install_checkout(tmp_path, other)
     assert len(calls) == 1
     assert calls[0].endswith(f"--no-deps -e {other}")
-    assert ("--break-system-packages" in calls[0]) == flag
+    assert "--break-system-packages" not in calls[0]
 
 
 def test_the_web_app_never_imports_numba():
@@ -370,3 +253,52 @@ def test_the_web_app_never_imports_numba():
             "assert 'numba' not in sys.modules, 'numba was imported by the web app'\n")
     done = subprocess.run([sys.executable, "-c", code], cwd=os.path.join(ROOT, "src"), capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-1500:]
+
+
+def test_cryptography_is_a_requirement_for_mysql_8_logins():
+    """The first real update.sh on a venv failed at the migration with "'cryptography' package is required for
+    sha256_password or caching_sha2_password auth methods": pymysql needs it to log in to MySQL 8's default accounts."""
+    assert "cryptography>=42.0.0" in _setup_requirements()
+    assert "cryptography>=42.0.0" in _script_requirements()
+    lock = _lock_pins().read_lock(os.path.join(ROOT, "requirements-server.lock"))
+    assert "cryptography" in {name for name, _, _, _ in lock}
+
+
+def test_the_library_check_fails_a_pymysql_that_cannot_use_cryptography():
+    """A venv with pymysql but no cryptography is "broken" at the library step, not at the migration."""
+    code = ("import sys; sys.modules['cryptography'] = None; sys.argv = ['probe', 'pymysql>=1.1.1']\n"
+            f"exec(open({os.path.join(ROOT, 'scripts', 'probe_requirements.py')!r}).read())\n")
+    done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
+    assert done.stdout.startswith("broken pymysql>=1.1.1 ImportError:pymysql_has_no_cryptography"), done.stdout + done.stderr
+
+
+def test_every_library_the_code_imports_is_in_the_lock():
+    """A library planetgen imports but the lock lacks is missing from a venv built from the lock alone (OPS.47: the
+    first real update.sh found none of this until the database step). Imports anywhere in the package count,
+    including inside functions."""
+    from importlib import metadata
+    lock_pins = _lock_pins()
+    locked = {name for name, _, _, _ in lock_pins.read_lock(os.path.join(ROOT, "requirements-server.lock"))}
+    distributions = metadata.packages_distributions()
+    missing = {}
+    for folder, _dirs, files in os.walk(os.path.join(ROOT, "src", "planetgen")):
+        for name in files:
+            if not name.endswith(".py"):
+                continue
+            path = os.path.join(folder, name)
+            with open(path, encoding="utf-8") as f:
+                tree = ast.parse(f.read())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    modules = [alias.name.split(".")[0] for alias in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                    modules = [node.module.split(".")[0]]
+                else:
+                    continue
+                for module in modules:
+                    if module in sys.stdlib_module_names or module == "planetgen":
+                        continue
+                    owners = distributions.get(module)
+                    if owners and not any(lock_pins.normalize(owner) in locked for owner in owners):
+                        missing.setdefault(module, os.path.relpath(path, ROOT))
+    assert not missing, f"imported but not in requirements-server.lock: {missing}"

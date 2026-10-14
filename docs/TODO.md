@@ -491,6 +491,17 @@ with `clamp()`.
   the templates and static files, most of them in template comments (`{#
   ... #}`), which stay, and about 130 string literals in the Python code
   to check by hand. Owner: Bugfixes lane 2, after its current items.
+  Docs sweep (2026-10-09): Docs sweep (2026-10-14, reference audit
+  finding 9 and 39): TODO codes are still in many CLI --help strings
+  (GEN.195, NAV.48, ADM.29, GEN.30, GEN.96, GEN.97, GEN.186, ADM.30,
+  GEN.196, OPS.13, DB.8, GEN.183, GEN.39, NAV.43, SEC.22, SEC.26 in
+  cli/generate.py, cli/query.py and cli/lockouts.py), in one run
+  message, and web/templates/admin_stats.html line 162 renders (PERF.56)
+  on the admin Stats page; the help text also shows the internal
+  constant name LARGE_RING_WARNING_THRESHOLD. Remove them as part of
+  this item, with a test that scans CLI help and templates for TODO
+  codes. Details in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md.
   Prerequisites: none.
 
 - [ ] **UX.94 Gravity map wording: the legend, the mode names and the Map help text**
@@ -511,14 +522,6 @@ with `clamp()`.
   the CLI text and the downloaded log, with a test over the formatter.
   Owner: Bugfixes lane 1 (next, PERF.85 is merged in #1265).
   Prerequisites: none. Related: PERF.65, PERF.66.
-
-- [ ] **UX.99 Rogue planets do not show their surface gravity (bug)**
-  GitHub issue [#1219](https://github.com/dwhagar/planetGen/issues/1219)
-  (Boss, 2026-10-11 02:45Z): "Rogue planets need to show their surface
-  gravity with the other information." Done: a rogue planet's page, row
-  and map popup show its surface gravity like any other planet, with a
-  test. Owner: Bugfixes lane 2, after its current items.
-  Prerequisites: none. Related: GEN.142, UX.22.
 
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -949,7 +952,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default each
   sub-item goes ahead as written;
   MAP.160 is deferred): other?
-  Prerequisite: MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
@@ -1083,6 +1085,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   containers, then the 3-ary ladder (MAP.151b).
   /galaxy/window?at=<cell>&g=<3..11> is planetgen/galaxy/window.py and
   tilecache.fetch_window.
+  Status (2026-10-09): MAP.151d part 1 done (Foundations lane 2,
+  2026-10-14, #1335): the window stage at /galaxy?win=&g= with
+  click-centred zoom, JS windowCells matching the Python Region, and
+  /galaxy/window; nothing links to it yet. Part 2 left: the galaxy home
+  as a window, retire the arc, slab and segment picks (the rest of
+  MAP.150, which unlocks MAP.189 and MAP.190), URLs and breadcrumb from
+  the window. The 3-ary ladder (MAP.151b) needs a per-level aggregate
+  table so a window does not need about 64 stage queries: DB.25,
+  Foundations lane 1.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1130,55 +1141,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the range hidden.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
-
-- [ ] **MAP.159 Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump**
-  Source: docs/design/galaxy-map-wire-format.md (section 1 step 2, 4.1,
-  4.3). Measured: a packed binary tile is 12.9 to 16.7 bytes a star, 78%
-  fewer gzipped bytes than today's JSON (3.52 MB to 0.79 MB over 400
-  real tiles; the worst 70,000-star view falls from 3.2 MB to about 0.8
-  MB). Done: the server writes tiles as packed typed arrays (quantised
-  position, colour and scalar planes; `clouds` and `points` stay JSON),
-  the client decodes them in `tileStars`, list order is rank so the rank
-  fade of MAP.153 reads it directly. (Foundations lane 2, 2026-10-14: a
-  finer tile does not omit the stars a coarser tile already sent, because
-  the page would need the parent tile in hand for every child; that
-  saving, 31 to 43% of bright records at levels 3 to 6 and all at 7 to
-  12, is the follow-up item MAP.195.) It ships together with MAP.151's tile keys so the cache is invalidated
-  once (MAP.154, the nested lists, merged in #1303). Decided
-  (Boss, 2026-10-10 18:44Z, defaults approved; default yes, with MAP.154
-  merged and MAP.151 on one bump):
-  go ahead?
-  Related: MAP.147, MAP.151, MAP.153, MAP.157.
-  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
-  Lane 3 and Research Lane 2: x/y/z uint16 inside the tile cube, log
-  luminosity uint16, log temperature and radius uint8, class and flags
-  uint8, id uint32 (a lean record without ids is 11 bytes); `clouds` and
-  `points` stay JSON; the 80-bit object ID stays off the tile wire. Keep
-  list order, so rank is implied (use the unsorted 16.7 byte form, or
-  add a 2 byte rank plane). The format fits any octree edge from 16 pc
-  to 65,536 pc; aggregates cost about 10 bytes a cell; block responses
-  are tiny, so changing block keys costs nothing on the wire. Depends on
-  MAP.157 and MAP.158 and on Boss's yes on the design.
-  Foundations lane 2 (2026-10-09): Foundations lane 2 (2026-10-10,
-  MAP.157, PR #1112): the brotli copy made at cache-write time was NOT
-  built: Python has no stdlib brotli, the project has no brotli
-  dependency, and stored gzip copies joined as one gzip stream failed in
-  Chromium (it decodes only the first member). Instead the tile cache
-  stores the trimmed JSON bytes and joins them without parsing (a warm
-  hit no longer re-serialises), and Apache compresses (examples/apache
-  now also loads mod_brotli). Decided (Boss, 2026-10-10 18:44Z, defaults
-  approved; default: leave as
-  is): add the brotli package as a dependency so tiles can be served
-  from precompressed copies.
-  Built (2026-10-10): MAP.158 as built (PR #1123): tiles live in
-  IndexedDB (96 MB cap, least recently used out); localStorage keeps
-  only the stamp record. The prefetch is zoom-in only, starts after 1.5
-  s idle, is off on saveData or 3G and slower, and takes at most 1.5 MB
-  per page visit. The interim localStorage LRU was skipped (IndexedDB
-  replaces it).
-  Decided (2026-10-10): Boss (19:12Z): leave brotli as is; no new
-  dependency, Apache compresses.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
   Source: docs/design/galaxy-map-wire-format.md (section 5, from section
@@ -1537,22 +1499,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so a child never draws without them, with a test that a tile and its
   parents together hold exactly the stars the full list holds. Measure
   the saving against the cost of holding the parents before building it.
-  Prerequisite: MAP.159. Related: MAP.159.
-
-- [ ] **MAP.196 galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug)**
-  Reported by the Test Suite Rebuild thread via the coordinator
-  (2026-10-14, from TEST.125, #1313): since the object ID change
-  (80-bit, 20 hex digits) systemnav.js only accepted number-only
-  references, so the System Map's Start Here and End Here buttons
-  vanished from every body's info panel; that is fixed. galaxystages.js
-  still reads the system= and object= parts of a sector link as digits
-  only and may have the same problem. Done: every place in the browser
-  code that parses a system or object reference accepts the current ID
-  form (hex digits), checked by grep and by a test that opens a sector
-  link carrying a hex object ID; no other digits-only reference parser
-  is left behind. Owner: Bugfixes lane 2 or the next lane taking
-  JavaScript fixes.
-  Prerequisites: none.
+  Status (2026-10-09): MAP.159 merged (#1305, Foundations lane 2): tiles
+  are sent packed at about 20 bytes a star, kept packed in the server
+  cache and the browser's IndexedDB. Leaving out stars a parent tile
+  already sent is NOT built; that is this item.
+  Prerequisite: none. Related: MAP.159 (done, #1305).
 
 ## NAV: Navigation and courses
 
@@ -3419,6 +3370,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command saves a full reseed). Check: after a reseed and after the
   command, the same rows carry the same values (a test on a small
   galaxy). Owner: Foundations lane 1.
+  Decided (Boss, 2026-10-14 19:55Z, on a decision
+  card relayed by the coordinator): both. The scatter fills the map
+  luminosity for new galaxies and a one-off command fills existing ones.
   Prerequisite: DB.23. Related: MAP.171, GEN.185, GEN.196.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
@@ -3434,27 +3388,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a test shows it. Owner: Foundations lane 1.
   Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
-- [ ] **GEN.205 `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  a dry run first, then delete the stored field-origin dark nebulae the
-  new rule rejects (about 35% of stored field clouds) that hold nothing
-  of their own, clear `inside_nebula_id` and refresh containment.
-  Default for a test galaxy is just a new plan. Owner: Foundations lane
-  1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the cleanup of an existing galaxy; it
-  always runs a dry run first.
-  Prerequisite: DB.24. Related: GEN.196, GEN.176.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
 - [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
@@ -3503,6 +3436,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Red; it has a 0 to 1 number that is the same geometric-mean blend of
   the three rungs as the other dimensions, and the numbers are tuned
   with the lane's sample worlds). Owner: Foundations lane 2.
+  Decided (Boss, 2026-10-14 19:54Z, on a decision
+  card relayed by the coordinator): Suitability is the lowest of three,
+  water access, food and shelter, as a 0 to 1 number.
   Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
@@ -3664,6 +3600,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Dropped when PERF.100 lands: Boss decided
+  there is no automatic resume, and the Redis plan (PERF.86) keeps the
+  whole run in Redis.
 
 - [ ] **PERF.30 Finish an interrupted block or sector run on the next start**
   Boss (2026-10-07 11:47Z): "Add a mechanism to finish generating a
@@ -3686,6 +3625,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Dropped when PERF.100 lands: Boss decided
+  there is no automatic resume, and the Redis plan (PERF.86) keeps the
+  whole run in Redis.
   Prerequisite: PERF.29.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
@@ -3751,6 +3693,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has an unknown count at start; (3) the command-line whole-job bar (built
   with PERF.55, PR #1131); (4) job-page tree estimates are by
   step label, not by settings. Folded here; (3) is done.
+  Redis plan (2026-10-14): Folded into PERF.96 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3785,6 +3729,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
@@ -3871,23 +3817,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
-- [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
-  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
-  docs/design/generation-benchmark-report.md; `python -m
-  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
-  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
-  `insert_sector` is 40 s of the 227 s profile. Done: the insert is
-  measured by statement (batching, executemany, fewer round trips) and
-  cut, with the rows identical. Related to the uid work in PERF.31's
-  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10).
-  Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
-  hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
-  for scatter writes); try it here. pymysql is 8% of the profiled fill.
-  Prerequisites: none. Related: PERF.31, PERF.73.
-  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
@@ -3912,6 +3845,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (coordinator to assign), then Foundations lane 1.
   Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
   ADM.15, PERF.24.
+  Redis review (2026-10-14): research done (Research Lane 1, PR #1350,
+  docs/design/redis-and-the-work-queue.md, with
+  /mnt/project-files/research/redis-review/). Boss adopted its Option A
+  and approved every default in it on 2026-10-14 21:08Z (see the
+  Decided line below). Filed from the same review, independent of the
+  rebuild: PERF.93 (bug), OPS.48, PERF.94, ADM.54.
+  Decided (Boss, 2026-10-14 21:08Z): Option A of
+  the Redis review, every default approved. Build steps filed as PERF.95
+  (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
+  scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
+  cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
+  when they are; it follows the dead-worker bug PERF.93 and the client
+  module PERF.94 in Foundations lane 1. DOC.20 rewrites the notes after
+  step 6.
 
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
   Math Research (2026-10-14;
@@ -3945,6 +3892,207 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the math items.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.92 Save generation timing per object and per object type, as well as per operation, stage and job**
+  Boss (2026-10-14 18:21Z, issue #1328): statistics must be saved on a per-object
+  basis, which is pretty universal, and per type of object generated, in
+  addition to what is kept now (PERF.67 and PERF.56: per operation,
+  stage, whole job and scatter kind). So the stats store records the
+  time to generate each object (and similar measures such as the number
+  of draws or the memory it took), aggregates them per object type
+  (star, planet, moon, belt, nebula, phenomenon and so on), and keeps
+  the existing stage and job records. Done: a migration with the table
+  or tables (Foundations lane 1 is the only lane adding migrations);
+  generation writes the records through one shared path so every
+  generator reports the same way; the admin Stats page and the ETA
+  estimates can read per-type means; a test that every object kind the
+  generators create reports; the records cost no more than about 1
+  percent of generation time (benchmark). Open question for Boss,
+  default chosen: at billions of objects a row per object is too much.
+  Default: store
+  per-type aggregates per run and per sector (count, total and mean
+  time, min and max, and a fixed-size histogram), plus a sampled row per
+  object (1 in 1,000 by a hash of the object id, so it is repeatable)
+  with its full timing; a full row per object only behind an opt-in flag
+  for benchmark runs. The alternative is a row for every object, which
+  costs storage and write time.
+  Decided (Boss, 2026-10-14 19:53Z, on a decision
+  card relayed by the coordinator): aggregates plus a sample. Per-type
+  aggregates per run and per sector, a repeatable 1-in-1,000 sample with
+  full timing, and a full row per object only behind an opt-in flag.
+  Prerequisites: none. Related: PERF.33.
+
+- [ ] **PERF.93 api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). api_jobs.ensure_workers
+  starts min(waiting, worker_count()) minus Worker.count(queue) minus
+  the workers still starting. Worker.count is the size of a Redis set
+  that only a worker's start-up maintenance cleans. Measured in the
+  review: after kill -9 of a worker the count stayed at 1 for the whole
+  test, and still at 1 after the worker's own key had expired (80 s), so
+  queued API jobs wait on a phantom worker and, with a cap of one,
+  nothing replaces it. A job whose worker was killed is also noticed
+  only after about 90 s (heartbeat TTL 30 s plus 60 s) and then runs
+  again because of Retry(max=1). Not reproduced end to end through
+  planetGen's own code; the cause and the measurement are in the note
+  (finding F4, F5). Done when: ensure_workers counts live workers only
+  (a liveness check, and the worker registry is cleaned first), a test
+  kills a worker and shows a replacement starts and the queued job runs,
+  and the late-noticed killed job is covered or noted. Independent of
+  PERF.86. Bugfixes lane 2.
+  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78.
+
+- [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Redis is opened in
+  several places with different settings (finding F9) and RQ arguments
+  are pickled (F8). Done when: one module owns the connection (timeouts,
+  retry, health check, a cached pool), every connect() call site uses
+  it, and task arguments travel as plain JSON where the old path pickled
+  them. Normal priority; PERF.86 builds on it. Foundations lane 1,
+  before PERF.40.
+  Prerequisites: none. Related: PERF.86, PERF.40.
+
+- [ ] **PERF.95 Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.4 and 5.11 step 1. Two
+  queues, planetgen-bulk and planetgen-interactive, each worker serving
+  only one; ensure_workers starts idle-timeout workers (max_idle_time
+  about 60 s, not burst) up to the wanted-count key
+  planetgen:workers:wanted, counts only live workers, cleans the worker
+  registry, and is called by whoever queues and by every status poll;
+  API jobs move to the interactive queue. Folds in PERF.40 (two shared
+  queues, a reserved interactive worker, a real cancel now), PERF.78 (a
+  reserved warm worker for long admin operations) and ADM.15 (worker
+  count from the Queue page, Ludicrous Speed as a number). Done when:
+  those items' behaviours work on the new spine and a test kills a
+  worker and a replacement starts.
+  Prerequisites: PERF.93, PERF.94. Related: PERF.86, PERF.40, PERF.78,
+  ADM.15.
+
+- [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.2 and 5.11 step 2.
+  planetgen:run:<id> hash, per-stage counter hashes, the done sets, the
+  events stream (XADD with MAXLEN about 100,000) and the cost-weighted
+  ETA as a pure function of the counters, built as a library with a fake
+  clock and tests; no UI yet. Folds in PERF.33 (progress bars and ETAs
+  from measured performance). Done when: the library passes its tests
+  for the barrier, counters, stream and ETA and PERF.33's acceptance is
+  met by it.
+  Prerequisite: PERF.95. Related: PERF.86, PERF.33.
+
+- [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 3. One
+  stage on the new spine, the mass scatter: static chunks (units per
+  stage capped near 4,000), JSON arguments, the done-set barrier (SCARD
+  equals the unit count, SET NX on an advanced flag so one unit
+  advances), the run's seed independent of worker count, planetgen
+  galaxy following the events, and --workers 1 using the same path. Each
+  scatter layer set is its own queue item run in order (Boss,
+  2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
+  gives the same galaxy for the same seed at any worker count and the
+  old path still runs the other stages.
+  Prerequisite: PERF.96. Related: PERF.86.
+
+- [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 4. Move
+  every other stage (skeleton, phenomena, luminosity, sectors, link,
+  backfill, population, settle) and the sector and backfill units onto
+  run records, units and barriers; one-shot stages are one unit. Stage
+  timing goes into generation_stage_runs and generation_stats from the
+  unit that completes the stage; a hard-killed worker is seen at once by
+  the work-horse-killed handler, and every job gets a real job_timeout.
+  Done when: every generation command runs on the new queue and the old
+  executor is unused.
+  Prerequisite: PERF.97. Related: PERF.86, PERF.92.
+
+- [ ] **PERF.99 Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.5 and 5.11 step 5. The
+  Generate page, the Queue page, the all-visitors banner (UX.3) and the
+  job log read the run record, counters and event stream; cancel sets
+  the run to cancelling, cancels the waiting units, sends the stop
+  command to the started ones and clears planetgen:run:active (about 0.5
+  s); the stale-run Clear action (section 5.6) is added; the event
+  stream is the live log and is written to the jobs directory at run end
+  for the download link, last 20 kept. Done when: the pages need no
+  MySQL job tree and cancel is measured under a second on a 75-job run.
+  Prerequisite: PERF.98. Related: PERF.86, UX.3.
+
+- [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.3, 5.7 and 5.11 step 6.
+  Delete queue/work.py's WorkQueue, the job tree and the lease,
+  RQExecutor, RQFuture and Channel, web/jobs.py's files and
+  web/job_runner.py, queue/progress_file.py, submit_each's adaptive
+  chunking, the in-process no-Redis fallback and GENERATION_QUEUE, with
+  one Alembic revision dropping work_jobs, work_job_args, work_tasks and
+  work_lease (Foundations lane 1 only adds migrations). PERF.29 and
+  PERF.30 (resume) are dropped when this lands: Boss decided there is no
+  automatic resume. Done when: the suite is green with the old code gone
+  and the line count is recorded in the PR.
+  Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 ## DB: Database and schema
 
@@ -4072,6 +4220,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   measures that). Owner: Foundations lane 1 (the only lane that adds
   migrations), after PERF.70.
   Prerequisites: none. Related: GEN.201, MAP.171, MAP.165.
+
+- [ ] **DB.25 A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration)**
+  Foundations lane 2 (2026-10-14, after #1335): with the 3-ary ladder
+  (MAP.151b, 729/243/81/27/9/3/1) a map window would need about 64 stage
+  queries unless the per-level aggregates are stored. Done: a migration
+  and its previous-version fixture for a table holding the aggregates
+  per ladder level and cell (the columns the stage views already show:
+  star count, summed luminosity, mean age, nebula cover when MAP.172
+  lands), filled by the stage run and by a backfill for existing
+  galaxies; the window query reads it in one statement; a test that the
+  stored aggregates equal the ones computed from the stage files. Owner:
+  Foundations lane 1 (the only lane that adds migrations); queue it
+  right after PERF.92 because MAP.151b waits on it.
+  Prerequisites: none. Related: MAP.151, MAP.172.
 
 ## API: The JSON API
 
@@ -4442,6 +4604,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
@@ -4610,6 +4774,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
+
+- [ ] **ADM.54 A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Optional monitoring: the
+  admin page shows whether Redis answers, whether the append-only file
+  is on, the memory policy, used_memory, the last save status and the
+  worker count. Default: build it after the Redis settings item; Boss
+  may drop it. Foundations lane 1, after the client module.
+  Prerequisites: none. Related: OPS.48, PERF.94.
 
 ## SEC: Security
 
@@ -4998,6 +5173,34 @@ clears each one.
   proof period, which starts now. Gate run 17:04Z took 60 min 54 s with
   one failure (a heading missing from its own release note, fixed);
   first complete map 15,861 tests. Stage 2 of 5 done.
+  Flake (2026-10-09): Flake sighting (Foundations lane 1, 2026-10-14,
+  GEN.205 suite, 26 min):
+  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
+  failed once under full-suite load and passes alone. For the rebuild's
+  flake list.
+  Flake (2026-10-09): Flake sighting (Bugfixes lane 2, 2026-10-14,
+  MAP.196 suite, 49 min):
+  tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
+  failed under load twice (12:00Z and 17:03Z), passes alone; not checked
+  on main. Also tests/test_web_browser_maps.py::test_galaxy_map_buttons
+  again (TEST.126). For the rebuild's flake list.
+  Stage 3 merged (#1339, 2026-10-14): one database per worker, emptied
+  between tests; docs/testing.md and docs/design/test-suite-rebuild.md
+  sections 11 to 13 carry it. Boss (2026-10-14 19:44Z, in the Test Suite
+  Rebuild thread): "yes changed can replace a full run for small changes
+  also changes in a workflow, I don't want to do a full chain test every
+  time we merge, but when a sequence is finished of related items." So a
+  green `scripts/test.py changed` run is the merge gate for small changes
+  and for steps inside a sequence of related items, and a full run
+  (`scripts/test.py full --check`) happens when a sequence is finished
+  (whether "changes in a workflow" also covers CI workflow files is
+  asked of Boss in that thread). Docs-only PRs still merge at once.
+  Stage 4 (2026-10-14): Stage 4 first part merged (#1357, 2026-10-14):
+  the browser phase of a full run fell from about 40 minutes to 25, so a
+  full run is now about 45 minutes. Next in the rebuild thread:
+  TEST.145, TEST.146, TEST.133. The flake sightings from Bugfixes lane 2
+  (System Map selection, galaxy breadcrumb tests) were folded into the
+  flake group TEST.126.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5050,6 +5253,35 @@ clears each one.
   into the rebuild, no separate hunt; same family and fix as TEST.126.
   Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.138.
+
+- [ ] **TEST.145 Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug)**
+  Reported by Foundations lane 2 via the coordinator (2026-10-14,
+  MAP.151d suite): 17 full-suite tests failed when the suite ran from a
+  git worktree because tests that start subprocesses (schema-version
+  tests among them) used the editable install pointing at
+  /home/user/planetGen, not the worktree; all pass against the right
+  code, and the lane worked around it by setting PYTHONPATH to the
+  worktree src. Like TEST.143 for the install check. Done: every test
+  that spawns a subprocess puts the checkout under test first on
+  PYTHONPATH (one shared helper), so the suite passes from any checkout
+  or worktree, with a test that fails if a subprocess imports planetgen
+  from anywhere else. Owner: the Test Suite Rebuild thread (its list),
+  not a lane.
+  Prerequisites: none. Related: TEST.139.
+
+- [ ] **TEST.146 Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug)**
+  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z), first
+  read as a one-minute window ending between a test's requests. The
+  thread's later finding (2026-10-14 21:40Z) is the real cause: the
+  between-test rate-limit reset wipes every limiter key on the shared
+  Redis, so tests running at the same time lose each other's counts.
+  Seen once: src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
+  failed in the 18:47Z full run and passed alone; test_web_request_limits.py
+  and test_web_security_limits.py have the same shape. Done when each
+  test resets only its own keys and the suite shows no time flake. Owner:
+  the Test Suite Rebuild thread (group B style), not a lane. Fixed in
+  the thread's open PR, which lands with TEST.145.
+  Prerequisites: none. Related: TEST.139, TEST.145.
 
 ## USR: User accounts
 
@@ -5385,35 +5617,40 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.45 Install planetGen into its own virtual environment and clear the packages out of the system Python**
-  Boss (2026-10-14 15:17Z, chose the venv over system Python with apt):
-  reverses design decision 7 in docs/design/design-decisions.md, which
-  put the libraries in the system Python on Linux. His server's Apache
-  log shows planetGen's libraries (flask, pymysql, flask_limiter) living
-  in /usr/local/lib/python3.12/dist-packages. Done: install.sh and
-  update.sh build one venv, install every planetGen dependency in it
-  (numba and llvmlite included, from the lock files), remove the
-  pip-installed planetGen packages from the system Python, and point
-  both the CGI pages and the mod_wsgi entry point (WSGIDaemonProcess
-  python-home, src/html/wsgi.py, the examples in examples/apache and
-  docs/deployment/apache.md) at it; the generator, the workers, the
-  Redis queue workers and the cron or timer jobs run from the venv too.
-  Revisit numba's default cache location for the venv and the web user
-  (OPS.42's rule that the web app never imports numba still holds, and
-  PERF.88's web-user import test now runs against the venv). The venv
-  path, how update.sh rebuilds it when the Python or the lock file
-  changes, and how a system package conflict is detected are the lane's
-  to propose in the PR. Update design-decisions.md section 7,
-  INSTALL.md, README, docs/deployment/apache.md and testing.md, and keep
-  the macOS installer as it is. The change note says the install layout
-  changed and that update.sh does it for the server. Interacts with
-  OPS.43 (a fresh install gets markdown 3.11.1) and OPS.42 (merged).
-  Boss (2026-10-14 15:29Z): he has already cleared the system packages on
-  his server by hand, so the clean-up step must be safe when nothing is
-  installed, and update.sh must build the venv on a server that has no
-  libraries at all.
-  GitHub issue [#1295](https://github.com/dwhagar/planetGen/issues/1295).
-  Prerequisites: none. Related: OPS.42, OPS.43, OPS.44.
+- [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Redis here runs with its
+  defaults. In the review's test, the defaults lost every key on kill -9
+  and appendonly yes with appendfsync everysec kept them all. Done when:
+  examples/redis/planetgen.conf sets appendonly yes, appendfsync
+  everysec, maxmemory-policy noeviction, a maxmemory guard and a
+  loopback bind; update.sh warns, with the exact line to add, when
+  appendonly is off or the memory policy is not noeviction or Redis
+  listens beyond loopback, and never edits his Redis config; the install
+  guides say so (with DOC.44). Normal priority, behind the
+  generation-performance work. Bugfixes lane 1.
+  Decided (Boss, 2026-10-14 21:08Z): turn on the
+  append-only file (everysec), noeviction and a memory guard through a
+  documented example config and an update.sh warning; update.sh never
+  edits his Redis config. One Redis instance; no password while it binds
+  loopback (it does today), an ACL user documented for later.
+  Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
+
+- [ ] **OPS.49 update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug)**
+  Boss, 2026-10-14 21:36Z: after the OPS.47 fix, update.sh runs steps 1
+  to 4 on the rebuilt venv (cryptography 50.0.2, pymysql 1.2.3,
+  SQLAlchemy 2.1.3, alembic 1.20.0, math check passed) and then fails at
+  step 5, Migrating the configured MySQL database, with: error:
+  'NoneType' object has no attribute 'is_auth_switch_request'. That text
+  comes from pymysql's login handshake, so the cause is probably the
+  auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
+  version, not the schema. Reproduce it against MySQL 8 and the lock
+  file, check the locked versions against ones known to work with that
+  plugin, fix the cause, and make the update print a clear error naming
+  the login problem instead of the bare exception.
+  Prerequisites: none.
 
 ## DOC: Documentation
 
@@ -5476,6 +5713,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   course-routing.md; galactic-potential.md from orbital-updates.md 10.1;
   the three map-ui design docs. Open the Boss-facing decisions these
   touch as they are made.
+  Docs sweep (2026-10-09): Docs sweep (2026-10-14): the cli.md items are
+  covered by DOC.36, the database-schema.md ones by DOC.33 and DOC.32,
+  the html-interface.md ones by DOC.31 and the system-file format ones
+  by DOC.30; the docstring ones by DOC.21. This item stays only for what
+  none of those cover (docs/deployment/macos.md 'Monthly orbit update'
+  wording); retire it when the others are done. Note the bright-star
+  default is 9000 L_sun (range 2500 to 4,000,000), not the 1,000 named
+  above.
   Prerequisites: none.
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
@@ -5620,6 +5865,419 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   later change to those features (a feature item is not done until its
   help text is).
   Prerequisite: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.18 Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete**
+  Boss's instruction (2026-10-14 18:06Z): bring the docs current once
+  Phase 1 is done. Items merged after the sweep (for example PERF.86,
+  UX.102, OPS.45, the fly-through map MAP.151 to MAP.155, MAP.150, the
+  logging standard) will have changed things the DOC items above cannot
+  know about. Done: the sweep is run again on main, anything new is
+  fixed in the same pass, README's headline feature list and the release
+  headline are checked, and the result is recorded here.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.19 After UX.102: document the log output standard for the CLI, the Generate page and admin logs**
+  Requested by the coordinator from Boss's instruction of 2026-10-14
+  18:06Z to compare the docs with merged work. UX.102 sets one logging
+  standard (timestamps, format, dividers, step markers) for everything
+  the user or an admin reads; once it is built, docs/cli.md,
+  docs/html-interface.md (Generate page and job log) and docs/testing.md
+  need a short section on it. Done: the standard is described once and
+  the three docs link to it.
+  Prerequisite: UX.102.
+
+- [ ] **DOC.20 After PERF.86: rewrite the queue and scatter notes and the queue docstrings**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  10 to 12, 14, 15 and part of 36. When each scatter becomes its own
+  queue item run in turn (PERF.86), these describe the old model:
+  generation-benchmark-report.md line 101 (scatter is still one job),
+  performance-eta-queue-and-caching.md, work-queue-audit.md,
+  sampling-backfill-and-resume.md section 7 (resume, which PERF.86
+  decided against), library-migration.md section 3, architecture.md Flow
+  4, and the docstrings of queue/work.py and queue/redisqueue.py. Done:
+  all of them describe the queue as built.
+  Prerequisite: PERF.86.
+
+- [ ] **DOC.21 Rewrite the package docstrings that are wrong or missing, and the queryDb mentions**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  35 and 46 to 49. api/__init__.py says the write endpoints are stubs
+  (false) and names queryDb; web/app.py and web/__init__.py name
+  api/app.py; the queue, db and cli packages have no docstring and
+  several others omit modules that now exist; about 100 queryDb mentions
+  remain in docstrings (api/routes.py, galaxy/sector.py,
+  cli/generate.py, generation/run_*.py). Done: each package docstring
+  lists its modules and every queryDb mention names the real module; no
+  behaviour changes.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.22 Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  34 to 40 and 51. orbital-updates.md says nothing implements
+  next_update_due (GEN.106 to GEN.108 built it), has a duplicated
+  heading and points to a file that is not in the repo;
+  slow-reads-and-timeouts.md says nothing is built (PERF.68, 69, 70, 74,
+  76, 77, UX.96 and UX.97 are done); login-brute-force-protection.md
+  lacks the 503 Busy page (ADM.53); ops-scheduling-and-rotation.md is
+  behind on OPS.8 (built), OPS.18, ADM.19 and ADM.20 (dropped) and
+  OPS.39 (Windows removed); test-suite-rebuild.md says stage 1 is not
+  built (stages 1 and 2 merged, #1280 and #1323);
+  db-check-and-parity-repair.md is headed research although DB.8 is
+  built; population-and-politics.md says the web pages are not built
+  (POP.5 is done); course-routing.md's checked-at line needs
+  re-verifying. Done: each note says what is built.
+  Prerequisites: none. Related: TEST.139.
+
+- [ ] **DOC.23 Update the nebula, object ID and map-data-layer notes to what merged**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  24 to 28 and 32. nebula-map-visibility.md and
+  nebula-density-vs-reality.md still say nothing is built although DB.24
+  built nebula_field (classes M and N only, no object id until a sector
+  stores the cloud) and GEN.205 built --redo-nebula-field; the
+  nebula_field.py docstring does not mention the table;
+  object-id-options.md still opens research only (decided and built:
+  GEN.170 to 172, GEN.176, DB.20, API.23); object-ids.md says GEN.172,
+  GEN.176 and API.23 follow (all done); galaxy-drilldown-navigation.md
+  lists MAP.56 as planned (done, #408). The top banner of the drilldown
+  note is blocked on MAP.151d. Done: each note says what is built.
+  Prerequisites: none. Related: MAP.151.
+
+- [ ] **DOC.24 Bring Python 3.12, numba and astropy into the research notes and three source comments**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  18 to 23. generation-determinism.md, reproducible-galaxies.md,
+  units-and-number-formatting.md and library-migration.md still treat
+  astropy as live and 3.9 as the floor; galactic-potential.md,
+  orbital-solvers-and-integrators.md, db-check-and-parity-repair.md,
+  api-design-standards.md and ops-scheduling-and-rotation.md need the
+  same check; stale 3.9 comments remain in util/settings.py (line 39),
+  queue/work.py (247) and cli/generate.py (1376). PERF.88 (the numba
+  sector-path integrator) is still open, so say so. Done: the notes and
+  comments match OPS.42 and GEN.211.
+  Prerequisites: none. Related: PERF.88.
+
+- [ ] **DOC.25 Refresh docs/design/design-decisions.md: mark the reversed and built decisions**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  41 to 45. Decision 7 (system Python) is reversed by OPS.45 (merged, #1333,
+  so say reversed); decision 10 (drill-down instead of a free camera) is
+  being replaced by MAP.146; decisions 11 to 13 say planned but are
+  built or largely built; section 5 still describes DBUtils.PooledDB and
+  schema v43 (it is now SQLAlchemy QueuePool and v83); the file has no
+  status line. Done: each decision says in force, reversed or built,
+  with the item.
+  Prerequisites: none. Related: OPS.45, MAP.146.
+
+- [ ] **DOC.26 Give every design note a status line and refresh the stale ones**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, the
+  status list and findings 13, 16, 17, 29 to 31, 33 and 50. Sixteen
+  written notes lack a status (decided, built, partly built, superseded)
+  and the 22 imported research files carry no header at all (they need a
+  one-line banner: imported research, not edited);
+  scatter-queue-feasibility.md, generation-performance-study.md,
+  math-and-library-efficiency.md, galaxy-map-wire-format.md,
+  fly-through-view-distance.md, drilldown-region-sizes.md,
+  gravity-map.md and population-and-politics.md open with research only
+  or not built although parts are built. Done: each note says what is
+  built and what is not, with the PR.
+  Prerequisites: none.
+
+- [ ] **DOC.27 Update the architecture.md flows and add a design-notes index at docs/design/README.md**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  4, 7 and 9. Flow 3 still says localStorage and JSON tiles, but the map
+  uses IndexedDB and packed binary tiles (MAP.158, MAP.159); no design
+  note is listed in architecture.md or any index, and three imported
+  notes have no inbound link. Done: the flows match the code and
+  docs/design/README.md lists every note with its status line.
+  Prerequisites: none.
+
+- [ ] **DOC.28 Rewrite the code map in docs/design/architecture.md for the planetgen packages**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
+  1 to 3, 5, 6 and 8. The whole src/stellarObjects map (lines 124 to
+  253) and the Flow 1 names describe modules that no longer exist (the
+  folder holds only pycache) with 11 dead links; it still says astropy
+  is read for constants (dropped, GEN.211), CI runs Python 3.9 and 3.12
+  (it runs 3.12 and 3.13) and the Planned restructuring is still
+  planned; more than 130 planetgen modules are not mentioned. Done: one
+  line per real module, no dead link, and docs/design/architecture.html
+  (the architecture artifact) is rebuilt from it.
+  Prerequisites: none.
+
+- [ ] **DOC.29 A docs link check in the test suite, and a note that the web interface has no help or about page yet**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, finding
+  48, with 30 and 46. Broken relative paths (mdconvert.py, the
+  .planetgen link) and 11 dead links in architecture.md went unnoticed.
+  Done: a test fails when a relative link or anchor in any docs markdown
+  file does not resolve (the sweep's links.py and anch.py helpers are a
+  start); html-interface.md says that DOC.6 is what adds the help
+  section.
+  Prerequisites: none. Related: DOC.6, TEST.139.
+
+- [ ] **DOC.30 Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
+  44 to 47. The class table omits class S; the moon blacklist is Q, S
+  and V; class Q is marked non-habitable but is in
+  HABITABLE_PLANET_CLASSES; line 3 has a broken link; starData.py no
+  longer exists. Done: the tables match the code constants and every
+  link resolves.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.31 Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
+  29 to 38, 40 and 42. Numberformat.js row is stale (the rule is 7 or
+  more whole digits with no decimals, 5 or more with decimals, UX.36);
+  mdconvert.py should be mdrender.py and api/app.py should be
+  web/app.py; the / and /systems rows describe pages UX.55 redesigned;
+  routes are missing (/nearby, /nav/chart, /table/name,
+  /galaxy/uncharted, /galaxy/nebula, the job stream and log routes,
+  several admin routes); the header section list lacks Nearby and
+  Species; search parameters omit equipment, moon_equipment, phenomenon,
+  phenomenon_class and phenomena_page; the 503 Busy and 504 pages are
+  not mentioned; config.md line 164 and api/limiter.py line 99 omit
+  /galaxy/window from the galaxy_tiles scope; the doc says DBUtils is
+  needed. Two PRs if it grows: routes, then the rest. Done: every route
+  in the web app is in the table. Covers the html-interface.md part of
+  DOC.4.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.32 Update database-schema.md: control schema, missing tables and columns, old module names**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
+  20 to 25. The control schema section says 13 tables at v9; the code
+  has 18 at v14 (version_key_history, work_job_args and
+  generation_stage_runs are undocumented). No section exists for
+  phenomenon_scatter, nebula_shape_balls, generation_run_arguments,
+  id_blocks, id_counters or sector_system_counts; generation_runs still
+  lists an arguments column that moved in v63;
+  system_configs.prevalence_* and sector_stats.bright_mass_sol are
+  missing; old module names remain (doubleStar.py, planetData.py,
+  systemData.py and others). Done: every table and column in
+  db/models.py is described and a test or script compares the doc with
+  the models.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.33 Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
+  18, 19 and 26 to 28. Versioning still says v52 and describes
+  _migrate_vN_to_vN+1 functions that no longer exist (databases below
+  v61 raise SchemaTooOldError); the Planned changes table lists mostly
+  built items (DB.7, GEN.69, GEN.70, GEN.85 to GEN.89, OPS.13 and
+  others). Done: a short Versioning section points to
+  db/migrations/versions and the old-schema fixtures, and Planned
+  changes lists only what is still open. Covers the database-schema.md
+  part of DOC.4.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.34 Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
+  10 to 14 and 17. The Not done yet section lists NAV.12, NAV.11,
+  ADM.21, SEC.30 and API.9 although they are built (API.15 is genuinely
+  open); missing are /api/galaxy/uncharted, /api/admin/galaxy-settings
+  (and by name), /api/admin/generation-stats/reset and the
+  phenomena_offset search paging; /galaxy/window is a web route, not an
+  API route; examples still use row-number references such as planet:12
+  that API v2 and v3 refuse; the Errors section lacks 504 QUERY_TIMEOUT
+  and 503 BUSY. Done: each route in src/planetgen/api is in the doc and
+  each example runs; checked against
+  docs/design/api-design-standards.md.
+  Prerequisites: none.
+
+- [ ] **DOC.35 Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, finding
+  7. These modules have no reference; the doc also implies an
+  update-orbits command, but the real one is planetgen.cli.orbits. Done:
+  a section in cli.md, or a page linked from it, gives each tool's
+  purpose, usage and a safe example.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.36 Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
+  1 to 6 and 8. cli.md lists 8 of the 11 subcommands (versions, check-db
+  and benchmark are missing); its Planned commands table lists as
+  unbuilt things that exist (check-db, versions, --strict, --directive,
+  --avoid-filled-space, --neighborhoods, --rings, --layers, --slots,
+  --cylinder-*), leaving only repair-db, --resume and
+  scripts/maintenance.sh planned; the bright-star default is 9000 L_sun
+  with a range of 2500 to 4,000,000 (tuning.py), not 500 and 100 or more
+  (DOC.4 says 1,000, also stale); --force is no longer needed on the
+  scatter; plan --seed exists but the doc says it does not; --no-settle,
+  --phenomena-only, --star-mix, --then-scatter, --backfill-from, the
+  plan's shape flags and plan --redo-nebula-field (GEN.205, dry run by
+  default, apply to change; #1325) are undocumented. Done: cli.md
+  matches planetgen --help for every subcommand; any star count or run
+  time quoted is measured, not copied. Covers the cli.md part of DOC.4.
+  Prerequisites: none. Related: DOC.4.
+
+- [ ] **DOC.37 Rewrite the install docs for the venv install (OPS.45 merged, #1333)**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, finding
+  17. OPS.45 merged (#1333, 2026-10-14): the venv is at /usr/local/planetgen/venv and install.sh and update.sh were rewritten, so the install paths, the Python the services use
+  and where packages live all change: INSTALL.md,
+  docs/deployment/apache.md, nginx.md, caddy.md, macos.md, paas.md,
+  docs/server-checklist.md, README.md and the header comments of
+  install.sh, update.sh and scripts/install-python-deps.sh. Boss must add python-home=/usr/local/planetgen/venv to the
+  WSGIDaemonProcess planetgen-api line of his Apache site, so every Apache guide says so. Done: every
+  one of them describes the venv, how mod_wsgi, the CGI scripts and the
+  services use it, and how to rebuild it.
+
+- [ ] **DOC.38 Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
+  28 to 30. config.md says page_cache is not in config.json.example
+  although it is now, with stored_counts; PLANETGEN_WORKERS is in
+  neither the options table nor the environment-variable section; the
+  planetgen-gunicorn.service comment still describes memory://
+  rate-limit storage. Done: the prose matches config.json.example and
+  the code, and the service comment is corrected.
+  Prerequisites: none.
+
+- [ ] **DOC.39 Fix the README facts, the documentation table and the headline rule (Boss decision)**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
+  25 to 27. README names planetgen.db.query, which has no main; the
+  command is planetgen.cli.query. The README docs table omits
+  WINDOWS.md, server-checklist.md, ci-runners.md, system-file-format.md
+  and others. The rule that every release opens with a Headline has not
+  been followed since 8.0.912 (157 releases). Default: restore the rule
+  from the next release on and say so in changes/README.md, leaving the
+  earlier releases without one; Boss may instead drop the rule. Done:
+  README facts and table are correct, and the headline rule text matches
+  what is done.
+  Decided (Boss, 2026-10-14 19:54Z, on a decision
+  card relayed by the coordinator): restore the rule. Every release from
+  the next one on opens with a Headline line, and changes/README says
+  so.
+  Prerequisites: none.
+
+- [ ] **DOC.40 Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
+  8 and 19 to 24. The test job has five legs, not three runs on 3.12;
+  testing.md omits scripts/test.py changed and full --check (TEST.139,
+  #1323), PLANETGEN_TEST_REDIS_URL and how to start Redis; ci-runners.md
+  omits the Redis container and the dependency-audit job; README
+  Contributing and INSTALL Development setup present plain pytest as the
+  way to run. Done: both docs match the workflow file and the runner,
+  say that the full suite stays the merge gate and changed is a fast
+  loop, and give the Redis setup.
+  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 45
+  minutes; any figure for the full run's length in docs/testing.md or
+  the rebuild note should say about 45 minutes, not 60.
+  Prerequisites: none. Related: TEST.139.
+
+- [ ] **DOC.41 Fix the activity-log file name in the fail2ban guide and the shipped jail**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, finding
+  18. docs/deployment/fail2ban.md and
+  examples/fail2ban/planetgen.jail.conf (lines 19 to 21) name the
+  activity log planetgen-log, but the real file is planetgen.log, so the
+  shipped jail does not match the log as written. Small; can go first.
+  Done: the guide, the jail and the apache.md wording name the real
+  file, checked against what install.sh creates.
+  Prerequisites: none.
+
+- [ ] **DOC.42 Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
+  14 to 16. INSTALL.md leaves out the math check, the version key, the
+  Redis check and the background warm_map step; INSTALL.md and
+  docs/deployment/apache.md tell the reader to reload Apache by hand
+  although update.sh reloads it when it is running (OPS.8); INSTALL.md
+  says the debug log is only set up when debug is on, but it is always
+  set up along with the activity log. Done: the step lists match the
+  scripts line by line.
+  Prerequisites: none.
+
+- [ ] **DOC.43 Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
+  9 to 13. setup.py requires Python 3.12 (OPS.42), but
+  docs/deployment/macos.md says 3.10 or later and
+  scripts/install-python-deps.sh still checks for 3.10 (lines 531 to
+  534), docs/ci-runners.md talks about Python 3.9, INSTALL.md and
+  docs/deployment/apache.md name Debian 12 and Ubuntu 22.04 as supported
+  although Debian 12 ships Python 3.11, the apt package list in
+  apache.md is incomplete, and numba is never mentioned; nginx.md and
+  macos.md use an unhashed pip install. Done: every guide states the
+  real minimum and how to get it on each supported system, and the
+  installer's check matches setup.py (a small code change, with a test).
+  Prerequisites: none.
+
+- [ ] **DOC.44 Add Redis to the install and deploy docs: it is required, and no guide lists it**
+  Found by the full documentation sweep Boss asked for (2026-10-14
+  18:06Z); every finding was checked against the code on main
+  (8.0.1072), and the findings with file, line and evidence are in
+  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
+  1 to 7, 29 and 30. Redis is a hard requirement (PERF.24, OPS.21) for
+  the Generate page and for more than one worker, but README, INSTALL,
+  the macOS brew lines, every deployment guide and
+  docs/server-checklist.md omit it, docs/deployment/README.md still says
+  nothing uses it yet, docs/deployment/paas.md omits Redis and the burst
+  workers, and scripts/deploy-common.sh carries a comment that says it
+  is unused. Done: each guide names the Redis package, how to start it
+  and check it, and PLANETGEN_WORKERS; the false comment is corrected.
+  Prerequisites: none.
 
 ## VIEW: The view from a planet
 

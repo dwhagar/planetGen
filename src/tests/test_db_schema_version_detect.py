@@ -12,6 +12,9 @@ import pytest
 from planetgen.db import alembic_runner, store
 from tests.db_schema_support import load_old_schema, old_schema_versions
 
+# A fresh database with no schema, which these tests build and migrate themselves (TEST.139 stage 3).
+pytestmark = pytest.mark.fresh_database
+
 
 def _forget_version(config, drop=False):
     conn = store.get_connection(config, ensure_schema=False)

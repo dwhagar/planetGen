@@ -39,7 +39,7 @@ checkout to `/var/lib/planetGen`, write `config.json` (step 4), then:
     sudo /var/lib/planetGen/install.sh
 
 It makes the venv at `/usr/local/planetgen/venv` from Homebrew's
-`python3` (3.10 or later) with the libraries and gunicorn from
+`python3` (3.12 or later) with the libraries and gunicorn from
 `requirements-server.lock` (checked by hash), runs the migration (with
 the migrate-or-delete question of the
 [Apache guide](apache.md#migrating-or-deleting-the-database)), fetches

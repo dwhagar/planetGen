@@ -81,8 +81,9 @@ def test_a_changed_package_init_reaches_whatever_imports_inside_the_package():
 
 
 def test_a_recorded_run_lists_the_files_the_test_used(tmp_path):
-    """Runs a two-test project with --record-deps in a child pytest and reads the map it wrote (a file outside
-    the repository is not listed, so this only proves that the plugin loads, records and writes)."""
+    """Runs a three-test project (one fails) with --record-deps in a child pytest and reads the map it wrote: the
+    failing test is not in it (a file outside the repository is not listed, so this proves that the plugin
+    loads, records and writes, not what it lists)."""
     if not hasattr(sys, "monitoring"):
         pytest.skip("recording needs Python 3.12 or later")
     (tmp_path / "helper.py").write_text("def twice(x):\n    return 2 * x\n")
@@ -93,12 +94,15 @@ def test_a_recorded_run_lists_the_files_the_test_used(tmp_path):
             assert helper.twice(2) == 4
         def test_reads_a_file():
             assert open(__file__.replace("test_sample.py", "data.txt")).read() == "hi"
+        def test_fails():
+            assert helper.twice(2) == 5
         """))
     (tmp_path / "conftest.py").write_text(
         "import sys\nsys.path.insert(0, %r)\npytest_plugins = ('tests.depmap',)\n" % str(depmap.ROOT + "/src"))
     out = tmp_path / "map.json"
     subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", str(tmp_path), "--record-deps",
-                    "--deps-file", str(out), "--rootdir", str(tmp_path)], cwd=tmp_path, check=True,
+                    "--deps-file", str(out), "--rootdir", str(tmp_path)], cwd=tmp_path, check=False,
                    capture_output=True)
     data = json.loads(out.read_text())
-    assert data["format"] == depmap.FORMAT and len(data["tests"]) == 2
+    assert data["format"] == depmap.FORMAT
+    assert sorted(name.split("::")[1] for name in data["tests"]) == ["test_calls_the_helper", "test_reads_a_file"]

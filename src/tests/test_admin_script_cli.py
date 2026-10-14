@@ -220,6 +220,7 @@ def test_admin_stats_reports_on_a_seeded_database(seeded):
         conn.close()
 
 
+@pytest.mark.fresh_database
 def test_admin_stats_on_a_database_without_a_schema(mysql_config):
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

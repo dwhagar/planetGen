@@ -79,6 +79,7 @@ def test_phenomena_listing_respects_pagination_params(client, mysql_config):
     assert body["offset"] == 0
 
 
+@pytest.mark.fresh_database
 def test_phenomena_listing_on_never_initialized_database_fails_cleanly(client, mysql_config):
     """`mysql_config` creates a genuinely empty database (CREATE DATABASE,
     zero tables) -- the read-only API connection deliberately can't run

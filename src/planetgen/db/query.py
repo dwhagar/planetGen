@@ -1812,6 +1812,13 @@ letter since v47) of each `_PHENOMENON_TABLES` table that has one; every
 other type's rows carry `class` as `None`."""
 
 
+def rogue_planet_gravity_g(mass_kg, radius_km):
+    """A rogue planet's surface gravity in g (UX.99), from its mass and radius; `None` when either is missing."""
+    if not mass_kg or not radius_km:
+        return None
+    return constants.G * mass_kg / (radius_km * 1000.0) ** 2 / constants.EARTH_GRAVITY
+
+
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
@@ -1844,8 +1851,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     Returns:
         list[dict]: `id`, `type` (one of `_PHENOMENON_TABLES`' type
             labels), `name`, `descriptor`, `radius_ly` (0 for the
-            point-like types), `class` (see `_PHENOMENON_CLASS_COLUMNS`),
-            `x`/`y`/`z` (`center_x/y/z_pc`),
+            point-like types), `class` (see `_PHENOMENON_CLASS_COLUMNS`), `gravity_g` (rogue planets only: the
+            surface gravity in g, UX.99), `x`/`y`/`z` (`center_x/y/z_pc`),
             `galactic_radius_pc`.
     """
     where_bbox = ""
@@ -1872,7 +1879,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             f"""
             SELECT id, name, {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                    {_PHENOMENON_CLASS_COLUMNS.get(table, "NULL")} AS class_code,
-                   center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+                   center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+                   {"mass_kg, radius_km" if table == "rogue_planets" else "NULL AS mass_kg, NULL AS radius_km"}
             FROM {table}
             WHERE center_x_pc IS NOT NULL
             {where_bbox}
@@ -1887,6 +1895,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
                 "x": row["center_x_pc"], "y": row["center_y_pc"], "z": row["center_z_pc"],
                 "galactic_radius_pc": row["galactic_radius_pc"],
             })
+            if table == "rogue_planets":
+                rows[-1]["gravity_g"] = rogue_planet_gravity_g(row["mass_kg"], row["radius_km"])
     return rows
 
 
@@ -2537,6 +2547,8 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
 
     detail = _with_printed_uid(row)
     detail["type"] = phenomenon_type
+    if table == "rogue_planets":
+        detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
     # DB.2: the composition rows saved beside an asteroid field or an
     # interstellar comet, in their saved order (`composition_summary` is
@@ -2726,7 +2738,7 @@ def phenomena_near_sector(conn, sector_id):
         matches.append({
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
             "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
-            "class": phenomenon["class"],
+            "class": phenomenon["class"], "gravity_g": phenomenon.get("gravity_g"),
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
             "octant": octant,

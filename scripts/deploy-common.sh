@@ -14,7 +14,7 @@
 # Expects PYTHON and SCRIPT_DIR (the repo root) to be set, and to run as
 # root.
 
-MACOS_VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
+VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
 MACOS_LOG_DIR=/usr/local/planetgen/log
 GUNICORN_LABEL=org.planetgen.gunicorn
 GUNICORN_PLIST="/Library/LaunchDaemons/$GUNICORN_LABEL.plist"
@@ -23,7 +23,7 @@ is_macos() {
     [[ "$(uname -s)" == Darwin ]]
 }
 
-# The Python to set up the site with when PYTHON isn't given: on macOS
+# The Python the venv is made from when PYTHON isn't given: on macOS
 # Homebrew's python3 (Apple Silicon, then Intel) rather than the Command
 # Line Tools' /usr/bin/python3; elsewhere python3 on the PATH.
 default_python() {
@@ -39,12 +39,10 @@ default_python() {
     command -v python3 || command -v python || true
 }
 
-# After install-python-deps.sh: on macOS the site runs from the venv it
-# made, so every later step uses that Python.
+# After install-python-deps.sh: the site runs from the venv it made
+# (OPS.45), so every later step uses that Python.
 use_site_python() {
-    if is_macos; then
-        PYTHON="$MACOS_VENV/bin/python"
-    fi
+    PYTHON="$VENV/bin/python"
 }
 
 # Copies an example launchd plist into /Library/LaunchDaemons with the
@@ -58,7 +56,7 @@ install_launchd_plist() {
         echo "launchd: $target present"
         return 0
     fi
-    sed -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" -e "s|/usr/local/planetgen/venv|$MACOS_VENV|g" "$@" \
+    sed -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" -e "s|/usr/local/planetgen/venv|$VENV|g" "$@" \
         "$example" > "$target"
     chown root:wheel "$target"
     chmod 644 "$target"
@@ -187,6 +185,7 @@ ensure_apache_modules() {
     if (( ${#enabled[@]} )); then
         APACHE_NEEDS_RESTART=1
     fi
+    check_apache_venv_rules
     check_mod_wsgi_python
 }
 
@@ -208,14 +207,149 @@ reload_apache_if_running() {
     return 1
 }
 
+# The Apache files that can hold planetGen's vhost: the enabled sites and
+# configuration of Debian/Ubuntu's apache2 and RHEL's httpd. The
+# APACHE_CONF_DIRS and APACHE_MAIN_CONFS variables replace the defaults
+# (the tests point them at a copy).
+apache_config_files() {
+    local dir file
+    for dir in ${APACHE_CONF_DIRS:-/etc/apache2/sites-enabled /etc/apache2/conf-enabled /etc/httpd/conf.d}; do
+        for file in "$dir"/*.conf; do
+            [[ -r "$file" ]] && echo "$file"
+        done
+    done
+    for file in ${APACHE_MAIN_CONFS:-/etc/apache2/apache2.conf /etc/httpd/conf/httpd.conf}; do
+        [[ -r "$file" ]] && echo "$file"
+    done
+    return 0
+}
+
+# Runs a command as Apache's user (the one `detect_apache_group` finds), to
+# see what the web server itself can reach. Returns 125 when that can't be
+# done (no such user, no runuser or sudo).
+as_apache_user() {
+    local user="$1"
+    shift
+    id -u "$user" >/dev/null 2>&1 || return 125
+    if command -v runuser >/dev/null 2>&1; then
+        runuser -u "$user" -- "$@"
+    elif command -v sudo >/dev/null 2>&1; then
+        sudo -n -u "$user" "$@"
+    else
+        return 125
+    fi
+}
+
+# Warns when Apache's user can't read the venv: every directory down to it
+# has to be enterable (x), and the venv's own folders and pyvenv.cfg
+# readable, by that user, or mod_wsgi's daemon starts with no Python
+# libraries. Names the first path that blocks it and the command that opens
+# it.
+check_apache_user_reads_venv() {
+    local user="" group="" line rc=0 blocked="" path="" args=()
+    if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
+        # shellcheck source=../examples/apache/apache-identity.sh
+        source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
+        line="$(detect_apache_group 2>/dev/null || true)"
+        read -r user group <<< "$line"
+    fi
+    [[ -n "$user" ]] || return 0
+    # "/", then each directory of the path, to the venv itself.
+    args=(x /)
+    local rest="${VENV#/}"
+    while [[ -n "$rest" ]]; do
+        path="$path/${rest%%/*}"
+        args+=(x "$path")
+        if [[ "$rest" == */* ]]; then rest="${rest#*/}"; else rest=""; fi
+    done
+    args+=(r "$VENV" r "$VENV/bin" x "$VENV/bin" r "$VENV/lib" x "$VENV/lib" r "$VENV/pyvenv.cfg")
+    blocked="$(as_apache_user "$user" sh -c '
+        while [ "$#" -gt 1 ]; do
+            if [ "$1" = x ]; then test -x "$2" || { echo "$2"; exit 1; }
+            else test -r "$2" || { echo "$2"; exit 1; }; fi
+            shift 2
+        done' sh "${args[@]}")" || rc=$?
+    if (( rc == 125 )); then
+        return 0
+    elif (( rc != 0 )); then
+        echo "warning: Apache's user $user can't read ${blocked:-the venv}, so mod_wsgi can't use $VENV." >&2
+        echo "  Every directory down to the venv needs to be enterable by it (for example:" >&2
+        echo "  sudo chmod o+rx ${blocked:-$VENV}), and the venv readable. Then restart Apache." >&2
+    else
+        echo "Apache's user $user can read $VENV."
+    fi
+}
+
+# Checks planetGen's Apache vhost against mod_wsgi's rules for running an app
+# in a virtual environment (OPS.45, OPS.46): the app runs in a daemon process
+# group (WSGIDaemonProcess with `process-group=` on the WSGIScriptAlias, or
+# a WSGIProcessGroup), that group's `python-home` is the venv's root (not
+# bin/python or a parent), the app runs in the main interpreter
+# (`application-group=%{GLOBAL}` or WSGIApplicationGroup %{GLOBAL}), and
+# Apache's user can reach the venv. The vhost is the admin's own file: each
+# problem is only a warning, with the line to add.
+check_apache_venv_rules() {
+    local conf="" file active alias_line group home daemon
+    for file in $(apache_config_files); do
+        if grep -vE '^[[:space:]]*#' "$file" | grep -qE '^[[:space:]]*WSGIScriptAlias[[:space:]].*src/html/wsgi\.py'; then
+            conf="$file"
+            break
+        fi
+    done
+    [[ -n "$conf" ]] || return 0
+    active="$(grep -vE '^[[:space:]]*#' "$conf")"
+    alias_line="$(grep -E '^[[:space:]]*WSGIScriptAlias[[:space:]].*src/html/wsgi\.py' <<< "$active" | head -n1)"
+    group="$(sed -n 's/.*[[:space:]]process-group=\([^[:space:]]*\).*/\1/p' <<< "$alias_line")"
+    [[ -n "$group" ]] || group="$(sed -n 's/^[[:space:]]*WSGIProcessGroup[[:space:]]\{1,\}\([^[:space:]]*\).*/\1/p' <<< "$active" | head -n1)"
+    if [[ -z "$group" || "$group" == %* ]]; then
+        echo "warning: $conf runs planetGen in Apache's embedded mode, which can't use a virtual environment." >&2
+        echo "  Declare a daemon process and use it (examples/apache/planetgen.conf.example):" >&2
+        echo "    WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60 python-home=$VENV" >&2
+        echo "    WSGIScriptAlias / $SCRIPT_DIR/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}" >&2
+    else
+        daemon="$(grep -E "^[[:space:]]*WSGIDaemonProcess[[:space:]]+$group([[:space:]]|\$)" <<< "$active" | head -n1 || true)"
+        if [[ -z "$daemon" ]]; then
+            echo "warning: $conf names the process group '$group' but has no WSGIDaemonProcess $group line." >&2
+            echo "  Add: WSGIDaemonProcess $group processes=1 threads=5 request-timeout=60 python-home=$VENV" >&2
+        else
+            home="$(sed -n 's/.*[[:space:]]python-home=\([^[:space:]]*\).*/\1/p' <<< "$daemon")"
+            [[ "$home" == / ]] || home="${home%/}"
+            if [[ "$home" == "$VENV" ]]; then
+                echo "Apache runs the site under $VENV (process group $group)."
+            elif [[ -z "$home" ]]; then
+                echo "warning: $conf does not run the site under planetGen's virtual environment." >&2
+                echo "  Add python-home=$VENV to its WSGIDaemonProcess $group line (examples/apache/planetgen.conf.example)," >&2
+                echo "  then restart Apache." >&2
+            elif [[ "$home" == "$VENV"/bin || "$home" == "$VENV"/bin/* ]]; then
+                echo "warning: $conf has python-home=$home, a path into the venv's bin/." >&2
+                echo "  python-home is the venv's root, the folder that holds bin/ and lib/: python-home=$VENV" >&2
+            else
+                echo "warning: $conf has python-home=$home, not planetGen's virtual environment $VENV." >&2
+                echo "  Set it to python-home=$VENV (the folder that holds bin/ and lib/), then restart Apache." >&2
+            fi
+        fi
+        if ! grep -qF 'application-group=%{GLOBAL}' <<< "$alias_line" \
+                && ! grep -qE '^[[:space:]]*WSGIApplicationGroup[[:space:]]+%\{GLOBAL\}' <<< "$active"; then
+            echo "warning: $conf doesn't run planetGen in the main Python interpreter." >&2
+            echo "  Add application-group=%{GLOBAL} to its WSGIScriptAlias line (or WSGIApplicationGroup %{GLOBAL})," >&2
+            echo "  as numpy, scipy and numba's C code need it." >&2
+        fi
+    fi
+    check_apache_user_reads_venv
+}
+
 # mod_wsgi embeds the Python it was built against, not whatever `python3`
 # is. The libraries (which live in that Python's own
 # site-packages) are set up for $PYTHON, so the two must be the same
-# version or Apache won't see them. Warns rather than fails: the fix is
-# a package choice for the admin.
+# version or Apache won't see them (with the venv, $PYTHON is the venv's
+# python, which is made from the system's). Warns rather than fails: the fix
+# is a package choice for the admin.
 check_mod_wsgi_python() {
-    local so=/usr/lib/apache2/modules/mod_wsgi.so built ours
-    [[ -e "$so" ]] && command -v ldd >/dev/null 2>&1 || return 0
+    local so="" candidate built ours
+    for candidate in /usr/lib/apache2/modules/mod_wsgi.so /usr/lib64/httpd/modules/mod_wsgi*.so; do
+        [[ -e "$candidate" ]] && { so="$candidate"; break; }
+    done
+    [[ -n "$so" ]] && command -v ldd >/dev/null 2>&1 || return 0
     built="$(ldd "$so" 2>/dev/null | grep -o 'libpython[0-9]*\.[0-9]*' | head -n1 | sed 's/libpython//')"
     ours="$("$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
     if [[ -z "$built" ]]; then
@@ -223,10 +357,10 @@ check_mod_wsgi_python() {
     elif [[ "$built" == "$ours" ]]; then
         echo "mod_wsgi runs Python $built, the same as $PYTHON."
     else
-        echo "warning: mod_wsgi is built for Python $built, but the libraries were" >&2
-        echo "  checked for $PYTHON (Python $ours). Apache won't see them. Either install" >&2
-        echo "  the libapache2-mod-wsgi-py3 that matches $PYTHON, or rerun with" >&2
-        echo "  PYTHON=/usr/bin/python$built." >&2
+        echo "warning: mod_wsgi is built for Python $built, but the virtual environment $VENV" >&2
+        echo "  is Python $ours ($PYTHON), so Apache can't use it. Either install the" >&2
+        echo "  libapache2-mod-wsgi-py3 that matches Python $ours, or remake the venv from" >&2
+        echo "  Python $built: sudo rm -rf $VENV && sudo PYTHON=/usr/bin/python$built ./update.sh" >&2
     fi
 }
 

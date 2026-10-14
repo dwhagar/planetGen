@@ -128,3 +128,27 @@ def test_cropped_stages_equal_a_direct_count_of_the_window(centre):
             (r, ly, sl) for r, ly, sl in SECTORS if DrillBlock(1, r, sl, ly) in set(cells)}
     else:
         assert window["sectors"] is None
+
+
+# --- The page's copy agrees --------------------------------------------------
+
+def test_the_page_lists_the_same_window_cells():
+    from tests.test_galaxydrill import NODE, _run
+    if NODE is None:
+        pytest.skip("node is not installed")
+    centres = CENTRES + [DrillBlock(243, 15, 3, 1), DrillBlock(27, 120, 300, 5), DrillBlock(3, 1000, 1500, -4),
+                         DrillBlock(1, 1500, 200, 0), DrillBlock(243, 0, 1, 0), DrillBlock(1, 1, 2, 0)]
+    got = _run(f"""
+const centres = {[list(c) for c in centres]!r};
+const out = [];
+for (const [m, ring, wedge, slab] of centres) {{
+  for (const g of {list(WINDOW_WIDTHS)!r}) {{
+    out.push(P.windowCells({{m, ring, wedge, slab}}, g).map(b => [b.m, b.ring, b.wedge, b.slab]));
+  }}
+}}
+out.push(P.windowCells({{m: 27, ring: 40, wedge: 11, slab: 0}}).length, P.DEFAULT_WINDOW);
+console.log(JSON.stringify(out));
+""")
+    want = [[list(c) for c in window_cells(centre, g)] for centre in centres for g in WINDOW_WIDTHS]
+    assert got[:-2] == want
+    assert got[-2:] == [len(window_cells(DrillBlock(27, 40, 11, 0))), DEFAULT_WINDOW]

@@ -786,6 +786,50 @@ def _condensed_ranks(parents):
     return {table: rank(component[table]) for table in parents}
 
 
+_NEEDS_ESCAPING = re.compile("[\\\\'\"\0\n\r\x1a]").search
+"""The characters pymysql escapes in a string (`converters._escape_table`); a string with none of them is quoted as it is."""
+
+_ALL_MARKS = re.compile(r"\((\?, )*\?\)")
+"""A `VALUES (...)` shape made only of `?` marks, which `_row_literal` can write without splitting it."""
+
+
+def _row_literal(escape, pieces, row):
+    """
+    One row of a batched INSERT as SQL text: the statement's `VALUES (?, ?, 0)` shape split at its `?` marks
+    (`pieces`; `None` for a shape that is only marks, `(?, ?, ?)`) with each value written out the way pymysql writes
+    it (`Connection.escape`), so the text is the one the driver would have made. Plain ints, floats and `None`, and
+    strings with nothing to escape, are formatted here without the driver's per-value dispatch, which was most of the
+    time of an insert (PERF.82); everything else (strings with quotes, bools, numpy numbers, dates) goes through
+    `escape` itself.
+    """
+    parts = []
+    append = parts.append
+    for value in row:
+        kind = type(value)
+        if kind is float:
+            text = repr(value)
+            if "e" not in text:
+                if text in ("inf", "-inf", "nan"):
+                    raise pymysql.err.ProgrammingError(f"{text} can not be used with MySQL")
+                text += "e0"
+            append(text)
+        elif kind is int:
+            append(str(value))
+        elif kind is str:
+            append(escape(value) if _NEEDS_ESCAPING(value) else "'" + value + "'")
+        elif value is None:
+            append("NULL")
+        else:
+            append(escape(value))
+    if pieces is None:
+        return "(" + ", ".join(parts) + ")"
+    out = [pieces[0]]
+    for piece, part in zip(pieces[1:], parts):
+        out.append(part)
+        out.append(piece)
+    return "".join(out)
+
+
 class Connection:
     """
     Thin wrapper around a pooled `pymysql` connection that keeps this
@@ -969,32 +1013,29 @@ class Connection:
                        key=lambda item: (ranks.get(item[1][0][0], 0), item[1][0][3], item[0]))
         budget = _max_packet(self) - _PACKET_MARGIN
         cur = self._conn.cursor()
+        escape = self._conn.escape
         start = time.perf_counter()
         statements = 0
         for _position, ((table, columns, values, _level), rows) in order:
             head = f"INSERT INTO {table} ({', '.join(columns)}) VALUES "
-            values = values.replace("?", "%s")
+            pieces = None if _ALL_MARKS.fullmatch(values) else values.split("?")
             chunk, size = [], len(head)
             for row in rows:
-                # A cheap upper bound on the escaped literals -- 32 bytes a
-                # number or NULL, 8 a character of text (4 UTF-8 bytes,
-                # doubled by escaping) -- measured exactly only for a row
-                # that might not fit at all.
-                row_size = len(values) + 2 + 32 * len(row) + 8 * sum(map(len, filter(str.__instancecheck__, row)))
+                text = _row_literal(escape, pieces, row)
+                # The statement's bytes: a character is 1 byte unless the text is not plain ASCII (the names).
+                row_size = (len(text) if text.isascii() else len(text.encode())) + 1
                 if len(head) + row_size > budget:
-                    row_size = len(cur.mogrify(values, row).encode()) + 2
-                    if len(head) + row_size > budget:
-                        raise pymysql.err.OperationalError(
-                            1153, f"A {table} row of {row_size} bytes doesn't fit the server's "
-                                  f"max_allowed_packet ({budget + _PACKET_MARGIN} bytes); nothing was sent for it")
+                    raise pymysql.err.OperationalError(
+                        1153, f"A {table} row of {row_size} bytes doesn't fit the server's "
+                              f"max_allowed_packet ({budget + _PACKET_MARGIN} bytes); nothing was sent for it")
                 if chunk and (len(chunk) >= _BATCH_ROWS or size + row_size > budget):
-                    cur.execute(head + ", ".join([values] * len(chunk)), [v for r in chunk for v in r])
+                    cur.execute(head + ",".join(chunk))
                     statements += 1
                     chunk, size = [], len(head)
-                chunk.append(row)
+                chunk.append(text)
                 size += row_size
             if chunk:
-                cur.execute(head + ", ".join([values] * len(chunk)), [v for r in chunk for v in r])
+                cur.execute(head + ",".join(chunk))
                 statements += 1
         if log.debug_log_active():
             log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "

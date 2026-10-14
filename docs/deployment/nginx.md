@@ -40,19 +40,19 @@ this page.
    optional population pass (y/N, default N; see
    [`apache.md`](apache.md#migrating-or-deleting-the-database)).
 
-3. **gunicorn** from apt, so it uses the same system Python and
-   libraries `install.sh` set up:
+3. **gunicorn** comes from planetGen's own virtual environment, which
+   `install.sh` made with every library the app needs
+   (`/usr/local/planetgen/venv`, [`apache.md`](apache.md#planetgens-own-python)),
+   so there is nothing to install from apt:
 
-       sudo apt install gunicorn
-       gunicorn --version
+       /usr/local/planetgen/venv/bin/gunicorn --version
 
-   The unit runs `gunicorn --pythonpath /var/lib/planetGen/src/html
-   wsgi:application`, the same `wsgi.py` Apache's mod_wsgi loads. With
-   gunicorn 25.1 or later (Ubuntu 26.04 ships 25.1.0), add
-   `--no-control-socket` to `ExecStart`: the control socket tries to
-   create `~/.gunicorn` in `www-data`'s home and leaks a thread and a file
-   descriptor on every reload in 25.1 to 26.x. Older gunicorn (Ubuntu
-   24.04 ships 20.1.0) rejects the option.
+   The unit runs `/usr/local/planetgen/venv/bin/gunicorn --pythonpath
+   /var/lib/planetGen/src/html wsgi:application`, the same `wsgi.py`
+   Apache's mod_wsgi loads, with `--no-control-socket` (the locked gunicorn
+   is 25.1 or later): the control socket tries to create `~/.gunicorn` in
+   `www-data`'s home and leaks a thread and a file descriptor on every
+   reload in 25.1 to 26.x.
 
        sudo cp examples/systemd/planetgen-gunicorn.service /etc/systemd/system/
        sudo systemctl daemon-reload
@@ -151,9 +151,10 @@ commands it lists. And these, specific to the proxy:
 ## Other distributions
 
 - RHEL, Fedora, Rocky: nginx runs as `nginx` and there is no
-  `www-data`. `install.sh` and `update.sh` use apt, so install the
-  Python libraries yourself (`pip install ".[api]"` in a virtual
-  environment, then point `ExecStart` at its gunicorn), create a
+  `www-data`. `install.sh` and `update.sh` use apt for the
+  system packages (not for the Python libraries, which go into their own
+  virtual environment, so that part works there too), so install those
+  yourself (nginx, MariaDB or MySQL, Redis), create a
   dedicated account or change `User=`, `Group=` and the ownership steps,
   and add the `nginx` user to that group so it can read `static/` and
   the socket. SELinux also needs the socket labelled for nginx

@@ -59,7 +59,7 @@ export function infoSpec(entry, data, navPick) {
     return spec;
   }
   if (entry.kind) {
-    spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Distance", entry.distanceText]];
+    spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Surface gravity", entry.gravityText], ["Distance", entry.distanceText]];
     spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);
     if (navPick) spec.nav = navPick.actionsFor(entry.key, entry.name);
     if (!picking) {

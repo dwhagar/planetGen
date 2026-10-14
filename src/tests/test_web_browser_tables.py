@@ -369,21 +369,21 @@ def test_filters_narrow_the_rows_and_the_other_menu(page, table_site):
 
 def test_the_rows_show_before_the_filter_counts_arrive(page, table_site):
     """UX.95: a slow count request holds the menus ("...") but not the rows."""
-    release = threading.Event()
-
-    def slow_counts(route):
-        release.wait(timeout=20)
-        route.continue_()
-
-    page.route("**/table/**facets=1**", slow_counts)
+    held = []
+    page.route("**/table/**facets=1**", lambda route: held.append(route))   # kept, not answered yet
     _open(page, table_site)
     kind = page.locator(".datatable-facet[data-param='type']")
     kind.locator("summary").click()
     kind.get_by_label("Rogue Planet").check()
     rogue = sum(1 for row in ROWS if row["type"] == "rogue_planet")
     _wait_count(page, f"{rogue} phenomena match")                       # the rows and the count line are in
+    deadline = time.monotonic() + 10
+    while not held and time.monotonic() < deadline:
+        page.wait_for_timeout(50)
+    assert held, "the counts were asked for in a request of their own"
     assert kind.locator(".datatable-count").first.inner_text() == "..."   # the counts are not
-    release.set()
+    for route in held:
+        route.continue_()
     kind.locator(".datatable-count", has_text="(").first.wait_for(state="attached", timeout=10000)
 
 

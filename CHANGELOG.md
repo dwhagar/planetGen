@@ -2,6 +2,185 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1105] - 2026-10-14
+
+### Changed
+- The TODO list corrects TEST.146's cause: the between-test rate-limit reset wipes every limiter key on the shared Redis.
+
+## [8.0.1104] - 2026-10-14
+
+### Added
+- The TODO list files OPS.49: update.sh stops at the database migrate step with a pymysql login error.
+
+## [8.0.1103] - 2026-10-14
+
+### Changed
+- The TODO list drops OPS.46 (Apache mod_wsgi venv checks), merged in #1359.
+
+## [8.0.1102] - 2026-10-14
+
+### Changed
+- `update.sh` and `install.sh` now check Apache's vhost against mod_wsgi's rules for a virtual environment, and only warn, printing the line to add (the vhost is never edited): `python-home` must be the venv's root (a path to `bin/python` or a parent folder is caught), the app must run in a daemon process group (`process-group=` or `WSGIProcessGroup`) in the main interpreter (`application-group=%{GLOBAL}`), and Apache's user (`www-data` or `apache`) must be able to enter every folder down to the venv and read it; the first folder that blocks it is named. The vhost is looked up under the enabled sites (and RHEL's `/etc/httpd`), and the mod_wsgi Python version warning says how to remake the venv.
+
+## [8.0.1101] - 2026-10-14
+
+### Changed
+- TODO: TEST.139 notes stage 4 first part (#1357, a full run is now about 45 minutes); DOC.40 notes the new run time; TODO items resolved: none / Added: none.
+
+## [8.0.1100] - 2026-10-14
+
+### Changed
+- **The Galaxy Map and Sector Map browser tests use a smaller window by default** (TEST.139). Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s at 1280x900, 1.1 s at 800x600), and these tests take several screenshots each. The fixture-map file went from 23 min 34 s to 13 min 34 s on two workers and the whole browser phase from about 40 min to 25 min. A test that needs a bigger window says so with `@pytest.mark.viewport(width, height)`; five do.
+
+## [8.0.1099] - 2026-10-14
+
+### Changed
+- TODO: retire UX.99 (#1355); TODO items resolved: UX.99 / Added: none.
+
+## [8.0.1098] - 2026-10-14
+
+### Fixed
+- **Rogue planets show their surface gravity.** A rogue planet's page now has a Surface Gravity row, and the figure is in its row in a sector's contents (folded or listed) and in its popup on the sector map, worked out from its mass and radius like any other planet's.
+
+## [8.0.1097] - 2026-10-14
+
+### Changed
+- TODO: Boss adopted the Redis review's Option A; filed PERF.95 to PERF.100 (the work queue rebuild steps), folded PERF.40, PERF.78, ADM.15 and PERF.33 into them and marked PERF.29 and PERF.30 as dropped by PERF.100; TODO items resolved: none / Added: PERF.95, PERF.96, PERF.97, PERF.98, PERF.99, PERF.100.
+
+## [8.0.1096] - 2026-10-14
+
+### Changed
+- TODO: retire PERF.82 (#1352); TODO items resolved: PERF.82 / Added: none.
+
+## [8.0.1095] - 2026-10-14
+
+### Changed
+- Saving a sector is about 15% faster: a batch of rows is written as SQL text built directly from ints, floats, `NULL` and plain strings, instead of through the database driver's per-value formatting. The text is identical to what the driver wrote (a test compares them value by value), so the stored rows are the same.
+
+## [8.0.1094] - 2026-10-14
+
+### Changed
+- TODO: filed PERF.93 (ensure_workers counts dead workers, bug), OPS.48, PERF.94 and ADM.54 from the Redis review, and linked the review note on PERF.86; TODO items resolved: none / Added: PERF.93, OPS.48, PERF.94, ADM.54.
+
+## [8.0.1093] - 2026-10-14
+
+### Added
+
+- Research: how Redis is used for generation, and how to use it better.
+
+  Added a design note that reviews how planetGen uses Redis today, sets that against Redis and RQ best practice, and recommends how to rebuild the generation task process around Redis (one run record, each stage's units as queue items, progress in Redis, a properly configured Redis server). No code changes.
+
+## [8.0.1092] - 2026-10-14
+
+### Changed
+- TODO: TEST.139 records Boss's merge-gate decision (a green changed run for small changes, a full run when a sequence is finished); TODO items resolved: none / Added: none.
+
+## [8.0.1091] - 2026-10-14
+
+### Changed
+- A test now fails when the code imports a library that `requirements-server.lock` lacks, so a venv built from the lock alone cannot be missing one. A fresh venv from the lock was checked: every planetgen module imports, `migrate` and `check-math` run, and `/api/health` answers.
+
+## [8.0.1090] - 2026-10-14
+
+### Changed
+- TODO: retire OPS.47 (#1346); TODO items resolved: OPS.47 / Added: none.
+
+## [8.0.1089] - 2026-10-14
+
+### Fixed
+- `update.sh` and `install.sh` on a venv no longer stop at the database step with "'cryptography' package is required for sha256_password or caching_sha2_password auth methods". `cryptography` (what pymysql needs to log in to MySQL 8's default accounts) is now a requirement and in the locks, and the library check fails a venv where pymysql cannot use it, so the library step installs it.
+
+## [8.0.1088] - 2026-10-14
+
+### Changed
+- TODO: filed OPS.47 (update.sh migrate step fails in the venv: cryptography missing from the requirements), urgent for Bugfixes lane 1; TODO items resolved: none / Added: OPS.47.
+
+## [8.0.1087] - 2026-10-14
+
+### Changed
+- TODO: DOC.39 (restore the headline rule), OPS.46 (warn only) and GEN.201 (both) recorded as decided; TODO items resolved: none / Added: none.
+
+## [8.0.1086] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 storage (aggregates plus a sample) and GEN.207 Suitability (lowest of three) recorded as decided; TODO items resolved: none / Added: none.
+
+## [8.0.1085] - 2026-10-14
+
+### Fixed
+- **The test dependency record no longer keeps tests that failed or skipped, and now stores each test's time** (TEST.139). A hook that never ran meant a failing test was recorded as if it had passed, with whatever files it reached before failing, and every time was 0. The record format number goes up, so a record from before is ignored and the next full run writes a new one.
+
+## [8.0.1084] - 2026-10-14
+
+### Changed
+- TODO: filed TEST.146 (rate-limit tests fail when the one-minute window ends between requests) for the Test Suite Rebuild thread and noted TEST.139 stage 3 (#1339); TODO items resolved: none / Added: TEST.146.
+
+## [8.0.1083] - 2026-10-14
+
+### Changed
+- **Tests share one database per worker instead of creating and dropping one per test** (TEST.139). `mysql_config` hands each test process one database with the schema already in it and puts it back the way a new one is after every test, so a database test no longer pays 0.66 s for creating, filling and dropping a database. A test that needs no schema at all takes `@pytest.mark.fresh_database`; `PLANETGEN_TEST_FRESH_DB=1` turns the sharing off, and `PLANETGEN_TEST_DEEP_CHECK=1` proves every reset against a new database.
+
+## [8.0.1082] - 2026-10-14
+
+### Changed
+- TODO: filed OPS.46 (installer checks for the Apache mod_wsgi venv rules) in Bugfixes lane 1 after PERF.82; TODO items resolved: none / Added: OPS.46.
+
+## [8.0.1081] - 2026-10-14
+
+### Changed
+- TODO: DB.25 (per-level aggregates for the map window) and TEST.145 (subprocess tests use the checkout under test) filed; MAP.151 notes #1335.
+
+## [8.0.1080] - 2026-10-14
+
+### Added
+- **A window stage on the Galaxy Map (MAP.151d, first part).** `/galaxy?win=<cell>&g=<3 to 11>` shows the cells around a chosen cell of any level, nine across by default, drawn like any other stage. A click on a cell opens the window one size down centred on that cell, and Up (or Escape) opens it one size up, centred on the cell holding the middle, with the breadcrumb following. Nothing links to it yet; the galaxy and its arc, slab and segment picks open as before until the next step replaces them.
+
+## [8.0.1079] - 2026-10-14
+
+### Changed
+- TODO: OPS.45 retired (PR #1333); DOC.37 is ready and carries the python-home step for Apache.
+
+## [8.0.1078] - 2026-10-14
+
+### Changed
+- planetGen now runs from its own virtual environment on Linux too (`/usr/local/planetgen/venv`, as on macOS), not from the system Python. `install.sh` makes it and installs the hash-checked locked libraries and gunicorn into it; `update.sh` checks it and remakes only what is missing. The libraries apt packaged (`python3-flask` and the rest) and the system-wide pip installs are no longer used, and the old managed/unmanaged install paths and `PLANETGEN_PYTHON_MODE` are gone. Python 3.12 or newer is needed to make it.
+- The Apache vhost must name the venv: add `python-home=/usr/local/planetgen/venv` to the `WSGIDaemonProcess planetgen-api` line (`examples/apache/planetgen.conf.example`). `update.sh` warns with the exact line when it is missing. The gunicorn unit and the orbit-update service run the venv's gunicorn and python. Command-line tools run as `planetgen ...` or `/usr/local/planetgen/venv/bin/python -m planetgen.cli.NAME`; a bare `python3` no longer finds the libraries.
+
+## [8.0.1077] - 2026-10-14
+
+### Changed
+- TODO: MAP.196 retired (PR #1331); flake sighting noted on TEST.139.
+
+## [8.0.1076] - 2026-10-14
+
+### Fixed
+- **A Galaxy Map link that opens a system or a body now works with the current object IDs.** The map reads `system=` and `object=` in a link as digits only, but a system's and a body's printed ID is hex digits in dashed groups (`0008000000-4000000-00D`), so a reload, a shared link or Back to an opened system dropped the system. Both parts accept the printed ID now, kept in upper case; no other digits-only reference parser is left in the page scripts.
+
+## [8.0.1075] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 placed in Foundations lane 1's queue after DB.23 and GEN.201.
+
+## [8.0.1074] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 filed: save generation timing per object and per object type.
+
+## [8.0.1073] - 2026-10-14
+
+### Changed
+- TODO: documentation sweep filed as DOC.18 to DOC.44 (a last block of Phase 1); MAP.159 retired (PR #1305).
+
+## [8.0.1072] - 2026-10-14
+
+### Changed
+- TODO: GEN.205 retired (PR #1325); flake sighting noted on TEST.139.
+
+## [8.0.1071] - 2026-10-14
+
+### Added
+- `planetgen plan --redo-nebula-field [dry-run|apply]`: brings an existing galaxy's stored molecular clouds in line with the current keep rates. The dry run (the default) counts the stored field clouds the rule now rejects, per class, and changes nothing; `apply` deletes them, refreshes containment in the sectors they reached and draws the `nebula_field` table again (GEN.205).
+
 ## [8.0.1070] - 2026-10-14
 
 ### Changed

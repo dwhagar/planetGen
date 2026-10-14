@@ -449,7 +449,7 @@ def _course_readout_html(course):
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
-                              system_url=None, stage_path="/galaxy/stage",
+                              system_url=None, stage_path="/galaxy/stage", window_path="/galaxy/window",
                               locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None):
@@ -505,6 +505,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         stage_path (str): The drill-down's stage endpoint
             (`/galaxy/stage`), which the map opens on
             (`static/galaxystageview.js`).
+        window_path (str): The data window's endpoint (`/galaxy/window`,
+            MAP.151), which a window stage reads.
         locate_path (str): The address bar's name lookup
             (`/galaxy/locate`).
         territory_path (str or None): The territory overlay's endpoint
@@ -558,6 +560,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "storageKey": db_name,
         "fetchPath": fetch_path,
         "stagePath": stage_path,
+        "windowPath": window_path,
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,

@@ -24,7 +24,10 @@ Image = pytest.importorskip("PIL.Image")
 
 from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, map_site  # noqa: E402,F401 -- fixture
 
-VIEWPORT = {"width": 1280, "height": 900}
+VIEWPORT = {"width": 800, "height": 600}
+"""dict: The default window. Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s
+at 1280x900, 1.1 s at 800x600, TEST.139), and most of these tests take several screenshots; a test that needs
+a wide or tall window says so with `@pytest.mark.viewport(width, height)`."""
 GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
 SECTOR_CANVAS = "#galaxymap3d-canvas"
 GALAXY_CANVAS = "#galaxymap3d-canvas"
@@ -50,8 +53,10 @@ def gl_browser():
 
 
 @pytest.fixture()
-def page(gl_browser):
-    context = gl_browser.new_context(viewport=VIEWPORT, device_scale_factor=1, reduced_motion="reduce",
+def page(gl_browser, request):
+    marker = request.node.get_closest_marker("viewport")
+    viewport = {"width": marker.args[0], "height": marker.args[1]} if marker else VIEWPORT
+    context = gl_browser.new_context(viewport=viewport, device_scale_factor=1, reduced_motion="reduce",
                                      color_scheme="dark")
     page = context.new_page()
     errors = []
@@ -525,6 +530,36 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert not re.search(r"[=,]r\d", kinds), kinds
 
 
+def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
+    """MAP.151: a window stage (?win=) shows `g` cells around a cell; a click
+    opens the window one size down, centred on the cell clicked, and Up comes
+    back out, the breadcrumb following."""
+    _open_galaxy(page, map_site, "?win=243.0.1.0")
+    assert _query(page) == "win=243.0.1.0"
+    assert _crumbs(page) == ["Galaxy", "Block 0·1 (243)"], _crumbs(page)
+    _click_choice(page)
+    assert re.fullmatch(r"win=27\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert len(_crumbs(page)) == 3 and _crumbs(page)[-1].endswith("(27)"), _crumbs(page)
+    page.locator(GALAXY_CANVAS).focus()
+    page.keyboard.press("Escape")
+    _settle(page)
+    assert re.fullmatch(r"win=243\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert len(_crumbs(page)) == 2
+    page.keyboard.press("Escape")
+    _settle(page)
+    assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
+
+
+def test_galaxy_map_window_stage_reaches_a_sector_and_opens_it(page, map_site):
+    _open_galaxy(page, map_site, "?win=3.0.0.0")
+    assert _crumbs(page)[-1] == "Block 0·0 (3)"
+    _click_choice(page, GENERATED_CHOICE)
+    assert re.fullmatch(r"win=1\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert _crumbs(page)[-1].startswith("Sector ") and _crumbs(page)[-1].endswith("(1)")
+    _click_choice(page, r"^Sector .*, charted$")
+    assert "open=1" in _query(page) and "sector=" in _query(page), _query(page)
+
+
 def test_galaxy_map_arc_and_first_slab_show_their_bounds(page, map_site):
     """MAP.135: picking an arc of the galaxy, then its first slab, fills the
     info panel with where each lies and how many sectors it holds, as a
@@ -594,6 +629,7 @@ OPEN_UNCHARTED = "?sector=100000000&open=1"
 """The fixture's ungenerated ring 0, layer 0, slot 0, where the scatters left objects, opened in place."""
 
 
+@pytest.mark.viewport(1280, 900)
 def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_marks_it(page, map_site):
     """MAP.162: a sector nothing was generated in opens in the Galaxy Map from what the scatters left in it,
     carrying an "uncharted" mark in its crumb, its info panel and a badge in the map's frame; its objects
@@ -634,6 +670,7 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
     assert not _crumbs(page)[-1].endswith("(uncharted)")
 
 
+@pytest.mark.viewport(1280, 900)
 def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     """MAP.136: every dot of an opened sector, a binary's companion too,
     picks a system by its own name; a star is never picked on its own."""
@@ -2093,6 +2130,7 @@ def test_the_slab_rail_shows_only_while_the_stage_has_slab_buttons(page, map_sit
     assert not page.locator("#galaxymap3d-slabs h3").count() or page.locator("#galaxymap3d-slabs").is_visible()
 
 
+@pytest.mark.viewport(1280, 900)
 def test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge(page, map_site):
     """UX.62: the Galaxy page's title and crumb sit where every other page's do."""
     _open_galaxy(page, map_site)
