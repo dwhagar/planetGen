@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1113] - 2026-10-14
+
+### Added
+- How long each generated object takes is now saved per object type (system, star, planet, moon, belt, comet, binary star, asteroid field, black hole, neutron star, nebula, quasar, rogue planet, interstellar comet, supernova remnant): count, total, mean, fastest, slowest and a histogram for every sector a run saves, plus a repeatable 1-in-1,000 sample of the objects with their full timing. Set `PLANETGEN_OBJECT_TIMING_FULL=1` to keep a row for every object in a benchmark run. The admin Stats data (`/api/admin/generation-stats`) carries the mean time per object type. The database moves to schema 85 (two new tables).
+
 ## [8.0.1112] - 2026-10-14
 
 ### Changed
