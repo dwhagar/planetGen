@@ -3441,6 +3441,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Red; it has a 0 to 1 number that is the same geometric-mean blend of
   the three rungs as the other dimensions, and the numbers are tuned
   with the lane's sample worlds). Owner: Foundations lane 2.
+  Decided (Boss, 2026-10-14 19:54Z, on a decision
+  card relayed by the coordinator): Suitability is the lowest of three,
+  water access, food and shelter, as a 0 to 1 number.
   Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
@@ -3907,6 +3910,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its full timing; a full row per object only behind an opt-in flag
   for benchmark runs. The alternative is a row for every object, which
   costs storage and write time.
+  Decided (Boss, 2026-10-14 19:53Z, on a decision
+  card relayed by the coordinator): aggregates plus a sample. Per-type
+  aggregates per run and per sector, a repeatable 1-in-1,000 sample with
+  full timing, and a full row per object only behind an opt-in flag.
   Prerequisites: none. Related: PERF.33.
 
 ## DB: Database and schema
