@@ -1081,8 +1081,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as a window, retire the arc, slab and segment picks (the rest of
   MAP.150, which unlocks MAP.189 and MAP.190), URLs and breadcrumb from
   the window. The 3-ary ladder (MAP.151b) needs a per-level aggregate
-  table so a window does not need about 64 stage queries: DB.25,
-  Foundations lane 1.
+  table so a window does not need about 64 stage queries: DB.25
+  (done, #1376: galaxy_block_stats, read by query.galaxy_block_stats;
+  add the new levels to drill.DRILL_LEVELS and a rebuild fills them), so
+  MAP.151b is unblocked.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -4108,20 +4110,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.25 A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration)**
-  Foundations lane 2 (2026-10-14, after #1335): with the 3-ary ladder
-  (MAP.151b, 729/243/81/27/9/3/1) a map window would need about 64 stage
-  queries unless the per-level aggregates are stored. Done: a migration
-  and its previous-version fixture for a table holding the aggregates
-  per ladder level and cell (the columns the stage views already show:
-  star count, summed luminosity, mean age, nebula cover when MAP.172
-  lands), filled by the stage run and by a backfill for existing
-  galaxies; the window query reads it in one statement; a test that the
-  stored aggregates equal the ones computed from the stage files. Owner:
-  Foundations lane 1 (the only lane that adds migrations); queue it
-  right after PERF.92 (done, #1371) because MAP.151b waits on it.
-  Prerequisites: none. Related: MAP.151, MAP.172.
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -4636,19 +4624,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
   DOC.14, GEN.135.
 
-- [ ] **ADM.51 Regenerating with a class the object cannot support asks to confirm, then does it (bug)**
-  GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
-  (Boss, 2026-10-13 02:27Z, labelled bug): "if the user asks to
-  regenerate anything, and selects a class not supported by the size or
-  some other parameter, ask the user to confirm and do it anyway if they
-  confirm." Done: every regenerate and Generate path that takes a class
-  or type checks it against the generation rules, shows what the object
-  would break (size, zone, mass), and does it anyway after an explicit
-  confirmation, on the web, the CLI (a confirm flag) and the API (a
-  force field); a refusal without confirmation changes nothing. Owner:
-  Bugfixes lane 2, after its current items.
-  Prerequisites: none. Related: ADM.35, ADM.32, GEN.181, ADM.52.
-
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
   (Boss, 2026-10-13 02:27Z): "We need a star system editor that the user
@@ -4660,7 +4635,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   radial distance, then saves the system with random positions on the
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
-  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
+  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18.
 
 - [ ] **ADM.54 A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional)**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane

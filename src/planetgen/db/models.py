@@ -317,6 +317,23 @@ facilities = sa.Table(
 )
 
 
+galaxy_block_stats = sa.Table(
+    'galaxy_block_stats',
+    metadata,
+    sa.Column('m', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('ring_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('slab', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('systems', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('expected_systems', mysql.DOUBLE(), nullable=False),
+    sa.Column('stars', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('age_sum', mysql.DOUBLE(), nullable=False),
+    sa.Column('luminosity_sol', mysql.DOUBLE(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 galaxy_column = sa.Table(
     'galaxy_column',
     metadata,

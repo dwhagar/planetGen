@@ -439,7 +439,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge | none | done, PR #1116 |
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | open |
-| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | open |
+| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | done, PR #1374 |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
 | ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) | none | open |
@@ -491,7 +491,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | done, PR #1127 |
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | done, PR #1365 |
 | DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | done, PR #1317 |
-| DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | open |
+| DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | done, PR #1376 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |

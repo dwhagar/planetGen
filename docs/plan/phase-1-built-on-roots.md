@@ -194,7 +194,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) |  |  |
-| DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) |  |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |
@@ -229,7 +228,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.150, MAP.152 |  |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules |  |  |
-| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) |  | Flaky under load. Bugfixes lane 1. |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
