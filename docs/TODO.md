@@ -5631,6 +5631,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **OPS.43 A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug)**
+  GitHub issue [#1270](https://github.com/dwhagar/planetGen/issues/1270).
   Reported by the Test Suite Rebuild thread (2026-10-14 14:04Z): `pip
   install -e ".[test,api]"` installs markdown 3.11.1 because setup.py
   only says `markdown>=3.6`. Markdown 3.11.1 removes the inline pattern
