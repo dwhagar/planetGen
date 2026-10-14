@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1063] - 2026-10-14
+
+### Fixed
+- Logging in no longer fails with a server error, or hangs until Apache gives up, while a long job holds a lock on the admin's row. The web interface's database connections now wait at most 5 seconds for a locked row; a login, a session's last-seen time and an API key's last-used time are skipped (with a line in the activity log) when the row stays locked, and any other request that hits the wait answers "Busy" (503 with `Retry-After`) instead of a 500.
+
 ## [8.0.1062] - 2026-10-14
 
 ### Added
