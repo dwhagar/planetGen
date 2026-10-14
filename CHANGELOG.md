@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1088] - 2026-10-14
+
+### Changed
+- TODO: filed OPS.47 (update.sh migrate step fails in the venv: cryptography missing from the requirements), urgent for Bugfixes lane 1; TODO items resolved: none / Added: OPS.47.
+
 ## [8.0.1087] - 2026-10-14
 
 ### Changed
