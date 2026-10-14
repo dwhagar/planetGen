@@ -904,8 +904,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | done, PR #1282 |
 | MAP.185 | Black holes vanish in the Sector Map (bug) | none | done, PR #1279 |
 | MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | done, PR #1283 |
-| MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | open |
-| MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | open |
+| MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | done, PR #1288 |
+| MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | done, PR #1289 |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | none | open |
 | MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | none | open |
 | MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | none | open |
