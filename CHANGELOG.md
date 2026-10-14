@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1040] - 2026-10-14
+
+### Changed
+- The design note for the test suite rebuild now records what was decided about every open test-fix item (TEST.111, 116, 125 to 135, 137 to 144): which are fixed now, which are folded into the rebuild and close after five clean full runs, and which become an opt-in tier outside the merge gate.
+
 ## [8.0.1039] - 2026-10-14
 
 ### Changed
