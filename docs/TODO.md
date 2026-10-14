@@ -1504,21 +1504,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
 
-- [ ] **MAP.196 galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug)**
-  Reported by the Test Suite Rebuild thread via the coordinator
-  (2026-10-14, from TEST.125, #1313): since the object ID change
-  (80-bit, 20 hex digits) systemnav.js only accepted number-only
-  references, so the System Map's Start Here and End Here buttons
-  vanished from every body's info panel; that is fixed. galaxystages.js
-  still reads the system= and object= parts of a sector link as digits
-  only and may have the same problem. Done: every place in the browser
-  code that parses a system or object reference accepts the current ID
-  form (hex digits), checked by grep and by a test that opens a sector
-  link carrying a hex object ID; no other digits-only reference parser
-  is left behind. Owner: Bugfixes lane 2 or the next lane taking
-  JavaScript fixes.
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -4972,6 +4957,12 @@ clears each one.
   tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
   failed once under full-suite load and passes alone. For the rebuild's
   flake list.
+  Flake (2026-10-09): Flake sighting (Bugfixes lane 2, 2026-10-14,
+  MAP.196 suite, 49 min):
+  tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
+  failed under load twice (12:00Z and 17:03Z), passes alone; not checked
+  on main. Also tests/test_web_browser_maps.py::test_galaxy_map_buttons
+  again (TEST.126). For the rebuild's flake list.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5621,7 +5612,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/html-interface.md (Generate page and job log) and docs/testing.md
   need a short section on it. Done: the standard is described once and
   the three docs link to it.
-  Prerequisites: UX.102.
+  Prerequisite: UX.102.
 
 - [ ] **DOC.20 After PERF.86: rewrite the queue and scatter notes and the queue docstrings**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5636,7 +5627,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   decided against), library-migration.md section 3, architecture.md Flow
   4, and the docstrings of queue/work.py and queue/redisqueue.py. Done:
   all of them describe the queue as built.
-  Prerequisites: PERF.86.
+  Prerequisite: PERF.86.
 
 - [ ] **DOC.21 Rewrite the package docstrings that are wrong or missing, and the queryDb mentions**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5904,7 +5895,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   install.sh, update.sh and scripts/install-python-deps.sh. Done: every
   one of them describes the venv, how mod_wsgi, the CGI scripts and the
   services use it, and how to rebuild it.
-  Prerequisites: OPS.45.
+  Prerequisite: OPS.45.
 
 - [ ] **DOC.38 Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS**
   Found by the full documentation sweep Boss asked for (2026-10-14

@@ -941,7 +941,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | none | open |
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
-| MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | open |
+| MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | done, PR #1331 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

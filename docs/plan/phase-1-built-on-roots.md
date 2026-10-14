@@ -221,7 +221,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete |  |  |
-| MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) |  |  |
 | OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python |  |  |
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
