@@ -238,9 +238,12 @@ A `galaxy` or `plan` run that does more than one stage also draws one "Whole job
 of the display (PERF.55). It counts the time since the run began against the stored time of all its stages (the
 same stage times the Generate page's overall bar uses), so it shows the time left across every phase; with no
 stored time for a stage it shows only the elapsed time. A run that outlasts its estimate keeps the bar just short
-of full. When the run ends it stores one more row in the stage history, "Whole job": the layers the scatter
-stages visited, those that placed nothing included, per second of the whole run, with the run's settings
-(`generation_stats.job_layers_per_second`).
+of full. When the run ends it stores two more rows in the stage history, with the run's settings: "Whole job"
+(the seconds of the whole run, the stages it ran and the layers the scatter stages visited, those that placed
+nothing included, per second; `generation_stats.job_layers_per_second`) and, when scatter stages ran, "All
+scatters" (their operations, layers, objects and seconds, per layer and per operation). Each stage's own row also
+carries its seconds per layer. A scatter with no stored time of its own is estimated from the "All scatters"
+figure, so every bar and estimate reads the one stored-time function (`generation_stats.stage_seconds`).
 
 The bright-star bar ("Bright stars (12 of 1,271 layers)") shows a share
 done rather than a count: before the scatter starts, every layer gets an

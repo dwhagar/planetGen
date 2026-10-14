@@ -184,6 +184,9 @@ saved sector.
 import json
 import math
 
+import numpy as np
+from scipy.spatial import cKDTree
+
 from planetgen.physics import constants as physical_constants
 from planetgen.galaxy.system_position import galactic_velocity_ms, place_system, set_system_epoch
 from planetgen.physics.position import SpatialPosition3D
@@ -1256,6 +1259,39 @@ class SpaceSector:
         others = [other for other in self.entries if other is not entry]
         others.sort(key=entry.distance_to)
         return others[:count]
+
+    def all_nearest_neighbors(self, count=1):
+        """
+        `nearest_neighbors` for every entry at once (PERF.81): one `cKDTree` over the sector instead of
+        a distance to every other system for each system (1.8 million `distance_to` calls for 1,916
+        systems). The answer for each entry is the same list `nearest_neighbors(entry, count)` gives,
+        ties between equal distances included (the earlier entry comes first).
+
+        Args:
+            count (int): The maximum number of neighbors per entry.
+
+        Returns:
+            list[list]: One list per entry, in `self.entries` order, each up to `count` other
+                `SectorSystemEntry` instances, nearest first.
+        """
+        if count < 0:
+            raise ValueError(f"nearest_neighbors: count must be >= 0, got {count!r}")
+        entries = self.entries
+        if count == 0 or len(entries) < 2:
+            return [[] for _ in entries]
+        points = np.array([entry.position for entry in entries], dtype=float)
+        tree = cKDTree(points)
+        ask = min(count + 1, len(entries))
+        distances, indexes = tree.query(points, k=ask)
+        result = []
+        for row, entry in enumerate(entries):
+            reach = float(distances[row][-1])
+            # Everything as near as the farthest one kept, so a tie at the edge resolves as the sort would.
+            near = tree.query_ball_point(points[row], reach * (1.0 + 1e-9) + 1e-12)
+            ranked = sorted(((math.dist(entry.position, entries[other].position), other)
+                             for other in near if other != row))
+            result.append([entries[other] for _distance, other in ranked[:count]])
+        return result
 
     def to_dict(self):
         """

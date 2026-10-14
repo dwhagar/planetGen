@@ -2048,17 +2048,20 @@ remnant's center: a young remnant's core sits near the middle, an old
 remnant's can have left it entirely (class V's "far off-center")."""
 
 NEBULA_HOST_RULES = (
-    ("O", 0, 9, ("C", "D", "E"), 1.0),
-    ("B", 0, 2, ("C", "D", "G"), 0.5),
+    ("O", 0, 9, ("C", "D", "E"), 0.25),
+    ("B", 0, 2, ("C", "D", "G"), 0.1),
     ("B", 3, 9, ("F", "G"), 0.05),
     ("A", 0, 9, ("F",), 0.01),
 )
 """tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
 for a main-sequence primary. Only O and early-B stars put out enough
-ultraviolet below 91.2 nm to ionize hydrogen, so every O star sits in an
-H II region (C-E) and half the B0-B2 stars do (Osterbrock & Ferland
-2006); later B and A stars light dust without ionizing it, a reflection
+ultraviolet below 91.2 nm to ionize hydrogen (Osterbrock & Ferland 2006),
+but a catalogued H II region is about one per four O stars: about 8,000
+are known against some 270,000 O stars, so an O star hosts one with
+chance 0.25 and a B0-B2 star 0.1 (GEN.204; the nebula density study,
+docs/design/nebula-density-vs-reality.md). They are ratios, so they stay
+right when the O and B counts change with the mass cut. Later B and A stars light dust without ionizing it, a reflection
 nebula (F, or G for the hotter ones) when a dusty cloud happens to be near
 (van den Bergh 1966, AJ 71:990 catalogs ~150 within a few kpc). The class
 is drawn among `classes` by NEBULA_CLASSES frequency."""
@@ -2698,9 +2701,12 @@ PHENOMENON_DENSITY_PC3 = {
     # 27:129).
     # 1.4e-8 is 1e-7 per star (20,000 over ~2e11 stars).
     "planetary-nebula": 1.4e-8,
-    # 1e-8 to 1e-7, really n_* * rho_gas (Draine 2011); 1e-8 counts
-    # faint remnants too (~1,000 are detectable, ~1.5e-9).
-    "supernova-remnant": 1e-8,
+    # About 3,000 supernova remnants galaxy-wide (GEN.203): the supernova
+    # rate gives 400 to 3,000 that are still visible (Green 2019, 310
+    # catalogued; Ranasinghe & Leahy 2022), 1.5e-9 per pc^3 is the top of
+    # that range. It was 1e-8, 20,000 remnants (n_* * rho_gas, Draine 2011),
+    # which counted every faint one.
+    "supernova-remnant": 1.5e-9,
     # Notable interstellar comets kept as rows, a design rate (today's
     # 0.05 per star). The real population of comets and planetesimals,
     # INTERSTELLAR_DEBRIS_DENSITY_PC3, is a computed sector figure.
@@ -2721,7 +2727,16 @@ rate on 2026-09-30)."""
 
 GMC_ARM_FILLING_FACTOR = 0.015
 """float: Share of spiral-arm volume inside a giant molecular cloud
-(0.01-0.02), for GEN.10's cloud placement."""
+(0.01-0.02), for GEN.10's cloud placement. Nothing places clouds from it;
+the nebula audit test (TEST.136) holds the field's arm-crest filling to its band."""
+
+NEBULA_FIELD_KEEP = {"M": 0.095, "N": 0.5, "P": 1.0, "Q": 1.0}
+"""dict: The share of each field class's drawn clouds that the galaxy keeps (GEN.152). The field draws 700,000
+clouds at `PHENOMENON_DENSITY_PC3["molecular-cloud"]`, class M ten times the 8,107 to 9,710 catalogued giant
+molecular clouds and the volume inside the clouds' bounding spheres 2 to 24% against 0.5 to 2% observed. Each
+cloud keeps or loses by a hash of its cell and draw number (`nebula_field.cloud_kept`), so the draw, and every
+survivor's position and object ID, are as they were. Class N (dark clouds) has the lowest confidence; P and Q are
+in range. Study: docs/design/nebula-density-vs-reality.md."""
 
 GMC_GAS_DENSITY_EXPONENT = 1.4
 """float: Molecular clouds scale with gas density to this power
