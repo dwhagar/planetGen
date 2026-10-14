@@ -3068,6 +3068,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets gain eccentricity (MAP.70 and MAP.62 are built), reuse the
   same non-iterative solver in `body_positions.py` and
   `orbitpositions.js` so the parity test stays simple.
+  Math Research (2026-10-14): production code does not yet call the vector
+  `solve_eccentric_anomalies` (1.36 us against 20.9 us for the scalar
+  `brentq`); use it wherever updates are batched (GEN.212).
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -3180,34 +3183,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.152 Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check)**
-  GEN.47's cloud field fills 3% to 46% of volume against 0.5% to 1%
-  observed. Recommended about 1e-7 pc^-3 for class M with small dark
-  clouds as separate rows; `GMC_ARM_FILLING_FACTOR` is still read by
-  nothing. Decided (Boss, 2026-10-10 18:44Z, defaults approved; default:
-  lower it to about 1%).
-  Concrete plan (nebula density research, PR #1188, 2026-10-10): class M
-  (giant molecular clouds) is about 10 times too many (102,000 against
-  8,107 to 9,710 catalogued); N is in range by count but large; P and Q
-  are in range. The volume inside bounding spheres is 2, 8, 19 and 24%
-  at gas 0.2, 0.9, 2.3 and 3.0 against 0.5 to 1% observed in the disc
-  and 1 to 2% in the arms; the shape fills only 12% of its bounding
-  sphere. Done adds: a `NEBULA_FIELD_KEEP` table in tuning.py (keep M
-  0.095, N 0.5 (lowest confidence), P 1, Q 1) applied as a hash
-  acceptance test over the full draw, so survivors keep their cells and
-  object IDs; the result is about 454,000 clouds (from 700,000), the
-  sample-box filling falls from 11.0% to 1.7% and the filling at the four
-  gas levels becomes 0.2, 1.1, 2.8 and 3.6%. Owner: Foundations lane 1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the keep table.
-  Prerequisites: none. Related: DB.24, TEST.136, GEN.203, GEN.204,
-  GEN.205.
-  Design: [docs/design/anomalies.md](design/anomalies.md)
-
 - [ ] **GEN.153 Magnetar subtype of neutron star, and an age-dependent pulsar fraction**
   `NEUTRON_STAR_PULSAR_CHANCE` is 0.7 against about 1e-4 to 1e-3 real.
   Done: a magnetar subtype and a pulsar fraction that follows age, with
@@ -3242,6 +3217,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `test_astropy_constants.py` tightened from 1e-4 to 1e-12 (the loose
   one hides the difference). May be done by the deterministic math
   helpers' frozen constants.
+  Math Research (2026-10-14): GEN.211 drops astropy at run time for a
+  constants table, which makes this pin moot; GEN.156 is retired when GEN.211
+  merges.
   Prerequisites: none.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
@@ -3541,51 +3519,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **GEN.203 Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  the scatter holds about 20,000 supernova remnants against 310
-  catalogued (400 to 3,000 expected); planetary nebulae (28,000) are in
-  range (4,000 to 46,000) and stay. Done: the supernova-remnant density
-  goes from 1e-8 to 1.5e-9 (about 3,000), the planetary-nebula density
-  stays 1.4e-8, and the tuning comments cite the sources. It applies on
-  the next plan or "Redo scatters" (GEN.196). Changes what a new galaxy
-  generates; the same kind of rate change as GEN.152, whose approved
-  default covers it. Owner: Foundations lane 1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the remnant density.
-  Prerequisites: none. Related: GEN.152, GEN.196, GEN.185.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
-
-- [ ] **GEN.204 Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  hosted H II regions are one per O star (about 270,000) against about
-  8,000 catalogued. Done: the chance in `NEBULA_HOST_RULES` goes from
-  1.0 to 0.25 for O stars and from 0.5 to 0.1 for B0 to B2 (a ratio, so
-  it stays right when the O and B counts change with the mass cut), with
-  a test of the hosted-per-O-star ratio. Changes what a new galaxy
-  generates; covered by GEN.152's approved default. Owner: Foundations
-  lane 1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the host chance.
-  Prerequisites: none. Related: GEN.152, GEN.150, GEN.99.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
-
 - [ ] **GEN.205 `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy**
   Boss (2026-10-10 22:01Z): review the cloud density against the real
   Milky Way and decide how to manage it so things stay visible. From the
@@ -3604,7 +3537,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unchanged and kept out of the map index). Owner: Foundations lane 1,
   with the GEN items. This item is the cleanup of an existing galaxy; it
   always runs a dry run first.
-  Prerequisites: GEN.152, DB.24. Related: GEN.196, GEN.176.
+  Prerequisite: DB.24. Related: GEN.196, GEN.176.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
 - [ ] **GEN.206 A planet's description claims life where the habitability index says none can live (bug)**
@@ -3696,6 +3629,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   repeatable-galaxy generator version bump. Owner: Foundations lane 1,
   after the repeatable-galaxy chain starts.
   Prerequisites: none. Related: GEN.24, ADM.30, GEN.135, OPS.37.
+
+- [ ] **GEN.211 Constants table instead of astropy: faster start, 29 MB less memory per process**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md). `physics/constants.py` is
+  astropy's only user (about 20 constants). Boss's default stands as
+  Decided: drop astropy at run time. Done: the table is generated once
+  from the pinned CODATA 2018 and IAU 2015 values, astropy moves to the
+  `test` extra so `test_astropy_constants.py` still checks the table, no
+  stored value changes. Saves 280 ms and 29 MB per process start and 53
+  MB of install. Replaces GEN.156 (pinning astropy before import is moot
+  once it is not imported). Owner: Foundations lane 1, with the numba
+  install.
+  Prerequisites: none. Related: GEN.156, GEN.66.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **GEN.212 Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `db/store.advance_galactic_positions` spends 25.7 us a row in Python;
+  a NumPy batch takes 3.8 us and refiles the same addresses on 100,000
+  of 100,000 rows. The whole update gains 3 to 4 times because the SQL
+  per row costs about as much. Also use the vector
+  `solve_eccentric_anomalies` wherever updates are batched (the scalar
+  `brentq` is 20.9 us against 1.36 us; production code does not call the
+  vector one yet). Done: both folded into the GEN.105 chain with
+  identical results. Owner: the Orbital Updates builders, with GEN.105.
+  Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3987,6 +3948,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the exact sum, and says when a grid is recomputed after an
   orbital update (every step, or only for sectors whose sources moved by
   a set amount). Ends with the build items filed.
+  Math Research (2026-10-14): the field is a sum over point masses at many
+  grid points, the same shape as the path integrator's acceleration; cost it
+  as a numba or NumPy kernel from the start (not measured in the note).
   Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
@@ -4058,6 +4022,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cut, with the rows identical. Related to the uid work in PERF.31's
   study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10),
   after PERF.67 and PERF.54.
+  Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
+  hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
+  for scatter writes); try it here. pymysql is 8% of the profiled fill.
   Prerequisites: none. Related: PERF.31, PERF.73.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
@@ -4072,8 +4039,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wait gets its own stage line and progress bar so the job is never
   silent for more than a few seconds. A test or timing record shows the
   first progress within seconds on the benchmark galaxy. Owner:
-  Foundations lane 1, right after the nebula tuning chain (GEN.152,
-  GEN.203, GEN.204, TEST.136), before DB.24.
+  Foundations lane 1, right after the nebula tuning chain (merged in
+  #1239), before DB.24.
   Prerequisites: none. Related: PERF.66, PERF.67, PERF.79, PERF.82.
 
 - [ ] **PERF.84 Neighbour linking stalls on a large run (bug)**
@@ -4117,6 +4084,72 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first (coordinator to assign), then Foundations lane 1.
   Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
   ADM.15, PERF.24.
+
+- [ ] **PERF.87 Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `SpaceSector._random_position` walks `_massive_neighbors()` and calls
+  `distance_between` for each (919,000 calls in the benchmark fill).
+  PERF.81 fixed the nearest-neighbour list; this loop is separate. Done:
+  the check runs on NumPy arrays of positions and required separations,
+  drawing the same random numbers in the same order so the placed
+  positions, and the stored galaxy, are identical (a test compares a
+  fill before and after), measured with the PERF.31 benchmark. Owner:
+  Foundations lane 1, near its PERF items.
+  Prerequisites: none. Related: PERF.31.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `physics/sector_path.integrate_path` takes 1.0 ms a path; numba (mass
+  selection, integration and spline check in one compiled call) takes 34
+  to 46 us, so the save step goes from 34.2 s to 13.4 s on the benchmark
+  fill (the rest is database writes). Saved paths agree to 4e-16
+  relative (34,566 of 34,568 knots bit-identical), so tests that compare
+  saved paths use that tolerance. It also speeds the orbital update,
+  which recomputes these paths. Done: the integrator is a numba kernel,
+  the old Python loop removed (no fallback), the tolerance in the path
+  tests, timings in the benchmark report. Owner: Foundations lane 1,
+  after PERF.80 merges (Foundations lane 2 is changing the settle step)
+  and after OPS.42.
+  Prerequisites: PERF.80, OPS.42. Related: PERF.31, GEN.105.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.89 Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md). `bright_stars._ring_bins`
+  and `layer_expected_stars` call `density.population_densities` 556,000
+  times (7.9 us each); `total_density_array` is 47 times faster per
+  point. Done: both stages call the array form, the expected counts
+  unchanged to the last digit (a test compares them), timings recorded
+  with the benchmark. Owner: Foundations lane 1, near its PERF items.
+  Prerequisites: none. Related: PERF.58, PERF.31.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.90 Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `geometry.ring_sector_count`, `ring_master_count` and
+  `_ring_centerline_edges` cost 1.15 us a call, 0.064 us when cached.
+  Done: they are cached (a one-line change each), with identical
+  results. Owner: Foundations lane 1, in the same PR as the placement
+  loop item.
+  Prerequisites: none. Related: PERF.87.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md). State is handed between
+  `random.Random` and NumPy's MT19937 so draws and generator state are
+  identical: no galaxy changes and no reseed. Only the default-scale
+  scatter reaches batches this large (0.3 s of 16 s at benchmark scale),
+  so this is low priority until the default-scale scatter is the
+  bottleneck. Done: the scatter layers draw in bulk, a test proves same
+  seed, same draws, same final state. Owner: Foundations lane 1, last of
+  the math items.
+  Prerequisites: none. Related: GEN.56, PERF.58.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 ## DB: Database and schema
 
@@ -4266,8 +4299,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   research, PR #1188): the table holds classes M and N only (about
   163,000 rows and 11 MB instead of 700,000 and 50 MB); classes P and Q
   stay seeded and implicit (291,000 clouds of 0.2 to 1.6 pc, invisible
-  beyond about 250 pc). Its size and the equality test follow GEN.152's
-  keep table.
+  beyond about 250 pc). Its size and the equality test follow the nebula
+  keep table merged in #1239.
   Prerequisites: none. Related: MAP.151, MAP.142, GEN.176, GEN.99.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -5056,21 +5089,6 @@ clears each one.
   Prerequisites: TEST.133, DB.24. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **TEST.136 A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  a test reads the rates from tuning and the gas model and fails outside
-  these bands: class M 5,000 to 20,000; arm-crest filling 1 to 4%;
-  planetary nebulae 4,000 to 46,000; remnants 400 to 5,000; hosted H II
-  per O star 0.1 to 0.5; classes P and Q 5e4 to 4e5. It also reads
-  `GMC_ARM_FILLING_FACTOR`, which nothing reads today. Owner:
-  Foundations lane 1.
-  Prerequisite: GEN.152. Related: GEN.203, GEN.204.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
-
 - [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
   Reported by Bugfixes lane 2 (2026-10-10 22:47Z):
   tests/test_neighborhood_edge.py::test_a_neighborhood_from_the_generate_page[core]
@@ -5460,6 +5478,24 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a clear message, and the Admin pages show the state. Owner:
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
+
+- [ ] **OPS.42 Install numba: raise the minimum Python to 3.10 and warm its cache in update.sh**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md). Boss's defaults stand as
+  Decided: numba is a hard requirement with no pure-Python fallback, the
+  minimum Python goes to 3.10 (the VPS runs 3.12), and the compiled-code
+  cache lives at /var/cache/planetgen/numba, owned by the web user, made
+  by create-cache-dir.sh and warmed by update.sh (NUMBA_CACHE_DIR). Adds
+  numba 0.68 and llvmlite 0.50 (about 196 MB installed). Done: both
+  packages in the requirements and lock files, the Python floor raised
+  in the docs, setup scripts and CI (the Python 3.9 leg is dropped,
+  which also frees TEST.77 and the 3.9 branches in the lock), the cache
+  directory created and warmed on every update, and a start-up check
+  that fails with a clear message if numba cannot import. Owner:
+  Foundations lane 1, before the numba path integrator
+  (PERF.88).
+  Prerequisites: none. Related: GEN.156, TEST.77.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 ## DOC: Documentation
 

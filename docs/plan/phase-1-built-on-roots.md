@@ -199,6 +199,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
+| GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process |  |  |
+| PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
+| PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) |  |  |
+| PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) |  |  |
+| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | PERF.80, OPS.42 |  |
+| PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls |  |  |
+| OPS.42 | Install numba: raise the minimum Python to 3.10 and warm its cache in update.sh |  |  |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  |  |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.150, MAP.152 |  |
@@ -231,11 +238,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
 | PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter |  | Bugfixes lane 1 report 06:36Z. |
-| GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) |  | Research: reopens GEN.47 as a rate check. |
-| TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | GEN.152 | Foundations lane 1. |
-| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | GEN.152, DB.24 | Foundations lane 1. |
-| GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars |  | Foundations lane 1. |
-| GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts |  | Foundations lane 1. |
+| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | DB.24 | Foundations lane 1. |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers |  | Foundations lane 1. |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
