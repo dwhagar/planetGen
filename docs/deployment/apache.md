@@ -127,6 +127,30 @@ Anything else, no answer within 30 seconds, or no terminal skips it.
 asking, and `planetgen population` runs it any time.
 `install.sh --skip-database` skips both questions.
 
+### What Apache needs to run the venv (and what update.sh checks)
+
+mod_wsgi can run one app in its own virtual environment only in daemon
+mode. `update.sh` (and `install.sh`) read your vhost, the enabled site that
+holds `WSGIScriptAlias ... src/html/wsgi.py`, and **only warn**: each
+warning prints the exact line to add, and neither script edits the vhost.
+
+- **A daemon process group:** `WSGIDaemonProcess planetgen-api ... python-home=...`
+  and the script alias with `process-group=planetgen-api` (or a
+  `WSGIProcessGroup planetgen-api` line). A script alias with neither runs in
+  Apache's embedded mode, which cannot use a venv.
+- **`python-home` is the venv's root,** the folder that holds `bin/` and
+  `lib/` (`/usr/local/planetgen/venv`), not `bin/python` and not a parent
+  folder. A trailing `/` is fine.
+- **The main interpreter:** `application-group=%{GLOBAL}` on the script
+  alias (or `WSGIApplicationGroup %{GLOBAL}`), because numpy, scipy and numba
+  load C code that does not work in a sub-interpreter.
+- **Apache's user can read the venv:** it (`www-data` on Debian and Ubuntu,
+  `apache` on RHEL and CentOS) must be able to enter every directory down
+  to the venv and read the venv itself. The check runs as that user and names
+  the first folder that blocks it, with the `chmod o+rx` that opens it. Home
+  folders (mode 0700 by default on newer Ubuntu) are the usual cause.
+- **The same Python version as mod_wsgi:** see below.
+
 ### Which Python and libraries Apache uses
 
 The vhost names the venv with `python-home=/usr/local/planetgen/venv` on
