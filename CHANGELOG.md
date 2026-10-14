@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1094] - 2026-10-14
+
+### Changed
+- TODO: filed PERF.93 (ensure_workers counts dead workers, bug), OPS.48, PERF.94 and ADM.54 from the Redis review, and linked the review note on PERF.86; TODO items resolved: none / Added: PERF.93, OPS.48, PERF.94, ADM.54.
+
 ## [8.0.1093] - 2026-10-14
 
 ### Added
