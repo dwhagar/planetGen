@@ -3908,40 +3908,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measures and cuts it. The per-pass stats rows here should therefore
   record compute time and write time separately for the phenomena pass.
   Moved to Phase 1 (Boss, 2026-10-10 22:19Z, generation-first priority).
-  Owner: Bugfixes lane 1, right after PERF.67 (same stats code).
+  Owner: Bugfixes lane 1, after the PERF.67 stats code (merged in #1249).
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
-
-- [ ] **PERF.67 Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs**
-  Boss (2026-10-10 20:25Z): "we should carry stats on how long it takes
-  every single operation to finish from each stage to the whole
-  process". PERF.32 records rates per run, PERF.56 records each stage's
-  seconds with its settings, and PERF.55 draws the whole-job bar, but
-  the whole job and its steps (check the math, reset, plan, each galaxy
-  stage and its sub-operations) are not all recorded as one nested set
-  of timings. Done: every operation in a job (each step, each stage,
-  each sub-operation a stage reports) writes its start, finish and
-  seconds, with the settings it ran with, into one nested record from
-  the operation up through the stage and step to the whole job; the
-  record is kept per version like PERF.32's rates and deleted with them;
-  the estimates for the stage bars and the whole-job bar read these
-  records first (PERF.66 falls back to the average of the earlier stages
-  only when there is no record); the admin pages can show a finished
-  job's tree of timings; a test checks that a finished job's record sums
-  from operation to stage to job. Boss (2026-10-10 20:26Z): "We should
-  also have different stats for mass star scatter and bright star
-  scatter and then a common item scatter that aggregates all of the
-  scatters, and then we need to make sure all points use that
-  information to calculate ETAs." So each scatter kind keeps its own
-  timing records (the mass-limit star scatter, the bright star scatter,
-  the phenomena pass, the backfill rings and any other pass), one common
-  "scatter" record aggregates all of them, and every place that shows or
-  computes an ETA (stage bars, the whole-job bar, the CLI, the job page,
-  the Generate page's forecast) reads these records and none keeps its
-  own estimate. A test checks that the scatter aggregate equals the sum
-  of its kinds and that each ETA display reads the records. Owner:
-  Bugfixes lane 1, after PERF.66 (the bar fix does not wait for it).
-  Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
-  PERF.66.
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/gravity-map.md, section 'How it is
@@ -4025,7 +3993,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measured by statement (batching, executemany, fewer round trips) and
   cut, with the rows identical. Related to the uid work in PERF.31's
   study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10),
-  after PERF.67 and PERF.54.
+  after PERF.54.
   Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
   hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
   for scatter writes); try it here. pymysql is 8% of the profiled fill.
@@ -4045,7 +4013,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first progress within seconds on the benchmark galaxy. Owner:
   Foundations lane 1, right after the nebula tuning chain (merged in
   #1239), before DB.24.
-  Prerequisites: none. Related: PERF.66, PERF.67, PERF.79, PERF.82.
+  Prerequisites: none. Related: PERF.66, PERF.79, PERF.82.
 
 - [ ] **PERF.84 Neighbour linking stalls on a large run (bug)**
   GitHub issue [#1224](https://github.com/dwhagar/planetGen/issues/1224)
@@ -4075,13 +4043,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Cancel job is still offered. So the write stage ran longer (36 min) than
   the scatter (21 min), its estimate sat at "about 0 s" the whole time,
   and the job had not finished. Done also covers: the write stage reports
-  progress while it runs and its estimate comes from PERF.67's timing
-  records. The layer count in the log (2,041) matches the plan; whether
+  progress while it runs and its estimate comes from the stored timing
+  records (#1249). The layer count in the log (2,041) matches the plan; whether
   the bar's count was wrong in the original screenshot is still asked on
   the issue.
-  Owner: Bugfixes lane 1, after PERF.67 and PERF.54, together with
+  Owner: Bugfixes lane 1, after PERF.54, together with
   UX.98.
-  Prerequisites: none. Related: PERF.83, PERF.84, PERF.66, PERF.67.
+  Prerequisites: none. Related: PERF.83, PERF.84, PERF.66.
 
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
@@ -5176,6 +5144,19 @@ clears each one.
   made reliable without loosening it. Owner: Bugfixes lane 2, with
   TEST.128.
   Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
+
+- [ ] **TEST.142 test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug)**
+  Reported by the coordinator from Bugfixes lane 1 (2026-10-14 13:11Z,
+  PERF.67 suite, 50 min):
+  tests/test_web_browser_tables.py::test_a_table_keeps_its_sort_and_filter_across_a_reload
+  fails on main because its fake `get_systems` does not accept the
+  `after` argument added by PERF.75's keyset paging. Done: the fake
+  takes the new argument (or the test uses the real function) so the
+  test passes without loosening what it checks, and a grep shows no
+  other fake of a paged reader is left behind. Owner: whichever lane
+  takes test fixes next (Bugfixes lane 2 after TEST.128), before
+  PERF.75's other tables get the same change.
+  Prerequisites: none. Related: PERF.75, TEST.126.
 
 ## USR: User accounts
 

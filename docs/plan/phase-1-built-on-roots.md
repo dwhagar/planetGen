@@ -199,6 +199,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
+| TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) |  |  |
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) |  |  |
@@ -251,7 +252,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | GEN.200 | Needs a migration. Foundations lane 1. |
 | GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have |  | Boss 2026-10-10 21:38Z. Foundations lane 1. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
-| PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs |  | Boss 2026-10-10 20:25Z; Bugfixes lane 1, after PERF.66. |
 
 ## Open questions for Boss
 
