@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1074] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 filed: save generation timing per object and per object type.
+
 ## [8.0.1073] - 2026-10-14
 
 ### Changed
