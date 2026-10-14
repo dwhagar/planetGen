@@ -5618,44 +5618,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.46 Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python**
-  Boss, 2026-10-14 19:15Z, pasting the Apache mod_wsgi documentation:
-  the installer and setup must follow its venv rules. Most of it is
-  already built by OPS.45 (#1333): the example vhost
-  (examples/apache/planetgen.conf.example) puts
-  python-home=/usr/local/planetgen/venv on WSGIDaemonProcess
-  planetgen-api and sets process-group and application-group=%{GLOBAL}
-  on the WSGIScriptAlias line, and scripts/deploy-common.sh has
-  check_apache_python_home and check_mod_wsgi_python. What is left,
-  found by reading those two checks against Boss's list: (1)
-  check_apache_python_home matches the text python-home=$VENV with grep
-  -F, so a path to the interpreter
-  (python-home=/usr/local/planetgen/venv/bin/python) also passes; it
-  must require the venv root exactly and warn when the path points at
-  bin/ or a parent. (2) Nothing checks that the Apache user (www-data on
-  Debian and Ubuntu, apache on RHEL and CentOS) can read and enter every
-  directory down to and inside the venv; add a check that runs as that
-  user (for example sudo -u www-data test -r and -x on the path, or
-  namei -m) and says which directory blocks it. (3) Nothing checks that
-  the vhost has WSGIProcessGroup or process-group and application-group
-  %{GLOBAL} for the planetGen app; the check should read the vhost for
-  them, accepting either form, and warn when the app runs in embedded
-  mode. (4) The vhost lookup takes the first file under /etc/apache2
-  that names WSGIDaemonProcess planetgen-api; look under the enabled
-  sites only and cover RHEL layouts (/etc/httpd) if the installer
-  supports them. (5) check_mod_wsgi_python only looks at
-  /usr/lib/apache2/modules/mod_wsgi.so; confirm it compares the
-  major.minor of the venv's python with the mod_wsgi build and says what
-  to do when they differ. (6) Add the permission and process-group rules
-  to the Apache guide and INSTALL.md, in the same pass as DOC.37, and
-  add tests next to src/tests/test_install_python_deps.py. Default: keep
-  these as warnings that print the exact line to add, never edit the
-  admin's vhost (as OPS.45 does). Bugfixes lane 1, first in the lane.
-  Decided (Boss, 2026-10-14 19:55Z, on a decision
-  card relayed by the coordinator): warn only. The warnings print the
-  exact line to add and never edit his vhost.
-  Prerequisites: none. Related: DOC.37.
-
 - [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
   1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
