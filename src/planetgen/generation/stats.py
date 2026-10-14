@@ -89,10 +89,12 @@ test suite sets it, so test runs never touch a real server's numbers)."""
 FLUSH_SECONDS = 30
 """int: How often a run writes its new averages back while it runs."""
 
-KINDS = ("sector", "scatter", "phenomena")
+KINDS = ("sector", "scatter-mass", "scatter-bright", "phenomena", "phenomena-write")
 """tuple: What a bucket times: a sector's fill, (PERF.9) a layer of the
-bright-star scatter by the layer's mean density, or (PERF.32) a layer of
-the phenomenon scatter. A benchmark's kinds start with `BENCH_PREFIX`."""
+massive-star pass or of the bright-star pass of the scatter, each by the layer's mean
+density (PERF.54), (PERF.32) a layer of the phenomenon scatter, or the part of that layer
+that was writing its rows (the rest is drawing them). A benchmark's kinds start with
+`BENCH_PREFIX`."""
 
 BENCH_PREFIX = "bench:"
 """str: Starts the kind of every row a benchmark (PERF.31) writes, so none

@@ -77,8 +77,10 @@ def _active_progress():
 
 STEP_KINDS = {
     "sector": "Sector fill",
-    "scatter": "Bright-star layer",
+    "scatter-mass": "Massive-star layer",
+    "scatter-bright": "Bright-star layer",
     "phenomena": "Phenomena layer",
+    "phenomena-write": "Phenomena layer: writing the rows",
     "phenomena-clear": "Phenomena scatter: clearing",
     "phenomena-special": "Phenomena scatter: special rows",
     "phenomena-insert": "Phenomena scatter: writing the special rows",
