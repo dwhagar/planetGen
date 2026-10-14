@@ -1551,7 +1551,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.143 | test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug) | none | done, PR #1313 |
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | open |
-| TEST.146 | Rate-limit tests fail when the one-minute window ends between their requests (bug) | none | open |
+| TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

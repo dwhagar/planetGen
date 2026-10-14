@@ -5269,19 +5269,18 @@ clears each one.
   not a lane.
   Prerequisites: none. Related: TEST.139.
 
-- [ ] **TEST.146 Rate-limit tests fail when the one-minute window ends between their requests (bug)**
-  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z): tests
-  that assert a 429 after N requests against a one-minute request limit
-  can fail when the limiter's fixed clock-minute window ends between
-  their requests. Seen once:
-  src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
-  failed in the 18:47Z full run and passed alone;
-  test_web_request_limits.py and test_web_security_limits.py have the
-  same shape. The odds are about 1 run in 100. Done when a shared test
-  helper waits for the start of a fresh minute when only a few seconds
-  remain, every test of this kind uses it, and the suite shows no time
-  flake. Owner: the Test Suite Rebuild thread (group B style), not a
-  lane.
+- [ ] **TEST.146 Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug)**
+  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z), first
+  read as a one-minute window ending between a test's requests. The
+  thread's later finding (2026-10-14 21:40Z) is the real cause: the
+  between-test rate-limit reset wipes every limiter key on the shared
+  Redis, so tests running at the same time lose each other's counts.
+  Seen once: src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
+  failed in the 18:47Z full run and passed alone; test_web_request_limits.py
+  and test_web_security_limits.py have the same shape. Done when each
+  test resets only its own keys and the suite shows no time flake. Owner:
+  the Test Suite Rebuild thread (group B style), not a lane. Fixed in
+  the thread's open PR, which lands with TEST.145.
   Prerequisites: none. Related: TEST.139, TEST.145.
 
 ## USR: User accounts
