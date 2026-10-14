@@ -1,2 +1,0 @@
-### Added
-- `phenomenon_scatter.map_luminosity_sol` (schema v84): the luminosity a star of a scattered neutron star's or black hole's mass would have by the map's relation, so a faint but massive object can be placed on the Galaxy Map as a star of its mass would be. A scatter writes it with each row; `planetgen plan --fill-map-luminosity` fills it, resumable and in batches that never block readers, for a galaxy scattered before (DB.23, GEN.201).
