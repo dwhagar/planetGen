@@ -58,6 +58,7 @@ except ImportError:
 
 try:
     from planetgen.galaxy.geometry import (
+        binary_companion_offset_pc,
         layer_bounds_pc,
         ring_bounds_pc,
         sector_cell_vertices_pc,
@@ -76,6 +77,7 @@ except ImportError:
     # Without `ly_to_milliparsecs`, nebula/asteroid-field clouds can't be
     # scaled/positioned at all and are omitted.
     sector_position_pc = None
+    binary_companion_offset_pc = None
     sector_cell_vertices_pc = None
     sector_orientation = None
     ring_bounds_pc = None
@@ -1019,6 +1021,7 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
 
 def map_scene_data(
     link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
+    compress_binaries=True,
 ):
     """
     The Sector Map's scene JSON (the `#starmap-data` block `map_scene_data`
@@ -1027,7 +1030,7 @@ def map_scene_data(
 
     Returns:
         dict: `sceneHalfPx`, `defaultZoom`, `lyPerPxAtZoom1`, `outline`,
-            `compass`, `stars`, `clouds`, `neighbors`, `generate`,
+            `compass`, `stars`, `binariesCompressed`, `clouds`, `neighbors`, `generate`,
             `edgeLy`, `centerPc` and `halfEdgePc`.
     """
     half_edge = (edge_mpc / 2) if edge_mpc else 1.0
@@ -1073,9 +1076,17 @@ def map_scene_data(
 
         if is_binary:
             primary_r = _star_dot_radius(stars[0]["radius_km"])
-            offset = primary_r * _BINARY_OFFSET_FRACTION
+            if compress_binaries:
+                shift_x = shift_y = primary_r * _BINARY_OFFSET_FRACTION
+                shift_z = 0.0
+            else:
+                # The real gap, by the rule the Galaxy Map's tiles use too (MAP.186).
+                shift_pc = (binary_companion_offset_pc(system.get("binary_separation_km"))
+                            if binary_companion_offset_pc else (0.0, 0.0, 0.0))
+                scale = _SCENE_HALF_PX / (half_edge / 1000.0)
+                shift_x, shift_y, shift_z = shift_pc[0] * scale, -shift_pc[1] * scale, shift_pc[2] * scale
             companion = _star_data(
-                link_url, system, stars[1], x_px + offset, y_px + offset, z_px,
+                link_url, system, stars[1], x_px + shift_x, y_px + shift_y, z_px + shift_z,
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             )
             # A binary is one pickable system (MAP.136): the map resolves a
@@ -1135,6 +1146,9 @@ def map_scene_data(
         "outline": outline,
         "compass": compass,
         "stars": stars_data,
+        # True when a close pair's two dots are drawn apart for reading
+        # (`_BINARY_OFFSET_FRACTION`), not at their real gap (MAP.186).
+        "binariesCompressed": bool(compress_binaries),
         "clouds": clouds_data,
         # Where a nebula's mesh comes from (`{id}` is its id; MAP.103).
         "nebulaShapePath": NEBULA_SHAPE_PATH,

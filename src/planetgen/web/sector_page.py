@@ -103,6 +103,7 @@ def _map_system(row):
         "x": row["position_x_mpc"],
         "y": row["position_y_mpc"],
         "z": row["position_z_mpc"],
+        "binary_separation_km": row.get("binary_separation_km"),
         "stars": [
             {
                 "star_type": star["star_type"],
@@ -629,7 +630,8 @@ def sector_scene(sector_id):
     the same block the sector page embeds), for the Galaxy Map, which
     opens the sector as the drill-down's last stage on its own page
     (MAP.66). `?pick=...` keeps NAV's pick mode in the entries' links, as
-    on the sector page.
+    on the sector page. A close pair's two dots are drawn apart so they
+    read as two; `?binaries=real` draws them at their real gap (MAP.186).
     """
     detail = apiclient.get_sector(db_name(), sector_id)
     _rows, map_systems = _contents(detail, apiclient.get_sector_facilities(db_name(), sector_id))
@@ -642,6 +644,7 @@ def sector_scene(sector_id):
         center_pc, map_systems, phenomena=detail.get("phenomena"),
         neighbors=_with_bright_stars(detail.get("neighbors")),
         generate=generate_target(current_admin()),
+        compress_binaries=request.args.get("binaries") != "real",
     )
     response = jsonify(scene)
     response.headers["Cache-Control"] = "no-store"
