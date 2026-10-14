@@ -199,6 +199,20 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
+| MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.150, MAP.152 |  |
+| TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules |  |  |
+| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) |  |  |
+| MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) |  |  |
+| MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) |  |  |
+| MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) |  |  |
+| MAP.185 | Black holes vanish in the Sector Map (bug) |  |  |
+| MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) |  |  |
+| UX.99 | Rogue planets do not show their surface gravity (bug) |  |  |
+| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) |  |  |
+| UX.98 | The Generate log has odd wording and mixed section headers (bug) |  |  |
+| PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) |  |  |
+| PERF.84 | Neighbour linking stalls on a large run (bug) |  |  |
+| PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) |  | Flaky under load. Bugfixes lane 1. |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |

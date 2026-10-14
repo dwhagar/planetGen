@@ -35,6 +35,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page |  | Research suggestion; not requested. |
 | USR.8 | Every signed-in user can generate a one-off system | USR.2 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
+| POP.11 | Scatter space vessels and stations for the races in their territories | POP.7, USR.10 |  |
+| USR.10 | Users add their own objects (ships and stations) and track their movement on the map |  |  |
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix |  | Research: before USR.2. |
 | NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | GEN.109, USR.3 | Needs USR.3's SMTP settings. |
