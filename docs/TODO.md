@@ -921,13 +921,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the small wire format steps, no prerequisites), then MAP.153 and
   MAP.149 (client side only, no prerequisites), then MAP.148 (needs
   MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
-  MAP.154 (needs MAP.153), MAP.159 (packed binary tiles; needs MAP.154
-  and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
-  keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
-  MAP.150 and MAP.154); this umbrella closes last.
+  MAP.159 (packed binary tiles; needs MAP.158; one cache stamp bump with
+  MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
+  and MAP.150); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
   Prerequisites: MAP.150, MAP.151, MAP.152, MAP.153,
-  MAP.154, MAP.155, MAP.157, MAP.159. Related:
+  MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -1072,9 +1071,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   close range. Includes the distance-cut tile choice that completes the
   visibility law.
   Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
-  tiles need MAP.154 (nested server lists: a child tile must contain the
-  parent's stars in its box).
-  Prerequisites: MAP.150, MAP.154. Related: MAP.102, MAP.125,
+  tiles need the nested server lists (MAP.154, merged in #1303: a child
+  tile contains the parent's stars in its box).
+  Prerequisite: MAP.150. Related: MAP.102, MAP.125,
   MAP.146.
   Foundations lane 2 (2026-10-10, MAP.148 first
   stage, PR #1160): MAP.148 is retired as built. The client-side law
@@ -1086,27 +1085,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
   2 flagged.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
-
-- [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
-  Source: docs/design/zoom-star-visibility.md (3 scheme J, section 5
-  stage 2). Done: the bright lists use one key for every tile level (a
-  population weight in the key instead of equal-share picking) and the
-  per-level budgets never fall, so a child list always holds the
-  parent's stars inside its box and the rank fade of the previous item
-  is exact instead of degrading gracefully. This changes the tile cache
-  stamp. The key and list shapes are decided together with MAP.147 (wire
-  format) and MAP.151 (region data layer), and with MAP.148 if the
-  magnitude law changes what a tile lists. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default build it only after MAP.153 is seen
-  working): go ahead?
-  Wire format (2026-10-09, galaxy-map-wire-format.md): MAP.147's
-  investigation is done (docs/design/galaxy-map-wire-format.md): the
-  packed binary tile format ships with these nested lists as MAP.159, on
-  one cache stamp bump, so list order is rank. (The planned omission of
-  stars a coarser tile already sent is not part of MAP.159: see the
-  follow-up item MAP.195.)
-  Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
-  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
@@ -1137,13 +1115,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finer tile does not omit the stars a coarser tile already sent, because
   the page would need the parent tile in hand for every child; that
   saving, 31 to 43% of bright records at levels 3 to 6 and all at 7 to
-  12, is the follow-up item MAP.195.) It ships together with MAP.154 (the nested lists)
-  and MAP.151's tile keys so the cache is invalidated once. Decided
+  12, is the follow-up item MAP.195.) It ships together with MAP.151's tile keys so the cache is invalidated
+  once (MAP.154, the nested lists, merged in #1303). Decided
   (Boss, 2026-10-10 18:44Z, defaults approved; default yes, with MAP.154
-  and MAP.151 on one bump):
+  merged and MAP.151 on one bump):
   go ahead?
-  Prerequisite: MAP.154. Related: MAP.147, MAP.154, MAP.151,
-  MAP.153, MAP.157.
+  Related: MAP.147, MAP.151, MAP.153, MAP.157.
   Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
   Lane 3 and Research Lane 2: x/y/z uint16 inside the tile cube, log
   luminosity uint16, log temperature and radius uint8, class and flags
@@ -1288,7 +1265,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class and cover, updated when a nebula is stored. Done: the
   aggregates, and a Monte Carlo check that the stored cover is within 5%
   of the true cover. Owner: Foundations lane 1, with MAP.151.
-  Prerequisites: MAP.151, DB.24. Related: MAP.159, MAP.154.
+  Prerequisites: MAP.151, DB.24. Related: MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
@@ -1303,7 +1280,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
   the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
   with MAP.151 and MAP.159.
-  Prerequisites: DB.24, MAP.172, MAP.154. Related: MAP.147, MAP.151,
+  Prerequisites: DB.24, MAP.172. Related: MAP.147, MAP.151,
   MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -1524,7 +1501,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so a child never draws without them, with a test that a tile and its
   parents together hold exactly the stars the full list holds. Measure
   the saving against the cost of holding the parents before building it.
-  Prerequisite: MAP.159. Related: MAP.154, MAP.159.
+  Prerequisite: MAP.159. Related: MAP.159.
 
 ## NAV: Navigation and courses
 

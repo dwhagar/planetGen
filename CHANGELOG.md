@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1048] - 2026-10-14
+
+### Changed
+- Retired MAP.154 from the roadmap.
+
+## [8.0.1047] - 2026-10-14
+
+### Changed
+- **A Galaxy Map tile's bright-star list now holds every star its parent listed inside it (MAP.154).** The lists used an equal share per population and three height bands, so a child tile could drop a star its parent showed, and the zoom fade had to cover for it. Every tile level now ranks the pre-placed bright stars by one key, luminosity times a population weight (young 1, intermediate 10, old and bulge 400, so an old giant at 2,500 Lsun ranks beside a young star at a million), and a tile inside another lists all of the outer tile's stars in its box. The rank fade is now exact. Old giants still appear, but a crowd of young stars of high enough luminosity can now outrank them in a tile.
+
 ## [8.0.1046] - 2026-10-14
 
 ### Changed
