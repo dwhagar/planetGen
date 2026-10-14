@@ -30,6 +30,7 @@ from planetgen.queue import redisqueue
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.galaxy.density import relative_density
+from planetgen.galaxy.region import CYLINDER_EDGE_ALLOWANCE, Region
 from planetgen.galaxy.drill import (
     DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key,
 )
@@ -839,14 +840,6 @@ def run_ring_batch(args, edge_pc, progress):
     )
 
 
-CYLINDER_EDGE_ALLOWANCE = 0.385
-"""float: Edges added to a radial fill's radius in sectors. A disc of exactly
-x edges holds only the centre and two neighbours at x = 1, because most face
-neighbours sit 1.0 to 1.38 edges away; x + 0.385 returns the centre and its
-in-plane face neighbours at x = 1 and a round shape joined by face adjacency
-above it (docs/design/fill-order-curves-and-core.md section 3.3)."""
-
-
 def cylinder_extent(sectors, layers, edge_pc):
     """
     The `(horizontal_pc, half_layers, sphere_pc)` of a radial fill (ADM.30):
@@ -894,12 +887,11 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, cylinde
         radius_pc = min(radius_pc, reach_pc)
     candidates = []
     outside = 0
-    center_layer = sector_address_at(center, edge_pc)[1]
-    for candidate in enumerate_sectors_within_radius(center, radius_pc, edge_pc):
-        if cylinder is not None and (
-                abs(candidate[1] - center_layer) > cylinder[1]
-                or math.hypot(candidate[3] - center[0], candidate[4] - center[1]) > cylinder[0]):
-            continue
+    if cylinder is not None:
+        found = Region(center, cylinder[0], cylinder[1], edge_pc).cells()
+    else:
+        found = enumerate_sectors_within_radius(center, radius_pc, edge_pc)
+    for candidate in found:
         if bounds.contains(candidate[0], candidate[1]):
             candidates.append(candidate)
         else:

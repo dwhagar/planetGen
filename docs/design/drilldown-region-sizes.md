@@ -197,3 +197,7 @@ Everything is computed from `planetgen.galaxy.geometry` (ring and slot counts), 
 - `t3.py`, `t11.py`: region contents. `t4b.py`: width for a system budget. `t5.py`: shares of cells and systems. `t6.py`: wedge squareness by ladder. `t7.py`: lookups to answer a box from a pyramid. `t8.py`: edge and pole fill. `t9.py`: shape widths and axis zone. `t10.py`: block key-space counts.
 
 Run from `src` with `PYTHONPATH=.`; they need numpy and astropy (and scipy for the stubbed import chain).
+
+## 11. Built so far (MAP.151a)
+
+`planetgen/galaxy/region.py` is the frame of section 5.2: `Region` (centre, reach across the plane, layers either side) lists a round region as one `RingArc` per ring (first slot, count, whole ring) with the wrap of section 6, counts it without visiting a cell, hands out `Span`s and non-wrapping slot ranges for SQL, and yields the same `(ring, layer, slot, x, y, z, distance)` cells the ADM.30 fills used to pick by walking a sphere. The fills use it. Still to build: the 3-ary block ladder (MAP.151b), per-level aggregates and the window query (MAP.151c), and the map reading windows (MAP.151d).
