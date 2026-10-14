@@ -106,11 +106,11 @@ The `full` command writes the start time and the previous duration to its first 
 - The result is one JSON file per checkout (`.pytest-deps.json`, ignored by git), written when the run ends. Under xdist each worker sends its part to the controller, which merges them.
 - Recording is only on a run that asks for it, and needs 3.12 or later. Selection itself reads the JSON and runs on any Python.
 
-**Safety margins.** `sys.monitoring` sees functions that run, so a test that only reads a constant from module B, through a function in module A, would not list B. The recorded set is therefore widened by one import hop (every module a recorded module imports), and the plugin always treats these as changes that select everything: `conftest.py`, `src/tests/*support*.py`, `pytest.ini`, `setup.py`, `requirements*.lock`, anything under `src/tests/fixtures/`, and a source file the map has never seen.
+**Safety margins.** `sys.monitoring` sees functions that run, so a test that only reads a constant from module B, through a function in module A, would not list B. The selection is therefore widened by one import hop, read from the `import` statements of every file under `src/` when a changed file needs it (a file that imports a changed module counts as changed; a changed `__init__.py` reaches everything importing inside its package; test files count, so a test that only imports a constant is caught), and the plugin always treats these as changes that select everything: `conftest.py`, `src/tests/*support*.py`, `pytest.ini`, `setup.py`, `requirements*.lock`, anything under `src/tests/fixtures/`, and a test the map has never seen (that test alone is selected).
 
 **Selection.** `--changed [BASE]` takes the files that differ from BASE (default: the merge base with `origin/main`, plus uncommitted and untracked files), and runs: every test in a changed test file, every test that is new to the map, every opaque test whose area changed, and every test whose recorded set (widened) contains a changed file. Non-code changes (docs, `changes/`, `TODO.md`) select nothing, except `docs/` files that a test reads, which the audit hook already finds.
 
-**Keeping the map fresh.** A selected run re-records the tests it ran and updates their entries; the entries of tests not run are kept (they depend on none of the changes). A full run with `--record` rebuilds it. A lane's first `changed` run with no map runs the full suite and records, so no one has to build a map by hand.
+**Keeping the map fresh.** A selected run re-records the tests it ran and updates their entries; the entries of tests not run are kept (they depend on none of the changes). `scripts/test.py full` records on every run (`--record-deps`), so the map stays current without anyone asking; a test that failed or skipped is not recorded and is therefore selected next time. A lane's first `changed` run with no map runs the full suite and records, so no one has to build a map by hand.
 
 **Measured selectivity** (sample of 72 test files, 3,796 tests, browser and the heaviest files left out) [M]:
 
@@ -225,3 +225,13 @@ These fail repeatably (alone, or on one database engine), not only under load, s
 
 A lane that sees a test failure still reports it to the TODO thread; with the stage 1 failure capture the report is kept.
 
+
+## 11. Stage 2 result: change-based selection (2026-10-14)
+
+`src/tests/depmap.py` is loaded by `conftest.py` (`pytest_plugins`). It adds:
+
+- `--record-deps`: writes `.pytest-deps.json`; on in `scripts/test.py full`.
+- `--changed [BASE]` (`scripts/test.py changed [--base REF]`): runs the same two phases as `full`, but only the selected tests; prints how many of how many and the recorded seconds skipped. No map yet: runs everything and records one.
+- `--deps-check [BASE]` (`scripts/test.py full --check`): runs everything, then prints `MISSED:` for each failed test `--changed` would not have chosen, and appends the run to `.pytest-deps-proof.json`.
+
+Checked on a small file set: touching a file nothing used selected 0 of 43; touching `names/__init__.py` selected the 22 tests that import inside the package; touching `conftest.py` or the plugin selected all 43. A collect-only run no longer overwrites the map. The first full run with `--check` records the first complete map; the proof period (section 3.3) starts from the full runs after that, and `changed` stays a fast loop, not a gate, until Boss decides.

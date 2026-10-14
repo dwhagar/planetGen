@@ -1074,6 +1074,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the old one, then the switch that retires the arc, slab and segment
   picks (MAP.151d); the 3-ary ladder (MAP.151b) after. MAP.151 stays
   open.
+  Status (2026-10-09): Lane 2 plan for MAP.151d (2026-10-14): it is also
+  the rest of MAP.150 (click-centred drill, retire the arc, slab and
+  segment picks, camera in the URL, breadcrumb from position). It
+  rewrites galaxystages.js, galaxystageview.js and their tests, landed
+  in steps: JS window geometry with a Python parity test, the window
+  stage beside the old one, the flip that deletes the picks and
+  containers, then the 3-ary ladder (MAP.151b).
+  /galaxy/window?at=<cell>&g=<3..11> is planetgen/galaxy/window.py and
+  tilecache.fetch_window.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -4981,6 +4990,14 @@ clears each one.
   2 min 33 s. Plan: docs/design/test-suite-rebuild.md.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
+  Status (2026-10-09): Stage 2 merged (Test Suite Rebuild thread,
+  2026-10-14, #1323): scripts/test.py changed runs only the tests a
+  change can affect, and scripts/test.py full --check lists any failing
+  test the selection would have missed. 'changed' is a fast loop, not a
+  gate: the full suite stays the merge gate until Boss decides after a
+  proof period, which starts now. Gate run 17:04Z took 60 min 54 s with
+  one failure (a heading missing from its own release note, fixed);
+  first complete map 15,861 tests. Stage 2 of 5 done.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49

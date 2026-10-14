@@ -5,10 +5,12 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/test-suite-rebui
     scripts/test.py quick                 not database, browser or heavy tests (the fast loop)
     scripts/test.py area web db           the tests of those areas (src/tests/areas.py)
     scripts/test.py browser               the headless-browser tests alone
-    scripts/test.py full                  everything: the merge gate
+    scripts/test.py changed [--base REF]  only the tests the changes since REF can affect (a fast loop, not a gate)
+    scripts/test.py full                  everything: the merge gate; also refreshes the map `changed` reads
+    scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
 
-Every command except `quick` and `browser` runs in two phases: the tests that
+Every command except `quick` and `browser` (`changed` and `full` included) runs in two phases: the tests that
 need no browser on every core, then the browser tests on `--browser-workers`
 workers (default 2). Software WebGL needs the CPU the other workers would
 have, and running both at once is what timed the browser tests out (TEST.126).
@@ -58,6 +60,16 @@ def build_phases(command, areas, workers, browser_workers):
     return parts
 
 
+def depmap_options(command, base, check):
+    """The dependency-map options for a command: `changed` selects, `full` refreshes the map (and, with `--check`,
+    lists the failures `changed` would have missed). Others leave the map alone."""
+    if command == "changed":
+        return ["--changed", base]
+    if command == "full":
+        return ["--record-deps"] + (["--deps-check", base] if check else [])
+    return []
+
+
 def pytest_command(marker, workers, extra):
     command = [sys.executable, "-m", "pytest", "-m", marker, "-p", "no:cacheprovider", "--dist", "worksteal"]
     if workers and workers > 1:
@@ -75,6 +87,8 @@ def load_runs():
 
 def save_run(key, seconds, ok):
     runs = load_runs()
+    if not ok and runs.get(key, {}).get("ok"):
+        return  # a run that stopped early says nothing about how long the command usually takes
     runs[key] = {"seconds": round(seconds), "ok": ok,
                  "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")}
     try:
@@ -124,12 +138,16 @@ def minutes(seconds):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("command", choices=("quick", "area", "browser", "full"))
+    parser.add_argument("command", choices=("quick", "area", "browser", "changed", "full"))
     parser.add_argument("areas", nargs="*", help="for `area`: " + ", ".join(AREAS))
     parser.add_argument("-n", "--workers", type=int, default=os.cpu_count() or 1,
                         help="workers for the non-browser tests (default: every core)")
     parser.add_argument("--no-rerun", action="store_true", help="do not run the failed tests again alone")
     parser.add_argument("--browser-workers", type=int, default=2, help="workers for the browser tests (default 2)")
+    parser.add_argument("--base", default="", help="for `changed` and `--check`: the commit to compare with "
+                        "(default: where this branch left origin/main)")
+    parser.add_argument("--check", action="store_true",
+                        help="for `full`: list the failing tests `changed` would not have selected")
     argv = sys.argv[1:] if argv is None else list(argv)
     extra = []
     if "--" in argv:  # everything after `--` is pytest's, whatever it looks like
@@ -142,6 +160,9 @@ def main(argv=None):
             parser.error("`area` needs one or more of: " + ", ".join(AREAS))
     elif args.areas:
         parser.error(f"`{args.command}` takes no areas")
+    if args.check and args.command != "full":
+        parser.error("`--check` goes with `full`")
+    extra = depmap_options(args.command, args.base, args.check) + extra
 
     key = args.command + (" " + " ".join(args.areas) if args.areas else "")
     previous = load_runs().get(key)
