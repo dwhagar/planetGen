@@ -1509,6 +1509,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (86, _table_marker("galaxy_block_stats")),
     (85, _table_marker("object_timing_stats")),
     (84, _column_marker("phenomenon_scatter", "map_luminosity_sol")),
     (83, _table_marker("nebula_field")),
@@ -5977,6 +5978,9 @@ def forget_sector_fill(conn, address):
         " filled_at = NULL WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ? AND bright_level_sol = 0",
         tuple(address),
     )
+    from planetgen.db import block_stats    # DB.25: the blocks above it no longer count it
+
+    block_stats.refresh_chain(conn, address)
 
 
 SECTOR_DELETIONS_COUNTER = "sdel"

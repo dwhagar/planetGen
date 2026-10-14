@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE galaxy_block_stats")  # v86
         conn.execute("DROP TABLE object_timing_samples")  # v85
         conn.execute("DROP TABLE object_timing_stats")  # v85
         conn.execute("ALTER TABLE phenomenon_scatter DROP COLUMN map_luminosity_sol")  # v84

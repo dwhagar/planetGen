@@ -4543,18 +4543,11 @@ def galaxy_stage(conn, at=None):
 
     block = parse_drill_key(at)
     child_m = block.m // (3 if block.m == 3 else 9)
-    half = (block.m - 1) // 2
-    ring_clauses = []
-    params = []
-    for i in range(block.ring * block.m, block.ring * block.m + block.m):
-        first, last = _block_slot_range(block, i)
-        if first <= last:
-            ring_clauses.append("(ring_index = ? AND ring_slot_index BETWEEN ? AND ?)")
-            params += [i, first, last]
-    if not ring_clauses:
-        raise ValueError(f"no such block: {at!r}")
-    where = f"layer_index BETWEEN ? AND ? AND ({' OR '.join(ring_clauses)})"
-    layer_params = [block.slab * block.m - half, block.slab * block.m + half]
+    try:
+        where, params = _block_where(block)
+    except ValueError:
+        raise ValueError(f"no such block: {at!r}") from None
+    layer_params, params = params[:2], params[2:]
     level = (243, 27, 3, 1).index(child_m)
 
     if child_m == 1:
@@ -4598,6 +4591,74 @@ def galaxy_stage(conn, at=None):
         child = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * child_m, int(r["ring_slot_index"]))[level]
         _add_stage_sums(counts, child, r)
     return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None}
+
+
+def _block_where(block):
+    """The `WHERE` on `sectors`' own columns (and its parameters) for the sectors inside `block`: its member layers,
+    and in each member ring just the slot range its wedge covers (`galaxy_stage` reads the same rows).
+
+    Raises:
+        ValueError: On a block with no member ring.
+    """
+    half = (block.m - 1) // 2
+    ring_clauses = []
+    params = []
+    for i in range(block.ring * block.m, block.ring * block.m + block.m):
+        first, last = _block_slot_range(block, i)
+        if first <= last:
+            ring_clauses.append("(ring_index = ? AND ring_slot_index BETWEEN ? AND ?)")
+            params += [i, first, last]
+    if not ring_clauses:
+        raise ValueError(f"no such block: {block!r}")
+    where = f"layer_index BETWEEN ? AND ? AND ({' OR '.join(ring_clauses)})"
+    return where, [block.slab * block.m - half, block.slab * block.m + half] + params
+
+
+def galaxy_block_sums(conn, block):
+    """
+    The sums of the generated sectors inside one block (DB.25): `[sectors, systems, expected systems, stars, stars
+    times mean age, luminosity]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. What
+    `galaxy_stage` adds up over a parent's children, for one block read straight from `sectors` and `sector_stats`;
+    `galaxy_block_stats` holds them stored.
+    """
+    where, params = _block_where(block)
+    row = conn.execute(f"SELECT {_STAGE_LOOK_SUMS} FROM ({_stage_sectors_with_stats(where)}) placed", params).fetchone()
+    if not row or not row["n"]:
+        return None
+    counts = {}
+    _add_stage_sums(counts, block, row)
+    return counts[block]
+
+
+def galaxy_block_stats(conn, m, cells):
+    """
+    The stored aggregates (DB.25, `galaxy_block_stats`) of the cells of one ladder level a map window shows, in one
+    statement.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        m (int): The level, sectors a side (one of `drill.DRILL_LEVELS` above 1).
+        cells (iterable): `(ring, wedge, slab)` of each cell wanted.
+
+    Returns:
+        dict: `(ring, wedge, slab)` -> `{"generated", "stats"}` (`_stage_stats`) for each cell holding a generated
+            sector; the others are left out, as `galaxy_stage` leaves them out.
+    """
+    cells = list(cells)
+    if not cells:
+        return {}
+    rows = conn.execute(
+        "SELECT ring_index, wedge, slab, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
+        " luminosity_sol AS luminosity FROM galaxy_block_stats WHERE m = ? AND (ring_index, wedge, slab) IN ("
+        + ", ".join("(?, ?, ?)" for _ in cells) + ")",
+        [m] + [value for cell in cells for value in cell]).fetchall()
+    found = {}
+    for r in rows:
+        counts = {}
+        _add_stage_sums(counts, None, r)
+        found[(int(r["ring_index"]), int(r["wedge"]), int(r["slab"]))] = {
+            "generated": counts[None][0], "stats": _stage_stats(counts[None])}
+    return found
 
 
 def _sector_sums(row):

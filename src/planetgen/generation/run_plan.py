@@ -1069,6 +1069,34 @@ def fill_map_luminosity(args):
         conn.close()
 
 
+def fill_block_stats(args):
+    """
+    Rebuilds the stored block totals (DB.25, `galaxy_block_stats`) from the generated sectors and their stats, a ring
+    at a time, and swaps them in in one transaction. For a galaxy whose table is missing rows (it was generated
+    before schema v86 and not migrated through it, or the ladder gained a level); a `galaxy` run keeps the table
+    current for the sectors it saves.
+
+    Returns:
+        int: The rows written.
+    """
+    from planetgen.db import block_stats
+
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                with steps.Step("Rebuilding the block totals", "block-stats", 1, args=args, progress=progress) as bar:
+                    written = block_stats.rebuild(conn, lambda done, total: bar.update(completed=done, total=total))
+                conn.commit()
+            finally:
+                log.reset_console()
+        log.normal(f"Rebuilt {written:,} block totals.")
+        return written
+    finally:
+        conn.close()
+
+
 def redo_nebula_field(args):
     """
     Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205). Every stored dark
@@ -1331,6 +1359,12 @@ def run_plan(args):
         stages.enter("map-luminosity")
         with workQueue.job_node("map-luminosity", "Map luminosity"):
             fill_map_luminosity(args)
+        stages.finish()
+        return
+    if getattr(args, "fill_block_stats", False):
+        stages.enter("block-stats")
+        with workQueue.job_node("block-stats", "Block totals"):
+            fill_block_stats(args)
         stages.finish()
         return
     if getattr(args, "redo_nebula_field", None):
