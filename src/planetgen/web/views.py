@@ -278,10 +278,7 @@ def search():
         state = searchpage.SearchState.from_args(request.args)
         return redirect(state.url(with_pages=True), code=302)
     state = searchpage.SearchState.from_args(request.args)
-    data = apiclient.get_search(
-        db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=searchpage.PAGE_SIZE,
-        offsets=searchpage.api_offsets(state),
-    )
+    data = searchpage.fetch(state)
     return render_page(
         "search.html",
         title="Search",

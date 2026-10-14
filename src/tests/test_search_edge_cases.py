@@ -181,13 +181,21 @@ def test_words_shorter_than_the_min_token_size(mysql_config):
     exact = "Korvax"[:min_size]
     _insert_sectors(mysql_config, [
         f"Ossiran {short}", f"{short}a Ossiran", "Ossiran", f"{exact} Station", f"{exact}x Station",
-        "Tobar B", "Tobar Beta",
+        "Tobar B", "Tobar Beta", "B Rim",
     ])
-    assert _sector_names(mysql_config, short) == [f"Ossiran {short}"]
+    # A lone word too short for the index matches the start of a name (UX.97), not every row by REGEXP.
+    assert _sector_names(mysql_config, short) == [f"{short}a Ossiran"]
     assert _sector_names(mysql_config, short.lower() + " ossiran") == [f"Ossiran {short}"]
     assert _sector_names(mysql_config, exact) == [f"{exact} Station"]
-    assert _sector_names(mysql_config, "b") == ["Tobar B"]
+    assert _sector_names(mysql_config, "b") == ["B Rim"]
     assert _sector_names(mysql_config, "tobar b") == ["Tobar B"]
+
+
+def test_no_panels_still_answers_the_facets(db_client, mysql_config):
+    _insert_sectors(mysql_config, ["Ossiran Reach"])
+    data = db_client.get("/api/search?sector_q=Ossiran&panels=none").get_json()
+    assert all(result is None for result in data["results"].values())
+    assert "facets" in data and "autocomplete" in data
 
 
 def test_words_longer_than_the_max_token_size(mysql_config):
@@ -208,9 +216,12 @@ def test_every_server_stopword_is_searchable(mysql_config):
     if not stopwords:
         pytest.skip("The server's FULLTEXT indexes keep every word")
     _insert_sectors(mysql_config, [f"Velorn {word.title()}" for word in stopwords] + ["Velorn"])
+    # A stopword typed alone and shorter than the index's token size is a prefix match (UX.97), so only the
+    # longer ones are searched alone as whole words; every one is still found after another word.
+    min_size = _server_value(mysql_config, "SELECT @@innodb_ft_min_token_size AS v")
     missing = [
         word for word in stopwords
-        if _sector_names(mysql_config, word) != [f"Velorn {word.title()}"]
+        if (len(word) >= min_size and _sector_names(mysql_config, word) != [f"Velorn {word.title()}"])
         or _sector_names(mysql_config, f"velorn {word}") != [f"Velorn {word.title()}"]
     ]
     assert not missing, f"Stopwords this server's index leaves out that search can't find: {missing}"

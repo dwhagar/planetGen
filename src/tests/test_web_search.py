@@ -57,7 +57,7 @@ class SearchFake(FakeData):
             if texts.get("star_q") or tags.get("spectral") else None,
             "planets": None, "moons": None, "belts": None,
         }
-        if panels:
+        if panels is not None:
             results = {panel: result if panel in panels else None for panel, result in results.items()}
         return {
             "facets": _FACETS,
@@ -104,10 +104,14 @@ def test_empty_search_shows_form_tags_and_hint(client, fake):
 
 def test_q_searches_every_name(client, fake):
     html = client.get("/search?q=Kepler").get_data(as_text=True)
-    call = fake.search_calls[-1]
+    call = fake.search_calls[0]
     assert call["texts"] == {k: "Kepler" for k in ("sector_q", "system_q", "star_q", "planet_q", "moon_q")}
     assert call["offsets"] == {p: 0 for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     assert call["limit"] == 50
+    # UX.97: the first request runs no panel; then every panel is asked for on its own.
+    assert call["panels"] == []
+    assert [c["panels"] for c in fake.search_calls[1:]] == [[p] for p in
+                                                           ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")]
     assert 'name="q" value="Kepler"' in html
     assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
     # Not-yet-moved pages are plain GET links.
@@ -179,13 +183,40 @@ def test_each_panel_pages_on_its_own(client, fake):
     assert fake.search_calls[0]["offsets"]["sectors"] == 50
     assert fake.search_calls[0]["offsets"]["stars"] == 400
     # The past-the-end page is asked for again on its own; the API answers with the last real page.
-    assert fake.search_calls[-1]["panels"] == ["stars"] and fake.search_calls[-1]["offsets"] == {"stars": 400}
+    stars_calls = [c for c in fake.search_calls if c["panels"] == ["stars"]]
+    assert stars_calls[-1]["offsets"] == {"stars": 400}
     sectors = _panel(html, "sectors")
     assert "Sectors <span class=\"count\">(120)</span>" in sectors
     # The pager keeps the search and the other panel's page (as asked; it shows the last real one).
     assert 'href="/search?q=S&amp;stars_page=9&amp;sectors_page=3#search-sectors"' in sectors
     assert 'aria-label="Sectors pages"' in sectors
     assert 'href="/search?q=S&amp;sectors_page=2&amp;stars_page=1#search-stars"' in _panel(html, "stars")
+
+
+def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkeypatch):
+    """UX.97: each panel runs under its own limit; one that hits it is a note, not the busy page."""
+    answer = fake.get_search
+
+    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+        if panels == ["systems"]:
+            raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels)
+
+    monkeypatch.setattr(apiclient, "get_search", one_slow)
+    resp = client.get("/search?q=Kepler")
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 200
+    assert "This took too long; try again or narrow the search." in _panel(html, "systems")
+    assert 'href="/search?q=Kepler"' in _panel(html, "systems")
+    assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
+
+    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+        if panels == ["systems"]:
+            raise apiclient.ApiError("down", status_code=500)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels)
+
+    monkeypatch.setattr(apiclient, "get_search", broken)
+    assert client.get("/search?q=Kepler").status_code == 502
 
 
 def test_a_panels_table_route_pages_one_panel_alone(client, fake):
