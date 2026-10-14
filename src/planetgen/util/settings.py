@@ -116,7 +116,7 @@ class RatePages(_Section):
                       restart=True, category="rate limits")
     galaxy: str = opt("60 per minute", "Limit on /galaxy, the Galaxy Map page. Empty turns it off.", restart=True,
                       category="rate limits")
-    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/tiles, /galaxy/stage and /galaxy/territories, "
+    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/tiles, /galaxy/stage, /galaxy/window and /galaxy/territories, "
                             "fetched as the map's camera moves. Empty turns it off.", restart=True,
                             category="rate limits")
     health: str = opt("60 per minute", "Limit on /api/health. Empty turns it off.", restart=True,

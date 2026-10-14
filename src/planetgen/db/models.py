@@ -656,6 +656,25 @@ nearest_systems = sa.Table(
 )
 
 
+nebula_field = sa.Table(
+    'nebula_field',
+    metadata,
+    sa.Column('cell_i', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('cell_j', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('cell_k', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('n', mysql.INTEGER(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('nebula_class', mysql.CHAR(1), nullable=False),
+    sa.Column('radius_ly', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('uid', mysql.BINARY(10), nullable=True),
+    sa.Column('is_stored', mysql.TINYINT(), server_default=sa.text('0'), nullable=False),
+    sa.Index('idx_nebula_field_uid', 'uid'),
+    mysql_engine="InnoDB",
+)
+
+
 nebula_shape_balls = sa.Table(
     'nebula_shape_balls',
     metadata,

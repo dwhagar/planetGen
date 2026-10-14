@@ -2,6 +2,90 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1075] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 placed in Foundations lane 1's queue after DB.23 and GEN.201.
+
+## [8.0.1074] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 filed: save generation timing per object and per object type.
+
+## [8.0.1073] - 2026-10-14
+
+### Changed
+- TODO: documentation sweep filed as DOC.18 to DOC.44 (a last block of Phase 1); MAP.159 retired (PR #1305).
+
+## [8.0.1072] - 2026-10-14
+
+### Changed
+- TODO: GEN.205 retired (PR #1325); flake sighting noted on TEST.139.
+
+## [8.0.1071] - 2026-10-14
+
+### Added
+- `planetgen plan --redo-nebula-field [dry-run|apply]`: brings an existing galaxy's stored molecular clouds in line with the current keep rates. The dry run (the default) counts the stored field clouds the rule now rejects, per class, and changes nothing; `apply` deletes them, refreshes containment in the sectors they reached and draws the `nebula_field` table again (GEN.205).
+
+## [8.0.1070] - 2026-10-14
+
+### Changed
+- TODO: TEST.139 records stage 2 (PR #1323).
+
+## [8.0.1069] - 2026-10-14
+
+### Added
+- **`scripts/test.py changed` runs only the tests a change can affect** (TEST.139). `scripts/test.py full` now keeps a record of the files each passing test used (`.pytest-deps.json`, not tracked by git; needs Python 3.12 or later), and `changed` reads it to pick the tests for the changes since `origin/main`. `scripts/test.py full --check` lists any failing test that selection would have missed, to prove it before it is trusted. The full suite stays the merge gate.
+
+## [8.0.1068] - 2026-10-14
+
+### Changed
+- TODO: MAP.151 note for the lane's landing steps for the window stage.
+
+## [8.0.1067] - 2026-10-14
+
+### Changed
+- TODO: MAP.151 note for the server data window (PR #1320).
+
+## [8.0.1066] - 2026-10-14
+
+### Added
+- **A data window for the Galaxy Map (MAP.151, server part).** `/galaxy/window?at=<cell>&g=<3 to 11>` returns the cells around a chosen cell of any level of the block ladder (a sector included): every cell within half the window's width across the plane and half its height, which cells hold generated sectors, and their stats. It is cut from the stages of the parent blocks the window touches, read through the stage cache, so a window shares files with every neighbouring window and stage and needs no new query. The map starts reading it with the free camera.
+
+## [8.0.1065] - 2026-10-14
+
+### Changed
+- TODO: OPS.43 and OPS.44 (PR #1307) and ADM.53 (PR #1318) retired.
+
+## [8.0.1064] - 2026-10-14
+
+### Changed
+- TODO: DB.24 retired (PR #1317, schema v83); notes on MAP.151 and MAP.171 about clouds without object ids.
+
+## [8.0.1063] - 2026-10-14
+
+### Fixed
+- Logging in no longer fails with a server error, or hangs until Apache gives up, while a long job holds a lock on the admin's row. The web interface's database connections now wait at most 5 seconds for a locked row; a login, a session's last-seen time and an API key's last-used time are skipped (with a line in the activity log) when the row stays locked, and any other request that hits the wait answers "Busy" (503 with `Retry-After`) instead of a 500.
+
+## [8.0.1062] - 2026-10-14
+
+### Added
+- `nebula_field` (schema v83): one row for every kept class M and N cloud of the galaxy's molecular cloud field, written by `planetgen plan` (and by `plan --redo-scatters phenomena`) from the galaxy seed, so the Galaxy Map can find a nebula no generated sector holds yet. A sector's save marks the clouds it stores, with their object IDs. Classes P and Q stay in the seed (DB.24).
+
+### Changed
+- The migration to v83 only creates the empty table; the next plan fills it.
+
+## [8.0.1061] - 2026-10-14
+
+### Changed
+- TODO: UX.97 retired (PR #1315).
+
+## [8.0.1060] - 2026-10-14
+
+### Changed
+- **Each Search result panel runs and shows on its own.** A slow panel used to time out the whole page. The page now asks for each panel separately, so each has its own database time limit; a panel that runs out says "This took too long; try again or narrow the search." with a link to try again, and the others show. `GET /api/search` takes `panels=none` to answer just the facets and name suggestions.
+- **A one-word name search shorter than the full-text minimum matches the start of a name.** A 2-letter word read every name in the table (8.4 s on 2,000,000 systems); it now uses the name index, so "ar" finds "Arcturus" but no longer "Alpha Ar".
+
 ## [8.0.1059] - 2026-10-14
 
 ### Changed

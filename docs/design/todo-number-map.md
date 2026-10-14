@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.197 |
 | NAV | NAV.60 |
 | GEN | GEN.213 |
-| PERF | PERF.92 |
+| PERF | PERF.93 |
 | DB | DB.25 |
 | API | API.25 |
 | ADM | ADM.54 |
@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.145 |
 | USR | USR.12 |
 | OPS | OPS.46 |
-| DOC | DOC.18 |
+| DOC | DOC.45 |
 | VIEW | VIEW.11 |
 | POP | POP.12 |
 
@@ -441,7 +441,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | open |
 | ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | open |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
-| ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | open |
+| ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -489,7 +489,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
 | DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | done, PR #1127 |
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | open |
-| DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | open |
+| DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | done, PR #1317 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -507,6 +507,33 @@ Parents marked "new parent" had no old number of their own.
 | DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | none | open |
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | none | open |
 | DOC.17 | Describe the object ID in api.md | none | done, PR #1133 |
+| DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | none | open |
+| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
+| DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | open |
+| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | open |
+| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | open |
+| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | open |
+| DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
+| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | open |
+| DOC.26 | Give every design note a status line and refresh the stale ones | none | open |
+| DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
+| DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
+| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | open |
+| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | open |
+| DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | open |
+| DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | open |
+| DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 | none | open |
+| DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list | none | open |
+| DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | open |
+| DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | open |
+| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | open |
+| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | open |
+| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | open |
+| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | open |
+| DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail | none | open |
+| DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | open |
+| DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | open |
+| DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -711,7 +738,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | done, PR #1239 |
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
-| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
+| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | done, PR #1325 |
 | GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | done, PR #1278 |
 | GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
@@ -877,7 +904,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | done, PR #1112 |
 | MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | done, PR #1123 |
-| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
+| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | done, PR #1305 |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
 | MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | done, PR #1129 |
 | MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | done, PR #1085 |
@@ -1016,8 +1043,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | done, PR #989 |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations | none | open |
 | OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code | none | done, PR #1291 |
-| OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) | none | open |
-| OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) | none | open |
+| OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) | none | done, PR #1307 |
+| OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) | none | done, PR #1307 |
 | OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -1110,6 +1137,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) | none | done, PR #1308 |
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) | none | done, PR #1300 |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) | none | open |
+| PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1261,7 +1289,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | done, PR #1299 |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
-| UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
+| UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | done, PR #1315 |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | open |
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | open |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |

@@ -2820,6 +2820,7 @@ and the Generate page's compact-object control accept only these, or "star" to u
 stellar mass limit."""
 
 REDO_SCATTERS = ("mass", "luminosity", "phenomena")
+REDO_NEBULA_FIELD_MODES = ("dry-run", "apply")
 """tuple: The scatters `planetgen plan --redo-scatters` can redo (GEN.196), in the order they are listed."""
 
 COMPACT_MIN_MASS_STAR = "star"
@@ -3163,3 +3164,10 @@ GOVERNMENT_FORMS = (
 )
 """tuple: The form of government a polity's name ends with ("the Voranthi
 Concord")."""
+
+
+WEB_LOCK_WAIT_SECONDS = 5
+"""int: How long a web request waits for a row lock in the control schema (the account, session and audit tables)
+before it gives up, where the server's own limit is 50 s (ADM.53). The app has five threads and a 60 s request
+limit, so a handful of requests stuck behind one long transaction would otherwise stop every page, the login
+included."""
