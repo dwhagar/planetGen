@@ -250,3 +250,13 @@ Checked on a small file set: touching a file nothing used selected 0 of 43; touc
 ## 13. Policy: `changed` as the merge gate (Boss, 2026-10-14 19:44Z)
 
 `scripts/test.py changed` may replace the full local suite as the merge gate for small changes and for the steps of a sequence of related items. A full run (`scripts/test.py full --check`) is for when a sequence is finished, not for every merge. The safeguards are in the selection (a change to the test setup, or no map yet, selects everything), in `--check` (every full run lists any failing test that `changed` would have missed; that is a bug to fix), and in the daily CI run on main. A PR description says which run it used.
+
+## 14. TEST.133: the big-galaxy query budget tier (2026-10-14)
+
+`scripts/test.py budget` (`src/tests/test_budget_queries.py`, `budget_support.py`). Opt-in, not in the merge gate or CI (decision list, TEST.133).
+
+- The galaxy: `ensure_big_galaxy` clones one real saved single-star system into 2,000,000 systems with stars on 150,000 cloned sectors, with a real-galaxy mix of star types (three in four red dwarfs). The full-text indexes are dropped while filling and rebuilt after, then `ANALYZE`. The database is named for its size and the schema version and kept between runs.
+- The measure is rows read by the server for one call (the session's `Handler_read*` counters before and after), not seconds, so the budget holds on any machine. A page of 50 may read 5,000 rows; a count may read about the table.
+- Cases are the project's own query functions: the Systems and Sectors pages (several sorts, a star-type filter, offsets 0, 20,000 and a quarter of the table) and the counts. TEST.135 adds the nebula reads once DB.24 is in.
+- First run on 200,000 systems found: sort by sector and by octant are now within budget (PERF.70 holds); the Sectors list sorted by name, systems or density, the Systems page filtered by star type, and deep offsets by name read far more than a page and are expected failures until their fixes land.
+- `test_budget_support.py` builds 3,000 systems and runs every case in the ordinary run, so a schema or query change that breaks the tier is seen at once.

@@ -6,6 +6,7 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/test-suite-rebui
     scripts/test.py area web db           the tests of those areas (src/tests/areas.py)
     scripts/test.py browser               the headless-browser tests alone
     scripts/test.py changed [--base REF]  only the tests the changes since REF can affect (a fast loop, not a gate)
+    scripts/test.py budget                the big-galaxy query budget (opt-in, builds 2,000,000 systems once; not a gate)
     scripts/test.py full                  everything: the merge gate; also refreshes the map `changed` reads
     scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
@@ -47,6 +48,8 @@ def build_phases(command, areas, workers, browser_workers):
         return [("quick", "not db and not browser and not heavy", workers)]
     if command == "browser":
         return [("browser", "browser", browser_workers)]
+    if command == "budget":
+        return [("budget", "budget", 1)]
     selected = ""
     if command == "area":
         selected = " or ".join("area_" + area for area in areas)
@@ -138,7 +141,7 @@ def minutes(seconds):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("command", choices=("quick", "area", "browser", "changed", "full"))
+    parser.add_argument("command", choices=("quick", "area", "browser", "budget", "changed", "full"))
     parser.add_argument("areas", nargs="*", help="for `area`: " + ", ".join(AREAS))
     parser.add_argument("-n", "--workers", type=int, default=os.cpu_count() or 1,
                         help="workers for the non-browser tests (default: every core)")
@@ -176,6 +179,8 @@ def main(argv=None):
     except OSError:
         pass
     environment = dict(os.environ, PLANETGEN_FAILURE_LOG=FAILURES_FILE)
+    if args.command == "budget":
+        environment["PLANETGEN_BUDGET"] = "1"
     for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
         print(f"--- {label}: -m {marker!r}, {workers} worker(s)", flush=True)
         result = subprocess.run(pytest_command(marker, workers, extra), cwd=ROOT, env=environment)

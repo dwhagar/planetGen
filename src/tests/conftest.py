@@ -173,6 +173,8 @@ def pytest_collection_modifyitems(config, items):
         fixturenames = getattr(item, "fixturenames", ())
         if "mysql_config" in fixturenames or "_mysql_server_available" in fixturenames:
             item.add_marker(pytest.mark.db)
+        if item.get_closest_marker("budget") and not os.environ.get("PLANETGEN_BUDGET"):
+            item.add_marker(pytest.mark.skip(reason="the big-galaxy query budget is opt-in: scripts/test.py budget (TEST.133)"))
         name = item.path.name
         item.add_marker(getattr(pytest.mark, "area_" + areas.area_of(name)))
         if areas.is_heavy(name):

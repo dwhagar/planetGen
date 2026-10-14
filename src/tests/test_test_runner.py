@@ -67,6 +67,16 @@ def test_full_runs_the_browser_tests_after_the_rest_on_fewer_workers():
     assert phases == [("non-browser", "not browser", 8), ("browser", "browser", 2)]
 
 
+def test_budget_runs_only_the_budget_tests_on_one_worker_and_switches_them_on(monkeypatch):
+    assert runner.build_phases("budget", [], 8, 2) == [("budget", "budget", 1)]
+    seen = []
+    monkeypatch.setattr(runner.subprocess, "run", lambda command, cwd=None, env=None, **kw: seen.append(env) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    assert runner.main(["budget"]) == 0
+    assert seen[0]["PLANETGEN_BUDGET"] == "1"
+
+
 def test_an_area_run_adds_the_browser_phase_only_for_the_web_area():
     assert [p[0] for p in runner.build_phases("area", ["db", "api"], 4, 2)] == ["non-browser"]
     web = runner.build_phases("area", ["web", "api"], 4, 2)
