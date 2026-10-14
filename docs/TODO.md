@@ -4636,19 +4636,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
   DOC.14, GEN.135.
 
-- [ ] **ADM.51 Regenerating with a class the object cannot support asks to confirm, then does it (bug)**
-  GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
-  (Boss, 2026-10-13 02:27Z, labelled bug): "if the user asks to
-  regenerate anything, and selects a class not supported by the size or
-  some other parameter, ask the user to confirm and do it anyway if they
-  confirm." Done: every regenerate and Generate path that takes a class
-  or type checks it against the generation rules, shows what the object
-  would break (size, zone, mass), and does it anyway after an explicit
-  confirmation, on the web, the CLI (a confirm flag) and the API (a
-  force field); a refusal without confirmation changes nothing. Owner:
-  Bugfixes lane 2, after its current items.
-  Prerequisites: none. Related: ADM.35, ADM.32, GEN.181, ADM.52.
-
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
   (Boss, 2026-10-13 02:27Z): "We need a star system editor that the user
@@ -4660,7 +4647,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   radial distance, then saves the system with random positions on the
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
-  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
+  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18.
 
 - [ ] **ADM.54 A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional)**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
