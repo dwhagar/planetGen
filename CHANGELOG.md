@@ -2,6 +2,52 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1079] - 2026-10-14
+
+### Changed
+- TODO: OPS.45 retired (PR #1333); DOC.37 is ready and carries the python-home step for Apache.
+
+## [8.0.1078] - 2026-10-14
+
+### Changed
+- planetGen now runs from its own virtual environment on Linux too (`/usr/local/planetgen/venv`, as on macOS), not from the system Python. `install.sh` makes it and installs the hash-checked locked libraries and gunicorn into it; `update.sh` checks it and remakes only what is missing. The libraries apt packaged (`python3-flask` and the rest) and the system-wide pip installs are no longer used, and the old managed/unmanaged install paths and `PLANETGEN_PYTHON_MODE` are gone. Python 3.12 or newer is needed to make it.
+- The Apache vhost must name the venv: add `python-home=/usr/local/planetgen/venv` to the `WSGIDaemonProcess planetgen-api` line (`examples/apache/planetgen.conf.example`). `update.sh` warns with the exact line when it is missing. The gunicorn unit and the orbit-update service run the venv's gunicorn and python. Command-line tools run as `planetgen ...` or `/usr/local/planetgen/venv/bin/python -m planetgen.cli.NAME`; a bare `python3` no longer finds the libraries.
+
+## [8.0.1077] - 2026-10-14
+
+### Changed
+- TODO: MAP.196 retired (PR #1331); flake sighting noted on TEST.139.
+
+## [8.0.1076] - 2026-10-14
+
+### Fixed
+- **A Galaxy Map link that opens a system or a body now works with the current object IDs.** The map reads `system=` and `object=` in a link as digits only, but a system's and a body's printed ID is hex digits in dashed groups (`0008000000-4000000-00D`), so a reload, a shared link or Back to an opened system dropped the system. Both parts accept the printed ID now, kept in upper case; no other digits-only reference parser is left in the page scripts.
+
+## [8.0.1075] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 placed in Foundations lane 1's queue after DB.23 and GEN.201.
+
+## [8.0.1074] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 filed: save generation timing per object and per object type.
+
+## [8.0.1073] - 2026-10-14
+
+### Changed
+- TODO: documentation sweep filed as DOC.18 to DOC.44 (a last block of Phase 1); MAP.159 retired (PR #1305).
+
+## [8.0.1072] - 2026-10-14
+
+### Changed
+- TODO: GEN.205 retired (PR #1325); flake sighting noted on TEST.139.
+
+## [8.0.1071] - 2026-10-14
+
+### Added
+- `planetgen plan --redo-nebula-field [dry-run|apply]`: brings an existing galaxy's stored molecular clouds in line with the current keep rates. The dry run (the default) counts the stored field clouds the rule now rejects, per class, and changes nothing; `apply` deletes them, refreshes containment in the sectors they reached and draws the `nebula_field` table again (GEN.205).
+
 ## [8.0.1070] - 2026-10-14
 
 ### Changed

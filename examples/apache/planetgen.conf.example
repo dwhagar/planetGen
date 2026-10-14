@@ -151,7 +151,14 @@
     # unbounded view query. The admin Generate page's live job log (a
     # Server-Sent Events stream, one thread each) ends every response
     # after about 40 s to stay under this limit; the browser reconnects.
-    WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60
+    #
+    # python-home runs the app under planetGen's own virtual environment
+    # (OPS.45), which install.sh and update.sh make and keep current
+    # (scripts/install-python-deps.sh) and which holds every library the app
+    # needs; the system Python's packages are not used. The venv has to be
+    # made from the Python mod_wsgi was built for (update.sh warns when it is
+    # not). Change the path only together with PLANETGEN_VENV.
+    WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60 python-home=/usr/local/planetgen/venv
     #
     # Mounted at / (not /api): the same app serves the JSON API under /api
     # and the pages everywhere else. Replace an older `WSGIScriptAlias

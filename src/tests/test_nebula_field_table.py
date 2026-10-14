@@ -115,3 +115,63 @@ def test_a_plan_run_links_the_clouds_a_galaxy_already_holds(mysql_config):
     before = _table(mysql_config)
     run_plan.scatter_phenomena(_plan_args(mysql_config))
     assert _table(mysql_config) == before
+
+
+# --- GEN.205: --redo-nebula-field ------------------------------------------------------------------------------------
+
+def _redo_args(mysql_config, mode):
+    args = _plan_args(mysql_config)
+    args.redo_nebula_field = mode
+    return args
+
+
+def _nebulae(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        return {row["id"]: row for row in conn.execute(
+            "SELECT id, nebula_class, center_x_pc, center_y_pc, center_z_pc FROM nebulae").fetchall()}
+    finally:
+        conn.close()
+
+
+def _galaxy_at_the_old_rates(mysql_config, monkeypatch):
+    """A galaxy planned and filled while every field cloud was kept, then the current keep rates restored."""
+    current = dict(tuning.NEBULA_FIELD_KEEP)
+    monkeypatch.setattr(tuning, "NEBULA_FIELD_KEEP", {letter: 1.0 for letter in current})
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    args.num_systems = 1
+    for address in _sectors()[:2]:
+        run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    monkeypatch.setattr(tuning, "NEBULA_FIELD_KEEP", current)
+
+
+def test_the_dry_run_counts_the_rejected_clouds_and_changes_nothing(mysql_config, monkeypatch):
+    _galaxy_at_the_old_rates(mysql_config, monkeypatch)
+    before, table = _nebulae(mysql_config), _table(mysql_config)
+    assert before
+    result = run_plan.redo_nebula_field(_redo_args(mysql_config, "dry-run"))
+    assert result["deleted"] == 0 and sum(result["rejected"].values()) > 0
+    assert sum(result["stored"].values()) >= sum(result["rejected"].values())
+    assert _nebulae(mysql_config) == before and _table(mysql_config) == table
+
+
+def test_apply_deletes_the_rejected_clouds_and_draws_the_table_again(mysql_config, monkeypatch):
+    _galaxy_at_the_old_rates(mysql_config, monkeypatch)
+    before = _nebulae(mysql_config)
+    dry = run_plan.redo_nebula_field(_redo_args(mysql_config, "dry-run"))
+    result = run_plan.redo_nebula_field(_redo_args(mysql_config, "apply"))
+    assert result["deleted"] == sum(dry["rejected"].values()) > 0
+    after = _nebulae(mysql_config)
+    assert len(after) == len(before) - result["deleted"]
+    assert set(after) <= set(before)
+    # What stays is exactly what the current rule keeps; run again: nothing more to delete.
+    again = run_plan.redo_nebula_field(_redo_args(mysql_config, "dry-run"))
+    assert sum(again["rejected"].values()) == 0
+    # The table was drawn again at the current rates and links the clouds that stayed.
+    table = _table(mysql_config)
+    assert table and all(row["nebula_class"] in nebula_field.TABLE_CLASSES for row in table)
+    stored_centers = {(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in after.values()
+                      if r["nebula_class"] in nebula_field.TABLE_CLASSES}
+    assert {(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in table if r["is_stored"]} == stored_centers
