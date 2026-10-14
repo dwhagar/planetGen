@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1112] - 2026-10-14
+
+### Changed
+- The TODO list drops UX.98 (Generate log stage numbering, merged in #1369) and notes that OPS.49's cause is pymysql 1.2.1 to 1.2.3.
+
 ## [8.0.1111] - 2026-10-14
 
 ### Fixed
