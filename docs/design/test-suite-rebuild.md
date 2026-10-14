@@ -167,3 +167,61 @@ Each PR is merged on a green full run and reports the TODO items it resolves and
 1. **Run the browser tests as their own phase with 2 workers, and only when web or map code changed, in `changed` runs?** Default: yes. The `full` command still runs them.
 2. **Keep test files where they are and group by markers?** Default: yes (section 5).
 3. **Let `changed` replace the full run for small changes after the proof period?** Default: no change to the gate until the proof report is clean; I will ask again then.
+
+## 9. Stage 1 result (2026-10-14, `scripts/test.py full`, started 13:47Z)
+
+| Phase | Tests | Result | Time |
+|---|---|---|---|
+| Non-browser, 4 workers | 15,123 | 15,115 passed, 8 skipped, 0 failed | 21 min 33 s |
+| Browser, 2 workers | 571 | 513 passed, 52 skipped, 6 failed | 34 min 43 s |
+| Whole run | 15,694 | | 56 min 24 s |
+
+- **The wall time did not shrink** (55 min 12 s before). The machine now does the same work without the contention: the browser phase on 2 workers spends 2,083 s of wall time where the browser files spent 5,390 s of summed test time before, but two cores sit idle during it. Stage 1 is about reliability and the fast loops, not the full-run time; that comes from stages 3 and 4 and from `changed` runs.
+- **Browser failures went from 13 timeouts to 6**: four fail alone on main (TEST.125 three moon tests, TEST.142 the `after` argument), two are load failures that pass alone (`test_bookmarks_keep_a_course_pick_on_the_galaxy_map`, `test_galaxy_map_buttons`), confirmed by running them alone. Two workers is better than four but not enough; stage 4 gives the heavy WebGL tests state-based waits.
+- Non-browser tests have no failures at all in this run (the 14 of the baseline were 13 browser timeouts and my own database grant).
+- `quick` (not database, browser or heavy) is the fast loop; its time is printed by the runner.
+
+## 10. The test fixes: decisions (Boss approved 2026-10-14 15:06Z)
+
+Boss (14:01Z) moved every test-fix item to this rebuild and asked that none be implemented until it was decided which should be. Decided 2026-10-14; each item has a decision, a reason and a close condition. The TODO items keep the IDs; the owner of every one is the Test Suite Rebuild thread. The text of the decision list as posted is also kept in `/mnt/project-files/test-suite-rebuild/test-fix-decisions.md`.
+
+### 10.1 Implemented as small fixes (group A)
+
+These fail repeatably (alone, or on one database engine), not only under load, so they do not wait for the rebuild. One small PR each, in this order.
+
+| Item | Decision | Reason | Closes when |
+|---|---|---|---|
+| TEST.125 three browser-map tests, "no generated system has a moon" | Implement | Failed in the 2026-10-14 baseline and fails alone and on main: the map fixture's galaxy has no moon since the generator's draws shifted. | The fixture always holds a planet with moons (a system generated last, with moons forced, so no earlier draw moves) and the three tests pass in a full browser phase. |
+| TEST.142 fake `get_systems` lacks `after` | Implement | Failed in the baseline and alone; PERF.75's keyset paging added the argument. | The fake takes and honours `after`, and no other fake of a paged reader is left (checked with a grep). |
+| TEST.143 install test fails from a git worktree | Implement | The test's stand-in Python imported `planetgen` from the machine's editable install, not from the checkout under test. Reproduced from a worktree. | The stand-in is pinned to the checkout with `PYTHONPATH`; the test passes from a worktree and from the main checkout. |
+| TEST.129 orbit-update tests on MySQL 8.4 (`last_updated_at` rounds up) | Implement | MySQL 8.4 rounds fractional seconds where MariaDB truncates; may give a negative elapsed time in a real run. | The orbit update stores and compares a time both servers treat alike, checked on MySQL 8.4 and MariaDB. |
+| TEST.130 scene vs stored positions for comets | Implement | A real disagreement for some random systems with comets (about 1e10 km). 400 seeded systems with comets and a second star did not reproduce it; systems with three stars are being tried next. | The cause is found and fixed, and the test draws a system that has comets (and the star layout that triggers it) every time instead of by luck. |
+
+### 10.2 Folded into the rebuild, not fixed one by one (group B)
+
+| Item | Decision | How the rebuild settles it | Closes when |
+|---|---|---|---|
+| TEST.126 WebGL tests time out under 4 workers | Fold into stage 1 and stage 4 | 13 of the baseline's 14 failures were this. Stage 1 runs the browser tests as a separate phase on 2 workers (6 failed in its first full run, 4 of them TEST.125 and 142; 2 pass alone). Stage 4 gives the heavy WebGL tests state-based waits. | 5 consecutive full runs show none of them failing. |
+| TEST.138, TEST.144 browser menu and button tests fail once under load | Fold into TEST.126 | Same family. | With TEST.126. |
+| TEST.111, 116, 127, 128, 132, 134, 137, 140, 141: failed once in a full run, passed alone, no traceback kept | Fold; no one-by-one hunt | None has a repro (TEST.111: none in 15 loaded runs; TEST.116: none in 83). Stage 1 keeps every failure's full report and re-runs it alone, saying "passes alone" or "FAILS ALONE". Stage 3 (one database per worker) removes the shared-database and create-and-drop-under-load causes. | 5 consecutive full runs after stage 3 show none of them; or a recurrence is fixed from its captured report. |
+| TEST.116 specifically | Stays open for its first recurrence | The test pins `--star-type K2V` and a different stored type may mean the pin was not honoured on that draw, which would be a product bug, not test luck (inferred, not confirmed). | Its first recurrence is investigated with the captured seed. |
+
+### 10.3 New work with an order (group C)
+
+| Item | Decision | Closes when |
+|---|---|---|
+| TEST.133 big-galaxy query-budget test (EXPLAIN every page query on 2,000,000 systems) | Implement as its own opt-in tier (marker `budget`, `scripts/test.py budget`, run by hand before a PERF merge). Not in the merge gate and not in CI: building 2,000,000 systems takes about 2 minutes, and nothing here may raise CI cost. After stage 3. | The tier exists and passes on 2,000,000 systems. |
+| TEST.135 nebula reads in that budget | Same tier, after TEST.133 and DB.24 (its stated prerequisite). | The nebula reads are in the budget and pass. |
+| TEST.131 gravity evaluator tests | Stays with the gravity work: it needs GEN.198, which does not exist yet. Whoever builds GEN.198 writes these in the same PR as a normal test file, which the markers and the dependency map pick up with no change. | GEN.198 lands with its tests. |
+
+### 10.4 Order
+
+1. Stage 1 (merged): markers, runner, browser phase, failure capture.
+2. Group A, one small PR each: TEST.125, 142, 143, then 129, 130.
+3. Stage 2: change-based selection.
+4. Stage 3: one database per worker; then re-check group B.
+5. TEST.133, then TEST.135 when DB.24 lands.
+6. Stage 4: browser page-load sharing and the heavy generation files, one PR each with the owning lane's word.
+
+A lane that sees a test failure still reports it to the TODO thread; with the stage 1 failure capture the report is kept.
+

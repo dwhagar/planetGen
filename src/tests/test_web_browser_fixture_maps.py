@@ -264,22 +264,11 @@ def test_sector_map_show_on_map_selects_a_rogue_planet(page, map_site):
     assert view.get_attribute("href").endswith(f"/phenomenon/rogue_planet/{rogue['id']}")
 
 
-def test_sector_map_rogue_planet_markers_toggle(page, map_site):
+def test_sector_map_has_no_rogue_planet_marker_button(page, map_site):
+    """MAP.184: the rogue-only "Mark rogue planets" button is gone; the Menu's per-kind Mark covers it."""
     _open_sector(page, map_site)
-    toggle = page.locator('#galaxymap3d-controls [data-action="toggle-rogue-markers"]')
-    # MAP.137: rogue planets start off, and ringed once they are shown.
-    _open_menu(page)
-    page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]').click()
-    assert toggle.get_attribute("aria-pressed") == "true", "on by default (MAP.137)"
-    background = toggle.evaluate("b => getComputedStyle(b).backgroundColor")
-    before = _shot(page, SECTOR_CANVAS)
-    toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "false"
-    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") != background, "plain while off"
-    assert _shot(page, SECTOR_CANVAS) != before
-    toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "true"
-    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") == background
+    assert page.locator('#galaxymap3d-controls [data-action="toggle-rogue-markers"]').count() == 0
+    assert "Mark rogue planets" not in page.locator("#galaxymap3d-controls").inner_text()
 
 
 def _open_menu(page):
@@ -1606,6 +1595,33 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
     assert kinds.count("layer") >= 2 and kinds.count("segment") >= 2, kinds
 
 
+def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):
+    """MAP.188: the blocks' faces and lines are drawn at a share that keeps the cells along any
+    ray from adding up to more than the cap (50%), at every stage and at the deepest zoom."""
+    problems = []
+    page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+    _open_galaxy(page, map_site)
+    reading = "() => document.querySelector('#galaxymap3d-canvas').galaxyGridOpacity()"
+    readings = []
+    for _ in range(12):
+        if not _on_galaxy(page) or "open=1" in _query(page):
+            break
+        readings.append(page.evaluate(reading))
+        _click_choice(page, GENERATED_CHOICE)
+    page.locator(GALAXY_CANVAS).hover()
+    for _ in range(14):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(120)
+        readings.append(page.evaluate(reading))
+    assert len(readings) > 4
+    assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
+    for entry in readings:
+        assert 0 < entry["scale"] <= 1, entry
+        assert entry["worst"] <= entry["cap"] + 1e-6, entry
+    deepest = readings[-1]
+    assert deepest["worst"] <= 0.5 + 1e-6, deepest
+
+
 def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
     """MAP.111: "Charted only" outlines the blocks holding generated
     sectors on the picked arc, and takes the outlines away when it is off."""
@@ -1917,7 +1933,26 @@ def test_galaxy_map_near_field_thins_what_stands_between_the_camera_and_the_focu
     assert page.evaluate(read, along(1.0))["share"] > 0.999
     assert page.evaluate(read, along(1.5))["share"] > 0.999
     assert page.evaluate(read, along(0.05))["share"] < 1e-6
-    assert abs(page.evaluate(read, along(0.6))["share"] - 0.08) < 0.02
+    assert abs(page.evaluate(read, along(0.6))["share"] - 0.25) < 0.02
+
+
+def test_galaxy_map_stars_are_never_thinned_by_the_near_field(page, map_site):
+    """MAP.187: the near-field window thins the blocks only. The star shader holds no near-field
+    term, so a star in front of the camera or on the line to the focus is drawn whole at any zoom,
+    while a point on that line is still thinned for the blocks."""
+    problems = []
+    page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
+    page.wait_for_timeout(500)
+    assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
+    shader = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarShader()")
+    assert "nearField" not in shader["vertex"]
+    assert "nearD" not in shader["uniforms"] and "nearR" not in shader["uniforms"]
+    near = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyNearField()")
+    midway = [c + 0.6 * (f - c) for c, f in zip(near["camera"], near["target"])]
+    share = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyNearField(...p)", midway)["share"]
+    assert share < 1, "the blocks are still thinned on the line to the focus"
 
 
 def test_galaxy_map_stars_follow_the_apparent_magnitude_law(page, map_site):

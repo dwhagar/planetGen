@@ -110,6 +110,10 @@ setup(
         'scipy>=1.13.0',
         'astropy>=6.0.0',
         'scikit-image>=0.22.0',
+        # Compiled numeric kernels (OPS.42): required, with no pure-Python
+        # fallback. Built against NumPy's C API, so it installs with the
+        # rest of the NumPy stack (scripts/install-python-deps.sh).
+        'numba>=0.68.0',
     ],
     extras_require={
         # matplotlib/numpy are for tests/galaxy_shape_visualizer_cli.py
@@ -145,7 +149,7 @@ setup(
         'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
         'Operating System :: OS Independent',
     ],
-    # Driven by the 'api' extra's floors above (Flask 3.x/PyMySQL 1.1.x
-    # both need 3.9+) rather than anything in this package's own code.
-    python_requires='>=3.9',
+    # numba (OPS.42) is built for the Pythons it supports; 3.12 is the
+    # oldest this project runs, tests and locks.
+    python_requires='>=3.12',
 )

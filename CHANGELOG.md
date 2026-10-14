@@ -2,6 +2,151 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1042] - 2026-10-14
+
+### Changed
+- Noted on the venv install item that the server's system packages are already cleared.
+
+## [8.0.1041] - 2026-10-14
+
+### Changed
+- Added the virtual-environment install and the admin login lock-wait bug to the roadmap.
+
+## [8.0.1040] - 2026-10-14
+
+### Changed
+- The design note for the test suite rebuild now records what was decided about every open test-fix item (TEST.111, 116, 125 to 135, 137 to 144): which are fixed now, which are folded into the rebuild and close after five clean full runs, and which become an opt-in tier outside the merge gate.
+
+## [8.0.1039] - 2026-10-14
+
+### Changed
+- Recorded that packed Galaxy Map tiles do not yet leave out stars a coarser tile sent, as a follow-up item.
+
+## [8.0.1038] - 2026-10-14
+
+### Changed
+- Retired OPS.42 from the roadmap and released the items that waited on it.
+
+## [8.0.1037] - 2026-10-14
+
+### Changed
+- numba is now a required library, installed by `install.sh` and `update.sh` with the rest of the NumPy stack; there is no pure-Python fallback. The minimum Python becomes 3.12 (it was 3.9, and 3.10 on macOS), the README, INSTALL.md and the lock files say so, and CI no longer runs a Python 3.9 leg (the MySQL 8.0 leg runs on 3.12). The website itself never imports numba, because numba's default cache needs a writable code or home folder that Apache's web user lacks; a test keeps it that way.
+
+## [8.0.1036] - 2026-10-14
+
+### Changed
+- Retired MAP.187 and MAP.188 from the roadmap.
+
+## [8.0.1035] - 2026-10-14
+
+### Changed
+- Reworded the roadmap entry that broke the docs site build.
+
+## [8.0.1034] - 2026-10-14
+
+### Changed
+- **The sector and slab borders no longer add up to a near-opaque cube grid when zooming in (MAP.188).** The translucent blocks along a line of sight used to add up (a ray through twenty 30% faces is over 99% opaque). Their faces and lines are now drawn at a share worked out from the stage's cells and the way the camera looks, so the blocks along any ray add up to no more than half, and the lines between slabs are fainter. The selected or hovered slab, block or sector is still outlined in full.
+
+## [8.0.1033] - 2026-10-14
+
+### Changed
+- **The see-through window in front of the camera no longer hides stars or leaves a halo (MAP.187).** The near-field window now thins only the blocks' density and cell boxes; a star is never faded by it, so stars stay visible in the middle of a filled block and in front of the camera, and a star close to the line to the focus can be picked. The window's edge is wider and shallower (it never fades below a quarter), which removes the visible rim around it.
+
+## [8.0.1032] - 2026-10-14
+
+### Changed
+- Retired MAP.184 and MAP.186 from the roadmap.
+
+## [8.0.1031] - 2026-10-14
+
+### Changed
+- Retired PERF.54 and recorded test-suite rebuild stage 1 on the roadmap.
+
+## [8.0.1030] - 2026-10-14
+
+### Changed
+- The Stats page keeps a row for the massive-star pass and a row for the bright-star pass of the scatter, instead of one for both, and the bars and the job page's time left for each pass read the pass's own speed. The phenomena scatter also records how much of each layer's time went into writing its rows ("Phenomena layer: writing the rows"), the rest being the drawing. Speeds recorded before this are not carried over: the first scatter on a server starts its bars from the layer count alone.
+
+## [8.0.1029] - 2026-10-14
+
+### Changed
+- **A binary pair is drawn in the same place on the Galaxy Map and the Sector Map (MAP.186).** The Galaxy Map's tiles added a system's stored offset to its sector's centre as if it were already in the galaxy's axes, but the offset follows the sector's own axes, which the Sector Map rotated into place; every generated star in a tile was therefore off from where the Sector Map put it, a pair most visibly. Tiles now rotate the offset the same way, the nearby search measures from the same real place, and a pair's second star sits its real separation from the first by one rule used in both maps. The Sector Map still draws a close pair's two dots apart so they read as two (their real gap is far too small to see at that scale), and says so in its help and in its scene data (`binariesCompressed`); `/sector/<id>/scene?binaries=real` draws them at their real gap.
+
+## [8.0.1028] - 2026-10-14
+
+### Changed
+- **The Sector Map no longer has a "Mark rogue planets" button (MAP.184).** It duplicated the Menu's per-kind Mark, which makes any kind of object easier to see. The button, the ring it drew and the bigger light it swapped in are gone; a rogue planet is its one dim point, and marking its kind in the Menu enlarges it like any other.
+
+## [8.0.1027] - 2026-10-14
+
+### Changed
+- Retired GEN.206 and MAP.185 from the roadmap.
+
+## [8.0.1026] - 2026-10-14
+
+### Added
+- **`scripts/test.py` picks a slice of the test suite** (TEST.139): `quick` (not database, browser or heavy tests), `area web db` (by part of the program), `browser`, and `full` (the merge gate, in two phases: every core for the non-browser tests, then 2 workers for the browser tests so software WebGL is not starved). It prints the start time and how long the same command took last time on this checkout.
+- New test markers `heavy` (the 19 files over 100 s each) and `area_web`, `area_api`, `area_db`, `area_generation`, `area_physics`, `area_names`, `area_wiki`, `area_ops`, set from the test file's name (`src/tests/areas.py`); no test file moved.
+- **Failures are kept and re-run alone** (`.test-failures.jsonl`): every failing test's full report with the worker and the machine's load, and when the run ends the failed tests run again alone with the verdict "passes alone" (a load failure) or "FAILS ALONE" (a real one). `quick` takes 2 min 33 s for 11,545 tests.
+
+### Fixed
+- **The `db` test marker missed 2,210 of the 3,681 tests that need MySQL**, so `-m "not db"` still ran them (they skipped without a server); tests that reach the server through `_mysql_server_available` are marked too.
+
+## [8.0.1025] - 2026-10-14
+
+### Changed
+- **Black holes no longer vanish in the Sector Map (MAP.185).** A quiescent black hole, the common kind, was drawn as a black sphere with a faint dark-purple rim, which cannot be seen against the dark scene, while the Galaxy Map showed it as a purple point. It is now a lit purple point in the Sector Map too, the same colour as on the Galaxy Map (and as a scattered one in a sector not yet made); it was not a coordinate split, the Sector Map has always placed it correctly.
+
+## [8.0.1024] - 2026-10-14
+
+### Changed
+- **A planet's description no longer claims life where the habitability index says none can live (GEN.206).** A world whose microbial score shows 0.00 now gets no life chemistry, no evolutionary pace or timeline and no light-harvesting pigment, and its class text drops "bacterial life", "simple life" and "with vegetation" (Classes F, G and L); a world that allows microbial life only gets a timeline that stops at microbes, with no flora or fauna, and Class L loses its vegetation. A test over generated systems checks every description against its own index. In a sample, about four in ten worlds of a habitable class score no microbial life, so fewer worlds now carry a life chemistry and fewer species are placed on them.
+
+## [8.0.1023] - 2026-10-14
+
+### Changed
+- The docs site build no longer fails on the template examples in the web interface page.
+
+## [8.0.1022] - 2026-10-14
+
+### Changed
+- The to-do list no longer lists the neighbour linking stall, whose likely cause is fixed.
+
+## [8.0.1021] - 2026-10-14
+
+### Fixed
+- Linking a big run's sectors to their neighbours no longer looks frozen: it works in batches of 20 neighbouring sectors instead of 200 scattered ones (a batch was about ten minutes on a dense run, with the progress bar standing still and the neighbour lock held throughout), so the bar moves every minute or so and the lock is short. The links stored are the same.
+
+## [8.0.1020] - 2026-10-14
+
+### Changed
+- The to-do list records the approved logging standard.
+
+## [8.0.1019] - 2026-10-14
+
+### Changed
+- The to-do list gains an item to move every log and report onto one industry-standard format.
+
+## [8.0.1018] - 2026-10-14
+
+### Changed
+- The to-do list links the markdown install bug to its GitHub issue.
+
+## [8.0.1017] - 2026-10-14
+
+### Changed
+- The to-do list records which test fixes the test suite rebuild will implement, and adds a bug for a fresh install getting a markdown version that breaks page rendering.
+
+## [8.0.1016] - 2026-10-14
+
+### Changed
+- The to-do list moves every test fix to the test suite rebuild, which decides which to implement, and drops the table retry item that is built.
+
+## [8.0.1015] - 2026-10-14
+
+### Fixed
+- **A table that hits the database's time limit says the database is busy and asks again, instead of failing.** The table route answered a statement timeout with a 502 and no retry hint, and the table threw the rows away. It now answers 504 with `Retry-After`; the table keeps the rows already loaded, shows "The database is busy. Showing the rows loaded so far; trying again." and asks again after 2 s, 4 s, 8 s ... 30 s, as the Galaxy Map does.
+
 ## [8.0.1014] - 2026-10-14
 
 ### Changed

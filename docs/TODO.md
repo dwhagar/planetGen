@@ -513,22 +513,6 @@ with `clamp()`.
   Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
-- [ ] **UX.96 A table that hits the statement limit says the database is busy and retries, instead of failing with a 502**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): `web/tables.py` turns any API
-  error, a 504 included, into a 502 with no `Retry-After`, and
-  `datatable.js` throws on a non-200 answer without retrying. Done:
-  `/table/<name>` returns 504 with `Retry-After` for a statement
-  timeout, and `datatable.js` keeps the rows already loaded, shows a
-  "database busy, trying again" line and retries with the Galaxy Map's
-  backoff (2, 4, 8 ... 30 s). Decided by default (the three research
-  defaults, 2026-10-10 21:41Z; stands unless Boss objects): a panel or
-  tile that timed out shows partly, with a retry, rather than the full
-  busy page. Owner: Bugfixes lane 2, after what it has queued.
-  Prerequisites: none. Related: PERF.64, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **UX.97 Search results: each panel runs under its own time limit and is fetched on its own**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
   #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
@@ -597,6 +581,35 @@ with `clamp()`.
   and moon lists, and a test checks every rating colour. Needs the PHI-6
   model.
   Prerequisites: GEN.207, UX.100. Related: UX.100, GEN.207.
+
+- [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
+  (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
+  output logs, timestamps, same formatting, same style, dividers, step
+  markers, etc, etc, etc, adopt an industry based standard for file and
+  log output." Today the Generate page log, the CLI text, the downloaded
+  log, the job log files and the other commands each format their own
+  lines (UX.98 is the first visible symptom: stage numbering and section
+  separators differ). Done: a design note that lists every place the
+  program writes a log or report a person reads (Generate log, CLI
+  commands, job log files, the downloadable log, update.sh output, admin
+  pages that show logs), picks the standard, and a build that moves all
+  of them onto one logging layer, with tests that fail if a new output
+  path formats its own lines. Decided (Boss, 2026-10-14 14:17Z, approved as proposed): use
+  Python's standard logging module as the one entry point; every record
+  carries an RFC 3339 UTC timestamp, a severity from the RFC 5424 syslog
+  levels (debug, info, notice, warning, error, critical), a short
+  component name and a message, with machine-readable key=value fields
+  (logfmt style) for numbers such as counts and elapsed time; files are
+  one record per line in that format, with an optional JSON Lines form
+  for machines; the readable display in the web log and CLI is rendered
+  from the same records, with one divider style, one stage marker form
+  ("Stage N of M: name", "Stages N to M of M: name" for a run) and one
+  wording for start, finish and failure, so a downloaded log and the
+  screen always agree; timestamps are always UTC in files and local time
+  only in the page display, labelled). Owner: Bugfixes lane 1 builds
+  UX.98 first as the first slice, then the rest is a Phase 2 item for
+  the interface builders.
+  Prerequisite: UX.98. Related: UX.98, PERF.66, UX.93.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1101,8 +1114,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Wire format (2026-10-09, galaxy-map-wire-format.md): MAP.147's
   investigation is done (docs/design/galaxy-map-wire-format.md): the
   packed binary tile format ships with these nested lists as MAP.159, on
-  one cache stamp bump, so list order is rank and finer tiles omit stars
-  a coarser tile sent.
+  one cache stamp bump, so list order is rank. (The planned omission of
+  stars a coarser tile already sent is not part of MAP.159: see the
+  follow-up item MAP.195.)
   Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
@@ -1131,9 +1145,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MB). Done: the server writes tiles as packed typed arrays (quantised
   position, colour and scalar planes; `clouds` and `points` stay JSON),
   the client decodes them in `tileStars`, list order is rank so the rank
-  fade of MAP.153 reads it directly, and a finer tile omits the stars a
-  coarser tile already sent (31 to 43% of bright records at levels 3 to
-  6, all at 7 to 12). It ships together with MAP.154 (the nested lists)
+  fade of MAP.153 reads it directly. (Foundations lane 2, 2026-10-14: a
+  finer tile does not omit the stars a coarser tile already sent, because
+  the page would need the parent tile in hand for every child; that
+  saving, 31 to 43% of bright records at levels 3 to 6 and all at 7 to
+  12, is the follow-up item MAP.195.) It ships together with MAP.154 (the nested lists)
   and MAP.151's tile keys so the cache is invalidated once. Decided
   (Boss, 2026-10-10 18:44Z, defaults approved; default yes, with MAP.154
   and MAP.151 on one bump):
@@ -1435,103 +1451,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: DB.24, MAP.173.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
-- [ ] **MAP.184 "Mark rogue planets" on the Sector Map is redundant (bug)**
-  GitHub issue [#1218](https://github.com/dwhagar/planetGen/issues/1218)
-  (Boss, 2026-10-11 02:43Z): "In the sector view the mark rogue planets
-  is redundant and should be removed." Done: the control and its code
-  are gone from the Sector Map (rogue planets keep their normal marker),
-  with the browser tests and help text updated. Owner: Foundations lane
-  2, in its map queue.
-  Prerequisites: none. Related: MAP.132, MAP.123.
-
-- [ ] **MAP.185 Black holes vanish in the Sector Map (bug)**
-  GitHub issue [#1223](https://github.com/dwhagar/planetGen/issues/1223)
-  (Boss, 2026-10-11 19:46Z): "The galaxy view shows black holes clearly,
-  but when I go to a sector view, they vanish. I think we have a
-  coordinate split somewhere between galactic view and sector view,
-  which could get in the way of infinite zoom." Done: the cause is found
-  (a coordinate or frame difference between the Galaxy Map and the
-  Sector Map, or a filter that drops phenomena), the black holes show in
-  the Sector Map at their right places, and a test covers a sector with
-  a black hole in both views. If a coordinate split is the cause, the
-  fix puts both views on the one frame used by the fly-through map
-  (MAP.152). Owner: Foundations lane 2, in its map queue before MAP.152.
-  Prerequisites: none. Related: MAP.152, MAP.146, MAP.164.
-
-- [ ] **MAP.186 A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug)**
-  GitHub issue [#1215](https://github.com/dwhagar/planetGen/issues/1215)
-  (Boss, 2026-10-11 01:08Z, with a screenshot; reproduced on any binary
-  system): the same two stars are placed differently in two views.
-  Boss's guess: the systems use a compressed distance model for the
-  orbit and the match would be exact with the real distance model,
-  probably a render flag. Done: the cause is confirmed, both views place
-  the pair by the same rule (the real separation unless a view says it
-  is compressed, with the compression shown in the legend), and a test
-  compares the two placements for a binary system. Owner: Foundations
-  lane 2, in its map queue.
-  Screenshot (Boss, 2026-10-14 13:36Z, copy in
-  /mnt/project-files/screenshots/issue-1215/): the Sector Map selecting
-  the B9V system Ulalio Ngatho. A lone blue star sits far to the left of
-  the drawing, away from everything else, while two groups of planet
-  orbits overlap in the middle (one around a bright blue star with tight
-  orbits and one wide ellipse reaching across, one lower right around a
-  small blue-and-green pair), so the stars of this one system are not
-  drawn where the orbits say they are. Check both: which dot is the
-  companion, and whether the lone star is placed by the compressed rule
-  while the orbits use the real separation.
-  Prerequisites: none. Related: MAP.89, GEN.62.
-
-- [ ] **MAP.187 The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug)**
-  GitHub issue [#1211](https://github.com/dwhagar/planetGen/issues/1211)
-  (Boss, 2026-10-11 00:16Z, three screenshots) and GitHub issue
-  [#1213](https://github.com/dwhagar/planetGen/issues/1213) (Boss,
-  2026-10-11 00:20Z; the same root cause, likely): the near-field window
-  that makes the foreground vanish is obvious and leaves an odd halo,
-  and in the middle of a filled block it makes the stars disappear too,
-  when the idea was to make things more visible, not less. Boss attached
-  a research note on the 3D rendering camera
-  ([docs/design/3d-rendering-camera-research.md](design/3d-rendering-camera-research.md),
-  in the repository since 2026-10-14) for how to structure the fix.
-  What the note says to build: fade by view-space depth (distance along
-  the camera axis, not distance to the cursor or screen centre) with a
-  smoothstep ramp and hysteresis, so nothing is darker at the middle of
-  the view than at its edge; avoid sorted alpha blending in dense
-  fields (fill-rate and sorting cost, and the likely source of the dark
-  disc); use screen-door transparency with interleaved gradient noise
-  smoothed by temporal anti-aliasing, or weighted blended
-  order-independent transparency where overlapping colour must stay
-  right; never move the camera to dodge objects, since that causes
-  disorientation and cybersickness. Done: no visible tunnel edge or halo at any zoom level, stars
-  never fade out because of the near-field window (the window fades the
-  foreground density and cell boxes only), and a browser test measures
-  star visibility inside a filled block while zooming in. Owner:
-  Foundations lane 2, in its map queue, with MAP.150 (MAP.155 merged in
-  #1253).
-  Screenshots (Boss, 2026-10-14 13:35Z, copies in
-  /mnt/project-files/screenshots/issue-1211/): (1) a block of 243 sectors
-  a side shown as a stack of slabs, with a darker oval patch in the middle
-  of the block; (2) a slab wedge with a round dark patch around where its
-  blocks meet; (3) a block of 27 sectors a side seen face on, a clear
-  dark round halo in the middle of the cell grid. Same halo at all three
-  zoom levels, always a dark disc centred on the view, so it is the
-  window itself being drawn dark, not a darkening of the cells; the cell
-  borders in the same pictures are heavy and nearly opaque (MAP.188).
-  Prerequisites: none. Related: MAP.146, MAP.150, MAP.152, MAP.155,
-  MAP.188.
-
-- [ ] **MAP.188 Sector and slab borders add up to a near-opaque cube grid when zooming in (bug)**
-  GitHub issue [#1212](https://github.com/dwhagar/planetGen/issues/1212)
-  (Boss, 2026-10-11 00:19Z): "During the zoom in process the sector and
-  slab boarders kind of add up and make the general cube-grid nearly
-  opaque, we need to make them barely visible and wire-frame highlights
-  when we go to select a slab or block or sector." Done: borders are
-  barely visible by default at every zoom, the opacity does not add up
-  with the number of cells in view, and a wire-frame highlight draws
-  only for the selected or hovered slab, block or sector; a browser test
-  measures the grid's total opacity at the deepest zoom. Owner:
-  Foundations lane 2, in its map queue.
-  Prerequisites: none. Related: MAP.146, MAP.141, MAP.150.
-
 - [ ] **MAP.189 The Galaxy Map opens flown in to the created sectors**
   GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
   (Boss, 2026-10-13 23:16Z): one big reason for the infinite zoom is to
@@ -1607,6 +1526,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
   after the nebula map work (MAP.176 to MAP.180).
   Prerequisite: MAP.176. Related: MAP.176, MAP.178, MAP.180, GEN.209.
+
+- [ ] **MAP.195 Galaxy Map finer tiles leave out the stars a coarser tile already sent**
+  Foundations lane 2 (2026-10-14): MAP.159 sends packed tiles without
+  leaving out the stars a parent tile already sent, because the page
+  would need the parent tile in hand for every child. Done: finer tiles
+  leave those stars out (31 to 43% of the bright records at levels 3 to
+  6, all of them at levels 7 to 12) and the page keeps parents available
+  so a child never draws without them, with a test that a tile and its
+  parents together hold exactly the stars the full list holds. Measure
+  the saving against the cost of holding the parents before building it.
+  Prerequisites: MAP.159. Related: MAP.154, MAP.159.
 
 ## NAV: Navigation and courses
 
@@ -3026,8 +2956,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.0.1) with a test that the astropy values equal them; `@` (BLAS)
   removed from `galaxy/nebula_shape.py` (lines 107, 163) and
   `physics/sector_path.py` (line 232). It changes stored values, so it
-  ships with a generator epoch bump, and it blocks TEST.77 on the Python
-  3.9 CI leg. Related: GEN.66 follow-up on pinning astropy's constant
+  ships with a generator epoch bump (the Python 3.9 CI leg that blocked
+  TEST.77 is gone, OPS.42 merged in #1291). Related: GEN.66 follow-up on pinning astropy's constant
   sets.
   Prerequisites: none.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
@@ -3527,22 +3457,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: GEN.196, GEN.176.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
-- [ ] **GEN.206 A planet's description claims life where the habitability index says none can live (bug)**
-  GitHub issue [#1220](https://github.com/dwhagar/planetGen/issues/1220)
-  (Boss, 2026-10-11 03:02Z): a planet with red chemistry (water activity
-  0.523, microbial 0.00 and complex life 0.00) still has a description
-  that says life has evolved, with an evolutionary timeline, flora and
-  oceans of macro-algae. Boss: "if microbial life can't be on a world
-  because of the chemistry then we should make sure that the planet
-  description gets edited to not make it sound like there is life."
-  Done: when the habitability index gives microbial life 0, the
-  description makes no claim of life, evolution or an evolutionary
-  timeline (it may say what the world lacks); when it allows microbial
-  life only, it never describes complex flora or fauna; a test over a
-  sample of generated planets finds no description that contradicts its
-  own index. Owner: Foundations lane 2, after PERF.80 and GEN.200 (merged in #1251 and #1252).
-  Prerequisites: none. Related: GEN.84, GEN.90, GEN.207, GEN.208.
-
 - [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
   (Boss, 2026-10-11 03:24Z): extend PHI-4 to six dimensions: Pressure,
@@ -3589,8 +3503,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with no native food is at most Yellow, a sterile world with no water
   Red; it has a 0 to 1 number that is the same geometric-mean blend of
   the three rungs as the other dimensions, and the numbers are tuned
-  with the lane's sample worlds). Owner: Foundations lane 2, after GEN.206.
-  Prerequisite: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+  with the lane's sample worlds). Owner: Foundations lane 2.
+  Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -3628,7 +3542,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes the planet needs and why, in one short paragraph per planet,
   with tests over a sample of planets. Owner: Foundations lane 2, with
   GEN.207.
-  Prerequisite: GEN.207. Related: GEN.207, UX.100, GEN.206.
+  Prerequisite: GEN.207. Related: GEN.207, UX.100.
 
 - [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
   GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
@@ -3671,7 +3585,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `test_astropy_constants.py` still checks the table; no stored value
   changes; the change note says it removes a dependency. Saves 280 ms and
   29 MB per process start and 53 MB of install. Replaces GEN.156. Owner:
-  Foundations lane 1, after OPS.42.
+  Foundations lane 1.
   Prerequisites: none. Related: GEN.156, GEN.66.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
@@ -3921,23 +3835,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.54 Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter**
-  Reported by Bugfixes lane 1 (2026-10-10 06:36Z), left out of PERF.52
-  because it is not a small fix: the admin generation-stats table
-  records the GEN.185 star scatter as one layer, but the scatter now has
-  separate mass-limit and luminosity-limit passes (and the phenomenon
-  passes). Done: the stats record each pass on its own row, the admin
-  table shows them, and the size and time estimates use the right row
-  for the plan being estimated. Phase 2.
-  Note (2026-10-10): PERF.63 (PR #1174) cut the phenomena pass from
-  about 37 min to 3.7 min at the default scale (2,041 layers, 68.2M
-  objects), so writing the rows to the database is now the dominant cost of a scatter run; PERF.73
-  measures and cuts it. The per-pass stats rows here should therefore
-  record compute time and write time separately for the phenomena pass.
-  Moved to Phase 1 (Boss, 2026-10-10 22:19Z, generation-first priority).
-  Owner: Bugfixes lane 1, after the PERF.67 stats code (merged in #1249).
-  Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
-
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/gravity-map.md, section 'How it is
   computed', extended with measurements) says what a grid of 16 zones
@@ -4004,28 +3901,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `insert_sector` is 40 s of the 227 s profile. Done: the insert is
   measured by statement (batching, executemany, fewer round trips) and
   cut, with the rows identical. Related to the uid work in PERF.31's
-  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10),
-  after PERF.54.
+  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10).
   Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
   hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
   for scatter writes); try it here. pymysql is 8% of the profiled fill.
   Prerequisites: none. Related: PERF.31, PERF.73.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
-
-- [ ] **PERF.84 Neighbour linking stalls on a large run (bug)**
-  GitHub issue [#1224](https://github.com/dwhagar/planetGen/issues/1224)
-  (Boss, 2026-10-11 21:05Z): "Neighbor linking stalled out twice, it was
-  a lot of data it was processing but it used to do it just fine with
-  the same amount of data." Done: the stall is reproduced on a run of
-  the same size, the cause is found (a query that stopped using an
-  index, a lock, a missing batch, a worker waiting on a full queue) and
-  fixed, and the stage shows steady progress instead of freezing. A test
-  or timing record keeps the link stage inside a budget. Boss
-  (2026-10-14 13:18Z): it was a normal default new galaxy with default
-  settings, it worked fine on a recent version he cannot name, and he
-  thinks it is a reporting issue, so check first whether the stage works
-  but its progress or ETA freezes (PERF.85 had the same signs: a stale bar in the progress file, fixed in #1265). Owner: Foundations lane 1 (PERF.83 is fixed: time-sized chunks).
-  Prerequisites: none. Related: PERF.68, PERF.79.
 
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
@@ -4077,13 +3958,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which recomputes these paths. Done: the integrator is a numba kernel,
   the old Python loop removed (no fallback), the tolerance in the path
   tests, timings in the benchmark report. Owner: Foundations lane 1,
-  after PERF.80 (merged in #1251)
-  and after OPS.42.
+  after PERF.80 (merged in #1251).
   Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
-  location (OPS.42). Acceptance criterion: the integrator imports as the web
-  user (see OPS.42), by keeping it out of the web app's import path or by
+  location (OPS.42, merged in #1291). Acceptance criterion: the integrator imports as the web
+  user (as OPS.42 does), by keeping it out of the web app's import path or by
   writable `__pycache__` directories, with a test.
-  Prerequisite: OPS.42. Related: PERF.31, GEN.105.
+  Related: PERF.31, GEN.105.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.89 Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s)**
@@ -4812,6 +4692,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
 
+- [ ] **ADM.53 Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug)**
+  Boss (2026-10-14 15:17Z, Apache error log from his server): at 02:45
+  and 03:28 UTC on 2026-10-14 the admin login failed with a 500 because
+  `UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP`
+  (src/planetgen/admin/auth.py:331, called from
+  src/planetgen/api/auth.py:157) hit pymysql error 1205, 'Lock wait
+  timeout exceeded; try restarting transaction'. The same log has
+  mod_wsgi 'Timeout when reading response headers from daemon process
+  planetgen-api' at 02:47 and 03:01. Something held row locks for a long
+  time in that window, probably a long job transaction (neighbour
+  linking or a scatter). Done: find which transaction holds the locks
+  (reproduce with a long job and a login; check the settle, neighbour
+  link and scatter steps, and whether the admin_users row is touched by
+  a job at all), and make logins and other short API writes never wait
+  on a long job, by not touching rows a job locks, by committing the job
+  in short batches, or by moving last_login_at out of the login's
+  critical path (and a lock wait must never turn into a 500: a login
+  that cannot record its time still logs in). Add a test that holds a
+  job transaction open and logs in. Related to PERF.24 (API edits wait 8
+  s else answer 202) and PERF.71 (slow reads and timeouts).
+  GitHub issue [#1296](https://github.com/dwhagar/planetGen/issues/1296).
+  Prerequisites: none. Related: PERF.24, PERF.71.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -4860,6 +4763,13 @@ clears each one.
   15 loaded runs; the test's asserts now print the results, so the next
   failure names the cause. Stays open until it recurs and is fixed, or
   Boss closes it.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -4872,6 +4782,11 @@ clears each one.
   or the product bug is fixed. Decided (Boss, 2026-10-10 18:44Z,
   defaults approved; default: leave
   open until it recurs, then investigate with the failing run's data).
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
+  open for the first recurrence (with the captured seed): the test pins
+  the star type, so a different stored type may be a real pin bug in the
+  product, not test luck. Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.125 Three browser-map tests fail on main with "no generated system has a moon" (bug)**
@@ -4882,7 +4797,11 @@ clears each one.
   like a fixture problem, not a product bug. Find out whether a seed
   change (the scatter or object-first sampler work) removed the moons,
   and fix the fixture so the tests do not depend on luck; never skip
-  them. Owner: Bugfixes lane 2.
+  them. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 1 in the thread's order; the fixture
+  must contain a moon by construction (it failed in the thread's
+  baseline too). Owner: the Test Suite Rebuild thread.
   Note (2026-10-10): the names that fail on main (Foundations lane 2,
   20:50Z; they fail on plain main in a clean worktree
   and also alone, so they are not load flakes):
@@ -4935,7 +4854,12 @@ clears each one.
   -n 4 (a shared limit on concurrent WebGL pages, waits on page state
   not fixed times, or a serial marker for the heaviest), without
   skipping or loosening any; a full -n 4 run shows none of them failing.
-  Owner: Bugfixes lane 2, after its current items.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 runs the browser tests as
+  a separate phase on two workers; closed after 5 clean full runs, and
+  stage 4 gives any still timing out a state-based wait. Owner: the Test
+  Suite Rebuild thread.
   Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
   tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
   failed once in the NAV.9 run under load, passed alone.
@@ -4950,8 +4874,13 @@ clears each one.
   the next failure's full traceback is captured (or a loaded run
   reproduces it), the cause is found (a shared nebula or sector fixture,
   an id or ordering dependence, or a real mesh bug) and the test is made
-  reliable without loosening it. Owner: Bugfixes lane 2, after its
-  current items.
+  reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -4962,8 +4891,13 @@ clears each one.
   Done: the next failure's traceback is captured, the cause is found (a
   shared database name or schema, a leftover row, or timing under load;
   compare TEST.111 and TEST.123) and the tests are made reliable without
-  skipping or loosening them. Owner: Bugfixes lane 2, after its current
-  items.
+  skipping or loosening them. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -4980,8 +4914,11 @@ clears each one.
   update stores and compares a time that both servers treat the same way
   (truncate to the column's precision before comparing, or use the same
   clock on both sides), checked on MySQL 8.4 and MariaDB; a product bug
-  if a real run could see a negative elapsed time. Owner: Bugfixes lane
-  1, after its current items.
+  if a real run could see a negative elapsed time. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 4 in the thread's order; the stored
+  last-updated time is compared the way MySQL 8.4 rounds it; the thread
+  installs MySQL 8.4 to verify. Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -4996,7 +4933,11 @@ clears each one.
   is wrong for comets, or the test compares different epochs or frames),
   the product or test is fixed so scene and stored positions agree for
   comets, and the test draws a system with a comet every time so it
-  cannot pass by luck. Owner: Bugfixes lane 1, after its current items.
+  cannot pass by luck. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 5 in the thread's order; the test
+  draws a system with a comet every time. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -5007,6 +4948,11 @@ clears each one.
   galaxy potential's rotation curve (229.3 km/s at 8.128 kpc); the
   near/far split agrees with the exact sum to a stated tolerance on a
   random sector; the same seed gives the same field twice.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
+  with whoever builds the gravity evaluator (GEN.198): they write these
+  tests in the same PR as a normal gravity test file. Owner: that
+  builder.
   Prerequisite: GEN.198. Related: GEN.198, GEN.115.
 
 - [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
@@ -5019,8 +4965,13 @@ clears each one.
   reproduces it), the cause is found (a shared scatter table or marker
   between workers, a draw that sometimes leaves a star, or a real
   leftover-star bug in the failed-layer path) and the test is made
-  reliable without loosening it. Owner: Bugfixes lane 2, after its
-  current items.
+  reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.128.
 
 - [ ] **TEST.133 A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems**
@@ -5032,6 +4983,12 @@ clears each one.
   fail when a query examines more rows than its page needs. This is the
   test that PERF.68 and PERF.70 each ask for, built once. Owner:
   Foundations lane 1.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement as an opt-in `budget` test tier (not in the merge gate or
+  CI, run by hand before a performance merge), after stage 3 of the
+  rebuild; Foundations lane 1 drops it from its queue. Owner: the Test
+  Suite Rebuild thread.
   Prerequisites: none. Related: PERF.68, PERF.69, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -5042,7 +4999,13 @@ clears each one.
   cause is found (a shared Redis or database state with the other
   workers, or a timing limit) and the test is made to pass under -n 4
   without skipping, disabling or loosening it away from what it checks.
-  Owner: Bugfixes lane 1.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -5054,8 +5017,11 @@ clears each one.
   nebula reads (field table, aggregates, tile layer, scatter join) are
   added to the big-galaxy query budget test of TEST.133, so none
   examines more rows than a tile needs. Done: the nebula reads are in
-  the test and it passes on 2,000,000 systems. Owner: Foundations lane
-  1.
+  the test and it passes on 2,000,000 systems. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement after TEST.133 and DB.24, in the same opt-in `budget` tier;
+  Foundations lane 1 drops it from its queue. Owner: the Test Suite
+  Rebuild thread.
   Prerequisites: TEST.133, DB.24. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -5067,7 +5033,13 @@ clears each one.
   traceback is captured (or a loaded run reproduces it), the cause is
   found (a timeout, a shared table between workers, or a real defect in
   the neighborhood path) and the test is made reliable without loosening
-  it. Owner: Bugfixes lane 2, after TEST.128.
+  it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
@@ -5080,6 +5052,10 @@ clears each one.
   timeout in the page wait, or a real overlap that appears only at that
   moment) and the test is made reliable without loosening it. Owner:
   Bugfixes lane 2, with TEST.126.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; same family and fix as TEST.126.
+  Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
@@ -5102,6 +5078,27 @@ clears each one.
   of it. Owner: the Test Suite Rebuild thread (a dedicated thread,
   started 2026-10-14 12:18Z); the lanes keep running the full suite
   before they merge until it lands.
+  Since 2026-10-14 14:01Z (Boss) the thread also owns every test-fix
+  item and decided which to implement (14:04Z): implement TEST.125,
+  142, 143, 129, 130 in that order, one small PR each; fold TEST.126,
+  138, 144 and TEST.111, 116, 127, 128, 132, 134, 137, 140, 141 into the
+  rebuild with no separate hunt; keep TEST.133 then TEST.135 as an
+  opt-in `budget` tier after stage 3; TEST.131 stays with the gravity
+  evaluator's builder. New test failures keep being filed as TEST items
+  for the thread. Stages: 1 markers and areas, scripts/test.py (quick,
+  area, browser, full in two phases, browser on two workers), and
+  failure capture with an automatic serial re-run (the `db` marker
+  missed 2,210 of 3,681 MySQL-needing tests and is fixed here; the
+  playwright version is pinned to 1.56.0 in docs/testing.md because 1.64
+  needs a newer Chromium than the cloud image has); 2 change-based test
+  selection (record dependencies, run only what changed, with a proof
+  period); 3 one database per worker with a reset (about 10 to 13% of
+  the time); 4 browser page-load sharing and the heavy generation test
+  files, one PR per file with the owning lane's word; 5 Boss decides
+  after the proof period whether the changed-only run may replace the
+  full run for small changes. Baseline (12:28Z, 4 cores): 15,622 tests,
+  55 min 12 s, 14 failed. Stage 1 merged (#1280, 2026-10-14): full run 56 min 24 s, quick loop
+  2 min 33 s. Plan: docs/design/test-suite-rebuild.md.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
 
@@ -5110,10 +5107,19 @@ clears each one.
   min):
   tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
   failed once in a full run and passed alone; the traceback was not
-  kept. Done: the next failure's traceback is captured, the cause is
+  kept. Seen again (Foundations lane 1, 2026-10-14 14:04Z full run, 27
+  min): the failure showed a facility host id 003 where 009 was
+  expected, and the test passed twice alone; unrelated to that lane's
+  change. Done: the next failure's traceback is captured, the cause is
   found (a shared table between workers, a timeout, or a real defect in
   the ID lookup) and the test is made reliable without loosening it.
-  Owner: Bugfixes lane 2, with TEST.128.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -5124,8 +5130,13 @@ clears each one.
   not kept. Done: the next failure's message is captured, the cause is
   found (an interrupt landing before a worker starts, a shared Redis
   queue between workers, or a real half-written sector) and the test is
-  made reliable without loosening it. Owner: Bugfixes lane 2, with
-  TEST.128.
+  made reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
 
 - [ ] **TEST.142 test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug)**
@@ -5136,9 +5147,12 @@ clears each one.
   `after` argument added by PERF.75's keyset paging. Done: the fake
   takes the new argument (or the test uses the real function) so the
   test passes without loosening what it checks, and a grep shows no
-  other fake of a paged reader is left behind. Owner: whichever lane
-  takes test fixes next (Bugfixes lane 2 after TEST.128), before
-  PERF.75's other tables get the same change.
+  other fake of a paged reader is left behind. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 2 in the thread's order; the fake
+  get_systems gets the `after` parameter, plus a search for other fakes
+  of a paged reader (the lane's 14:03Z run failed on it too). Owner: the
+  Test Suite Rebuild thread.
   Prerequisites: none. Related: PERF.75, TEST.126.
 
 - [ ] **TEST.143 test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug)**
@@ -5152,7 +5166,11 @@ clears each one.
   artifact, not a product bug. Done: the test pins its own install
   location (a temporary checkout and a stub for the installed package's
   path) so it passes from any checkout and any worktree, without
-  loosening what it checks. Owner: Bugfixes lane 2, with TEST.142.
+  loosening what it checks. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 3 in the thread's order; the test pins
+  the install location, so it passes from a git worktree. Owner: the
+  Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.142.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -5164,7 +5182,10 @@ clears each one.
   Done: the next failure's traceback is captured, the cause is found (a
   load timeout in the page wait, or a button that really does nothing at
   that moment) and the test is made reliable without loosening it.
-  Owner: Bugfixes lane 2, with TEST.126.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; same family and fix as TEST.126.
+  Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 ## USR: User accounts
@@ -5501,36 +5522,67 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.42 Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md, "The default cache and the
-  web user"). Decided (Boss, 2026-10-14 13:00Z): numba is a hard
-  requirement with no pure-Python fallback; the minimum Python becomes 3.12
-  (not 3.10); numba's cache stays in its DEFAULT location (no
-  NUMBA_CACHE_DIR, no /var/cache/planetgen/numba, no change to
-  create-cache-dir.sh); the change is noted in the CHANGELOG and the
-  README. numba 0.68 and llvmlite 0.50 (about 196 MB installed) need NumPy
-  below 2.6 and are not in apt on Ubuntu 24.04, so they install with pip
-  through the NumPy stack group of scripts/install-python-deps.sh and its
-  REQUIREMENTS table (enforced by test_install_python_deps.py). Done:
-  setup.py `python_requires` 3.12, the installer checks and INSTALL.md
-  raised; the Python 3.9 to 3.11 CI legs and the matching requirements.lock
-  markers dropped (frees TEST.77); numba added to the setup, installer and
-  lock; the change note says the minimum Python changed and the README's
-  requirements text says so. Acceptance criterion: with the default cache,
-  a process that can write neither the code tree's `__pycache__` nor its
-  own home directory fails at import ("cannot cache function: no locator
-  available"), even when root warmed the tree, and a user with a writable
-  home builds its own cache under ~/.cache/numba. Apache's web user (home
-  /var/www, tree owned by the login user) is exactly that case, so either
-  the kernel module stays out of the web app's import path (imported only
-  by the settle step, the orbit update and the workers; check
-  api/edits.py, queue/api_jobs.py and db/sector_paths.py) or update.sh
-  makes those `__pycache__` directories writable for the web group; a test
-  imports the integrator as the web user. Owner: Foundations lane 1,
-  before the numba path integrator (PERF.88).
-  Prerequisites: none. Related: GEN.156, TEST.77.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+- [ ] **OPS.43 A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug)**
+  GitHub issue [#1270](https://github.com/dwhagar/planetGen/issues/1270).
+  Reported by the Test Suite Rebuild thread (2026-10-14 14:04Z): `pip
+  install -e ".[test,api]"` installs markdown 3.11.1 because setup.py
+  only says `markdown>=3.6`. Markdown 3.11.1 removes the inline pattern
+  `not_strong` that `web/lib/mdrender.py` (line 34) names, and 74 tests
+  fail in test_fuzz_text_rendering, test_web_system_phen,
+  test_bughunt_render_edges, test_mdrender, test_web_population,
+  test_systems and test_page_shell. With markdown 3.11 (the version
+  pinned in requirements.lock) all 466 pass. A real install that
+  resolves the newest markdown would break every page that renders
+  descriptions, so this is a product bug as well as a test failure.
+  Done: either setup.py caps `markdown>=3.6,<3.11.1` or mdrender.py
+  tolerates the missing name (the second is the more durable; the lane
+  picks one and says which), the installer and the lock agree, and a
+  test builds the renderer from the newest markdown the pin allows.
+  Owner: Bugfixes lane 1, next, because a fresh install can break the
+  web pages.
+  Prerequisites: none. Related: TEST.139, TEST.128.
+
+- [ ] **OPS.44 The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug)**
+  The "pages build and deployment" run fails on main with "Liquid syntax
+  error: Unknown tag 'extends'", first in html-interface.md (line 581)
+  and then in this file. Jekyll 3.10 reads the Jinja template examples
+  and the csrf field mentions as its own template tags, and it stops at
+  the first one. The web interface page was wrapped in raw tags in #1276
+  and this item's own text was reworded so it holds none. Add a docs
+  test that fails when any markdown file holds the Jinja tag or variable
+  delimiters outside a raw block, so the next note cannot break the
+  site, and check the Pages build goes green on main afterwards.
+  Prerequisites: none.
+
+- [ ] **OPS.45 Install planetGen into its own virtual environment and clear the packages out of the system Python**
+  Boss (2026-10-14 15:17Z, chose the venv over system Python with apt):
+  reverses design decision 7 in docs/design/design-decisions.md, which
+  put the libraries in the system Python on Linux. His server's Apache
+  log shows planetGen's libraries (flask, pymysql, flask_limiter) living
+  in /usr/local/lib/python3.12/dist-packages. Done: install.sh and
+  update.sh build one venv, install every planetGen dependency in it
+  (numba and llvmlite included, from the lock files), remove the
+  pip-installed planetGen packages from the system Python, and point
+  both the CGI pages and the mod_wsgi entry point (WSGIDaemonProcess
+  python-home, src/html/wsgi.py, the examples in examples/apache and
+  docs/deployment/apache.md) at it; the generator, the workers, the
+  Redis queue workers and the cron or timer jobs run from the venv too.
+  Revisit numba's default cache location for the venv and the web user
+  (OPS.42's rule that the web app never imports numba still holds, and
+  PERF.88's web-user import test now runs against the venv). The venv
+  path, how update.sh rebuilds it when the Python or the lock file
+  changes, and how a system package conflict is detected are the lane's
+  to propose in the PR. Update design-decisions.md section 7,
+  INSTALL.md, README, docs/deployment/apache.md and testing.md, and keep
+  the macOS installer as it is. The change note says the install layout
+  changed and that update.sh does it for the server. Interacts with
+  OPS.43 (a fresh install gets markdown 3.11.1) and OPS.42 (merged).
+  Boss (2026-10-14 15:29Z): he has already cleared the system packages on
+  his server by hand, so the clean-up step must be safe when nothing is
+  installed, and update.sh must build the venv on a server that has no
+  libraries at all.
+  GitHub issue [#1295](https://github.com/dwhagar/planetGen/issues/1295).
+  Prerequisites: none. Related: OPS.42, OPS.43, OPS.44.
 
 ## DOC: Documentation
 

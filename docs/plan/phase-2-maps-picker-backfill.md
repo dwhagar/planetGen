@@ -196,12 +196,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
+| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | MAP.159 |  |
+| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | UX.98 |  |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) |  |  |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line |  |  |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall |  |  |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | GEN.207 |  |
-| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | GEN.206 |  |
+| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index |  |  |
 | UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | GEN.207, UX.100 |  |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes |  |  |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |

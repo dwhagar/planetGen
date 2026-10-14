@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.102 |
-| MAP | MAP.195 |
+| UX | UX.103 |
+| MAP | MAP.196 |
 | NAV | NAV.60 |
 | GEN | GEN.213 |
 | PERF | PERF.92 |
 | DB | DB.25 |
 | API | API.25 |
-| ADM | ADM.53 |
+| ADM | ADM.54 |
 | SEC | SEC.33 |
 | TEST | TEST.145 |
 | USR | USR.12 |
-| OPS | OPS.43 |
+| OPS | OPS.46 |
 | DOC | DOC.18 |
 | VIEW | VIEW.11 |
 | POP | POP.12 |
@@ -441,6 +441,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | open |
 | ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | open |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
+| ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -711,7 +712,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | done, PR #1239 |
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
-| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | open |
+| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | done, PR #1278 |
 | GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
@@ -901,17 +902,18 @@ Parents marked "new parent" had no old number of their own.
 | MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
-| MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | open |
-| MAP.185 | Black holes vanish in the Sector Map (bug) | none | open |
-| MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | open |
-| MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | open |
-| MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | open |
+| MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | done, PR #1282 |
+| MAP.185 | Black holes vanish in the Sector Map (bug) | none | done, PR #1279 |
+| MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | done, PR #1283 |
+| MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | done, PR #1288 |
+| MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | done, PR #1289 |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | none | open |
 | MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | none | open |
 | MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | none | open |
 | MAP.192 | See the objects whose positions changed in the last orbital update | none | open |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | none | open |
+| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1012,7 +1014,10 @@ Parents marked "new parent" had no old number of their own.
 | OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | done, PR #981 |
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | done, PR #989 |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations | none | open |
-| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code | none | open |
+| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code | none | done, PR #1291 |
+| OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) | none | open |
+| OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) | none | open |
+| OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1066,7 +1071,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | none | done, PR #919 |
 | PERF.52 | Admin generation-stats table is wrong (bug) | none | done, PR #994 |
 | PERF.53 | Timing stats are skewed by layers and sectors that generated nothing (bug) | none | done, PR #1015 |
-| PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter | none | open |
+| PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter | none | done, PR #1284 |
 | PERF.55 | One global progress bar for generation jobs that run in phases, with an ETA across all phases | none | done, PR #1131 |
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with | none | done, PR #1077 |
 | PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups | none | done, PR #1101; removed by PERF.58 (PR #1108) |
@@ -1096,7 +1101,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | done, PR #1236 |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
 | PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | done, PR #1259 |
-| PERF.84 | Neighbour linking stalls on a large run (bug) | none | open |
+| PERF.84 | Neighbour linking stalls on a large run (bug) | none | done, PR #1274 |
 | PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | done, PR #1265 |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls | none | open |
@@ -1254,12 +1259,13 @@ Parents marked "new parent" had no old number of their own.
 | UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | open |
-| UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | open |
+| UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | open |
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | open |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
 | UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | none | open |
+| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

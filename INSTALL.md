@@ -23,7 +23,7 @@ install. For what planetGen is and how to use it, see the
 
 | What | Version | Notes |
 |---|---|---|
-| Python | 3.9+ on Linux, 3.10+ on macOS (Homebrew's) | Linux uses the system Python. |
+| Python | 3.12+ (Homebrew's on macOS) | Linux uses the system Python. numba is installed with the other Python libraries and is required. |
 | MySQL or MariaDB | MySQL 8.0.16+ or MariaDB 10.4+ | Local or on another machine. |
 | A web server | Apache2 + mod_wsgi (reference), nginx, Caddy | Only for the website. The command line needs none. |
 | git | any | The checkout must be a git clone so the update scripts can pull. |

@@ -60,9 +60,6 @@ export function createSectorStage(host) {
   // {id, data, sector (the scene), layers, selected, hovered, center, halfEdge}
   let open = null;
   let token = 0;
-  // "Mark rogue planets" (MAP.46): kept across sectors opened. On to begin
-  // with (MAP.137), so a rogue planet is easy to find once it is shown.
-  let roguesMarked = true;
   // The kinds of object left off the map (MAP.79), kept across sectors:
   // rogue planets to begin with (MAP.137).
   const hiddenKinds = new Set(DEFAULT_HIDDEN_KINDS);
@@ -278,7 +275,6 @@ export function createSectorStage(host) {
         onShape: function (count) { host.canvasEl.dataset.sectorNebulaMeshes = String(count); },
       });
       host.scene.add(state.sector.group);
-      state.sector.setRoguesMarked(roguesMarked);
       hiddenKinds.forEach(function (kind) { state.sector.setKindHidden(kind, true); });
       markedKinds.forEach(function (kind) { state.sector.setKindMarked(kind, true); });
       hiddenClasses.forEach(function (c) { state.sector.setStarClassHidden(c, true); });
@@ -339,11 +335,6 @@ export function createSectorStage(host) {
     deselect: deselect,
     // The open sector's entry with this key ("rogue_planet:12"), or null.
     entryByKey: function (key) { return open ? open.sector.entryByKey.get(key) || null : null; },
-    setRoguesMarked: function (on) {
-      roguesMarked = on;
-      if (open) open.sector.setRoguesMarked(on);
-    },
-    roguesMarked: function () { return roguesMarked; },
     // The kinds of object in the open sector, [{kind, label, count}] (MAP.79).
     kinds: function () { return open ? open.sector.kinds() : []; },
     setKindHidden: setKindHidden,
