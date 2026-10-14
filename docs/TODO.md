@@ -1515,9 +1515,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with an algorithm of some kind, not sure what yet." Done: when created
   sectors form more than one separate group, the map has a rule for
   which group it opens on and a way to jump between the groups (a list
-  of regions, nearest to the origin, or the most recently changed),
-  chosen by Boss from the options in the note. Decision needed from Boss
-  before building.
+  of regions). Decided (Boss, 2026-10-14 13:27Z): the map opens on the
+  largest group; a user's own home (USR.11) overrides it.
   Prerequisite: MAP.189. Related: MAP.189, MAP.151.
 
 - [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
@@ -1538,12 +1537,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
   GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
   (Boss, 2026-10-13 16:41Z): "I would like to be able to see the
-  positions that updated in the last orbital update." Done: after an
-  orbital update the user can see which objects moved and how far (a
-  Galaxy and Sector Map highlight, a list in the admin page, or both)
-  from the update's own record. Needs from Boss: where to see them (map
-  highlight, list, admin report) and how long the "last update" view
-  stays (until the next update or a set time).
+  positions that updated in the last orbital update." Decided (Boss,
+  2026-10-14 13:25Z): an admin page lists the objects that moved in the
+  last update, with a link to view them on the Galaxy or Sector Map; the
+  list stays until the next update runs; each entry shows how far the
+  object moved and in what direction, as a vector; a "ghost" of the
+  previous position can be shown on the map on request. Done: that page,
+  the vector and the ghost, from the update's own record.
   Prerequisites: none. Related: GEN.105, GEN.139, ADM.36.
 
 - [ ] **MAP.193 Show every object's axis of rotation, direction of rotation and axial tilt**
@@ -3527,9 +3527,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first five are Green or Blue, Blue only if all others are Blue; a Red
   Suitability drops any overall score to Yellow but never to Red. Done:
   the model, the stored values, the planet pages and the API carry the
-  six dimensions with the rules above, and tests cover each rule. Needs
-  answers from Boss to several rules before building (see the comment on
-  the issue). Owner: Foundations lane 2, after GEN.206.
+  six dimensions with the rules above, and tests cover each rule. Decided (Boss, 2026-10-14 13:16Z): air yellow or red caps the overall
+  rating at Yellow, never lower; a world with no liquid water has Water
+  Chemistry Red, which caps the overall score at Yellow and makes
+  Suitability Red; pressure always matters but does not change the score
+  once a full suit is needed anyway, and it is still listed among the
+  reasons for the suit in the details; the overall score mixes the
+  colour gates with the geometric mean, gates first; Blue overall needs
+  all six Blue. Still open: what makes Suitability Red, Yellow, Green and
+  Blue (and whether it has a 0 to 1 number): Boss is writing separate
+  research and will upload it as a Markdown file; the Suitability part
+  waits for it. Owner: Foundations lane 2, after GEN.206.
   Prerequisite: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
@@ -3957,9 +3965,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same size, the cause is found (a query that stopped using an
   index, a lock, a missing batch, a worker waiting on a full queue) and
   fixed, and the stage shows steady progress instead of freezing. A test
-  or timing record keeps the link stage inside a budget. Needs from
-  Boss: the size of the runs that stalled and the job log, if still
-  around. Owner: Foundations lane 1, right after PERF.83.
+  or timing record keeps the link stage inside a budget. Boss
+  (2026-10-14 13:18Z): it was a normal default new galaxy with default
+  settings, it worked fine on a recent version he cannot name, and he
+  thinks it is a reporting issue, so check first whether the stage works
+  but its progress or ETA freezes (PERF.85 has the same signs). Owner: Foundations lane 1, right after PERF.83.
   Prerequisites: none. Related: PERF.83, PERF.85, PERF.68, PERF.79.
 
 - [ ] **PERF.85 Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug)**
@@ -3992,13 +4002,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what we're doing and junk all of the logic on what makes a task and
   subtask and all of that. It's going to be a lot of work too but I
   think I'm wasting a lot of efficiency." Done: a design note on what
-  the queue does today, what it needs to do (resumable runs, cancel,
-  progress bars and ETAs, per-stage records, job logs, the single
-  scatter job), and the simplest design on plain Redis queues, then the
-  rebuild; PERF.40, PERF.78, ADM.15, PERF.29 and PERF.30 wait for this
-  plan and are folded in or dropped. Needs from Boss: which behaviours
-  must survive (see the comment on the issue). Owner: a research thread
-  first (coordinator to assign), then Foundations lane 1.
+  the queue does today, what it needs to do, and the simplest design on plain Redis queues,
+  then the rebuild; PERF.40, PERF.78, ADM.15, PERF.29 and PERF.30 wait
+  for this plan and are folded in or dropped. Decided (Boss, 2026-10-14
+  13:24Z): keep a "cancel now" that stops a job, progress bars and ETAs
+  per stage, per-stage timing records (Boss wants stats on how long
+  everything takes) and the job log with its download link; an admin
+  starts or cancels a run, so there is no automatic resume after an
+  interruption; several workers on one job are fine. CHANGED from the
+  2026-10-10 decision: the scatter no longer stays one job. Each scatter
+  becomes its own item in the queue, run one after another, and the same
+  applies to the phases of anything. Boss asks the research to cover the
+  best ways to use Redis in a situation like ours and to give him
+  options before the rebuild starts. Owner: a research thread first
+  (coordinator to assign), then Foundations lane 1.
   Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
   ADM.15, PERF.24.
 
@@ -5331,9 +5348,22 @@ clears each one.
   planets or anything but like a ship or a station or some such that
   they can track the movement of in the map." Done: a signed-in user can
   add a ship or station object, give it a position and movement, and see
-  it and its track on the maps; the object belongs to the user. Needs
-  answers from Boss (see the comment on the issue). Owner: not assigned.
+  it and its track on the maps; the object belongs to the user. Decided
+  (Boss, 2026-10-14 13:20Z): a user object's movement is a course from
+  the route planner (this may change later); everyone can see every
+  user's objects; no limit per user yet. Owner: not assigned.
   Prerequisites: none. Related: USR.8, GEN.105, NAV.4.
+
+- [ ] **USR.11 A "home" field on user accounts: where the Galaxy Map zooms to when it opens**
+  GitHub issue #1232 (Boss, 2026-10-14 13:27Z): "users have the option
+  to specify where to zoom into. Add a 'home' field to user accounts
+  that will specify the location to zoom into." Done: a signed-in user
+  can set a home (a star system, sector or position, picked from the map
+  or the object page), it is stored on the account (Alembic migration,
+  Foundations lane 1 owns migrations), and the Galaxy Map opens flown in
+  to it instead of the largest group of created sectors (MAP.190); users
+  without a home get the default. Owner: not assigned.
+  Prerequisites: MAP.189, MAP.190. Related: MAP.189, MAP.190, USR.8.
 
 ## OPS: Installers, hosting, CI, releases
 
@@ -5926,6 +5956,8 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   ability to scatter space vessels and stations for appropriate races
   within their territories." Done: the population pass places vessels
   and stations for species whose tech level allows them, inside their
-  territory, as stored objects like the user objects of USR.10. Owner:
-  not assigned.
+  territory, as stored objects like the user objects of USR.10. Which tech
+  level allows vessels and which stations is set from the tech-level
+  design (docs/design/Technological Assessment.md and the "Tech levels"
+  section of population-and-politics.md, POP.8). Owner: not assigned.
   Prerequisites: POP.7, USR.10. Related: POP.7, POP.10, USR.10.
