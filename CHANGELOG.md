@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1098] - 2026-10-14
+
+### Fixed
+- **Rogue planets show their surface gravity.** A rogue planet's page now has a Surface Gravity row, and the figure is in its row in a sector's contents (folded or listed) and in its popup on the sector map, worked out from its mass and radius like any other planet's.
+
 ## [8.0.1097] - 2026-10-14
 
 ### Changed
