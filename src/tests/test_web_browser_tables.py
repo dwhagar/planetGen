@@ -341,9 +341,11 @@ def test_filters_narrow_the_rows_and_the_other_menu(page, table_site):
     assert parse_qs(urlparse(page.url).query) == {"type": ["rogue_planet"]}
     for name in _first_names(page, 5):
         assert int(name.split()[-1]) % 5 in (2, 3)
-    # The Descriptor menu now counts only rogue planets and hides the rest.
+    # The Descriptor menu now counts only rogue planets and hides the rest (the counts follow the rows, UX.95).
     descriptor = page.locator(".datatable-facet[data-param='descriptor']")
     descriptor.locator("summary").click()
+    descriptor.locator("li", has_text="Gas giant").locator(".datatable-count", has_text=f"({rogue // 2})") \
+        .wait_for(state="attached", timeout=10000)
     assert descriptor.locator("li:not([hidden])").count() == 2
     assert descriptor.locator("li", has_text="Gas giant").inner_text().endswith(f"({rogue // 2})")
 
@@ -356,7 +358,30 @@ def test_filters_narrow_the_rows_and_the_other_menu(page, table_site):
     assert "match" not in _count_line(page)
     assert urlparse(page.url).query == ""
     assert page.locator(".datatable-clear").is_hidden()
+    deadline = time.monotonic() + 10
+    while descriptor.locator("li:not([hidden])").count() != len(KINDS) and time.monotonic() < deadline:
+        page.wait_for_timeout(100)
     assert descriptor.locator("li:not([hidden])").count() == len(KINDS)
+
+
+def test_the_rows_show_before_the_filter_counts_arrive(page, table_site):
+    """UX.95: a slow count request holds the menus ("...") but not the rows."""
+    release = threading.Event()
+
+    def slow_counts(route):
+        release.wait(timeout=20)
+        route.continue_()
+
+    page.route("**/table/**facets=1**", slow_counts)
+    _open(page, table_site)
+    kind = page.locator(".datatable-facet[data-param='type']")
+    kind.locator("summary").click()
+    kind.get_by_label("Rogue Planet").check()
+    rogue = sum(1 for row in ROWS if row["type"] == "rogue_planet")
+    _wait_count(page, f"{rogue} phenomena match")                       # the rows and the count line are in
+    assert kind.locator(".datatable-count").first.inner_text() == "..."   # the counts are not
+    release.set()
+    kind.locator(".datatable-count", has_text="(").first.wait_for(state="attached", timeout=10000)
 
 
 def test_a_filtered_address_loads_filtered(page, table_site):

@@ -205,10 +205,9 @@ function enhance(root) {
   }
 
   // --- Fetched pages -----------------------------------------------------
-  let wantFacets = true;
   const store = createPageStore(PAGE_SIZE, (page, generation, after) => {
-    const withFacets = page === 0 && wantFacets;
-    const address = `${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, withFacets, after)}`;
+    // The filter-menu counts come in a request of their own (loadFacets), so a slow count never holds the rows back.
+    const address = `${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, false, after)}`;
     // A database too busy to answer (a 504) keeps the rows already loaded and asks again after a growing pause (UX.96).
     return fetchWhileBusy(() => fetch(address, { headers: { Accept: "application/json" } }),
       () => !store.stale(generation), (busy) => showBusy(page, busy));
@@ -402,7 +401,6 @@ function enhance(root) {
     const mine = loadToken;
     store.reset();
     drawn = "";
-    wantFacets = true;
     root.setAttribute("aria-busy", "true");
     return store.ensure(0).then((loaded) => {
       if (mine !== loadToken || !loaded) {
@@ -413,11 +411,29 @@ function enhance(root) {
       virtualizer._willUpdate();
       scroller.scrollTop = 0;
       virtualizer.scrollToOffset(0);
-      updateFacets(store.facets);
       showHeaders();
       showCount();
       render();
+      loadFacets(mine);
     });
+  }
+
+  // The filter menus' counts for the current sort and filters, fetched after the rows are painted. The old counts
+  // read "..." until the new ones arrive; an answer for a table that has been reloaded since is dropped.
+  function loadFacets(mine) {
+    facetNodes.forEach((node) => {
+      node.querySelectorAll(".datatable-count").forEach((count) => {
+        count.textContent = "...";
+      });
+    });
+    const address = `${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), 0, 1, true)}`;
+    return fetchWhileBusy(() => fetch(address, { headers: { Accept: "application/json" } }),
+      () => mine === loadToken, (busy) => showBusy("facets", busy))
+      .then((body) => {
+        if (mine === loadToken) {
+          updateFacets(body.facets);
+        }
+      }, () => {});
   }
 
   // TanStack Table also reports state this table doesn't use; only a new
@@ -475,7 +491,6 @@ function enhance(root) {
     root.dataset.enhanced = "true";
     virtualizer.setOptions({ ...virtualizer.options, count: store.total });
     virtualizer._willUpdate();
-    updateFacets(store.facets);
     showCount();
     render();
     const first = tbody.querySelector("tr[data-index]");
