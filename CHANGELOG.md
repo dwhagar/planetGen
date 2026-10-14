@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1095] - 2026-10-14
+
+### Changed
+- Saving a sector is about 15% faster: a batch of rows is written as SQL text built directly from ints, floats, `NULL` and plain strings, instead of through the database driver's per-value formatting. The text is identical to what the driver wrote (a test compares them value by value), so the stored rows are the same.
+
 ## [8.0.1094] - 2026-10-14
 
 ### Changed
