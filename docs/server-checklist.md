@@ -35,10 +35,10 @@ Reloading or restarting the app does not apply schema migrations. Only
 
     curl -s https://HOST/api/health
 
-Pass: `"schema_current": true`. If not: run `python3 -m planetgen.cli.migrate`
+Pass: `"schema_current": true`. If not: run `/usr/local/planetgen/venv/bin/python -m planetgen.cli.migrate`
 with the same database settings the site uses (`config.json`, or the
 same `PLANETGEN_MYSQL_*` variables), then check again.
-`python3 -m planetgen.cli.migrate --status` prints the current and target
+`/usr/local/planetgen/venv/bin/python -m planetgen.cli.migrate --status` prints the current and target
 versions without changing anything.
 
 If you use more than one database, check each one. `planetgen.cli.migrate` only

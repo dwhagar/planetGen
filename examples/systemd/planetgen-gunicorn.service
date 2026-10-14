@@ -70,6 +70,7 @@ RuntimeDirectoryMode=0750
 # (benoitc/gunicorn#3648).
 ExecStart=/usr/local/planetgen/venv/bin/gunicorn \
     --pythonpath /var/lib/planetGen/src/html \
+    --no-control-socket \
     --bind unix:/run/planetgen/gunicorn.sock \
     --umask 0007 \
     --workers 1 \
