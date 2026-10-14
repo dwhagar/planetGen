@@ -1093,6 +1093,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   containers, then the 3-ary ladder (MAP.151b).
   /galaxy/window?at=<cell>&g=<3..11> is planetgen/galaxy/window.py and
   tilecache.fetch_window.
+  Status (2026-10-09): MAP.151d part 1 done (Foundations lane 2,
+  2026-10-14, #1335): the window stage at /galaxy?win=&g= with
+  click-centred zoom, JS windowCells matching the Python Region, and
+  /galaxy/window; nothing links to it yet. Part 2 left: the galaxy home
+  as a window, retire the arc, slab and segment picks (the rest of
+  MAP.150, which unlocks MAP.189 and MAP.190), URLs and breadcrumb from
+  the window. The 3-ary ladder (MAP.151b) needs a per-level aggregate
+  table so a window does not need about 64 stage queries: DB.25,
+  Foundations lane 1.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -4027,6 +4036,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migrations), after PERF.70.
   Prerequisites: none. Related: GEN.201, MAP.171, MAP.165.
 
+- [ ] **DB.25 A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration)**
+  Foundations lane 2 (2026-10-14, after #1335): with the 3-ary ladder
+  (MAP.151b, 729/243/81/27/9/3/1) a map window would need about 64 stage
+  queries unless the per-level aggregates are stored. Done: a migration
+  and its previous-version fixture for a table holding the aggregates
+  per ladder level and cell (the columns the stage views already show:
+  star count, summed luminosity, mean age, nebula cover when MAP.172
+  lands), filled by the stage run and by a backfill for existing
+  galaxies; the window query reads it in one statement; a test that the
+  stored aggregates equal the ones computed from the stage files. Owner:
+  Foundations lane 1 (the only lane that adds migrations); queue it
+  right after PERF.92 because MAP.151b waits on it.
+  Prerequisites: none. Related: MAP.151, MAP.172.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -5015,6 +5038,21 @@ clears each one.
   into the rebuild, no separate hunt; same family and fix as TEST.126.
   Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.138.
+
+- [ ] **TEST.145 Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug)**
+  Reported by Foundations lane 2 via the coordinator (2026-10-14,
+  MAP.151d suite): 17 full-suite tests failed when the suite ran from a
+  git worktree because tests that start subprocesses (schema-version
+  tests among them) used the editable install pointing at
+  /home/user/planetGen, not the worktree; all pass against the right
+  code, and the lane worked around it by setting PYTHONPATH to the
+  worktree src. Like TEST.143 for the install check. Done: every test
+  that spawns a subprocess puts the checkout under test first on
+  PYTHONPATH (one shared helper), so the suite passes from any checkout
+  or worktree, with a test that fails if a subprocess imports planetgen
+  from anywhere else. Owner: the Test Suite Rebuild thread (its list),
+  not a lane.
+  Prerequisites: none. Related: TEST.139.
 
 ## USR: User accounts
 
