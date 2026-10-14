@@ -594,6 +594,84 @@ export function drillSlotRange(block, sectorRing) {
   return blockSlotRange(block.ring, block.wedge, block.m, sectorRing, drillWedgeCount(block.m, block.ring));
 }
 
+// --- The data window ---------------------------------------------------------
+//
+// planetgen/galaxy/window.py (MAP.151) for the page: `g` cells across around
+// a chosen cell of one level, the cells whose centres lie within g/2 cells of
+// the middle one across the plane and (g - 1)/2 slabs of its layer, in
+// slab, ring, wedge order. The lattice is the sector grid scaled by the cell
+// size, so no edge length is needed: a block m sectors a side has its ring
+// centreline at (ring + 1/2) * m edges, its wedge centre at (wedge + 1/2) of
+// drillWedgeCount(m, ring) turns and its slab midplane at slab * m edges.
+// tests/test_window.py checks the two agree.
+
+export var WINDOW_WIDTHS = [3, 5, 7, 9, 11];
+export var DEFAULT_WINDOW = 9;
+var WINDOW_EPS = 1e-9;
+
+// The wedges of ring `ring` inside the window's circle, {first, count,
+// whole} (count wedges from `first`, wrapping past the ring's last), or
+// null when it reaches none: Region._ring_arc.
+function windowArc(m, ring, cx, cy, reach) {
+  var n = drillWedgeCount(m, ring);
+  var rm = (ring + 0.5) * m;
+  var rc = Math.hypot(cx, cy);
+  if (Math.abs(rm - rc) > reach + WINDOW_EPS) return null;
+  if (rc < WINDOW_EPS || rm + rc <= reach) return { first: 0, count: n, whole: true };
+  function inside(k) {
+    var theta = (k + 0.5) * 2 * Math.PI / n;
+    return Math.hypot(rm * Math.cos(theta) - cx, rm * Math.sin(theta) - cy) <= reach + WINDOW_EPS;
+  }
+  function mod(k) { return ((k % n) + n) % n; }
+  var step = 2 * Math.PI / n;
+  var halfWidth = Math.acos(Math.max(-1, Math.min(1, (rm * rm + rc * rc - reach * reach) / (2 * rm * rc))));
+  var thetaC = Math.atan2(cy, cx);
+  var first = Math.ceil((thetaC - halfWidth) / step - 0.5 - WINDOW_EPS);
+  var last = Math.floor((thetaC + halfWidth) / step - 0.5 + WINDOW_EPS);
+  var count = last - first + 1;
+  // The angles can be a hair off at the arc's ends; the exact distance
+  // decides the end wedges, one step either way.
+  while (count < n && inside(mod(first - 1))) { first -= 1; count += 1; }
+  while (count < n && inside(mod(first + count))) count += 1;
+  while (count > 0 && !inside(mod(first))) { first += 1; count -= 1; }
+  while (count > 0 && !inside(mod(first + count - 1))) count -= 1;
+  if (count <= 0) return null;
+  if (count >= n) return { first: 0, count: n, whole: true };
+  return { first: mod(first), count: count, whole: false };
+}
+
+// The window's cells, [{m, ring, wedge, slab}]: `centre` is a cell of any
+// level (a sector as {m: 1, ring, wedge: slot, slab: layer}) and `g` one of
+// WINDOW_WIDTHS (default DEFAULT_WINDOW).
+export function windowCells(centre, g) {
+  g = g || DEFAULT_WINDOW;
+  var m = centre.m;
+  var n0 = drillWedgeCount(m, centre.ring);
+  var theta0 = (centre.wedge + 0.5) * 2 * Math.PI / n0;
+  var r0 = (centre.ring + 0.5) * m;
+  var cx = r0 * Math.cos(theta0);
+  var cy = r0 * Math.sin(theta0);
+  var reach = g * m / 2;
+  var rc = Math.hypot(cx, cy);
+  var low = Math.max(0, Math.ceil((rc - reach) / m - 0.5 - WINDOW_EPS));
+  var high = Math.floor((rc + reach) / m - 0.5 + WINDOW_EPS);
+  var arcs = [];
+  for (var ring = low; ring <= high; ring++) {
+    var arc = windowArc(m, ring, cx, cy, reach);
+    if (arc) arcs.push({ ring: ring, first: arc.first, count: arc.count, wedges: drillWedgeCount(m, ring) });
+  }
+  var half = (g - 1) / 2;
+  var cells = [];
+  for (var slab = centre.slab - half; slab <= centre.slab + half; slab++) {
+    for (var a = 0; a < arcs.length; a++) {
+      for (var k = 0; k < arcs[a].count; k++) {
+        cells.push({ m: m, ring: arcs[a].ring, wedge: (arcs[a].first + k) % arcs[a].wedges, slab: slab });
+      }
+    }
+  }
+  return cells;
+}
+
 // A cell's mean density and its azimuthal mean ({density, mean}), as
 // blocksInView shades blocks by.
 export function boundsDensity(b, shape) {

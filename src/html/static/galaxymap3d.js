@@ -3019,6 +3019,15 @@ function initGalaxyMap3d(canvasEl, data) {
           return response.json();
         });
     },
+    fetchWindow: function (query) {
+      return fetch((data.windowPath || "/galaxy/window") + query, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        });
+    },
     showBlockInfo: function (info) { showBlockInfo(info, edgePc); },
     showRegionInfo: showRegionInfo,
     showPlacedInfo: showPlacedInfo,

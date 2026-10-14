@@ -526,3 +526,83 @@ console.log(JSON.stringify([
 """)
     assert out == ["#4 Unknown", "#2 < 0.01% charted", "#6 ≈ 2.43% charted", "#-1 100% charted",
                    "#0 ≈ 99.99% charted", "#0 3 charted", "#2–3 Unknown", "#4"]
+
+
+# --- Window stages (MAP.151) -------------------------------------------------
+
+def test_window_stage_urls_round_trip_and_bad_ones_are_refused():
+    out = _run("""
+const centre = {m: 27, ring: 40, wedge: 11, slab: -1};
+const queries = [S.stageQuery(S.windowStage(centre)), S.stageQuery(S.windowStage(centre, 5))];
+const parsed = queries.map(q => S.parseStageQuery(q).stage);
+const bad = ["?win=81.0.0.0", "?win=27.3.99999.0", "?win=x", "?win=27.3.5.0&g=4", "?win=27.3.5.0&g=x"]
+  .map(q => S.parseStageQuery(q).problem);
+console.log(JSON.stringify({queries, parsed, bad, sector: S.parseStageQuery("?win=1.5.7.0").stage.win}));
+""")
+    assert out["queries"] == ["?win=27.40.11.-1", "?win=27.40.11.-1&g=5"]
+    assert [p["win"] for p in out["parsed"]] == [
+        {"centre": {"m": 27, "ring": 40, "wedge": 11, "slab": -1}, "g": 9},
+        {"centre": {"m": 27, "ring": 40, "wedge": 11, "slab": -1}, "g": 5}]
+    assert all(out["bad"])
+    assert out["sector"] == {"centre": {"m": 1, "ring": 5, "wedge": 7, "slab": 0}, "g": 9}
+
+
+def test_a_window_stage_resolves_to_a_cell_to_pick_for_each_block():
+    out = _run("""
+const stage = S.windowStage({m: 27, ring: 40, wedge: 11, slab: 0});
+const r = S.resolveStage(stage, outline, edge);
+const settled = S.settleStage(stage, outline, edge);
+console.log(JSON.stringify({
+  problem: r.problem, kind: r.kind, blocks: r.view.blocks.length, options: r.options.length,
+  sameAsSettled: settled.options.length === r.options.length && settled.kind === r.kind,
+  bounded: r.view.blocks.every(b => b.bounds && b.total > 0 && b.m === 27),
+  pick: r.options[0].pick.kind, outside: S.resolveStage(S.windowStage({m: 243, ring: 15, wedge: 0, slab: 30}), outline, edge).problem,
+}));
+""")
+    assert out["problem"] is None and out["kind"] == "cell" and out["pick"] == "cell"
+    assert out["blocks"] == out["options"] and 300 < out["blocks"] <= 729
+    assert out["sameAsSettled"] and out["bounded"]
+    assert "Nothing of the galaxy" in out["outside"]
+
+
+def test_a_click_opens_the_window_one_size_down_and_up_comes_back():
+    out = _run("""
+const stage = S.windowStage({m: 243, ring: 3, wedge: 4, slab: 0});
+const r = S.resolveStage(stage, outline, edge);
+const rows = [];
+for (const block of r.view.blocks.slice(0, 40)) {
+  const into = S.windowInto(stage, block);
+  const back = S.windowOut(into);
+  const parent = P.drillParent(into.win.centre);
+  rows.push([into.win.centre.m, P.formatDrillKey(parent) === P.formatDrillKey(block), P.formatDrillKey(back.win.centre) === P.formatDrillKey(block), into.win.g]);
+}
+const sectorWindow = S.windowStage({m: 1, ring: 50, wedge: 3, slab: 0});
+const sectorBlock = S.resolveStage(sectorWindow, outline, edge).view.blocks[0];
+console.log(JSON.stringify({rows, sector: S.windowInto(sectorWindow, sectorBlock), top: S.windowOut(stage),
+  three: S.windowChildCentre({m: 3, ring: 20, wedge: 6, slab: 2})}));
+""")
+    assert all(m == 27 and inside and back and g == 9 for m, inside, back, g in out["rows"])
+    assert out["sector"] is None
+    assert out["top"] is None
+    three = out["three"]
+    assert three["m"] == 1 and three["slab"] == 6
+
+
+def test_a_window_stage_has_a_breadcrumb_down_from_the_galaxy():
+    out = _run("""
+const centre = P.drillChainOf(900, 4, 2000)[2];
+const stage = S.windowStage(centre);
+const crumbs = S.crumbs(stage, outline, edge);
+let steps = 0, current = stage, seen = [];
+for (let parent = S.parentStage(current, outline, edge); parent; parent = S.parentStage(current, outline, edge)) {
+  seen.push(parent.win ? parent.win.centre.m : "galaxy");
+  current = parent;
+  if (++steps > 10) break;
+}
+console.log(JSON.stringify({labels: crumbs.map(c => c.label), last: crumbs.map(c => c.last), seen, top: S.settleStage({at: null, picks: []}, outline, edge).stage, current}));
+""")
+    assert out["labels"][0] == "Galaxy" and len(out["labels"]) == 4
+    assert [label.split(" ")[0] for label in out["labels"][1:]] == ["Block", "Block", "Block"]
+    assert out["labels"][-1].endswith("(3)") and out["last"] == [False, False, False, True]
+    assert out["seen"] == [27, 243, "galaxy"]
+    assert out["current"] == out["top"]

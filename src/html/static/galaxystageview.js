@@ -205,6 +205,7 @@ export function createStageView(host) {
   }
 
   function containerKey(at) {
+    if (at && at.centre) return "w" + S.formatDrillKey(at.centre) + "g" + at.g;
     return at ? S.formatDrillKey(at) : "galaxy";
   }
 
@@ -221,7 +222,10 @@ export function createStageView(host) {
     let entry = dataCache.get(key);
     if (!entry) {
       entry = { ready: false, value: null };
-      entry.promise = host.fetchStage(at ? S.stageQuery({ at: at, picks: [] }) : "").then(function (payload) {
+      const fetched = at && at.centre
+        ? host.fetchWindow("?at=" + S.formatDrillKey(at.centre) + "&g=" + at.g)
+        : host.fetchStage(at ? S.stageQuery({ at: at, picks: [] }) : "");
+      entry.promise = fetched.then(function (payload) {
         const generated = new Map();
         const stats = new Map();
         (payload.children || []).forEach(function (child) {
@@ -238,7 +242,7 @@ export function createStageView(host) {
         });
         // A thin block's view is its sectors (galaxystages.thinSectors):
         // their own counts come from each level-3 child holding any.
-        if (!at || !S.thinSectors(at, getOutline(), edgePc)) {
+        if (!at || at.centre || !S.thinSectors(at, getOutline(), edgePc)) {
           entry.ready = true;
           return entry.value;
         }
@@ -272,7 +276,7 @@ export function createStageView(host) {
   function invalidate() {
     dataCache.clear();
     if (active && display) {
-      loadData(stage.at).then(function () {
+      loadData(S.holder(stage)).then(function () {
         if (display && !animation) rebuildDisplay();
       });
     }
@@ -351,7 +355,7 @@ export function createStageView(host) {
   }
 
   function isWholeGalaxy(r) {
-    return !r.stage.at && r.view.a1 - r.view.a0 >= TWO_PI - 1e-9;
+    return !r.stage.at && !r.stage.win && r.view.a1 - r.view.a0 >= TWO_PI - 1e-9;
   }
 
   // The bounds a set of blocks covers in the plane, bearings counted
@@ -379,7 +383,7 @@ export function createStageView(host) {
   // the others fade), with each cell's choice behind the meshes for
   // picking.
   function buildDisplay(r) {
-    const data = dataFor(r.stage.at);
+    const data = dataFor(S.holder(r.stage));
     const options = choicesOf(r, data);
     const root = new THREE.Group();
     const groups = [];
@@ -649,6 +653,7 @@ export function createStageView(host) {
   // the isometric slant for a block of several slabs.
   function presetTilt(r) {
     if (isWholeGalaxy(r)) return 0;
+    if (r.stage.win) return slabsIn(r.view.blocks).length > 1 ? ISO_TILT : 0;
     return r.kind === "layer" ? ISO_TILT : 0;
   }
 
@@ -668,7 +673,9 @@ export function createStageView(host) {
       z0 = Math.min(z0, block.bounds.z0);
       z1 = Math.max(z1, block.bounds.z1);
     });
-    const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
+    // A window looks from outside its middle, the core's bearing up the screen.
+    const theta = isWholeGalaxy(r) ? -Math.PI / 2
+      : r.stage.win ? Math.atan2(fp.center[1], fp.center[0]) + Math.PI : (r.view.a0 + r.view.a1) / 2 + Math.PI;
     const quat = presetQuat(theta, presetTilt(r));
     const fit = centeredFit(fitPointsOf(r), [fp.center[0], fp.center[1], (z0 + z1) / 2], quat);
     return { target: fit.target, dist: fit.dist, quat: quat };
@@ -1085,7 +1092,7 @@ export function createStageView(host) {
     renderTravel();
     hover = null;
     showTooltip("", 0, 0);
-    loadData(r.stage.at).then(function () {
+    loadData(S.holder(r.stage)).then(function () {
       if (!active || token !== goToken) return;
       if (animation) finishAnimation();
       flyTo(r);
@@ -1097,7 +1104,7 @@ export function createStageView(host) {
   // reaches the whole galaxy. Only on the first view, with no sector asked.
   function closeOnCharted(r, v) {
     if (!isWholeGalaxy(r) || pendingOpen || selectedSector) return;
-    const data = dataFor(r.stage.at);
+    const data = dataFor(S.holder(r.stage));
     const charted = r.view.blocks.filter(function (block) { return generatedOf(block, data) > 0; });
     if (!charted.length) return;
     const fit = centeredFit(boundsPoints(charted), v.target.slice(), v.quat);
@@ -1541,7 +1548,7 @@ export function createStageView(host) {
       showRegionInfo(hint);
       return;
     }
-    const data = dataFor(stage.at);
+    const data = dataFor(S.holder(stage));
     let generated = 0;
     if (data) data.generated.forEach(function (n) { generated += n; });
     const total = getOutline().shapeless ? null : S.drillBlockTotal(stage.at, getOutline());
@@ -1562,7 +1569,7 @@ export function createStageView(host) {
     }
     const last = stage.picks[stage.picks.length - 1];
     const span = spanOf(blocks, (resolved.view.a0 + resolved.view.a1) / 2);
-    const sum = sumOf(blocks, dataFor(stage.at));
+    const sum = sumOf(blocks, dataFor(S.holder(stage)));
     host.showRegionInfo({
       title: S.pickLabel(last, stage.at, resolved.view),
       span: span,
@@ -1583,7 +1590,7 @@ export function createStageView(host) {
     const blocks = resolved.view.blocks;
     let layer = isSectorView(resolved) && blocks.every(function (b) { return b.slab === blocks[0].slab; }) ? blocks[0].slab : null;
     if (layer != null && !getOutline().shapeless) {
-      const sum = sumOf(blocks, dataFor(stage.at));
+      const sum = sumOf(blocks, dataFor(S.holder(stage)));
       if (sum.total > 0 && sum.generated >= sum.total) layer = null;
     }
     if (blockDone && layer == null) return null;
@@ -1604,7 +1611,7 @@ export function createStageView(host) {
   }
 
   function sectorRecord(block) {
-    const data = dataFor(stage.at);
+    const data = dataFor(S.holder(stage));
     return data ? data.sectors.get(block.ring + "/" + block.wedge + "/" + block.slab) : null;
   }
 
@@ -1646,6 +1653,7 @@ export function createStageView(host) {
       return "Click a sector to open it; a sector that isn't generated yet shows where it is"
         + (host.canGenerate ? " and how to generate it." : ".");
     }
+    if (r.kind === "cell") return "Click a block to zoom in on it; Up zooms out again.";
     return "Click a block of the slab to zoom into it.";
   }
 
@@ -1697,6 +1705,12 @@ export function createStageView(host) {
   function takePick(pick) {
     if (pinned) return;
     const base = display && display.resolved ? display.resolved.stage : stage;
+    if (pick.kind === "cell") {
+      // A cell of a window: the window one size down, centred on it.
+      const into = S.windowInto(base, pick.block);
+      if (into) go(into);
+      return;
+    }
     go({ at: base.at, picks: base.picks.concat([pick]) });
   }
 
@@ -2198,7 +2212,7 @@ export function createStageView(host) {
     if (!resolved) return null;
     if (selectedSector) {
       const designation = S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot);
-      const data = dataFor(stage.at);
+      const data = dataFor(S.holder(stage));
       const sector = data ? data.sectors.get(selectedSector.ring + "/" + selectedSector.slot + "/" + selectedSector.layer) : null;
       // The sector page itself, without a pick mode's query.
       const page = sector && host.sectorUrl(sector.id) ? host.sectorUrl(sector.id).split("?")[0] : null;
@@ -2886,7 +2900,7 @@ export function createStageView(host) {
       return;
     }
     const r = resolved || resolve(stage);
-    loadData(r.stage.at).then(function () {
+    loadData(S.holder(r.stage)).then(function () {
       if (!active) return;
       display = null;
       flyTo(r);
