@@ -582,6 +582,35 @@ with `clamp()`.
   model.
   Prerequisites: GEN.207, UX.100. Related: UX.100, GEN.207.
 
+- [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
+  (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
+  output logs, timestamps, same formatting, same style, dividers, step
+  markers, etc, etc, etc, adopt an industry based standard for file and
+  log output." Today the Generate page log, the CLI text, the downloaded
+  log, the job log files and the other commands each format their own
+  lines (UX.98 is the first visible symptom: stage numbering and section
+  separators differ). Done: a design note that lists every place the
+  program writes a log or report a person reads (Generate log, CLI
+  commands, job log files, the downloadable log, update.sh output, admin
+  pages that show logs), picks the standard, and a build that moves all
+  of them onto one logging layer, with tests that fail if a new output
+  path formats its own lines. Open question for Boss (default: use
+  Python's standard logging module as the one entry point; every record
+  carries an RFC 3339 UTC timestamp, a severity from the RFC 5424 syslog
+  levels (debug, info, notice, warning, error, critical), a short
+  component name and a message, with machine-readable key=value fields
+  (logfmt style) for numbers such as counts and elapsed time; files are
+  one record per line in that format, with an optional JSON Lines form
+  for machines; the readable display in the web log and CLI is rendered
+  from the same records, with one divider style, one stage marker form
+  ("Stage N of M: name", "Stages N to M of M: name" for a run) and one
+  wording for start, finish and failure, so a downloaded log and the
+  screen always agree; timestamps are always UTC in files and local time
+  only in the page display, labelled). Owner: Bugfixes lane 1 builds
+  UX.98 first as the first slice, then the rest is a Phase 2 item for
+  the interface builders.
+  Prerequisites: UX.98. Related: ['UX.98', 'PERF.66', 'UX.93'].
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
