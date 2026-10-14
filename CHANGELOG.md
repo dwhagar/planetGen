@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1073] - 2026-10-14
+
+### Changed
+- TODO: documentation sweep filed as DOC.18 to DOC.44 (a last block of Phase 1); MAP.159 retired (PR #1305).
+
 ## [8.0.1072] - 2026-10-14
 
 ### Changed
