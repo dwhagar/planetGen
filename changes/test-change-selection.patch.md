@@ -1,2 +1,0 @@
-### Added
-- **`scripts/test.py changed` runs only the tests a change can affect** (TEST.139). `scripts/test.py full` now keeps a record of the files each passing test used (`.pytest-deps.json`, not tracked by git; needs Python 3.12 or later), and `changed` reads it to pick the tests for the changes since `origin/main`. `scripts/test.py full --check` lists any failing test that selection would have missed, to prove it before it is trusted. The full suite stays the merge gate.
