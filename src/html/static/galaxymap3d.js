@@ -62,7 +62,7 @@ const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const {
-  INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
+  INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
 const {
   FADE_OCTAVES, POINT_FADE, birthRadius, opacitySum, starZoomOpacity, tileRanks,
@@ -747,14 +747,9 @@ function initGalaxyMap3d(canvasEl, data) {
   };
 
   // The near field's share (0..1) at a world point, as the shaders work it
-  // out, and whether it is enough to be picked (the same numbers, so
-  // picking agrees with drawing).
+  // out (the picker uses the same numbers, so picking agrees with drawing).
   function nearFieldAt(x, y, z) {
     return nearFieldAtWorld(camera.matrixWorldInverse.elements, x, y, z, nearUniforms.nearD.value, nearUniforms.nearR.value);
-  }
-
-  function nearFieldVisible(x, y, z) {
-    return visibleEnough(nearFieldAt(x, y, z));
   }
 
   function makeBlockMaterial(translucent) {
@@ -1578,7 +1573,6 @@ function initGalaxyMap3d(canvasEl, data) {
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
       chartedOnly: { value: 0 }, unchartedDim: { value: UNCHARTED_STAR_DIM },
       camRadius: { value: 1 }, radiusFactor: { value: FETCH_RADIUS_FACTOR }, zoomFadeOn: { value: 1 },
-      nearD: nearUniforms.nearD, nearR: nearUniforms.nearR,
       magLimit: { value: 1000 }, magOn: { value: 1 },
     },
     vertexShader: [
@@ -1594,9 +1588,6 @@ function initGalaxyMap3d(canvasEl, data) {
       "uniform float camRadius;",
       "uniform float radiusFactor;",
       "uniform float zoomFadeOn;",
-      "uniform float nearD;",
-      "uniform float nearR;",
-      NEAR_FIELD_GLSL,
       // MAP.148: the apparent-magnitude law (static/starmagnitude.js's twin).
       "attribute float starAbsMag;",
       "uniform float magLimit;",
@@ -1637,9 +1628,9 @@ function initGalaxyMap3d(canvasEl, data) {
       // "Charted only" (MAP.111): a star outside charted space dimmed.
       "  vShown *= mix(1.0, unchartedDim, chartedOnly * starUncharted);",
       "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
-      // MAP.149: stars close to the camera, or between it and the focus,
-      // thin out.
-      "  vShown *= nearField(mvPosition.xyz, nearD, nearR);",
+      // MAP.187: stars are not part of the near field -- it thins the blocks'
+      // density and cell boxes only, so a star never vanishes in front of
+      // the camera or on the line to the focus.
       // MAP.148: opacity and brightness follow the apparent magnitude from the camera.
       "  float appMag = apparentMagnitude(starAbsMag, length(mvPosition.xyz));",
       "  vShown *= mix(1.0, magnitudeShare(appMag, magLimit), magOn);",
@@ -1874,6 +1865,12 @@ function initGalaxyMap3d(canvasEl, data) {
       camera: camera.position.toArray(), target: target.toArray(),
       share: x === undefined ? null : nearFieldAt(x, y, z),
     };
+  };
+
+  // For tests (MAP.187): the star material's vertex shader and uniform
+  // names, so a test can show a star is not in the near field.
+  canvasEl.galaxyStarShader = function () {
+    return { vertex: starMaterial.vertexShader, uniforms: Object.keys(starMaterial.uniforms) };
   };
 
   // For tests (MAP.153): the sum of the drawn stars' zoom opacities if the
@@ -3132,7 +3129,7 @@ function initGalaxyMap3d(canvasEl, data) {
     enabled: function () { return stageView.inContainer(); },
     points: function () { return starList; },
     reach: function () { return POINT_PICK_PX; },
-    accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z) && nearFieldVisible(star.x, star.y, star.z); },
+    accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z); },
     lastWins: true,
     tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
     hover: phenomenonHover,

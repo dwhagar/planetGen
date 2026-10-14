@@ -296,3 +296,18 @@ def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
         parse_tile_key(key)
     assert len(keys) <= 128
 
+
+
+def test_stars_are_not_part_of_the_near_field():
+    """MAP.187: the near-field window thins the blocks' density and cell boxes, never a star:
+    the star shader neither includes nor calls it, and no star is picked by its share."""
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "html" / "static" / "galaxymap3d.js").read_text()
+    start = source.index("var starMaterial = new THREE.ShaderMaterial")
+    end = source.index("fragmentShader", start)
+    star_vertex_shader = source[start:end]
+    assert "nearField" not in star_vertex_shader
+    assert "NEAR_FIELD_GLSL" not in star_vertex_shader
+    assert "nearD" not in star_vertex_shader
+    assert "nearFieldVisible" not in source
