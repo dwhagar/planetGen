@@ -1074,6 +1074,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the old one, then the switch that retires the arc, slab and segment
   picks (MAP.151d); the 3-ary ladder (MAP.151b) after. MAP.151 stays
   open.
+  Status (2026-10-09): Lane 2 plan for MAP.151d (2026-10-14): it is also
+  the rest of MAP.150 (click-centred drill, retire the arc, slab and
+  segment picks, camera in the URL, breadcrumb from position). It
+  rewrites galaxystages.js, galaxystageview.js and their tests, landed
+  in steps: JS window geometry with a Python parity test, the window
+  stage beside the old one, the flip that deletes the picks and
+  containers, then the 3-ary ladder (MAP.151b).
+  /galaxy/window?at=<cell>&g=<3..11> is planetgen/galaxy/window.py and
+  tilecache.fetch_window.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
