@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1093] - 2026-10-14
+
+### Added
+
+- Research: how Redis is used for generation, and how to use it better.
+
+  Added a design note that reviews how planetGen uses Redis today, sets that against Redis and RQ best practice, and recommends how to rebuild the generation task process around Redis (one run record, each stage's units as queue items, progress in Redis, a properly configured Redis server). No code changes.
+
 ## [8.0.1092] - 2026-10-14
 
 ### Changed
