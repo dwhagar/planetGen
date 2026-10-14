@@ -1059,6 +1059,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ring and wrapping slot-arc ranges (count, Span conversion, SQL
   ranges); the radial fills use it. MAP.151b to d remain; next is
   MAP.151c.
+  Status (2026-10-09): DB.24 done (Foundations lane 1, 2026-10-14,
+  #1317, schema v83): nebula_field holds every kept class M and N cloud,
+  written by plan from the seed. Deviation: rows carry no object id
+  until a sector stores the cloud (an id needs a nebula shape, about 112
+  ms each, roughly 30 CPU hours for all clouds at default scale); a save
+  fills uid and is_stored (the flag is is_stored because 'stored' is
+  reserved on MySQL 8), and plan links clouds a galaxy already holds.
+  Key unstored clouds by (cell_i, cell_j, cell_k, n).
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1257,6 +1265,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
   Prerequisites: DB.23, GEN.201, MAP.152. Related: MAP.148,
   MAP.164, MAP.165, MAP.159, MAP.146.
+  Status (2026-10-09): DB.24 done (Foundations lane 1, 2026-10-14,
+  #1317, schema v83): nebula_field holds every kept class M and N cloud,
+  written by plan from the seed. Deviation: rows carry no object id
+  until a sector stores the cloud (an id needs a nebula shape, about 112
+  ms each, roughly 30 CPU hours for all clouds at default scale); a save
+  fills uid and is_stored (the flag is is_stored because 'stored' is
+  reserved on MySQL 8), and plan links clouds a galaxy already holds.
+  Key unstored clouds by (cell_i, cell_j, cell_k, n).
 
 - [ ] **MAP.172 Nebula cell aggregates in the region pyramid**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -1269,7 +1285,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class and cover, updated when a nebula is stored. Done: the
   aggregates, and a Monte Carlo check that the stored cover is within 5%
   of the true cover. Owner: Foundations lane 1, with MAP.151.
-  Prerequisites: MAP.151, DB.24. Related: MAP.159.
+  Prerequisite: MAP.151. Related: MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
@@ -1284,7 +1300,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
   the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
   with MAP.151 and MAP.159.
-  Prerequisites: DB.24, MAP.172. Related: MAP.147, MAP.151,
+  Prerequisite: MAP.172. Related: MAP.147, MAP.151,
   MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4041,32 +4057,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migrations), after PERF.70.
   Prerequisites: none. Related: GEN.201, MAP.171, MAP.165.
 
-- [ ] **DB.24 The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration)**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): a
-  seed-fixed table with one row per field cloud (object id, cell,
-  centre, radius, class, stored flag), built at plan time by an RQ job
-  over 50 pc cells (about 700,000 rows and 50 MB at the default scale),
-  so the map can find nebulae that no sector holds yet. Done: the
-  migration and its previous-version fixture; the job; a test that the
-  rows equal `clouds_reaching` and match the stored nebulae by object
-  id. Default: store the field (the alternative is to recompute it per
-  tile). Owner: Foundations lane 1 (the only lane that adds migrations).
-  Note (2026-10-10, nebula research): open dependency, Boss's separate
-  call: the nebula field is probably 10 to 40 times too full (see the
-  GEN.47 note); the design works at either rate, so this table is sized
-  by the rate in force when it is built. Refined (nebula density
-  research, PR #1188): the table holds classes M and N only (about
-  163,000 rows and 11 MB instead of 700,000 and 50 MB); classes P and Q
-  stay seeded and implicit (291,000 clouds of 0.2 to 1.6 pc, invisible
-  beyond about 250 pc). Its size and the equality test follow the nebula
-  keep table merged in #1239.
-  Prerequisites: none. Related: MAP.151, MAP.142, GEN.176, GEN.99.
-  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -4605,29 +4595,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
 
-- [ ] **ADM.53 Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug)**
-  Boss (2026-10-14 15:17Z, Apache error log from his server): at 02:45
-  and 03:28 UTC on 2026-10-14 the admin login failed with a 500 because
-  `UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP`
-  (src/planetgen/admin/auth.py:331, called from
-  src/planetgen/api/auth.py:157) hit pymysql error 1205, 'Lock wait
-  timeout exceeded; try restarting transaction'. The same log has
-  mod_wsgi 'Timeout when reading response headers from daemon process
-  planetgen-api' at 02:47 and 03:01. Something held row locks for a long
-  time in that window, probably a long job transaction (neighbour
-  linking or a scatter). Done: find which transaction holds the locks
-  (reproduce with a long job and a login; check the settle, neighbour
-  link and scatter steps, and whether the admin_users row is touched by
-  a job at all), and make logins and other short API writes never wait
-  on a long job, by not touching rows a job locks, by committing the job
-  in short batches, or by moving last_login_at out of the login's
-  critical path (and a lock wait must never turn into a 500: a login
-  that cannot record its time still logs in). Add a test that holds a
-  job transaction open and logs in. Related to PERF.24 (API edits wait 8
-  s else answer 202) and PERF.71 (slow reads and timeouts).
-  GitHub issue [#1296](https://github.com/dwhagar/planetGen/issues/1296).
-  Prerequisites: none. Related: PERF.24, PERF.71.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -4928,7 +4895,7 @@ clears each one.
   implement after TEST.133 and DB.24, in the same opt-in `budget` tier;
   Foundations lane 1 drops it from its queue. Owner: the Test Suite
   Rebuild thread.
-  Prerequisites: TEST.133, DB.24. Related: PERF.68.
+  Prerequisite: TEST.133. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
@@ -5393,38 +5360,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a clear message, and the Admin pages show the state. Owner:
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
-
-- [ ] **OPS.43 A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug)**
-  GitHub issue [#1270](https://github.com/dwhagar/planetGen/issues/1270).
-  Reported by the Test Suite Rebuild thread (2026-10-14 14:04Z): `pip
-  install -e ".[test,api]"` installs markdown 3.11.1 because setup.py
-  only says `markdown>=3.6`. Markdown 3.11.1 removes the inline pattern
-  `not_strong` that `web/lib/mdrender.py` (line 34) names, and 74 tests
-  fail in test_fuzz_text_rendering, test_web_system_phen,
-  test_bughunt_render_edges, test_mdrender, test_web_population,
-  test_systems and test_page_shell. With markdown 3.11 (the version
-  pinned in requirements.lock) all 466 pass. A real install that
-  resolves the newest markdown would break every page that renders
-  descriptions, so this is a product bug as well as a test failure.
-  Done: either setup.py caps `markdown>=3.6,<3.11.1` or mdrender.py
-  tolerates the missing name (the second is the more durable; the lane
-  picks one and says which), the installer and the lock agree, and a
-  test builds the renderer from the newest markdown the pin allows.
-  Owner: Bugfixes lane 1, next, because a fresh install can break the
-  web pages.
-  Prerequisites: none. Related: TEST.139, TEST.128.
-
-- [ ] **OPS.44 The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug)**
-  The "pages build and deployment" run fails on main with "Liquid syntax
-  error: Unknown tag 'extends'", first in html-interface.md (line 581)
-  and then in this file. Jekyll 3.10 reads the Jinja template examples
-  and the csrf field mentions as its own template tags, and it stops at
-  the first one. The web interface page was wrapped in raw tags in #1276
-  and this item's own text was reworded so it holds none. Add a docs
-  test that fails when any markdown file holds the Jinja tag or variable
-  delimiters outside a raw block, so the next note cannot break the
-  site, and check the Pages build goes green on main afterwards.
-  Prerequisites: none.
 
 - [ ] **OPS.45 Install planetGen into its own virtual environment and clear the packages out of the system Python**
   Boss (2026-10-14 15:17Z, chose the venv over system Python with apt):
