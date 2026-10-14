@@ -5195,6 +5195,12 @@ clears each one.
   (`scripts/test.py full --check`) happens when a sequence is finished
   (whether "changes in a workflow" also covers CI workflow files is
   asked of Boss in that thread). Docs-only PRs still merge at once.
+  Stage 4 (2026-10-14): Stage 4 first part merged (#1357, 2026-10-14):
+  the browser phase of a full run fell from about 40 minutes to 25, so a
+  full run is now about 45 minutes. Next in the rebuild thread:
+  TEST.145, TEST.146, TEST.133. The flake sightings from Bugfixes lane 2
+  (System Map selection, galaxy breadcrumb tests) were folded into the
+  flake group TEST.126.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5612,44 +5618,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.46 Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python**
-  Boss, 2026-10-14 19:15Z, pasting the Apache mod_wsgi documentation:
-  the installer and setup must follow its venv rules. Most of it is
-  already built by OPS.45 (#1333): the example vhost
-  (examples/apache/planetgen.conf.example) puts
-  python-home=/usr/local/planetgen/venv on WSGIDaemonProcess
-  planetgen-api and sets process-group and application-group=%{GLOBAL}
-  on the WSGIScriptAlias line, and scripts/deploy-common.sh has
-  check_apache_python_home and check_mod_wsgi_python. What is left,
-  found by reading those two checks against Boss's list: (1)
-  check_apache_python_home matches the text python-home=$VENV with grep
-  -F, so a path to the interpreter
-  (python-home=/usr/local/planetgen/venv/bin/python) also passes; it
-  must require the venv root exactly and warn when the path points at
-  bin/ or a parent. (2) Nothing checks that the Apache user (www-data on
-  Debian and Ubuntu, apache on RHEL and CentOS) can read and enter every
-  directory down to and inside the venv; add a check that runs as that
-  user (for example sudo -u www-data test -r and -x on the path, or
-  namei -m) and says which directory blocks it. (3) Nothing checks that
-  the vhost has WSGIProcessGroup or process-group and application-group
-  %{GLOBAL} for the planetGen app; the check should read the vhost for
-  them, accepting either form, and warn when the app runs in embedded
-  mode. (4) The vhost lookup takes the first file under /etc/apache2
-  that names WSGIDaemonProcess planetgen-api; look under the enabled
-  sites only and cover RHEL layouts (/etc/httpd) if the installer
-  supports them. (5) check_mod_wsgi_python only looks at
-  /usr/lib/apache2/modules/mod_wsgi.so; confirm it compares the
-  major.minor of the venv's python with the mod_wsgi build and says what
-  to do when they differ. (6) Add the permission and process-group rules
-  to the Apache guide and INSTALL.md, in the same pass as DOC.37, and
-  add tests next to src/tests/test_install_python_deps.py. Default: keep
-  these as warnings that print the exact line to add, never edit the
-  admin's vhost (as OPS.45 does). Bugfixes lane 1, first in the lane.
-  Decided (Boss, 2026-10-14 19:55Z, on a decision
-  card relayed by the coordinator): warn only. The warnings print the
-  exact line to add and never edit his vhost.
-  Prerequisites: none. Related: DOC.37.
-
 - [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
   1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
@@ -5670,6 +5638,20 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   edits his Redis config. One Redis instance; no password while it binds
   loopback (it does today), an ACL user documented for later.
   Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
+
+- [ ] **OPS.49 update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug)**
+  Boss, 2026-10-14 21:36Z: after the OPS.47 fix, update.sh runs steps 1
+  to 4 on the rebuilt venv (cryptography 50.0.2, pymysql 1.2.3,
+  SQLAlchemy 2.1.3, alembic 1.20.0, math check passed) and then fails at
+  step 5, Migrating the configured MySQL database, with: error:
+  'NoneType' object has no attribute 'is_auth_switch_request'. That text
+  comes from pymysql's login handshake, so the cause is probably the
+  auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
+  version, not the schema. Reproduce it against MySQL 8 and the lock
+  file, check the locked versions against ones known to work with that
+  plugin, fix the cause, and make the update print a clear error naming
+  the login problem instead of the bare exception.
+  Prerequisites: none.
 
 ## DOC: Documentation
 
@@ -6234,6 +6216,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   way to run. Done: both docs match the workflow file and the runner,
   say that the full suite stays the merge gate and changed is a fast
   loop, and give the Redis setup.
+  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 45
+  minutes; any figure for the full run's length in docs/testing.md or
+  the rebuild note should say about 45 minutes, not 60.
   Prerequisites: none. Related: TEST.139.
 
 - [ ] **DOC.41 Fix the activity-log file name in the fail2ban guide and the shipped jail**
