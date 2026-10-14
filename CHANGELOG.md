@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1033] - 2026-10-14
+
+### Changed
+- **The see-through window in front of the camera no longer hides stars or leaves a halo (MAP.187).** The near-field window now thins only the blocks' density and cell boxes; a star is never faded by it, so stars stay visible in the middle of a filled block and in front of the camera, and a star close to the line to the focus can be picked. The window's edge is wider and shallower (it never fades below a quarter), which removes the visible rim around it.
+
 ## [8.0.1032] - 2026-10-14
 
 ### Changed
