@@ -1097,7 +1097,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
 | PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | done, PR #1259 |
 | PERF.84 | Neighbour linking stalls on a large run (bug) | none | open |
-| PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | open |
+| PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | done, PR #1265 |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls | none | open |
 | PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | none | open |

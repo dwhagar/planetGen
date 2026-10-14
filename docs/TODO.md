@@ -551,8 +551,8 @@ with `clamp()`.
   one wording for a single stage and for a run of stages (for example
   "Stage 4 of 12" and "Stages 4 to 12 of 12"), the same in the web log,
   the CLI text and the downloaded log, with a test over the formatter.
-  Owner: Bugfixes lane 1, with PERF.85.
-  Prerequisites: none. Related: PERF.65, PERF.66, PERF.85.
+  Owner: Bugfixes lane 1 (next, PERF.85 is merged in #1265).
+  Prerequisites: none. Related: PERF.65, PERF.66.
 
 - [ ] **UX.99 Rogue planets do not show their surface gravity (bug)**
   GitHub issue [#1219](https://github.com/dwhagar/planetGen/issues/1219)
@@ -4024,35 +4024,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (2026-10-14 13:18Z): it was a normal default new galaxy with default
   settings, it worked fine on a recent version he cannot name, and he
   thinks it is a reporting issue, so check first whether the stage works
-  but its progress or ETA freezes (PERF.85 has the same signs). Owner: Foundations lane 1 (PERF.83 is fixed: time-sized chunks).
-  Prerequisites: none. Related: PERF.85, PERF.68, PERF.79.
-
-- [ ] **PERF.85 Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug)**
-  GitHub issue [#1214](https://github.com/dwhagar/planetGen/issues/1214)
-  (Boss, 2026-10-11 01:01Z, with a screenshot): "The system just seems
-  stalled after the scattering of phenomena and there is a problem in
-  the layer count on the progress bar." Done: the stall after the
-  scatter is reproduced and its cause found (it may be the same cause as
-  PERF.84, or the chunk-size cause PERF.83 fixed in #1259 (silent
-  chunks of about 128 layers); check those first), and the layer count shown on
-  the progress bar matches the layers the stage really works through.
-  Screenshot (Boss, 2026-10-14 13:02Z): the log says "Phenomena (2,041 of
-  2,041 layers) 100% elapsed 0:21:03", then the stage bar reads "Writing
-  the special phenomena: 6,820 of 6,820, 36 m 10 s, about 0 s left" while
-  Whole job still shows "about 1 m 09 s to 1 m 30 s left" at about 97% and
-  Cancel job is still offered. So the write stage ran longer (36 min) than
-  the scatter (21 min), its estimate sat at "about 0 s" the whole time,
-  and the job had not finished. Done also covers: the write stage reports
-  progress while it runs and its estimate comes from the stored timing
-  records (#1249). The layer count in the log (2,041) matches the plan; whether
-  the bar's count was wrong in the original screenshot is still asked on
-  the issue. Answer (Boss, 2026-10-14 13:54Z): the job did not finish;
-  Boss cancelled it to make unrelated server changes. So the write stage
-  had run 36 minutes at 6,820 of 6,820 with an estimate of about 0 s and
-  was still not done, which is the stall to reproduce.
-  Owner: Bugfixes lane 1, after PERF.54, together with
-  UX.98.
-  Prerequisites: none. Related: PERF.84, PERF.66.
+  but its progress or ETA freezes (PERF.85 had the same signs: a stale bar in the progress file, fixed in #1265). Owner: Foundations lane 1 (PERF.83 is fixed: time-sized chunks).
+  Prerequisites: none. Related: PERF.68, PERF.79.
 
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
