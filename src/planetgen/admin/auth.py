@@ -33,7 +33,13 @@ import re
 import secrets
 import time
 
+import pymysql
+
 from planetgen.db import store
+from planetgen.admin import activity_log
+
+LAST_SEEN_REFRESH_SECONDS = 60
+"""int: A session's `last_seen_at` is written at most this often (ADM.53)."""
 
 SESSION_TTL_HOURS = 12
 """int: Fixed lifetime for a web-UI session, computed server-side
@@ -298,6 +304,29 @@ except ImportError:  # no `api` extra: nothing here authenticates anyway
     pass
 
 
+def _write_if_not_locked(conn, sql, params):
+    """
+    Runs one informational write (a last-login or last-seen time) and commits it, unless a row it needs is
+    locked by somebody else's transaction for longer than the connection's lock wait (`WEB_LOCK_WAIT_SECONDS`
+    on the web's): then it is skipped, with a line in the activity log, and the caller carries on. A login, or
+    any request that only wanted to note that it happened, must not fail or hang because a long job holds a
+    lock (ADM.53).
+
+    Returns:
+        bool: Whether the write was made.
+    """
+    try:
+        cur = conn.execute(sql, params)
+        conn.commit()
+        return bool(cur.rowcount)
+    except pymysql.err.OperationalError as exc:
+        if not (exc.args and exc.args[0] in store.LOCK_WAIT_ERRORS):
+            raise
+        conn.rollback()
+        activity_log.event("DB", "lock_wait_skipped", sql=sql.split(" WHERE ")[0][:80])
+        return False
+
+
 def authenticate(conn, username, password):
     """
     Verifies a username/password pair against `admin_users`, updating
@@ -326,10 +355,10 @@ def authenticate(conn, username, password):
         raise AuthError("invalid username or password")
     if needs_rehash(row["password_hash"]):
         # Stored with older settings (SEC.25): re-hash now, while the
-        # plaintext is at hand.
-        conn.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", (hash_password(password), row["id"]))
-    conn.execute("UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?", (row["id"],))
-    conn.commit()
+        # plaintext is at hand (next login, if the row is locked just now).
+        _write_if_not_locked(conn, "UPDATE admin_users SET password_hash = ? WHERE id = ?",
+                             (hash_password(password), row["id"]))
+    _write_if_not_locked(conn, "UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?", (row["id"],))
     # Re-fetched rather than patched onto the pre-update `row` in memory --
     # `last_login_at` is a server-evaluated CURRENT_TIMESTAMP, so only a
     # fresh read reflects the real value the UPDATE just wrote.
@@ -378,8 +407,11 @@ def validate_session(conn, raw_token):
     ).fetchone()
     if row is None:
         return None
-    conn.execute("UPDATE admin_sessions SET last_seen_at = CURRENT_TIMESTAMP WHERE token_hash = ?", (token_hash,))
-    conn.commit()
+    # Not on every request, and not at the cost of one: the time is informational (ADM.53).
+    _write_if_not_locked(
+        conn, "UPDATE admin_sessions SET last_seen_at = CURRENT_TIMESTAMP WHERE token_hash = ?"
+              " AND (last_seen_at IS NULL OR last_seen_at < CURRENT_TIMESTAMP - INTERVAL ? SECOND)",
+        (token_hash, LAST_SEEN_REFRESH_SECONDS))
     return row
 
 
@@ -506,13 +538,10 @@ def validate_api_key(conn, raw_key):
         return None
     row["api_scopes"] = tuple(scope["scope"] for scope in conn.execute(
         "SELECT scope FROM admin_api_key_scopes WHERE key_id = ? ORDER BY scope", (row["api_key_id"],)).fetchall())
-    cur = conn.execute(
-        "UPDATE admin_api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE key_hash = ?"
-        " AND (last_used_at IS NULL OR last_used_at < CURRENT_TIMESTAMP - INTERVAL ? SECOND)",
-        (key_hash, LAST_USED_REFRESH_SECONDS),
-    )
-    if cur.rowcount:
-        conn.commit()
+    _write_if_not_locked(
+        conn, "UPDATE admin_api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE key_hash = ?"
+              " AND (last_used_at IS NULL OR last_used_at < CURRENT_TIMESTAMP - INTERVAL ? SECOND)",
+        (key_hash, LAST_USED_REFRESH_SECONDS))
     return row
 
 
