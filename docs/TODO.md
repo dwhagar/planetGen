@@ -1067,6 +1067,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fills uid and is_stored (the flag is is_stored because 'stored' is
   reserved on MySQL 8), and plan links clouds a galaxy already holds.
   Key unstored clouds by (cell_i, cell_j, cell_k, n).
+  Status (2026-10-09): MAP.151c server half done (Foundations lane 2,
+  2026-10-14, #1320): /galaxy/window returns the cells around any chosen
+  cell, cut from the cached stage files; no migration; nothing in the
+  map reads it yet. Left: JS window geometry, the window stage beside
+  the old one, then the switch that retires the arc, slab and segment
+  picks (MAP.151d); the 3-ary ladder (MAP.151b) after. MAP.151 stays
+  open.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
