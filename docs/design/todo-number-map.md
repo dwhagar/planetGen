@@ -439,7 +439,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge | none | done, PR #1116 |
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | open |
-| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | open |
+| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | done, PR #1374 |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
 | ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) | none | open |
