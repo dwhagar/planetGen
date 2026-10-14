@@ -1,2 +1,0 @@
-### Fixed
-- A step that has no progress to report (the phenomena index build, which can take a quarter of an hour on a full galaxy) no longer leaves the Generate page showing the step before it, finished, with its clock still running as if the job had stalled; the page now shows the running step from the moment it starts, and the log says the index build is one pass with no progress until it ends.

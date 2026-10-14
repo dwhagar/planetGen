@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1013] - 2026-10-14
+
+### Fixed
+- A step that has no progress to report (the phenomena index build, which can take a quarter of an hour on a full galaxy) no longer leaves the Generate page showing the step before it, finished, with its clock still running as if the job had stalled; the page now shows the running step from the moment it starts, and the log says the index build is one pass with no progress until it ends.
+
 ## [8.0.1012] - 2026-10-14
 
 ### Changed
