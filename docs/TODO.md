@@ -523,14 +523,6 @@ with `clamp()`.
   Owner: Bugfixes lane 1 (next, PERF.85 is merged in #1265).
   Prerequisites: none. Related: PERF.65, PERF.66.
 
-- [ ] **UX.99 Rogue planets do not show their surface gravity (bug)**
-  GitHub issue [#1219](https://github.com/dwhagar/planetGen/issues/1219)
-  (Boss, 2026-10-11 02:45Z): "Rogue planets need to show their surface
-  gravity with the other information." Done: a rogue planet's page, row
-  and map popup show its surface gravity like any other planet, with a
-  test. Owner: Bugfixes lane 2, after its current items.
-  Prerequisites: none. Related: GEN.142, UX.22.
-
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
   (Boss, 2026-10-11 01:34Z): "The habitability notes are too much in the
@@ -4010,7 +4002,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from measured performance). Done when: the library passes its tests
   for the barrier, counters, stream and ETA and PERF.33's acceptance is
   met by it.
-  Prerequisites: PERF.95. Related: PERF.86, PERF.33.
+  Prerequisite: PERF.95. Related: PERF.86, PERF.33.
 
 - [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4033,7 +4025,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
   gives the same galaxy for the same seed at any worker count and the
   old path still runs the other stages.
-  Prerequisites: PERF.96. Related: PERF.86.
+  Prerequisite: PERF.96. Related: PERF.86.
 
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4055,7 +4047,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the work-horse-killed handler, and every job gets a real job_timeout.
   Done when: every generation command runs on the new queue and the old
   executor is unused.
-  Prerequisites: PERF.97. Related: PERF.86, PERF.92.
+  Prerequisite: PERF.97. Related: PERF.86, PERF.92.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4077,7 +4069,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stream is the live log and is written to the jobs directory at run end
   for the download link, last 20 kept. Done when: the pages need no
   MySQL job tree and cancel is measured under a second on a 75-job run.
-  Prerequisites: PERF.98. Related: PERF.86, UX.3.
+  Prerequisite: PERF.98. Related: PERF.86, UX.3.
 
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4100,7 +4092,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.30 (resume) are dropped when this lands: Boss decided there is no
   automatic resume. Done when: the suite is green with the old code gone
   and the line count is recorded in the PR.
-  Prerequisites: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
+  Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 ## DB: Database and schema
 
