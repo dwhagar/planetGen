@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.996] - 2026-10-14
+
+### Changed
+- The plan records the full numba and Python 3.12 requirements, including the check that the web server can import the compiled code, and confirms astropy can be dropped.
+
 ## [8.0.995] - 2026-10-14
 
 ### Changed
