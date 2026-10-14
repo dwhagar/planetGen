@@ -594,7 +594,7 @@ with `clamp()`.
   commands, job log files, the downloadable log, update.sh output, admin
   pages that show logs), picks the standard, and a build that moves all
   of them onto one logging layer, with tests that fail if a new output
-  path formats its own lines. Open question for Boss (default: use
+  path formats its own lines. Decided (Boss, 2026-10-14 14:17Z, approved as proposed): use
   Python's standard logging module as the one entry point; every record
   carries an RFC 3339 UTC timestamp, a severity from the RFC 5424 syslog
   levels (debug, info, notice, warning, error, critical), a short
