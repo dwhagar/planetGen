@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1108] - 2026-10-14
+
+### Changed
+- The TODO list drops PERF.93, DB.23 and GEN.201 (merged in #1364 and #1365) and files TEST.147, two nebula-field tests that fail under load.
+
 ## [8.0.1107] - 2026-10-14
 
 ### Added
