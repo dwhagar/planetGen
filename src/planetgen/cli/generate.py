@@ -1034,6 +1034,13 @@ def add_plan_arguments(parser):
                                       "clears and rewrites only its own rows; the central black hole or quasar is "
                                       "always rebuilt with the phenomena. Changing the mass limit redoes the "
                                       "luminosity pass too, since the passes split the stars at that mass.")
+    phenomena_group.add_argument('--redo-nebula-field', nargs='?', const='dry-run',
+                                 choices=program_constants.REDO_NEBULA_FIELD_MODES, default=None, metavar='MODE',
+                                 help="Bring an existing galaxy's stored molecular clouds in line with the current "
+                                      "nebula keep rates (GEN.205). 'dry-run' (the default) only counts the stored "
+                                      "field clouds the rule now rejects; 'apply' counts, then deletes them "
+                                      "(clearing what pointed at them, refreshing containment in the sectors they "
+                                      "reached) and draws the nebula_field table again. Nothing else is touched.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1096,6 +1103,10 @@ def validate_plan_args(args, parser):
                                or args.no_bright_stars):
         parser.error("--redo-scatters can't be combined with --phenomena-only, --bright-stars-only, "
                      "--bright-stars-down-to or --no-bright-stars.")
+    if args.redo_nebula_field and (args.redo_scatters or args.phenomena_only or args.bright_stars_only
+                                   or args.bright_stars_down_to is not None or args.no_bright_stars):
+        parser.error("--redo-nebula-field can't be combined with --redo-scatters, --phenomena-only, "
+                     "--bright-stars-only, --bright-stars-down-to or --no-bright-stars.")
     if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
         parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
     if args.bright_stars_down_to is not None:

@@ -87,6 +87,7 @@ STEP_KINDS = {
     "phenomena-index": "Phenomena scatter: build the indexes",
     "phenomena-stamp": "Phenomena scatter: epoch stamp",
     "nebula-field": "Nebula field",
+    "nebula-field-clean": "Nebula field cleanup",
     "link": "Neighbour linking",
     "paths": "Sector paths",
     "backfill": "Bright-star backfill",
