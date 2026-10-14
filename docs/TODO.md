@@ -1098,24 +1098,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
-- [ ] **MAP.155 Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot**
-  Source: docs/design/zoom-star-visibility.md (section 5 stage 3,
-  schemes I and E). Done: black holes, neutron stars and quasars are
-  listed from tile level 8 (160 pc) instead of 10 (40 pc) and fade in by
-  the same rank rule, cloud sprites ramp opacity between 1 and 4 px
-  instead of switching on at 2 px (`CLOUD_MIN_PX`), and a new star
-  starts one pixel and faint and grows to its size with its opacity.
-  Rows with no natural rank use a hash tiebreak (a fixed random number
-  from the object id). Sector blocks and fills keep their own
-  level-of-detail question (the mega-block plan). Decided (Boss, 2026-10-09 23:11Z, "default options are
-  approved"): point objects are listed from level 8.
-  Note (2026-10-09): Note (Foundations lane 2, 2026-10-10 06:20Z): point
-  objects (black holes, neutron stars, quasars) are not ranked yet and
-  use POINT_FADE (always whole); MAP.154's nested lists make the
-  parent-only fade-out unnecessary.
-  Prerequisite: MAP.153. Related: MAP.153, MAP.148, MAP.149.
-  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
-
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
   select a single layer (or range of layers) to view top-down. It should
@@ -1280,7 +1262,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reconciliation in the same query, so this item follows MAP.152 and
   uses its tile choice. Not a prerequisite of the 8.1 headline
   (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
-  Prerequisites: GEN.200, DB.23, GEN.201, MAP.152. Related: MAP.148,
+  Prerequisites: DB.23, GEN.201, MAP.152. Related: MAP.148,
   MAP.164, MAP.165, MAP.159, MAP.146.
 
 - [ ] **MAP.172 Nebula cell aggregates in the region pyramid**
@@ -1378,7 +1360,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Note (2026-10-10, nebula density research, PR #1188): realistic cover
   is about 2% at the median, so the ramp bins become 0, under 0.5%, 0.5
   to 1.5%, 1.5 to 3% and 3% or more (or per-view percentiles).
-  Prerequisites: MAP.173, MAP.155. Related: MAP.142.
+  Prerequisite: MAP.173. Related: MAP.142.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.179 Scattered nebulae as markers from level 8**
@@ -1550,8 +1532,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density, age or luminosity fill; the "Color by" density and age views
   stay as options; nebulae tint the colour of the stars seen through
   them and have soft translucent boundaries (MAP.142). Owner:
-  Foundations lane 2, after MAP.155 and the nebula map work (MAP.176).
-  Prerequisite: MAP.155. Related: MAP.131, MAP.142, MAP.176, MAP.146.
+  Foundations lane 2, after the nebula map work (MAP.176; MAP.155 merged in #1253).
+  Prerequisites: none. Related: MAP.131, MAP.142, MAP.176, MAP.146.
 
 - [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
   GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
@@ -3450,39 +3432,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the multiples.
   Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
 
-- [ ] **GEN.200 One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have**
-  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
-  the following mass/luminosity to allow us to store a 'map visibility'
-  value for phenomena that aren't bright but have large mass. The idea
-  being that a neutron star of say 2 solar masses should be given
-  placement on the map when a star's brightness at 2 solar masses would
-  be visible. Same for black holes, if a super massive black hole has a
-  mass well above the brightest star, then it's visibility on the map
-  should be keyed to that. This allows us to put items on the map that
-  aren't bright enough to be seen but are of importance (major
-  gravitational locations are always important to navigation)."
-  Piecewise mass-luminosity relation, L in solar luminosities and M in
-  solar masses: M below 0.43: L = 0.23 M^2.3; 0.43 to 2.0: L = M^4; 2.0
-  to 20: L = 1.5 M^3.5; above 20: L proportional to M, fixed by
-  continuity with the band below (about 2,683 M, so 20 Msun gives about
-  53,700 and a 4 million Msun black hole about 1e10). Done: one function
-  in the stellar-physics code, with one set of constants, that every
-  user of it calls (the scatter, the reseed fill and the Galaxy Map tile
-  query); if the star generators already hold a mass-luminosity
-  relation, they share this function or the difference is written down,
-  never two copies. Tests: values at 0.1, 0.43, 1, 2, 20 and 4e6 Msun,
-  monotonic over the whole range, and the size of the steps at the joins
-  (default: use the table's constants as given; the bands then step by
-  about 3% at 0.43 and 6% at 2.0, which does not matter for a visibility
-  rank). Owner: Foundations lane 2 (moved 2026-10-10 for Boss's generation-first priority), right after PERF.80; Foundations lane 1 uses it in GEN.201. Sources of the
-  relation (Boss's message): Astronomy Notes (2026, June 14),
-  "Mass-Luminosity Relation Explained - The Sun and Stellar Structure",
-  https://www.astronomynotes.com/starsun/s8.htm; Varsity Tutors (n.d.),
-  "Stellar Mass & Lifetime",
-  https://www.varsitytutors.com/practice/subjects/astronomy/lessons/stellar-mass-and-lifetime.
-  Prerequisites: none. Related: DB.23, GEN.201, MAP.171, MAP.165,
-  GEN.185.
-
 - [ ] **GEN.201 Fill the map luminosity in the scatter and in existing galaxies**
   Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
   the following mass/luminosity to allow us to store a 'map visibility'
@@ -3503,7 +3452,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command saves a full reseed). Check: after a reseed and after the
   command, the same rows carry the same values (a test on a small
   galaxy). Owner: Foundations lane 1.
-  Prerequisites: GEN.200, DB.23. Related: MAP.171, GEN.185, GEN.196.
+  Prerequisite: DB.23. Related: MAP.171, GEN.185, GEN.196.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -3553,7 +3502,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   timeline (it may say what the world lacks); when it allows microbial
   life only, it never describes complex flora or fauna; a test over a
   sample of generated planets finds no description that contradicts its
-  own index. Owner: Foundations lane 2, after PERF.80 and GEN.200.
+  own index. Owner: Foundations lane 2, after PERF.80 and GEN.200 (merged in #1251 and #1252).
   Prerequisites: none. Related: GEN.84, GEN.90, GEN.207, GEN.208.
 
 - [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
@@ -3969,21 +3918,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
-- [ ] **PERF.80 "Save the sector paths" takes 24% of a small run and does not speed up with workers**
-  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
-  docs/design/generation-benchmark-report.md; `python -m
-  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
-  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors): 33 s
-  of a 138 s two-sector run (settle_after_run is 80 s of 227 s in the
-  profile, integrate_path 17,284 calls and 54 s). Done: the settle step
-  does less integration work per sector (batch or cache the path
-  integration, skip unchanged sectors) or runs in the workers, measured
-  with the benchmark, and the saved paths do not change. Owner:
-  Foundations lane 2 (physics; moved 2026-10-10), first after its current
-  task.
-  Prerequisites: none. Related: GEN.126, PERF.31.
-  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
-
 - [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
   From the PERF.31 benchmark (Foundations lane 1, PR #1179;
   docs/design/generation-benchmark-report.md; `python -m
@@ -4094,13 +4028,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which recomputes these paths. Done: the integrator is a numba kernel,
   the old Python loop removed (no fallback), the tolerance in the path
   tests, timings in the benchmark report. Owner: Foundations lane 1,
-  after PERF.80 merges (Foundations lane 2 is changing the settle step)
+  after PERF.80 (merged in #1251)
   and after OPS.42.
   Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
   location (OPS.42). Acceptance criterion: the integrator imports as the web
   user (see OPS.42), by keeping it out of the web app's import path or by
   writable `__pycache__` directories, with a test.
-  Prerequisites: PERF.80, OPS.42. Related: PERF.31, GEN.105.
+  Prerequisite: OPS.42. Related: PERF.31, GEN.105.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.89 Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s)**
@@ -4263,7 +4197,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   68 million rows; no index unless the tile query needs one (PERF.68
   measures that). Owner: Foundations lane 1 (the only lane that adds
   migrations), after PERF.70.
-  Prerequisite: GEN.200. Related: GEN.201, MAP.171, MAP.165.
+  Prerequisites: none. Related: GEN.201, MAP.171, MAP.165.
 
 - [ ] **DB.24 The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration)**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -5157,6 +5091,32 @@ clears each one.
   takes test fixes next (Bugfixes lane 2 after TEST.128), before
   PERF.75's other tables get the same change.
   Prerequisites: none. Related: PERF.75, TEST.126.
+
+- [ ] **TEST.143 test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug)**
+  Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite, plain
+  main 8.0.998):
+  tests/test_install_python_deps.py::test_install_checkout_leaves_a_current_editable_install_alone
+  asserts that no pip call happens, but one does ('-m pip install
+  --quiet --no-deps -e /tmp/wt-...') when the suite runs from a git
+  worktree, because the container's editable install points at
+  /home/user/planetGen, not at the checkout. Probably an environment
+  artifact, not a product bug. Done: the test pins its own install
+  location (a temporary checkout and a stub for the installed package's
+  path) so it passes from any checkout and any worktree, without
+  loosening what it checks. Owner: Bugfixes lane 2, with TEST.142.
+  Prerequisites: none. Related: TEST.142.
+
+- [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
+  Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite -n 4,
+  15,573 passed and 9 failed, 54 min):
+  tests/test_web_browser_controls.py::test_every_plain_button_does_something[web.sector]
+  failed once under load and passes serially and on a re-run; not
+  checked on main. Same load-timeout family as TEST.126 and TEST.138.
+  Done: the next failure's traceback is captured, the cause is found (a
+  load timeout in the page wait, or a button that really does nothing at
+  that moment) and the test is made reliable without loosening it.
+  Owner: Bugfixes lane 2, with TEST.126.
+  Prerequisites: none. Related: TEST.126, TEST.138.
 
 ## USR: User accounts
 
