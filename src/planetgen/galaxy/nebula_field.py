@@ -239,3 +239,42 @@ def clouds_reaching(galaxy_seed, shape, center_pc, reach_pc):
                     if math.dist(cloud_center, center_pc) <= ly_to_pc(nebula.radius_ly) + reach_pc:
                         found.append((nebula, cloud_center))
     return found
+
+
+TABLE_CLASSES = ("M", "N")
+"""tuple: The field classes `nebula_field` (the table, DB.24) holds. P and Q, 291,000 clouds of 0.2 to 1.6 pc that
+cannot be seen beyond about 250 pc, stay seeded and implicit."""
+
+
+def field_extent_pc(edge_pc, outer_ring, top_layer):
+    """
+    `(radius, half_height)` in parsecs of the cylinder whose field cells hold every cloud that can reach a sector of
+    a galaxy with outer ring `outer_ring` and highest layer `top_layer`: the sectors, their half diagonal and the
+    largest cloud's radius.
+    """
+    margin = edge_pc * math.sqrt(3.0) / 2 + MAX_CLOUD_RADIUS_PC
+    return (outer_ring + 1) * edge_pc + margin, (abs(top_layer) + 0.5) * edge_pc + margin
+
+
+def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
+    """
+    The `nebula_field` rows of field cells with first index `i` inside the cylinder (`field_extent_pc`): tuples
+    `(cell_i, cell_j, cell_k, n, class, radius_ly, x, y, z)` of the kept clouds of `TABLE_CLASSES`, cells in index
+    order.
+    """
+    edge = tuning.NEBULA_FIELD_CELL_PC
+    k_low, k_high = math.floor(-half_height_pc / edge), math.floor(half_height_pc / edge)
+    # How far the slab's nearest face is from the axis along x.
+    if i * edge <= 0.0 <= (i + 1) * edge:
+        gap_x = 0.0
+    else:
+        gap_x = min(abs(i * edge), abs((i + 1) * edge))
+    if gap_x > radius_pc:
+        return
+    reach_y = math.sqrt(max(radius_pc * radius_pc - gap_x * gap_x, 0.0))
+    for j in range(math.floor(-reach_y / edge), math.floor(reach_y / edge) + 1):
+        for k in range(k_low, k_high + 1):
+            index = (i, j, k)
+            for n, nebula, center in cell_draw(galaxy_seed, shape, index):
+                if nebula.nebula_class in TABLE_CLASSES and cloud_kept(galaxy_seed, index, n, nebula):
+                    yield (i, j, k, n, nebula.nebula_class, nebula.radius_ly, *center)

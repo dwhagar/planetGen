@@ -1173,6 +1173,12 @@
 --   than `countcache` allows), so the Sectors list does not count every system
 --   on each request.
 --
+-- v83: `nebula_field` (DB.24): one row per molecular cloud of classes M and N
+--   the galaxy's seed places (`galaxy/nebula_field.py`), written at plan time,
+--   so the Galaxy Map can find a nebula no generated sector holds yet. Seed
+--   fixed, so nothing in a fill changes it except `is_stored` and `uid`, set when a
+--   sector's save stores the cloud as a `nebulae` row.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3285,6 +3291,32 @@ CREATE TABLE IF NOT EXISTS sector_system_counts (
     sector_id     BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     system_count  INT UNSIGNED NOT NULL,
     KEY idx_sector_system_counts_count (system_count, sector_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- nebula_field (v83, DB.24): the galaxy's field clouds of classes M and N
+-- (giant molecular clouds and dark clouds; P and Q stay implicit), one row
+-- each, made by `planetgen plan` from the galaxy seed. (`cell_i`, `cell_j`,
+-- `cell_k`) is the 50 pc field cell and `n` the cloud's place in that cell's
+-- draw (`nebula_field.cell_draw`), so a row is found again from the seed
+-- alone. `uid` and `is_stored` stay empty until a sector's save stores the cloud
+-- as a `nebulae` row, which gives it its object ID (working it out for every
+-- cloud costs a nebula shape each); `idx_nebula_field_uid` finds it by that ID.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS nebula_field (
+    cell_i        INT NOT NULL,
+    cell_j        INT NOT NULL,
+    cell_k        INT NOT NULL,
+    n             INT UNSIGNED NOT NULL,
+    nebula_class  CHAR(1) NOT NULL,
+    radius_ly     DOUBLE NOT NULL,
+    center_x_pc   DOUBLE NOT NULL,
+    center_y_pc   DOUBLE NOT NULL,
+    center_z_pc   DOUBLE NOT NULL,
+    uid           BINARY(10),
+    is_stored     TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (cell_i, cell_j, cell_k, n),
+    KEY idx_nebula_field_uid (uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
