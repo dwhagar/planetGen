@@ -3930,17 +3930,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: PERF.31, GEN.105.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.89 Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s)**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md). `bright_stars._ring_bins`
-  and `layer_expected_stars` call `density.population_densities` 556,000
-  times (7.9 us each); `total_density_array` is 47 times faster per
-  point. Done: both stages call the array form, the expected counts
-  unchanged to the last digit (a test compares them), timings recorded
-  with the benchmark. Owner: Foundations lane 1, near its PERF items.
-  Prerequisites: none. Related: PERF.58, PERF.31.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
-
 - [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
   Math Research (2026-10-14;
   docs/design/math-and-library-efficiency.md). State is handed between
@@ -4856,6 +4845,10 @@ clears each one.
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: the Test Suite Rebuild
   thread.
+  Sighting (Foundations lane 1, 2026-10-14, full suite of 39 min 51 s
+  with PERF.89): tests/test_work_queue_admin.py::
+  test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
+  passes alone: the same parallel-run family on the shared database.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
