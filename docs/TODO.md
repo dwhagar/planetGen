@@ -5639,6 +5639,20 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   loopback (it does today), an ACL user documented for later.
   Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
 
+- [ ] **OPS.49 update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug)**
+  Boss, 2026-10-14 21:36Z: after the OPS.47 fix, update.sh runs steps 1
+  to 4 on the rebuilt venv (cryptography 50.0.2, pymysql 1.2.3,
+  SQLAlchemy 2.1.3, alembic 1.20.0, math check passed) and then fails at
+  step 5, Migrating the configured MySQL database, with: error:
+  'NoneType' object has no attribute 'is_auth_switch_request'. That text
+  comes from pymysql's login handshake, so the cause is probably the
+  auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
+  version, not the schema. Reproduce it against MySQL 8 and the lock
+  file, check the locked versions against ones known to work with that
+  plugin, fix the cause, and make the update print a clear error naming
+  the login problem instead of the bare exception.
+  Prerequisites: none.
+
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
