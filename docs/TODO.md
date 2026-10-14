@@ -1536,7 +1536,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of regions, nearest to the origin, or the most recently changed),
   chosen by Boss from the options in the note. Decision needed from Boss
   before building.
-  Prerequisites: MAP.189. Related: MAP.189, MAP.151.
+  Prerequisite: MAP.189. Related: MAP.189, MAP.151.
 
 - [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
   GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
@@ -1551,7 +1551,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay as options; nebulae tint the colour of the stars seen through
   them and have soft translucent boundaries (MAP.142). Owner:
   Foundations lane 2, after MAP.155 and the nebula map work (MAP.176).
-  Prerequisites: MAP.155. Related: MAP.131, MAP.142, MAP.176, MAP.146.
+  Prerequisite: MAP.155. Related: MAP.131, MAP.142, MAP.176, MAP.146.
 
 - [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
   GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
@@ -1586,7 +1586,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   view of that object alone, showing its own arrangement (cloud shape,
   cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
   after the nebula map work (MAP.176 to MAP.180).
-  Prerequisites: MAP.176. Related: MAP.176, MAP.178, MAP.180, GEN.209.
+  Prerequisite: MAP.176. Related: MAP.176, MAP.178, MAP.180, GEN.209.
 
 ## NAV: Navigation and courses
 
@@ -3648,7 +3648,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   six dimensions with the rules above, and tests cover each rule. Needs
   answers from Boss to several rules before building (see the comment on
   the issue). Owner: Foundations lane 2, after GEN.206.
-  Prerequisites: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+  Prerequisite: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -3668,7 +3668,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes the planet needs and why, in one short paragraph per planet,
   with tests over a sample of planets. Owner: Foundations lane 2, with
   GEN.207.
-  Prerequisites: GEN.207. Related: GEN.207, UX.100, GEN.206.
+  Prerequisite: GEN.207. Related: GEN.207, UX.100, GEN.206.
 
 - [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
   GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
@@ -3680,7 +3680,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   name, and the cluster pages and the Galaxy Map use the parent link.
   Owner: Foundations lane 2, with the globular cluster group (GEN.159 to
   GEN.164).
-  Prerequisites: GEN.159. Related: GEN.159, GEN.160, GEN.164.
+  Prerequisite: GEN.159. Related: GEN.159, GEN.160, GEN.164.
 
 - [ ] **GEN.210 The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall**
   GitHub issue [#1222](https://github.com/dwhagar/planetGen/issues/1222)
@@ -4046,20 +4046,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Foundations lane 2 (physics; moved 2026-10-10), first after its current
   task.
   Prerequisites: none. Related: GEN.126, PERF.31.
-  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
-
-- [ ] **PERF.81 Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls**
-  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
-  docs/design/generation-benchmark-report.md; `python -m
-  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
-  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
-  `nearest_neighbors` makes 1.8 million `distance_to` calls for 1,916
-  systems (41 s of 227 s in the profile). Done: a spatial grid (or
-  cKDTree, as NAV.52 did for join_islands) gives the same neighbours
-  with far fewer distance calls, a test shows identical results on a
-  fixed sector, and the benchmark shows the saving. Owner: Bugfixes
-  lane 2 (moved 2026-10-10), first after its current task.
-  Prerequisites: none. Related: PERF.31, NAV.52.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
 - [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
@@ -4906,6 +4892,11 @@ clears each one.
   Prerequisites: none. Related: TEST.111, TEST.122.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
+  Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
+  test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
+  playwright error), test_bookmarks_keep_a_course_pick_on_the_galaxy_map and
+  ::test_galaxy_map_hover_lights_every_choice_while_picking_a_course, all
+  passing on re-run. The three TEST.125 moon tests still fail alone and on main.
   Reported by Foundations lane 2 (2026-10-10 20:50Z): in a full suite
   under `python3 -m pytest -n 4 -q tests` (about 15,450 tests, 65-69
   min, 4 cores, MariaDB and Redis local) these pass alone and fail
@@ -5125,6 +5116,29 @@ clears each one.
   before they merge until it lands.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
+
+- [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
+  Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
+  min):
+  tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
+  failed once in a full run and passed alone; the traceback was not
+  kept. Done: the next failure's traceback is captured, the cause is
+  found (a shared table between workers, a timeout, or a real defect in
+  the ID lookup) and the test is made reliable without loosening it.
+  Owner: Bugfixes lane 2, with TEST.128.
+  Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
+
+- [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
+  Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
+  min):
+  tests/test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True]
+  failed once in a full run and passed alone; the failure message was
+  not kept. Done: the next failure's message is captured, the cause is
+  found (an interrupt landing before a worker starts, a shared Redis
+  queue between workers, or a real half-written sector) and the test is
+  made reliable without loosening it. Owner: Bugfixes lane 2, with
+  TEST.128.
+  Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
 
 ## USR: User accounts
 
