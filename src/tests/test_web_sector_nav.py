@@ -375,6 +375,16 @@ def test_sector_contents_list_systems_then_phenomena_then_rogues(client, fake):
     assert "Rogue Planet</span> <span class=\"datatable-count\">(2)" in contents
 
 
+def test_a_rogue_planets_row_shows_its_surface_gravity(client, fake):
+    """UX.99: the surface gravity is in the rogue planet's row when each is listed on its own."""
+    _with_rogues(fake)
+    for row in fake.sectors[5]["phenomena"]:
+        if row["type"] == "rogue_planet":
+            row["gravity_g"] = 2.5 if row["id"] == 21 else 0.0417
+    listed = client.get("/sector/5?contents_type=Rogue+Planet").get_data(as_text=True)
+    assert "Class J, Jupiter, 2.5 g" in listed and "Class J, Jupiter, 0.0417 g" in listed
+
+
 def test_sector_contents_filtered_to_rogue_planets_lists_each(client, fake):
     _with_rogues(fake)
     html = client.get("/sector/5?contents_type=Rogue+Planet").get_data(as_text=True)

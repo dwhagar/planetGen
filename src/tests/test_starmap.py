@@ -549,6 +549,14 @@ def test_an_unmarked_rogue_planet_is_a_faint_speck_with_no_glow():
     assert light["sizePx"] < star["corePx"] * 2, "smaller than a star"
 
 
+def test_a_rogue_planet_names_its_surface_gravity_for_the_info_panel():
+    """UX.99: the scene entry carries the surface gravity text the map popup shows."""
+    phenomenon = {**_phenomenon(type_="rogue_planet", descriptor="terrestrial"), "gravity_g": 0.9123}
+    rogue = map_scene_data(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon])["clouds"][0]
+    assert rogue["gravityText"] == "0.912 g"
+    assert "gravityText" not in _rogue_scene()    # none when it is not known
+
+
 def test_a_rogue_planet_has_only_its_one_dim_light():
     """MAP.184: no bigger "marked" light is sent any more; the Menu's per-kind Mark grows the one light."""
     assert "markedLight" not in _rogue_scene()

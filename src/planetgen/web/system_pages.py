@@ -642,6 +642,7 @@ FIELD_SPECS = {
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
         ("radius_km", "Radius", _body_radius),
+        ("gravity_g", "Surface Gravity", lambda v: f"{format_number(v, ',.3g')} g"),
         ("composition", "Composition", str),
         ("has_internal_heat", "Geologically Active", _bool_text),
         ("has_moons", "Has Moons", _bool_text),

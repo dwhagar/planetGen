@@ -137,6 +137,7 @@ def _rogue_group_row(rogues, system_url):
             "details": ", ".join(bit for bit in (
                 f"Class {row['class']}" if row.get("class") else None,
                 (row["descriptor"] or "").capitalize(),
+                f"{format_number(row['gravity_g'], ',.3g')} g" if row.get("gravity_g") else None,
             ) if bit),
             "distance": trusted_html(format_distance_ly(row["distance_ly"])),
             "octant": row.get("octant"),
@@ -265,6 +266,8 @@ def _contents(sector, facilities=(), fold=True):
             details.insert(0, f"Class {row['class']}")
         if row["radius_ly"]:
             details.append(f"{format_distance_ly(row['radius_ly'])} radius")
+        if row.get("gravity_g"):
+            details.append(f"{format_number(row['gravity_g'], ',.3g')} g")
         rows.append({
             "distance_ly": row["distance_ly"],
             "name": row["name"],
