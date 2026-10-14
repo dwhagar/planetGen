@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1110] - 2026-10-14
+
+### Changed
+- The TODO list drops TEST.145 and TEST.146 (merged in #1367) and records the new full-run time of about 49 minutes.
+
 ## [8.0.1109] - 2026-10-14
 
 ### Fixed
