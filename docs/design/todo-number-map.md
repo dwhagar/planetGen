@@ -662,7 +662,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | open |
 | GEN.154 | Show the Einstein radius on compact-object pages | none | open |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | open |
-| GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) | none | open |
+| GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) | none | done, PR #1310 |
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies | none | open |
 | GEN.158 | Add a metallicity value to stars | none | open |
 | GEN.159 | Globular clusters: cluster table, King tables and the Milky Way catalogue | none | open |
@@ -717,7 +717,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall | none | open |
-| GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process | none | open |
+| GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process | none | done, PR #1310 |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
