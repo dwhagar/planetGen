@@ -1,2 +1,0 @@
-### Added
-- **Black holes, neutron stars and quasars, nebula sprites and new stars fade in with the zoom instead of popping (MAP.155).** The tiles list a galaxy's point objects from level 8 (160 pc tiles) instead of 10, ranked most luminous first, and the Galaxy Map fades them in by the same rank rule as the stars around them; a nebula sprite's opacity now ramps between 1 and 4 px of radius instead of switching on at 2 px (and can be clicked once it is visible enough); and a star arriving with the zoom starts as a 1 px dot and grows to its size as it fades in.
