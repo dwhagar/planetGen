@@ -114,3 +114,14 @@ At the default scale the phenomena pass writes about 68 million rows, so the wri
 | `LOAD DATA LOCAL INFILE`, indexes dropped | 89,000 | needs `local_infile` on the server and the client; not used |
 
 So the scatter now writes 1.6 times faster than before on this table, and the 68 million rows go from about 31 minutes of database time to about 19 plus the index build. The rows are the same (a test stores numpy numbers, `NULL`s and quoted names both ways). A scatter that dies half way leaves the indexes off but also no recorded seed, so no sector fill uses the table until the next scatter clears and rebuilds it. `LOAD DATA` stays an option if the host's server allows it.
+
+## PERF.87 and PERF.90: placement as arrays
+
+`SpaceSector._random_position` tests a candidate against all massive neighbours
+with one NumPy comparison; points within 1e-9 of a boundary fall back to
+`math.dist`, so accept and reject decisions match the old loop. Two tests prove
+it (a fill compared with the old loop, and a borderline check). Benchmark,
+2 sectors at ring 12, 1 worker, idle machine: the sector fill went from
+68.0 s to 64.0 s (the plan stages are untouched and moved by noise, 40 to 45 s).
+`_ring_centerline_edges` joins `ring_master_count` and `ring_sector_count` in
+the cache.
