@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.989] - 2026-10-14
+
+### Changed
+- The plan and TODO list drop the finished nearest-neighbour speed-up and add two new test-flake items from the latest full run.
+
 ## [8.0.988] - 2026-10-14
 
 ### Changed
