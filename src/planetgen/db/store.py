@@ -3788,7 +3788,7 @@ def _format_location_string(sector_name, neighbors):
     return f"{sector_name} -- nearest: " + ", ".join(parts)
 
 
-def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
+def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry, neighbors=None) -> str:
     """
     Computes `entry`'s `star_systems.location` string from the live
     `sector` it belongs to -- up to 3 nearest neighbors
@@ -3801,11 +3801,14 @@ def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
     Args:
         sector (SpaceSector): The sector `entry` belongs to.
         entry (SectorSystemEntry): The system to compute a location for.
+        neighbors (list, optional): `entry`'s 3 nearest neighbors when the caller already has them for every
+            entry (`SpaceSector.all_nearest_neighbors`, PERF.81); worked out here otherwise.
 
     Returns:
         str: See `_format_location_string`.
     """
-    neighbors = sector.nearest_neighbors(entry, count=3)
+    if neighbors is None:
+        neighbors = sector.nearest_neighbors(entry, count=3)
     neighbor_info = [
         (neighbor.star_system.name, distance_between(entry, neighbor))
         for neighbor in neighbors
@@ -6168,11 +6171,12 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
 
         bright_star_links = []
         built_scatter_ids = []
-        for entry in sector.entries:
+        nearest = sector.all_nearest_neighbors(3)   # PERF.81: one spatial tree, not a distance to every system each
+        for entry, neighbors in zip(sector.entries, nearest):
             star_system_id = insert_star_system(
                 conn, entry.star_system, entry.system_config,
                 sector_id=sector_id, position=entry.position,
-                location=_location_for_entry(sector, entry),
+                location=_location_for_entry(sector, entry, neighbors),
             )
             bright_star_id = getattr(entry, "bright_star_id", None)
             if bright_star_id is not None:
