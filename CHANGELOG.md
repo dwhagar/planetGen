@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1007] - 2026-10-14
+
+### Fixed
+- The phenomena scatter at default scale no longer sits silent for minutes before its first progress: layers go to the workers in chunks sized by how long they take (about 2 seconds each), so a layer that takes seconds is a task of its own and shows at once. The first progress now comes in about 8 seconds, with two workers or one.
+
 ## [8.0.1006] - 2026-10-14
 
 ### Changed
