@@ -35,7 +35,7 @@ from planetgen import tuning
 from planetgen.db import query
 from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy.geometry import enumerate_sectors_within_radius
+from planetgen.galaxy.geometry import enumerate_sectors_within_radius, local_to_galaxy_pc
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
 
 MAX_DISTANCE_PC = 50.0
@@ -154,9 +154,9 @@ def _systems_in_reach(conn, center, distance, margin):
     ).fetchall()
     found = {}
     for row in rows:
-        point = (row["center_x_pc"] + mpc_to_pc(row["position_x_mpc"]),
-                 row["center_y_pc"] + mpc_to_pc(row["position_y_mpc"]),
-                 row["center_z_pc"] + mpc_to_pc(row["position_z_mpc"]))
+        point = local_to_galaxy_pc(
+            (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]),
+            (mpc_to_pc(row["position_x_mpc"]), mpc_to_pc(row["position_y_mpc"]), mpc_to_pc(row["position_z_mpc"])))
         away = math.dist(center, point)
         if away <= distance:
             found[row["id"]] = {"name": row["name"], "sector_id": row["sector_id"], "sector_name": row["sector_name"],

@@ -49,8 +49,8 @@ from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_
 from planetgen._version import __version__
 from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.geometry import (
-    galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
-    ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
+    binary_companion_offset_pc, galaxy_to_local_pc, layer_index_at, local_to_galaxy_pc, neighbor_addresses,
+    provisional_sector_designation, ring_index_at, ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
 )
 from planetgen.galaxy import keepout
 from planetgen.galaxy import objectref as object_ref
@@ -1624,7 +1624,8 @@ def sector_detail(conn, sector_id):
             `ring_slot_index`, `placed`, `system_count`, and `systems` (one entry per system
             placed in this sector, nearest the sector's center first,
             then any with no position by name: `id`, `name`, `quadrant`, `location`,
-            `is_binary`, `binary_type`, `position_x_mpc`/`position_y_mpc`/
+            `is_binary`, `binary_type`, `binary_separation_km`,
+            `position_x_mpc`/`position_y_mpc`/
             `position_z_mpc`, `center_distance_ly` (`None` with no
             position), and `stars` -- 1 entry (single) or 2
             (primary then secondary), each `role`/`star_type`/
@@ -1645,7 +1646,7 @@ def sector_detail(conn, sector_id):
 
     system_rows = conn.execute(
         """
-        SELECT id, name, is_binary, quadrant, location, binary_type,
+        SELECT id, name, is_binary, quadrant, location, binary_type, binary_separation_km,
                position_x_mpc, position_y_mpc, position_z_mpc, runaway_class, runaway_speed_kms,
                inside_nebula_id, inside_remnant_id
         FROM star_systems
@@ -1674,6 +1675,7 @@ def sector_detail(conn, sector_id):
         systems.append({
             "id": row["id"], "name": row["name"], "quadrant": row["quadrant"], "location": row["location"],
             "is_binary": row["is_binary"], "binary_type": row["binary_type"],
+            "binary_separation_km": row["binary_separation_km"],
             "position_x_mpc": row["position_x_mpc"], "position_y_mpc": row["position_y_mpc"],
             "position_z_mpc": row["position_z_mpc"],
             "center_distance_ly": _center_distance_ly(row),
@@ -4206,8 +4208,8 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         return []
     stride = max(1, int(math.ceil(sector_count / float(GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET))))
     select = """
-        SELECT st.id, st.name, st.luminosity_w, st.temperature_k, st.radius_km, st.star_type,
-               ss.id AS system_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+        SELECT st.id, st.name, st.role, st.luminosity_w, st.temperature_k, st.radius_km, st.star_type,
+               ss.id AS system_id, ss.binary_separation_km, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
                sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.ring_index, sec.layer_index, sec.ring_slot_index"""
     rank = (", ROW_NUMBER() OVER (PARTITION BY sec.id ORDER BY st.luminosity_w DESC, st.id DESC) AS sector_rank"
@@ -4231,17 +4233,29 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
                "\n        ORDER BY luminosity_w DESC, id DESC\n        LIMIT ?")
         params.append(int(per_sector))
     rows = conn.execute(sql, params + [int(limit)]).fetchall()
-    return [{
+    return [_generated_star_entry(row) for row in rows]
+
+
+def _generated_star_entry(row):
+    """One generated star's row as the dict `galaxy_generated_stars_in_box` returns."""
+    # A system's stored offset is along its sector's own axes (MAP.186), so it is
+    # rotated into the galaxy frame like the Sector Map does; a binary's
+    # secondary sits its real separation from the primary (`binary_companion_offset_pc`).
+    center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+    offset = [row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz"]
+    point = local_to_galaxy_pc(center, offset)
+    if row["role"] == "secondary":
+        shift = binary_companion_offset_pc(row["binary_separation_km"])
+        point = tuple(point[i] + shift[i] for i in range(3))
+    return {
         "id": row["id"], "name": row["name"],
-        "x": round(row["center_x_pc"] + row["position_x_mpc"] / MPC_PER_PC, 3),
-        "y": round(row["center_y_pc"] + row["position_y_mpc"] / MPC_PER_PC, 3),
-        "z": round(row["center_z_pc"] + row["position_z_mpc"] / MPC_PER_PC, 3),
+        "x": round(point[0], 3), "y": round(point[1], 3), "z": round(point[2], 3),
         "luminosity_sol": float("%.4g" % (row["luminosity_w"] / constants.SOLAR_LUMINOSITY)),
         "temperature_k": round(row["temperature_k"]),
         "radius_sol": float("%.3g" % _radius_sol(row["radius_km"])),
         "star_type": row["star_type"], "ring_index": row["ring_index"], "layer_index": row["layer_index"],
         "ring_slot_index": row["ring_slot_index"], "system_id": row["system_id"],
-    } for row in rows]
+    }
 
 
 POINT_PHENOMENON_MIN_LEVEL = 10

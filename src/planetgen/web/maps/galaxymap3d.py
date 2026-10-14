@@ -372,6 +372,8 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
   <h3>Reading the map</h3>
   <ul>
     <li>A point of light is a star: its halo size shows brightness and its color temperature.</li>
+    <li>A close pair of stars is drawn as two touching dots so it reads as a pair; their real gap is far too small
+    to see at this scale.</li>
     <li>Bright points are quasars, neutron stars and accreting black holes; small spheres are quiet black holes
     and interstellar comets.</li>
     <li>Translucent clouds are nebulae, asteroid fields and supernova remnants; faint clouds reach in from a
