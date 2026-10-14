@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1071] - 2026-10-14
+
+### Added
+- `planetgen plan --redo-nebula-field [dry-run|apply]`: brings an existing galaxy's stored molecular clouds in line with the current keep rates. The dry run (the default) counts the stored field clouds the rule now rejects, per class, and changes nothing; `apply` deletes them, refreshes containment in the sectors they reached and draws the `nebula_field` table again (GEN.205).
+
 ## [8.0.1070] - 2026-10-14
 
 ### Changed
