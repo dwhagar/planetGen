@@ -118,9 +118,9 @@ def _reject_undecodable_query_string():
 
 def _drop_retry_after_unless_limited(response):
     """Flask-Limiter 4 puts `Retry-After` on every response it counts; it
-    belongs only where it tells the caller when to retry: a 429 (API.21) and the 504 of a database too busy to
-    answer in time (PERF.64)."""
-    if response.status_code == 504:
+    belongs only where it tells the caller when to retry: a 429 (API.21), the 504 of a database too busy to
+    answer in time (PERF.64) and the 503 of one that held a row locked too long (ADM.53)."""
+    if response.status_code in (503, 504):
         from planetgen.web.errors import RETRY_AFTER_SECONDS
         response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
     elif response.status_code != 429:
@@ -266,13 +266,21 @@ def _register_error_handlers(app):
             body.update(exc.extra)
         return jsonify(body), exc.status_code
 
-    from planetgen.web.errors import RETRY_AFTER_SECONDS, render_error, timeout_page, unexpected_error_message
+    from planetgen.web.errors import RETRY_AFTER_SECONDS, busy_page, render_error, timeout_page, unexpected_error_message
 
     @app.errorhandler(pymysql.err.OperationalError)
     def _handle_statement_timeout(exc):
         # PERF.17: a read that ran past `mysql.statement_timeout_seconds`
         # is a 504 with a plain message; any other database error is
         # still the generic 500.
+        if exc.args and exc.args[0] in store.LOCK_WAIT_ERRORS:
+            # ADM.53: a row a long job holds locked; the request gave up after `WEB_LOCK_WAIT_SECONDS`.
+            log.debug(f"Row lock wait on {request.method} {request.path}: {exc}")
+            if _is_api_request():
+                response = jsonify({"error": "BUSY: the database is busy with another job; try again shortly"})
+                response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+                return response, 503
+            return busy_page()
         if not (exc.args and exc.args[0] in store.STATEMENT_TIMEOUT_ERRORS):
             return _handle_internal_error(exc)
         log.debug(f"Statement time limit hit on {request.method} {request.path}: {exc}")

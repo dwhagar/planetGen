@@ -363,7 +363,7 @@
         },
         "galaxy_tiles": {
           "default": "600 per minute",
-          "description": "Limit on /galaxy/tiles, /galaxy/stage and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
+          "description": "Limit on /galaxy/tiles, /galaxy/stage, /galaxy/window and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
           "title": "Galaxy Tiles",
           "type": "string",
           "x-category": "rate limits",

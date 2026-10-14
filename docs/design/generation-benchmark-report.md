@@ -139,3 +139,14 @@ lands within 1e-16 of a bin edge. Benchmark bright-star stage, 2 sectors at
 ring 12: 8.5 s to 7.5 s (the other plan stages moved by up to 5 s between runs,
 so this is within noise at benchmark scale; the default-scale galaxy has far
 more bins).
+
+## DB.24: the nebula field table
+
+`planetgen plan` writes `nebula_field` inside the phenomena stage (one task per
+first-index slab of 50 pc field cells, through the work queue). Benchmark
+(2 sectors, ring 12): the phenomena stage stays at 18.8 s on one worker and
+12.3 s on two, as before the table, so the build is small at that scale. The
+table has no object IDs for clouds no sector has stored: working an ID out costs
+a nebula shape (`interior_centroid` over the fit grid, about 112 ms), which for
+every drawn cloud would be about 30 hours of CPU at the default scale. A save
+sets `uid` and `is_stored` on the row of each cloud it stores.

@@ -2,6 +2,44 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1068] - 2026-10-14
+
+### Changed
+- TODO: MAP.151 note for the lane's landing steps for the window stage.
+
+## [8.0.1067] - 2026-10-14
+
+### Changed
+- TODO: MAP.151 note for the server data window (PR #1320).
+
+## [8.0.1066] - 2026-10-14
+
+### Added
+- **A data window for the Galaxy Map (MAP.151, server part).** `/galaxy/window?at=<cell>&g=<3 to 11>` returns the cells around a chosen cell of any level of the block ladder (a sector included): every cell within half the window's width across the plane and half its height, which cells hold generated sectors, and their stats. It is cut from the stages of the parent blocks the window touches, read through the stage cache, so a window shares files with every neighbouring window and stage and needs no new query. The map starts reading it with the free camera.
+
+## [8.0.1065] - 2026-10-14
+
+### Changed
+- TODO: OPS.43 and OPS.44 (PR #1307) and ADM.53 (PR #1318) retired.
+
+## [8.0.1064] - 2026-10-14
+
+### Changed
+- TODO: DB.24 retired (PR #1317, schema v83); notes on MAP.151 and MAP.171 about clouds without object ids.
+
+## [8.0.1063] - 2026-10-14
+
+### Fixed
+- Logging in no longer fails with a server error, or hangs until Apache gives up, while a long job holds a lock on the admin's row. The web interface's database connections now wait at most 5 seconds for a locked row; a login, a session's last-seen time and an API key's last-used time are skipped (with a line in the activity log) when the row stays locked, and any other request that hits the wait answers "Busy" (503 with `Retry-After`) instead of a 500.
+
+## [8.0.1062] - 2026-10-14
+
+### Added
+- `nebula_field` (schema v83): one row for every kept class M and N cloud of the galaxy's molecular cloud field, written by `planetgen plan` (and by `plan --redo-scatters phenomena`) from the galaxy seed, so the Galaxy Map can find a nebula no generated sector holds yet. A sector's save marks the clouds it stores, with their object IDs. Classes P and Q stay in the seed (DB.24).
+
+### Changed
+- The migration to v83 only creates the empty table; the next plan fills it.
+
 ## [8.0.1061] - 2026-10-14
 
 ### Changed

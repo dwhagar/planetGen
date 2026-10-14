@@ -356,6 +356,29 @@ def test_stage_endpoint_rejects_bad_keys(client, fake):
     assert fake.stage_calls == []
 
 
+def test_window_endpoint_builds_from_the_parent_stages(client, fake):
+    first = client.get("/galaxy/window?at=27.3.5.0&g=5")
+    assert first.status_code == 200
+    assert first.headers["Cache-Control"] == "no-store"
+    window = first.get_json()
+    assert window["at"] == "27.3.5.0" and window["g"] == 5 and window["child_m"] == 27
+    assert window["stamp"] == STAMP and [3, 5, 0] in window["cells"] and window["children"] == []
+    assert fake.stage_calls and all(call.startswith("243.") for call in fake.stage_calls)
+    calls = list(fake.stage_calls)
+    client.get("/galaxy/window?at=27.3.5.0&g=5")
+    assert fake.stage_calls == calls  # the stages are cached
+    top = client.get("/galaxy/window?at=243.2.1.0").get_json()
+    assert top["g"] == 9 and fake.stage_calls[len(calls):] == [None]
+
+
+def test_window_endpoint_rejects_bad_keys_and_widths(client, fake):
+    for query in ("at=81.0.0.0", "at=243.0.99.0", "at=nonsense", "", "at=27.3.5.0&g=4", "at=27.3.5.0&g=x", "at=27.3.5.0&g=13"):
+        resp = client.get(f"/galaxy/window?{query}")
+        assert resp.status_code == 400, query
+        assert "error" in resp.get_json()
+    assert fake.stage_calls == []
+
+
 def test_galaxy_page_offers_territories_once_polities_exist(client, fake):
     html = client.get("/galaxy").get_data(as_text=True)
     assert 'data-action="territories"' in html
@@ -743,3 +766,16 @@ def test_a_page_whose_data_timed_out_asks_again_by_itself(client, fake, monkeypa
     assert response.status_code == 504 and response.headers["Retry-After"] == "10"
     html = response.get_data(as_text=True)
     assert '<meta http-equiv="refresh" content="10">' in html and "database is busy" in html
+
+
+def test_a_page_that_waited_on_a_locked_row_answers_503_and_asks_again(client, fake, monkeypatch):
+    """ADM.53: a lock wait timeout (1205) is a 503 with `Retry-After`, not the generic 500."""
+    import pymysql
+
+    def locked(*args, **kwargs):
+        raise pymysql.err.OperationalError(1205, "Lock wait timeout exceeded; try restarting transaction")
+
+    monkeypatch.setattr(apiclient, "get_galaxy_sectors", locked)
+    response = client.get("/galaxy")
+    assert response.status_code == 503 and response.headers["Retry-After"] == "10"
+    assert '<meta http-equiv="refresh" content="10">' in response.get_data(as_text=True)

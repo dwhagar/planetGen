@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 import pymysql
 from flask import current_app, g, request
 
+from planetgen import tuning
 from planetgen.db.store import get_control_connection
 
 CONTROL_DATABASE_UNAVAILABLE = "database unavailable"
@@ -98,7 +99,8 @@ def get_control_db():
     """
     if "control_db" not in g:
         try:
-            g.control_db = get_control_connection(current_app.config["CONTROL_MYSQL_CONFIG"], ensure_schema=False)
+            g.control_db = get_control_connection(current_app.config["CONTROL_MYSQL_CONFIG"], ensure_schema=False,
+                                                  lock_wait_s=tuning.WEB_LOCK_WAIT_SECONDS)
         except pymysql.err.OperationalError as exc:
             current_app.logger.error("Control database unavailable on %s %s: %s", request.method, request.path, exc)
             raise ApiError(CONTROL_DATABASE_UNAVAILABLE, status_code=503) from exc
