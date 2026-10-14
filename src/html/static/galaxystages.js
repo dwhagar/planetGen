@@ -1,21 +1,21 @@
 // html/static/galaxystages.js
 //
-// The Galaxy Map drill-down's stages (docs/design/galaxy-drilldown-
-// navigation.md, sections 4, 5 and 8.1), without any drawing: which
-// blocks a stage holds and how many sectors each can hold, stage URLs,
-// the breadcrumb, labels, and the camera path of a flight into a block.
-// galaxymap3d.js draws and drives them. Like galaxyprisms.js it has no
-// three.js import, so it runs under plain node for tests
-// (src/tests/test_galaxystages.py).
+// The Galaxy Map's stages (docs/design/galaxy-drilldown-navigation.md, as
+// MAP.150 and MAP.151 changed it; docs/design/drilldown-region-sizes.md),
+// without any drawing: which blocks a stage holds and how many sectors each
+// can hold, stage URLs, the breadcrumb, labels, and the camera path of a
+// flight into a block. galaxymap3d.js draws and drives them. Like
+// galaxyprisms.js it has no three.js import, so it runs under plain node
+// for tests (src/tests/test_galaxystages.py).
 //
-// A stage is {at, picks}: see "Stages" below.
+// A stage is {win}: see "Stages" below.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 const {
-  DEFAULT_WINDOW, WINDOW_WIDTHS, drillBlockBounds, drillChainOf, drillChildren, drillParent, drillSlabs, drillSlotRange,
-  drillWedgeCount, formatDrillKey, parseDrillKey, ringSectorCount, sectorAddressAt, sectorDrawable, windowCells,
+  DEFAULT_WINDOW, WINDOW_WIDTHS, drillBlockBounds, drillChainOf, drillChildren, drillParent, drillSlotRange,
+  drillWedgeCount, formatDrillKey, ringSectorCount, sectorAddressAt, sectorDrawable, windowCells,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 // The flight's zoom/pan trade-off (van Wijk and Nuij's rho), and its
@@ -25,6 +25,7 @@ export const FLIGHT_SPEED = 1.1;
 export const FLIGHT_SECONDS = [0.5, 1.6];
 // A top-down view fits the slab's footprint with this much margin.
 export const FIT_MARGIN = 1.1;
+
 
 // --- The galaxy's outline -----------------------------------------------------
 
@@ -91,60 +92,26 @@ export function drillBlockTotal(block, outline) {
 
 // --- Stages -------------------------------------------------------------------
 //
-// A stage is {at, picks}: `at` is the container (null for the galaxy, or a
-// drill block {m, ring, wedge, slab} of 243, 27 or 3 sectors a side) and
-// `picks` what has been picked inside it so far, in order. The ladder is
-// arc, slab, segment, then slab and segment again inside each smaller
-// block down to a sector (MAP.56: "select-slab, zoom in, select segment
-// of slab"):
-// - {kind: "arc", n}: the galaxy's first pick (MAP.85), a piece of the
-//   disk about 40 degrees of bearing by a third of its radius, the whole
-//   height of the disk: arc n is radial band floor(n / ARCS_PER_TURN)
-//   (inner, middle, outer) and bearing bin n % ARCS_PER_TURN. Its blocks
-//   are the level-243 blocks whose middle bearing falls in the bin, so
-//   its sides run along their wedge lines (MAP.52);
-// - {kind: "quadrant", n}: the galaxy's first pick before MAP.85, a
-//   quarter of the disk; still read from older links, never offered;
-// - {kind: "layer", lo, hi}: the container's child slabs lo to hi -- the
-//   slab; pickOptions offers each slab on its own (an older link may name
-//   a range, which is then narrowed to one slab);
-// - {kind: "segment", ring, wedge}: one block of the picked slab (a drill
-//   block of the next level down, or a sector inside a level-3 block);
-// - {kind: "region", n}: an older link's 3 x 3 pick (before MAP.56); it is
-//   never offered, and a link holding one opens at the stage before it.
-// While the view holds more than one slab the pick is a slab, then a
-// segment of it. A pick that leaves one block of one slab enters that
-// block: it becomes the container, and its children are picked the same
-// way. Inside a level-3 block the children are sectors, and the last
-// pick is a sector of one layer.
-
-// The galaxy's arcs (MAP.85): this many bearing bins a turn, in
-// ARC_BANDS bands of radius. 8 bins (45 degrees) is the count nearest
-// Boss's 40 degrees whose lines are wedge lines of every level-243 block
-// ring past the core (their wedge counts are multiples of 8), so an arc's
-// sides are straight lines from its inner edge to its outer one.
-export const ARCS_PER_TURN = 8;
-export const ARC_BANDS = 3;
-const ARC_BAND_NAMES = ["inner", "middle", "outer"];
+// A stage is {win}: `win` is null for the galaxy (every level-243 block of it,
+// a click on one opens the window one size down) or a window {centre, g}: `g`
+// cells across around `centre`, a cell of any level (a block of 243, 27 or 3
+// sectors a side, or a sector as {m: 1, ring, wedge: slot, slab: layer}).
+// There is nothing to pick but a cell: a click on one takes the window one
+// level down, centred on the cell clicked (a sector is opened instead), and
+// Up takes it one level up, centred on the cell holding the centre (the
+// galaxy above level 243). A window's data is /galaxy/window
+// (planetgen/galaxy/window.py); the galaxy's is /galaxy/stage.
 
 const TWO_PI = 2 * Math.PI;
-const childCache = new WeakMap();
+const galaxyCache = new WeakMap();
+
+export function galaxyStage() {
+  return { win: null };
+}
 
 export function sameBlock(a, b) {
   if (!a || !b) return a === b;
   return a.m === b.m && a.ring === b.ring && a.wedge === b.wedge && a.slab === b.slab;
-}
-
-export function samePick(a, b) {
-  if (a.kind !== b.kind) return false;
-  if (a.kind === "layer") return a.lo === b.lo && a.hi === b.hi;
-  if (a.kind === "segment") return a.ring === b.ring && a.wedge === b.wedge;
-  return a.n === b.n;
-}
-
-export function sameStage(a, b) {
-  return sameBlock(a.at, b.at) && sameWindow(a.win, b.win) && a.picks.length === b.picks.length
-    && a.picks.every(function (pick, n) { return samePick(pick, b.picks[n]); });
 }
 
 function sameWindow(a, b) {
@@ -152,188 +119,206 @@ function sameWindow(a, b) {
   return a.g === b.g && sameBlock(a.centre, b.centre);
 }
 
-// The container's children grouped by child slab, lowest first, each
-// block with its `bounds` and `total` (sectors it can hold); blocks that
-// can hold none are left out, and so are slabs left empty. Without an
-// outline (no shape), every child counts and `total` is null.
-export function stageChildren(at, outline, edgePc) {
-  const groups = drillChildren(at, outline.maxRing, outline.maxLayer);
-  const out = [];
-  groups.forEach(function (group) {
-    const blocks = [];
-    group.blocks.forEach(function (block) {
-      const total = outline.shapeless ? null : drillBlockTotal(block, outline);
-      if (total === 0) return;
-      block.bounds = drillBlockBounds(block, edgePc);
-      block.total = total;
-      blocks.push(block);
-    });
-    if (blocks.length) out.push({ slab: group.slab, blocks: blocks });
-  });
-  return out;
+export function sameStage(a, b) {
+  return sameWindow(a.win, b.win);
 }
 
-// stageChildren, worked out once per outline and container.
-export function childrenOf(at, outline, edgePc) {
-  let byKey = childCache.get(outline);
-  if (!byKey) {
-    byKey = new Map();
-    childCache.set(outline, byKey);
-  }
-  const key = (at ? formatDrillKey(at) : "galaxy") + "@" + edgePc;
-  let groups = byKey.get(key);
-  if (!groups) {
-    groups = stageChildren(at, outline, edgePc);
-    byKey.set(key, groups);
-  }
-  return groups;
+// What a stage's data is read for: its window, or null (the galaxy).
+export function holder(stage) {
+  return stage.win;
 }
 
-function angleFrom(angle, a0) {
-  return ((angle - a0) % TWO_PI + TWO_PI) % TWO_PI;
-}
-
-function midAngle(block) {
-  return (block.bounds.t0 + block.bounds.t1) / 2;
+// A block without the bounds/total a view adds.
+export function stripBlock(block) {
+  return { m: block.m, ring: block.ring, wedge: block.wedge, slab: block.slab };
 }
 
 function distinct(values) {
   return Array.from(new Set(values)).sort(function (p, q) { return p - q; });
 }
 
-function slabsOf(blocks) {
-  return distinct(blocks.map(function (b) { return b.slab; }));
-}
-
-function columnsOf(blocks) {
-  return new Set(blocks.map(function (b) { return b.ring + "/" + b.wedge; }));
-}
-
-// The sectors of a level-27 block whose sectors all lie in one layer, or
-// null: such a block is only one sector tall, so its view skips the
-// level-3 blocks and shows the sectors themselves (Boss, 2026-10-01).
-export function thinSectors(at, outline, edgePc) {
-  if (!at || at.m !== 27 || outline.shapeless) return null;
-  const groups = childrenOf(at, outline, edgePc);
-  if (groups.length !== 1) return null;
-  const sectors = [];
-  const layers = new Set();
-  groups[0].blocks.forEach(function (block) {
-    childrenOf(stripBlock(block), outline, edgePc).forEach(function (g) {
-      layers.add(g.slab);
-      Array.prototype.push.apply(sectors, g.blocks);
-    });
-  });
-  return layers.size === 1 && sectors.length ? sectors : null;
-}
-
-// The container's whole view: every child (or a thin block's sectors),
-// and the bearings it spans.
-function containerView(at, outline, edgePc) {
-  let blocks = thinSectors(at, outline, edgePc);
+// The galaxy's own blocks (the level-243 ones that can hold a sector), each
+// with its `bounds` and `total` (sectors it can hold); without an outline (no
+// shape), every block counts and `total` is null. Worked out once per outline.
+export function galaxyBlocks(outline, edgePc) {
+  let blocks = galaxyCache.get(outline);
   if (!blocks) {
     blocks = [];
-    childrenOf(at, outline, edgePc).forEach(function (g) { Array.prototype.push.apply(blocks, g.blocks); });
+    drillChildren(null, outline.maxRing, outline.maxLayer).forEach(function (group) {
+      group.blocks.forEach(function (block) {
+        const total = outline.shapeless ? null : drillBlockTotal(block, outline);
+        if (total === 0) return;
+        block.bounds = drillBlockBounds(block, edgePc);
+        block.total = total;
+        blocks.push(block);
+      });
+    });
+    galaxyCache.set(outline, blocks);
   }
-  let a0 = 0;
-  let a1 = TWO_PI;
-  if (at) {
-    const b = drillBlockBounds(at, edgePc);
-    a0 = b.t0;
-    a1 = b.t1;
-  }
-  return { at: at, blocks: blocks, a0: a0, a1: a1, hadFirstPick: false };
+  return blocks;
 }
 
-// What can be picked next in `view`: "arc", "layer" (a slab), "segment"
-// (a block of the one slab left), or null when one block (of one slab)
-// is left.
-export function nextPickKind(view) {
-  const slabs = slabsOf(view.blocks).length;
-  const columns = columnsOf(view.blocks).size;
-  if (!view.at && !view.hadFirstPick && columns > 1) return "arc";
-  if (slabs > 1) return "layer";
-  if (columns > 1) return "segment";
+// The window's blocks with their bounds and sector totals (those that can
+// hold none are left out), as galaxyBlocks makes the galaxy's.
+export function windowView(win, outline, edgePc) {
+  const blocks = [];
+  windowCells(win.centre, win.g).forEach(function (block) {
+    const total = outline.shapeless ? null : drillBlockTotal(block, outline);
+    if (total === 0) return;
+    block.bounds = drillBlockBounds(block, edgePc);
+    block.total = total;
+    blocks.push(block);
+  });
+  // Bearings are measured within half a turn of the centre's, so a window
+  // across bearing 0 doesn't span the whole turn.
+  const mid = ((win.centre.wedge + 0.5) / drillWedgeCount(win.centre.m, win.centre.ring)) * TWO_PI;
+  return { win: win, blocks: blocks, a0: mid - Math.PI, a1: mid + Math.PI };
+}
+
+// The choices of a view: each block is one, a click on it (windowInto) opens
+// the window one size down.
+function cellOptions(blocks) {
+  return blocks.map(function (block) {
+    return { pick: { kind: "cell", block: stripBlock(block) }, blocks: [block], a0: block.bounds.t0, a1: block.bounds.t1 };
+  });
+}
+
+// Everything about `stage`: {stage (as given), view: {win, blocks, a0, a1},
+// kind ("cell"), options (one per block), problem (when the window holds
+// nothing of the galaxy)}.
+export function resolveStage(stage, outline, edgePc) {
+  if (!stage.win) {
+    const blocks = galaxyBlocks(outline, edgePc);
+    return { stage: stage, view: { win: null, blocks: blocks, a0: 0, a1: TWO_PI }, kind: "cell", options: cellOptions(blocks), problem: null };
+  }
+  const view = windowView(stage.win, outline, edgePc);
+  if (!view.blocks.length) {
+    return { stage: stage, problem: "Nothing of the galaxy lies around " + blockLabel(stage.win.centre) + "." };
+  }
+  return { stage: stage, view: view, kind: "cell", options: cellOptions(view.blocks), problem: null };
+}
+
+// The cell one size down that a click on `block` opens a window round: the
+// one under `at` (a point {x, y} of the plane in parsecs, where the click
+// landed, kept inside the block), or holding the block's middle without
+// one. Null for a sector.
+export function windowChildCentre(block, at, edgePc) {
+  if (block.m === 1) return null;
+  const childM = block.m === 3 ? 1 : block.m / 9;
+  let radius = (block.ring + 0.5) * block.m;
+  let turn = (block.wedge + 0.5) / drillWedgeCount(block.m, block.ring);
+  if (at && edgePc) {
+    const b = block.bounds || drillBlockBounds(block, edgePc);
+    const inside = function (value, low, high) {
+      const margin = (high - low) * 1e-6;
+      return Math.min(high - margin, Math.max(low + margin, value));
+    };
+    radius = inside(Math.hypot(at.x, at.y), b.r0, b.r1) / (edgePc);
+    // The bearing counted forward from the block's first, a click just
+    // outside its sides going to the nearer.
+    const span = b.t1 - b.t0;
+    let along = (((Math.atan2(at.y, at.x) - b.t0) % TWO_PI) + TWO_PI) % TWO_PI;
+    if (along > span) along = along - span < TWO_PI - along ? span : 0;
+    turn = ((b.t0 + inside(along, 0, span)) / TWO_PI + 1) % 1;
+  }
+  const ring = Math.floor(radius / childM);
+  const wedge = Math.min(drillWedgeCount(childM, ring) - 1, Math.floor(turn * drillWedgeCount(childM, ring)));
+  return { m: childM, ring: ring, wedge: wedge, slab: (block.slab * block.m) / childM };
+}
+
+export function windowStage(centre, g) {
+  return { win: { centre: stripBlock(centre), g: g || DEFAULT_WINDOW } };
+}
+
+// The window stage a click on `block` (at the point `at`, see
+// windowChildCentre) opens, or null on a sector.
+export function windowInto(stage, block, at, edgePc) {
+  const centre = windowChildCentre(block, at, edgePc);
+  return centre ? windowStage(centre, stage.win ? stage.win.g : DEFAULT_WINDOW) : null;
+}
+
+// The steps a visitor takes, galaxy first, to reach `stage` (resolveStage
+// results): the window at each level on the way down to its centre.
+export function stageSteps(stage, outline, edgePc) {
+  const steps = [resolveStage(galaxyStage(), outline, edgePc)];
+  if (!stage.win) return steps;
+  const chain = [];
+  for (let centre = stage.win.centre; centre; centre = drillParent(centre)) chain.push(centre);
+  chain.reverse().forEach(function (centre) {
+    const next = resolveStage(windowStage(centre, stage.win.g), outline, edgePc);
+    if (!next.problem) steps.push(next);
+  });
+  return steps;
+}
+
+// The stage one step back from `stage` (the last different one on the way to
+// it), or null at the galaxy.
+export function parentStage(stage, outline, edgePc) {
+  const steps = stageSteps(stage, outline, edgePc);
+  for (let n = steps.length - 1; n >= 0; n--) {
+    if (!sameStage(steps[n].stage, stage)) return steps[n].stage;
+  }
   return null;
 }
 
-// The choices for a pick of `kind` in `view`: [{pick, blocks, a0, a1}],
-// each holding at least one block. Slabs come lowest first, one each;
-// segments in ring order, then by bearing.
-export function pickOptions(view, kind) {
-  const out = [];
-  if (kind === "layer") {
-    slabsOf(view.blocks).forEach(function (slab) {
-      out.push({
-        pick: { kind: "layer", lo: slab, hi: slab },
-        blocks: view.blocks.filter(function (b) { return b.slab === slab; }),
-        a0: view.a0, a1: view.a1,
-      });
-    });
-    return out;
-  }
-  if (kind === "segment") {
-    const mid = (view.a0 + view.a1) / 2;
-    view.blocks.slice().sort(function (p, q) {
-      return p.ring - q.ring || angleFrom(p.bounds.t0, view.a0) - angleFrom(q.bounds.t0, view.a0);
-    }).forEach(function (block) {
-      const span = blockSpan([block], mid);
-      out.push({ pick: { kind: "segment", ring: block.ring, wedge: block.wedge }, blocks: [block], a0: span.a0, a1: span.a1 });
-    });
-    return out;
-  }
-  const rings = distinct(view.blocks.map(function (b) { return b.ring; }));
-  const perRing = new Map();
-  columnsOf(view.blocks).forEach(function (key) {
-    const ring = Number(key.split("/")[0]);
-    perRing.set(ring, (perRing.get(ring) || 0) + 1);
-  });
-  let widest = 0;
-  perRing.forEach(function (n) { widest = Math.max(widest, n); });
-  let bands = 1;
-  let arcs = 4;
-  if (kind === "arc") {
-    bands = Math.min(ARC_BANDS, rings.length);
-    arcs = ARCS_PER_TURN;
-  }
-  const span = view.a1 - view.a0;
-  const byOption = new Map();
-  view.blocks.forEach(function (block) {
-    const band = Math.floor((rings.indexOf(block.ring) * bands) / rings.length);
-    const arc = Math.min(arcs - 1, Math.floor((angleFrom(midAngle(block), view.a0) / span) * arcs));
-    const n = band * arcs + arc;
-    if (!byOption.has(n)) {
-      byOption.set(n, { pick: { kind: kind, n: n }, arc: arc, blocks: [] });
-    }
-    byOption.get(n).blocks.push(block);
-  });
-  Array.from(byOption.keys()).sort(function (p, q) { return p - q; }).forEach(function (n) {
-    const option = byOption.get(n);
-    // A choice reaches as far as its blocks do, not just its even share
-    // of the view: a block is sorted by its middle, and near the core a
-    // wedge (between meridians that run all the way in) is wider than a
-    // share, so the choice zooms into the wedge it highlights (Boss,
-    // 2026-10-01).
-    const share = blockSpan(option.blocks, view.a0 + (span * (option.arc + 0.5)) / arcs);
-    option.a0 = share.a0;
-    option.a1 = share.a1;
-    out.push(option);
-  });
-  return out;
+// Whether sector (ring, layer, slot) can hold anything under `outline`.
+function sectorInGalaxy(ring, layer, slot, outline) {
+  if (ring < 0 || slot < 0 || slot >= ringSectorCount(ring)) return false;
+  if (outline.shapeless) return true;
+  return ring < outline.extents.length && Math.abs(layer) <= outline.extents[ring];
 }
 
-// The bearings `blocks` cover, a0 to a1 (a1 - a0 under a turn), each
-// measured within half a turn of `mid`.
-function blockSpan(blocks, mid) {
-  let a0 = Infinity;
-  let a1 = -Infinity;
-  blocks.forEach(function (block) {
-    const b = block.bounds;
-    const t0 = mid + ((((b.t0 - mid + Math.PI) % TWO_PI) + TWO_PI) % TWO_PI) - Math.PI;
-    a0 = Math.min(a0, t0);
-    a1 = Math.max(a1, t0 + (b.t1 - b.t0));
+// The stage that shows a sector among its neighbours (MAP.26): the window of
+// sectors centred on it. Null when the sector is outside the galaxy.
+export function sectorStage(ring, layer, slot, outline) {
+  if (!sectorInGalaxy(ring, layer, slot, outline)) return null;
+  return windowStage({ m: 1, ring: ring, wedge: slot, slab: layer }, DEFAULT_WINDOW);
+}
+
+// The smallest stage showing every one of `sectors` ({ring, layer, slot}),
+// for the NAV course overlay (section 9.4): the window of the finest level
+// whose DEFAULT_WINDOW cells around the course's middle hold the cell of
+// every stop. An empty list, or a course too wide for a window of 243-sector
+// blocks, gives the galaxy.
+export function courseStage(sectors, outline, edgePc) {
+  const galaxy = galaxyStage();
+  if (!sectors || !sectors.length) return galaxy;
+  const stops = sectors.filter(function (s) { return sectorInGalaxy(s.ring, s.layer, s.slot, outline); });
+  if (stops.length !== sectors.length) return galaxy;
+  const middle = [0, 0, 0];
+  stops.forEach(function (s) {
+    const b = drillBlockBounds({ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }, edgePc);
+    const r = (b.r0 + b.r1) / 2;
+    const t = (b.t0 + b.t1) / 2;
+    middle[0] += (r * Math.cos(t)) / stops.length;
+    middle[1] += (r * Math.sin(t)) / stops.length;
+    middle[2] += ((b.z0 + b.z1) / 2) / stops.length;
   });
-  return { a0: a0, a1: Math.min(a1, a0 + TWO_PI) };
+  const at = sectorAddressAt(middle[0], middle[1], middle[2], edgePc);
+  const around = drillChainOf(at.ring, at.layer, at.slot).reverse();
+  const chains = stops.map(function (s) { return drillChainOf(s.ring, s.layer, s.slot).reverse(); });
+  for (let level = 0; level < around.length; level++) {
+    const wanted = new Set(windowCells(around[level], DEFAULT_WINDOW).map(formatDrillKey));
+    if (chains.every(function (chain) { return wanted.has(formatDrillKey(chain[level])); })) {
+      return windowStage(around[level], DEFAULT_WINDOW);
+    }
+  }
+  return galaxy;
+}
+
+// "m.ring.wedge.slab" of any level, a sector (m = 1) included, or null.
+export function parseCellKey(key) {
+  const parts = String(key == null ? "" : key).split(".");
+  if (parts.length !== 4 || !parts.every(function (p) { return /^-?\d+$/.test(p); })) return null;
+  const v = parts.map(Number);
+  const cell = { m: v[0], ring: v[1], wedge: v[2], slab: v[3] };
+  if ([243, 27, 3, 1].indexOf(cell.m) < 0 || cell.ring < 0 || !Number.isSafeInteger(cell.ring)) return null;
+  if (cell.wedge < 0 || cell.wedge >= drillWedgeCount(cell.m, cell.ring)) return null;
+  return cell;
+}
+
+export function windowLabel(win) {
+  return (win.centre.m === 1 ? "Sector " : "Block ") + blockLabel(win.centre) + " (" + win.centre.m + ")";
 }
 
 // The boundary of the area `blocks` cover in the plane, as edges that
@@ -404,272 +389,6 @@ function spanXor(a, b, eps) {
   return mergeSpans(out, eps);
 }
 
-// `view` after `pick`, or null when the pick isn't one it could take.
-// A layer pick may name any range of the view's slabs that narrows it
-// (an older ?slab= link names one slab of nine).
-function applyPick(view, pick) {
-  if (pick.kind === "layer") {
-    const slabs = slabsOf(view.blocks);
-    const blocks = view.blocks.filter(function (b) { return b.slab >= pick.lo && b.slab <= pick.hi; });
-    if (!(pick.lo <= pick.hi) || slabs.length < 2 || !blocks.length) return null;
-    return { at: view.at, blocks: blocks, a0: view.a0, a1: view.a1, hadFirstPick: view.hadFirstPick };
-  }
-  if ((pick.kind === "arc" || pick.kind === "quadrant") && (view.at || view.hadFirstPick)) return null;
-  if (pick.kind === "segment" && nextPickKind(view) !== "segment") return null;
-  if (pick.kind !== "arc" && pick.kind !== "quadrant" && pick.kind !== "segment") return null;
-  const option = pickOptions(view, pick.kind).find(function (o) { return samePick(o.pick, pick); });
-  if (!option) return null;
-  return { at: view.at, blocks: option.blocks, a0: option.a0, a1: option.a1, hadFirstPick: true };
-}
-
-function pickText(pick) {
-  if (pick.kind === "layer") return "layer " + (pick.lo === pick.hi ? pick.lo : pick.lo + " to " + pick.hi);
-  if (pick.kind === "arc") return "arc " + pickToken(pick).slice(1);
-  if (pick.kind === "segment") return "block " + pick.ring + "·" + pick.wedge;
-  return pick.kind + " " + pick.n;
-}
-
-// Everything about `stage`: {stage (as given), view: {at, blocks, a0,
-// a1}, kind (the next pick's, or null), options (pickOptions for it),
-// sector (the one sector left, if that's all there is), problem (when a
-// pick or the container doesn't fit the galaxy)}.
-export function resolveStage(stage, outline, edgePc) {
-  if (stage.win) return resolveWindow(stage, outline, edgePc);
-  if (stage.at && !outline.shapeless && drillBlockTotal(stage.at, outline) === 0) {
-    return { stage: stage, problem: "Block " + blockLabel(stage.at) + " is outside the galaxy." };
-  }
-  let view = containerView(stage.at, outline, edgePc);
-  for (let n = 0; n < stage.picks.length; n++) {
-    const next = applyPick(view, stage.picks[n]);
-    if (!next) return { stage: stage, problem: "There is no " + pickText(stage.picks[n]) + " here." };
-    view = next;
-  }
-  const kind = view.blocks.length ? nextPickKind(view) : null;
-  const options = kind ? pickOptions(view, kind) : [];
-  const sector = !kind && view.blocks.length === 1 && view.blocks[0].m === 1 ? view.blocks[0] : null;
-  return { stage: stage, view: view, kind: kind, options: options, sector: sector, problem: null };
-}
-
-// `stage` carried on as far as it goes without a choice: a pick with only
-// one option is taken, and one block of one slab is entered. Returns the
-// resolveStage of where it ends.
-export function settleStage(stage, outline, edgePc) {
-  if (stage.win) return resolveStage(stage, outline, edgePc);
-  let resolved = resolveStage(stage, outline, edgePc);
-  for (let guard = 0; guard < 200 && !resolved.problem; guard++) {
-    const view = resolved.view;
-    if (resolved.kind && resolved.options.length === 1) {
-      const picks = resolved.stage.picks.concat([resolved.options[0].pick]);
-      resolved = resolveStage({ at: resolved.stage.at, picks: picks }, outline, edgePc);
-    } else if (!resolved.kind && view.blocks.length === 1 && view.blocks[0].m > 1) {
-      resolved = resolveStage({ at: stripBlock(view.blocks[0]), picks: [] }, outline, edgePc);
-    } else {
-      break;
-    }
-  }
-  return resolved;
-}
-
-// `block` at size `m`, or its ancestor there ({m: 1, ring, wedge: slot,
-// slab: layer} for a sector).
-function ancestorAt(block, m) {
-  if (block.m === m) return block;
-  if (block.m === 1) {
-    return drillChainOf(block.ring, block.slab, block.wedge).find(function (b) { return b.m === m; }) || null;
-  }
-  let b = block;
-  while (b && b.m < m) b = drillParent(b);
-  return b && b.m === m ? b : null;
-}
-
-// The way from the galaxy toward `target` (a drill block, or a sector as
-// {m: 1, ring, wedge: slot, slab: layer}): one settled step per pick,
-// until `done(resolved)` says stop. Returns the steps (resolveStage
-// results), or null when `target` isn't in the galaxy.
-function walkToward(target, outline, edgePc, done) {
-  let resolved = settleStage({ at: null, picks: [] }, outline, edgePc);
-  const steps = [resolved];
-  for (let guard = 0; guard < 200; guard++) {
-    if (resolved.problem) return null;
-    if (done(resolved)) return steps;
-    if (!resolved.kind) return null;
-    const blocks = resolved.view.blocks;
-    const goal = blocks.length ? ancestorAt(target, blocks[0].m) : null;
-    if (!goal) return null;
-    const option = resolved.options.find(function (o) {
-      if (o.pick.kind === "layer") return goal.slab >= o.pick.lo && goal.slab <= o.pick.hi;
-      return o.blocks.some(function (b) { return b.ring === goal.ring && b.wedge === goal.wedge; });
-    });
-    if (!option) return null;
-    const picks = resolved.stage.picks.concat([option.pick]);
-    resolved = settleStage({ at: resolved.stage.at, picks: picks }, outline, edgePc);
-    steps.push(resolved);
-  }
-  return null;
-}
-
-// Whether `resolved` shows sectors of one layer, `layer`.
-function sectorLayerShown(resolved, layer) {
-  const blocks = resolved.view ? resolved.view.blocks : [];
-  return blocks.length > 0 && blocks[0].m === 1 && blocks.every(function (b) { return b.slab === layer; });
-}
-
-// The stage that shows a sector to pick (the sector level of the slice
-// holding it, MAP.26): its level-3 block with that one layer picked. Null
-// when the sector is outside the galaxy.
-export function sectorStage(ring, layer, slot, outline, edgePc) {
-  const target = { m: 1, ring: ring, wedge: slot, slab: layer };
-  const steps = walkToward(target, outline, edgePc, function (r) {
-    return sectorLayerShown(r, layer) && r.view.blocks.some(function (b) { return b.ring === ring && b.wedge === slot; });
-  });
-  return steps ? steps[steps.length - 1].stage : null;
-}
-
-// The steps a visitor takes, galaxy first, to reach `stage` ([settled
-// resolveStage results]): into each container the way its own picks
-// would go, then `stage`'s own picks.
-export function stageSteps(stage, outline, edgePc) {
-  if (stage.win) return windowSteps(stage, outline, edgePc);
-  let steps = [];
-  if (stage.at) {
-    steps = walkToward(stage.at, outline, edgePc, function (r) { return sameBlock(r.stage.at, stage.at); }) || [];
-    steps.pop();
-  }
-  for (let n = 0; n <= stage.picks.length; n++) {
-    const next = settleStage({ at: stage.at, picks: stage.picks.slice(0, n) }, outline, edgePc);
-    if (next.problem) break;
-    if (!steps.length || !sameStage(next.stage, steps[steps.length - 1].stage)) steps.push(next);
-  }
-  return steps;
-}
-
-// The stage one step back from `stage` (the last different one on the
-// way to it), or null at the galaxy.
-export function parentStage(stage, outline, edgePc) {
-  const steps = stageSteps(stage, outline, edgePc);
-  for (let n = steps.length - 1; n >= 0; n--) {
-    if (!sameStage(steps[n].stage, stage)) return steps[n].stage;
-  }
-  return null;
-}
-
-// The smallest stage showing every one of `sectors` ({ring, layer,
-// slot}), for the NAV course overlay (section 9.4): as far along the way
-// to each as they all go together. An empty list, or sectors whose ways
-// part at once, give the galaxy.
-export function courseStage(sectors, outline, edgePc) {
-  const galaxy = settleStage({ at: null, picks: [] }, outline, edgePc).stage;
-  if (!sectors || !sectors.length) return galaxy;
-  const ways = sectors.map(function (s) {
-    const target = { m: 1, ring: s.ring, wedge: s.slot, slab: s.layer };
-    return walkToward(target, outline, edgePc, function (r) { return sectorLayerShown(r, s.layer); });
-  });
-  if (ways.some(function (w) { return !w; })) return galaxy;
-  let shared = galaxy;
-  for (let n = 0; n < ways[0].length; n++) {
-    const here = ways[0][n].stage;
-    if (!ways.every(function (w) { return w[n] && sameStage(w[n].stage, here); })) break;
-    shared = here;
-  }
-  return shared;
-}
-
-// --- Window stages (MAP.151) --------------------------------------------------
-//
-// A window stage is {at: null, picks: [], win: {centre, g}}: `g` cells across
-// around `centre`, a cell of any level (a sector as {m: 1, ring, wedge: slot,
-// slab: layer}), instead of the children of one container. There is nothing to
-// pick but a cell: a click takes the window one level down, centred on the cell
-// clicked, and Up takes it one level up, centred on the cell holding the
-// centre. Its data is /galaxy/window (planetgen/galaxy/window.py).
-
-// "m.ring.wedge.slab" of any level, a sector (m = 1) included, or null.
-export function parseCellKey(key) {
-  const parts = String(key == null ? "" : key).split(".");
-  if (parts.length !== 4 || !parts.every(function (p) { return /^-?\d+$/.test(p); })) return null;
-  const v = parts.map(Number);
-  const cell = { m: v[0], ring: v[1], wedge: v[2], slab: v[3] };
-  if ([243, 27, 3, 1].indexOf(cell.m) < 0 || cell.ring < 0 || !Number.isSafeInteger(cell.ring)) return null;
-  if (cell.wedge < 0 || cell.wedge >= drillWedgeCount(cell.m, cell.ring)) return null;
-  return cell;
-}
-
-// What a stage's data is read for: its window, else its container block, else
-// null (the galaxy).
-export function holder(stage) {
-  return stage.win || stage.at;
-}
-
-export function windowStage(centre, g) {
-  return { at: null, picks: [], win: { centre: stripBlock(centre), g: g || DEFAULT_WINDOW } };
-}
-
-// The window's blocks with their bounds and sector totals (those that can
-// hold none are left out), as stageChildren makes a container's.
-export function windowView(win, outline, edgePc) {
-  const blocks = [];
-  windowCells(win.centre, win.g).forEach(function (block) {
-    const total = outline.shapeless ? null : drillBlockTotal(block, outline);
-    if (total === 0) return;
-    block.bounds = drillBlockBounds(block, edgePc);
-    block.total = total;
-    blocks.push(block);
-  });
-  return { at: null, win: win, blocks: blocks, a0: 0, a1: TWO_PI, hadFirstPick: true };
-}
-
-function resolveWindow(stage, outline, edgePc) {
-  const view = windowView(stage.win, outline, edgePc);
-  if (!view.blocks.length) {
-    return { stage: stage, problem: "Nothing of the galaxy lies around " + blockLabel(stage.win.centre) + "." };
-  }
-  const options = view.blocks.map(function (block) {
-    return { pick: { kind: "cell", block: stripBlock(block) }, blocks: [block], a0: block.bounds.t0, a1: block.bounds.t1 };
-  });
-  return { stage: stage, view: view, kind: "cell", options: options, sector: null, problem: null };
-}
-
-// The cell one size down holding the middle of `block`: the centre of the
-// window a click on `block` opens. Null for a sector.
-export function windowChildCentre(block) {
-  if (block.m === 1) return null;
-  const childM = block.m === 3 ? 1 : block.m / 9;
-  const radius = (block.ring + 0.5) * block.m;
-  const turn = (block.wedge + 0.5) / drillWedgeCount(block.m, block.ring);
-  const ring = Math.floor(radius / childM);
-  const wedge = Math.min(drillWedgeCount(childM, ring) - 1, Math.floor(turn * drillWedgeCount(childM, ring)));
-  return { m: childM, ring: ring, wedge: wedge, slab: (block.slab * block.m) / childM };
-}
-
-// The window stage a click on `block` of window stage `stage` opens, or
-// null on a sector.
-export function windowInto(stage, block) {
-  const centre = windowChildCentre(block);
-  return centre ? windowStage(centre, stage.win.g) : null;
-}
-
-// The window stage one size up, centred on the cell holding the centre, or
-// null at level 243 (the galaxy's own stage is next).
-export function windowOut(stage) {
-  const parent = drillParent(stage.win.centre);
-  return parent ? windowStage(parent, stage.win.g) : null;
-}
-
-function windowSteps(stage, outline, edgePc) {
-  const steps = [settleStage({ at: null, picks: [] }, outline, edgePc)];
-  const chain = [];
-  for (let centre = stage.win.centre; centre; centre = drillParent(centre)) chain.push(centre);
-  chain.reverse().forEach(function (centre) {
-    const next = resolveStage(windowStage(centre, stage.win.g), outline, edgePc);
-    if (!next.problem) steps.push(next);
-  });
-  return steps;
-}
-
-export function windowLabel(win) {
-  return (win.centre.m === 1 ? "Sector " : "Block ") + blockLabel(win.centre) + " (" + win.centre.m + ")";
-}
-
 // --- Designations -------------------------------------------------------------
 
 // provisional_sector_designation's hex code: ring << 33 | (layer + 4096)
@@ -732,48 +451,13 @@ export function parseAddress(text, edgePc) {
 
 // --- URLs ---------------------------------------------------------------------
 
-// A pick as it reads in a URL: "a1.90" (the arc of band 1, the middle
-// third, starting at bearing 90 degrees), "L-1" (one slab or layer) or
-// "L-4~-2" (a range of them), "s14.30" (the segment of ring 14, wedge or
-// slot 30); "q1" (quadrant) and "r4" (region) from older links.
-export function pickToken(pick) {
-  if (pick.kind === "layer") return "L" + pick.lo + (pick.hi === pick.lo ? "" : "~" + pick.hi);
-  if (pick.kind === "segment") return "s" + pick.ring + "." + pick.wedge;
-  if (pick.kind === "arc") {
-    const band = Math.floor(pick.n / ARCS_PER_TURN);
-    return "a" + band + "." + ((pick.n % ARCS_PER_TURN) * 360) / ARCS_PER_TURN;
-  }
-  return (pick.kind === "quadrant" ? "q" : "r") + pick.n;
-}
-
-export function parsePickToken(token) {
-  let match = /^a(\d+)\.(\d+)$/.exec(token);
-  if (match) {
-    const bin = (Number(match[2]) * ARCS_PER_TURN) / 360;
-    if (!Number.isInteger(bin) || bin >= ARCS_PER_TURN) return null;
-    return { kind: "arc", n: Number(match[1]) * ARCS_PER_TURN + bin };
-  }
-  match = /^s(\d+)\.(\d+)$/.exec(token);
-  if (match) return { kind: "segment", ring: Number(match[1]), wedge: Number(match[2]) };
-  match = /^([qr])(\d+)$/.exec(token);
-  if (match) return { kind: match[1] === "q" ? "quadrant" : "region", n: Number(match[2]) };
-  match = /^L(-?\d+)(?:~(-?\d+))?$/.exec(token);
-  if (match) return { kind: "layer", lo: Number(match[1]), hi: Number(match[2] != null ? match[2] : match[1]) };
-  return null;
-}
-
-// A stage URL's query (section 8.1): "" for the galaxy, else
-// "?at=m.ring.wedge.slab" and "p=" with its picks, comma-separated.
+// A stage URL's query (section 8.1): "" for the galaxy, else "?win=" with the
+// centre's "m.ring.wedge.slab" and "&g=" the cells across (when not the default).
 export function stageQuery(stage) {
-  const parts = [];
-  if (stage.win) {
-    parts.push("win=" + formatDrillKey(stage.win.centre));
-    if (stage.win.g !== DEFAULT_WINDOW) parts.push("g=" + stage.win.g);
-    return "?" + parts.join("&");
-  }
-  if (stage.at) parts.push("at=" + formatDrillKey(stage.at));
-  if (stage.picks.length) parts.push("p=" + stage.picks.map(pickToken).join(","));
-  return parts.length ? "?" + parts.join("&") : "";
+  if (!stage.win) return "";
+  const parts = ["win=" + formatDrillKey(stage.win.centre)];
+  if (stage.win.g !== DEFAULT_WINDOW) parts.push("g=" + stage.win.g);
+  return "?" + parts.join("&");
 }
 
 // The printed object ID of a system or body in a link (API.23: hex digits in up to three dashed groups,
@@ -785,15 +469,14 @@ const OBJECT_REF = /^(?:star|planet|moon|belt|comet):[0-9A-Fa-f]+(?:-[0-9A-Fa-f]
 // ({ring, layer, slot}) is set by ?sector=<designation>, whose stage the
 // caller works out (sectorStage needs the outline); `open` by &open=1 with
 // it, the sector opened in place (MAP.66) and not only selected, and `system`
-// (&system=<id>, with open, and &object=<ref> a body of it) the system of it opened in place too (MAP.125). An older link's
-// ?slab=s reads as a pick of that one slab, before any others, and its
-// region picks (the 3 x 3 pick MAP.56 dropped) end its picks there: it
-// opens at the stage before the first one. Anything
-// malformed opens the galaxy, with `problem` saying why. Whether the
-// picks fit is the caller's to check against the outline (resolveStage).
+// (&system=<id>, with open, and &object=<ref> a body of it) the system of it
+// opened in place too (MAP.125). ?win= (and &g=) names a window. Anything
+// malformed, and the arcs, slabs and blocks of the links before MAP.150,
+// opens the galaxy; `problem` says why for the first. Whether a window holds
+// anything is the caller's to check against the outline (resolveStage).
 export function parseStageQuery(search) {
   const params = new URLSearchParams(search || "");
-  const galaxy = { at: null, picks: [] };
+  const galaxy = galaxyStage();
   const designation = params.get("sector");
   if (designation != null) {
     const sector = parseSectorDesignation(designation);
@@ -813,25 +496,7 @@ export function parseStageQuery(search) {
     if (WINDOW_WIDTHS.indexOf(g) < 0) return { stage: galaxy, sector: null, problem: "A window cannot be " + params.get("g") + " cells across." };
     return { stage: windowStage(centre, g), sector: null, problem: null };
   }
-  let at = null;
-  if (params.has("at")) {
-    at = parseDrillKey(params.get("at"));
-    if (!at) return { stage: galaxy, sector: null, problem: "There is no block " + params.get("at") + "." };
-  }
-  const picks = [];
-  if (params.has("slab")) {
-    const raw = params.get("slab");
-    if (!/^-?\d+$/.test(raw)) return { stage: galaxy, sector: null, problem: "There is no slab " + raw + "." };
-    picks.push({ kind: "layer", lo: Number(raw), hi: Number(raw) });
-  }
-  const tokens = (params.get("p") || "").split(",").filter(Boolean);
-  for (let n = 0; n < tokens.length; n++) {
-    const pick = parsePickToken(tokens[n]);
-    if (!pick) return { stage: galaxy, sector: null, problem: "There is no pick " + tokens[n] + "." };
-    if (pick.kind === "region") break;
-    picks.push(pick);
-  }
-  return { stage: { at: at, picks: picks }, sector: null, problem: null };
+  return { stage: galaxy, sector: null, problem: null };
 }
 
 // --- Labels -------------------------------------------------------------------
@@ -854,146 +519,17 @@ export function blockLabel(block) {
   return block.ring + "·" + block.wedge;
 }
 
-// What a child slab of `at` is called: a sector layer inside a level-3
-// block, a slab otherwise.
-export function slabNoun(at) {
-  return at && at.m === 3 ? "Layer" : "Slab";
-}
-
-// The sector layers child slab `slab` of container `at` covers.
-export function slabLayers(at, slab) {
-  const childM = at ? at.m / (at.m === 3 ? 3 : 9) : 243;
-  const half = (childM - 1) / 2;
-  return { first: slab * childM - half, last: slab * childM + half, childM: childM };
-}
-
-// Bearings a0 to a1 as "92°–97°" ("92.5°–93.1°" for a narrow arc).
-export function arcLabel(a0, a1) {
-  const narrow = ((a1 - a0) * 180) / Math.PI < 10;
-  // A bearing a hair under 0 (a block edge after floating-point sums)
-  // reads 0, not 360.
-  const deg = function (rad) {
-    const d = (((rad * 180) / Math.PI) % 360 + 360) % 360;
-    const text = narrow ? d.toFixed(1) : String(Math.round(d) % 360);
-    return Number(text) >= 360 ? (narrow ? "0.0" : "0") : text;
-  };
-  const end = a1 - a0 >= TWO_PI - 1e-9 || Number(deg(a1)) === 0 ? "360" : deg(a1);
-  return deg(a0) + "°–" + end + "°";
-}
-
-// What a pick is called in the breadcrumb, given the view it led to.
-export function pickLabel(pick, at, view) {
-  if (pick.kind === "layer") {
-    const noun = slabNoun(at);
-    return pick.lo === pick.hi ? noun + " " + pick.lo : noun + "s " + pick.lo + " to " + pick.hi;
-  }
-  if (pick.kind === "arc") {
-    const band = ARC_BAND_NAMES[Math.floor(pick.n / ARCS_PER_TURN)];
-    return "Arc " + arcLabel(view.a0, view.a1) + (band ? " (" + band + ")" : "");
-  }
-  if (pick.kind === "segment") {
-    const block = view.blocks && view.blocks[0];
-    return (block && block.m === 1 ? "Sector " : "Block ") + (block ? blockLabel(block) : pick.ring + "·" + pick.wedge);
-  }
-  return (pick.kind === "quadrant" ? "Quarter " : "Arc ") + arcLabel(view.a0, view.a1);
-}
-
-// A slab button's number (MAP.100, MAP.99): "#4", or "#2–3" for a pick
-// of several slabs.
-export function slabNumber(pick) {
-  return "#" + (pick.lo === pick.hi ? pick.lo : pick.lo + "–" + pick.hi);
-}
-
-// The slab buttons in slab-number order (MAP.110): `rows` sorted by
-// their picks' numbers (`pickOf(row).lo`), the highest first when
-// `highFirst`, else the lowest first.
-export function slabOrder(rows, highFirst, pickOf) {
-  return rows.slice().sort(function (p, q) {
-    const d = pickOf(q).lo - pickOf(p).lo;
-    return highFirst ? d : -d;
-  });
-}
-
-// The point of line pieces [[x, y], [x, y]] (screen pixels, y down)
-// nearest `from` ([x, y]), or with `lane` (an x) nearest that upright
-// lane, as {x, y}; null when there are none. With `minY`, only the parts
-// of the pieces at or below that height count (MAP.110: a column's lines
-// end in its buttons' order, so none cross), falling back to all of them
-// when none reach below it.
-export function nearestOnPieces(pieces, from, lane, minY) {
-  let shown = pieces;
-  if (minY != null && isFinite(minY)) {
-    const cut = [];
-    pieces.forEach(function (piece) {
-      const a = piece[0];
-      const b = piece[1];
-      if (a[1] >= minY && b[1] >= minY) cut.push(piece);
-      else if (a[1] >= minY || b[1] >= minY) {
-        const t = (minY - a[1]) / (b[1] - a[1]);
-        const m = [a[0] + (b[0] - a[0]) * t, minY];
-        cut.push(a[1] >= minY ? [a, m] : [m, b]);
-      }
-    });
-    if (cut.length) shown = cut;
-  }
-  let best = null;
-  shown.forEach(function (piece) {
-    const a = piece[0];
-    const b = piece[1];
-    let t;
-    if (lane != null) {
-      // The piece's end nearer the lane (a straight piece is nearest
-      // the lane at one end, or all along it).
-      t = Math.abs(a[0] - lane) <= Math.abs(b[0] - lane) ? 0 : 1;
-    } else {
-      const dx = b[0] - a[0];
-      const dy = b[1] - a[1];
-      const len = dx * dx + dy * dy;
-      t = len > 0 ? Math.max(0, Math.min(1, ((from[0] - a[0]) * dx + (from[1] - a[1]) * dy) / len)) : 0;
-    }
-    const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-    const d = lane != null ? Math.abs(p[0] - lane) * 1e3 + Math.abs(p[1] - from[1])
-      : Math.hypot(p[0] - from[0], p[1] - from[1]);
-    if (!best || d < best.d) best = { x: p[0], y: p[1], d: d };
-  });
-  return best && { x: best.x, y: best.y };
-}
-
-// A slab button's one-line label (MAP.100): its number and how much of it
-// is charted (its sectors generated) to two decimals: "#4 Unknown" with
-// none, "#2 < 0.01% charted" under that, "#6 ≈ 2.43% charted", "#1 100%
-// charted" when all of it is. With no total (a galaxy with no stored
-// shape), the count: "#0 3 charted".
-export function slabButtonLabel(pick, generated, total) {
-  const head = slabNumber(pick) + " ";
-  if (!(generated > 0)) return head + "Unknown";
-  if (!(total > 0)) return head + formatCount(generated) + " charted";
-  if (generated >= total) return head + "100% charted";
-  const percent = (100 * generated) / total;
-  if (percent < 0.01) return head + "< 0.01% charted";
-  return head + "≈ " + Math.min(percent, 99.99).toFixed(2) + "% charted";
-}
-
 // The breadcrumb for `stage`: one crumb per step from the galaxy down,
-// {stage, label, last}. A crumb's label names the pick that led there, or
-// the block entered.
+// {stage, label, last}.
 export function crumbs(stage, outline, edgePc) {
   const steps = stageSteps(stage, outline, edgePc);
   return steps.map(function (r, n) {
     const s = r.stage;
-    let label;
-    if (s.win) label = windowLabel(s.win);
-    else if (!s.picks.length) label = s.at ? "Block " + blockLabel(s.at) : "Galaxy";
-    else label = pickLabel(s.picks[s.picks.length - 1], s.at, r.view);
-    return { stage: s, label: label, last: n === steps.length - 1 };
+    return { stage: s, label: s.win ? windowLabel(s.win) : "Galaxy", last: n === steps.length - 1 };
   });
 }
 
-// A block without the bounds/total stageChildren adds.
-export function stripBlock(block) {
-  return { m: block.m, ring: block.ring, wedge: block.wedge, slab: block.slab };
-}
-
+// Degrees counterclockwise from +X, as the wedge labels read.
 // Degrees counterclockwise from +X, as the wedge labels read.
 export function bearingRange(bounds) {
   const deg = function (rad) { return (((rad * 180) / Math.PI) % 360 + 360) % 360; };
@@ -1079,4 +615,4 @@ export function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-export { drillBlockBounds, drillSlabs, drillWedgeCount, formatDrillKey };
+export { drillBlockBounds, drillParent, drillWedgeCount, formatDrillKey };

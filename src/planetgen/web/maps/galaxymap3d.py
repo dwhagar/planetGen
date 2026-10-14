@@ -341,9 +341,9 @@ def _json_script(data):
 GALAXY_MAP_HELP = """<h3>Moving</h3>
   <ul>
     <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom.</li>
-    <li>Hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the radius, top to
-    bottom of the disk) and click one to zoom into it. Then pick a slab (a layer of the arc) on the map or with
-    the buttons beside it, then a block of that slab, and so on down to single sectors.</li>
+    <li>Hover over the galaxy to see its blocks and click one to zoom into it: the map then shows the blocks
+    one size down around the middle of the one you clicked, and a click on one of those centres on that, and
+    so on down to single sectors.</li>
     <li>Back and Forward retrace your steps; the round Steps button lists them all, with Jump to newest. Up (or
     Esc) goes one step out, Whole galaxy (or Home) starts over, and Re-center puts the camera back to the
     current step's own view.</li>
@@ -395,10 +395,6 @@ ADDRESS_BLOCK = """<form class="galaxy-address" id="galaxymap3d-address" role="s
 CRUMBS_BLOCK = """<nav class="crumbs galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 """
 """The breadcrumb the stage view fills."""
-
-SLABS_BLOCK = """<div class="galaxy-slabs" id="galaxymap3d-slabs" role="group" aria-labelledby="galaxymap3d-slabs-heading"></div>
-"""
-"""The slab buttons beside the map."""
 
 ZOOM_BUTTONS = """  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
@@ -696,18 +692,18 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     title = "Sector Map" if pinned else "Galaxy Map"
     info_hint = (
         "Click a star, cloud or body for details." if pinned
-        else "Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely."
+        else "Click a block of the galaxy to look at it more closely."
     )
     help_html = SECTOR_MAP_HELP if pinned else GALAXY_MAP_HELP
     if pinned:
-        # A sector page's map has no steps, breadcrumb, address or slab
-        # buttons; the page carries the pick banner and the bookmark.
+        # A sector page's map has no steps, breadcrumb or address; the page
+        # carries the pick banner and the bookmark.
         pick_banner = bookmark_pick = ""
         zoom_buttons = ZOOM_BUTTONS
-        address_block = crumbs_block = slabs_block = history_buttons = bookmarks_block = ""
+        address_block = crumbs_block = history_buttons = bookmarks_block = ""
     else:
         zoom_buttons = ""
-        address_block, crumbs_block, slabs_block, history_buttons = ADDRESS_BLOCK, CRUMBS_BLOCK, SLABS_BLOCK, HISTORY_BUTTONS
+        address_block, crumbs_block, history_buttons = ADDRESS_BLOCK, CRUMBS_BLOCK, HISTORY_BUTTONS
         bookmarks_block = f"""  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}"{bookmark_pick}>
     <summary class="starmap-btn" data-icon="bookmarks"
              title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
@@ -728,13 +724,13 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
-     one; slabs are also picked with the buttons beside the map; Escape or Backspace goes one step back out
+     one; Escape or Backspace goes one step back out
      and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms; C centers the view on what is selected."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 {legend_block}
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
-{slabs_block}</div>
+</div>
 <aside class="starmap-info" id="galaxymap3d-info">
 <p class="hint">{info_hint}</p>
 </aside>

@@ -1,14 +1,12 @@
 // html/static/galaxystageview.js
 //
 // The Galaxy Map's drill-down (docs/design/galaxy-drilldown-navigation.md,
-// sections 4, 5, 8.1 and 10-11), drawn and driven: the whole galaxy in
-// 3D with an arc of it picked on the map (MAP.85), then a slab of the
-// arc (picked with the buttons beside the map or on the map), then a
-// segment of the slab (one block), then a slab and a segment inside that
-// block, ... down to a sector (MAP.56). galaxystages.js has the rules;
-// this file has the scene, the camera moves, the breadcrumb, the slab
-// buttons and their leader lines, the tooltip, keys, touch, the stage
-// URLs and the map's own Back and Forward.
+// sections 4, 5, 8.1 and 10-11, as MAP.150 and MAP.151 changed it), drawn
+// and driven: the whole galaxy in 3D with every block of it to click, then,
+// for each click, the window of blocks one size down centred on the block
+// clicked, ... down to a window of sectors. galaxystages.js has the rules;
+// this file has the scene, the camera moves, the breadcrumb, the tooltip,
+// keys, touch, the stage URLs and the map's own Back and Forward.
 // galaxymap3d.js creates it (createStageView), hands it the pointer and
 // key events and calls step() every frame.
 //
@@ -26,6 +24,8 @@
 //   bearing labels);
 // - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a
 //   container ("?at=m.ring.wedge.slab", or "" for the galaxy);
+// - fetchWindow(query): a Promise of GET /galaxy/window's JSON for a window
+//   ("?at=m.ring.wedge.slab&g=9");
 // - showBlockInfo(info), showPlacedInfo(entry), showCellInfo(cell),
 //   showHint(text): the info panel (showBlockInfo's info: {block, total,
 //   generated, hint, enter, generate});
@@ -44,7 +44,7 @@
 // - fetchSystemScene(href): a Promise of GET /system/<id>/scene's JSON, a
 //   system of the open sector opened in place (MAP.125; galaxysystem.js); lightBackground,
 //   pixelRatio(), showInfo(spec), hideCell(bounds or null);
-// - els: {crumbs, slabs, tooltip, notice, address, matches, controls}
+// - els: {crumbs, tooltip, notice, address, matches, controls}
 //   (any may be missing).
 
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -74,12 +74,10 @@ const BUTTON_ZOOM = 1.25;
 // Boss 2026-10-02: "when it zooms to a block it moves as isometric, wen
 // it zooms to a slab it moves to top-down and the other direction as
 // well. The only exception is the galaxy strtas out top-down so we can
-// see the spiral arms."): the whole galaxy and a slab straight down, a
-// block (several slabs: an arc, an entered block, the cube of sectors)
-// at the isometric slant, so its slabs show side by side and can be
-// picked on the map as well as with the slab buttons. Layers and blocks
-// touch: no space between them (Boss, 2026-10-01).
-const CUBE_MAX_SECTORS = 27;
+// see the spiral arms."): the whole galaxy and a window of one slab
+// straight down, a window of several slabs at the isometric slant, so
+// its slabs show side by side. Layers and blocks touch: no space
+// between them (Boss, 2026-10-01).
 export const ISO_TILT = Math.atan(Math.SQRT2);
 // Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
 // whole galaxy too since MAP.85): drag turns it, right-drag or
@@ -110,15 +108,12 @@ const NEAREST_STAR_REACH = 0.35;
 const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
 const GALAXY_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, GALAXY_MIN_ZOOM, 1);
 const SYSTEM_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, SYSTEM_MIN_ZOOM, MAX_ZOOM);
-// The arc under the pointer is outlined in full; its neighbors' outlines
-// are this faint (MAP.85).
-const NEIGHBOR_OUTLINE_OPACITY = 0.35;
-// The lines between slabs while one is picked (MAP.77): barely visible,
-// and scaled with the blocks' (MAP.188); the slab picked is outlined in full.
-const SLAB_LINE_OPACITY = 0.18;
+// A stage of more choices than this is drawn as one mesh: a hovered choice
+// is outlined, and the others don't fade (a mesh and a draw call each would
+// be too many).
+const FADE_GROUP_LIMIT = 800;
 // The outlines of charted blocks with "Charted only" on (MAP.111).
 const CHARTED_LINE_OPACITY = 0.9;
-const TWO_PI = 2 * Math.PI;
 
 // The free view's limits: the camera's distance from MIN_ZOOM to MAX_ZOOM times the stage's
 // fit ...
@@ -148,7 +143,7 @@ export function createStageView(host) {
   let active = false;
   let outline = null;
   const dataCache = new Map();
-  let stage = { at: null, picks: [] };
+  let stage = S.galaxyStage();
   let resolved = null;
   let selectedSector = null;
   // The sector opened in place: {sector: {ring, layer, slot}, id, center,
@@ -201,30 +196,30 @@ export function createStageView(host) {
   }
 
   function resolve(s) {
-    return S.settleStage(s, getOutline(), edgePc);
+    return S.resolveStage(s, getOutline(), edgePc);
   }
 
-  function containerKey(at) {
-    if (at && at.centre) return "w" + S.formatDrillKey(at.centre) + "g" + at.g;
-    return at ? S.formatDrillKey(at) : "galaxy";
+  function containerKey(win) {
+    return win ? "w" + S.formatDrillKey(win.centre) + "g" + win.g : "galaxy";
   }
 
-  // The stage API's answer for container `at`, as {generated: Map(key ->
-  // count), sectors: Map("ring/slot/layer" -> sector)}; null while it
-  // loads (and on an error, which leaves counts at 0).
-  function dataFor(at) {
-    const cached = dataCache.get(containerKey(at));
+  // The stage API's answer for window `win` (null: the galaxy), as
+  // {generated: Map(key -> count), sectors: Map("ring/slot/layer" ->
+  // sector)}; null while it loads (and on an error, which leaves counts
+  // at 0).
+  function dataFor(win) {
+    const cached = dataCache.get(containerKey(win));
     return cached && cached.ready ? cached.value : null;
   }
 
-  function loadData(at) {
-    const key = containerKey(at);
+  function loadData(win) {
+    const key = containerKey(win);
     let entry = dataCache.get(key);
     if (!entry) {
       entry = { ready: false, value: null };
-      const fetched = at && at.centre
-        ? host.fetchWindow("?at=" + S.formatDrillKey(at.centre) + "&g=" + at.g)
-        : host.fetchStage(at ? S.stageQuery({ at: at, picks: [] }) : "");
+      const fetched = win
+        ? host.fetchWindow("?at=" + S.formatDrillKey(win.centre) + "&g=" + win.g)
+        : host.fetchStage("");
       entry.promise = fetched.then(function (payload) {
         const generated = new Map();
         const stats = new Map();
@@ -240,26 +235,8 @@ export function createStageView(host) {
         payload.sectors && payload.sectors.forEach(function (sector) {
           entry.value.sectorGenerated.set(sector.ring + "/" + sector.slot + "/" + sector.layer, 1);
         });
-        // A thin block's view is its sectors (galaxystages.thinSectors):
-        // their own counts come from each level-3 child holding any.
-        if (!at || at.centre || !S.thinSectors(at, getOutline(), edgePc)) {
-          entry.ready = true;
-          return entry.value;
-        }
-        const filled = (payload.children || []).filter(function (child) { return child.generated > 0; });
-        return Promise.all(filled.map(function (child) {
-          const query = S.stageQuery({ at: { m: 3, ring: child.ring, wedge: child.wedge, slab: child.slab }, picks: [] });
-          return host.fetchStage(query).then(function (inner) {
-            (inner.sectors || []).forEach(function (sector) {
-              const key = sector.ring + "/" + sector.slot + "/" + sector.layer;
-              sectors.set(key, sector);
-              entry.value.sectorGenerated.set(key, 1);
-            });
-          }, function () { /* that child's sectors read as uncharted */ });
-        })).then(function () {
-          entry.ready = true;
-          return entry.value;
-        });
+        entry.ready = true;
+        return entry.value;
       }).then(null, function () {
         entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
         entry.ready = true;
@@ -302,23 +279,10 @@ export function createStageView(host) {
     return data.stats.get(key) || null;
   }
 
-  function sumOf(blocks, data) {
-    let generated = 0;
-    let total = 0;
-    blocks.forEach(function (block) {
-      generated += generatedOf(block, data);
-      total += block.total || 0;
-    });
-    return { generated: generated, total: total };
-  }
-
-  // The choices a stage offers: [{pick, blocks, a0, a1}], or, once there
-  // is nothing left to pick, the view's blocks as one. Without an outline
-  // (no shape yet), only blocks holding generated sectors.
+  // The choices a stage offers: [{pick, blocks, a0, a1}], one per block.
+  // Without an outline (no shape yet), only blocks holding generated sectors.
   function choicesOf(r, data) {
-    // A slab pick has one choice per slab, lowest first; the cube too: a
-    // whole slab is lit and picked, never one of its sectors (MAP.91).
-    let options = r.kind ? r.options : [{ pick: null, blocks: r.view.blocks, a0: r.view.a0, a1: r.view.a1 }];
+    let options = r.options;
     if (getOutline().shapeless) {
       options = options.map(function (o) {
         return Object.assign({}, o, { blocks: o.blocks.filter(function (b) { return generatedOf(b, data) > 0; }) });
@@ -335,12 +299,6 @@ export function createStageView(host) {
     return !!(r && r.view && r.view.blocks.length && r.view.blocks[0].m === 1);
   }
 
-  // A view of sectors across several layers, few enough to show as a
-  // cube and pick one by one.
-  function isCube(r) {
-    return !!(r && r.kind === "layer" && isSectorView(r) && r.view.blocks.length <= CUBE_MAX_SECTORS);
-  }
-
   // Whether the view can be turned and moved: every stage, since the
   // whole galaxy turns too (MAP.85).
   function isFree(r) {
@@ -355,7 +313,7 @@ export function createStageView(host) {
   }
 
   function isWholeGalaxy(r) {
-    return !r.stage.at && !r.stage.win && r.view.a1 - r.view.a0 >= TWO_PI - 1e-9;
+    return !r.stage.win;
   }
 
   // The bounds a set of blocks covers in the plane, bearings counted
@@ -403,17 +361,18 @@ export function createStageView(host) {
     });
     const stageRanges = host.blockScene.rangesOf([].concat.apply([], cellsOf));
     if (host.showLegend) host.showLegend(host.blockScene.legendOf(colorBy, stageRanges));
-    options.forEach(function (option, index) {
-      const cells = cellsOf[index];
+    // One group per choice, so the hovered one stays and the others fade; a
+    // stage of very many choices is one group, its hovered choice outlined.
+    const single = options.length > FADE_GROUP_LIMIT;
+    const partCells = single ? [[].concat.apply([], cellsOf)] : cellsOf;
+    partCells.forEach(function (cells, index) {
       const dim = chartedOnly ? function (cell) { return !(cell.filled > 0); } : null;
       const built = host.blockScene.buildCells(cells, eye, dim, colorBy, stageRanges);
       const group = new THREE.Group();
       const meshes = [];
-      // The whole galaxy shows no sector or block lines (MAP.85); while a
-      // slab is picked the blocks show none either, only the lines between
-      // slabs below (MAP.77); on one slab, the lines between its blocks,
-      // the segments picked next.
-      const gridEdges = isWholeGalaxy(r) || r.kind === "layer" ? 0 : 1;
+      // The whole galaxy shows no sector or block lines (MAP.85); a window
+      // shows the lines between its blocks.
+      const gridEdges = isWholeGalaxy(r) ? 0 : 1;
       [built.solid, built.glass].forEach(function (part, n) {
         if (!part.vertexCount) return;
         const mesh = host.makeBlockMesh(part, n === 1);
@@ -424,16 +383,14 @@ export function createStageView(host) {
         meshes.push(mesh);
       });
       root.add(group);
-      groups.push({ option: option, meshes: meshes, fade: 1 });
+      groups.push({ option: single ? null : options[index], meshes: meshes, fade: 1 });
     });
-    const lines = r.kind === "layer" ? slabLines(options) : null;
-    if (lines) root.add(lines);
     const charted = chartedOnly ? chartedLines(options, data) : null;
     if (charted) root.add(charted);
     host.scene.add(root);
     root.updateMatrixWorld(true);
     const gridStats = GO.cellStats([].concat.apply([], cellsOf));
-    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, lines: lines, charted: charted, gridStats: gridStats };
+    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, charted: charted, gridStats: gridStats };
   }
 
   // MAP.111: with "Charted only" on, every block holding generated
@@ -459,33 +416,9 @@ export function createStageView(host) {
     return line;
   }
 
-  // The boundaries between slabs (MAP.77): each slab's outline along its
-  // blocks' own sides, top and bottom, with its corners joined, and no
-  // lines between the blocks inside it.
-  function slabLines(options) {
-    const points = [];
-    options.forEach(function (option) {
-      const mid = (option.a0 + option.a1) / 2;
-      const span = spanOf(option.blocks, mid);
-      Array.prototype.push.apply(points, edgePoints(S.outlineEdges(option.blocks, mid), span.z1, span));
-    });
-    if (!points.length) return null;
-    const line = new THREE.LineSegments(
-      new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: SLAB_LINE_OPACITY, depthWrite: false }),
-    );
-    line.renderOrder = 3;
-    line.frustumCulled = false;
-    return line;
-  }
-
   function disposeDisplay(d) {
     if (!d) return;
     host.scene.remove(d.root);
-    if (d.lines) {
-      d.lines.geometry.dispose();
-      d.lines.material.dispose();
-    }
     if (d.charted) {
       d.charted.geometry.dispose();
       d.charted.material.dispose();
@@ -500,7 +433,6 @@ export function createStageView(host) {
 
   function setDisplayFade(d, fade) {
     d.fade = fade;
-    if (d.lines) d.lines.material.opacity = SLAB_LINE_OPACITY * fade * gridScaleNow;
     if (d.charted) d.charted.material.opacity = CHARTED_LINE_OPACITY * fade;
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
@@ -519,7 +451,6 @@ export function createStageView(host) {
     if (view) updateGridScale();
     disposeDisplay(old);
     applyHover();
-    renderStrip();
   }
 
   // --- Framing -----------------------------------------------------------------
@@ -649,12 +580,11 @@ export function createStageView(host) {
   }
 
   // The preset tilt for a stage (MAP.97): straight down for the whole
-  // galaxy and for a slab (one layer left: its segments, or its sectors),
-  // the isometric slant for a block of several slabs.
+  // galaxy and for a window of one slab, the isometric slant for a window
+  // of several.
   function presetTilt(r) {
     if (isWholeGalaxy(r)) return 0;
-    if (r.stage.win) return slabsIn(r.view.blocks).length > 1 ? ISO_TILT : 0;
-    return r.kind === "layer" ? ISO_TILT : 0;
+    return slabsIn(r.view.blocks).length > 1 ? ISO_TILT : 0;
   }
 
   // The camera for a stage, with the view's middle bearing pointing up
@@ -674,8 +604,7 @@ export function createStageView(host) {
       z1 = Math.max(z1, block.bounds.z1);
     });
     // A window looks from outside its middle, the core's bearing up the screen.
-    const theta = isWholeGalaxy(r) ? -Math.PI / 2
-      : r.stage.win ? Math.atan2(fp.center[1], fp.center[0]) + Math.PI : (r.view.a0 + r.view.a1) / 2 + Math.PI;
+    const theta = isWholeGalaxy(r) ? -Math.PI / 2 : Math.atan2(fp.center[1], fp.center[0]) + Math.PI;
     const quat = presetQuat(theta, presetTilt(r));
     const fit = centeredFit(fitPointsOf(r), [fp.center[0], fp.center[1], (z0 + z1) / 2], quat);
     return { target: fit.target, dist: fit.dist, quat: quat };
@@ -749,6 +678,17 @@ export function createStageView(host) {
     return box;
   };
 
+  // Where a point of the scene (x, y, z in parsecs, as the map's own
+  // frame) falls on the page, in client pixels, or null behind the camera.
+  // Read by the browser tests, which click on the charted space.
+  canvasEl.galaxyScreenOf = function (x, y, z) {
+    camera.updateMatrixWorld();
+    const v = new THREE.Vector3(x, y, z).project(camera);
+    if (v.z > 1) return null;
+    const rect = canvasEl.getBoundingClientRect();
+    return { x: rect.left + ((v.x + 1) / 2) * rect.width, y: rect.top + ((1 - v.y) / 2) * rect.height };
+  };
+
   // Whether the map has caught up with its stage: what is drawn is the
   // stage the breadcrumb names and no flight is running. The stage changes
   // at once, its drawing when the container's data has loaded. Read by
@@ -778,10 +718,9 @@ export function createStageView(host) {
     };
   };
 
-  // Which lines the stage draws (MAP.77): {blockEdges} (the blocks' own
-  // edges on or off), {slabLines} (how many line pieces trace the
-  // boundaries between slabs) and {chartedLines} (how many outline the
-  // charted blocks, MAP.111). Read by the browser tests.
+  // Which lines the stage draws: {blockEdges} (the blocks' own edges on or
+  // off) and {chartedLines} (how many line pieces outline the charted
+  // blocks, MAP.111). Read by the browser tests.
   canvasEl.galaxyLines = function () {
     if (!display) return null;
     let blockEdges = 0;
@@ -790,20 +729,8 @@ export function createStageView(host) {
         if (mesh.material.uniforms && mesh.material.uniforms.gridEdges) blockEdges = Math.max(blockEdges, mesh.material.uniforms.gridEdges.value);
       });
     });
-    const slabLines = display.lines ? display.lines.geometry.getAttribute("position").count / 2 : 0;
     const chartedLines = display.charted ? display.charted.geometry.getAttribute("position").count / 2 : 0;
-    return { blockEdges: blockEdges, slabLines: slabLines, chartedLines: chartedLines, kind: display.resolved.kind };
-  };
-
-  // Each slab button's slab outline on the map, as line pieces in client
-  // pixels cut to the map ({slab: [[[x, y], [x, y]], ...]}), and the
-  // strip's mode (MAP.98, MAP.99). Read by the browser tests.
-  canvasEl.galaxySlabOutlines = function () {
-    if (!strip || !view) return null;
-    const rect = canvasEl.getBoundingClientRect();
-    const out = { mode: strip.mode, slabs: {} };
-    strip.rows.forEach(function (r) { out.slabs[r.option.pick.lo] = outlineOnScreen(r.outline, rect); });
-    return out;
+    return { blockEdges: blockEdges, chartedLines: chartedLines };
   };
 
   // The camera's tilt from straight down, in degrees (0 top-down, 90
@@ -856,7 +783,6 @@ export function createStageView(host) {
       crossings: n, scale: gridScaleNow, maxOpacity: maxOpacity, worst: GO.accumulated(n, maxOpacity * gridScaleNow),
     };
     if (host.setGridScale) host.setGridScale(gridScaleNow);
-    if (display && display.lines) display.lines.material.opacity = SLAB_LINE_OPACITY * display.fade * gridScaleNow;
   }
 
   canvasEl.galaxyGridOpacity = function () {
@@ -871,7 +797,6 @@ export function createStageView(host) {
       target: view.target.slice(), dist: view.dist, quaternion: view.quat.toArray(),
       focusRadius: entered ? entered.halfEdge : 0, inside: containerCenter(eye),
     });
-    drawLeaders();
   }
 
   function wrapAngle(a) {
@@ -1077,9 +1002,6 @@ export function createStageView(host) {
     notice("");
     if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
-    if (r.sector && !selectedSector) {
-      selectedSector = { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge };
-    }
     const token = ++goToken;
     const query = withKept(options.query || S.stageQuery(r.stage));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
@@ -1088,7 +1010,6 @@ export function createStageView(host) {
     stage = r.stage;
     resolved = r;
     renderCrumbs();
-    renderStrip();
     renderTravel();
     hover = null;
     showTooltip("", 0, 0);
@@ -1150,7 +1071,6 @@ export function createStageView(host) {
     leaving.forEach(function (d) { if (d && d !== display) disposeDisplay(d); });
     leaving = [];
     hover = null;
-    renderStrip();
     const index = selectedSector ? sectorOption(selectedSector) : -1;
     if (index >= 0) {
       setHover({ option: index, sticky: true });
@@ -1219,8 +1139,16 @@ export function createStageView(host) {
     if (change.ref.kind === "stage") go(change.ref.stage);
   });
 
+  // Whether the selected sector is the one the window is centred on (the
+  // window's own crumb names it).
+  function isSelectedCentre() {
+    const win = stage.win;
+    return !!(selectedSector && win && win.centre.m === 1 && win.centre.ring === selectedSector.ring
+      && win.centre.slab === selectedSector.layer && win.centre.wedge === selectedSector.slot);
+  }
+
   function syncSelection() {
-    if (selectedSector && !resolved.sector) {
+    if (selectedSector && !isSelectedCentre()) {
       selection.select({ kind: "sector", ring: selectedSector.ring, layer: selectedSector.layer, slot: selectedSector.slot, stage: stage }, { quiet: true });
     } else {
       selection.select({ kind: "stage", stage: stage }, { quiet: true });
@@ -1252,7 +1180,6 @@ export function createStageView(host) {
       });
       applyHover();
       renderCrumbs();
-      renderStrip();
       renderTravel();
       return;
     }
@@ -1261,9 +1188,9 @@ export function createStageView(host) {
 
   function home() {
     if (pinned) return;
-    const top = { at: null, picks: [] };
+    const top = S.galaxyStage();
     // Already there: go again, so the camera returns to the whole galaxy.
-    if (S.sameStage(stage, top) && !(selectedSector && !resolved.sector)) go(top);
+    if (S.sameStage(stage, top) && !selectedSector) go(top);
     else selection.select({ kind: "stage", stage: top });
   }
 
@@ -1288,7 +1215,7 @@ export function createStageView(host) {
     if (back) back.disabled = mapIndex <= 0;
     if (forward) forward.disabled = mapIndex >= maxIndex;
     newestButton.disabled = mapIndex >= maxIndex;
-    if (upButton) upButton.disabled = !stage.at && !stage.picks.length && !selectedSector;
+    if (upButton) upButton.disabled = !stage.win && !selectedSector;
     const resetButton = els.controls.querySelector('[data-action="reset-view"]');
     if (resetButton) resetButton.disabled = !isFree(resolved);
   }
@@ -1336,7 +1263,7 @@ export function createStageView(host) {
     },
     entryOf: function (hit) {
       const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
-      return cell ? cell.option : null;
+      return cell ? columnChoice(cell.option) : null;
     },
   });
 
@@ -1357,6 +1284,38 @@ export function createStageView(host) {
   function optionAt(clientX, clientY) {
     const found = picker.pick(clientX, clientY, function (layer) { return layer === choiceLayer; });
     return found ? found.entry : -1;
+  }
+
+  // The whole galaxy is seen from above, where a ray meets the topmost of
+  // a column's stacked blocks: the choice is the column's block holding the
+  // most generated sectors, else the one nearest the midplane.
+  function columnChoice(index) {
+    if (!display || !isWholeGalaxy(display.resolved) || !display.options[index]) return index;
+    if (!display.columns) {
+      display.columns = new Map();
+      display.options.forEach(function (option, n) {
+        const block = option.blocks[0];
+        const key = block.ring + "/" + block.wedge;
+        const column = display.columns.get(key) || [];
+        column.push(n);
+        display.columns.set(key, column);
+      });
+    }
+    const block = display.options[index].blocks[0];
+    const column = display.columns.get(block.ring + "/" + block.wedge);
+    if (!column || column.length < 2) return index;
+    let best = column[0];
+    let bestGenerated = -1;
+    column.forEach(function (n) {
+      const candidate = display.options[n].blocks[0];
+      const generated = generatedOf(candidate, display.data);
+      const bestSlab = Math.abs(display.options[best].blocks[0].slab);
+      if (generated > bestGenerated || (generated === bestGenerated && Math.abs(candidate.slab) < bestSlab)) {
+        best = n;
+        bestGenerated = generated;
+      }
+    });
+    return best;
   }
 
   let outlineGroup = null;
@@ -1423,37 +1382,14 @@ export function createStageView(host) {
     outlineGroup.add(line);
   }
 
-  // An accent outline around a choice's area along its blocks' own sides
-  // (MAP.18, MAP.52): on top of it, or for an arc of the galaxy round its
-  // whole height, with its neighboring arcs' outlines faint (MAP.85).
+  // An accent outline around a choice's block along its own sides (MAP.18,
+  // MAP.52), on top of it.
   function outlineOption(index) {
     clearOutline();
     const option = display.options[index];
     const mid = (option.a0 + option.a1) / 2;
     const span = spanOf(option.blocks, mid);
-    const isArc = option.pick && option.pick.kind === "arc";
-    // An arc or a slab is outlined round its whole height (MAP.91).
-    const walls = isArc || (option.pick && option.pick.kind === "layer");
-    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, walls ? span : null), 1);
-    if (!isArc) return;
-    neighborArcs(option.pick.n).forEach(function (n) {
-      const other = display.options.find(function (o) { return o.pick && o.pick.kind === "arc" && o.pick.n === n; });
-      if (!other) return;
-      const otherMid = (other.a0 + other.a1) / 2;
-      const otherSpan = spanOf(other.blocks, otherMid);
-      addOutline(edgePoints(S.outlineEdges(other.blocks, otherMid), otherSpan.z1, null), NEIGHBOR_OUTLINE_OPACITY);
-    });
-  }
-
-  // The arcs beside arc n: either side in its band, and in and out.
-  function neighborArcs(n) {
-    const per = S.ARCS_PER_TURN;
-    const band = Math.floor(n / per);
-    const bin = n % per;
-    const out = [band * per + ((bin + 1) % per), band * per + ((bin + per - 1) % per)];
-    if (band > 0) out.push(n - per);
-    if (band < S.ARC_BANDS - 1) out.push(n + per);
-    return out;
+    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, null), 1);
   }
 
   function setHover(next) {
@@ -1461,31 +1397,24 @@ export function createStageView(host) {
     applyHover();
   }
 
-  // The hovered choice stays as it is and the others fade (a layer
-  // hovered in the strip too); a choice on the map gets an outline, a
-  // slab round all its blocks (MAP.91).
+  // The hovered choice stays as it is and the others fade, and gets an
+  // outline (a stage of very many choices is one mesh: only the outline).
   function applyHover() {
     if (!display) return;
     const index = hover && hover.option != null ? hover.option : -1;
-    const layer = hover && hover.layer ? hover.layer : null;
     display.groups.forEach(function (group, n) {
-      const slab = group.option.blocks[0].slab;
-      const lit = layer ? slab >= layer.lo && slab <= layer.hi : index < 0 || n === index;
-      group.fade = lit ? 1 : OTHER_FADE;
+      if (!group.option) {
+        group.fade = 1;
+        return;
+      }
+      group.fade = index < 0 || n === index ? 1 : OTHER_FADE;
       // The sector opened in place is drawn by its own scene: its block
       // is only a faint cell round it.
       if (entered && sectorOption(entered.sector) === n) group.fade = ENTERED_BLOCK_FADE;
     });
     if (!animation) setDisplayFade(display, 1);
-    const option = index >= 0 ? display.options[index] : null;
-    if (option) {
-      outlineOption(index);
-    } else {
-      clearOutline();
-    }
-    let row = layer;
-    if (!row && option && resolved.kind === "layer" && option.pick) row = { lo: option.pick.lo, hi: option.pick.hi };
-    markStripRow(row);
+    if (index >= 0 && display.options[index]) outlineOption(index);
+    else clearOutline();
   }
 
   function showTooltip(text, clientX, clientY) {
@@ -1512,89 +1441,65 @@ export function createStageView(host) {
     return parts.join(", ");
   }
 
-  function layerText(pick) {
-    const first = S.slabLayers(stage.at, pick.lo).first;
-    const last = S.slabLayers(stage.at, pick.hi).last;
-    const z0 = (first - 0.5) * edgePc;
-    const z1 = (last + 0.5) * edgePc;
-    const where = z1 <= 0 ? Math.round(-z1) + "–" + Math.round(-z0) + " pc below the plane"
-      : z0 >= 0 ? Math.round(z0) + "–" + Math.round(z1) + " pc above the plane"
-        : "across the plane";
-    const span = first === last ? "layer " + first : "layers " + first + " to " + last;
-    return S.pickLabel(pick, stage.at, resolved.view) + ": " + span + ", " + where;
-  }
-
   function optionText(index) {
-    return choiceText(index) + (pickable(index) ? "" : " (nothing generated here to pick)");
+    return blockText(display.options[index].blocks[0], display.data) + (pickable(index) ? "" : " (nothing generated here to pick)");
   }
 
-  function choiceText(index) {
-    const option = display.options[index];
-    const data = display.data;
-    if (option.blocks.length === 1) return blockText(option.blocks[0], data);
-    const sum = sumOf(option.blocks, data);
-    const counts = S.formatCount(sum.generated) + (getOutline().shapeless ? "" : " of " + S.formatCount(sum.total)) + " sectors charted";
-    if (option.pick && option.pick.kind === "layer") return layerText(option.pick) + ", " + counts;
-    const span = spanOf(option.blocks, (option.a0 + option.a1) / 2);
-    return (option.pick ? S.pickLabel(option.pick, stage.at, option) : "Here") + ", "
-      + Math.round(span.r0) + "–" + Math.round(span.r1) + " pc from the core, " + counts;
+  // The block the panel on arrival describes: the cell the window is
+  // centred on, or for a window of sectors the level-3 block holding its
+  // centre (the sector's own panel opens when it is selected).
+  function infoBlock() {
+    const centre = stage.win.centre;
+    return centre.m === 1 ? S.drillParent(centre) : centre;
   }
 
-  // The panel on arrival: the stage's own block (its hint under it), or
-  // just the hint at the galaxy.
+  // How many sectors `block` (the infoBlock) holds that are generated, from
+  // the window's data.
+  function generatedIn(block, data) {
+    if (!data) return null;
+    if (stage.win.centre.m !== 1) return data.generated.get(block.ring + "/" + block.wedge + "/" + block.slab) || 0;
+    let generated = 0;
+    data.sectors.forEach(function (sector) {
+      const parent = S.drillParent({ m: 1, ring: sector.ring, wedge: sector.slot, slab: sector.layer });
+      if (S.sameBlock(parent, block)) generated += 1;
+    });
+    return generated;
+  }
+
+  // The panel on arrival: the hint alone for the whole galaxy, else the
+  // window's middle block (its hint under it).
   function showStageInfo() {
     const hint = hintFor(resolved);
-    if (!stage.at) {
-      showRegionInfo(hint);
-      return;
-    }
-    const data = dataFor(S.holder(stage));
-    let generated = 0;
-    if (data) data.generated.forEach(function (n) { generated += n; });
-    const total = getOutline().shapeless ? null : S.drillBlockTotal(stage.at, getOutline());
-    host.showBlockInfo({
-      block: stage.at, total: total,
-      generated: data ? generated : null, hint: hint, enter: null,
-      generate: generateOffer(total, data ? generated : null),
-    });
-  }
-
-  // At the galaxy: the hint alone for the whole galaxy; for an arc, or a
-  // slab picked inside one, what it covers and holds (MAP.135).
-  function showRegionInfo(hint) {
-    const blocks = resolved.view.blocks;
-    if (isWholeGalaxy(resolved) || !stage.picks.length || !blocks.length || !host.showRegionInfo) {
+    if (!stage.win) {
       host.showHint(hint);
       return;
     }
-    const last = stage.picks[stage.picks.length - 1];
-    const span = spanOf(blocks, (resolved.view.a0 + resolved.view.a1) / 2);
-    const sum = sumOf(blocks, dataFor(S.holder(stage)));
-    host.showRegionInfo({
-      title: S.pickLabel(last, stage.at, resolved.view),
-      span: span,
-      total: getOutline().shapeless ? null : sum.total,
-      generated: sum.generated,
-      hint: hint,
+    const block = infoBlock();
+    const data = dataFor(S.holder(stage));
+    const generated = generatedIn(block, data);
+    const total = getOutline().shapeless ? null : S.drillBlockTotal(block, getOutline());
+    host.showBlockInfo({
+      block: block, total: total, generated: generated, hint: hint, enter: null,
+      generate: generateOffer(block, total, generated),
     });
   }
 
-  // In a 3-block, for an admin: {block, layer, wholeBlock} for the
+  // In a window of sectors, for an admin: {block, layer, wholeBlock} for the
   // "Generate this layer" and "Generate this block" buttons
-  // (generatebuttons.js's blockGenerateButtons), `layer` set while one
-  // layer of sectors is shown and not all generated. Null when there is
-  // nothing to offer.
-  function generateOffer(total, generated) {
-    if (!host.canGenerate || !stage.at || stage.at.m !== 3) return null;
+  // (generatebuttons.js's blockGenerateButtons) of the level-3 block holding
+  // the centre, `layer` the centre's own while it is not all generated. Null
+  // when there is nothing to offer.
+  function generateOffer(block, total, generated) {
+    if (!host.canGenerate || !stage.win || stage.win.centre.m !== 1) return null;
     const blockDone = total != null && generated != null && total > 0 && generated >= total;
-    const blocks = resolved.view.blocks;
-    let layer = isSectorView(resolved) && blocks.every(function (b) { return b.slab === blocks[0].slab; }) ? blocks[0].slab : null;
-    if (layer != null && !getOutline().shapeless) {
-      const sum = sumOf(blocks, dataFor(S.holder(stage)));
-      if (sum.total > 0 && sum.generated >= sum.total) layer = null;
-    }
+    const data = dataFor(S.holder(stage));
+    const layerBlocks = resolved.view.blocks.filter(function (b) {
+      return b.slab === stage.win.centre.slab && S.sameBlock(S.drillParent(b), block);
+    });
+    let layer = stage.win.centre.slab;
+    if (!getOutline().shapeless && layerBlocks.length && layerBlocks.every(function (b) { return generatedOf(b, data) > 0; })) layer = null;
     if (blockDone && layer == null) return null;
-    return { block: S.formatDrillKey(stage.at), layer: layer, wholeBlock: !blockDone };
+    return { block: S.formatDrillKey(block), layer: layer, wholeBlock: !blockDone };
   }
 
   function sectorEntry(block, sector) {
@@ -1642,24 +1547,16 @@ export function createStageView(host) {
 
   function baseHint(r) {
     if (!r || !r.kind) return "";
-    if (isCube(r)) {
-      return "Click a layer of sectors on the map, or pick one with the buttons beside the map, to see just that layer.";
-    }
-    if (r.kind === "layer") {
-      return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) on the map, or pick one with the buttons beside the map; each button's line points at its slab.";
-    }
-    if (r.kind === "arc") return "Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely.";
     if (isSectorView(r)) {
       return "Click a sector to open it; a sector that isn't generated yet shows where it is"
         + (host.canGenerate ? " and how to generate it." : ".");
     }
-    if (r.kind === "cell") return "Click a block to zoom in on it; Up zooms out again.";
-    return "Click a block of the slab to zoom into it.";
+    return "Click a block to zoom in on it; Up zooms out again.";
   }
 
   // --- Acting on a choice ----------------------------------------------------
 
-  function act(index) {
+  function act(index, at) {
     if (!pickable(index)) return;
     const option = display.options[index];
     if (pinned) {
@@ -1669,9 +1566,8 @@ export function createStageView(host) {
       if (other && host.openSectorPage && (!entered || entered.id !== other.id)) host.openSectorPage(other.id);
       return;
     }
-    // One sector is opened, unless it is all of a slab to pick (MAP.91).
-    const slabPick = option.pick && option.pick.kind === "layer";
-    if (!slabPick && option.blocks.length === 1 && option.blocks[0].m === 1) {
+    // A sector is opened.
+    if (option.blocks[0].m === 1) {
       const block = option.blocks[0];
       const record = sectorRecord(block);
       if (record && host.fetchSectorScene) {
@@ -1693,25 +1589,18 @@ export function createStageView(host) {
       renderTravel();
       return;
     }
-    if (!option.pick) return;
-    takePick(option.pick);
+    takePick(option.pick, at);
   }
 
-  // Takes `pick` of the choices on screen. A choice is made on the stage
-  // that is DRAWN, not the one `go` has already moved to while the next
-  // container's data loads: picking again in that gap added a pick from
-  // the old view to the new stage, which has no such choice, and said
-  // "There is no layer x here" (MAP.107).
-  function takePick(pick) {
+  // Takes `pick` (a cell) of the choices on screen: the window one size down,
+  // centred on it. A choice is made on the stage that is DRAWN, not the one
+  // `go` has already moved to while the next window's data loads: the cell
+  // clicked is a cell of the drawn stage, whichever stage that is (MAP.107).
+  function takePick(pick, at) {
     if (pinned) return;
     const base = display && display.resolved ? display.resolved.stage : stage;
-    if (pick.kind === "cell") {
-      // A cell of a window: the window one size down, centred on it.
-      const into = S.windowInto(base, pick.block);
-      if (into) go(into);
-      return;
-    }
-    go({ at: base.at, picks: base.picks.concat([pick]) });
+    const into = S.windowInto(base, pick.block, at, edgePc);
+    if (into) go(into);
   }
 
   function sectorOption(sector) {
@@ -1764,7 +1653,6 @@ export function createStageView(host) {
       showSectorInfo(block);
       applyHover();
       renderCrumbs();
-      renderStrip();
       renderTravel();
       if (animation) finishAnimation();
       const to = cameraForSector(entered);
@@ -2079,7 +1967,7 @@ export function createStageView(host) {
     }
     touchPending = -1;
     showTooltip("", 0, 0);
-    act(index);
+    act(index, found && found.hit ? { x: found.hit.point.x, y: found.hit.point.y } : null);
   }
 
   // Drag turns the view, right-drag or Shift-drag moves it, two fingers
@@ -2118,10 +2006,8 @@ export function createStageView(host) {
     if (hover && !hover.sticky) setHover(null);
   }
 
-  // Arrow keys move among the choices: Left and Right through them in
-  // order, Up and Down to the next layer up or down, or (among the
-  // segments of a slab) to the nearest one a ring further out or in;
-  // Enter takes it.
+  // Arrow keys move among the choices, through them in order; Enter takes
+  // the one lit.
   function onKey(event) {
     const key = event.key;
     if (key === "Escape" || key === "Backspace") {
@@ -2159,43 +2045,18 @@ export function createStageView(host) {
     const current = hover && hover.option != null ? hover.option : -1;
     if (key === "Enter") {
       if (current >= 0) act(current);
-      else if (hover && hover.layer) takePick(hover.layer);
       return;
     }
-    let next = -1;
-    if (current < 0) {
-      next = 0;
-    } else if (resolved.kind !== "segment" || key === "ArrowLeft" || key === "ArrowRight") {
+    let next = 0;
+    if (current >= 0) {
       const forward = key === "ArrowRight" || key === "ArrowUp";
       next = (current + (forward ? 1 : -1) + options.length) % options.length;
-    } else {
-      next = segmentBeside(options, current, key === "ArrowUp" ? 1 : -1);
     }
-    if (next < 0) return;
     setHover({ option: next, sticky: true });
     tooltipAtOption(next);
   }
 
-  // The segment a ring further out (step 1) or in (-1) from segment
-  // `current` whose middle bearing is nearest its own, or -1.
-  function segmentBeside(options, current, step) {
-    const here = options[current].blocks[0];
-    const mid = function (b) { return (b.bounds.t0 + b.bounds.t1) / 2; };
-    let best = -1;
-    let bestTurn = Infinity;
-    options.forEach(function (option, n) {
-      const block = option.blocks[0];
-      if (block.ring !== here.ring + step) return;
-      const turn = Math.abs(wrapAngle(mid(block) - mid(here)));
-      if (turn < bestTurn) {
-        bestTurn = turn;
-        best = n;
-      }
-    });
-    return best;
-  }
-
-  // --- Breadcrumb, slab buttons, notice --------------------------------------
+  // --- Breadcrumb, notice ----------------------------------------------------
 
   function notice(text) {
     if (!els.notice) return;
@@ -2245,7 +2106,7 @@ export function createStageView(host) {
   function crumbSteps() {
     const items = S.crumbs(stage, getOutline(), edgePc);
     if (homeStep) items.unshift({ label: homeStep.label, href: homeStep.href, last: false });
-    if (selectedSector && !(resolved && resolved.sector)) {
+    if (selectedSector && !isSelectedCentre()) {
       const uncharted = entered && entered.uncharted && !pinned;
       items.push({
         label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer })
@@ -2253,6 +2114,9 @@ export function createStageView(host) {
         last: true, sector: true,
       });
       items[items.length - 2].last = false;
+    } else if (selectedSector && entered && entered.uncharted && !pinned) {
+      // The window is centred on the sector: its own step carries the mark.
+      items[items.length - 1].label += " (uncharted)";
     }
     if (enteredSystem) {
       // Up from the system is to the sector it sits in.
@@ -2300,460 +2164,17 @@ export function createStageView(host) {
     refreshBookmark();
   }
 
-  // The slab buttons and their leader lines (MAP.54, layout MAP.76):
-  // while the next pick is a slab, one button per slab beside the map
-  // (in one column below it on a phone), each with a line from it to its
-  // slab on the map. The lines are drawn on an SVG over the map's row and
-  // redrawn whenever the view moves (applyView) or the layout changes, so
-  // they always point at their slabs; the buttons are always in slab
-  // number order, running the same way as the slabs on screen, so the
-  // lines don't cross (MAP.110). The
-  // lines are faint, and the slab hovered on the map or with its button
-  // (or the focused button) lights its own; clicking a button picks its
-  // slab. Each line ends on its slab's outline at the point nearest the
-  // button (MAP.98); a slab off the map ends its line at the map's edge
-  // with an arrow. Each button reads on one line, "#4 Unknown" or "#6 ≈
-  // 2.43% charted" (MAP.100). A column taller than the map splits into
-  // two, one each side of it, then the buttons shrink to their numbers,
-  // and when even that won't fit they give way to picking on the map
-  // (MAP.99). Otherwise the box says which layers the view holds.
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  // {rows: [{option, item, button, line, outline, side}], list, other,
-  // side, note, svg, mode, phone, fitFor}, while there are buttons.
-  let strip = null;
-  let leaderSvg = null;
-
-  function slabChoices() {
-    if (!resolved || resolved.kind !== "layer" || !display || display.resolved !== resolved) return null;
-    return display.options;
-  }
-
-  // The SVG the lines are drawn on, over the map's row (created once).
-  function leaderLayer() {
-    const row = els.slabs && els.slabs.parentElement;
-    if (!row) return null;
-    if (!leaderSvg) {
-      leaderSvg = document.createElementNS(SVG_NS, "svg");
-      leaderSvg.setAttribute("class", "galaxy-slab-leaders");
-      leaderSvg.setAttribute("aria-hidden", "true");
-      const defs = document.createElementNS(SVG_NS, "defs");
-      const marker = document.createElementNS(SVG_NS, "marker");
-      marker.setAttribute("id", "galaxy-slab-arrow");
-      marker.setAttribute("viewBox", "0 0 10 10");
-      marker.setAttribute("refX", "9");
-      marker.setAttribute("refY", "5");
-      marker.setAttribute("markerWidth", "7");
-      marker.setAttribute("markerHeight", "7");
-      marker.setAttribute("orient", "auto-start-reverse");
-      const tip = document.createElementNS(SVG_NS, "path");
-      tip.setAttribute("d", "M0,0 L10,5 L0,10 z");
-      tip.setAttribute("fill", "currentColor");
-      marker.appendChild(tip);
-      defs.appendChild(marker);
-      leaderSvg.appendChild(defs);
-      row.appendChild(leaderSvg);
-    }
-    return leaderSvg;
-  }
-
-  function clearLeaders() {
-    if (!leaderSvg) return;
-    Array.from(leaderSvg.querySelectorAll("polyline")).forEach(function (line) { line.remove(); });
-    leaderSvg.hidden = true;
-  }
-
-  function renderStrip() {
-    const box = els.slabs;
-    strip = null;
-    clearLeaders();
-    clearSideBox();
-    if (!box || !resolved || !resolved.view) return;
-    box.textContent = "";
-    // UX.60: the rail is there only while the stage has slab buttons.
-    box.hidden = true;
-    const heading = document.createElement("h3");
-    heading.id = "galaxymap3d-slabs-heading";
-    // A thin block's view is sectors, so its "slabs" are sector layers.
-    const noun = isSectorView(resolved) ? "Layer" : S.slabNoun(stage.at);
-    heading.textContent = noun + "s";
-    box.appendChild(heading);
-    const choices = slabChoices();
-    box.classList.toggle("is-picking", !!(choices && choices.length));
-    if (!choices || !choices.length) {
-      box.textContent = "";
-      return;
-    }
-    box.hidden = false;
-    const data = display.data;
-    const svg = leaderLayer();
-    const list = document.createElement("ol");
-    list.className = "galaxy-slab-buttons";
-    box.appendChild(list);
-    // Said in place of the buttons when none fit (MAP.99).
-    const note = document.createElement("p");
-    note.className = "galaxy-slab-note galaxy-slab-none-note";
-    note.textContent = "Too many " + noun.toLowerCase() + "s for buttons here; pick one on the map.";
-    note.hidden = true;
-    box.appendChild(note);
-    const side = sideBox();
-    let other = null;
-    if (side) {
-      other = document.createElement("ol");
-      other.className = "galaxy-slab-buttons";
-      side.appendChild(other);
-    }
-    const rows = choices.slice().reverse().map(function (option) {
-      const pick = option.pick;
-      const sum = sumOf(option.blocks, data);
-      const takeable = !(needGenerated && !(sum.generated > 0));
-      const item = document.createElement("li");
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "galaxy-slab-button";
-      button.dataset.slab = String(pick.lo);
-      // One line (MAP.100): "#4" and how much is charted, the second part
-      // left out when the buttons are small (MAP.99).
-      const label = S.slabButtonLabel(pick, sum.generated, getOutline().shapeless ? 0 : sum.total);
-      const number = S.slabNumber(pick);
-      const name = document.createElement("span");
-      name.className = "galaxy-slab-name";
-      name.textContent = number;
-      const count = document.createElement("span");
-      count.className = "galaxy-slab-count";
-      count.textContent = label.slice(number.length + 1);
-      button.appendChild(name);
-      button.appendChild(count);
-      button.title = S.pickLabel(pick, stage.at, resolved.view) + ": " + label.slice(number.length + 1);
-      button.setAttribute("aria-label", layerText(pick) + ", " + S.formatInt(sum.generated)
-        + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors charted"
-        + (takeable ? "" : " (nothing generated here to pick)"));
-      if (!takeable) button.setAttribute("aria-disabled", "true");
-      const light = function () { if (!animation) setHover({ layer: pick, sticky: true }); };
-      const unlight = function () {
-        const inStrip = list.contains(document.activeElement) || (other && other.contains(document.activeElement));
-        if (hover && hover.layer && hover.layer.lo === pick.lo && !inStrip) setHover(null);
-      };
-      button.addEventListener("pointerenter", light);
-      button.addEventListener("focus", light);
-      button.addEventListener("pointerleave", unlight);
-      button.addEventListener("blur", function () { setTimeout(unlight, 0); });
-      button.addEventListener("click", function () {
-        if (!takeable || animation) return;
-        takePick(pick);
-      });
-      item.appendChild(button);
-      list.appendChild(item);
-      let line = null;
-      if (svg) {
-        line = document.createElementNS(SVG_NS, "polyline");
-        line.setAttribute("class", "galaxy-slab-leader");
-        line.dataset.slab = String(pick.lo);
-        svg.appendChild(line);
-      }
-      // The slab's outline on the map (as its hover draws it), where its
-      // line ends (MAP.98).
-      const mid = (option.a0 + option.a1) / 2;
-      const span = spanOf(option.blocks, mid);
-      const outline = edgePoints(S.outlineEdges(option.blocks, mid), span.z1, span);
-      return { option: option, item: item, button: button, line: line, outline: outline, side: "right" };
-    });
-    strip = { rows: rows, list: list, other: other, side: side, note: note, svg: svg, mode: null, fitFor: null };
-    fitStrip(true);
-    applyHover();
-  }
-
-  // --- Fitting the buttons to the map (MAP.99) ---------------------------------
-
-  // The box on the map's other side (left) that takes half the buttons
-  // when one column is taller than the map; made once, beside els.slabs.
-  let sideEl = null;
-
-  function sideBox() {
-    const main = els.slabs && els.slabs.parentElement;
-    if (!main) return null;
-    if (!sideEl) {
-      sideEl = document.createElement("div");
-      sideEl.className = "galaxy-slabs galaxy-slabs-side";
-      sideEl.id = "galaxymap3d-slabs-side";
-      sideEl.setAttribute("role", "group");
-      sideEl.setAttribute("aria-labelledby", "galaxymap3d-slabs-heading");
-      sideEl.hidden = true;
-      main.insertBefore(sideEl, main.firstChild);
-    }
-    sideEl.textContent = "";
-    return sideEl;
-  }
-
-  function clearSideBox() {
-    if (sideEl) {
-      sideEl.textContent = "";
-      sideEl.hidden = true;
-    }
-    const main = els.slabs && els.slabs.parentElement;
-    if (main) main.classList.remove("is-slab-split", "is-slab-small", "is-slab-none");
-  }
-
-  function isPhone() {
-    return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 599px)").matches;
-  }
-
-  // Puts the strip in `mode`: "one" (one column beside the map, below it
-  // on a phone), "split" (two columns, one each side), "small" (the
-  // number alone: two columns beside the map, one below it on a phone) or
-  // "none" (no buttons; the box says to pick on the map).
-  function setStripMode(mode, phone) {
-    const main = els.slabs.parentElement;
-    const two = !phone && (mode === "split" || mode === "small");
-    main.classList.toggle("is-slab-split", two);
-    main.classList.toggle("is-slab-small", mode === "small");
-    main.classList.toggle("is-slab-none", mode === "none");
-    strip.list.hidden = mode === "none";
-    strip.note.hidden = mode !== "none";
-    if (strip.side) strip.side.hidden = !two;
-    strip.mode = mode;
-    strip.phone = phone;
-    orderStrip(true);
-  }
-
-  // Whether the buttons fit: each column no taller than the map (below
-  // the map on a phone, no taller than the window left under it).
-  function stripFits(phone) {
-    const rect = canvasEl.getBoundingClientRect();
-    if (!rect.height) return true;
-    const budget = phone ? Math.max(rect.height, window.innerHeight - rect.height - 48) : rect.height;
-    const heading = els.slabs.querySelector("h3");
-    const top = heading ? heading.getBoundingClientRect().height + 6 : 0;
-    return [strip.list, strip.other].every(function (list) {
-      if (!list || !list.children.length || list.parentElement.hidden) return true;
-      const first = list.children[0].getBoundingClientRect();
-      const last = list.children[list.children.length - 1].getBoundingClientRect();
-      return top + last.bottom - first.top <= budget + 1;
-    });
-  }
-
-  // Picks the first mode whose buttons fit, then draws the lines. Only
-  // when the strip is new or the window changed size, so the map
-  // resizing as the columns change doesn't refit it again.
-  function fitStrip(force) {
-    if (!strip) return;
-    const phone = isPhone();
-    const key = window.innerWidth + "x" + window.innerHeight;
-    if (force || strip.fitFor !== key) {
-      strip.fitFor = key;
-      const modes = phone ? ["one", "small", "none"] : ["one", "split", "small", "none"];
-      for (let n = 0; n < modes.length; n++) {
-        setStripMode(modes[n], phone);
-        if (modes[n] === "none" || stripFits(phone)) break;
-      }
-    }
-    drawLeaders();
-  }
-
-  // Where a slab's line ends, in client pixels, when its outline gives
-  // none: the middle of its blocks, moved toward the camera to the side of
-  // the slab facing it, at the slab's mid height. {x, y, off}: off when
-  // that point is not on the map (then x, y are on its edge). It also
-  // says which way the buttons' number order runs (MAP.110).
-  function slabAnchor(blocks, rect) {
-    const fp = S.footprint(blocks);
-    let z0 = Infinity;
-    let z1 = -Infinity;
-    blocks.forEach(function (block) {
-      z0 = Math.min(z0, block.bounds.z0);
-      z1 = Math.max(z1, block.bounds.z1);
-    });
-    const dx = camera.position.x - fp.center[0];
-    const dy = camera.position.y - fp.center[1];
-    const far = Math.hypot(dx, dy);
-    const reach = far > 1e-9 ? Math.min(0.5 * fp.radius, far) / far : 0;
-    const point = new THREE.Vector3(fp.center[0] + dx * reach, fp.center[1] + dy * reach, (z0 + z1) / 2);
-    const ahead = point.clone().applyMatrix4(camera.matrixWorldInverse).z < 0;
-    point.project(camera);
-    let x = rect.left + ((point.x + 1) / 2) * rect.width;
-    let y = rect.top + ((1 - point.y) / 2) * rect.height;
-    if (!ahead) {
-      // Behind the camera: toward the map's bottom edge.
-      x = rect.left + rect.width / 2;
-      y = rect.bottom;
-    }
-    const inset = 3;
-    const cx = Math.max(rect.left + inset, Math.min(rect.right - inset, x));
-    const cy = Math.max(rect.top + inset, Math.min(rect.bottom - inset, y));
-    return { x: cx, y: cy, off: !ahead || cx !== x || cy !== y };
-  }
-
-  // The slab's outline on screen as line pieces [[x, y], [x, y]] in client
-  // pixels, each cut to the map (pieces with an end behind the camera
-  // left out).
-  function outlineOnScreen(points, rect) {
-    const inset = 3;
-    const box = { x0: rect.left + inset, y0: rect.top + inset, x1: rect.right - inset, y1: rect.bottom - inset };
-    const screen = points.map(function (p) {
-      if (p.clone().applyMatrix4(camera.matrixWorldInverse).z >= 0) return null;
-      const q = p.clone().project(camera);
-      return [rect.left + ((q.x + 1) / 2) * rect.width, rect.top + ((1 - q.y) / 2) * rect.height];
-    });
-    const pieces = [];
-    for (let n = 0; n + 1 < screen.length; n += 2) {
-      const a = screen[n];
-      const b = screen[n + 1];
-      if (!a || !b) continue;
-      const cut = clipPiece(a, b, box);
-      if (cut) pieces.push(cut);
-    }
-    return pieces;
-  }
-
-  // Piece a-b cut to box {x0, y0, x1, y1} (Liang-Barsky), or null.
-  function clipPiece(a, b, box) {
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    let t0 = 0;
-    let t1 = 1;
-    const sides = [[-dx, a[0] - box.x0], [dx, box.x1 - a[0]], [-dy, a[1] - box.y0], [dy, box.y1 - a[1]]];
-    for (let n = 0; n < sides.length; n++) {
-      const p = sides[n][0];
-      const q = sides[n][1];
-      if (p === 0) {
-        if (q < 0) return null;
-        continue;
-      }
-      const t = q / p;
-      if (p < 0) t0 = Math.max(t0, t);
-      else t1 = Math.min(t1, t);
-      if (t0 > t1) return null;
-    }
-    return [[a[0] + dx * t0, a[1] + dy * t0], [a[0] + dx * t1, a[1] + dy * t1]];
-  }
-
-  // Where a slab's line ends (MAP.98): on its outline as drawn on the map,
-  // at the point nearest `from` (the line's last bend), or with `lane` (an
-  // x), nearest that upright lane (a phone's lines come across from it).
-  // With `minY`, no higher than that where the outline allows (MAP.110).
-  // Falls back to slabAnchor when none of the outline is on the map.
-  function slabEnd(r, from, lane, rect, minY) {
-    const best = S.nearestOnPieces(outlineOnScreen(r.outline, rect), from, lane, minY);
-    if (!best) return slabAnchor(r.option.blocks, rect);
-    return { x: best.x, y: best.y, off: false };
-  }
-
-  // Orders the buttons by slab number (MAP.110): the highest first when
-  // the stack's top slab shows above its bottom one on screen, else the
-  // lowest first, so the lines run the same way as the slabs (on a phone
-  // the other way round, so the lanes nest). With two columns deals them
-  // out in turn, right first, so each column runs the map's whole height.
-  // Leaves them be while one has focus, unless `force` (the columns
-  // changed).
-  function orderStrip(force) {
-    if (!strip || !view) return;
-    const rect = canvasEl.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const byNumber = S.slabOrder(strip.rows, true, function (r) { return r.option.pick; });
-    const top = slabAnchor(byNumber[0].option.blocks, rect).y;
-    const bottom = slabAnchor(byNumber[byNumber.length - 1].option.blocks, rect).y;
-    const order = (top <= bottom) !== !!strip.phone ? byNumber : byNumber.reverse();
-    const two = strip.side && !strip.side.hidden;
-    const focused = strip.list.contains(document.activeElement) || (strip.other && strip.other.contains(document.activeElement));
-    if (focused && !force) return;
-    order.forEach(function (r, n) {
-      r.side = two && n % 2 === 1 ? "left" : "right";
-      const list = r.side === "left" ? strip.other : strip.list;
-      if (list.children[list.children.length - 1] !== r.item) list.appendChild(r.item);
-    });
-  }
-
-  // Redraws the lines from each button to its slab, reordering the
-  // buttons first if their slabs' order on screen changed.
-  function drawLeaders() {
-    if (!strip || !strip.svg || !view || !active) return;
-    const svg = strip.svg;
-    const row = svg.parentElement;
-    const base = row.getBoundingClientRect();
-    const rect = canvasEl.getBoundingClientRect();
-    if (!rect.width || !rect.height || !base.width || strip.mode === "none") {
-      svg.hidden = true;
-      return;
-    }
-    svg.hidden = false;
-    svg.setAttribute("width", String(base.width));
-    svg.setAttribute("height", String(base.height));
-    svg.setAttribute("viewBox", "0 0 " + base.width + " " + base.height);
-    orderStrip();
-    const rows = strip.rows;
-    // Below the map (a phone) the lines run up lanes along the map's right
-    // edge, so they nest: the bottom button's line takes the outer lane
-    // to the highest slab, and the column runs from the lowest slab down.
-    const below = rows[0].button.getBoundingClientRect().top >= rect.bottom - 1;
-    const items = Array.from(strip.list.children);
-    // Beside the map each line ends where its slab's outline comes
-    // nearest its button, but down each column no higher than the line
-    // above it ends, where the outline allows, so the lines keep the
-    // buttons' number order and don't cross (MAP.110).
-    const ends = below ? null : new Map();
-    if (ends) {
-      [strip.list, strip.other].forEach(function (list) {
-        if (!list) return;
-        let floor = -Infinity;
-        Array.from(list.children).forEach(function (item) {
-          const r = rows.find(function (row) { return row.item === item; });
-          const b = r.button.getBoundingClientRect();
-          const from = [r.side === "left" ? b.right : b.left, b.top + b.height / 2];
-          const end = slabEnd(r, from, null, rect, floor);
-          ends.set(r, { from: from, end: end });
-          floor = Math.max(floor, end.y);
-        });
-      });
-    }
-    rows.forEach(function (r) {
-      if (!r.line) return;
-      const b = r.button.getBoundingClientRect();
-      const points = [];
-      let end;
-      if (below) {
-        // Out of the button's right end to its own lane, up the lane to
-        // the slab's height, then across to the slab.
-        const lane = rect.right - 8 - 7 * (items.length - 1 - items.indexOf(r.item));
-        end = slabEnd(r, [lane, b.top + b.height / 2], lane, rect);
-        points.push([b.right, b.top + b.height / 2], [lane, b.top + b.height / 2], [lane, end.y]);
-      } else {
-        end = ends.get(r).end;
-        points.push(ends.get(r).from);
-      }
-      points.push([end.x, end.y]);
-      r.line.setAttribute("points", points.map(function (p) {
-        return (p[0] - base.left).toFixed(1) + "," + (p[1] - base.top).toFixed(1);
-      }).join(" "));
-      if (end.off) r.line.setAttribute("marker-end", "url(#galaxy-slab-arrow)");
-      else r.line.removeAttribute("marker-end");
-      r.line.classList.toggle("is-off", end.off);
-    });
-  }
-
-  // Lights the button and line of the slab holding `layer` ({lo, hi}, or
-  // null for none).
-  function markStripRow(layer) {
-    if (!strip) return;
-    strip.rows.forEach(function (r) {
-      const lit = !!layer && r.option.pick.lo <= layer.lo && r.option.pick.hi >= layer.hi;
-      r.button.classList.toggle("is-lit", lit);
-      if (r.line) r.line.classList.toggle("is-lit", lit);
-    });
-  }
-
   // A resized map (the window resized or turned) refits the view to its
-  // new size (MAP.53), and the lines follow the layout: the map or the
-  // buttons resized, or the page reflowed.
+  // new size (MAP.53).
   function relayout() {
     if (active && view && !animation) {
       reframe();
       applyView();
     }
-    fitStrip(false);
   }
   if (typeof ResizeObserver === "function") {
     const observer = new ResizeObserver(relayout);
     observer.observe(canvasEl);
-    if (els.slabs) observer.observe(els.slabs);
   }
   window.addEventListener("resize", relayout);
 
@@ -2762,7 +2183,7 @@ export function createStageView(host) {
   // Flies to the stage showing sector {ring, layer, slot} among its
   // layer's neighbours (MAP.26) and selects it.
   function locate(sector) {
-    const next = S.sectorStage(sector.ring, sector.layer, sector.slot, getOutline(), edgePc);
+    const next = S.sectorStage(sector.ring, sector.layer, sector.slot, getOutline());
     if (!next) {
       notice("Sector " + S.blockLabel({ m: 1, ring: sector.ring, wedge: sector.slot, slab: sector.layer })
         + " is outside the galaxy.");
@@ -2875,13 +2296,11 @@ export function createStageView(host) {
   function setActive(on) {
     if (on === active) return;
     active = on;
-    // The slab rail shows itself when a stage has buttons (renderStrip).
     [els.crumbs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
     if (homeStep) {
       els.pageCrumb.hidden = on;
       if (on) els.pageCrumb.parentNode.insertBefore(els.crumbs, els.pageCrumb);
     }
-    if (els.slabs && !on) els.slabs.hidden = true;
     if (!on) {
       clearMatches();
       if (animation) finishAnimation();
@@ -2892,9 +2311,6 @@ export function createStageView(host) {
       display = null;
       view = null;
       clearOutline();
-      strip = null;
-      clearLeaders();
-      clearSideBox();
       showTooltip("", 0, 0);
       notice("");
       return;
@@ -2912,25 +2328,25 @@ export function createStageView(host) {
   // asked for, the smallest stage showing the whole course (section 9.4).
   function stageFromLocation(useCourse) {
     if (pinned) {
-      const next = S.sectorStage(pinned.ring, pinned.layer, pinned.slot, getOutline(), edgePc);
-      if (!next) return { stage: { at: null, picks: [] }, sector: null, problem: "This sector is outside the galaxy." };
+      const next = S.sectorStage(pinned.ring, pinned.layer, pinned.slot, getOutline());
+      if (!next) return { stage: S.galaxyStage(), sector: null, problem: "This sector is outside the galaxy." };
       return { stage: next, sector: pinned, open: true, problem: null };
     }
     const parsed = S.parseStageQuery(location.search);
-    if (parsed.problem) return { stage: { at: null, picks: [] }, sector: null, problem: parsed.problem };
+    if (parsed.problem) return { stage: S.galaxyStage(), sector: null, problem: parsed.problem };
     if (parsed.sector) {
       const s = parsed.sector;
-      const next = S.sectorStage(s.ring, s.layer, s.slot, getOutline(), edgePc);
+      const next = S.sectorStage(s.ring, s.layer, s.slot, getOutline());
       if (!next) {
         return {
-          stage: { at: null, picks: [] }, sector: null,
+          stage: S.galaxyStage(), sector: null,
           problem: "Sector " + S.blockLabel({ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }) + " is outside the galaxy.",
         };
       }
       return { stage: next, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
     }
     let next = parsed.stage;
-    if (useCourse && !next.at && !next.picks.length && host.courseSectors && host.courseSectors.length) {
+    if (useCourse && !next.win && host.courseSectors && host.courseSectors.length) {
       next = S.courseStage(host.courseSectors, getOutline(), edgePc);
     }
     return { stage: next, sector: null, problem: null };
@@ -2950,15 +2366,14 @@ export function createStageView(host) {
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
-    if (r.problem) r = resolve({ at: null, picks: [] });
-    selectedSector = asked.sector || (r.sector ? { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge } : null);
+    if (r.problem) r = resolve(S.galaxyStage());
+    selectedSector = asked.sector;
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
     pendingObject = pendingSystem ? asked.object : null;
     stage = r.stage;
     resolved = r;
     renderCrumbs();
-    renderStrip();
     renderTravel();
     notice(problem || "");
   }
@@ -2979,7 +2394,7 @@ export function createStageView(host) {
     const asked = stageFromLocation(false);
     if (asked.problem) {
       selectedSector = null;
-      go({ at: null, picks: [] }, { push: false });
+      go(S.galaxyStage(), { push: false });
       notice(asked.problem);
       return;
     }
@@ -3059,9 +2474,9 @@ export function createStageView(host) {
     pickChanged: pickChanged,
     entryByKey: sectorStage.entryByKey,
     selectEntry: sectorStage.select,
-    // Inside a block or an arc (not the whole galaxy), where phenomena
-    // take the pointer before the blocks.
-    inContainer: function () { return !!stage.at; },
+    // Inside a window (not the whole galaxy), where phenomena take the
+    // pointer before the blocks.
+    inContainer: function () { return !!stage.win; },
     go: go,
     locate: locate,
   };

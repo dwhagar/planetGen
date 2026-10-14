@@ -105,9 +105,10 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'class="hint">The galaxy is shown in 3D' not in html and "drag to turn it" not in html.split(
         'id="galaxymap3d-help"')[0]
     assert 'id="galaxymap3d-info"' in html
-    # The drill-down's breadcrumb, slab strip, tooltip and toggles.
-    for element in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-tooltip", "galaxymap3d-notice"):
+    # The drill-down's breadcrumb, tooltip and toggles; MAP.150 retired the slab buttons.
+    for element in ("galaxymap3d-crumbs", "galaxymap3d-tooltip", "galaxymap3d-notice"):
         assert f'id="{element}"' in html
+    assert 'id="galaxymap3d-slabs"' not in html
     assert 'data-action="territories"' in html
     assert 'id="galaxymap3d-territories"' in html
     assert 'data-action="charted-only"' in html
@@ -123,7 +124,7 @@ def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own()
     assert data["initialCenter"] == [500.0, 200.0, 10.0]
     assert data["minViewRadiusPc"] <= data["initialRadiusPc"] <= data["maxViewRadiusPc"]
     assert '<h2 class="sr-only">Sector Map</h2>' in html
-    for gone in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-address", "galaxymap3d-steps",
+    for gone in ("galaxymap3d-crumbs", "galaxymap3d-address", "galaxymap3d-steps",
                  "data-bookmarks-menu", 'data-action="back"', 'data-action="up"', 'data-action="reset"'):
         assert gone not in html, gone
     # What a sector map needs: zoom, Re-center, Center on selection, Map help (and no rogue-only toggle, MAP.184).
@@ -143,7 +144,7 @@ def test_panel_keeps_five_controls_in_view_and_the_rest_in_the_menu():
     """MAP.55: Back, Forward, Up, Reset and Bookmarks stay in view; Reset
     view, Charted only and Territories are in the Menu; every control
     names its icon for later (UX.28); the info panel sits in the map's
-    row, beside the slab slider."""
+    row, beside the map."""
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
     controls = html[html.index('id="galaxymap3d-controls"'):]
     row, menu = controls.split('id="galaxymap3d-menu"', 1)
@@ -156,7 +157,7 @@ def test_panel_keeps_five_controls_in_view_and_the_rest_in_the_menu():
     for icon in ("back", "forward", "up", "reset", "bookmarks", "menu", "reset-view", "charted-only"):
         assert f'data-icon="{icon}"' in controls
     map_row = html[html.index('class="galaxy-map-row"'):html.index('class="starmap-side"')]
-    assert 'id="galaxymap3d-slabs"' in map_row and 'id="galaxymap3d-info"' in map_row
+    assert 'id="galaxymap3d-info"' in map_row
 
 
 def test_panel_leaves_territories_out_when_there_are_none():
