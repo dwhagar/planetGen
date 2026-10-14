@@ -1509,6 +1509,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (85, _table_marker("object_timing_stats")),
     (84, _column_marker("phenomenon_scatter", "map_luminosity_sol")),
     (83, _table_marker("nebula_field")),
     (82, _table_marker("sector_system_counts")),

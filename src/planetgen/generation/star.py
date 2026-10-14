@@ -1452,3 +1452,7 @@ def get_star_evolutionary_profile(star):
         reachable_scales = ["fast"]
 
     return {**base_info, "supported_evolutionary_scales": reachable_scales}
+
+
+from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+object_timing.track(Star, "star")

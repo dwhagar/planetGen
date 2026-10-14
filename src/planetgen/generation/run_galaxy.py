@@ -39,6 +39,7 @@ from planetgen.galaxy.geometry import (
     provisional_sector_designation, ring_sector_count, sector_address_at, sector_position_pc,
 )
 from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.generation import object_timing
 from planetgen.generation import run_common
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
@@ -480,7 +481,8 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
         cloud_field = (galaxy_seed, fill.shape, tuple(position_pc), edge_pc * math.sqrt(3) / 2)
     # GEN.39: every draw for this sector, its save included, comes from
     # its own seed, so the run's order and worker count don't matter.
-    with galaxySeed.seeded(galaxy_seed, "sector", address):
+    with galaxySeed.seeded(galaxy_seed, "sector", address), object_timing.unit(
+            ",".join(str(part) for part in address)) as timings:
         _sector_name, sector = run_sector.generate_directed_sector(
             args, galaxy_seed=galaxy_seed, address=address,
             galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill, cloud_field=cloud_field)
@@ -498,7 +500,25 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
                                         link_neighbors=not getattr(args, "link_later", False),
                                         progress=save_step)
     run_common._count_sector(sector)
+    _save_object_timing(args, timings, sector_id)
     return sector_id, sector.name, sector
+
+
+def _save_object_timing(args, timings, sector_id):
+    """Writes the sector's per-object timings (PERF.92) under the run that
+    made it; never fails the run."""
+    run_id = getattr(args, "generation_run_id", None)
+    if run_id is None or not object_timing.stats_enabled():
+        return
+    try:
+        conn = store.get_connection(store.mysql_config_from_args(args))
+        try:
+            object_timing.save(conn, run_id, timings, sector_id)
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the timings never fail a run
+        log.debug(f"Object timings: can't save them for sector {sector_id} ({exc}).")
 
 
 def _galaxy_seed(args):

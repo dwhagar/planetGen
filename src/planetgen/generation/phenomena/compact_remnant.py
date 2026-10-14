@@ -616,3 +616,8 @@ class NeutronStar(CompactRemnant):
         paragraphs.append(sentence)
 
         return paragraphs
+
+
+from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+object_timing.track(BlackHole, "black-hole")
+object_timing.track(NeutronStar, "neutron-star")

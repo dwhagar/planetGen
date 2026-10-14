@@ -1603,6 +1603,7 @@ def main():
     status = "failed"
     root = _open_run_node(args, database) if logged else None
     history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
+    args.generation_run_id = history   # the run the per-object timings (PERF.92) are saved under
     try:
         _COMMAND_HANDLERS[args.command](args)
         status = "ok"
