@@ -59,7 +59,7 @@ def life_stage_from_paragraphs(paragraphs):
     return None
 
 
-def get_evolutionary_timeline(star, planet_class=None):
+def get_evolutionary_timeline(star, planet_class=None, max_stage=None):
     """
     Generates a speculative evolutionary timeline for a planet based on its
     host star's spectral class.
@@ -86,6 +86,11 @@ def get_evolutionary_timeline(star, planet_class=None):
             Class G planet, "simple life", can never report a
             "Technological Civilization"). `None`/an unlisted class stays
             uncapped, matching this function's previous behavior exactly.
+
+        max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone
+            as `planet_class`'s ceiling does (the lower of the two applies):
+            the habitability index allows a world only microbial life
+            (GEN.206), so its timeline stops at "photosynthesis".
 
     Returns:
         list: A list of strings, where each string is a paragraph describing
@@ -147,6 +152,8 @@ def get_evolutionary_timeline(star, planet_class=None):
     # rolling unrestricted and correcting the result after the fact.
     class_max_key = tuning.PLANET_CLASS_MAX_LIFE_STAGE.get(planet_class)
     max_index = MILESTONE_KEYS.index(class_max_key) if class_max_key else len(MILESTONE_KEYS) - 1
+    if max_stage:
+        max_index = min(max_index, MILESTONE_KEYS.index(max_stage))
     if star.system_config.INTELLIGENT_LIFE is False:
         max_index = min(max_index, MILESTONE_KEYS.index("multicellularity"))
     allowed_keys = MILESTONE_KEYS[:max_index + 1]

@@ -30,7 +30,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
-const { cssVar, formatAddress, makeRingTexture } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { cssVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
 
@@ -305,16 +305,10 @@ function glowRecipeForCloud(cloud) {
 // coming from outside rather than belonging to this sector.
 var NEIGHBOR_CLOUD_DIM = 0.4;
 
-// MAP.46: a marked rogue planet gets a ring that keeps one size on screen
-// (a fraction of the canvas height) however far out the camera is, so a
-// small dark world stays easy to spot zoomed out. A violet that reads on
-// the light and the dark theme's map background.
-var ROGUE_MARKER_COLOR = "#8f6df2";
-var ROGUE_MARKER_SCREEN_SIZE = 0.03;
 // MAP.84: how near (pixels) a click must land to pick a rogue planet:
-// an unmarked one is a faint speck and only a click right on it takes
-// it; marked, it is a big, easy target.
-var ROGUE_PICK_PX = { unmarked: 3, marked: 14 };
+// it is a faint speck, so only a click right on it takes it (the Menu's
+// per-kind Mark makes it bigger and easier to hit).
+var ROGUE_PICK_PX = 3;
 
 // A real 3D body: a textured core sphere plus a fresnel glow shell
 // (./bodyRendering.js), for every phenomenon that is neither a cloud
@@ -618,7 +612,7 @@ var LABEL_HEIGHT = 22;
 //                        (default 1).
 // Returns {group, pointEntries, entries (every entry, list order), layers
 // (the picker layers, nearest first: points, bodies, volumes), ringSize(entry),
-// setRoguesMarked(on), roguesMarked(), entryByKey, kinds() (the kinds in
+// entryByKey, kinds() (the kinds in
 // it, [{kind, label, count}]), setKindHidden(kind, hidden), kindHidden(kind),
 // update() (every frame), nebulaMeshCount() (nebulae drawn from their shape
 // so far), dispose()}. `options.onShape(count)` is called as each arrives.
@@ -769,16 +763,6 @@ export function buildSectorScene(data, options) {
     group.add(pointsOfLight);
   }
 
-  // Not raycast: a click on a marker's empty middle should still reach
-  // whatever is behind it. Rogue planets are points of light
-  // (planetgen/web/maps/starmap.py's _ROGUE_LIGHT); "Mark rogue planets" (off by
-  // default) swaps in each one's markedLight and shows these rings.
-  var rogueMarkers = new THREE.Group();
-  rogueMarkers.visible = false;
-  group.add(rogueMarkers);
-  var rogueMarkerMaterial = null;
-  var roguesMarked = false;
-
   var POINT_ATTRIBUTES = ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointWhiten"];
 
   // Writes point `i`'s look: its entry's current light, or nothing at all
@@ -805,37 +789,7 @@ export function buildSectorScene(data, options) {
     });
   }
 
-  function setRoguesMarked(marked) {
-    roguesMarked = marked;
-    rogueMarkers.visible = marked;
-    if (!pointsOfLight) {
-      return;
-    }
-    pointEntries.forEach(function (entry, i) {
-      if (entry.kind !== "roguePlanet" || !entry.markedLight) {
-        return;
-      }
-      entry.light = marked ? entry.markedLight : entry.unmarkedLight;
-      refreshPoint(i);
-    });
-    pointsChanged();
-  }
-
   clouds.forEach(function (cloud) {
-    if (cloud.kind === "roguePlanet") {
-      cloud.unmarkedLight = cloud.light;
-      if (!rogueMarkerMaterial) {
-        rogueMarkerMaterial = new THREE.SpriteMaterial({
-          map: makeRingTexture(ROGUE_MARKER_COLOR), transparent: true, opacity: 0.75, depthWrite: false,
-          sizeAttenuation: false,
-        });
-      }
-      var ring = new THREE.Sprite(rogueMarkerMaterial);
-      ring.position.fromArray(cloud.local);
-      ring.scale.set(ROGUE_MARKER_SCREEN_SIZE, ROGUE_MARKER_SCREEN_SIZE, 1);
-      rogueMarkers.add(ring);
-      drawnFor(cloud, ring);
-    }
     if (cloud.light) {
       return;
     }
@@ -934,7 +888,7 @@ export function buildSectorScene(data, options) {
       },
       reach: function (entry) {
         return entry.kind === "roguePlanet"
-          ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
+          ? ROGUE_PICK_PX
           : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * sizeScale());
       },
     },
@@ -1067,8 +1021,6 @@ export function buildSectorScene(data, options) {
     entries: allEntries,
     layers: layers,
     ringSize: ringSize,
-    setRoguesMarked: setRoguesMarked,
-    roguesMarked: function () { return roguesMarked; },
     entryByKey: entryByKey,
     kinds: kinds,
     setKindHidden: setKindHidden,

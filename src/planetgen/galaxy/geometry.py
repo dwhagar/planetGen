@@ -42,6 +42,8 @@ Pure geometry: no database, no I/O.
 import functools
 import math
 
+from planetgen.physics import constants as physical_constants
+
 DESIGNATION_SLOT_BITS = 20
 """int: Low bits of a packed designation holding the slot -- enough for
 the ~411,000 slots of ring 65,535, far past any galaxy this project
@@ -448,6 +450,25 @@ def local_to_galaxy_pc(center_pc, offset_pc):
     ax, ay, az = sector_orientation(center_pc)
     ox, oy, oz = offset_pc
     return tuple(center_pc[i] + ox * ax[i] + oy * ay[i] + oz * az[i] for i in range(3))
+
+
+BINARY_PAIR_DIRECTION = (math.sqrt(0.5), -math.sqrt(0.5), 0.0)
+"""tuple: The galaxy-frame unit vector a binary's secondary star lies along
+from its primary, in every map (MAP.186) -- the orbit's own orientation
+is not stored per pair, so all pairs share one direction."""
+
+_KM_PER_PC = physical_constants.PARSEC_M / 1000.0
+
+
+def binary_companion_offset_pc(separation_km):
+    """
+    Where a binary's secondary star sits from its primary, galaxy frame,
+    parsecs: the stored `binary_separation_km` along `BINARY_PAIR_DIRECTION`
+    (MAP.186), the one rule the Galaxy Map's tiles and the Sector Map's
+    scene share. `(0, 0, 0)` when the separation is unknown.
+    """
+    scale = (separation_km or 0.0) / _KM_PER_PC
+    return tuple(scale * component for component in BINARY_PAIR_DIRECTION)
 
 
 def galaxy_to_local_pc(center_pc, point_pc):

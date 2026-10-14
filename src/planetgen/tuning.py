@@ -1584,6 +1584,32 @@ present here is uncapped (full range, up to and including a technological
 civilization).
 """
 
+HABITABILITY_LIFE_SCORE_MIN = 0.005
+"""
+float: A planet's `phi_bio` (microbial) or `phi_cpx` (complex life) score
+below this shows as 0.00 and counts as none (GEN.206): the habitability
+index allows no life of that kind, so the description must not claim it.
+"""
+
+NO_LIFE_CLASS_DESCRIPTIONS = {
+    "F": "a volcanic world with shallow seas",
+    "G": "a rocky, barren world",
+    "L": "a marginal, barren world",
+}
+"""
+dict[str, str]: What `PLANET_CLASSES[cls]["description"]` says instead for a
+class whose own text claims life when the habitability index gives the
+world no microbial life (GEN.206). A class not listed claims no life.
+"""
+
+MICROBIAL_ONLY_CLASS_DESCRIPTIONS = {
+    "L": "a marginally habitable world",
+}
+"""
+dict[str, str]: The same for a world whose index allows microbial life but
+not complex life (GEN.206): Class L's "with vegetation" would claim flora.
+"""
+
 MOON_BLACKLIST = ['Q', 'S', 'V']
 """
 list: A list of planet class codes that cannot be generated as moons.

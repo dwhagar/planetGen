@@ -126,11 +126,10 @@ def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own()
     for gone in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-address", "galaxymap3d-steps",
                  "data-bookmarks-menu", 'data-action="back"', 'data-action="up"', 'data-action="reset"'):
         assert gone not in html, gone
-    # What a sector map needs: zoom, Re-center, the rogue-planet toggle (on, MAP.137), Center on selection, Map help.
+    # What a sector map needs: zoom, Re-center, Center on selection, Map help (and no rogue-only toggle, MAP.184).
     for action in ("zoom-in", "zoom-out", "reset-view", "center-on", "map-help"):
         assert f'data-action="{action}"' in html
-    button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
-    assert 'aria-pressed="true"' in button and "starmap-toggle" in button
+    assert "toggle-rogue-markers" not in html and "Mark rogue planets" not in html
     assert "Click a star, cloud or body for details." in html
     # The Menu's per-kind buttons (MAP.79) are filled in by the script once a sector is open.
     assert 'id="galaxymap3d-kinds"' in html
@@ -296,3 +295,18 @@ def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
         parse_tile_key(key)
     assert len(keys) <= 128
 
+
+
+def test_stars_are_not_part_of_the_near_field():
+    """MAP.187: the near-field window thins the blocks' density and cell boxes, never a star:
+    the star shader neither includes nor calls it, and no star is picked by its share."""
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "html" / "static" / "galaxymap3d.js").read_text()
+    start = source.index("var starMaterial = new THREE.ShaderMaterial")
+    end = source.index("fragmentShader", start)
+    star_vertex_shader = source[start:end]
+    assert "nearField" not in star_vertex_shader
+    assert "NEAR_FIELD_GLSL" not in star_vertex_shader
+    assert "nearD" not in star_vertex_shader
+    assert "nearFieldVisible" not in source
