@@ -1,0 +1,1 @@
+Tests: `scripts/test.py changed` runs only the tests the changes since `origin/main` can affect, using a record of the files each test used (kept by `scripts/test.py full`, `.pytest-deps.json`, not tracked). `scripts/test.py full --check` lists any failing test that selection would have missed, to prove it before it is trusted (TEST.139). The full suite stays the merge gate.

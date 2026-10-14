@@ -188,3 +188,5 @@ src/planetgen/web/lib/**/__pycache__/
 # scripts/test.py: durations of the last runs on this checkout (TEST.139).
 .test-runs.json
 .test-failures.jsonl
+.pytest-deps.json
+.pytest-deps-proof.json

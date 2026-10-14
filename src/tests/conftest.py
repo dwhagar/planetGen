@@ -39,6 +39,9 @@ from planetgen.db.store import MySQLConfig
 
 from tests import areas, failure_capture, publicids
 
+# The dependency map (TEST.139): `--record-deps`, `--changed`, `--deps-check` (tests/depmap.py).
+pytest_plugins = ("tests.depmap",)
+
 # The always-on activity log (planetgen/admin/activity_log.py) would
 # otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
 # to a throwaway folder instead. Tests that read it point
