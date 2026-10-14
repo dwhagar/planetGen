@@ -431,7 +431,8 @@ def settle_after_run(args, started_at):
                     def on_progress(done, total):
                         bar.update(completed=done, total=total)
 
-                    saved = sector_paths.settle_sectors(conn, created, on_progress)
+                    saved = sector_paths.settle_sectors(conn, created, on_progress,
+                                                       workers=run_common._worker_count(args))
             finally:
                 log.reset_console()
     finally:

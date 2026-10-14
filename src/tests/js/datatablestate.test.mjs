@@ -105,3 +105,44 @@ test("a failed page is not kept, so the next call asks again", async () => {
   assert.equal(await store.ensure(0), true);
   assert.equal(calls, 2);
 });
+
+import { busyPause, fetchWhileBusy } from "../../html/static/datatablestate.js";
+
+test("the pause after a busy answer grows 2 s, 4 s ... and stops at 30 s", () => {
+  assert.deepEqual([1, 2, 3, 4, 5, 6, 20].map(busyPause), [2000, 4000, 8000, 16000, 30000, 30000, 30000]);
+});
+
+function answer(status, body) {
+  return { status, ok: status >= 200 && status < 300, json: async () => body };
+}
+
+test("a busy answer is asked again after the pause and the busy line shows meanwhile", async () => {
+  const answers = [answer(504), answer(504), answer(200, { rows: [] })];
+  const pauses = [];
+  const busy = [];
+  const body = await fetchWhileBusy(async () => answers.shift(), () => true, (state) => busy.push(state),
+    async (ms) => { pauses.push(ms); });
+  assert.deepEqual(body, { rows: [] });
+  assert.deepEqual(pauses, [2000, 4000]);
+  assert.deepEqual(busy, [true, true, false]);
+});
+
+test("a page that is no longer wanted stops asking", async () => {
+  let wanted = true;
+  await assert.rejects(fetchWhileBusy(async () => answer(504), () => wanted, () => {}, async () => { wanted = false; }),
+    /no longer wanted/);
+});
+
+test("any other failing status throws and clears the busy line", async () => {
+  const busy = [];
+  await assert.rejects(fetchWhileBusy(async () => answer(502), () => true, (state) => busy.push(state), async () => {}),
+    /table 502/);
+  assert.deepEqual(busy, [false]);
+});
+
+test("the store knows an answer for an older generation is stale", () => {
+  const store = createPageStore(50, async () => ({ rows: [], total: 0 }));
+  assert.equal(store.stale(0), false);
+  store.reset();
+  assert.equal(store.stale(0), true);
+});

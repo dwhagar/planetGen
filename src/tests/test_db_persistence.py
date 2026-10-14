@@ -1738,3 +1738,41 @@ def test_every_population_is_listed_beside_the_brighter_young_stars(mysql_config
 
 
 
+
+
+def test_linking_in_small_batches_gives_the_same_lists_as_one_batch(mysql_config, monkeypatch):
+    """PERF.84: a link batch is a neighbourhood of a few sectors; the stored lists do not depend on the batch size."""
+    from planetgen.physics.units import pc_to_ly
+
+    edge_ly = pc_to_ly(4.0)
+
+    def place(center_x, center_y):
+        return {"center_x_pc": center_x, "center_y_pc": center_y, "center_z_pc": 0.0, "galactic_radius_pc": 100.0}
+
+    saved = [store.save_sector(_sector_with_systems(f"Sec{i}", [(0.1 * i, 0.0, 0.0), (-0.2 * i, 1.0, 0.5)]),
+                               config=mysql_config, galaxy_position=place(100.0 + 4.0 * (i % 4), 4.0 * (i // 4) + 60.0 * (i % 2)),
+                               link_neighbors=False)
+             for i in range(8)]
+
+    def lists():
+        conn = store.get_connection(mysql_config)
+        try:
+            return sorted(tuple(row.values()) for row in conn.execute(
+                "SELECT sector_id, object_table, object_id, neighbor_rank, neighbor_system_id, distance_pc"
+                " FROM nearest_systems").fetchall())
+        finally:
+            conn.close()
+
+    monkeypatch.setattr(store, "LINK_BATCH_SECTORS", 100)
+    store.link_sector_neighbors(mysql_config, saved)
+    whole = lists()
+    conn = store.get_connection(mysql_config)
+    conn.execute("DELETE FROM nearest_systems")
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(store, "LINK_BATCH_SECTORS", 2)
+    steps = []
+    store.link_sector_neighbors(mysql_config, saved, lambda *step: steps.append(step))
+    assert lists() == whole and whole
+    assert len({done for done, _total, _label in steps}) > 8  # the bar moves every two sectors, not once at the end
+    assert edge_ly > 0

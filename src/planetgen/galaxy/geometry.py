@@ -39,7 +39,10 @@ Every distance here is in parsecs, matching `sectors.center_x/y/z_pc`.
 Pure geometry: no database, no I/O.
 """
 
+import functools
 import math
+
+from planetgen.physics import constants as physical_constants
 
 DESIGNATION_SLOT_BITS = 20
 """int: Low bits of a packed designation holding the slot -- enough for
@@ -79,6 +82,7 @@ def _ring_centerline_edges(ring_index):
     return c
 
 
+@functools.lru_cache(maxsize=65536)
 def ring_master_count(ring_index):
     """
     How many master wedges ring `ring_index` sits in: 3 at the center,
@@ -103,6 +107,7 @@ def ring_master_count(ring_index):
     return master
 
 
+@functools.lru_cache(maxsize=65536)
 def ring_sector_count(ring_index):
     """
     How many slots ring `ring_index` holds: the multiple of its master
@@ -221,6 +226,50 @@ def sector_address_at(position, edge_pc):
     elif slot_index < n - 1 and theta >= slot_angle_bounds(ring_index, slot_index)[1]:
         slot_index += 1
     return ring_index, layer_index, slot_index
+
+
+def sector_cell_test(address, edge_pc):
+    """
+    A predicate `contains(position)` that is true exactly when
+    `sector_address_at(position, edge_pc) == address`, for a caller that asks
+    about one cell thousands of times (PERF.80: a path integration asks at
+    every step). It repeats `sector_address_at`'s arithmetic, step for step,
+    with the cell's slot count and the layer's bounds worked out once, and
+    stops at the first of ring, layer and slot that is not the cell's.
+
+    Args:
+        address (tuple): `(ring_index, layer_index, ring_slot_index)`.
+        edge_pc (float): The sector edge length, parsecs.
+
+    Returns:
+        callable: `contains((x, y, z))`, parsecs, galaxy frame.
+    """
+    ring, layer, slot = address
+    n = ring_sector_count(ring)
+    step = 2 * math.pi / n
+    two_pi = 2 * math.pi
+    sqrt, atan2, floor = math.sqrt, math.atan2, math.floor
+
+    def contains(position):
+        x, y, z = position
+        radius = sqrt(x * x + y * y)
+        guess = int(floor(radius / edge_pc))
+        low, high = ring_bounds_pc(guess, edge_pc)
+        if (guess - 1 if radius < low else guess + 1 if radius >= high else guess) != ring:
+            return False
+        guess = int(floor(z / edge_pc + 0.5))
+        low, high = layer_bounds_pc(guess, edge_pc)
+        if (guess - 1 if z < low else guess + 1 if z >= high else guess) != layer:
+            return False
+        theta = atan2(y, x) % two_pi
+        found = min(n - 1, int(theta * n / two_pi))
+        if found > 0 and theta < found * step:
+            found -= 1
+        elif found < n - 1 and theta >= (found + 1) * step:
+            found += 1
+        return found == slot
+
+    return contains
 
 
 def ring_index_at(radius_pc, edge_pc):
@@ -401,6 +450,25 @@ def local_to_galaxy_pc(center_pc, offset_pc):
     ax, ay, az = sector_orientation(center_pc)
     ox, oy, oz = offset_pc
     return tuple(center_pc[i] + ox * ax[i] + oy * ay[i] + oz * az[i] for i in range(3))
+
+
+BINARY_PAIR_DIRECTION = (math.sqrt(0.5), -math.sqrt(0.5), 0.0)
+"""tuple: The galaxy-frame unit vector a binary's secondary star lies along
+from its primary, in every map (MAP.186) -- the orbit's own orientation
+is not stored per pair, so all pairs share one direction."""
+
+_KM_PER_PC = physical_constants.PARSEC_M / 1000.0
+
+
+def binary_companion_offset_pc(separation_km):
+    """
+    Where a binary's secondary star sits from its primary, galaxy frame,
+    parsecs: the stored `binary_separation_km` along `BINARY_PAIR_DIRECTION`
+    (MAP.186), the one rule the Galaxy Map's tiles and the Sector Map's
+    scene share. `(0, 0, 0)` when the separation is unknown.
+    """
+    scale = (separation_km or 0.0) / _KM_PER_PC
+    return tuple(scale * component for component in BINARY_PAIR_DIRECTION)
 
 
 def galaxy_to_local_pc(center_pc, point_pc):

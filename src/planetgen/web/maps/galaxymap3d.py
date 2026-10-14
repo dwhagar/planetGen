@@ -372,11 +372,13 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
   <h3>Reading the map</h3>
   <ul>
     <li>A point of light is a star: its halo size shows brightness and its color temperature.</li>
+    <li>A close pair of stars is drawn as two touching dots so it reads as a pair; their real gap is far too small
+    to see at this scale.</li>
     <li>Bright points are quasars, neutron stars and accreting black holes; small spheres are quiet black holes
     and interstellar comets.</li>
     <li>Translucent clouds are nebulae, asteroid fields and supernova remnants; faint clouds reach in from a
     neighboring sector.</li>
-    <li>Faint points are rogue planets; Mark rogue planets rings them.</li>
+    <li>Faint points are rogue planets; Mark in the Menu makes a kind of object easier to see.</li>
   </ul>"""
 """The sector page's map (MAP.68): the help dialog (UX.50)."""
 
@@ -662,12 +664,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         )
     )
 
-    rogue_button = (
-        '    <button type="button" class="starmap-btn starmap-toggle" data-action="toggle-rogue-markers" data-icon="rogue-markers"'
-        ' aria-pressed="true"\n'
-        '            title="Ring each rogue planet, so it is easy to find among the stars">Mark rogue planets</button>\n'
-        if pinned else ""
-    )
     # MAP.131: what the blocks' fill shows, and the legend of the choice.
     color_block = legend_block = ""
     if not pinned:
@@ -756,7 +752,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
             title="Dim the stars and blocks outside charted sectors and outline the charted ones">Charted only</button>
-{rogue_button}{territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"
+{territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"
             title="How to move around the map and read it">Map help</button>
     </div>
 {color_block}    </div>

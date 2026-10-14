@@ -43,34 +43,22 @@ test("every entry has a screen-reader label", () => {
   assert.equal(SS.entryLabel(neighbor), neighbor.exists ? neighbor.name || "Unnamed sector" : "Not yet generated (" + neighbor.designation + ")");
 });
 
-test("the rogue-planet markers start off, then mark them: rings, a bigger point, an easier pick", () => {
+test("a rogue planet is one dim point with no ring or rogue-only mark; the kind's Mark grows it (MAP.184)", () => {
   const { data, sector } = build();
   const all = [];
   sector.group.traverse((o) => all.push(o));
-  const markers = () => all.filter((o) => o.isGroup && o.children.some((c) => c.isSprite && c.material.sizeAttenuation === false));
+  assert.equal(all.filter((o) => o.isSprite && o.material.sizeAttenuation === false).length, 0, "no ring");
+  assert.equal(sector.setRoguesMarked, undefined);
+  assert.equal(sector.roguesMarked, undefined);
   const points = all.find((o) => o.isPoints);
   const rogue = data.clouds.find((c) => c.kind === "roguePlanet");
+  assert.equal(rogue.markedLight, undefined);
   const index = data.stars.length + data.clouds.filter((c) => c.light).indexOf(rogue);
   const size = () => points.geometry.getAttribute("pointSize").array[index];
-  const glow = () => points.geometry.getAttribute("pointGlow").array[index];
-  const entry = sector.entryByKey.get(rogue.key);
-  assert.equal(markers().length, 1, "one group of rogue markers");
-  assert.equal(markers()[0].visible, false, "off by default");
-  assert.equal(sector.roguesMarked(), false);
   assert.equal(size(), rogue.light.sizePx);
-  assert.equal(glow(), 0, "no glow unmarked");
-  const unmarkedReach = sector.layers.length;
-
-  sector.setRoguesMarked(true);
-  assert.equal(sector.roguesMarked(), true);
-  assert.equal(markers()[0].visible, true);
-  assert.equal(size(), rogue.markedLight.sizePx);
-  assert.ok(glow() > 0, "glows marked");
-  assert.ok(sector.ringSize(entry).px > 0, "a marked planet has a ring");
-  assert.equal(sector.layers.length, unmarkedReach);
-
-  sector.setRoguesMarked(false);
-  assert.equal(markers()[0].visible, false);
+  sector.setKindMarked("roguePlanet", true);
+  assert.ok(size() > rogue.light.sizePx, "marked as a kind, it grows");
+  sector.setKindMarked("roguePlanet", false);
   assert.equal(size(), rogue.light.sizePx);
 });
 
@@ -112,22 +100,19 @@ test("the kinds in a sector are listed in order, and a hidden kind goes from the
   }
 });
 
-test("a hidden rogue planet loses its ring and a marked one comes back marked (MAP.79)", () => {
+test("a hidden rogue planet is gone from the map and comes back as it was (MAP.79)", () => {
   const { data, sector } = build();
   const all = [];
   sector.group.traverse((o) => all.push(o));
-  const ring = all.find((o) => o.isSprite && o.material.sizeAttenuation === false);
-  assert.ok(ring);
-  sector.setRoguesMarked(true);
-  sector.setKindHidden("roguePlanet", true);
-  assert.equal(ring.visible, false, "its ring goes with it");
   const points = all.find((o) => o.isPoints);
   const rogue = data.clouds.find((c) => c.kind === "roguePlanet");
   const index = data.stars.length + data.clouds.filter((c) => c.light).indexOf(rogue);
+  sector.setKindMarked("roguePlanet", true);
+  const marked = points.geometry.getAttribute("pointSize").array[index];
+  sector.setKindHidden("roguePlanet", true);
   assert.equal(points.geometry.getAttribute("pointSize").array[index], 0);
   sector.setKindHidden("roguePlanet", false);
-  assert.equal(ring.visible, true);
-  assert.equal(points.geometry.getAttribute("pointSize").array[index], rogue.markedLight.sizePx, "still marked");
+  assert.equal(points.geometry.getAttribute("pointSize").array[index], marked, "still marked");
 });
 
 test("an object left in an uncharted sector says so and has no page, bookmark or course buttons (MAP.162)", () => {

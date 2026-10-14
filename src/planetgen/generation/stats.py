@@ -89,10 +89,12 @@ test suite sets it, so test runs never touch a real server's numbers)."""
 FLUSH_SECONDS = 30
 """int: How often a run writes its new averages back while it runs."""
 
-KINDS = ("sector", "scatter", "phenomena")
+KINDS = ("sector", "scatter-mass", "scatter-bright", "phenomena", "phenomena-write")
 """tuple: What a bucket times: a sector's fill, (PERF.9) a layer of the
-bright-star scatter by the layer's mean density, or (PERF.32) a layer of
-the phenomenon scatter. A benchmark's kinds start with `BENCH_PREFIX`."""
+massive-star pass or of the bright-star pass of the scatter, each by the layer's mean
+density (PERF.54), (PERF.32) a layer of the phenomenon scatter, or the part of that layer
+that was writing its rows (the rest is drawing them). A benchmark's kinds start with
+`BENCH_PREFIX`."""
 
 BENCH_PREFIX = "bench:"
 """str: Starts the kind of every row a benchmark (PERF.31) writes, so none
@@ -728,15 +730,9 @@ def stage_history(conn, stage_key=None, limit=200):
     return history
 
 
-def stage_seconds(conn, stage_key, settings, limit=50):
-    """
-    How long a stage is expected to take with `settings` (a dict as
-    `generation.stages.stage_settings` makes): the mean seconds of the runs of
-    that stage whose settings match on every setting named in both, the most
-    specific match first, or the mean over all runs of the stage when none
-    matches, or `None` when it was never recorded. Skipped runs are ignored.
-    """
-    runs = [run for run in stage_history(conn, stage_key, limit) if not run["skipped"] and run["seconds"] > 0]
+def _matching_mean(runs, settings):
+    """The mean seconds of `runs` (the exact settings first, else those that match on every setting named in
+    both, else all), `None` for no run."""
     if not runs:
         return None
     matching = [run for run in runs if all(run["settings"].get(name) == value
@@ -744,6 +740,32 @@ def stage_seconds(conn, stage_key, settings, limit=50):
     exact = [run for run in runs if run["settings"] == settings]
     pool = exact or matching or runs
     return sum(run["seconds"] for run in pool) / len(pool)
+
+
+def stage_seconds(conn, stage_key, settings, limit=50):
+    """
+    How long a stage is expected to take with `settings` (a dict as
+    `generation.stages.stage_settings` makes): the mean seconds of the runs of
+    that stage whose settings match on every setting named in both, the most
+    specific match first, or the mean over all runs of the stage when none
+    matches. A scatter stage (`generation.stages.SCATTER_KEYS`) never recorded
+    takes the mean seconds of one scatter operation from the scatter total
+    (`SCATTER_KEY`, matched the same way). `None` when neither is recorded.
+    Skipped runs are ignored. This is the one reader every estimate and every
+    progress bar uses.
+    """
+    from planetgen.generation import stages
+
+    def usable(key):
+        return [run for run in stage_history(conn, key, limit) if not run["skipped"] and run["seconds"] > 0]
+
+    found = _matching_mean(usable(stage_key), settings)
+    if found is None and stage_key in stages.SCATTER_KEYS:
+        runs = usable(stages.SCATTER_KEY)
+        for run in runs:
+            run["seconds"] = run["seconds"] / max(int(run["metrics"].get("operations") or 1), 1)
+        found = _matching_mean(runs, settings)
+    return found
 
 
 def job_layers_per_second(conn, settings=None, limit=50):

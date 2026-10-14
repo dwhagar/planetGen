@@ -12,7 +12,7 @@ import pytest
 
 from planetgen.api.config import Config
 from planetgen.db import near, query, store
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.geometry import local_to_galaxy_pc, sector_position_pc
 from planetgen.generation import run_galaxy
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
 from planetgen.web.app import create_app
@@ -61,8 +61,9 @@ def _systems(conn):
             "SELECT ss.id, ss.name, sec.center_x_pc cx, sec.center_y_pc cy, sec.center_z_pc cz,"
             " ss.position_x_mpc px, ss.position_y_mpc py, ss.position_z_mpc pz"
             " FROM star_systems ss JOIN sectors sec ON sec.id = ss.sector_id").fetchall():
-        found[row["id"]] = (row["name"], (row["cx"] + mpc_to_pc(row["px"]), row["cy"] + mpc_to_pc(row["py"]),
-                                         row["cz"] + mpc_to_pc(row["pz"])))
+        # The stored offset follows the sector's own axes (MAP.186).
+        found[row["id"]] = (row["name"], local_to_galaxy_pc(
+            (row["cx"], row["cy"], row["cz"]), (mpc_to_pc(row["px"]), mpc_to_pc(row["py"]), mpc_to_pc(row["pz"]))))
     return found
 
 

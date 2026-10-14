@@ -417,7 +417,8 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
             stages.enter("mass")
             counts = _scatter_layers(args, mysql_config, skeleton, extents, filled,
                                      starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
-                                     mass_range=(mass_limit, None))
+                                     mass_range=(mass_limit, None), stats_kind="scatter-mass",
+                                     task_kind="mass-stars")
             massive = sum(counts.values())
         else:
             stages.skip("mass", "not chosen to be redone")
@@ -637,7 +638,7 @@ def _log_layer(label, layer_index, types):
 
 
 def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
-                    max_luminosity_sol=None, mass_range=None):
+                    max_luminosity_sol=None, mass_range=None, stats_kind="scatter-bright", task_kind="bright-stars"):
     """
     Draws and writes the bright stars of every layer through the work
     queue, one task per layer, with a progress bar: every star at or
@@ -651,7 +652,8 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
     `brightStars.layer_weight`, worked out first in a second or two),
     credited star by star as the workers report (PERF.4, `_LayerTracker`,
     which also adds the second bar for slow layers). Each layer's time
-    goes into the speed stats as a "scatter" task (PERF.10).
+    goes into the speed stats as a `stats_kind` task (PERF.10): the massive-star pass and the bright-star pass
+    each have their own rows, and their own work queue task kind `task_kind` (PERF.54).
 
     Returns:
         dict: Stars written per population.
@@ -678,8 +680,8 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
         bar, finished = None, False
         try:
             # PERF.33: the bar starts from the stars a second this server recorded for this many workers.
-            prior = run_common._generation_stats(args).pool_rate("scatter", run_common._worker_count(args))
-            bar = steps.Step(label, "scatter", max(sum(weights.values()), 1.0), args=args, progress=progress,
+            prior = run_common._generation_stats(args).pool_rate(stats_kind, run_common._worker_count(args))
+            bar = steps.Step(label, stats_kind, max(sum(weights.values()), 1.0), args=args, progress=progress,
                              workers=run_common._worker_count(args), percent=True, record=False,
                              prior=prior).__enter__()
             tracker = _LayerTracker(progress, label, weights, prior=prior, bar=bar)
@@ -699,7 +701,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                     slots = _layer_slots(outer_rings[layer_index])
                     density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
                     if stars:   # PERF.53: a layer that drew nothing says nothing about how long a star takes
-                        run_common._generation_stats(args).record("scatter", density, seconds, systems=stars,
+                        run_common._generation_stats(args).record(stats_kind, density, seconds, systems=stars,
                                                                      stars=stars, workers=run_common._worker_count(args))
                 return layer_done
 
@@ -714,7 +716,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         drain.start()
                     else:
                         channel = _DirectChannel(tracker)
-                    queue.submit_each("bright-stars", [
+                    queue.submit_each(task_kind, [
                         (f"layer {layer_index}", {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                             "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value,
@@ -941,8 +943,9 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
     layers_done = [0]
 
     def done_with(layer_index):
-        def on_done(layer_counts, seconds, weight):
-            layer_done(layer_counts, seconds, weight)
+        def on_done(result, seconds, weight):
+            layer_counts = result["counts"]
+            layer_done(layer_counts, result["write_seconds"], seconds, weight)
             _log_phenomena_layer(layer_index, layer_counts)
             layers_done[0] += 1
             bar.update(advance=weights[layer_index],
@@ -1010,16 +1013,20 @@ def scatter_phenomena(args):
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         landed = [0]
 
-        def layer_done(layer_counts, seconds, weight):
+        def layer_done(layer_counts, write_seconds, seconds, weight):
             for kind, count in layer_counts.items():
                 counts[kind] = counts.get(kind, 0) + count
             if sum(layer_counts.values()):
                 landed[0] += 1
             # Recorded in the bar's own units (the layer's weight), so the next run's bar can start from it;
-            # not for a layer that placed nothing (PERF.53).
+            # not for a layer that placed nothing (PERF.53). The layer's whole time is the bar's pace; the part
+            # of it spent writing the rows has a row of its own, the rest being the drawing (PERF.54).
             if sum(layer_counts.values()):
-                run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
-                                                          workers=run_common._worker_count(args))
+                stats = run_common._generation_stats(args)
+                stats.record("phenomena", 0.0, seconds, systems=weight, stars=weight,
+                             workers=run_common._worker_count(args))
+                stats.record("phenomena-write", 0.0, write_seconds, systems=weight, stars=weight,
+                             workers=run_common._worker_count(args))
 
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
@@ -1040,6 +1047,8 @@ def scatter_phenomena(args):
                 with steps.Step("Writing the special phenomena", "phenomena-insert", max(len(special), 1), args=args,
                                 progress=progress):
                     store.insert_phenomenon_scatter(conn, special)
+                log.normal("Building the phenomena indexes: one pass over the whole table, no progress until it is "
+                           "done; a full galaxy takes a while.")
                 with steps.Step("Building the phenomena indexes", "phenomena-index",
                                 max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
                                 progress=progress):
@@ -1086,9 +1095,11 @@ def _phenomenon_layer_task(payload):
     committing every 10,000.
 
     Returns:
-        dict: Rows written per kind.
+        dict: `counts` (rows written per kind) and `write_seconds` (the time spent writing them, the rest of the
+            task being the drawing, PERF.54).
     """
     counts = {}
+    write_seconds = 0.0
     conn = store.get_connection(payload["mysql_config"])
     try:
         batch = []
@@ -1101,15 +1112,19 @@ def _phenomenon_layer_task(payload):
             counts[label] = counts.get(label, 0) + 1
             batch.append(row)
             if len(batch) >= 10000:
+                started = time.perf_counter()
                 store.insert_phenomenon_scatter(conn, batch)
                 conn.commit()
+                write_seconds += time.perf_counter() - started
                 batch = []
+        started = time.perf_counter()
         if batch:
             store.insert_phenomenon_scatter(conn, batch)
         conn.commit()
+        write_seconds += time.perf_counter() - started
     finally:
         conn.close()
-    return counts
+    return {"counts": counts, "write_seconds": write_seconds}
 
 
 def run_plan(args):

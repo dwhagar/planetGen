@@ -42,7 +42,9 @@ def test_every_step_kind_in_the_code_is_registered():
 
 
 def test_the_registry_holds_no_kind_nothing_uses():
-    used = set(_kinds_used()) | {"sector", "stages"}      # `sector_bar` fixes "sector"; StageProgress defaults to "stages"
+    # `sector_bar` fixes "sector"; StageProgress defaults to "stages"; the scatter passes pick theirs by variable and
+    # the phenomena layer's write time is only recorded (PERF.54)
+    used = set(_kinds_used()) | {"sector", "stages", "scatter-mass", "scatter-bright", "phenomena-write"}
     assert set(steps.STEP_KINDS) <= used, f"unused kinds: {sorted(set(steps.STEP_KINDS) - used)}"
 
 

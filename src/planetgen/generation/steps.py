@@ -77,8 +77,10 @@ def _active_progress():
 
 STEP_KINDS = {
     "sector": "Sector fill",
-    "scatter": "Bright-star layer",
+    "scatter-mass": "Massive-star layer",
+    "scatter-bright": "Bright-star layer",
     "phenomena": "Phenomena layer",
+    "phenomena-write": "Phenomena layer: writing the rows",
     "phenomena-clear": "Phenomena scatter: clearing",
     "phenomena-special": "Phenomena scatter: special rows",
     "phenomena-insert": "Phenomena scatter: writing the special rows",
@@ -241,6 +243,11 @@ class Step:
                 self._is_main = True
             else:
                 progress.detail_task = self.task
+            # `add_task` reported before this bar was the main one, so the page still held the step before it:
+            # a step that never ticks (an index build) would stay hidden behind that finished bar.
+            report = getattr(progress, "_report", None)
+            if report is not None:
+                report(self.task, force=True)
 
     def _hide(self, success):
         progress = self._display
