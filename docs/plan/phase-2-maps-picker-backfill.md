@@ -202,7 +202,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line |  |  |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall |  |  |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | GEN.207 |  |
-| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | GEN.206 |  |
+| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index |  |  |
 | UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | GEN.207, UX.100 |  |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes |  |  |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |

@@ -1457,20 +1457,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2, in its map queue.
   Prerequisites: none. Related: MAP.132, MAP.123.
 
-- [ ] **MAP.185 Black holes vanish in the Sector Map (bug)**
-  GitHub issue [#1223](https://github.com/dwhagar/planetGen/issues/1223)
-  (Boss, 2026-10-11 19:46Z): "The galaxy view shows black holes clearly,
-  but when I go to a sector view, they vanish. I think we have a
-  coordinate split somewhere between galactic view and sector view,
-  which could get in the way of infinite zoom." Done: the cause is found
-  (a coordinate or frame difference between the Galaxy Map and the
-  Sector Map, or a filter that drops phenomena), the black holes show in
-  the Sector Map at their right places, and a test covers a sector with
-  a black hole in both views. If a coordinate split is the cause, the
-  fix puts both views on the one frame used by the fly-through map
-  (MAP.152). Owner: Foundations lane 2, in its map queue before MAP.152.
-  Prerequisites: none. Related: MAP.152, MAP.146, MAP.164.
-
 - [ ] **MAP.186 A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug)**
   GitHub issue [#1215](https://github.com/dwhagar/planetGen/issues/1215)
   (Boss, 2026-10-11 01:08Z, with a screenshot; reproduced on any binary
@@ -3540,22 +3526,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: GEN.196, GEN.176.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
-- [ ] **GEN.206 A planet's description claims life where the habitability index says none can live (bug)**
-  GitHub issue [#1220](https://github.com/dwhagar/planetGen/issues/1220)
-  (Boss, 2026-10-11 03:02Z): a planet with red chemistry (water activity
-  0.523, microbial 0.00 and complex life 0.00) still has a description
-  that says life has evolved, with an evolutionary timeline, flora and
-  oceans of macro-algae. Boss: "if microbial life can't be on a world
-  because of the chemistry then we should make sure that the planet
-  description gets edited to not make it sound like there is life."
-  Done: when the habitability index gives microbial life 0, the
-  description makes no claim of life, evolution or an evolutionary
-  timeline (it may say what the world lacks); when it allows microbial
-  life only, it never describes complex flora or fauna; a test over a
-  sample of generated planets finds no description that contradicts its
-  own index. Owner: Foundations lane 2, after PERF.80 and GEN.200 (merged in #1251 and #1252).
-  Prerequisites: none. Related: GEN.84, GEN.90, GEN.207, GEN.208.
-
 - [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
   (Boss, 2026-10-11 03:24Z): extend PHI-4 to six dimensions: Pressure,
@@ -3602,8 +3572,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with no native food is at most Yellow, a sterile world with no water
   Red; it has a 0 to 1 number that is the same geometric-mean blend of
   the three rungs as the other dimensions, and the numbers are tuned
-  with the lane's sample worlds). Owner: Foundations lane 2, after GEN.206.
-  Prerequisite: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+  with the lane's sample worlds). Owner: Foundations lane 2.
+  Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -3641,7 +3611,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes the planet needs and why, in one short paragraph per planet,
   with tests over a sample of planets. Owner: Foundations lane 2, with
   GEN.207.
-  Prerequisite: GEN.207. Related: GEN.207, UX.100, GEN.206.
+  Prerequisite: GEN.207. Related: GEN.207, UX.100.
 
 - [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
   GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)

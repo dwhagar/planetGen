@@ -711,7 +711,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | done, PR #1239 |
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
-| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | open |
+| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | done, PR #1278 |
 | GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
@@ -902,7 +902,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
 | MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | open |
-| MAP.185 | Black holes vanish in the Sector Map (bug) | none | open |
+| MAP.185 | Black holes vanish in the Sector Map (bug) | none | done, PR #1279 |
 | MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | open |
 | MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | open |
 | MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | open |
