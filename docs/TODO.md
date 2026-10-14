@@ -3890,6 +3890,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
+- [ ] **PERF.92 Save generation timing per object and per object type, as well as per operation, stage and job**
+  Boss (2026-10-14 18:21Z): statistics must be saved on a per-object
+  basis, which is pretty universal, and per type of object generated, in
+  addition to what is kept now (PERF.67 and PERF.56: per operation,
+  stage, whole job and scatter kind). So the stats store records the
+  time to generate each object (and similar measures such as the number
+  of draws or the memory it took), aggregates them per object type
+  (star, planet, moon, belt, nebula, phenomenon and so on), and keeps
+  the existing stage and job records. Done: a migration with the table
+  or tables (Foundations lane 1 is the only lane adding migrations);
+  generation writes the records through one shared path so every
+  generator reports the same way; the admin Stats page and the ETA
+  estimates can read per-type means; a test that every object kind the
+  generators create reports; the records cost no more than about 1
+  percent of generation time (benchmark). Open question for Boss,
+  default chosen: at billions of objects a row per object is too much.
+  Default: store
+  per-type aggregates per run and per sector (count, total and mean
+  time, min and max, and a fixed-size histogram), plus a sampled row per
+  object (1 in 1,000 by a hash of the object id, so it is repeatable)
+  with its full timing; a full row per object only behind an opt-in flag
+  for benchmark runs. The alternative is a row for every object, which
+  costs storage and write time.
+  Prerequisites: none. Related: PERF.33.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
