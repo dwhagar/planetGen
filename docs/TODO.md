@@ -513,22 +513,6 @@ with `clamp()`.
   Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
-- [ ] **UX.96 A table that hits the statement limit says the database is busy and retries, instead of failing with a 502**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): `web/tables.py` turns any API
-  error, a 504 included, into a 502 with no `Retry-After`, and
-  `datatable.js` throws on a non-200 answer without retrying. Done:
-  `/table/<name>` returns 504 with `Retry-After` for a statement
-  timeout, and `datatable.js` keeps the rows already loaded, shows a
-  "database busy, trying again" line and retries with the Galaxy Map's
-  backoff (2, 4, 8 ... 30 s). Decided by default (the three research
-  defaults, 2026-10-10 21:41Z; stands unless Boss objects): a panel or
-  tile that timed out shows partly, with a retry, rather than the full
-  busy page. Owner: Bugfixes lane 2, after what it has queued.
-  Prerequisites: none. Related: PERF.64, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **UX.97 Search results: each panel runs under its own time limit and is fetched on its own**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
   #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
@@ -4860,6 +4844,7 @@ clears each one.
   15 loaded runs; the test's asserts now print the results, so the next
   failure names the cause. Stays open until it recurs and is fixed, or
   Boss closes it.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -4872,6 +4857,7 @@ clears each one.
   or the product bug is fixed. Decided (Boss, 2026-10-10 18:44Z,
   defaults approved; default: leave
   open until it recurs, then investigate with the failing run's data).
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.125 Three browser-map tests fail on main with "no generated system has a moon" (bug)**
@@ -4882,7 +4868,7 @@ clears each one.
   like a fixture problem, not a product bug. Find out whether a seed
   change (the scatter or object-first sampler work) removed the moons,
   and fix the fixture so the tests do not depend on luck; never skip
-  them. Owner: Bugfixes lane 2.
+  them. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Note (2026-10-10): the names that fail on main (Foundations lane 2,
   20:50Z; they fail on plain main in a clean worktree
   and also alone, so they are not load flakes):
@@ -4935,7 +4921,7 @@ clears each one.
   -n 4 (a shared limit on concurrent WebGL pages, waits on page state
   not fixed times, or a serial marker for the heaviest), without
   skipping or loosening any; a full -n 4 run shows none of them failing.
-  Owner: Bugfixes lane 2, after its current items.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
   tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
   failed once in the NAV.9 run under load, passed alone.
@@ -4950,8 +4936,7 @@ clears each one.
   the next failure's full traceback is captured (or a loaded run
   reproduces it), the cause is found (a shared nebula or sector fixture,
   an id or ordering dependence, or a real mesh bug) and the test is made
-  reliable without loosening it. Owner: Bugfixes lane 2, after its
-  current items.
+  reliable without loosening it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -4962,8 +4947,7 @@ clears each one.
   Done: the next failure's traceback is captured, the cause is found (a
   shared database name or schema, a leftover row, or timing under load;
   compare TEST.111 and TEST.123) and the tests are made reliable without
-  skipping or loosening them. Owner: Bugfixes lane 2, after its current
-  items.
+  skipping or loosening them. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -4980,8 +4964,7 @@ clears each one.
   update stores and compares a time that both servers treat the same way
   (truncate to the column's precision before comparing, or use the same
   clock on both sides), checked on MySQL 8.4 and MariaDB; a product bug
-  if a real run could see a negative elapsed time. Owner: Bugfixes lane
-  1, after its current items.
+  if a real run could see a negative elapsed time. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -4996,7 +4979,7 @@ clears each one.
   is wrong for comets, or the test compares different epochs or frames),
   the product or test is fixed so scene and stored positions agree for
   comets, and the test draws a system with a comet every time so it
-  cannot pass by luck. Owner: Bugfixes lane 1, after its current items.
+  cannot pass by luck. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -5007,6 +4990,7 @@ clears each one.
   galaxy potential's rotation curve (229.3 km/s at 8.128 kpc); the
   near/far split agrees with the exact sum to a stated tolerance on a
   random sector; the same seed gives the same field twice.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisite: GEN.198. Related: GEN.198, GEN.115.
 
 - [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
@@ -5019,8 +5003,7 @@ clears each one.
   reproduces it), the cause is found (a shared scatter table or marker
   between workers, a draw that sometimes leaves a star, or a real
   leftover-star bug in the failed-layer path) and the test is made
-  reliable without loosening it. Owner: Bugfixes lane 2, after its
-  current items.
+  reliable without loosening it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.111, TEST.128.
 
 - [ ] **TEST.133 A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems**
@@ -5032,6 +5015,7 @@ clears each one.
   fail when a query examines more rows than its page needs. This is the
   test that PERF.68 and PERF.70 each ask for, built once. Owner:
   Foundations lane 1.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: PERF.68, PERF.69, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -5042,7 +5026,7 @@ clears each one.
   cause is found (a shared Redis or database state with the other
   workers, or a timing limit) and the test is made to pass under -n 4
   without skipping, disabling or loosening it away from what it checks.
-  Owner: Bugfixes lane 1.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -5054,8 +5038,7 @@ clears each one.
   nebula reads (field table, aggregates, tile layer, scatter join) are
   added to the big-galaxy query budget test of TEST.133, so none
   examines more rows than a tile needs. Done: the nebula reads are in
-  the test and it passes on 2,000,000 systems. Owner: Foundations lane
-  1.
+  the test and it passes on 2,000,000 systems. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: TEST.133, DB.24. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -5067,7 +5050,7 @@ clears each one.
   traceback is captured (or a loaded run reproduces it), the cause is
   found (a timeout, a shared table between workers, or a real defect in
   the neighborhood path) and the test is made reliable without loosening
-  it. Owner: Bugfixes lane 2, after TEST.128.
+  it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
@@ -5080,6 +5063,7 @@ clears each one.
   timeout in the page wait, or a real overlap that appears only at that
   moment) and the test is made reliable without loosening it. Owner:
   Bugfixes lane 2, with TEST.126.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
@@ -5102,6 +5086,11 @@ clears each one.
   of it. Owner: the Test Suite Rebuild thread (a dedicated thread,
   started 2026-10-14 12:18Z); the lanes keep running the full suite
   before they merge until it lands.
+  Since 2026-10-14 14:01Z (Boss) the thread also owns every test-fix
+  item (TEST.111, 116, 125 to 135, 137, 138, 140 to 144) and decides
+  which of them to implement and which not; none is implemented by a
+  lane until it has decided, and new test failures keep being filed as
+  TEST items for it.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
 
@@ -5113,7 +5102,7 @@ clears each one.
   kept. Done: the next failure's traceback is captured, the cause is
   found (a shared table between workers, a timeout, or a real defect in
   the ID lookup) and the test is made reliable without loosening it.
-  Owner: Bugfixes lane 2, with TEST.128.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -5124,8 +5113,7 @@ clears each one.
   not kept. Done: the next failure's message is captured, the cause is
   found (an interrupt landing before a worker starts, a shared Redis
   queue between workers, or a real half-written sector) and the test is
-  made reliable without loosening it. Owner: Bugfixes lane 2, with
-  TEST.128.
+  made reliable without loosening it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
 
 - [ ] **TEST.142 test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug)**
@@ -5136,9 +5124,7 @@ clears each one.
   `after` argument added by PERF.75's keyset paging. Done: the fake
   takes the new argument (or the test uses the real function) so the
   test passes without loosening what it checks, and a grep shows no
-  other fake of a paged reader is left behind. Owner: whichever lane
-  takes test fixes next (Bugfixes lane 2 after TEST.128), before
-  PERF.75's other tables get the same change.
+  other fake of a paged reader is left behind. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: PERF.75, TEST.126.
 
 - [ ] **TEST.143 test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug)**
@@ -5152,7 +5138,7 @@ clears each one.
   artifact, not a product bug. Done: the test pins its own install
   location (a temporary checkout and a stub for the installed package's
   path) so it passes from any checkout and any worktree, without
-  loosening what it checks. Owner: Bugfixes lane 2, with TEST.142.
+  loosening what it checks. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.142.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -5164,7 +5150,7 @@ clears each one.
   Done: the next failure's traceback is captured, the cause is found (a
   load timeout in the page wait, or a button that really does nothing at
   that moment) and the test is made reliable without loosening it.
-  Owner: Bugfixes lane 2, with TEST.126.
+  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 ## USR: User accounts
