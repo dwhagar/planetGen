@@ -4844,7 +4844,13 @@ clears each one.
   15 loaded runs; the test's asserts now print the results, so the next
   failure names the cause. Stays open until it recurs and is fixed, or
   Boss closes it.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -4857,7 +4863,11 @@ clears each one.
   or the product bug is fixed. Decided (Boss, 2026-10-10 18:44Z,
   defaults approved; default: leave
   open until it recurs, then investigate with the failing run's data).
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
+  open for the first recurrence (with the captured seed): the test pins
+  the star type, so a different stored type may be a real pin bug in the
+  product, not test luck. Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.125 Three browser-map tests fail on main with "no generated system has a moon" (bug)**
@@ -4868,7 +4878,11 @@ clears each one.
   like a fixture problem, not a product bug. Find out whether a seed
   change (the scatter or object-first sampler work) removed the moons,
   and fix the fixture so the tests do not depend on luck; never skip
-  them. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  them. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 1 in the thread's order; the fixture
+  must contain a moon by construction (it failed in the thread's
+  baseline too). Owner: the Test Suite Rebuild thread.
   Note (2026-10-10): the names that fail on main (Foundations lane 2,
   20:50Z; they fail on plain main in a clean worktree
   and also alone, so they are not load flakes):
@@ -4921,7 +4935,12 @@ clears each one.
   -n 4 (a shared limit on concurrent WebGL pages, waits on page state
   not fixed times, or a serial marker for the heaviest), without
   skipping or loosening any; a full -n 4 run shows none of them failing.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 runs the browser tests as
+  a separate phase on two workers; closed after 5 clean full runs, and
+  stage 4 gives any still timing out a state-based wait. Owner: the Test
+  Suite Rebuild thread.
   Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
   tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
   failed once in the NAV.9 run under load, passed alone.
@@ -4936,7 +4955,13 @@ clears each one.
   the next failure's full traceback is captured (or a loaded run
   reproduces it), the cause is found (a shared nebula or sector fixture,
   an id or ordering dependence, or a real mesh bug) and the test is made
-  reliable without loosening it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -4947,7 +4972,13 @@ clears each one.
   Done: the next failure's traceback is captured, the cause is found (a
   shared database name or schema, a leftover row, or timing under load;
   compare TEST.111 and TEST.123) and the tests are made reliable without
-  skipping or loosening them. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  skipping or loosening them. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -4964,7 +4995,11 @@ clears each one.
   update stores and compares a time that both servers treat the same way
   (truncate to the column's precision before comparing, or use the same
   clock on both sides), checked on MySQL 8.4 and MariaDB; a product bug
-  if a real run could see a negative elapsed time. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  if a real run could see a negative elapsed time. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 4 in the thread's order; the stored
+  last-updated time is compared the way MySQL 8.4 rounds it; the thread
+  installs MySQL 8.4 to verify. Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -4979,7 +5014,11 @@ clears each one.
   is wrong for comets, or the test compares different epochs or frames),
   the product or test is fixed so scene and stored positions agree for
   comets, and the test draws a system with a comet every time so it
-  cannot pass by luck. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  cannot pass by luck. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 5 in the thread's order; the test
+  draws a system with a comet every time. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -4990,7 +5029,11 @@ clears each one.
   galaxy potential's rotation curve (229.3 km/s at 8.128 kpc); the
   near/far split agrees with the exact sum to a stated tolerance on a
   random sector; the same seed gives the same field twice.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
+  with whoever builds the gravity evaluator (GEN.198): they write these
+  tests in the same PR as a normal gravity test file. Owner: that
+  builder.
   Prerequisite: GEN.198. Related: GEN.198, GEN.115.
 
 - [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
@@ -5003,7 +5046,13 @@ clears each one.
   reproduces it), the cause is found (a shared scatter table or marker
   between workers, a draw that sometimes leaves a star, or a real
   leftover-star bug in the failed-layer path) and the test is made
-  reliable without loosening it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.128.
 
 - [ ] **TEST.133 A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems**
@@ -5015,7 +5064,12 @@ clears each one.
   fail when a query examines more rows than its page needs. This is the
   test that PERF.68 and PERF.70 each ask for, built once. Owner:
   Foundations lane 1.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement as an opt-in `budget` test tier (not in the merge gate or
+  CI, run by hand before a performance merge), after stage 3 of the
+  rebuild; Foundations lane 1 drops it from its queue. Owner: the Test
+  Suite Rebuild thread.
   Prerequisites: none. Related: PERF.68, PERF.69, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -5026,7 +5080,13 @@ clears each one.
   cause is found (a shared Redis or database state with the other
   workers, or a timing limit) and the test is made to pass under -n 4
   without skipping, disabling or loosening it away from what it checks.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -5038,7 +5098,11 @@ clears each one.
   nebula reads (field table, aggregates, tile layer, scatter join) are
   added to the big-galaxy query budget test of TEST.133, so none
   examines more rows than a tile needs. Done: the nebula reads are in
-  the test and it passes on 2,000,000 systems. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  the test and it passes on 2,000,000 systems. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement after TEST.133 and DB.24, in the same opt-in `budget` tier;
+  Foundations lane 1 drops it from its queue. Owner: the Test Suite
+  Rebuild thread.
   Prerequisites: TEST.133, DB.24. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -5050,7 +5114,13 @@ clears each one.
   traceback is captured (or a loaded run reproduces it), the cause is
   found (a timeout, a shared table between workers, or a real defect in
   the neighborhood path) and the test is made reliable without loosening
-  it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
@@ -5063,7 +5133,10 @@ clears each one.
   timeout in the page wait, or a real overlap that appears only at that
   moment) and the test is made reliable without loosening it. Owner:
   Bugfixes lane 2, with TEST.126.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; same family and fix as TEST.126.
+  Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
@@ -5087,10 +5160,25 @@ clears each one.
   started 2026-10-14 12:18Z); the lanes keep running the full suite
   before they merge until it lands.
   Since 2026-10-14 14:01Z (Boss) the thread also owns every test-fix
-  item (TEST.111, 116, 125 to 135, 137, 138, 140 to 144) and decides
-  which of them to implement and which not; none is implemented by a
-  lane until it has decided, and new test failures keep being filed as
-  TEST items for it.
+  item and decided which to implement (14:04Z): implement TEST.125,
+  142, 143, 129, 130 in that order, one small PR each; fold TEST.126,
+  138, 144 and TEST.111, 116, 127, 128, 132, 134, 137, 140, 141 into the
+  rebuild with no separate hunt; keep TEST.133 then TEST.135 as an
+  opt-in `budget` tier after stage 3; TEST.131 stays with the gravity
+  evaluator's builder. New test failures keep being filed as TEST items
+  for the thread. Stages: 1 markers and areas, scripts/test.py (quick,
+  area, browser, full in two phases, browser on two workers), and
+  failure capture with an automatic serial re-run (the `db` marker
+  missed 2,210 of 3,681 MySQL-needing tests and is fixed here; the
+  playwright version is pinned to 1.56.0 in docs/testing.md because 1.64
+  needs a newer Chromium than the cloud image has); 2 change-based test
+  selection (record dependencies, run only what changed, with a proof
+  period); 3 one database per worker with a reset (about 10 to 13% of
+  the time); 4 browser page-load sharing and the heavy generation test
+  files, one PR per file with the owning lane's word; 5 Boss decides
+  after the proof period whether the changed-only run may replace the
+  full run for small changes. Baseline (12:28Z, 4 cores): 15,622 tests,
+  55 min 12 s, 14 failed. Plan: docs/design/test-suite-rebuild.md.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
 
@@ -5102,7 +5190,13 @@ clears each one.
   kept. Done: the next failure's traceback is captured, the cause is
   found (a shared table between workers, a timeout, or a real defect in
   the ID lookup) and the test is made reliable without loosening it.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -5113,7 +5207,13 @@ clears each one.
   not kept. Done: the next failure's message is captured, the cause is
   found (an interrupt landing before a worker starts, a shared Redis
   queue between workers, or a real half-written sector) and the test is
-  made reliable without loosening it. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  made reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; stage 1 keeps each failure's
+  traceback and re-runs it alone, stage 3 gives each worker its own
+  database; closed after 5 clean full runs after stage 3, or fixed from
+  the captured traceback on recurrence. Owner: the Test Suite Rebuild
+  thread.
   Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
 
 - [ ] **TEST.142 test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug)**
@@ -5124,7 +5224,12 @@ clears each one.
   `after` argument added by PERF.75's keyset paging. Done: the fake
   takes the new argument (or the test uses the real function) so the
   test passes without loosening what it checks, and a grep shows no
-  other fake of a paged reader is left behind. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  other fake of a paged reader is left behind. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 2 in the thread's order; the fake
+  get_systems gets the `after` parameter, plus a search for other fakes
+  of a paged reader (the lane's 14:03Z run failed on it too). Owner: the
+  Test Suite Rebuild thread.
   Prerequisites: none. Related: PERF.75, TEST.126.
 
 - [ ] **TEST.143 test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug)**
@@ -5138,7 +5243,11 @@ clears each one.
   artifact, not a product bug. Done: the test pins its own install
   location (a temporary checkout and a stub for the installed package's
   path) so it passes from any checkout and any worktree, without
-  loosening what it checks. Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  loosening what it checks. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
+  implement, one small PR, number 3 in the thread's order; the test pins
+  the install location, so it passes from a git worktree. Owner: the
+  Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.142.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -5150,7 +5259,10 @@ clears each one.
   Done: the next failure's traceback is captured, the cause is found (a
   load timeout in the page wait, or a button that really does nothing at
   that moment) and the test is made reliable without loosening it.
-  Owner: the Test Suite Rebuild thread. Hold (Boss, 2026-10-14 14:01Z): the rebuild thread decides which of the test fixes to implement and which not; no lane implements one until it has decided.
+  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
+  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
+  into the rebuild, no separate hunt; same family and fix as TEST.126.
+  Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 ## USR: User accounts
@@ -5517,6 +5629,25 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   before the numba path integrator (PERF.88).
   Prerequisites: none. Related: GEN.156, TEST.77.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **OPS.43 A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug)**
+  Reported by the Test Suite Rebuild thread (2026-10-14 14:04Z): `pip
+  install -e ".[test,api]"` installs markdown 3.11.1 because setup.py
+  only says `markdown>=3.6`. Markdown 3.11.1 removes the inline pattern
+  `not_strong` that `web/lib/mdrender.py` (line 34) names, and 74 tests
+  fail in test_fuzz_text_rendering, test_web_system_phen,
+  test_bughunt_render_edges, test_mdrender, test_web_population,
+  test_systems and test_page_shell. With markdown 3.11 (the version
+  pinned in requirements.lock) all 466 pass. A real install that
+  resolves the newest markdown would break every page that renders
+  descriptions, so this is a product bug as well as a test failure.
+  Done: either setup.py caps `markdown>=3.6,<3.11.1` or mdrender.py
+  tolerates the missing name (the second is the more durable; the lane
+  picks one and says which), the installer and the lock agree, and a
+  test builds the renderer from the newest markdown the pin allows.
+  Owner: Bugfixes lane 1, next, because a fresh install can break the
+  web pages.
+  Prerequisites: none. Related: ['TEST.139', 'TEST.128'].
 
 ## DOC: Documentation
 
