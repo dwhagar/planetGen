@@ -23,7 +23,7 @@ release is stamped.
 | ADM | ADM.53 |
 | SEC | SEC.33 |
 | TEST | TEST.145 |
-| USR | USR.11 |
+| USR | USR.12 |
 | OPS | OPS.43 |
 | DOC | DOC.18 |
 | VIEW | VIEW.11 |
@@ -1157,6 +1157,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.8 | Every signed-in user can generate a one-off system | none | open |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | none | open |
 | USR.10 | Users add their own objects (ships and stations) and track their movement on the map | none | open |
+| USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
