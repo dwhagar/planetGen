@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.53 |
 | SEC | SEC.33 |
-| TEST | TEST.143 |
+| TEST | TEST.145 |
 | USR | USR.11 |
 | OPS | OPS.43 |
 | DOC | DOC.18 |
@@ -705,7 +705,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.197 | Object IDs on ejection, merger and split events | none | open |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | none | open |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | none | open |
-| GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | open |
+| GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | done, PR #1252 |
 | GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | none | open |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | done, PR #1239 |
@@ -872,7 +872,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
 | MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) | none | done, PR #998 |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | none | open |
-| MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | open |
+| MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | done, PR #1253 |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | done, PR #1112 |
 | MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | done, PR #1123 |
@@ -1092,7 +1092,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | done, PR #1199 |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
 | PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | done, PR #1206 |
-| PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
+| PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | done, PR #1251 |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | done, PR #1236 |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
 | PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | open |
@@ -1498,6 +1498,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) | none | open |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) | none | open |
 | TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) | none | open |
+| TEST.143 | test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug) | none | open |
+| TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
