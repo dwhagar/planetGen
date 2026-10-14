@@ -2,6 +2,64 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1097] - 2026-10-14
+
+### Changed
+- TODO: Boss adopted the Redis review's Option A; filed PERF.95 to PERF.100 (the work queue rebuild steps), folded PERF.40, PERF.78, ADM.15 and PERF.33 into them and marked PERF.29 and PERF.30 as dropped by PERF.100; TODO items resolved: none / Added: PERF.95, PERF.96, PERF.97, PERF.98, PERF.99, PERF.100.
+
+## [8.0.1096] - 2026-10-14
+
+### Changed
+- TODO: retire PERF.82 (#1352); TODO items resolved: PERF.82 / Added: none.
+
+## [8.0.1095] - 2026-10-14
+
+### Changed
+- Saving a sector is about 15% faster: a batch of rows is written as SQL text built directly from ints, floats, `NULL` and plain strings, instead of through the database driver's per-value formatting. The text is identical to what the driver wrote (a test compares them value by value), so the stored rows are the same.
+
+## [8.0.1094] - 2026-10-14
+
+### Changed
+- TODO: filed PERF.93 (ensure_workers counts dead workers, bug), OPS.48, PERF.94 and ADM.54 from the Redis review, and linked the review note on PERF.86; TODO items resolved: none / Added: PERF.93, OPS.48, PERF.94, ADM.54.
+
+## [8.0.1093] - 2026-10-14
+
+### Added
+
+- Research: how Redis is used for generation, and how to use it better.
+
+  Added a design note that reviews how planetGen uses Redis today, sets that against Redis and RQ best practice, and recommends how to rebuild the generation task process around Redis (one run record, each stage's units as queue items, progress in Redis, a properly configured Redis server). No code changes.
+
+## [8.0.1092] - 2026-10-14
+
+### Changed
+- TODO: TEST.139 records Boss's merge-gate decision (a green changed run for small changes, a full run when a sequence is finished); TODO items resolved: none / Added: none.
+
+## [8.0.1091] - 2026-10-14
+
+### Changed
+- A test now fails when the code imports a library that `requirements-server.lock` lacks, so a venv built from the lock alone cannot be missing one. A fresh venv from the lock was checked: every planetgen module imports, `migrate` and `check-math` run, and `/api/health` answers.
+
+## [8.0.1090] - 2026-10-14
+
+### Changed
+- TODO: retire OPS.47 (#1346); TODO items resolved: OPS.47 / Added: none.
+
+## [8.0.1089] - 2026-10-14
+
+### Fixed
+- `update.sh` and `install.sh` on a venv no longer stop at the database step with "'cryptography' package is required for sha256_password or caching_sha2_password auth methods". `cryptography` (what pymysql needs to log in to MySQL 8's default accounts) is now a requirement and in the locks, and the library check fails a venv where pymysql cannot use it, so the library step installs it.
+
+## [8.0.1088] - 2026-10-14
+
+### Changed
+- TODO: filed OPS.47 (update.sh migrate step fails in the venv: cryptography missing from the requirements), urgent for Bugfixes lane 1; TODO items resolved: none / Added: OPS.47.
+
+## [8.0.1087] - 2026-10-14
+
+### Changed
+- TODO: DOC.39 (restore the headline rule), OPS.46 (warn only) and GEN.201 (both) recorded as decided; TODO items resolved: none / Added: none.
+
 ## [8.0.1086] - 2026-10-14
 
 ### Changed
