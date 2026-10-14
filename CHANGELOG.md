@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1081] - 2026-10-14
+
+### Changed
+- TODO: DB.25 (per-level aggregates for the map window) and TEST.145 (subprocess tests use the checkout under test) filed; MAP.151 notes #1335.
+
 ## [8.0.1080] - 2026-10-14
 
 ### Added
