@@ -264,22 +264,11 @@ def test_sector_map_show_on_map_selects_a_rogue_planet(page, map_site):
     assert view.get_attribute("href").endswith(f"/phenomenon/rogue_planet/{rogue['id']}")
 
 
-def test_sector_map_rogue_planet_markers_toggle(page, map_site):
+def test_sector_map_has_no_rogue_planet_marker_button(page, map_site):
+    """MAP.184: the rogue-only "Mark rogue planets" button is gone; the Menu's per-kind Mark covers it."""
     _open_sector(page, map_site)
-    toggle = page.locator('#galaxymap3d-controls [data-action="toggle-rogue-markers"]')
-    # MAP.137: rogue planets start off, and ringed once they are shown.
-    _open_menu(page)
-    page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]').click()
-    assert toggle.get_attribute("aria-pressed") == "true", "on by default (MAP.137)"
-    background = toggle.evaluate("b => getComputedStyle(b).backgroundColor")
-    before = _shot(page, SECTOR_CANVAS)
-    toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "false"
-    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") != background, "plain while off"
-    assert _shot(page, SECTOR_CANVAS) != before
-    toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "true"
-    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") == background
+    assert page.locator('#galaxymap3d-controls [data-action="toggle-rogue-markers"]').count() == 0
+    assert "Mark rogue planets" not in page.locator("#galaxymap3d-controls").inner_text()
 
 
 def _open_menu(page):

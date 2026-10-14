@@ -75,6 +75,38 @@ export function pagesFor(first, last, pageSize) {
   return pages;
 }
 
+// How long to wait before asking again after the database was too busy to answer (a 504) `attempt` times in a
+// row: 2 s, 4 s, 8 s ... 30 s, the Galaxy Map's pause (UX.96).
+export function busyPause(attempt) {
+  return Math.min(30000, 2000 * Math.pow(2, Math.max(1, Math.min(attempt, 5)) - 1));
+}
+
+// Fetches with `request()` (a promise of a Response), asking again after `busyPause` while the answer is a 504,
+// for as long as `wanted()` says the page is still wanted. `onBusy(true)` is called when a retry begins waiting
+// and `onBusy(false)` once an answer other than a 504 arrives (or the page is no longer wanted), so the page can
+// show "database busy, trying again". Any other failing status throws as before.
+export function fetchWhileBusy(request, wanted, onBusy, sleep) {
+  var wait = sleep || function (ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  };
+  function attempt(count) {
+    return request().then(function (response) {
+      if (response.status === 504 && wanted()) {
+        onBusy(true);
+        return wait(busyPause(count + 1)).then(function () {
+          return wanted() ? attempt(count + 1) : Promise.reject(new Error("table no longer wanted"));
+        });
+      }
+      onBusy(false);
+      if (!response.ok) {
+        throw new Error("table " + response.status);
+      }
+      return response.json();
+    });
+  }
+  return attempt(0);
+}
+
 // The rows fetched so far, by page. `fetchPage(page, generation)` returns a
 // promise of `{rows, total, facets, next}`; its third argument is the `next`
 // of the page before, when that page was fetched. `reset()` forgets everything (the
@@ -97,6 +129,10 @@ export function createPageStore(pageSize, fetchPage) {
       store.total = 0;
       store.capped = false;
       store.facets = null;
+    },
+    // True when an answer fetched for `generation` is no longer wanted (the table was reset since).
+    stale: function (mine) {
+      return mine !== generation;
     },
     row: function (index) {
       var page = pages.get(Math.floor(index / pageSize));

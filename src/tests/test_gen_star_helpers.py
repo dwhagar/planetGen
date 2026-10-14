@@ -397,3 +397,44 @@ def test_bright_threshold_must_clear_the_brightest_white_dwarf():
 def test_bright_band_must_not_be_empty():
     with pytest.raises(ValueError, match=r"empty luminosity band \[100, 50\) Lsun"):
         star_population.sample_bright_stars(1, 100.0, max_luminosity_sol=50.0)
+
+
+# --- GEN.200: the map luminosity of a mass ---------------------------------
+
+@pytest.mark.parametrize("mass_sol, expected_sol", [
+    (0.1, 0.23 * 0.1 ** 2.3),
+    (0.43, 0.43 ** 4),
+    (1.0, 1.0),
+    (2.0, 1.5 * 2.0 ** 3.5),
+    (20.0, 1.5 * 20.0 ** 3.5),  # the linear band starts where the 1.5 M^3.5 band ends
+    (4.0e6, 1.5 * 20.0 ** 2.5 * 4.0e6),
+])
+def test_map_luminosity_follows_the_tables_bands(mass_sol, expected_sol):
+    assert stellar_evolution.map_luminosity_sol(mass_sol) == pytest.approx(expected_sol, rel=1e-12)
+
+
+def test_map_luminosity_matches_the_figures_in_the_item():
+    assert stellar_evolution.map_luminosity_sol(20.0) == pytest.approx(53_700, rel=0.01)
+    assert stellar_evolution.map_luminosity_sol(4.0e6) == pytest.approx(1.0e10, rel=0.1)
+    assert 1.5 * 20.0 ** 2.5 == pytest.approx(2683, rel=1e-3)
+
+
+def test_map_luminosity_rises_with_mass_over_the_whole_range():
+    masses = [10 ** (exponent / 50) for exponent in range(-100, 400)]  # 0.01 to 1e8 Msun
+    values = [stellar_evolution.map_luminosity_sol(m) for m in masses]
+    assert all(later > earlier for earlier, later in zip(values, values[1:]))
+
+
+@pytest.mark.parametrize("join_sol, step", [(0.43, 0.036), (2.0, 0.062), (20.0, 0.0)])
+def test_map_luminosity_steps_only_a_little_at_the_joins(join_sol, step):
+    below = stellar_evolution.map_luminosity_sol(join_sol * (1 - 1e-9))
+    above = stellar_evolution.map_luminosity_sol(join_sol)
+    assert above / below - 1 == pytest.approx(step, abs=0.005)
+
+
+def test_map_luminosity_agrees_with_the_star_generators_where_their_tables_do():
+    for mass in (0.05, 0.2, 0.42, 0.5, 1.0, 1.99):
+        assert stellar_evolution.map_luminosity_sol(mass) == stellar_evolution.main_sequence_luminosity_sol(mass)
+    # Above 2 Msun the tables differ (the map's 1.5 M^3.5, the generators' 1.4 M^3.5), written down in tuning.py.
+    assert stellar_evolution.map_luminosity_sol(10.0) / stellar_evolution.main_sequence_luminosity_sol(10.0) \
+        == pytest.approx(1.5 / 1.4)

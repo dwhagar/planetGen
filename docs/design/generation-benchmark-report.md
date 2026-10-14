@@ -48,6 +48,47 @@ run, not as wall time.
 Default-scale galaxy; MySQL 8.4; more than 2 workers. The profile is of
 the fill only, not the plan.
 
+
+## Save the sector paths, after PERF.80
+
+Measured by re-saving the paths of the benchmark galaxy's two sectors
+(`sector_paths.settle_sectors`, 17,284 bodies: 1,916 star systems and the
+rogue planets and comets; the two sectors and their neighbours) on the
+kept scratch database, 4 cores, MariaDB 10.11, an otherwise idle machine:
+
+| | Seconds |
+|---|---|
+| Before (main) | 44.7 |
+| After, 1 worker | 20.0 |
+| After, 2 workers | 13.3 |
+| After, 4 workers | 10.8 |
+
+The saved paths are the same to the last bit: a hash over every path and knot
+of the 17,284 bodies is identical before and after, at every worker count.
+
+What changed:
+
+- **The cell test.** `integrate_path` asked `geometry.sector_address_at` (a
+  ring, a layer and a slot, each worked out afresh, `ring_sector_count` three
+  times over) at every step and 40 more times to bisect where the path leaves
+  the cell: 43% of its time. `geometry.sector_cell_test` repeats the same
+  arithmetic with the cell's numbers worked out once and stops at the first of
+  ring, layer and slot that is not the cell's; a test holds it equal to
+  `sector_address_at == address` on thousands of points including the cell's
+  faces. `ring_sector_count` and `ring_master_count` are cached.
+- **Smaller costs.** The bisection builds only the position of the Hermite
+  curve it tests; the integrator unpacks its masses to `(x, y, z, mu)` once
+  per path instead of computing `G * mass` at every step for every mass.
+- **One statement batch per sector.** A body's path took a lookup, a delete, an
+  insert and a knot insert; a sector's paths are now saved with one lookup per
+  500 bodies, one insert of the path rows and one of the knots.
+- **Worker processes.** `galaxy` passes its worker count to `settle_sectors`, which hands
+  a crowded sector's bodies (250 per task) to that many spawned processes;
+  loading, saving and the commit stay in the calling process, and the paths
+  and their order do not depend on the count. What remains at 4 workers
+  (about 10 s) is that serial part: the sector and neighbour query and the
+  inserts.
+
 ## After PERF.79 (scatter layers in chunks)
 
 The plan's three scatter passes now send their layers to the workers in at most 8 chunks per worker instead of one task per layer (`WorkQueue.submit_each`). Same benchmark (ring 12, seed ...BEEF, 2 sectors), machine otherwise idle:

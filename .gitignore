@@ -184,3 +184,7 @@ src/planetgen/web/lib/**/__pycache__/
 
 # Redis snapshots (a redis-server started in the repo writes one)
 *.rdb
+
+# scripts/test.py: durations of the last runs on this checkout (TEST.139).
+.test-runs.json
+.test-failures.jsonl

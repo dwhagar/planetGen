@@ -257,3 +257,28 @@ planets). How it is read and built:
   against 26 million for the old 1,000 L_sun floor; at the new 5,000 floor the whole star scatter is a fraction of the old one.
 - The partition is exact: the luminosity fraction of the stars lighter than a mass plus that of the heavier ones is the whole
   fraction (`tests/test_star_scatter_passes.py`).
+
+
+## The map luminosity of a mass (GEN.200, 2026-10-10)
+
+Boss (2026-10-10 21:38Z): a neutron star of 2 solar masses should be placed on the map when a star of 2 solar masses would be
+visible, and a supermassive black hole keyed to its (huge) mass the same way, so faint but massive objects, the major
+gravitational places that navigation needs, are always on the map. `stellar_evolution.map_luminosity_sol(mass_sol)` is that
+luminosity, the one function every user calls (the scatter, the reseed fill and the Galaxy Map tile query, wired by GEN.201, DB.23
+and MAP.171). Its constants are `tuning.MAP_MASS_LUMINOSITY_PIECES`:
+
+| Mass (Msun) | Luminosity (Lsun) |
+|---|---|
+| below 0.43 | 0.23 M^2.3 |
+| 0.43 to 2 | M^4 |
+| 2 to 20 | 1.5 M^3.5 |
+| above 20 | 1.5 x 20^2.5 M (about 2,683 M, continuous at 20) |
+
+So 20 Msun is about 53,700 Lsun and a 4 million Msun black hole about 1e10 Lsun. The bands step by about 3.6% at 0.43 Msun and 6.2%
+at 2 Msun (the table's constants as given; it does not matter for a visibility rank), and not at all at 20.
+
+**It is not the star generators' relation.** `stellar_evolution.main_sequence_luminosity_sol` (`tuning.MS_MASS_LUMINOSITY_PIECES`) has
+the same three bands up to 2 Msun, then 1.4 M^3.5 to 55 Msun and a linear law above that. The star generators keep theirs: changing
+it would change every massive star the generators draw, and the supergiant luminosities built on it. The two share one evaluator and
+agree to 2 Msun; between 2 and 20 Msun the map's is 7% higher, and above 55 Msun it is lower (1.07e10 against 1.28e11 Lsun at 4
+million Msun). Nothing may call the map function for a star's own luminosity, or the generators' for a map rank.

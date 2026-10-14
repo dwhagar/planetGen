@@ -728,15 +728,9 @@ def stage_history(conn, stage_key=None, limit=200):
     return history
 
 
-def stage_seconds(conn, stage_key, settings, limit=50):
-    """
-    How long a stage is expected to take with `settings` (a dict as
-    `generation.stages.stage_settings` makes): the mean seconds of the runs of
-    that stage whose settings match on every setting named in both, the most
-    specific match first, or the mean over all runs of the stage when none
-    matches, or `None` when it was never recorded. Skipped runs are ignored.
-    """
-    runs = [run for run in stage_history(conn, stage_key, limit) if not run["skipped"] and run["seconds"] > 0]
+def _matching_mean(runs, settings):
+    """The mean seconds of `runs` (the exact settings first, else those that match on every setting named in
+    both, else all), `None` for no run."""
     if not runs:
         return None
     matching = [run for run in runs if all(run["settings"].get(name) == value
@@ -744,6 +738,32 @@ def stage_seconds(conn, stage_key, settings, limit=50):
     exact = [run for run in runs if run["settings"] == settings]
     pool = exact or matching or runs
     return sum(run["seconds"] for run in pool) / len(pool)
+
+
+def stage_seconds(conn, stage_key, settings, limit=50):
+    """
+    How long a stage is expected to take with `settings` (a dict as
+    `generation.stages.stage_settings` makes): the mean seconds of the runs of
+    that stage whose settings match on every setting named in both, the most
+    specific match first, or the mean over all runs of the stage when none
+    matches. A scatter stage (`generation.stages.SCATTER_KEYS`) never recorded
+    takes the mean seconds of one scatter operation from the scatter total
+    (`SCATTER_KEY`, matched the same way). `None` when neither is recorded.
+    Skipped runs are ignored. This is the one reader every estimate and every
+    progress bar uses.
+    """
+    from planetgen.generation import stages
+
+    def usable(key):
+        return [run for run in stage_history(conn, key, limit) if not run["skipped"] and run["seconds"] > 0]
+
+    found = _matching_mean(usable(stage_key), settings)
+    if found is None and stage_key in stages.SCATTER_KEYS:
+        runs = usable(stages.SCATTER_KEY)
+        for run in runs:
+            run["seconds"] = run["seconds"] / max(int(run["metrics"].get("operations") or 1), 1)
+        found = _matching_mean(runs, settings)
+    return found
 
 
 def job_layers_per_second(conn, settings=None, limit=50):

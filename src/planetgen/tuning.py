@@ -525,6 +525,22 @@ MS_MASS_LUMINOSITY_PIECES = (
     {"max_mass_sol": 55.0, "coeff": 1.4, "exponent": 3.5},
     {"max_mass_sol": None, "coeff": 32000.0, "exponent": 1.0},
 )
+# The "map luminosity" relation (GEN.200): the luminosity a main-sequence star
+# of a given mass would have, used to rank a faint but massive object (a
+# neutron star, a black hole) for the Galaxy Map by the star of its mass
+# (Astronomy Notes, "Mass-Luminosity Relation Explained"; Varsity Tutors,
+# "Stellar Mass & Lifetime"). Same form as MS_MASS_LUMINOSITY_PIECES, whose
+# star generators it does not replace: it has Boss's table's constants and
+# breaks (1.5 M^3.5 from 2 to 20 Msun, not 1.4 M^3.5 to 55), and above 20 Msun
+# L is proportional to M, its coefficient fixed by continuity with the band
+# below (1.5 * 20^2.5, about 2,683 Lsun per Msun). So 20 Msun is about
+# 53,700 Lsun and a 4 million Msun black hole about 1e10 Lsun.
+MAP_MASS_LUMINOSITY_PIECES = (
+    {"max_mass_sol": 0.43, "coeff": 0.23, "exponent": 2.3},
+    {"max_mass_sol": 2.0, "coeff": 1.0, "exponent": 4.0},
+    {"max_mass_sol": 20.0, "coeff": 1.5, "exponent": 3.5},
+    {"max_mass_sol": None, "coeff": 1.5 * 20.0 ** 2.5, "exponent": 1.0},
+)
 # Main-sequence mass-radius relation, R = M^exponent (Rsun, Msun), with the
 # exponent changing at 1 Msun (Demircan & Kahraman 1991).
 MS_RADIUS_EXPONENT_BELOW_1_SOL = 0.8
@@ -1566,6 +1582,32 @@ is consistent with -- see `evolution.get_evolutionary_timeline`'s
 `planet_class` parameter, the only reader of this mapping. A class not
 present here is uncapped (full range, up to and including a technological
 civilization).
+"""
+
+HABITABILITY_LIFE_SCORE_MIN = 0.005
+"""
+float: A planet's `phi_bio` (microbial) or `phi_cpx` (complex life) score
+below this shows as 0.00 and counts as none (GEN.206): the habitability
+index allows no life of that kind, so the description must not claim it.
+"""
+
+NO_LIFE_CLASS_DESCRIPTIONS = {
+    "F": "a volcanic world with shallow seas",
+    "G": "a rocky, barren world",
+    "L": "a marginal, barren world",
+}
+"""
+dict[str, str]: What `PLANET_CLASSES[cls]["description"]` says instead for a
+class whose own text claims life when the habitability index gives the
+world no microbial life (GEN.206). A class not listed claims no life.
+"""
+
+MICROBIAL_ONLY_CLASS_DESCRIPTIONS = {
+    "L": "a marginally habitable world",
+}
+"""
+dict[str, str]: The same for a world whose index allows microbial life but
+not complex life (GEN.206): Class L's "with vegetation" would claim flora.
 """
 
 MOON_BLACKLIST = ['Q', 'S', 'V']

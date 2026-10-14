@@ -112,7 +112,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
-| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.150, MAP.151, MAP.152, MAP.154, MAP.155, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.150, MAP.151, MAP.152, MAP.154, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position |  | Fly-through report item 3; needs the near field. |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
@@ -123,10 +123,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | DB.24, MAP.172, MAP.154 | Foundations lane 2. |
 | MAP.172 | Nebula cell aggregates in the region pyramid | MAP.151, DB.24 | Foundations lane 1. |
 | DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) |  | Migration. Foundations lane 1. |
-| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | GEN.200, DB.23, GEN.201, MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
+| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | DB.23, GEN.201, MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
-| MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
 
 ### System Map
 
@@ -199,13 +198,18 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
+| OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) |  |  |
+| OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) |  |  |
+| TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) |  |  |
+| TEST.143 | test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug) |  |  |
+| TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) |  |  |
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) |  |  |
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) |  |  |
-| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | PERF.80, OPS.42 |  |
+| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | OPS.42 |  |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls |  |  |
-| OPS.42 | Install numba: raise the minimum Python to 3.10 and warm its cache in update.sh |  |  |
+| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code |  |  |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  |  |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.150, MAP.152 |  |
@@ -214,14 +218,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) |  |  |
 | MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) |  |  |
 | MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) |  |  |
-| MAP.185 | Black holes vanish in the Sector Map (bug) |  |  |
 | MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) |  |  |
 | UX.99 | Rogue planets do not show their surface gravity (bug) |  |  |
-| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) |  |  |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) |  |  |
-| PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) |  |  |
-| PERF.84 | Neighbour linking stalls on a large run (bug) |  |  |
-| PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) |  | Flaky under load. Bugfixes lane 1. |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
@@ -240,18 +239,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter |  | Bugfixes lane 1 report 06:36Z. |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | DB.24 | Foundations lane 1. |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
-| PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers |  | Foundations lane 1. |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own |  | Bugfixes lane 2. |
-| UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 |  | Decided by default. Bugfixes lane 2. |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later |  | Bugfixes lane 2. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
-| GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | GEN.200, DB.23 | Foundations lane 1. |
-| DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | GEN.200 | Needs a migration. Foundations lane 1. |
-| GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have |  | Boss 2026-10-10 21:38Z. Foundations lane 1. |
+| GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | DB.23 | Foundations lane 1. |
+| DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) |  | Needs a migration. Foundations lane 1. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
-| PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs |  | Boss 2026-10-10 20:25Z; Bugfixes lane 1, after PERF.66. |
 
 ## Open questions for Boss
 

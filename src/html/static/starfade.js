@@ -69,16 +69,42 @@ export function starZoomOpacity(fade, radius, factor = FETCH_RADIUS_FACTOR) {
   return (1 - glide) * zoomShare(fade[1], radius) + glide * own;
 }
 
-// A point object (stage 1: never ranked).
+// A point object that is not ranked (tiles coarser than POINT_RANK_MIN_LEVEL
+// list only the biggest scattered classes, which stay whole).
 export const POINT_FADE = [ALWAYS_SHOWN, ALWAYS_SHOWN, 0, 1];
+
+// MAP.155: the coarsest tile level that ranks its black holes, neutron stars
+// and quasars like its stars (planetgen.db.query.POINT_PHENOMENON_MIN_LEVEL,
+// which a test holds equal).
+export const POINT_RANK_MIN_LEVEL = 8;
+
+// MAP.155: a cloud sprite fades in between CLOUD_RAMP_PX[0] and
+// CLOUD_RAMP_PX[1] pixels of radius instead of switching on at 2 px.
+export const CLOUD_RAMP_PX = [1, 4];
+
+export function cloudSizeShare(radiusPx) {
+  return smoothstep((radiusPx - CLOUD_RAMP_PX[0]) / (CLOUD_RAMP_PX[1] - CLOUD_RAMP_PX[0]));
+}
+
+// MAP.155: a star that is arriving (its zoom and magnitude shares `arrive`,
+// 0..1) is a dot of STAR_DOT_PX that grows to `sizePx` as it arrives.
+export const STAR_DOT_PX = 1;
+
+export function arrivingStarSize(sizePx, arrive) {
+  const t = Math.min(1, Math.max(0, arrive));
+  return STAR_DOT_PX + (Math.max(sizePx, STAR_DOT_PX) - STAR_DOT_PX) * t;
+}
 
 // The 1-based ranks of a tile's stars, `{ b<id>: rank, s<id>: rank }`,
 // from its bright list (`stars`) and its generated list (`generated`),
-// each in the order the server sent them (most luminous first).
+// each in the order the server sent them (most luminous first), and (MAP.155)
+// its point objects, `{ <type><id>: rank }` ("black_hole12": the key the page
+// draws them under), in the order sent.
 export function tileRanks(tile) {
   const ranks = new Map();
   (tile.stars || []).forEach((star, i) => ranks.set(`b${star.id}`, i + 1));
   (tile.generated || []).forEach((star, i) => ranks.set(`s${star.id}`, i + 1));
+  (tile.points || []).forEach((point, i) => ranks.set(`${point.type}${point.id}`, i + 1));
   return ranks;
 }
 

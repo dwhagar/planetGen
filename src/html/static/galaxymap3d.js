@@ -65,7 +65,7 @@ const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
 const {
-  FADE_OCTAVES, POINT_FADE, birthRadius, opacitySum, starZoomOpacity, tileRanks,
+  FADE_OCTAVES, POINT_FADE, POINT_RANK_MIN_LEVEL, STAR_DOT_PX, birthRadius, cloudSizeShare, opacitySum, starZoomOpacity, tileRanks,
 } = await import(`./starfade.js${VERSION_QUERY}`);
 const {
   PHENOMENON_MAGNITUDE, STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude,
@@ -135,10 +135,6 @@ export function mapControlHandlers(ctx) {
     "center-on": function () { ctx.stageView.recenter(); },
     "zoom-in": function () { ctx.stageView.zoomIn(); },
     "zoom-out": function () { ctx.stageView.zoomOut(); },
-    "toggle-rogue-markers": function (button) {
-      ctx.stageView.setRoguesMarked(!ctx.stageView.roguesMarked());
-      button.setAttribute("aria-pressed", String(ctx.stageView.roguesMarked()));
-    },
   };
 }
 
@@ -1365,7 +1361,6 @@ function initGalaxyMap3d(canvasEl, data) {
   // around it, though the cloud fills that space). One that is only a pixel or two across
   // is hidden, and one the camera comes close to fades out so it never
   // fills the screen.
-  var CLOUD_MIN_PX = 2;
   var CLOUD_OPACITY = 1;
   var CLOUD_NEAR_FADE = [1.2, 2.0];
   // Clicking picks a cloud only while it is small enough on screen to aim
@@ -1467,6 +1462,7 @@ function initGalaxyMap3d(canvasEl, data) {
         mesh.visible = true;
         sprite.visible = true;
         sprite.material.opacity = 0;
+        sprite.userData.share = 1;
         drawn++;
         return;
       }
@@ -1474,8 +1470,12 @@ function initGalaxyMap3d(canvasEl, data) {
         mesh.visible = false;
       }
       var near = THREE.MathUtils.smoothstep(distance / cloud.radius_pc, CLOUD_NEAR_FADE[0], CLOUD_NEAR_FADE[1]);
-      sprite.visible = near > 0 && pixels >= CLOUD_MIN_PX && !clipped;
-      sprite.material.opacity = CLOUD_OPACITY * near;
+      // MAP.155: opacity ramps in between 1 and 4 px of radius (a hard
+      // edge at 2 px before); `share` is what can be aimed at.
+      var share = near * cloudSizeShare(pixels);
+      sprite.visible = share > 0 && !clipped;
+      sprite.material.opacity = CLOUD_OPACITY * share;
+      sprite.userData.share = clipped ? 0 : share;
     });
     // How many nebulae are drawn from their shape now (read by the browser tests).
     canvasEl.dataset.nebulaMeshes = String(drawn);
@@ -1492,7 +1492,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var bestDistance = 0;
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
-      if (!sprite.visible || (best && best.radius_pc <= cloud.radius_pc)) {
+      if (!sprite.visible || !visibleEnough(sprite.userData.share) || (best && best.radius_pc <= cloud.radius_pc)) {
         return;
       }
       var distance = camera.position.distanceTo(sprite.position);
@@ -1636,7 +1636,10 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vShown *= mix(1.0, magnitudeShare(appMag, magLimit), magOn);",
       "  vBright *= mix(1.0, fluxGain(appMag, magLimit), magOn);",
       "  gl_Position = projectionMatrix * mvPosition;",
-      "  gl_PointSize = starSize * pixelRatio;",
+      // MAP.155: a star arriving with the zoom starts as a 1 px dot and
+      // grows to its size as its zoom share rises (arrivingStarSize's twin).
+      "  float arrive = mix(1.0, zoomShown, zoomFadeOn);",
+      "  gl_PointSize = (" + STAR_DOT_PX.toFixed(1) + " + max(starSize - " + STAR_DOT_PX.toFixed(1) + ", 0.0) * arrive) * pixelRatio;",
       // Outside the wedge shown (setWedgeClip): dropped.
       "  if (starClipped > 0.5) {",
       "    gl_PointSize = 0.0;",
@@ -1992,6 +1995,15 @@ function initGalaxyMap3d(canvasEl, data) {
     ];
   }
 
+  // The zoom fade of `star` ranked `rank` in a tile of `level`: a black
+  // hole, neutron star or quasar is ranked like a star from
+  // POINT_RANK_MIN_LEVEL on (MAP.155) and whole in the coarser tiles, which
+  // list only the biggest.
+  function fadeOfStar(star, level, rank, parentRank, detail) {
+    if (star.phenomenon && level < POINT_RANK_MIN_LEVEL) return POINT_FADE;
+    return fadeFor(level, rank, parentRank, detail);
+  }
+
   // Stars to show in a tile that hasn't arrived yet (MAP.48): the ones
   // already drawn there, and a cached coarser tile's there, so a zoom
   // keeps what was on screen instead of blanking until the new tiles come.
@@ -2016,7 +2028,7 @@ function initGalaxyMap3d(canvasEl, data) {
       var id = starKey(star);
       if (!into.has(id) && inBox(box, star)) {
         into.set(id, star);
-        fades.set(id, star.phenomenon ? POINT_FADE : fadeFor(level, ranks.get(id), 0, false));
+        fades.set(id, fadeOfStar(star, level, ranks.get(id), 0, false));
       }
     });
   }
@@ -2115,8 +2127,7 @@ function initGalaxyMap3d(canvasEl, data) {
         if (!starShown(star)) return;
         var id = starKey(star);
         stars.set(id, star);
-        fades.set(id, star.phenomenon ? POINT_FADE
-          : fadeFor(level, ranks.get(id), parentRanks ? parentRanks.get(id) : 0, detail));
+        fades.set(id, fadeOfStar(star, level, ranks.get(id), parentRanks ? parentRanks.get(id) : 0, detail));
       });
       if (parent) {
         parents.push({ key: key, level: level, ranks: ranks, parent: parent, parentRanks: parentRanks });
@@ -2128,7 +2139,7 @@ function initGalaxyMap3d(canvasEl, data) {
     parents.forEach(function (entry) {
       var box = tileBox(entry.key);
       tileStars(entry.parent.tile).forEach(function (star) {
-        if (star.phenomenon || !starShown(star)) return;
+        if ((star.phenomenon && entry.level - 1 < POINT_RANK_MIN_LEVEL) || !starShown(star)) return;
         var id = starKey(star);
         if (!stars.has(id) && inBox(box, star)) {
           stars.set(id, star);

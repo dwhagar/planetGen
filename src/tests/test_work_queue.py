@@ -127,7 +127,7 @@ def test_submit_each_gives_the_same_results_in_few_tasks():
     pooled, pooled_tasks = run(2)
     assert pooled == inline == sorted((n * n, n + 1) for n in range(40))
     assert inline_tasks == 40
-    assert pooled_tasks == 2 * workQueue.CHUNKS_PER_WORKER
+    assert pooled_tasks < 40  # 40 near-instant items go out in a few chunks
 
 
 def test_task_results_do_not_depend_on_the_worker_count():
@@ -321,3 +321,20 @@ def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config,
 
     job = _rows(control_config, "SELECT state, workers, tasks_done FROM work_jobs WHERE kind = 'queue'")[0]
     assert (job["state"], job["workers"], job["tasks_done"]) == ("done", 2, expected)
+
+
+def _slow_square(payload):
+    import time
+    time.sleep(0.3)
+    return payload * payload
+
+
+def test_submit_each_gives_slow_items_a_task_of_their_own():
+    """PERF.83: items that take seconds each are not held back in a chunk until the chunk ends."""
+    results, done = _collector()
+    with workQueue.WorkQueue("slow-each", workers=2) as queue:
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr(workQueue, "CHUNK_SECONDS", 0.3)
+            queue.submit_each("square", [(f"n {n}", n, 1.0, done) for n in range(12)], _slow_square)
+    assert sorted(result for result, _weight in results) == [n * n for n in range(12)]
+    assert queue.submitted == 12
