@@ -4788,6 +4788,7 @@ clears each one.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
+  Two System Map browser tests that failed under load (seen by Foundations lane 2 and the rebuild thread) were fixed on 2026-10-14 (#1367).
   Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
   test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
   playwright error), test_bookmarks_keep_a_course_pick_on_the_galaxy_map and
@@ -5124,10 +5125,16 @@ clears each one.
   asked of Boss in that thread). Docs-only PRs still merge at once.
   Stage 4 (2026-10-14): Stage 4 first part merged (#1357, 2026-10-14):
   the browser phase of a full run fell from about 40 minutes to 25, so a
-  full run is now about 45 minutes. Next in the rebuild thread:
-  TEST.145, TEST.146, TEST.133. The flake sightings from Bugfixes lane 2
-  (System Map selection, galaxy breadcrumb tests) were folded into the
-  flake group TEST.126.
+  full run is now about 45 minutes. TEST.145 and TEST.146 merged (#1367,
+  2026-10-14): TEST.146's real cause was the between-test rate-limit
+  reset wiping every limiter key on the shared Redis, and 200 of 200
+  copies now pass at 4 workers. The next full run took 49 min 14 s (was
+  59 min 43 s): 15,392 non-browser tests passed and the browser tests had
+  2 failures, both System Map tests that failed under load, since fixed
+  under TEST.126. Next in the rebuild thread: TEST.147, TEST.133, the
+  rest of stage 4, then the flake list. The flake sightings from
+  Bugfixes lane 2 (System Map selection, galaxy breadcrumb tests) were
+  folded into the flake group TEST.126.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5180,35 +5187,6 @@ clears each one.
   into the rebuild, no separate hunt; same family and fix as TEST.126.
   Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.138.
-
-- [ ] **TEST.145 Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug)**
-  Reported by Foundations lane 2 via the coordinator (2026-10-14,
-  MAP.151d suite): 17 full-suite tests failed when the suite ran from a
-  git worktree because tests that start subprocesses (schema-version
-  tests among them) used the editable install pointing at
-  /home/user/planetGen, not the worktree; all pass against the right
-  code, and the lane worked around it by setting PYTHONPATH to the
-  worktree src. Like TEST.143 for the install check. Done: every test
-  that spawns a subprocess puts the checkout under test first on
-  PYTHONPATH (one shared helper), so the suite passes from any checkout
-  or worktree, with a test that fails if a subprocess imports planetgen
-  from anywhere else. Owner: the Test Suite Rebuild thread (its list),
-  not a lane.
-  Prerequisites: none. Related: TEST.139.
-
-- [ ] **TEST.146 Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug)**
-  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z), first
-  read as a one-minute window ending between a test's requests. The
-  thread's later finding (2026-10-14 21:40Z) is the real cause: the
-  between-test rate-limit reset wipes every limiter key on the shared
-  Redis, so tests running at the same time lose each other's counts.
-  Seen once: src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
-  failed in the 18:47Z full run and passed alone; test_web_request_limits.py
-  and test_web_security_limits.py have the same shape. Done when each
-  test resets only its own keys and the suite shows no time flake. Owner:
-  the Test Suite Rebuild thread (group B style), not a lane. Fixed in
-  the thread's open PR, which lands with TEST.145.
-  Prerequisites: none. Related: TEST.139, TEST.145.
 
 - [ ] **TEST.147 Two nebula-field table tests fail under load and pass alone (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 22:05Z) in a scripts/test.py
@@ -6152,9 +6130,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   way to run. Done: both docs match the workflow file and the runner,
   say that the full suite stays the merge gate and changed is a fast
   loop, and give the Redis setup.
-  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 45
-  minutes; any figure for the full run's length in docs/testing.md or
-  the rebuild note should say about 45 minutes, not 60.
+  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 49
+  minutes (49 min 14 s measured after #1367, 59 min 43 s before); any
+  figure for the full run's length in docs/testing.md or the rebuild
+  note should say about 50 minutes, not 60.
   Prerequisites: none. Related: TEST.139.
 
 - [ ] **DOC.41 Fix the activity-log file name in the fail2ban guide and the shipped jail**
