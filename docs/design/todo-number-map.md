@@ -1143,7 +1143,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) | none | done, PR #1308 |
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) | none | done, PR #1300 |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) | none | open |
-| PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | open |
+| PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | done, PR #1371 |
 | PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | done, PR #1364 |
 | PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | open |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | open |
