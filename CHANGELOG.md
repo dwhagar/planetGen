@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1064] - 2026-10-14
+
+### Changed
+- TODO: DB.24 retired (PR #1317, schema v83); notes on MAP.151 and MAP.171 about clouds without object ids.
+
 ## [8.0.1063] - 2026-10-14
 
 ### Fixed
