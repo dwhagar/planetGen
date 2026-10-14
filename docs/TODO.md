@@ -4065,6 +4065,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter is reproduced and its cause found (it may be the same cause as
   PERF.83 or PERF.84; check them first), and the layer count shown on
   the progress bar matches the layers the stage really works through.
+  Screenshot (Boss, 2026-10-14 13:02Z): the log says "Phenomena (2,041 of
+  2,041 layers) 100% elapsed 0:21:03", then the stage bar reads "Writing
+  the special phenomena: 6,820 of 6,820, 36 m 10 s, about 0 s left" while
+  Whole job still shows "about 1 m 09 s to 1 m 30 s left" at about 97% and
+  Cancel job is still offered. So the write stage ran longer (36 min) than
+  the scatter (21 min), its estimate sat at "about 0 s" the whole time,
+  and the job had not finished. Done also covers: the write stage reports
+  progress while it runs and its estimate comes from PERF.67's timing
+  records. The layer count in the log (2,041) matches the plan; whether
+  the bar's count was wrong in the original screenshot is still asked on
+  the issue.
   Owner: Bugfixes lane 1, after PERF.67 and PERF.54, together with
   UX.98.
   Prerequisites: none. Related: PERF.83, PERF.84, PERF.66, PERF.67.
