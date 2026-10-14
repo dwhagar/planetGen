@@ -5523,13 +5523,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
   version, not the schema. Reproduce it against MySQL 8 and the lock
   file, check the locked versions against ones known to work with that
-  plugin, fix the cause, and make the update print a clear error naming
-  the login problem instead of the bare exception.
+  plugin, fix the cause by adapting to the current library, and make the update
+  print a clear error naming the login problem instead of the bare
+  exception.
   Cause found by Bugfixes lane 1 (2026-10-14 22:41Z, reproduced on a real
   MySQL 8.0): pymysql 1.2.1 to 1.2.3 return nothing from the caching_sha2
-  full login on a connection without TLS. The fix in test pins pymysql
-  below 1.2.1 (1.2.0), has the library check reinstall a newer one, and
-  makes every database login failure name the server and account.
+  full login on a connection without TLS. Decided (Boss, 2026-10-14
+  22:46Z): no pin below 1.2.1; keep the current pymysql and adapt our
+  connection code to it, and make every database login failure name the
+  server and account.
   Prerequisites: none.
 
 ## DOC: Documentation
