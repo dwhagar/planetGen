@@ -4044,7 +4044,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   progress while it runs and its estimate comes from the stored timing
   records (#1249). The layer count in the log (2,041) matches the plan; whether
   the bar's count was wrong in the original screenshot is still asked on
-  the issue.
+  the issue. Answer (Boss, 2026-10-14 13:54Z): the job did not finish;
+  Boss cancelled it to make unrelated server changes. So the write stage
+  had run 36 minutes at 6,820 of 6,820 with an estimate of about 0 s and
+  was still not done, which is the stall to reproduce.
   Owner: Bugfixes lane 1, after PERF.54, together with
   UX.98.
   Prerequisites: none. Related: PERF.84, PERF.66.
