@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1044] - 2026-10-14
+
+### Changed
+- Placing a system or compact remnant in a sector now tests the new position against every neighbour as one NumPy array instead of one distance call each; the same random numbers are drawn in the same order, so the placed positions and the stored galaxy are identical (PERF.87).
+- The ring centerline length is cached like the ring and slot counts already were (PERF.90).
+
 ## [8.0.1043] - 2026-10-14
 
 ### Changed
