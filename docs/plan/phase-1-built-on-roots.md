@@ -222,7 +222,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.99 | Rogue planets do not show their surface gravity (bug) |  |  |
 | GEN.206 | A planet's description claims life where the habitability index says none can live (bug) |  |  |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) |  |  |
-| PERF.84 | Neighbour linking stalls on a large run (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) |  | Flaky under load. Bugfixes lane 1. |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
