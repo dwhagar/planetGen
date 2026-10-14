@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1104] - 2026-10-14
+
+### Added
+- The TODO list files OPS.49: update.sh stops at the database migrate step with a pymysql login error.
+
 ## [8.0.1103] - 2026-10-14
 
 ### Changed
