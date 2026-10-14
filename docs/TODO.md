@@ -1477,7 +1477,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   never fade out because of the near-field window (the window fades the
   foreground density and cell boxes only), and a browser test measures
   star visibility inside a filled block while zooming in. Owner:
-  Foundations lane 2, in its map queue, with MAP.155 and MAP.150.
+  Foundations lane 2, in its map queue, with MAP.150 (MAP.155 merged in
+  #1253).
+  Screenshots (Boss, 2026-10-14 13:35Z, copies in
+  /mnt/project-files/screenshots/issue-1211/): (1) a block of 243 sectors
+  a side shown as a stack of slabs, with a darker oval patch in the middle
+  of the block; (2) a slab wedge with a round dark patch around where its
+  blocks meet; (3) a block of 27 sectors a side seen face on, a clear
+  dark round halo in the middle of the cell grid. Same halo at all three
+  zoom levels, always a dark disc centred on the view, so it is the
+  window itself being drawn dark, not a darkening of the cells; the cell
+  borders in the same pictures are heavy and nearly opaque (MAP.188).
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.152, MAP.155,
   MAP.188.
 
