@@ -1299,7 +1299,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | done, PR #1065 |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | done, PR #1104 |
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
-| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
+| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | done, PR #1378 |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | done, PR #1299 |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |

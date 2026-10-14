@@ -99,7 +99,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars |  |  |
-| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does |  | Boss 2026-10-10 20:28Z; Bugfixes lane 2 after its current items. |
 
 ### Nearby search
 
