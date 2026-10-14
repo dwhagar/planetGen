@@ -208,6 +208,7 @@ def generation_stats():
     last 100 stage runs (PERF.56: `stage_key`, `label`, `skipped`,
     `skip_reason`, `seconds`, `settings`, `metrics`, `finished_at` ...), "sizes":
     {database: {"bytes_per_system", "systems", "total_bytes"}},
+    "object_types": {kind: mean seconds per object} (PERF.92),
     "available": bool}`. `available` is false (and both empty) when the
     control schema is older than v6.
     """
@@ -223,7 +224,19 @@ def generation_stats():
             stages = generationStats.stage_history(get_control_db(), limit=100)
         except Exception:  # noqa: BLE001 -- the control schema is older than v14
             stages = []
-    return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available, "stages": stages})
+    return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available, "stages": stages,
+                    "object_types": _object_type_means()})
+
+
+def _object_type_means():
+    """`{kind: mean seconds one object of that kind took}` over every saved run (PERF.92), or `{}` when the
+    galaxy database has none yet (before `update.sh` brings it to v85)."""
+    from planetgen.generation import object_timing
+
+    try:
+        return object_timing.type_means(get_db())
+    except Exception:  # noqa: BLE001 -- an older galaxy schema, or nothing generated yet
+        return {}
 
 
 @bp.route("/generation-stats/reset", methods=["POST"])

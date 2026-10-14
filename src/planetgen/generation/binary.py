@@ -470,3 +470,6 @@ class BinaryStarProxy(Star):
         galactic_center_dist_m = galactic_center_dist_ly * constants.LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, constants.MILKY_WAY_MASS)
         return hill_radius_m / constants.AU_TO_M
+
+from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+object_timing.track(BinaryStarProxy, "binary-star")

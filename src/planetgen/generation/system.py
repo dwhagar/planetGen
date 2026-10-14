@@ -2145,3 +2145,6 @@ class StarSystem:
             all_output_parts.append('\n\n' + '[[Category:Star Systems]]')
 
         return ''.join(all_output_parts)
+
+from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+object_timing.track(StarSystem, "system")

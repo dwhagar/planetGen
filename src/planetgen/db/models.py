@@ -804,6 +804,45 @@ neutron_stars = sa.Table(
 )
 
 
+object_timing_samples = sa.Table(
+    'object_timing_samples',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('kind', sa.String(24), nullable=False),
+    sa.Column('ordinal', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('own_us', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('total_us', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('sampled', mysql.TINYINT(), nullable=False),
+    sa.Index('idx_object_timing_samples_run', 'run_id', 'kind'),
+    sa.Index('idx_object_timing_samples_sector', 'sector_id'),
+    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_object_timing_samples_run', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_object_timing_samples_sector', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+object_timing_stats = sa.Table(
+    'object_timing_stats',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('kind', sa.String(24), nullable=False),
+    sa.Column('object_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('total_us', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('min_us', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('max_us', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('histogram', sa.String(255), nullable=False),
+    sa.Index('idx_object_timing_stats_run', 'run_id', 'kind'),
+    sa.Index('idx_object_timing_stats_sector', 'sector_id'),
+    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_object_timing_stats_run', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_object_timing_stats_sector', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 orbit_simulation_state = sa.Table(
     'orbit_simulation_state',
     metadata,

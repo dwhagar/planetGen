@@ -36,3 +36,4 @@ Commit each file came from:
 - v81: ff1be90c (ADM.49 shape density, before PERF.68/70/74)
 - v82: d1920845 (PERF.68/70/74 slow-read indexes, before DB.24)
 - v83: fa95544a (DB.24 nebula_field, before DB.23)
+- v84: 380bdc3e (DB.23 map luminosity, before PERF.92)

@@ -150,3 +150,16 @@ table has no object IDs for clouds no sector has stored: working an ID out costs
 a nebula shape (`interior_centroid` over the fit grid, about 112 ms), which for
 every drawn cloud would be about 30 hours of CPU at the default scale. A save
 sets `uid` and `is_stored` on the row of each cloud it stores.
+
+## PERF.92: per-object timing
+
+Each generated object is timed through the class's constructor
+(`object_timing.track`), so no generator has timing code of its own. Measured on
+this machine: 3.3 microseconds per object with a unit active and nothing when
+none is. A 25-system sector with planets builds about 740 objects in about 0.3
+s, so the records cost about 0.8% of generation time (inside the 1% the item
+asks for; a whole-sector A/B run was lost in the noise, at plus or minus 15%,
+so the per-object cost is the figure to trust). Draw counts and memory per
+object are not recorded: counting draws would add a call to the random wrapper's
+hot path, which costs more than the timing itself. The plain `sector` command
+(unplaced sectors) is not timed; every `galaxy` path is.
