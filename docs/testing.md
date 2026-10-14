@@ -165,6 +165,29 @@ passed alone". `--no-rerun` skips the second step.
 A pull request still needs the whole suite green (`scripts/test.py full`, or
 `pytest -n auto` as before).
 
+### Only the tests a change touches, `scripts/test.py changed`
+
+`scripts/test.py full` also records, for every test that passed, which
+repository files it used (Python files, templates, static scripts, `schema.sql`,
+anything it opened; a test that starts a subprocess is marked as depending on
+all of `src/planetgen/`). The record is `.pytest-deps.json` (not tracked by git;
+recording needs Python 3.12 or later). Then:
+
+```sh
+scripts/test.py changed             # tests the changes since origin/main can affect
+scripts/test.py changed --base HEAD # only the uncommitted changes
+scripts/test.py full --check        # full run; lists failures `changed` would have missed
+```
+
+It runs every test in a changed test file, every test that used (or whose
+used file imports) a changed file, every test that starts a subprocess when
+`src/planetgen/`, `src/html/` or `scripts/` changed, and every test the record
+has not seen or saw fail. A change to `conftest.py`, `pytest.ini`, a support
+module or the test fixtures runs everything, and so does a missing record
+(which that run then writes). Run it as a quick loop while you work: **it is not
+the merge gate.** `scripts/test.py full --check` is how that is proved: it
+should never print a `MISSED:` line, and if it does, tell the test-suite thread.
+
 ## Setting up a cloud session
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK

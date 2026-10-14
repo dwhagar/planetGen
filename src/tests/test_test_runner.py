@@ -119,3 +119,24 @@ def test_a_failing_phase_is_kept_with_its_full_text(tmp_path, monkeypatch):
 
 def test_a_missing_failure_log_means_no_failures(tmp_path):
     assert runner.failed_tests(str(tmp_path / "none.jsonl")) == {}
+
+
+def test_changed_selects_and_full_refreshes_the_map():
+    assert runner.depmap_options("changed", "", False) == ["--changed", ""]
+    assert runner.depmap_options("changed", "abc123", False) == ["--changed", "abc123"]
+    assert runner.depmap_options("full", "", False) == ["--record-deps"]
+    assert runner.depmap_options("full", "abc123", True) == ["--record-deps", "--deps-check", "abc123"]
+    assert runner.depmap_options("quick", "", False) == []
+
+
+def test_changed_runs_the_same_two_phases_as_full():
+    assert runner.build_phases("changed", [], 4, 2) == runner.build_phases("full", [], 4, 2)
+
+
+def test_changed_options_reach_pytest(monkeypatch):
+    calls = []
+    monkeypatch.setattr(runner.subprocess, "run", lambda command, cwd=None, **kw: calls.append(command) or type("R", (), {"returncode": 5})())
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    assert runner.main(["changed", "--base", "HEAD~1"]) == 0
+    assert all(call[-2:] == ["--changed", "HEAD~1"] for call in calls) and len(calls) == 2
