@@ -26,6 +26,9 @@ galactic velocity (`star_systems.velocity_*_kms`, v61); a rogue planet or
 comet follows the galaxy's rotation at its own `galactic_orbital_speed_kms`.
 """
 
+import concurrent.futures
+import multiprocessing
+
 from planetgen.galaxy import geometry
 from planetgen.galaxy.system_position import galactic_velocity_ms
 from planetgen.physics import constants
@@ -112,7 +115,38 @@ def _bodies(conn, sector_id, center):
     return bodies
 
 
-def compute_sector_paths(conn, sector_id):
+PARALLEL_CHUNK = 250
+"""int: Bodies one worker process integrates per task (PERF.80); a sector with
+fewer than twice this many is integrated in the calling process."""
+
+
+def _integrate_bodies(bodies, masses, address, edge_pc):
+    """`[(table, object_id, SectorPath)]` for `bodies` (`_bodies`' rows), in their
+    order: each against `masses`, skipping any that is filed here but past the
+    cell's face (a rotated-frame rounding), whose own sector's pass handles it."""
+    inside = sp.sector_inside(address, edge_pc)
+    edge_m = edge_pc * _PC
+    results = []
+    for table, object_id, position, velocity in bodies:
+        if not inside(position):
+            continue
+        results.append((table, object_id, sp.integrate_path(position, velocity, masses, inside, edge_m,
+                                                           exclude_key=(table, object_id))))
+    return results
+
+
+def _integrate_bodies_in_pool(pool, bodies, masses, address, edge_pc):
+    """`_integrate_bodies`, split into `PARALLEL_CHUNK`-body tasks for the
+    process pool `pool` when there are enough of them; the same results in the
+    same order either way (nothing here is random or reads the clock)."""
+    if pool is None or len(bodies) < 2 * PARALLEL_CHUNK:
+        return _integrate_bodies(bodies, masses, address, edge_pc)
+    futures = [pool.submit(_integrate_bodies, bodies[start:start + PARALLEL_CHUNK], masses, address, edge_pc)
+               for start in range(0, len(bodies), PARALLEL_CHUNK)]
+    return [result for future in futures for result in future.result()]
+
+
+def compute_sector_paths(conn, sector_id, pool=None):
     """
     Rewrites the saved path of every star system, rogue planet and
     interstellar comet in sector `sector_id`: the sector's earlier paths
@@ -121,6 +155,9 @@ def compute_sector_paths(conn, sector_id):
     Args:
         conn (Connection): An open, schema-initialized, read-write connection.
         sector_id (int): The `sectors.id`.
+        pool (concurrent.futures.Executor, optional): A process pool to
+            integrate a crowded sector's bodies in (`settle_sectors` makes
+            one for `workers` above 1); the paths saved are the same.
 
     Returns:
         int: How many paths were saved (0 for a sector that is not a placed
@@ -134,18 +171,12 @@ def compute_sector_paths(conn, sector_id):
     if sector["center_x_pc"] is None or sector["ring_index"] is None or not sector["edge_mpc"]:
         return 0
     edge_pc = sector["edge_mpc"] / 1000.0
-    edge_m = edge_pc * _PC
     centers = _neighbour_centers(conn, sector, edge_pc)
     masses = _point_masses(conn, centers)
-    inside = sp.sector_inside((sector["ring_index"], sector["layer_index"], sector["ring_slot_index"]), edge_pc)
-    saved = 0
-    for table, object_id, position, velocity in _bodies(conn, sector_id, _center(sector)):
-        if not inside(position):
-            continue  # filed here but past the cell's face (a rotated-frame rounding): its own sector's pass handles it
-        path = sp.integrate_path(position, velocity, masses, inside, edge_m, exclude_key=(table, object_id))
-        _save_path(conn, sector_id, table, object_id, path)
-        saved += 1
-    return saved
+    address = (sector["ring_index"], sector["layer_index"], sector["ring_slot_index"])
+    results = _integrate_bodies_in_pool(pool, _bodies(conn, sector_id, _center(sector)), masses, address, edge_pc)
+    _save_paths(conn, sector_id, results)
+    return len(results)
 
 
 def _delete_paths(conn, select_sql, params):
@@ -157,17 +188,43 @@ def _delete_paths(conn, select_sql, params):
         conn.execute("DELETE FROM sector_paths WHERE id = ?", (path_id,))
 
 
-def _save_path(conn, sector_id, table, object_id, path):
-    _delete_paths(conn, "SELECT id FROM sector_paths WHERE object_table = ? AND object_id = ?", (table, object_id))
-    path_id = conn.execute(
+_ROWS_PER_LOOKUP = 500
+"""int: Bodies named in one lookup of their old paths."""
+
+
+def _save_paths(conn, sector_id, results):
+    """
+    Saves `results`, `[(table, object_id, SectorPath)]`, as sector
+    `sector_id`'s paths in a few statements for the whole sector (PERF.80: one
+    lookup, delete and pair of inserts per body made the saving a third of
+    the settle step): any path the same bodies had in another sector (a body
+    that moved) goes first, by primary key, then the `sector_paths` rows go in
+    together, their ids are read back, and the knots go in together.
+    """
+    if not results:
+        return
+    for table in PATH_TABLES:
+        object_ids = [object_id for t, object_id, _path in results if t == table]
+        for start in range(0, len(object_ids), _ROWS_PER_LOOKUP):
+            chunk = object_ids[start:start + _ROWS_PER_LOOKUP]
+            marks = ", ".join("?" for _ in chunk)
+            stale = [row["id"] for row in conn.execute(
+                f"SELECT id FROM sector_paths WHERE object_table = ? AND object_id IN ({marks})",
+                (table, *chunk)).fetchall()]
+            for path_id in stale:
+                conn.execute("DELETE FROM sector_paths WHERE id = ?", (path_id,))
+    conn.executemany(
         "INSERT INTO sector_paths (sector_id, object_table, object_id, exited, duration_years)"
         " VALUES (?, ?, ?, ?, ?)",
-        (sector_id, table, object_id, int(path.exited), path.duration_s / _YEAR)).lastrowid
+        [(sector_id, table, object_id, int(path.exited), path.duration_s / _YEAR) for table, object_id, path in results])
+    path_ids = {(row["object_table"], row["object_id"]): row["id"] for row in conn.execute(
+        "SELECT id, object_table, object_id FROM sector_paths WHERE sector_id = ?", (sector_id,)).fetchall()}
     conn.executemany(
         "INSERT INTO sector_path_knots (path_id, position, t_years, x_pc, y_pc, z_pc, vx_kms, vy_kms, vz_kms)"
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [(path_id, index, knot.t_s / _YEAR, *(c / _PC for c in knot.position), *(v / 1000.0 for v in knot.velocity))
-         for index, knot in enumerate(path.knots)])
+        [(path_ids[(table, object_id)], index, knot.t_s / _YEAR, *(c / _PC for c in knot.position),
+          *(v / 1000.0 for v in knot.velocity))
+         for table, object_id, path in results for index, knot in enumerate(path.knots)])
 
 
 def sectors_to_settle(conn, sector_ids):
@@ -189,7 +246,7 @@ def sectors_to_settle(conn, sector_ids):
     return sorted(wanted)
 
 
-def settle_sectors(conn, sector_ids, on_progress=None, expand=True):
+def settle_sectors(conn, sector_ids, on_progress=None, expand=True, workers=1):
     """
     Recomputes the saved paths of `sector_ids` and the sectors around them
     (`sectors_to_settle`), committing every sector as it finishes: the last
@@ -205,6 +262,9 @@ def settle_sectors(conn, sector_ids, on_progress=None, expand=True):
         expand (bool, optional): Also settle the sectors around `sector_ids`
             (the default). With `False`, exactly `sector_ids` (those that still exist),
             for a caller that worked the neighbours out before deleting a sector.
+        workers (int, optional): Above 1, a crowded sector's bodies are
+            integrated in that many worker processes (PERF.80); the paths
+            saved are the same, the saving and the order stay in this process.
 
     Returns:
         int: How many paths were saved.
@@ -217,11 +277,19 @@ def settle_sectors(conn, sector_ids, on_progress=None, expand=True):
             f"SELECT id FROM sectors WHERE id IN ({', '.join('?' for _ in sectors)})", sectors).fetchall()} if sectors else set()
         sectors = [sector_id for sector_id in sectors if sector_id in existing]
     saved = 0
-    for done, sector_id in enumerate(sectors, start=1):
-        saved += compute_sector_paths(conn, sector_id)
-        conn.commit()
-        if on_progress is not None:
-            on_progress(done, len(sectors))
+    pool = None
+    if workers > 1 and len(sectors) > 0:
+        pool = concurrent.futures.ProcessPoolExecutor(max_workers=workers,
+                                                      mp_context=multiprocessing.get_context("spawn"))
+    try:
+        for done, sector_id in enumerate(sectors, start=1):
+            saved += compute_sector_paths(conn, sector_id, pool)
+            conn.commit()
+            if on_progress is not None:
+                on_progress(done, len(sectors))
+    finally:
+        if pool is not None:
+            pool.shutdown()
     return saved
 
 

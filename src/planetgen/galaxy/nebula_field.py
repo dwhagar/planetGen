@@ -109,10 +109,28 @@ def cell_index(position_pc):
     return tuple(math.floor(coordinate / edge) for coordinate in position_pc)
 
 
+def cloud_kept(galaxy_seed, index, n, nebula):
+    """Whether the galaxy keeps draw number `n` of cell `index` (GEN.152): a hash of the two against the share
+    `tuning.NEBULA_FIELD_KEEP` keeps of the cloud's class, so what the draw makes does not change, only what is kept."""
+    share = tuning.NEBULA_FIELD_KEEP.get(nebula.nebula_class, 1.0)
+    if share >= 1.0:
+        return True
+    return galaxySeed.short_seed(galaxy_seed or FALLBACK_SEED, "nebula-keep", (*index, n)) < share * (1 << 63)
+
+
 def cell_clouds(galaxy_seed, shape, index):
     """
-    The clouds of field cell `index`, from its own seed: a list of
-    `(Nebula, center_pc)`, the same every time for the same galaxy.
+    The clouds of field cell `index` the galaxy keeps (`cloud_kept`): a list of `(Nebula, center_pc)`, the same
+    every time for the same galaxy.
+    """
+    return [(nebula, center) for n, nebula, center in cell_draw(galaxy_seed, shape, index)
+            if cloud_kept(galaxy_seed, index, n, nebula)]
+
+
+def cell_draw(galaxy_seed, shape, index):
+    """
+    Every cloud drawn in field cell `index`, kept or not, from its own seed: a list of `(n, Nebula, center_pc)`
+    with `n` the cloud's place in the draw. An object ID's serial counts all of them (`cloud_object_id`).
     """
     edge = tuning.NEBULA_FIELD_CELL_PC
     low = tuple(i * edge for i in index)
@@ -123,10 +141,10 @@ def cell_clouds(galaxy_seed, shape, index):
     clouds = []
     with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "nebula-cell", index):
         count = _sample_poisson_count(mean)
-        for _ in range(count):
+        for n in range(count):
             center = tuple(corner + draw.uniform(0.0, edge) for corner in low)
             nebula = Nebula(SystemConfig(), nebula_type=FIELD_FAMILY)
-            clouds.append((nebula, center))
+            clouds.append((n, nebula, center))
     return clouds
 
 
@@ -169,7 +187,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
 
     index = cell_index(center_pc)
     mine = None
-    for n, (cloud, cloud_center) in enumerate(cell_clouds(galaxy_seed, shape, index)):
+    for n, cloud, cloud_center in cell_draw(galaxy_seed, shape, index):
         if cloud_center == tuple(center_pc):
             mine = (n, birth_of(index, n, cloud, cloud_center))
             break
@@ -187,7 +205,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
         for j in range(low[1], high[1] + 1):
             for k in range(low[2], high[2] + 1):
                 other = (i, j, k)
-                for n, (cloud, cloud_center) in enumerate(cell_clouds(galaxy_seed, shape, other)):
+                for n, cloud, cloud_center in cell_draw(galaxy_seed, shape, other):
                     if (other, n) == (index, n_self):
                         return objectUid.pack(*address, objectUid.SERIAL_FIELD, rank)
                     # A centroid is inside its cloud's bounding sphere, so a cloud further from the sector than its

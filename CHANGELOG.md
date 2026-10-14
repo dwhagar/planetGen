@@ -2,6 +2,190 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1023] - 2026-10-14
+
+### Changed
+- The docs site build no longer fails on the template examples in the web interface page.
+
+## [8.0.1022] - 2026-10-14
+
+### Changed
+- The to-do list no longer lists the neighbour linking stall, whose likely cause is fixed.
+
+## [8.0.1021] - 2026-10-14
+
+### Fixed
+- Linking a big run's sectors to their neighbours no longer looks frozen: it works in batches of 20 neighbouring sectors instead of 200 scattered ones (a batch was about ten minutes on a dense run, with the progress bar standing still and the neighbour lock held throughout), so the bar moves every minute or so and the lock is short. The links stored are the same.
+
+## [8.0.1020] - 2026-10-14
+
+### Changed
+- The to-do list records the approved logging standard.
+
+## [8.0.1019] - 2026-10-14
+
+### Changed
+- The to-do list gains an item to move every log and report onto one industry-standard format.
+
+## [8.0.1018] - 2026-10-14
+
+### Changed
+- The to-do list links the markdown install bug to its GitHub issue.
+
+## [8.0.1017] - 2026-10-14
+
+### Changed
+- The to-do list records which test fixes the test suite rebuild will implement, and adds a bug for a fresh install getting a markdown version that breaks page rendering.
+
+## [8.0.1016] - 2026-10-14
+
+### Changed
+- The to-do list moves every test fix to the test suite rebuild, which decides which to implement, and drops the table retry item that is built.
+
+## [8.0.1015] - 2026-10-14
+
+### Fixed
+- **A table that hits the database's time limit says the database is busy and asks again, instead of failing.** The table route answered a statement timeout with a 502 and no retry hint, and the table threw the rows away. It now answers 504 with `Retry-After`; the table keeps the rows already loaded, shows "The database is busy. Showing the rows loaded so far; trying again." and asks again after 2 s, 4 s, 8 s ... 30 s, as the Galaxy Map does.
+
+## [8.0.1014] - 2026-10-14
+
+### Changed
+- The to-do list no longer lists the stale generation progress bar, which is fixed.
+
+## [8.0.1013] - 2026-10-14
+
+### Fixed
+- A step that has no progress to report (the phenomena index build, which can take a quarter of an hour on a full galaxy) no longer leaves the Generate page showing the step before it, finished, with its clock still running as if the job had stalled; the page now shows the running step from the moment it starts, and the log says the index build is one pass with no progress until it ends.
+
+## [8.0.1012] - 2026-10-14
+
+### Changed
+- The to-do list records that the more permissive protective gear limits are used where the research notes and the built habitability table differ.
+
+## [8.0.1011] - 2026-10-14
+
+### Changed
+- The to-do list records that the stalled job in the generation screenshot never finished.
+
+## [8.0.1010] - 2026-10-14
+
+### Changed
+- The to-do list now points at the new research notes on the camera fade, the protective gear ladder and the long-term suitability of a planet.
+
+## [8.0.1009] - 2026-10-14
+
+### Added
+- **A measurement and plan for rebuilding the test suite** (`docs/design/test-suite-rebuild.md`, TEST.139): where the 55-minute full run goes (browser tests 42%, database create and drop about 15%), how to run only the tests a change touches (a recorded map of the files each test uses, no new dependency), and the five stages to build it. Nothing in the suite itself changes yet.
+
+## [8.0.1008] - 2026-10-14
+
+### Changed
+- The to-do list no longer lists the five-minute wait before the phenomena scatter, which is fixed.
+
+## [8.0.1007] - 2026-10-14
+
+### Fixed
+- The phenomena scatter at default scale no longer sits silent for minutes before its first progress: layers go to the workers in chunks sized by how long they take (about 2 seconds each), so a layer that takes seconds is a task of its own and shows at once. The first progress now comes in about 8 seconds, with two workers or one.
+
+## [8.0.1006] - 2026-10-14
+
+### Changed
+- The plan records what Boss's screenshot shows about the unused space on the Galaxy Map page.
+
+## [8.0.1005] - 2026-10-14
+
+### Changed
+- The plan records what Boss's screenshot shows about the binary star drawing on the Sector Map.
+
+## [8.0.1004] - 2026-10-14
+
+### Changed
+- The plan records what Boss's three screenshots show about the dark halo in the Galaxy Map.
+
+## [8.0.1003] - 2026-10-14
+
+### Changed
+- The plan records Boss's answers on the open GitHub issues, including that each scatter becomes its own queue item, and adds a home-location field for user accounts.
+
+## [8.0.1002] - 2026-10-14
+
+### Changed
+- The plan retires the finished sector-path, map-visibility and map-object-fade items and adds two test-fix items from the shared suite run.
+
+## [8.0.1001] - 2026-10-14
+
+### Added
+- **Black holes, neutron stars and quasars, nebula sprites and new stars fade in with the zoom instead of popping (MAP.155).** The tiles list a galaxy's point objects from level 8 (160 pc tiles) instead of 10, ranked most luminous first, and the Galaxy Map fades them in by the same rank rule as the stars around them; a nebula sprite's opacity now ramps between 1 and 4 px of radius instead of switching on at 2 px (and can be clicked once it is visible enough); and a star arriving with the zoom starts as a 1 px dot and grows to its size as it fades in.
+
+## [8.0.1000] - 2026-10-14
+
+### Added
+- **One function for the "map luminosity" of a mass (GEN.200).** `stellar_evolution.map_luminosity_sol(mass)` gives the luminosity a main-sequence star of that mass would have by the map's table (0.23 M^2.3 below 0.43 Msun, M^4 to 2, 1.5 M^3.5 to 20, then linear: 20 Msun about 53,700 Lsun, a 4 million Msun black hole about 1e10), so a faint but massive neutron star or black hole can be ranked for the Galaxy Map by the star of its mass. It is separate from the star generators' own relation, and the differences are written down in the design note and in `tuning.py`. Nothing uses it yet: the scatter, the stored column and the tile query follow (GEN.201, DB.23, MAP.171).
+
+## [8.0.999] - 2026-10-14
+
+### Changed
+- **Saving the sector paths is more than twice as fast, and faster again with workers (PERF.80).** On the benchmark galaxy (two sectors, 17,284 bodies) the step takes 20 s instead of 45 s with one worker, 13 s with two and 11 s with four, and every saved path is identical to the last bit. The path integration asks "is this point still in the sector?" with a cheaper exact test, builds less per step, and a sector's paths are saved in a few statements instead of three per body; `planetgen galaxy` now integrates a crowded sector's bodies in as many worker processes as the run uses.
+
+## [8.0.998] - 2026-10-14
+
+### Changed
+- The plan retires the finished timing statistics item and adds one test fix for a paged-table test.
+
+## [8.0.997] - 2026-10-14
+
+### Changed
+- Every staged process now stores its whole-process time, even a run that visited no layers, and each stage's seconds per layer. The scatters are stored on their own (massive stars, bright stars, phenomena, backfill) and added up in one "All scatters" row.
+- A scatter with no stored time of its own is now estimated from that common scatter figure, in the command-line bar, the Generate page's whole-job bar and each stage's bar alike, since they all read the one stored-time function.
+
+## [8.0.996] - 2026-10-14
+
+### Changed
+- The plan records the full numba and Python 3.12 requirements, including the check that the web server can import the compiled code, and confirms astropy can be dropped.
+
+## [8.0.995] - 2026-10-14
+
+### Changed
+- The math and library efficiency note records Boss's decisions: the minimum Python becomes 3.12 (numba required), numba keeps its default cache location, and astropy is dropped. The note also records a measured limit of numba's default cache for a web user that cannot write the code tree or its home, with the two ways to meet it.
+
+## [8.0.994] - 2026-10-14
+
+### Changed
+- The plan records what Boss's screenshot shows about the stall after the phenomena scatter.
+
+## [8.0.993] - 2026-10-14
+
+### Changed
+- The plan now says Python 3.12 will be the minimum and numba a required library, using numba's default cache location.
+
+## [8.0.992] - 2026-10-14
+
+### Changed
+- The plan retires the finished nebula tuning chain and adds the planned math and library speed-ups for generation and orbital updates.
+
+## [8.0.991] - 2026-10-14
+
+### Changed
+- A new galaxy holds far fewer nebulae, in line with the Milky Way: the molecular cloud field keeps 9.5% of its giant clouds and half of its dark clouds (about 454,000 field clouds instead of 700,000; survivors keep their places and object IDs), supernova remnants come to about 3,000 instead of 20,000, and an O star hosts an H II region one time in four (a B0 to B2 star one in ten) instead of always.
+
+### Added
+- A test holds the nebula counts and fillings inside their observed bands.
+
+## [8.0.990] - 2026-10-14
+
+### Added
+- **A design note on the generator's math and the libraries it uses.** It measures where the heavy numeric code still runs as plain Python (sector paths, nearest neighbours, galaxy density in the star scatters, the orbital update's per-row maths), prototypes the fixes and ranks them with the install cost of each library (numba is the only one worth adding). Research only; no behaviour changes.
+
+## [8.0.989] - 2026-10-14
+
+### Changed
+- The plan and TODO list drop the finished nearest-neighbour speed-up and add two new test-flake items from the latest full run.
+
+## [8.0.988] - 2026-10-14
+
+### Changed
+- **Saving a sector finds each system's nearest neighbours with one spatial tree (PERF.81).** It used to measure the distance from every system to every other one (1.8 million measurements for a sector of 1,916 systems, about 10 s); one cKDTree now answers all of them in 0.04 s, with the same neighbours, ties included.
+
 ## [8.0.987] - 2026-10-14
 
 ### Changed
