@@ -431,3 +431,29 @@ def test_nearest_neighbors_of_a_lone_system_is_empty():
     entry = sector.add_system(_StubSystem(0.0), position=(0.0, 0.0, 0.0))
     assert sector.nearest_neighbors(entry) == []
     assert sector.nearest_neighbors(entry, 0) == []
+
+
+def _scattered_sector(seed, count, snap=None):
+    rng = random.Random(seed)
+    sector = SpaceSector("scatter")
+    for _ in range(count):
+        position = tuple(rng.uniform(-5.0, 5.0) for _ in range(3))
+        if snap:
+            position = tuple(round(c / snap) * snap for c in position)   # many equal distances
+        sector.entries.append(ss.SectorSystemEntry(_StubSystem(0.0), position, SystemConfig()))
+    return sector
+
+
+@pytest.mark.parametrize("seed,count,snap", [(1, 40, None), (2, 300, None), (3, 120, 2.5), (4, 2, None), (5, 1, None)])
+@pytest.mark.parametrize("neighbors", [0, 1, 3, 7, 500])
+def test_all_nearest_neighbors_match_nearest_neighbors_exactly(seed, count, snap, neighbors):
+    """PERF.81: the one-tree answer is the per-entry one, ties included, for every entry."""
+    sector = _scattered_sector(seed, count, snap)
+    expected = [sector.nearest_neighbors(entry, neighbors) for entry in sector.entries]
+    assert sector.all_nearest_neighbors(neighbors) == expected
+
+
+def test_all_nearest_neighbors_refuses_a_negative_count_and_handles_an_empty_sector():
+    assert SpaceSector("empty").all_nearest_neighbors(3) == []
+    with pytest.raises(ValueError, match="count must be >= 0"):
+        _scattered_sector(1, 5).all_nearest_neighbors(-1)

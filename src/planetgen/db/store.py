@@ -3788,7 +3788,7 @@ def _format_location_string(sector_name, neighbors):
     return f"{sector_name} -- nearest: " + ", ".join(parts)
 
 
-def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
+def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry, neighbors=None) -> str:
     """
     Computes `entry`'s `star_systems.location` string from the live
     `sector` it belongs to -- up to 3 nearest neighbors
@@ -3801,11 +3801,14 @@ def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
     Args:
         sector (SpaceSector): The sector `entry` belongs to.
         entry (SectorSystemEntry): The system to compute a location for.
+        neighbors (list, optional): `entry`'s 3 nearest neighbors when the caller already has them for every
+            entry (`SpaceSector.all_nearest_neighbors`, PERF.81); worked out here otherwise.
 
     Returns:
         str: See `_format_location_string`.
     """
-    neighbors = sector.nearest_neighbors(entry, count=3)
+    if neighbors is None:
+        neighbors = sector.nearest_neighbors(entry, count=3)
     neighbor_info = [
         (neighbor.star_system.name, distance_between(entry, neighbor))
         for neighbor in neighbors
@@ -4684,11 +4687,35 @@ def _merge_into_neighbors(conn, sector_ids, skip=()):
     _write_nearest(conn, changed, sectors)
 
 
-LINK_BATCH_SECTORS = 200
-"""int: Sectors `link_sector_neighbors` links in one transaction."""
+LINK_BATCH_SECTORS = 20
+"""int: Sectors `link_sector_neighbors` links in one transaction, which holds the neighbor lock and moves the
+progress bar once. 200 was a transaction of about ten minutes on a dense run, a bar that stood still for as
+long and a lock nothing else could take (PERF.84); batches of 2 to 12 cost the same in total."""
+
+LINK_CELL_PC = 24.0
+"""float: Edge of the cells `link_sector_neighbors` sorts sectors into, so a batch is a neighbourhood and the
+systems it loads around itself are few."""
 
 LINK_PHASES = 3
 """int: Steps `link_sector_neighbors` takes per sector (its progress units)."""
+
+
+def _in_neighbourhood_order(config, sector_ids):
+    """`sector_ids` ordered by the `LINK_CELL_PC` cell of their centers (then id), so consecutive sectors sit near
+    each other: a batch of them loads the systems around one place, not around the whole run (PERF.84)."""
+    conn = get_connection(config)
+    try:
+        centers = _sector_centers(conn, sector_ids)
+    finally:
+        conn.close()
+
+    def cell(sector_id):
+        center = centers.get(sector_id)
+        if center is None:
+            return (0, 0, 0, sector_id)
+        return (*(math.floor(c / LINK_CELL_PC) for c in center), sector_id)
+
+    return sorted(sector_ids, key=cell)
 
 
 def link_sector_neighbors(config, sector_ids, on_progress=None):
@@ -4716,6 +4743,7 @@ def link_sector_neighbors(config, sector_ids, on_progress=None):
     sector_ids = sorted(set(sector_ids))
     skip = set(sector_ids)
     total = len(sector_ids) * LINK_PHASES
+    sector_ids = _in_neighbourhood_order(config, sector_ids)
 
     def report(base, phase, label, size):
         if on_progress is not None:
@@ -6168,11 +6196,12 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
 
         bright_star_links = []
         built_scatter_ids = []
-        for entry in sector.entries:
+        nearest = sector.all_nearest_neighbors(3)   # PERF.81: one spatial tree, not a distance to every system each
+        for entry, neighbors in zip(sector.entries, nearest):
             star_system_id = insert_star_system(
                 conn, entry.star_system, entry.system_config,
                 sector_id=sector_id, position=entry.position,
-                location=_location_for_entry(sector, entry),
+                location=_location_for_entry(sector, entry, neighbors),
             )
             bright_star_id = getattr(entry, "bright_star_id", None)
             if bright_star_id is not None:

@@ -11,6 +11,7 @@ filters. See `lib/datatable.py` for the whole picture.
 from flask import jsonify, request, url_for
 
 from planetgen.util import log
+from planetgen.web.errors import RETRY_AFTER_SECONDS
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import parse_state, view
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset
@@ -69,8 +70,9 @@ def table_data(name):
     of the page before, PERF.75), and
     `facets=1` to add the filter menus' option counts. Answers
     `{"rows", "total", "capped", "next", "facets"}`; rows are lists of cells (see
-    `lib/datatable.py`). An unknown table is a 404 and an API failure a 502,
-    both as `{"error": ...}`.
+    `lib/datatable.py`). An unknown table is a 404, a read that hit the database's statement time limit a 504
+    with `Retry-After` (and `"busy": true`, so the table keeps its rows and asks again), and any other API
+    failure a 502, all as `{"error": ...}`.
     """
     table = TABLES.get(name)
     if table is None:
@@ -82,6 +84,13 @@ def table_data(name):
         result = table.load(state, limit, offset, request.args.get("facets") == "1",
                             **({"after": request.args.get("after") or None} if table.keyset else {}))
     except apiclient.ApiError as exc:
+        if exc.status_code == 504:
+            log.debug(f"The {name} table hit the statement time limit: {exc}")
+            response = jsonify({"error": "The database is busy; trying again shortly.", "busy": True})
+            response.status_code = 504
+            response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+            response.headers["Cache-Control"] = "no-store"
+            return response
         log.exception(f"API error while loading the {name} table: {exc}")
         return _json_error("The table could not be loaded. Please try again shortly.", 502)
     response = jsonify({"rows": result.rows, "total": result.total, "capped": bool(result.capped), "next": result.next,

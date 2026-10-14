@@ -42,10 +42,16 @@ The camera orbit radius `R` sets a view radius `1.6 R`; the tile level is `floor
 1. **Level change** swaps floor (÷4), budget, per-sector allowance and the tile set at once [S].
 2. **Bright-star cap.** Each tile lists its 400 most luminous pre-placed stars, an equal share from each population (`_stratified`) [S]. A tile one level finer covers an eighth of the volume and lists 400 again, so the cut falls by roughly the factor that brings 8 times as many stars into reach [C: the scratch galaxy lists 3,200 bright stars in 8 tiles at every level from 2 to 7].
 3. **Detail tiles.** At a view radius of 160 pc or less (`DETAIL_VIEW_RADIUS_PC`) the finest tiles within 8 pc of the target are added, listing every star [S]. In the dense sector tested, 671 stars joined in one step at `R` = 102 pc [C].
-4. **Point objects** (black holes, neutron stars, quasars) are listed only from level 10 (`POINT_PHENOMENON_MIN_LEVEL`) [S].
+4. **Point objects** (black holes, neutron stars, quasars) are listed only from level 10 (`POINT_PHENOMENON_MIN_LEVEL`) [S]. *As built (MAP.155): from level 8, ranked like the stars; see the note below.*
 5. **No generated stars at level 2 and coarser** (the floor passes 1,000 L_sun) [S].
 6. **The fade is by time.** A star new to the drawn set rises over `STAR_FADE_IN_MS` = 300 ms (`starBorn`); a star already on screen never fades again, and a removed star is simply not in the next geometry [S]. So a zoom shows nothing, then a burst, whatever the zoom speed.
-7. **Cloud sprites** switch on at 2 px (`CLOUD_MIN_PX`), a hard edge [S].
+7. **Cloud sprites** switch on at 2 px (`CLOUD_MIN_PX`), a hard edge [S]. *As built (MAP.155): a ramp; see the note below.*
+
+**As built (MAP.155).** The three switches above that were still hard edges now ramp, all in `starfade.js` and the shaders in `galaxymap3d.js`:
+
+- Point objects are listed from level 8 (160 pc tiles, `POINT_PHENOMENON_MIN_LEVEL`, with tile budgets 30, 40, 40, 100 at levels 8 to 11). The server sends them most luminous first, so `tileRanks` ranks them like stars under the key the page draws them with (`black_hole12`) and they follow the same birth radius, level glide and parent-list rules (`fadeOfStar`). Tiles coarser than level 8 list only the biggest scattered classes, which stay whole (`POINT_FADE`). A test holds the page's `POINT_RANK_MIN_LEVEL` equal to the server's constant.
+- A cloud sprite's opacity ramps between 1 and 4 px of radius (`cloudSizeShare`, `CLOUD_RAMP_PX`) times the near-field fade, replacing the cut at 2 px. It can be aimed at only once its share reaches `PICK_MIN_VISIBLE` (0.35, about 2.3 px), so picking agrees with drawing.
+- A star arriving with the zoom is a 1 px dot (`STAR_DOT_PX`) that grows to its size as its zoom share rises (`arrivingStarSize`, twinned in the star vertex shader), instead of appearing at full size and only fading in.
 
 Two more effects are not zoom steps but read as pops: a tile that has not arrived yet leaves its area on the previous level's stars (`carriedStars`, MAP.48) until the fetch lands, and the fetch is debounced 300 ms (`FETCH_DEBOUNCE_MS`) [S]. A cached level switches in the frame the radius crosses the boundary.
 

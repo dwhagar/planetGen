@@ -465,7 +465,7 @@ tritanomaly at 7.5 [C]. Hue alone cannot carry the class; add a cue that survive
 2. Sector Map and nebula page: for the focused nebula, a bounded ray-march of the
    `Data3DTexture`, 16 steps, with the soft band; neighbours stay sprites or shells. Keep the
    analytic sphere shader as the first-frame and no-3D-texture fallback.
-3. MAP.132's markers cover the far zoom; sprites under 2 px stay hidden (`CLOUD_MIN_PX`).
+3. MAP.132's markers cover the far zoom; sprites fade in between 1 and 4 px of radius (`cloudSizeShare`, MAP.155).
 4. Tests: a node test of the closed-form profile (the 50% radius is exactly R for a symmetric
    band) and a browser test that screenshot alpha at 0.85 R, R and 1.2 R is above, near and
    below 50% of peak.
