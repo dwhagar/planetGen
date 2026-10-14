@@ -1048,7 +1048,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) | none | done, PR #1307 |
 | OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) | none | done, PR #1307 |
 | OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python | none | done, PR #1333 |
-| OPS.46 | Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python | none | open |
+| OPS.46 | Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python | none | done, PR #1359 |
 | OPS.47 | update.sh stops at the database migrate step in the venv: cryptography is missing from the requirements (bug) | none | done, PR #1346 |
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
