@@ -3634,14 +3634,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14;
   docs/design/math-and-library-efficiency.md). `physics/constants.py` is
   astropy's only user (about 20 constants). Decided (Boss, 2026-10-14
-  13:00Z): drop astropy at run time if it does us no good, after a
-  double check, which the Math Research thread is doing now; do not start
-  until its result lands. Done: the table is generated once from the
-  pinned CODATA 2018 and IAU 2015 values, astropy moves to the `test` extra
-  so `test_astropy_constants.py` still checks the table, no stored value
-  changes. Saves 280 ms and 29 MB per process start and 53 MB of install.
-  Replaces GEN.156 (pinning astropy before import is moot once it is not
-  imported). Owner: Foundations lane 1, after OPS.42 and the double check.
+  13:00Z): drop astropy at run time. The double check is done: under astropy
+  6.0.1, 6.1.7 and 8.0.1 `constants.py` gives identical values for 89 of 90
+  numbers, and only HYDROGEN_ATOM_MASS_KG differs (1.35e-9), so astropy
+  does us no good. Done: the table is generated once from the pinned
+  CODATA 2018 and IAU 2015 values; astropy leaves setup.py,
+  install-python-deps.sh (REQUIREMENTS table and NUMPY_STACK) and
+  test_install_python_deps.py NUMPY_LINKED but stays in the `test` extra so
+  `test_astropy_constants.py` still checks the table; no stored value
+  changes; the change note says it removes a dependency. Saves 280 ms and
+  29 MB per process start and 53 MB of install. Replaces GEN.156. Owner:
+  Foundations lane 1, after OPS.42.
   Prerequisites: none. Related: GEN.156, GEN.66.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
@@ -4126,7 +4129,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after PERF.80 merges (Foundations lane 2 is changing the settle step)
   and after OPS.42.
   Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
-  location (OPS.42).
+  location (OPS.42). Acceptance criterion: the integrator imports as the web
+  user (see OPS.42), by keeping it out of the web app's import path or by
+  writable `__pycache__` directories, with a test.
   Prerequisites: PERF.80, OPS.42. Related: PERF.31, GEN.105.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
@@ -5493,21 +5498,34 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.42 Install numba: raise the minimum Python to 3.12 and warm its cache in update.sh**
+- [ ] **OPS.42 Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code**
   Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md). Decided (Boss, 2026-10-14
-  13:00Z): numba is a hard requirement with no pure-Python fallback; the
-  minimum Python becomes 3.12 (not 3.10); the compiled-code cache stays in
-  numba's default location (no custom NUMBA_CACHE_DIR and no change to
-  create-cache-dir.sh), warmed by update.sh. Adds numba 0.68 and llvmlite
-  0.50 (about 196 MB installed). Done: both packages in the requirements
-  and lock files; the Python floor raised to 3.12 in the docs, setup
-  scripts, CI and lock (the 3.9 to 3.11 legs are dropped, which also frees
-  TEST.77 and the older-Python branches in the lock and in GEN.135's
-  probes); the cache warmed on every update; a start-up check that fails
-  with a clear message if numba cannot import; and the change noted in
-  the CHANGELOG and the README (Python 3.12 minimum, numba required).
-  Owner: Foundations lane 1, before the numba path integrator (PERF.88).
+  docs/design/math-and-library-efficiency.md, "The default cache and the
+  web user"). Decided (Boss, 2026-10-14 13:00Z): numba is a hard
+  requirement with no pure-Python fallback; the minimum Python becomes 3.12
+  (not 3.10); numba's cache stays in its DEFAULT location (no
+  NUMBA_CACHE_DIR, no /var/cache/planetgen/numba, no change to
+  create-cache-dir.sh); the change is noted in the CHANGELOG and the
+  README. numba 0.68 and llvmlite 0.50 (about 196 MB installed) need NumPy
+  below 2.6 and are not in apt on Ubuntu 24.04, so they install with pip
+  through the NumPy stack group of scripts/install-python-deps.sh and its
+  REQUIREMENTS table (enforced by test_install_python_deps.py). Done:
+  setup.py `python_requires` 3.12, the installer checks and INSTALL.md
+  raised; the Python 3.9 to 3.11 CI legs and the matching requirements.lock
+  markers dropped (frees TEST.77); numba added to the setup, installer and
+  lock; the change note says the minimum Python changed and the README's
+  requirements text says so. Acceptance criterion: with the default cache,
+  a process that can write neither the code tree's `__pycache__` nor its
+  own home directory fails at import ("cannot cache function: no locator
+  available"), even when root warmed the tree, and a user with a writable
+  home builds its own cache under ~/.cache/numba. Apache's web user (home
+  /var/www, tree owned by the login user) is exactly that case, so either
+  the kernel module stays out of the web app's import path (imported only
+  by the settle step, the orbit update and the workers; check
+  api/edits.py, queue/api_jobs.py and db/sector_paths.py) or update.sh
+  makes those `__pycache__` directories writable for the web group; a test
+  imports the integrator as the web user. Owner: Foundations lane 1,
+  before the numba path integrator (PERF.88).
   Prerequisites: none. Related: GEN.156, TEST.77.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
