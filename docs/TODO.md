@@ -609,7 +609,7 @@ with `clamp()`.
   only in the page display, labelled). Owner: Bugfixes lane 1 builds
   UX.98 first as the first slice, then the rest is a Phase 2 item for
   the interface builders.
-  Prerequisite: UX.98. Related: ['UX.98', 'PERF.66', 'UX.93'].
+  Prerequisite: UX.98. Related: UX.98, PERF.66, UX.93.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1536,7 +1536,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so a child never draws without them, with a test that a tile and its
   parents together hold exactly the stars the full list holds. Measure
   the saving against the cost of holding the parents before building it.
-  Prerequisites: MAP.159. Related: ['MAP.154', 'MAP.159'].
+  Prerequisites: MAP.159. Related: MAP.154, MAP.159.
 
 ## NAV: Navigation and courses
 
@@ -4692,6 +4692,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
 
+- [ ] **ADM.53 Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug)**
+  Boss (2026-10-14 15:17Z, Apache error log from his server): at 02:45
+  and 03:28 UTC on 2026-10-14 the admin login failed with a 500 because
+  `UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP`
+  (src/planetgen/admin/auth.py:331, called from
+  src/planetgen/api/auth.py:157) hit pymysql error 1205, 'Lock wait
+  timeout exceeded; try restarting transaction'. The same log has
+  mod_wsgi 'Timeout when reading response headers from daemon process
+  planetgen-api' at 02:47 and 03:01. Something held row locks for a long
+  time in that window, probably a long job transaction (neighbour
+  linking or a scatter). Done: find which transaction holds the locks
+  (reproduce with a long job and a login; check the settle, neighbour
+  link and scatter steps, and whether the admin_users row is touched by
+  a job at all), and make logins and other short API writes never wait
+  on a long job, by not touching rows a job locks, by committing the job
+  in short batches, or by moving last_login_at out of the login's
+  critical path (and a lock wait must never turn into a 500: a login
+  that cannot record its time still logs in). Add a test that holds a
+  job transaction open and logs in. Related to PERF.24 (API edits wait 8
+  s else answer 202) and PERF.71 (slow reads and timeouts).
+  GitHub issue [#1296](https://github.com/dwhagar/planetGen/issues/1296).
+  Prerequisites: none. Related: PERF.24, PERF.71.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -5517,7 +5540,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   test builds the renderer from the newest markdown the pin allows.
   Owner: Bugfixes lane 1, next, because a fresh install can break the
   web pages.
-  Prerequisites: none. Related: ['TEST.139', 'TEST.128'].
+  Prerequisites: none. Related: TEST.139, TEST.128.
 
 - [ ] **OPS.44 The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug)**
   The "pages build and deployment" run fails on main with "Liquid syntax
@@ -5530,6 +5553,32 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   delimiters outside a raw block, so the next note cannot break the
   site, and check the Pages build goes green on main afterwards.
   Prerequisites: none.
+
+- [ ] **OPS.45 Install planetGen into its own virtual environment and clear the packages out of the system Python**
+  Boss (2026-10-14 15:17Z, chose the venv over system Python with apt):
+  reverses design decision 7 in docs/design/design-decisions.md, which
+  put the libraries in the system Python on Linux. His server's Apache
+  log shows planetGen's libraries (flask, pymysql, flask_limiter) living
+  in /usr/local/lib/python3.12/dist-packages. Done: install.sh and
+  update.sh build one venv, install every planetGen dependency in it
+  (numba and llvmlite included, from the lock files), remove the
+  pip-installed planetGen packages from the system Python, and point
+  both the CGI pages and the mod_wsgi entry point (WSGIDaemonProcess
+  python-home, src/html/wsgi.py, the examples in examples/apache and
+  docs/deployment/apache.md) at it; the generator, the workers, the
+  Redis queue workers and the cron or timer jobs run from the venv too.
+  Revisit numba's default cache location for the venv and the web user
+  (OPS.42's rule that the web app never imports numba still holds, and
+  PERF.88's web-user import test now runs against the venv). The venv
+  path, how update.sh rebuilds it when the Python or the lock file
+  changes, and how a system package conflict is detected are the lane's
+  to propose in the PR. Update design-decisions.md section 7,
+  INSTALL.md, README, docs/deployment/apache.md and testing.md, and keep
+  the macOS installer as it is. The change note says the install layout
+  changed and that update.sh does it for the server. Interacts with
+  OPS.43 (a fresh install gets markdown 3.11.1) and OPS.42 (merged).
+  GitHub issue [#1295](https://github.com/dwhagar/planetGen/issues/1295).
+  Prerequisites: none. Related: OPS.42, OPS.43, OPS.44.
 
 ## DOC: Documentation
 
