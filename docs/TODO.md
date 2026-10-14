@@ -3856,6 +3856,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (coordinator to assign), then Foundations lane 1.
   Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
   ADM.15, PERF.24.
+  Redis review (2026-10-09): Research done (Research Lane 1, 2026-10-14,
+  PR #1350): docs/design/redis-and-the-work-queue.md, with
+  /mnt/project-files/research/redis-review/. It is the Redis options
+  first that Boss required. Recommendation, not decided: Option A, keep
+  RQ and Redis, make Redis the only place a run lives (run record,
+  done-set stage barrier), workers on demand with an idle timeout,
+  counters plus an event stream, cancel in about 0.5 s; the note lists 8
+  decisions for Boss (section 6). The rebuild's step list (section 5.11
+  item 4) is NOT filed as items until Boss answers. Filed from the same
+  review, independent of the rebuild: PERF.93 (bug), OPS.48, PERF.94,
+  ADM.54.
 
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
   Math Research (2026-10-14;
@@ -3918,6 +3929,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   aggregates per run and per sector, a repeatable 1-in-1,000 sample with
   full timing, and a full row per object only behind an opt-in flag.
   Prerequisites: none. Related: PERF.33.
+
+- [ ] **PERF.93 api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). api_jobs.ensure_workers
+  starts min(waiting, worker_count()) minus Worker.count(queue) minus
+  the workers still starting. Worker.count is the size of a Redis set
+  that only a worker's start-up maintenance cleans. Measured in the
+  review: after kill -9 of a worker the count stayed at 1 for the whole
+  test, and still at 1 after the worker's own key had expired (80 s), so
+  queued API jobs wait on a phantom worker and, with a cap of one,
+  nothing replaces it. A job whose worker was killed is also noticed
+  only after about 90 s (heartbeat TTL 30 s plus 60 s) and then runs
+  again because of Retry(max=1). Not reproduced end to end through
+  planetGen's own code; the cause and the measurement are in the note
+  (finding F4, F5). Done when: ensure_workers counts live workers only
+  (a liveness check, and the worker registry is cleaned first), a test
+  kills a worker and shows a replacement starts and the queued job runs,
+  and the late-noticed killed job is covered or noted. Independent of
+  PERF.86. Bugfixes lane 2.
+  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78.
+
+- [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Redis is opened in
+  several places with different settings (finding F9) and RQ arguments
+  are pickled (F8). Done when: one module owns the connection (timeouts,
+  retry, health check, a cached pool), every connect() call site uses
+  it, and task arguments travel as plain JSON where the old path pickled
+  them. Normal priority; PERF.86 builds on it. Foundations lane 1,
+  before PERF.40.
+  Prerequisites: none. Related: PERF.86, PERF.40.
 
 ## DB: Database and schema
 
@@ -4597,6 +4643,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
+
+- [ ] **ADM.54 A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Optional monitoring: the
+  admin page shows whether Redis answers, whether the append-only file
+  is on, the memory policy, used_memory, the last save status and the
+  worker count. Default: build it after the Redis settings item; Boss
+  may drop it. Foundations lane 1, after the client module.
+  Prerequisites: none. Related: OPS.48, PERF.94.
 
 ## SEC: Security
 
@@ -5461,6 +5518,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   card relayed by the coordinator): warn only. The warnings print the
   exact line to add and never edit his vhost.
   Prerequisites: none. Related: DOC.37, PERF.82.
+
+- [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Redis here runs with its
+  defaults. In the review's test, the defaults lost every key on kill -9
+  and appendonly yes with appendfsync everysec kept them all. Done when:
+  examples/redis/planetgen.conf sets appendonly yes, appendfsync
+  everysec, maxmemory-policy noeviction, a maxmemory guard and a
+  loopback bind; update.sh warns, with the exact line to add, when
+  appendonly is off or the memory policy is not noeviction or Redis
+  listens beyond loopback, and never edits his Redis config; the install
+  guides say so (with DOC.44). Normal priority, behind the
+  generation-performance work. Bugfixes lane 1.
+  Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
 
 ## DOC: Documentation
 

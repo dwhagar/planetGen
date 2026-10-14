@@ -251,6 +251,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
 | OPS.46 | Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python |  | Boss 2026-10-14 19:15Z |
+| ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) |  | Redis review 5.11 item 5, optional |
+| PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle |  | Redis review 5.11 item 3 |
+| OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) |  | Redis review 5.11 item 2 |
+| PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) |  | Redis review F4 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
