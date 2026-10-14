@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1051] - 2026-10-14
+
+### Changed
+- A test now fails when a page under docs/ holds Jinja or Liquid delimiters outside a raw block, which is what stopped the docs site from building.
+
 ## [8.0.1050] - 2026-10-14
 
 ### Changed
