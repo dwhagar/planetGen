@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.51 |
 | SEC | SEC.33 |
-| TEST | TEST.137 |
+| TEST | TEST.139 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -883,7 +883,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.172 | Nebula cell aggregates in the region pyramid | none | open |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | open |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | open |
-| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | open |
+| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | open |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | none | open |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | open |
@@ -939,7 +939,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
-| NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
+| NAV.48 | Offer to generate the uncharted sectors that block a course | none | done, PR #1195 |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
@@ -1056,21 +1056,21 @@ Parents marked "new parent" had no old number of their own.
 | PERF.62 | Interim early stop in the current layer-walking scatters: 100 empty layers in a row (tuning.SCATTER_DRY_LAYERS) | none | done, PR #1087; removed by PERF.58 (PR #1108) |
 | PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy | none | done, PR #1174 |
 | PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) | none | done, PR #1161 |
-| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | open |
-| PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | open |
+| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | done, PR #1197 |
+| PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | done, PR #1197 |
 | PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | open |
-| PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | open |
-| PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | open |
-| PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | open |
+| PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | done, PR #1193 |
+| PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | done, PR #1206 |
+| PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | done, PR #1193 (built as a group-by-group read: no stored sector-name column, exact and needs no upkeep) |
 | PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts | none | done, PR #1175 |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | none | open |
-| PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) | none | open |
-| PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | open |
-| PERF.75 | Keyset paging for the data tables: page forward by key, jump by value | none | open |
-| PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | open |
-| PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | open |
+| PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) | none | done, PR #1209 |
+| PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | done, PR #1193 |
+| PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) | none | open |
+| PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | done, PR #1199 |
+| PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | done, PR #1199 |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
-| PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | open |
+| PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | done, PR #1206 |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | open |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
@@ -1456,6 +1456,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
 | TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | open |
+| TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) | none | open |
+| TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

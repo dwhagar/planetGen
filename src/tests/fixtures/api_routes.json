@@ -57,6 +57,7 @@
   "/api/moons/<uid:body_id>/regenerate POST",
   "/api/moons/<uid:moon_id> PATCH",
   "/api/nav GET",
+  "/api/nav/chart GET",
   "/api/near GET",
   "/api/nebulae/<uid:nebula_id>/shape GET",
   "/api/nebulae/<uid:nebula_id>/surroundings GET",

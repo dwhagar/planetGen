@@ -65,9 +65,10 @@ def _json_error(message, status):
 def table_data(name):
     """
     One page of a data table as JSON, for `static/datatable.js`:
-    `?sort=&order=&<filters>&offset=&limit=` (limit at most one page), and
+    `?sort=&order=&<filters>&offset=&limit=` (limit at most one page; a keyset table also takes `after=`, the `next`
+    of the page before, PERF.75), and
     `facets=1` to add the filter menus' option counts. Answers
-    `{"rows", "total", "facets"}`; rows are lists of cells (see
+    `{"rows", "total", "capped", "next", "facets"}`; rows are lists of cells (see
     `lib/datatable.py`). An unknown table is a 404 and an API failure a 502,
     both as `{"error": ...}`.
     """
@@ -78,11 +79,13 @@ def table_data(name):
     limit = min(_whole(request.args.get("limit"), PAGE_SIZE, 1), PAGE_SIZE)
     offset = _whole(request.args.get("offset"), 0, 0)
     try:
-        result = table.load(state, limit, offset, request.args.get("facets") == "1")
+        result = table.load(state, limit, offset, request.args.get("facets") == "1",
+                            **({"after": request.args.get("after") or None} if table.keyset else {}))
     except apiclient.ApiError as exc:
         log.exception(f"API error while loading the {name} table: {exc}")
         return _json_error("The table could not be loaded. Please try again shortly.", 502)
-    response = jsonify({"rows": result.rows, "total": result.total, "facets": result.facets})
+    response = jsonify({"rows": result.rows, "total": result.total, "capped": bool(result.capped), "next": result.next,
+                       "facets": result.facets})
     response.headers["Cache-Control"] = "no-store"
     return response
 

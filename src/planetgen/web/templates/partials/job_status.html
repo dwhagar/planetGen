@@ -7,7 +7,7 @@ redraws the same parts (a failed job's log stays open until Continue, ADM.24; Co
   <span class="badge job-{{ job.status }}" data-job-status>{{ job.status }}</span>
   <span class="hint">started {{ job.created_html }}{% if job.admin %} by {{ job.admin }}{% endif %}</span></p>
 <p data-job-step>
-  {%- if job.stage_text %}{{ job.stage_text }}{% elif job.step_label %}Step {{ job.step }} of {{ job.steps|length }}: {{ job.step_label }}{% endif -%}
+  {%- if job.stage_text %}{{ job.stage_text }}{% elif job.step_label %}Step {{ job.step_first_stage }} of {{ job.stages|length }}: {{ job.step_label }}{% endif -%}
 </p>
 {%- if job.stage_list and job.stage_list|length > 1 %}
 <details class="job-stages" data-job-stages-box>

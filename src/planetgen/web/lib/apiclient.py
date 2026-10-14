@@ -384,7 +384,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False):
+                binary=None, placement=None, octants=(), facets=False, after=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -395,10 +395,12 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
         sort, descending, binary (True/False), placement (`"sector"` or
             `"standalone"`), octants, facets: the Systems tables' sort and
             filters (UX.41).
+        after: The system ID the previous page ended on (PERF.75); with the name sort the page starts after
+            it and `offset` is ignored.
     """
     _require_db(db)
     params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
-              ("offset", offset), ("sort", sort), ("order", "desc" if descending else None),
+              ("offset", offset), ("after", after), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])
@@ -461,6 +463,17 @@ def get_nav(db, from_ref, to_ref, stay=None):
     if stay is not None:
         params["stay"] = stay
     return _request("/nav", params)
+
+
+def get_nav_chart(db, from_ref, to_ref, border=False):
+    """Returns `GET /api/nav/chart` (NAV.48): the uncharted sectors that block the course between two
+    objects -- `unknown_hops`, `cells`, `count`, `outside_galaxy`, `route_distance_ly`, `bypass` and
+    `confirm_over`; `border` adds the uncharted cells next to them."""
+    _require_db(db)
+    params = {"db": db, "from": from_ref, "to": to_ref}
+    if border:
+        params["border"] = 1
+    return _request("/nav/chart", params)
 
 
 def get_galaxy_sectors(db):

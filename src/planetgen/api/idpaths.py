@@ -65,6 +65,7 @@ ID_PATHS = {
         "legs[].from": "ref",
         "legs[].to": "ref",
     },
+    "api.nav_chart": {},
     "api.near": {"rows[].id": "by-kind"},
     "api.galaxy_sectors": {"items[].id": "sector"},
     "api.galaxy_stage_route": {"sectors[].id": "sector"},

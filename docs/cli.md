@@ -135,6 +135,7 @@ planetgen galaxy --ring I --slot K --column [options]
 planetgen galaxy --ring I --shell [--limit N | --yes] [options]
 planetgen galaxy --block M.I.S.SLAB [--block-layer J] [options]
 planetgen galaxy --center-sector ID --radius-pc R [options]
+planetgen galaxy --course FROM TO [--course-border] [--yes] [options]
 planetgen galaxy [options]
 ```
 
@@ -163,6 +164,13 @@ or `--yes`.
 [`design/galaxy-drilldown-navigation.md`](design/galaxy-drilldown-navigation.md)),
 and `--block-layer J` narrows it to one of the block's layers. Blocks past
 the large-ring threshold need `--limit` or `--yes` too.
+`--course FROM TO` (NAV.48) generates the uncharted sectors that block the NAV
+course between two objects (a system's object ID, or `<kind>:<ID>` for a body
+or phenomenon): the cells of the route's hops through unknown space, inside the
+galaxy's outline, not every cell on the straight line. `--course-border` adds
+the uncharted cells that share a face with them. Past 5,000 sectors it needs
+`--yes`; the size and disk checks are the same as for any run. The NAV page
+(`/nav/chart`, admins) starts it as a Generate page job.
 
 Run with neither `--ring` nor `--center-sector` (i.e. no arguments at
 all), `planetgen galaxy` picks a uniformly random (by volume), not-yet-

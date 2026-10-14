@@ -2,6 +2,388 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.986] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the cost of writing phenomenon rows during a scatter as open work.
+
+## [8.0.985] - 2026-10-11
+
+### Changed
+- The phenomena scatter writes its rows about 1.6 times faster: it builds its multi-row inserts itself and leaves the table's two secondary indexes off while it writes, building them once from the finished table. The rows are the same.
+
+## [8.0.984] - 2026-10-11
+
+### Changed
+- GitHub CI (`ci.yml`, every test leg) no longer runs on a push to `main` or on any push or pull request. It runs on a daily schedule (07:00 UTC) on `main`, where the same run also starts CI on every `dev-*` branch, and by hand (Actions > CI > Run workflow). A branch named `claude/*` or `claude-*` never runs the test jobs.
+
+## [8.0.983] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the slow two-worker plan scatter and the stored table counts as open work.
+
+## [8.0.982] - 2026-10-11
+
+### Changed
+- The plan's scatter passes now hand their layers to the workers in a few chunks instead of one task per layer, so two or more workers no longer spend more time starting tasks than drawing stars. Rows are unchanged.
+
+## [8.0.981] - 2026-10-11
+
+### Changed
+- **The Phenomena table's total and filter-menu counts are stored like the Systems and Sectors counts (PERF.69).** They counted the whole phenomena views in the request, so a big galaxy could reach the "Took too long" page. They now go through the stored-count cache (the last count while a new one is made, a count capped at 10,000 before the first). The Planets and Moons have no table page, so nothing else counts a whole table in a request.
+
+## [8.0.980] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the invisible dark-theme nebula fill as open work, and list a new load-flaky map menu test.
+
+## [8.0.979] - 2026-10-11
+
+### Changed
+- Nebulae on the Galaxy Map are visible on both themes (MAP.175): the dark family was near-black on a dark page (1.0:1) and the pale families faded into the light one, so each theme now has its own nebula colours and every family reaches 3:1 against the map's background. The dark family is a dust-coloured silhouette on the dark theme and keeps its near-black fill on the light one. A test checks the colours against the real background in `style.css`.
+
+## [8.0.978] - 2026-10-11
+
+### Changed
+- The plan pages say a test failure came from the CI run on main, not the manual one.
+
+## [8.0.977] - 2026-10-11
+
+### Changed
+- GitHub CI (`ci.yml`, every test leg) now runs on its own only for a push to `main`, and by hand on any branch (Actions > CI > Run workflow). It still does not run on a pull request or on a push to another branch. A newer run on the same branch cancels the older one that is still going, so a merge's run can be cancelled by the "Release x.y.z" commit pushed right after it.
+
+## [8.0.976] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the Galaxy Map tile time budgets and the capped counts as open work, and the keyset paging item now covers only what is left.
+
+## [8.0.975] - 2026-10-11
+
+### Changed
+- **A Galaxy Map tile whose slowest piece times out is shown without it and fetched again, not replaced by the "Took too long" page (PERF.76).** A tile is eight separate reads; each now runs under its own 3-second limit. A tile that lost a piece is sent marked `incomplete`, is not kept in the tile cache or the browser's store, and the map asks for it again after 5, 10 ... 30 seconds (six times at most) while the database catches up.
+- **Counts nobody has stored stop at 10,000 (PERF.77).** The Systems and Sectors tables used to count up to 50,000 rows when no stored count existed for a filter. They now count to 10,001, which takes 30 ms where a full count took 6 s, and show "10,000+" until the exact figure arrives. The API sends `total_capped: true`.
+- **The Systems table pages forward by key (PERF.75).** `GET /api/systems?after=<system ID>` starts after that system in the name sort, and the table sends the previous page's last system, so a page far down costs what page 1 does (page 1,500,000 took 8.5 s by `OFFSET`, 2 ms by key). Jumping straight to a distant row with the scroll bar still skips rows the old way; a jump-by-letter box is not built yet.
+
+## [8.0.974] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the job text step count and the whole-job progress bar as open work.
+
+## [8.0.973] - 2026-10-11
+
+### Changed
+- A job's log and page count its stages across the whole job: a New galaxy job reads "Step 1 of 12" to "Steps 4 to 12 of 12", not "Step 1 of 4", and each step's own stage lines carry on from the earlier steps' ("Stage 4 of 12"). Every staged process uses the one total.
+- The whole-job bar's time left no longer equals the running stage's own until the last stage: each stage still to run counts what earlier runs of it took, else the average of the stages finished so far (in the first stage, that stage's own expected total). The command-line bar does the same without stored times.
+
+## [8.0.972] - 2026-10-11
+
+### Changed
+- The plan pages no longer list offering to generate the uncharted sectors that block a course as open work.
+- The plan pages list a new load-flaky test for the neighborhood Generate page.
+
+## [8.0.971] - 2026-10-11
+
+### Added
+- **Admins can chart the uncharted sectors that block a course (NAV.48).** When a route crosses unknown space, the NAV page offers an admin "Chart those sectors", which opens `/nav/chart`: how many sectors the unknown hops cross (those hops only, not the whole line; cells outside the galaxy are never offered), whether a route through charted space exists, and a box for a one-cell border. The Generate page then shows the size and time and asks to confirm (past 5,000 sectors the chart page asks first too, and the disk refusal still applies) before a background job generates them; plot the course again when it has finished. The same is `planetgen galaxy --course FROM TO [--course-border]`, and `GET /api/nav/chart` gives the plan without generating anything.
+
+## [8.0.970] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the Galaxy Map tile queries, the Sectors list count and the Systems list sort as open work.
+
+## [8.0.969] - 2026-10-11
+
+### Changed
+- **The Sectors list, the Systems list sorts and the Galaxy Map's coarse tiles stop timing out on a big galaxy (PERF.68, PERF.70, PERF.74).** The Sectors list counted every system on each request (17 s on 2 million systems); it now reads each sector's stored count (`sector_system_counts`, filled by the update and refreshed in the background no more than every 30 seconds). The Systems list sorted by Sector, Octant or Binary sorted the whole table; it now counts group by group and reads only the page. The Galaxy Map's scattered black holes and quasars at zoom levels 2 to 5 read 8.6 million rows (33 s); a `(kind, subtype, mass_solar)` index brings that to under half a second (12.7 s to 0.25 s on 3 million rows). Needs `./update.sh` (schema v82: two indexes, one replaced, and a small table).
+
+## [8.0.968] - 2026-10-11
+
+### Changed
+- The plan no longer lists a missing prerequisite on the course stops item.
+
+## [8.0.967] - 2026-10-11
+
+### Changed
+- The plan pages now put every performance item and every correction to the generation process at the top of every lane's queue, ahead of orbital updates, maps, nearby search and routing.
+
+## [8.0.966] - 2026-10-11
+
+### Changed
+- The TODO list files the nebula density items (supernova-remnant and host rates, a redo command, an audit test, an optional near view), makes GEN.152 and DB.24 concrete from the density research, and moves GEN.152 to Phase 1.
+
+## [8.0.965] - 2026-10-11
+
+### Changed
+- The gravity-map plan records that the size of each gradient measure is built from the orbital update system's preset minimum movements (0.01 mpc galactic, 0.01 AU system, 100,000 km planetary), on GEN.198, GEN.199, MAP.167 and the design note.
+
+## [8.0.964] - 2026-10-11
+
+### Changed
+- The TODO list retires PERF.46, GEN.169 and GEN.128 (Foundations lane 2's queue step 1, PR #1186).
+
+## [8.0.963] - 2026-10-11
+
+### Changed
+- Design notes record Boss's answers on the `finite_domain` check (stays on in bulk fills, PERF.46) and on the phenomenon scatter rates (regional factors and the 0.1% intermediate-mass black holes stay as they are, GEN.169), and the compact-remnant module's docstring points at the notes that exist (GEN.128). No behaviour changes.
+
+## [8.0.962] - 2026-10-11
+
+### Changed
+- The TODO list records Boss's decision on PERF.79: the scatter stays one job on the Redis queue, never bypassing it, with parallelism only where it measurably helps.
+
+## [8.0.961] - 2026-10-11
+
+### Changed
+- The TODO list records that MAP.150's first stage (the wheel zooms toward the cursor, PR #1182) is built and what is still open.
+
+## [8.0.960] - 2026-10-11
+
+### Changed
+- The TODO list files the 14 items for making nebulae visible on the Galaxy Map (a nebula table and aggregates, a tile layer, the dark-theme contrast bug, then regions, cover colouring, individual clouds, markers, picking and dust colour), from the nebula visibility research (PR #1180).
+
+## [8.0.959] - 2026-10-11
+
+### Changed
+- On the Galaxy Map the wheel now zooms toward the point under the cursor (MAP.150, first stage): whatever is under the pointer stays under it as you zoom in or out, and the camera closes on it by the same share each step, so it never runs into it. Without a pointer position (keys, buttons, a pinch) the zoom is about the middle of the view, as before. Wheel zoom inside an opened system is still about the middle.
+
+## [8.0.958] - 2026-10-11
+
+### Changed
+- The TODO list retires PERF.31 (the generation benchmark, PR #1179), files its four findings (two workers slow the plan scatter, saving sector paths, neighbour search, sector inserts) and reorders Foundations lane 1.
+
+## [8.0.957] - 2026-10-11
+
+### Added
+- **`planetgen benchmark` times a small galaxy from the plan to the finished fill (PERF.31).** It makes scratch databases, runs the real plan and fill at each worker count asked (`--workers 1,2`), and prints every stage's seconds and share, what the database server counted (statements, rows, commits per second), and with `--profile` the costliest functions of one fill. `--output` saves the result as JSON; the scratch databases are dropped unless `--keep`. The first report, `docs/design/generation-benchmark-report.md`, finds two workers making the plan's scatter 12 times slower, saving sector paths costing a quarter of a small fill, and the neighbour search making 1.8 million distance calls.
+
+## [8.0.956] - 2026-10-11
+
+### Changed
+- The TODO list closes PERF.59 (sharing the ring inputs), which PERF.58, PERF.61 and PERF.63 made moot, and files TEST.134, a job-start test that fails under a parallel run.
+
+## [8.0.955] - 2026-10-11
+
+### Changed
+- The TODO list files the nine build items from the slow-reads research (stored sector counts, keyset paging, tile budgets, capped counts, rows before menus, busy retry, search panels, a warm admin worker, a big-galaxy query test), folds its two index fixes into the open tile and sort items, and retires the research item PERF.71 (PR #1175).
+
+## [8.0.954] - 2026-10-11
+
+### Changed
+- The TODO list files the map luminosity of massive phenomena (a shared mass-to-luminosity function, a stored column, filling it, and using it in the Galaxy Map's visibility), files the follow-up on the cost of writing phenomenon rows, and retires the numpy phenomena pass (PERF.63, PR #1174).
+
+## [8.0.953] - 2026-10-11
+
+### Changed
+- The phenomena scatter draws a layer's objects as numpy arrays (PERF.63): per ring and class one Poisson count as before, then the angle bins, slots, points, masses and the stored-in-cell check of the whole layer at once, with the random numbers still taken from the layer's stream in bulk. The same model and the same counts, about nine times faster on the default galaxy (a pass of about 37 minutes now takes about 4). A galaxy needs a reseed to use it.
+
+## [8.0.952] - 2026-10-11
+
+### Changed
+- The TODO list retires NAV.52 (`join_islands` and the k-d tree ported to cKDTree, PR #1172).
+
+## [8.0.951] - 2026-10-11
+
+### Changed
+- **Route graph building is up to 18 times faster (NAV.52).** The nearest-neighbour search and the island joining behind NAV routes now use SciPy's cKDTree instead of a pure-Python k-d tree. On 106,529 systems in 2,000 clusters it takes 3.2 s instead of 57 s, and the graph is the same edge for edge and distance for distance (also checked at 3,000, 10,000 and 20,000 systems).
+
+## [8.0.950] - 2026-10-11
+
+### Changed
+- The TODO list rewrites ADM.50: the galaxy settings files and every admin-facing part go, and only an internal record of the current galaxy is kept (no history, no import or export); DB.17, OPS.28, OPS.37 and DOC.14 now point at that record.
+
+## [8.0.949] - 2026-10-11
+
+### Changed
+- The TODO list files ADM.50, removing the galaxy settings files (the seed JSON files) entirely, with the code, API routes, Admin panel, tests and design text that use them listed.
+
+## [8.0.948] - 2026-10-11
+
+### Changed
+- The TODO list files TEST.132 (a bright-scatter edge test that failed once in a full parallel run) and records one more load-sensitive map test on TEST.126.
+
+## [8.0.947] - 2026-10-11
+
+### Changed
+- Every release in CHANGELOG.md now opens with its headline feature, the README lists the headline features, and the plan pages show what each upcoming headline (8.0 orbital updates, 8.1 infinite zoom, 8.5 gravity-bent courses, 9.0 gravity map) needs.
+
+## [8.0.946] - 2026-10-11
+
+### Changed
+- The TODO list adds the gravity map, the seminal feature of 9.0: GEN.198 field evaluator, TEST.131, PERF.72 cost study and GEN.199 per-zone grid (phase 2), then MAP.167 (umbrella), API.24, MAP.168, MAP.169 and UX.94 (phase 3) and MAP.170 (later), with a design note, and records the seminal features of 8.0, 8.1 and 9.0.
+
+## [8.0.945] - 2026-10-11
+
+### Changed
+- The TODO list files two failures from the manual CI run on main: TEST.129 (two orbit-update tests on the MySQL 8.4 leg) and TEST.130 (comet position at epoch in the scene test).
+
+## [8.0.944] - 2026-10-11
+
+### Changed
+- The TODO list files the test failures the lanes reported (TEST.126 WebGL browser-map tests under load, TEST.127 the nebula shape API test, TEST.128 two database tests under a parallel run), OPS.41 (an "updating" state during long migrations), and records that Research Lane 1 owns PERF.71.
+
+## [8.0.943] - 2026-10-11
+
+### Changed
+- The TODO list files PERF.71, a research item on keeping slow database calls on large data sets from timing out (queue them, split them, or answer in parts).
+
+## [8.0.942] - 2026-10-11
+
+### Changed
+- The TODO list retires PERF.64 (the Systems list and the busy behaviour, PR #1161) and files its three leftovers: PERF.68 (Galaxy Map tile queries on a big galaxy), PERF.69 (stored Planets, Moons and Phenomena counts) and PERF.70 (sorting the Systems list by Sector or Octant).
+
+## [8.0.941] - 2026-10-11
+
+### Changed
+- TODO: MAP.148 retired as built (PR #1160); the distance-cut tile choice, the server floors and the cap-versus-floor question move to MAP.152. The Foundations lane queues are reorganized (11 items move from lane 2 to lane 1).
+
+## [8.0.940] - 2026-10-11
+
+### Changed
+- **The Systems and Sectors tables no longer count their whole table on every page load, and a busy database fails gently (PERF.64).** Each load of the Systems list ran four full scans of the systems table (about 3 s per million systems each), so a big galaxy, or any fill, pushed it past the 10 s limit. The totals and filter menus are now stored counts, made by one background count at a time (not sooner than every 30 s, or three times as long as the last one took), with the last count served while a new one is made and an estimate before the first. A statement stopped by the time limit is named in the activity log (`DB statement_timeout`, with its SQL and seconds). The 504 page now says the database is busy, reloads itself every 10 seconds and sends `Retry-After`, the API's `QUERY_TIMEOUT` carries `Retry-After` too, and the Galaxy Map asks again after 2, 4, 8 ... 30 seconds when a tile request fails instead of waiting for the next camera move. The Systems list stops using `DISTINCT` where no star join can repeat a row, and the search page's cache key no longer counts every sector.
+
+## [8.0.939] - 2026-10-11
+
+### Changed
+- The Galaxy Map draws a star at an opacity that follows its apparent magnitude from the camera (MAP.148): the limit is chosen each time the view changes so about 20,000 stars show (8,000 on a phone), counted among the stars actually on screen, so a packed core shows fewer faint stars and thin space more, and a star's core brightens or dims with its flux. The limit never dims a star at the distance you are looking at, only those much farther away, and it eases rather than jumps. Black holes, neutron stars and quasars always stay lit. The server's per-level luminosity floors stay as they are for now.
+
+## [8.0.938] - 2026-10-11
+
+### Changed
+- TODO notes: the standing procedure for sweeping GitHub issues (close, comment the linked items, tag "in progress") is recorded.
+
+## [8.0.937] - 2026-10-11
+
+### Changed
+- TODO: UX.93 filed: no TODO code (like PERF.67 or NAV.42) may appear anywhere a user can see it, with a test; Bugfixes lane 2 after its current items.
+
+## [8.0.936] - 2026-10-11
+
+### Changed
+- TODO: PERF.67 extended: separate timing records per scatter kind, one aggregate scatter record, and every ETA display reads them.
+
+## [8.0.935] - 2026-10-11
+
+### Changed
+- TODO: PERF.67 filed: record how long every operation takes, from each stage up to the whole job, and use the records for ETAs; Bugfixes lane 1, after PERF.66.
+
+## [8.0.934] - 2026-10-11
+
+### Changed
+- TODO: PERF.66 extended: with no total-process metrics the main progress bar's time left must add an estimate for every stage still to come, so it equals the current stage's time left only on the last stage.
+
+## [8.0.933] - 2026-10-11
+
+### Changed
+- TODO: NAV.42 retired (merged, PR #1153); NAV.28 (adjusted-course readout) stays open.
+
+## [8.0.932] - 2026-10-11
+
+### Added
+- **Each route stop shows the course and distance to the next stop (NAV.42).** The NAV page's route reads `045 mark 012, 3.2 ly` after each stop, and the course map's tooltip names the course to the next stop; the last stop shows none. A hop between two systems of one sector uses the Sector Local Frame, any other hop the Galactic Frame. The routing API's hops carry `bearing_deg`, `mark_deg`, `elevation_deg` and `frame`, and the route has `stop_places` (each stop's sector and sector-local position).
+
+## [8.0.931] - 2026-10-11
+
+### Changed
+- TODO: PERF.39 retired (merged, PR #1151).
+
+## [8.0.930] - 2026-10-11
+
+### Changed
+- **API jobs start faster and no longer start a process each (PERF.39).** A queued API job used to import the whole API layer (about 2 s) before running and started its own worker process; now a refusal is recognised without that import, the name generator loads its word list and offensive-word patterns (about 1.5 s of `nltk` and regex compiling) only when a name is first checked, and the jobs share one queue served by at most as many burst workers as the worker count, with one Redis connection reused for submits and status reads. A job whose worker was just exiting is picked up by the next status read.
+
+## [8.0.929] - 2026-10-11
+
+### Changed
+- TODO: PERF.66 filed (bug): the whole-job progress bar should track total elapsed time and estimate stages without performance data from the earlier stages; Bugfixes lane 1.
+
+## [8.0.928] - 2026-10-11
+
+### Changed
+- TODO: PERF.65 filed (bug): multi-step job output says "Step 1 of 4" when the job has 12 tasks; Bugfixes lane 1, with PERF.33.
+
+## [8.0.927] - 2026-10-11
+
+### Changed
+- TODO: PERF.64 filed (bug): the Galaxy Map and the Systems list stop with "Took too long" and the site is sluggish; Foundations lane 1 is on it ahead of PERF.39.
+
+## [8.0.926] - 2026-10-11
+
+### Changed
+- The version's BUILD number now goes up by one with every stamped release and never resets, instead of being the sum of the TODO category counters (the next stamp after 8.0.912 is 8.0.913). The "Next free IDs" table only allocates TODO IDs.
+
+## [8.0.925] - 2026-10-11
+
+### Changed
+- TODO: PERF.38 retired (PR #1144); its page-time re-run under Ludicrous Speed moved to ADM.15.
+
+## [8.0.924] - 2026-10-11
+
+### Changed
+- **The Galaxy Map's caches hold up while a fill runs (PERF.38).** Tiles and stages missing from the disk cache are built by one request at a time (a Redis claim; the others wait for its file and build only if it never arrives), the page cache keeps its answers while a fill changes the galaxy faster than pages can be rebuilt instead of emptying at every check, and the galaxy's stamp reads a deletion counter in place of counting every placed sector (0.13 s per million sectors on every check). Deleting a sector, by the API, the sector tools or `planetgen reset`, moves the counter.
+
+## [8.0.923] - 2026-10-11
+
+### Changed
+- TODO: PERF.63 (numpy phenomena prototype) is decided yes and moved from Phase 2 to Phase 1, in Bugfixes lane 1's queue.
+
+## [8.0.922] - 2026-10-11
+
+### Changed
+
+- TODO list: MAP.149 retired (merged, PR #1141); MAP.121 and MAP.141 noted as built in part.
+
+## [8.0.921] - 2026-10-11
+
+### Added
+- The Galaxy Map has a near field (MAP.149): blocks and stars closer to the camera than a sixth of the distance to the thing looked at dissolve, and a soft see-through tube from the camera to the focus thins whatever stands in front of it, so a near block no longer hides what you came to see. When the camera is inside a block, that block is drawn from the inside (faint walls and edges). Picking agrees with drawing: a block faded below a share of 0.35 can't be picked, so a click goes through to what is behind it, and the walls of the block you are inside never take a click. This folds in MAP.121's blocker fade and MAP.141's faint-context rule (`contextOpacity`, `prominence`, `limitingMagnitude` in `static/nearfield.js`, ready for MAP.148, MAP.150 and MAP.155); nothing is stored or fetched differently.
+
+## [8.0.920] - 2026-10-11
+
+### Changed
+
+- TODO list: NAV.9 retired (merged, PR #1139); TEST.125 filed.
+
+## [8.0.919] - 2026-10-11
+
+### Added
+- **The Galaxy Map's locate box finds planets and moons by name (NAV.9).** A planet or moon appears in the list as "Name (planet of System, Sector)" and links through `/object/<ID>` to its row on the system page. Typing a name that only one planet or moon has goes straight there. Every locate match and every search result row now carries its object reference (`ref`) and its parent chain (`parents`: sector, system, and a moon's planet), built from the panel's own query. Asteroid belts have no names, so the box cannot find them.
+
+## [8.0.918] - 2026-10-11
+
+### Changed
+
+- TODO list: API.8, ADM.13, USR.2 to USR.7, VIEW.3 decided (Boss, 2026-10-10 19:16Z); NAV.6, GEN.9 and VIEW.4 answers confirmed.
+
+## [8.0.917] - 2026-10-11
+
+### Changed
+
+- TODO list: UX.3, UX.22, UX.30, UX.32, NAV.4, API.4, API.5 and MAP.159 questions marked Decided (Boss, 2026-10-10 19:12Z).
+
+## [8.0.916] - 2026-10-11
+
+### Changed
+
+- TODO list: every open question with a stated default is now marked Decided (Boss, 2026-10-10 18:44Z, defaults approved); PERF.63 stays open.
+
+## [8.0.915] - 2026-10-11
+
+### Changed
+
+- TODO list: NAV.9, NAV.42, NAV.47, NAV.48 and NAV.52 assigned to Bugfixes lane 2; MAP.147 to Foundations lane 2.
+
+## [8.0.914] - 2026-10-11
+
+### Changed
+
+- TODO list: API.23 and DOC.17 retired (merged, PRs #1119, #1127 and #1133).
+
+## [8.0.913] - 2026-10-11
+
+### Changed
+- **The query command and the system page's body anchors speak object IDs too (API.23, stage 3).** `planetgen.cli.query` lists sectors, systems, planets and moons with their printed IDs, takes IDs for `--sector-id` and `--system-id`, and `near` takes `<kind>:<ID>`. The system page's row anchors (`#planet-<ID>`) still open and highlight the row and its map marker. The Nearby API's errors name the place as it was written. A leak-sweep test checks that no page links an object by row number.
+- **Fixed: the Galaxy Map's stage and tile answers carried sector row numbers** (the Sector page's in-place map asked for `/sector/<number>/scene`, which no longer exists). They now carry the sector IDs, as do the tiles' placed sectors, stars of generated systems and clouds.
+
 ## [8.0.912] - 2026-10-10
 
 **Headline:** Every planet and moon gets a habitability score and equipment-needed rating.
