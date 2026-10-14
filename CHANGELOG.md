@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.997] - 2026-10-14
+
+### Changed
+- Every staged process now stores its whole-process time, even a run that visited no layers, and each stage's seconds per layer. The scatters are stored on their own (massive stars, bright stars, phenomena, backfill) and added up in one "All scatters" row.
+- A scatter with no stored time of its own is now estimated from that common scatter figure, in the command-line bar, the Generate page's whole-job bar and each stage's bar alike, since they all read the one stored-time function.
+
 ## [8.0.996] - 2026-10-14
 
 ### Changed
