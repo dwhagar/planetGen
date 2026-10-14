@@ -39,6 +39,12 @@ from planetgen.db.store import MySQLConfig
 
 from tests import areas, dbpool, failure_capture, publicids
 
+# Every program a test starts (the generate CLI, a worker, a stand-in script) imports `planetgen` from this
+# checkout, not from whichever checkout the editable install points at (TEST.143, TEST.145): from a git
+# worktree the install is the main checkout, so a child process tested old code against new tests.
+os.environ["PYTHONPATH"] = os.pathsep.join(
+    [os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), *filter(None, [os.environ.get("PYTHONPATH")])])
+
 # The always-on activity log (planetgen/admin/activity_log.py) would
 # otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
 # to a throwaway folder instead. Tests that read it point
@@ -449,6 +455,16 @@ def _api_jobs_wait_patiently(monkeypatch):
     yield
 
 
+def _counts_in_this_process(limiter):
+    """Whether the limiter keeps its counts in this process's memory. Its `reset()` on a Redis storage deletes
+    every limiter key on the server, including those of a test running at that moment in another process (a
+    test of `test_ratelimit_redis.py` lost half its counts that way, TEST.146); a test that uses Redis keeps
+    its keys under a prefix of its own and removes them itself (`key_prefix`)."""
+    from limits.storage import MemoryStorage
+    storage = getattr(limiter, "_storage", None)
+    return storage is None or isinstance(storage, MemoryStorage)
+
+
 @pytest.fixture(autouse=True)
 def _reset_rate_limits():
     """Flask-Limiter's one shared instance keeps its counts for the whole
@@ -462,7 +478,7 @@ def _reset_rate_limits():
             # instance, so a test of an app with limits off (RATELIMIT_ENABLED =
             # False) switched them off for every later test in its worker.
             limiter.enabled = True
-            if getattr(limiter, "initialized", False):
+            if getattr(limiter, "initialized", False) and _counts_in_this_process(limiter):
                 limiter.reset()
         except Exception:  # noqa: BLE001 -- no API dependencies, or a storage that can't reset
             pass
