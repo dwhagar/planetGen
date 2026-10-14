@@ -205,7 +205,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) |  |  |
 | PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | PERF.80, OPS.42 |  |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls |  |  |
-| OPS.42 | Install numba: raise the minimum Python to 3.12 and warm its cache in update.sh |  |  |
+| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code |  |  |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  |  |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.150, MAP.152 |  |
