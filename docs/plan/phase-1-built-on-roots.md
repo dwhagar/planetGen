@@ -198,6 +198,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
+| ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) |  |  |
+| OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python |  |  |
 | OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) |  |  |
 | OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) |  |  |
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) |  |  |
@@ -205,18 +207,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) |  |  |
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
-| PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) |  |  |
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) |  |  |
-| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | OPS.42 |  |
-| PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls |  |  |
-| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code |  |  |
+| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill |  |  |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  |  |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.150, MAP.152 |  |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules |  |  |
 | ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) |  |  |
-| MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) |  |  |
-| MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) |  |  |
 | UX.99 | Rogue planets do not show their surface gravity (bug) |  |  |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
@@ -239,7 +236,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own |  | Bugfixes lane 2. |
-| UX.95 | Tables show their rows first and fill the filter-menu counts a moment later |  | Bugfixes lane 2. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | DB.23 | Foundations lane 1. |
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) |  | Needs a migration. Foundations lane 1. |

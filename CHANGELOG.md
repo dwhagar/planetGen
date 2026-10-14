@@ -2,6 +2,72 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1046] - 2026-10-14
+
+### Changed
+- Retired PERF.87 and PERF.90 from the roadmap.
+
+## [8.0.1045] - 2026-10-14
+
+### Changed
+- Retired UX.95 from the roadmap and noted two more browser-map test sightings.
+
+## [8.0.1044] - 2026-10-14
+
+### Changed
+- Placing a system or compact remnant in a sector now tests the new position against every neighbour as one NumPy array instead of one distance call each; the same random numbers are drawn in the same order, so the placed positions and the stored galaxy are identical (PERF.87).
+- The ring centerline length is cached like the ring and slot counts already were (PERF.90).
+
+## [8.0.1043] - 2026-10-14
+
+### Changed
+- **A table paints its rows first and fills the filter-menu counts a moment later.** The first page used to ask for the filter-menu counts in the same request, so a slow count held the rows back. The rows now come on their own; the menus show "..." in place of their counts after a sort or filter change and fill in when their own request answers (and ask again by themselves if the database is busy).
+
+## [8.0.1042] - 2026-10-14
+
+### Changed
+- Noted on the venv install item that the server's system packages are already cleared.
+
+## [8.0.1041] - 2026-10-14
+
+### Changed
+- Added the virtual-environment install and the admin login lock-wait bug to the roadmap.
+
+## [8.0.1040] - 2026-10-14
+
+### Changed
+- The design note for the test suite rebuild now records what was decided about every open test-fix item (TEST.111, 116, 125 to 135, 137 to 144): which are fixed now, which are folded into the rebuild and close after five clean full runs, and which become an opt-in tier outside the merge gate.
+
+## [8.0.1039] - 2026-10-14
+
+### Changed
+- Recorded that packed Galaxy Map tiles do not yet leave out stars a coarser tile sent, as a follow-up item.
+
+## [8.0.1038] - 2026-10-14
+
+### Changed
+- Retired OPS.42 from the roadmap and released the items that waited on it.
+
+## [8.0.1037] - 2026-10-14
+
+### Changed
+- numba is now a required library, installed by `install.sh` and `update.sh` with the rest of the NumPy stack; there is no pure-Python fallback. The minimum Python becomes 3.12 (it was 3.9, and 3.10 on macOS), the README, INSTALL.md and the lock files say so, and CI no longer runs a Python 3.9 leg (the MySQL 8.0 leg runs on 3.12). The website itself never imports numba, because numba's default cache needs a writable code or home folder that Apache's web user lacks; a test keeps it that way.
+
+## [8.0.1036] - 2026-10-14
+
+### Changed
+- Retired MAP.187 and MAP.188 from the roadmap.
+
+## [8.0.1035] - 2026-10-14
+
+### Changed
+- Reworded the roadmap entry that broke the docs site build.
+
+## [8.0.1034] - 2026-10-14
+
+### Changed
+- **The sector and slab borders no longer add up to a near-opaque cube grid when zooming in (MAP.188).** The translucent blocks along a line of sight used to add up (a ray through twenty 30% faces is over 99% opaque). Their faces and lines are now drawn at a share worked out from the stage's cells and the way the camera looks, so the blocks along any ray add up to no more than half, and the lines between slabs are fainter. The selected or hovered slab, block or sector is still outlined in full.
+
 ## [8.0.1033] - 2026-10-14
 
 ### Changed
