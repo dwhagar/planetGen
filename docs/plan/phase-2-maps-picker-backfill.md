@@ -162,7 +162,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.181 | Dust colour for the dark nebula family on both themes |  | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | MAP.176 | Phase 2. Foundations lane 2. |
 | MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173 | Phase 2. Foundations lane 2. |
-| MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173, MAP.155 | Phase 2. Foundations lane 2. |
+| MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
@@ -196,6 +196,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
+| GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) |  |  |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line |  |  |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall |  |  |
@@ -205,7 +206,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.100 | Planet and moon lists show habitability as symbols, not notes |  |  |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |
 | MAP.192 | See the objects whose positions changed in the last orbital update |  |  |
-| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.155 |  |
+| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them |  |  |
 | MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | MAP.189 |  |
 | GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) |  | Foundations lane 2 report 06:20Z. |
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | DOC.6 | Boss 23:53Z; Phase 2. |

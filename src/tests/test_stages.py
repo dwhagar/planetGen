@@ -9,6 +9,8 @@ job instead of its processes.
 import argparse
 import json
 
+import time
+
 import pytest
 
 from planetgen.cli import generate as generate_cli
@@ -159,7 +161,9 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     finally:
         conn.close()
     assert history["mass"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0}
-    assert history["mass"]["metrics"] == {"layers": 40, "layers_modified": 7, "objects": 120}
+    metrics = dict(history["mass"]["metrics"])
+    assert metrics.pop("seconds_per_layer") == pytest.approx(history["mass"]["seconds"] / 40)
+    assert metrics == {"layers": 40, "layers_modified": 7, "objects": 120}
     assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
     assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
     assert history["population"]["skipped"] and "population pass" in history["population"]["skip_reason"]
@@ -246,7 +250,7 @@ def test_the_whole_job_stores_its_layers_per_second_over_all_its_layers(control_
     assert fallback == pytest.approx(rate)
 
 
-def test_a_run_that_visited_no_layers_stores_no_whole_job_row(control_config, monkeypatch):
+def test_a_run_that_visited_no_layers_still_stores_its_whole_process_row(control_config, monkeypatch):
     mysql_config = control_config
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
@@ -258,10 +262,44 @@ def test_a_run_that_visited_no_layers_stores_no_whole_job_row(control_config, mo
     stages.finish()
     conn = _control(mysql_config)
     try:
-        assert generation_stats.stage_history(conn, stages.JOB_KEY) == []
+        (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
+        assert job["metrics"] == {"stages_run": 1, "layers": 0} and job["seconds"] >= 0
+        assert generation_stats.stage_history(conn, stages.SCATTER_KEY) == []
         assert generation_stats.job_layers_per_second(conn) is None
     finally:
         conn.close()
+
+
+def test_the_scatters_are_stored_on_their_own_and_added_up_for_a_scatter_with_no_record(control_config, monkeypatch):
+    mysql_config = control_config
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    args = _galaxy("--then-scatter", "--workers", "2", "--mysql-host", mysql_config.host,
+                   "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
+                   "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
+    stages.begin(stages.galaxy_stages(args), args, "galaxy")
+    stages.enter("mass")
+    stages.note(layers=40, objects=10)
+    time.sleep(0.02)
+    stages.enter("luminosity")
+    stages.note(layers=60, objects=5)
+    time.sleep(0.02)
+    stages.finish()
+    conn = _control(mysql_config)
+    try:
+        (scatter,) = generation_stats.stage_history(conn, stages.SCATTER_KEY)
+        mass = generation_stats.stage_seconds(conn, "mass", {"workers": 2})
+        luminosity = generation_stats.stage_seconds(conn, "luminosity", {"workers": 2})
+        phenomena = generation_stats.stage_seconds(conn, "phenomena", {"workers": 2})
+        link = generation_stats.stage_seconds(conn, "link", {"workers": 2})
+    finally:
+        conn.close()
+    assert scatter["metrics"]["operations"] == 2 and scatter["metrics"]["layers"] == 100
+    assert scatter["metrics"]["objects"] == 15
+    assert scatter["metrics"]["seconds_per_layer"] == pytest.approx(scatter["seconds"] / 100)
+    assert mass != luminosity                      # each kind keeps its own figure
+    assert phenomena == pytest.approx(scatter["seconds"] / 2)    # a scatter never run takes the common one
+    assert link is None                            # any other stage has no common figure
 
 
 def test_the_overall_bar_is_the_time_so_far_against_the_stored_time_of_every_stage(monkeypatch):

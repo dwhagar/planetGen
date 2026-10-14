@@ -1276,6 +1276,18 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     assert tiles[coarse]["points"] == []
 
 
+def test_the_page_ranks_point_objects_from_the_level_the_server_lists_them():
+    """MAP.155: `starfade.js` ranks a tile's black holes, neutron stars and quasars like its stars from
+    `POINT_RANK_MIN_LEVEL`, which is the first level the server lists them at."""
+    import re
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "html" / "static" / "starfade.js").read_text(encoding="utf-8")
+    match = re.search(r"export const POINT_RANK_MIN_LEVEL = (\d+);", source)
+    assert match and int(match.group(1)) == query.POINT_PHENOMENON_MIN_LEVEL
+    assert min(query.GALAXY_TILE_POINT_BUDGET) == query.POINT_PHENOMENON_MIN_LEVEL
+
+
 def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_their_sector_is_filled(
         client, mysql_config):
     """MAP.164: a scatter row not yet built into a sector comes back as a point with its class's size, the
