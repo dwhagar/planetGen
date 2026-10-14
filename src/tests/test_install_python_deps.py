@@ -253,3 +253,20 @@ def test_the_web_app_never_imports_numba():
             "assert 'numba' not in sys.modules, 'numba was imported by the web app'\n")
     done = subprocess.run([sys.executable, "-c", code], cwd=os.path.join(ROOT, "src"), capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-1500:]
+
+
+def test_cryptography_is_a_requirement_for_mysql_8_logins():
+    """The first real update.sh on a venv failed at the migration with "'cryptography' package is required for
+    sha256_password or caching_sha2_password auth methods": pymysql needs it to log in to MySQL 8's default accounts."""
+    assert "cryptography>=42.0.0" in _setup_requirements()
+    assert "cryptography>=42.0.0" in _script_requirements()
+    lock = _lock_pins().read_lock(os.path.join(ROOT, "requirements-server.lock"))
+    assert "cryptography" in {name for name, _, _, _ in lock}
+
+
+def test_the_library_check_fails_a_pymysql_that_cannot_use_cryptography():
+    """A venv with pymysql but no cryptography is "broken" at the library step, not at the migration."""
+    code = ("import sys; sys.modules['cryptography'] = None; sys.argv = ['probe', 'pymysql>=1.1.1']\n"
+            f"exec(open({os.path.join(ROOT, 'scripts', 'probe_requirements.py')!r}).read())\n")
+    done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
+    assert done.stdout.startswith("broken pymysql>=1.1.1 ImportError:pymysql_has_no_cryptography"), done.stdout + done.stderr
