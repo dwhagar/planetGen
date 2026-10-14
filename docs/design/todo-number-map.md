@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.53 |
 | SEC | SEC.33 |
-| TEST | TEST.142 |
+| TEST | TEST.143 |
 | USR | USR.11 |
 | OPS | OPS.43 |
 | DOC | DOC.18 |
@@ -1079,7 +1079,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) | none | done, PR #1161 |
 | PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | done, PR #1197 |
 | PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | done, PR #1197 |
-| PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | open |
+| PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | done, PR #1249 |
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | done, PR #1193 |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | done, PR #1206 |
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | done, PR #1193 (built as a group-by-group read: no stored sector-name column, exact and needs no upkeep) |
@@ -1497,6 +1497,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules | none | open |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) | none | open |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) | none | open |
+| TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
