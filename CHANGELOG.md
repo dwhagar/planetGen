@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1034] - 2026-10-14
+
+### Changed
+- **The sector and slab borders no longer add up to a near-opaque cube grid when zooming in (MAP.188).** The translucent blocks along a line of sight used to add up (a ray through twenty 30% faces is over 99% opaque). Their faces and lines are now drawn at a share worked out from the stage's cells and the way the camera looks, so the blocks along any ray add up to no more than half, and the lines between slabs are fainter. The selected or hovered slab, block or sector is still outlined in full.
+
 ## [8.0.1033] - 2026-10-14
 
 ### Changed

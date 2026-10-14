@@ -1,2 +1,0 @@
-### Changed
-- **The sector and slab borders no longer add up to a near-opaque cube grid when zooming in (MAP.188).** The translucent blocks along a line of sight used to add up (a ray through twenty 30% faces is over 99% opaque). Their faces and lines are now drawn at a share worked out from the stage's cells and the way the camera looks, so the blocks along any ray add up to no more than half, and the lines between slabs are fainter. The selected or hovered slab, block or sector is still outlined in full.
