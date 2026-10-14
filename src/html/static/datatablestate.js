@@ -94,7 +94,11 @@ export function fetchWhileBusy(request, wanted, onBusy, sleep) {
       if (response.status === 504 && wanted()) {
         onBusy(true);
         return wait(busyPause(count + 1)).then(function () {
-          return wanted() ? attempt(count + 1) : Promise.reject(new Error("table no longer wanted"));
+          if (wanted()) {
+            return attempt(count + 1);
+          }
+          onBusy(false);
+          return Promise.reject(new Error("table no longer wanted"));
         });
       }
       onBusy(false);
