@@ -3134,23 +3134,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **GEN.156 Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up)**
-  `requirements.lock` resolves astropy 6.0.1 (Python 3.9), 6.1.7 (3.10)
-  and 8.0.1 (3.11+), and 8.0 defaults to CODATA 2022 (the proton and
-  electron masses differ by about 1.4e-9). Done:
-  `astropy.physical_constants` pinned to CODATA 2018 and
-  `astropy.astronomical_constants` to IAU 2015 before the first astropy
-  import, with tests that the constants agree to 1e-12 across the
-  supported interpreters, and the `HYDROGEN_ATOM_MASS_KG` tolerance in
-  `test_astropy_constants.py` tightened from 1e-4 to 1e-12 (the loose
-  one hides the difference). May be done by the deterministic math
-  helpers' frozen constants.
-  Math Research (2026-10-14): GEN.211 drops astropy at run time for a
-  constants table, which makes this pin moot; GEN.156 is retired when GEN.211
-  merges.
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
 - [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
   One Alembic revision, no change to existing tables, and the data file
   checked against McConnachie 2012 (VizieR J/AJ/144/4) and NED. Hold
@@ -3548,24 +3531,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   repeatable-galaxy generator version bump. Owner: Foundations lane 1,
   after the repeatable-galaxy chain starts.
   Prerequisites: none. Related: GEN.24, ADM.30, GEN.135, OPS.37.
-
-- [ ] **GEN.211 Constants table instead of astropy: faster start, 29 MB less memory per process**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md). `physics/constants.py` is
-  astropy's only user (about 20 constants). Decided (Boss, 2026-10-14
-  13:00Z): drop astropy at run time. The double check is done: under astropy
-  6.0.1, 6.1.7 and 8.0.1 `constants.py` gives identical values for 89 of 90
-  numbers, and only HYDROGEN_ATOM_MASS_KG differs (1.35e-9), so astropy
-  does us no good. Done: the table is generated once from the pinned
-  CODATA 2018 and IAU 2015 values; astropy leaves setup.py,
-  install-python-deps.sh (REQUIREMENTS table and NUMPY_STACK) and
-  test_install_python_deps.py NUMPY_LINKED but stays in the `test` extra so
-  `test_astropy_constants.py` still checks the table; no stored value
-  changes; the change note says it removes a dependency. Saves 280 ms and
-  29 MB per process start and 53 MB of install. Replaces GEN.156. Owner:
-  Foundations lane 1.
-  Prerequisites: none. Related: GEN.156, GEN.66.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **GEN.212 Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update)**
   Math Research (2026-10-14;
