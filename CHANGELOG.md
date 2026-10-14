@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1060] - 2026-10-14
+
+### Changed
+- **Each Search result panel runs and shows on its own.** A slow panel used to time out the whole page. The page now asks for each panel separately, so each has its own database time limit; a panel that runs out says "This took too long; try again or narrow the search." with a link to try again, and the others show. `GET /api/search` takes `panels=none` to answer just the facets and name suggestions.
+- **A one-word name search shorter than the full-text minimum matches the start of a name.** A 2-letter word read every name in the table (8.4 s on 2,000,000 systems); it now uses the name index, so "ar" finds "Arcturus" but no longer "Alpha Ar".
+
 ## [8.0.1059] - 2026-10-14
 
 ### Changed
