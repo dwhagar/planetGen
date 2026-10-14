@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1112] - 2026-10-14
+
+### Changed
+- The TODO list drops UX.98 (Generate log stage numbering, merged in #1369) and notes that OPS.49's cause is pymysql 1.2.1 to 1.2.3.
+
+## [8.0.1111] - 2026-10-14
+
+### Fixed
+
+The Generate log, the command line text, the status panel and the downloaded log now say "Stage 4 of 12" for one stage and "Stages 4 to 12 of 12" for a run of stages, with one section separator form ("=== Stages 4 to 12 of 12: name ===") and a closing line that uses the same wording (UX.98).
+
+## [8.0.1110] - 2026-10-14
+
+### Changed
+- The TODO list drops TEST.145 and TEST.146 (merged in #1367) and records the new full-run time of about 49 minutes.
+
+## [8.0.1109] - 2026-10-14
+
+### Fixed
+- **Test isolation: child processes use this checkout, and one test no longer wipes another's rate-limit counts** (TEST.145, TEST.146). `conftest.py` puts this checkout's `src` first on `PYTHONPATH`, so a program a test starts (the generate CLI, a worker) imports the code under test even from a git worktree, where the editable install points at another checkout. The between-test reset of the shared rate limiter deleted every limiter key on the Redis server when the limiter used Redis, so `test_ratelimit_redis.py` lost half its counts whenever another worker ran at the same moment; it now resets only a limiter that counts in memory.
+- **Two System Map browser tests wait for the object's action links before reading them** (TEST.126 group). `locator.all()` does not wait, so under load they read an empty list and failed; both passed alone.
+
+## [8.0.1108] - 2026-10-14
+
+### Changed
+- The TODO list drops PERF.93, DB.23 and GEN.201 (merged in #1364 and #1365) and files TEST.147, two nebula-field tests that fail under load.
+
 ## [8.0.1107] - 2026-10-14
 
 ### Added

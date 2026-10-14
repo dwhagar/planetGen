@@ -48,6 +48,8 @@ import sys
 import tempfile
 import time
 
+from planetgen.util import stagemark
+
 LOCK_NAME = "active"
 """str: The jobs directory's lock file, holding the running job's id."""
 
@@ -207,11 +209,6 @@ def _step_stage_counts(steps):
     return [max(len(step.get("stages") or []), 1) for step in steps]
 
 
-def _step_heading(first, count, total):
-    """`"Step 4 of 12"`, or `"Steps 4 to 12 of 12"` for a step with several stages."""
-    return f"Step {first} of {total}" if count == 1 else f"Steps {first} to {first + count - 1} of {total}"
-
-
 class _JobTree:
     """The job's nodes in the control database's job tree, or nothing at
     all when planetGen's modules or the control database aren't there."""
@@ -354,8 +351,8 @@ def run(job_dir):
                 except OSError:
                     pass
                 first = sum(counts[:index - 1]) + 1
-                heading = _step_heading(first, counts[index - 1], total)
-                log.write(f"\n=== {heading}: {step['label']} ===\n".encode("utf-8"))
+                count = counts[index - 1]
+                log.write(f"\n{stagemark.section(first, total, count, step['label'])}\n".encode("utf-8"))
                 env[STAGE_OFFSET_ENV] = str(first - 1)
                 env[STAGE_TOTAL_ENV] = str(total)
                 step_node = tree.open_step(step["label"])
@@ -378,8 +375,7 @@ def run(job_dir):
                 tree.close(step_node, "cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
                            else ("done" if code == 0 else "failed"))
                 step_node = None
-                log.write(f"=== {heading.split(' of ')[0]} exited with status {code} after "
-                          f"{time.time() - started:.0f} s ===\n".encode("utf-8"))
+                log.write((stagemark.finished(first, count, code, time.time() - started) + "\n").encode("utf-8"))
                 state["exit_code"] = code
                 if code == CANCELLED_EXIT_CODE and not current["cancelled"]:
                     # Cancelled from the admin queue page (ADM.10).

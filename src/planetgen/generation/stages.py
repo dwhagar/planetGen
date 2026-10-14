@@ -23,7 +23,7 @@ import os
 import time
 
 from planetgen.queue import progress_file
-from planetgen.util import log
+from planetgen.util import log, stagemark
 
 SECTOR_MODES = ("block", "span", "course", "column", "shell", "slot", "ring", "center_sector")
 
@@ -385,9 +385,9 @@ def _announce(index, skipped=None):
         _state["open"] = record
     offset, job_total = _numbering()
     if skipped:
-        log.normal(f"Stage {offset + index + 1} of {job_total}: {stage.label} -- skipped: {skipped}.")
+        log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label} -- skipped: {skipped}.")
     else:
-        log.normal(f"Stage {offset + index + 1} of {job_total}: {stage.label}.")
+        log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label}.")
     progress_file.set_stage(index + 1, total, stage.label, skipped)
 
 
