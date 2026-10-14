@@ -124,7 +124,9 @@ It runs eight steps and prints each one:
    is left alone ([planetGen's own Python](docs/deployment/apache.md#planetgens-own-python)).
    It also adds a `planetgen` command in `/usr/local/bin`. The Apache vhost
    needs `python-home=/usr/local/planetgen/venv` on its `WSGIDaemonProcess`
-   line (the example has it).
+   line (the example has it); `update.sh` checks that, the process group,
+   `application-group=%{GLOBAL}` and that Apache's user can read the venv, and
+   only warns ([the rules](docs/deployment/apache.md#what-apache-needs-to-run-the-venv-and-what-updatesh-checks)).
 2. Creates or migrates the database schema, and prints the admin
    password on a new database.
 3. Fetches the NLTK `words` corpus into `/usr/local/share/nltk_data`.
