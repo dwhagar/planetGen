@@ -196,7 +196,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
-| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | MAP.159 |  |
+| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent |  |  |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | UX.98 |  |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) |  |  |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |

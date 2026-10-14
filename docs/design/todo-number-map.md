@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.145 |
 | USR | USR.12 |
 | OPS | OPS.46 |
-| DOC | DOC.18 |
+| DOC | DOC.45 |
 | VIEW | VIEW.11 |
 | POP | POP.12 |
 
@@ -507,6 +507,33 @@ Parents marked "new parent" had no old number of their own.
 | DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | none | open |
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | none | open |
 | DOC.17 | Describe the object ID in api.md | none | done, PR #1133 |
+| DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | none | open |
+| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
+| DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | open |
+| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | open |
+| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | open |
+| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | open |
+| DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
+| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | open |
+| DOC.26 | Give every design note a status line and refresh the stale ones | none | open |
+| DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
+| DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
+| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | open |
+| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | open |
+| DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | open |
+| DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | open |
+| DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 | none | open |
+| DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list | none | open |
+| DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | open |
+| DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | open |
+| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | open |
+| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | open |
+| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | open |
+| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | open |
+| DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail | none | open |
+| DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | open |
+| DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | open |
+| DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -877,7 +904,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | done, PR #1112 |
 | MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | done, PR #1123 |
-| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
+| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | done, PR #1305 |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
 | MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | done, PR #1129 |
 | MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | done, PR #1085 |
