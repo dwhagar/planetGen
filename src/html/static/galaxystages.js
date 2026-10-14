@@ -667,6 +667,11 @@ export function stageQuery(stage) {
   return parts.length ? "?" + parts.join("&") : "";
 }
 
+// The printed object ID of a system or body in a link (API.23: hex digits in up to three dashed groups,
+// `0008000000-4000000-00D`; see objectref.js), and a body's `<kind>:<id>` reference.
+const ID_PART = /^[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;
+const OBJECT_REF = /^(?:star|planet|moon|belt|comet):[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;
+
 // The stage a URL's query asks for: {stage, sector, open, problem}. `sector`
 // ({ring, layer, slot}) is set by ?sector=<designation>, whose stage the
 // caller works out (sectorStage needs the outline); `open` by &open=1 with
@@ -684,8 +689,12 @@ export function parseStageQuery(search) {
   if (designation != null) {
     const sector = parseSectorDesignation(designation);
     if (!sector) return { stage: galaxy, sector: null, problem: "There is no sector " + designation + "." };
-    const system = /^\d+$/.test(params.get("system") || "") ? Number(params.get("system")) : null;
-    const object = /^(star|planet|moon|belt|comet):\d+$/.test(params.get("object") || "") ? params.get("object") : null;
+    // The ID stays text, in upper case as objectref.js writes it.
+    const system = ID_PART.test(params.get("system") || "") ? params.get("system").toUpperCase() : null;
+    const wantedObject = params.get("object") || "";
+    const object = OBJECT_REF.test(wantedObject)
+      ? wantedObject.slice(0, wantedObject.indexOf(":") + 1) + wantedObject.slice(wantedObject.indexOf(":") + 1).toUpperCase()
+      : null;
     return { stage: galaxy, sector: sector, open: params.get("open") === "1", system: system, object: object, problem: null };
   }
   let at = null;
