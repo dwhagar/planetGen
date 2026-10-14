@@ -4595,29 +4595,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
 
-- [ ] **ADM.53 Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug)**
-  Boss (2026-10-14 15:17Z, Apache error log from his server): at 02:45
-  and 03:28 UTC on 2026-10-14 the admin login failed with a 500 because
-  `UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP`
-  (src/planetgen/admin/auth.py:331, called from
-  src/planetgen/api/auth.py:157) hit pymysql error 1205, 'Lock wait
-  timeout exceeded; try restarting transaction'. The same log has
-  mod_wsgi 'Timeout when reading response headers from daemon process
-  planetgen-api' at 02:47 and 03:01. Something held row locks for a long
-  time in that window, probably a long job transaction (neighbour
-  linking or a scatter). Done: find which transaction holds the locks
-  (reproduce with a long job and a login; check the settle, neighbour
-  link and scatter steps, and whether the admin_users row is touched by
-  a job at all), and make logins and other short API writes never wait
-  on a long job, by not touching rows a job locks, by committing the job
-  in short batches, or by moving last_login_at out of the login's
-  critical path (and a lock wait must never turn into a 500: a login
-  that cannot record its time still logs in). Add a test that holds a
-  job transaction open and logs in. Related to PERF.24 (API edits wait 8
-  s else answer 202) and PERF.71 (slow reads and timeouts).
-  GitHub issue [#1296](https://github.com/dwhagar/planetGen/issues/1296).
-  Prerequisites: none. Related: PERF.24, PERF.71.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -5383,38 +5360,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a clear message, and the Admin pages show the state. Owner:
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
-
-- [ ] **OPS.43 A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug)**
-  GitHub issue [#1270](https://github.com/dwhagar/planetGen/issues/1270).
-  Reported by the Test Suite Rebuild thread (2026-10-14 14:04Z): `pip
-  install -e ".[test,api]"` installs markdown 3.11.1 because setup.py
-  only says `markdown>=3.6`. Markdown 3.11.1 removes the inline pattern
-  `not_strong` that `web/lib/mdrender.py` (line 34) names, and 74 tests
-  fail in test_fuzz_text_rendering, test_web_system_phen,
-  test_bughunt_render_edges, test_mdrender, test_web_population,
-  test_systems and test_page_shell. With markdown 3.11 (the version
-  pinned in requirements.lock) all 466 pass. A real install that
-  resolves the newest markdown would break every page that renders
-  descriptions, so this is a product bug as well as a test failure.
-  Done: either setup.py caps `markdown>=3.6,<3.11.1` or mdrender.py
-  tolerates the missing name (the second is the more durable; the lane
-  picks one and says which), the installer and the lock agree, and a
-  test builds the renderer from the newest markdown the pin allows.
-  Owner: Bugfixes lane 1, next, because a fresh install can break the
-  web pages.
-  Prerequisites: none. Related: TEST.139, TEST.128.
-
-- [ ] **OPS.44 The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug)**
-  The "pages build and deployment" run fails on main with "Liquid syntax
-  error: Unknown tag 'extends'", first in html-interface.md (line 581)
-  and then in this file. Jekyll 3.10 reads the Jinja template examples
-  and the csrf field mentions as its own template tags, and it stops at
-  the first one. The web interface page was wrapped in raw tags in #1276
-  and this item's own text was reworded so it holds none. Add a docs
-  test that fails when any markdown file holds the Jinja tag or variable
-  delimiters outside a raw block, so the next note cannot break the
-  site, and check the Pages build goes green on main afterwards.
-  Prerequisites: none.
 
 - [ ] **OPS.45 Install planetGen into its own virtual environment and clear the packages out of the system Python**
   Boss (2026-10-14 15:17Z, chose the venv over system Python with apt):
