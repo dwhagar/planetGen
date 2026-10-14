@@ -31,6 +31,7 @@ from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.web.lib import tilepack
 from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire
 
 from planetgen.api.limiter import page_limit
@@ -282,10 +283,11 @@ def _json_error(message, status):
 @page_limit("galaxy_tiles")
 def galaxy_tiles():
     """
-    JSON for the map's script: `?tiles=<level/ix/iy/iz,...>` and optional
+    The tiles for the map's script: `?tiles=<level/ix/iy/iz,...>` and optional
     `&stamp=<the browser cache's stamp>`. Returns
-    `tilecache.fetch_tiles`' payload, sent as stored bytes (MAP.157); a malformed request is a 400, an
-    API failure a 502, both as `{"error": ...}` JSON.
+    `tilecache.fetch_tiles`' payload packed (`tilepack`, MAP.159) and sent as the
+    stored bytes; a malformed request is a 400, an API failure a 502, both
+    as `{"error": ...}` JSON.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
     known_stamp = request.args.get("stamp") or None
@@ -298,7 +300,7 @@ def galaxy_tiles():
     except apiclient.ApiError as exc:
         log.exception(f"API error while fetching galaxy tiles: {exc}")
         return _json_error("The tiles could not be loaded. Please try again shortly.", 502)
-    response = Response(body, mimetype="application/json")
+    response = Response(body, mimetype=tilepack.MIMETYPE)
     # Freshness is the tile cache's job (stamps); never let a shared
     # cache hand one visitor's stale answer to another.
     response.headers["Cache-Control"] = "no-store"

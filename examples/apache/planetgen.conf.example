@@ -54,16 +54,17 @@
     # below is the one place Apache adds any, since no application code
     # serves it.
 
-    # Compress text responses (pages, API JSON, CSS/JS, the SVG favicon).
-    # three.js alone drops from about 740 KB to about 190 KB on the wire.
+    # Compress text responses (pages, API JSON, CSS/JS, the SVG favicon) and
+    # the Galaxy Map's packed tiles (MAP.159). three.js alone drops from
+    # about 740 KB to about 190 KB on the wire.
     <IfModule mod_deflate.c>
-        AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
+        AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml application/vnd.planetgen.tiles
     </IfModule>
     # Brotli, when the module is on (`sudo a2enmod brotli`), is 10 to 29%
-    # smaller than gzip on the Galaxy Map's tile JSON (MAP.157). Browsers
+    # smaller than gzip on the Galaxy Map's tiles (MAP.157). Browsers
     # that accept it get it; the rest still get the DEFLATE above.
     <IfModule mod_brotli.c>
-        AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
+        AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml application/vnd.planetgen.tiles
     </IfModule>
 
     # Settings (MySQL server/account, control schema, tile cache, ...)

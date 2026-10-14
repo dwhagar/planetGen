@@ -9,7 +9,7 @@ A tile's contents (see `planetgen.galaxy.viewport`'s "Cube tiles"
 section and `queryDb.galaxy_tiles`) depend only on its key and on the
 database's contents, which `queryDb.galaxy_content_stamp` summarizes as a
 short "stamp". Tiles are cached as `<cache dir>/<db>/<generation>/
-<tile>.json` (the finished, trimmed JSON bytes, see `trim_tile`), where the generation is the stamp at the last time every
+<tile>.bin` (the finished, trimmed and packed bytes, see `trim_tile` and `tilepack`), where the generation is the stamp at the last time every
 tile went stale. `fetch_tiles` asks the API only for the tiles it doesn't
 already have, and when every tile is cached it doesn't call the API for
 tiles at all.
@@ -23,8 +23,8 @@ holding it rather than the whole map. A change that can't be pinned to
 tiles (a deleted sector, a re-planned galaxy, a new planetGen release)
 answers `full`, and a new generation starts with nothing cached.
 
-A request is answered by joining those stored bytes, never by parsing and
-serialising the tiles again (`fetch_tiles_wire`); Apache compresses the
+A request is answered by joining those stored bytes, never by unpacking and
+packing the tiles again (`fetch_tiles_wire`, MAP.159); Apache compresses the
 response (`mod_brotli`, else `mod_deflate`, see `examples/apache`). Sending
 the tiles' own gzip copies as the members of one gzip stream was tried and
 dropped: Chromium decodes only the first member.
@@ -48,7 +48,7 @@ import re
 import tempfile
 import time
 
-from planetgen.web.lib import apiclient, singleflight
+from planetgen.web.lib import apiclient, singleflight, tilepack
 from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
@@ -441,19 +441,25 @@ def trim_tile(tile):
 
 
 def _tile_bytes(tile):
-    """A tile's finished JSON bytes."""
-    return json.dumps(trim_tile(tile), separators=(",", ":")).encode("utf-8")
+    """A tile's finished packed bytes (`tilepack.pack_tile` of `trim_tile`)."""
+    return tilepack.pack_tile(trim_tile(tile))
 
 
 def _incomplete(raw):
     """Whether a tile's bytes say some piece of it is missing (PERF.76): it is served but not kept, so the next
     request builds it again."""
-    return b'"incomplete":[' in raw
+    return tilepack.is_incomplete(raw)
+
+
+def _whole_tile(raw):
+    """Whether stored bytes are a whole packed tile (a torn or foreign file is refetched,
+    never sent)."""
+    return tilepack.is_whole(raw)
 
 
 def _tile_filename(prefix, key):
     level, ix, iy, iz = parse_tile_key(key)
-    return f"{prefix}{level}_{ix}_{iy}_{iz}.json"
+    return f"{prefix}{level}_{ix}_{iy}_{iz}.bin"
 
 
 def _flight_name(root, db, generation, kind, key):
@@ -521,7 +527,7 @@ def _collect_tiles(db, tile_keys, known_stamp):
         tuple: `(header, parts)`. `header` is the response without its
             tiles (`stamp`, `generation`, `edge_pc`, `has_shape`, `cached`
             and, only when `known_stamp` isn't current, `history`);
-            `parts` is `[(key, json bytes), ...]` in request order.
+            `parts` is `[(key, packed bytes), ...]` in request order.
     """
     tile_keys = validate_request(tile_keys)
     root = cache_dir()
@@ -538,7 +544,7 @@ def _collect_tiles(db, tile_keys, known_stamp):
             path = os.path.join(generation_dir, _tile_filename("t", key))
             raw = _read_bytes(path)
             # A torn or foreign file is refetched, never sent.
-            if raw is not None and raw[:1] == b"{" and raw[-1:] == b"}":
+            if _whole_tile(raw):
                 stored[key] = raw
 
     cached_count = len(stored)
@@ -575,7 +581,7 @@ def _collect_tiles(db, tile_keys, known_stamp):
         if held:
             def read_tile(name):
                 raw = _read_bytes(os.path.join(generation_dir, _tile_filename("t", by_name[name])))
-                return raw if raw is not None and raw[:1] == b"{" and raw[-1:] == b"}" else None
+                return raw if _whole_tile(raw) else None
 
             for name, raw in singleflight.wait(held, read_tile).items():
                 stored[by_name[name]] = raw
@@ -625,7 +631,7 @@ def fetch_tiles(db, tile_keys, known_stamp=None):
             keys its own cache by the generation), `history` (only when
             `known_stamp` isn't current: the changed tiles the browser
             hasn't seen, see `_stale_since`), `tiles` (`{key: {"clouds",
-            "stars", "generated", "points"}}`), `edge_pc`, `has_shape`, and `cached` (how many of the
+            "stars", "generated", "points"}}`, a star's `system_id` as `charted`), `edge_pc`, `has_shape`, and `cached` (how many of the
             requested parts came from disk -- for diagnostics).
 
     Raises:
@@ -633,24 +639,17 @@ def fetch_tiles(db, tile_keys, known_stamp=None):
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
     header, parts = _collect_tiles(db, tile_keys, known_stamp)
-    return {**header, "tiles": {key: json.loads(raw) for key, raw in parts}}
+    return {**header, "tiles": {key: tilepack.unpack_tile(raw) for key, raw in parts}}
 
 
 def fetch_tiles_wire(db, tile_keys, known_stamp=None):
     """
-    `fetch_tiles`' payload as the bytes to send (`/galaxy/tiles`), joined
-    from the stored tile bytes without parsing them.
+    `fetch_tiles`' payload as the bytes to send (`/galaxy/tiles`, MAP.159): the
+    header as JSON and the stored packed tiles one after the other
+    (`tilepack.pack_response`), without unpacking any of them.
     """
     header, parts = _collect_tiles(db, tile_keys, known_stamp)
-    rest = json.dumps(header, separators=(",", ":")).encode("utf-8")
-    # `{"tiles":{"k":<tile>,"k2":<tile2>},"stamp":...}`: the header's object,
-    # opened with "tiles" first.
-    pieces = [b'{"tiles":{']
-    for index, (key, raw) in enumerate(parts):
-        pieces.append((b"," if index else b"") + json.dumps(key).encode("utf-8") + b":")
-        pieces.append(raw)
-    pieces.append(b"}," + rest[1:])
-    return b"".join(pieces)
+    return tilepack.pack_response(header, parts)
 
 
 def fetch_stage(db, at=None):
