@@ -1186,7 +1186,7 @@ shape as above.
   `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
   `{"class": "M", "force": false}` re-generates the body's surface
   conditions as that class (radius, density, composition, atmosphere,
-  temperature, pressure and life), keeping its orbit, name, row
+  temperature, pressure and life), keeping its orbit, name, row,
   moons and (unless confirmed out of range, below) mass. A class that doesn't suit the body (its mass outside the
   class's range, the class not forming in the body's zone, a planet too
   small for its moons, a moon too big for its planet's) or that isn't
