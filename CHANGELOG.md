@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1111] - 2026-10-14
+
+### Fixed
+
+The Generate log, the command line text, the status panel and the downloaded log now say "Stage 4 of 12" for one stage and "Stages 4 to 12 of 12" for a run of stages, with one section separator form ("=== Stages 4 to 12 of 12: name ===") and a closing line that uses the same wording (UX.98).
+
 ## [8.0.1110] - 2026-10-14
 
 ### Changed
