@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1118] - 2026-10-14
+
+### Added
+- The sums the Galaxy Map's drill-down stages show (sectors, systems, stars, mean age, luminosity) are now stored per block of each ladder level (`galaxy_block_stats`, schema 86), so a map window reads its cells in one query. A `galaxy` run, a sector visit and a sector deletion keep them current, and the migration fills them for the sectors already there. `planetgen plan --fill-block-stats` rebuilds them.
+
 ## [8.0.1117] - 2026-10-14
 
 ### Changed
