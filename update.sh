@@ -16,13 +16,12 @@
 #      before (see `docs/TODO.md`'s "Deployment bugs found in
 #      production").
 #   2. Checks every Python library the site needs by importing it with
-#      the system Python (the one mod_wsgi and the CLI run under) and
-#      comparing its version with setup.py's floor:
-#      `scripts/install-python-deps.sh --check`. Only a library that is
-#      missing, too old or broken gets installed, the same way install.sh
-#      would on this host (apt first and then system-wide pip on an
-#      externally managed Python, pip on an ordinary one). planetGen itself is never
-#      reinstalled: the web app, the maintenance scripts and the
+#      the venv's python (/usr/local/planetgen/venv, OPS.45: the one
+#      mod_wsgi, gunicorn and the CLI run under) and comparing its version
+#      with setup.py's floor: `scripts/install-python-deps.sh --check`. The
+#      venv is made, and the locked libraries installed, only when it is
+#      missing or a library is missing, too old or broken. planetGen itself
+#      is never reinstalled: the web app, the maintenance scripts and the
 #      `planetgen` wrapper all run the checkout's code directly.
 #   3. The NLTK 'words' corpus: fetched only if it's missing.
 #   4. `planetgen check-math`: the math check (TEST.68). A failure only
@@ -65,7 +64,7 @@
 #
 # Usage:
 #   sudo ./update.sh
-#   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (a Python other than python3)
+#   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (make the venv from another Python)
 #
 # Forces the checkout to match origin's branch tip even if there are
 # uncommitted local changes to tracked files (a `git reset --hard` after
@@ -75,9 +74,9 @@
 # runs `git clean`, so untracked files -- most importantly `config.json`,
 # which is gitignored precisely so it survives this -- are left alone.
 #
-# Runs on Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd,
-# in the venv install-python-deps.sh makes; docs/deployment/macos.md),
-# under macOS's bash 3.2 too.
+# Runs on Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd;
+# docs/deployment/macos.md), both from the venv install-python-deps.sh
+# makes, under macOS's bash 3.2 too.
 
 set -euo pipefail
 

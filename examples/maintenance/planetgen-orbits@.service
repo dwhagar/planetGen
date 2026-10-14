@@ -53,4 +53,5 @@ EnvironmentFile=-/etc/planetgen/maintenance.env
 # of templating is one shared credentials file with a per-instance
 # target database.
 Environment=PLANETGEN_MYSQL_DATABASE=%i
-ExecStart=/usr/bin/python3 -m planetgen.cli.orbits
+# planetGen's own Python (OPS.45): scripts/install-python-deps.sh makes this venv.
+ExecStart=/usr/local/planetgen/venv/bin/python -m planetgen.cli.orbits
