@@ -1,3 +1,4 @@
+{% raw %}
 # planetGen Web Interface
 
 A small web interface (in [`../src/html/`](../src/html/)) for
@@ -780,3 +781,4 @@ reinstall without pulling first.
 `python3 src/html/wsgi.py` serves the pages (and `/static/`) at
 `http://127.0.0.1:5000/` alongside the API. Set `admin_cookie_insecure`
 in `config.json` to log in over plain HTTP there.
+{% endraw %}
