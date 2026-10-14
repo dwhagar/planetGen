@@ -1448,57 +1448,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: DB.24, MAP.173.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
-- [ ] **MAP.187 The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug)**
-  GitHub issue [#1211](https://github.com/dwhagar/planetGen/issues/1211)
-  (Boss, 2026-10-11 00:16Z, three screenshots) and GitHub issue
-  [#1213](https://github.com/dwhagar/planetGen/issues/1213) (Boss,
-  2026-10-11 00:20Z; the same root cause, likely): the near-field window
-  that makes the foreground vanish is obvious and leaves an odd halo,
-  and in the middle of a filled block it makes the stars disappear too,
-  when the idea was to make things more visible, not less. Boss attached
-  a research note on the 3D rendering camera
-  ([docs/design/3d-rendering-camera-research.md](design/3d-rendering-camera-research.md),
-  in the repository since 2026-10-14) for how to structure the fix.
-  What the note says to build: fade by view-space depth (distance along
-  the camera axis, not distance to the cursor or screen centre) with a
-  smoothstep ramp and hysteresis, so nothing is darker at the middle of
-  the view than at its edge; avoid sorted alpha blending in dense
-  fields (fill-rate and sorting cost, and the likely source of the dark
-  disc); use screen-door transparency with interleaved gradient noise
-  smoothed by temporal anti-aliasing, or weighted blended
-  order-independent transparency where overlapping colour must stay
-  right; never move the camera to dodge objects, since that causes
-  disorientation and cybersickness. Done: no visible tunnel edge or halo at any zoom level, stars
-  never fade out because of the near-field window (the window fades the
-  foreground density and cell boxes only), and a browser test measures
-  star visibility inside a filled block while zooming in. Owner:
-  Foundations lane 2, in its map queue, with MAP.150 (MAP.155 merged in
-  #1253).
-  Screenshots (Boss, 2026-10-14 13:35Z, copies in
-  /mnt/project-files/screenshots/issue-1211/): (1) a block of 243 sectors
-  a side shown as a stack of slabs, with a darker oval patch in the middle
-  of the block; (2) a slab wedge with a round dark patch around where its
-  blocks meet; (3) a block of 27 sectors a side seen face on, a clear
-  dark round halo in the middle of the cell grid. Same halo at all three
-  zoom levels, always a dark disc centred on the view, so it is the
-  window itself being drawn dark, not a darkening of the cells; the cell
-  borders in the same pictures are heavy and nearly opaque (MAP.188).
-  Prerequisites: none. Related: MAP.146, MAP.150, MAP.152, MAP.155,
-  MAP.188.
-
-- [ ] **MAP.188 Sector and slab borders add up to a near-opaque cube grid when zooming in (bug)**
-  GitHub issue [#1212](https://github.com/dwhagar/planetGen/issues/1212)
-  (Boss, 2026-10-11 00:19Z): "During the zoom in process the sector and
-  slab boarders kind of add up and make the general cube-grid nearly
-  opaque, we need to make them barely visible and wire-frame highlights
-  when we go to select a slab or block or sector." Done: borders are
-  barely visible by default at every zoom, the opacity does not add up
-  with the number of cells in view, and a wire-frame highlight draws
-  only for the selected or hovered slab, block or sector; a browser test
-  measures the grid's total opacity at the deepest zoom. Owner:
-  Foundations lane 2, in its map queue.
-  Prerequisites: none. Related: MAP.146, MAP.141, MAP.150.
-
 - [ ] **MAP.189 The Galaxy Map opens flown in to the created sectors**
   GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
   (Boss, 2026-10-13 23:16Z): one big reason for the infinite zoom is to
