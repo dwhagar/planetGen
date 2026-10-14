@@ -5590,13 +5590,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 
 - [ ] **OPS.44 The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug)**
   The "pages build and deployment" run fails on main with "Liquid syntax
-  error (line 581): Unknown tag 'extends' in html-interface.md". Jekyll
-  3.10 reads the Jinja example `{% extends %}` and the `{{ csrf_field()
-  }}` mentions in docs/html-interface.md as its own template tags. The
-  page is wrapped in raw tags as a first fix (this PR). Add a docs test
-  that fails when any docs/*.md holds `{%` or `{{` outside a raw block,
-  so the next design note cannot break the site, and check the Pages
-  build goes green on main afterwards.
+  error: Unknown tag 'extends'", first in html-interface.md (line 581)
+  and then in this file. Jekyll 3.10 reads the Jinja template examples
+  and the csrf field mentions as its own template tags, and it stops at
+  the first one. The web interface page was wrapped in raw tags in #1276
+  and this item's own text was reworded so it holds none. Add a docs
+  test that fails when any markdown file holds the Jinja tag or variable
+  delimiters outside a raw block, so the next note cannot break the
+  site, and check the Pages build goes green on main afterwards.
   Prerequisites: none.
 
 ## DOC: Documentation
