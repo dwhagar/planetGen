@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1076] - 2026-10-14
+
+### Fixed
+- **A Galaxy Map link that opens a system or a body now works with the current object IDs.** The map reads `system=` and `object=` in a link as digits only, but a system's and a body's printed ID is hex digits in dashed groups (`0008000000-4000000-00D`), so a reload, a shared link or Back to an opened system dropped the system. Both parts accept the printed ID now, kept in upper case; no other digits-only reference parser is left in the page scripts.
+
 ## [8.0.1075] - 2026-10-14
 
 ### Changed
