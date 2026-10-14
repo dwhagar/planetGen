@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1043] - 2026-10-14
+
+### Changed
+- **A table paints its rows first and fills the filter-menu counts a moment later.** The first page used to ask for the filter-menu counts in the same request, so a slow count held the rows back. The rows now come on their own; the menus show "..." in place of their counts after a sort or filter change and fill in when their own request answers (and ask again by themselves if the database is busy).
+
 ## [8.0.1042] - 2026-10-14
 
 ### Changed
