@@ -28,7 +28,7 @@ import pytest
 
 
 from planetgen.web.lib import pagecache  # noqa: E402
-from planetgen.web.lib import tilecache  # noqa: E402
+from planetgen.web.lib import tilecache, tilepack  # noqa: E402
 
 THREADS = 8
 ROUNDS = 400
@@ -186,7 +186,7 @@ def _whole_tile(value, tiles):
 
 
 def test_two_writers_of_one_tile_file_leave_one_whole_tile(tmp_path, _switch_often):
-    path = os.path.join(str(tmp_path), "db", "gen", "t12_1_2_3.json")
+    path = os.path.join(str(tmp_path), "db", "gen", "t12_1_2_3.bin")
     tiles = [_tile("first"), _tile("second")]
     results = {0: [], 1: []}
     torn = []
@@ -270,12 +270,12 @@ def test_two_requests_writing_one_tile_leave_one_whole_tile(monkeypatch, tmp_pat
     # served from it.
     root = tilecache.cache_dir()
     path = os.path.join(tilecache._db_dir(root, "mydb"), api.stamp, tilecache._tile_filename("t", key))
-    with open(path, "r", encoding="utf-8") as f:
-        assert _whole_tile(json.load(f), versions)
+    with open(path, "rb") as f:
+        assert _whole_tile(tilepack.unpack_tile(f.read()), versions)
     again = tilecache.fetch_tiles("mydb", [key])
     assert again["cached"] == 1 and _whole_tile(again["tiles"][key], versions)
     assert len(api.answered) == 2
 
 
 def _tilecache_rounded(tile):
-    return tilecache.trim_tile(tile)
+    return tilepack.unpack_tile(tilepack.pack_tile(tilecache.trim_tile(tile)))

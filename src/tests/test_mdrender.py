@@ -117,3 +117,16 @@ def test_multiple_blocks_are_joined_in_order():
     html = markdown_to_html(md)
     assert html.index('<h1 id="title">Title</h1>') < html.index("First paragraph")
     assert html.index("First paragraph") < html.index("Second paragraph")
+
+
+def test_a_markdown_release_that_lacks_some_of_the_patterns_still_renders():
+    """`markdown` 3.11.1 dropped the `not_strong` and `em_strong2` patterns; the renderer must not name them
+    as required, so a fresh install (setup.py allows any 3.6 or later) renders as the locked one does."""
+    import markdown
+    from planetgen.web.lib import mdrender
+
+    md = markdown.Markdown()
+    for name in ("not_strong", "em_strong2"):
+        md.inlinePatterns.deregister(name, strict=False)       # what 3.11.1's own registry looks like
+    mdrender._GeneratedMarkdown().extendMarkdown(md)
+    assert not set(mdrender._REMOVED_INLINE) & set(md.inlinePatterns._data)

@@ -2,6 +2,90 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1055] - 2026-10-14
+
+### Changed
+- The physical constants are a table in `physics/constants.py` (CODATA 2018 and IAU 2015 values) instead of being read from astropy, so astropy is no longer installed on a server: each process starts about 280 ms sooner and uses about 29 MB less, and the install is 53 MB smaller. No stored value changes. astropy stays in the `test` extra, where `test_astropy_constants.py` holds the table against astropy's own values (GEN.211).
+
+### Removed
+- The astropy and pyerfa run-time dependencies (`setup.py`, `install-python-deps.sh`, both lock files).
+
+## [8.0.1054] - 2026-10-14
+
+### Changed
+- Retired PERF.89 from the roadmap and noted a work-queue test sighting.
+
+## [8.0.1053] - 2026-10-14
+
+### Changed
+- The bright and massive star scatters work out each ring's population densities as one NumPy array instead of one call per angle bin (PERF.89). The numbers agree with the one-point form to 1e-12 relative (NumPy's exp, log and cos differ from the maths library's in the last digit or two), so a progress-bar estimate or a star's bin weight can move in the 16th digit.
+
+## [8.0.1052] - 2026-10-14
+
+### Fixed
+- A fresh install no longer breaks every page that shows rendered Markdown (system descriptions, the population text): `markdown` 3.11.1 removed two inline patterns the renderer named as required, and the renderer now removes only the ones the installed release has.
+
+## [8.0.1051] - 2026-10-14
+
+### Changed
+- A test now fails when a page under docs/ holds Jinja or Liquid delimiters outside a raw block, which is what stopped the docs site from building.
+
+## [8.0.1050] - 2026-10-14
+
+### Changed
+- Recorded the split of the two Galaxy Map data items into smaller steps.
+
+## [8.0.1049] - 2026-10-14
+
+### Changed
+- **The Galaxy Map's tiles are sent packed (MAP.159).** A tile was JSON, about 150 bytes a star (28 gzipped). It is now a packed tile, 20 bytes a star (about 12 gzipped): positions as 16-bit steps inside the tile's own span, luminosity, temperature and radius as log codes, the star class as its letter, and the id as a number or a printed ID. Clouds and point objects stay JSON inside the tile. The tile cache stores the packed bytes (`.bin` files) and `/galaxy/tiles` sends them one after the other behind a small JSON header, as `application/vnd.planetgen.tiles`; the example Apache and nginx configs compress that type. The browser keeps the packed bytes in its IndexedDB store (about seven times more tiles in the same space) and reads them with `static/tilepack.js`. The cache stamp changes with the release, so every cache refills once. A star's position is exact to under a hundredth of a pixel at the zoom its tile is used, its luminosity to 0.06%, its temperature to 2% and its radius to 4%. The page now reads `charted` where a star's `system_id` was.
+
+## [8.0.1048] - 2026-10-14
+
+### Changed
+- Retired MAP.154 from the roadmap.
+
+## [8.0.1047] - 2026-10-14
+
+### Changed
+- **A Galaxy Map tile's bright-star list now holds every star its parent listed inside it (MAP.154).** The lists used an equal share per population and three height bands, so a child tile could drop a star its parent showed, and the zoom fade had to cover for it. Every tile level now ranks the pre-placed bright stars by one key, luminosity times a population weight (young 1, intermediate 10, old and bulge 400, so an old giant at 2,500 Lsun ranks beside a young star at a million), and a tile inside another lists all of the outer tile's stars in its box. The rank fade is now exact. Old giants still appear, but a crowd of young stars of high enough luminosity can now outrank them in a tile.
+
+## [8.0.1046] - 2026-10-14
+
+### Changed
+- Retired PERF.87 and PERF.90 from the roadmap.
+
+## [8.0.1045] - 2026-10-14
+
+### Changed
+- Retired UX.95 from the roadmap and noted two more browser-map test sightings.
+
+## [8.0.1044] - 2026-10-14
+
+### Changed
+- Placing a system or compact remnant in a sector now tests the new position against every neighbour as one NumPy array instead of one distance call each; the same random numbers are drawn in the same order, so the placed positions and the stored galaxy are identical (PERF.87).
+- The ring centerline length is cached like the ring and slot counts already were (PERF.90).
+
+## [8.0.1043] - 2026-10-14
+
+### Changed
+- **A table paints its rows first and fills the filter-menu counts a moment later.** The first page used to ask for the filter-menu counts in the same request, so a slow count held the rows back. The rows now come on their own; the menus show "..." in place of their counts after a sort or filter change and fill in when their own request answers (and ask again by themselves if the database is busy).
+
+## [8.0.1042] - 2026-10-14
+
+### Changed
+- Noted on the venv install item that the server's system packages are already cleared.
+
+## [8.0.1041] - 2026-10-14
+
+### Changed
+- Added the virtual-environment install and the admin login lock-wait bug to the roadmap.
+
+## [8.0.1040] - 2026-10-14
+
+### Changed
+- The design note for the test suite rebuild now records what was decided about every open test-fix item (TEST.111, 116, 125 to 135, 137 to 144): which are fixed now, which are folded into the rebuild and close after five clean full runs, and which become an opt-in tier outside the merge gate.
+
 ## [8.0.1039] - 2026-10-14
 
 ### Changed

@@ -129,8 +129,10 @@ test("a busy answer is asked again after the pause and the busy line shows meanw
 
 test("a page that is no longer wanted stops asking", async () => {
   let wanted = true;
-  await assert.rejects(fetchWhileBusy(async () => answer(504), () => wanted, () => {}, async () => { wanted = false; }),
-    /no longer wanted/);
+  const busy = [];
+  await assert.rejects(fetchWhileBusy(async () => answer(504), () => wanted, (state) => busy.push(state),
+    async () => { wanted = false; }), /no longer wanted/);
+  assert.deepEqual(busy, [true, false]);
 });
 
 test("any other failing status throws and clears the busy line", async () => {

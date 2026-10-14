@@ -710,6 +710,68 @@ class SectorPhenomenonEntry(_Placed):
         }
 
 
+_CLEAR_MARGIN = 1e-9
+"""Relative band around a required separation inside which the array check
+defers to `math.dist`, so a borderline accept/reject is decided exactly as
+the one-by-one check would."""
+
+
+class _NeighborArrays:
+    """The positions and Hill radii of a sector's massive neighbours (see
+    `SpaceSector._massive_neighbors`) as growing NumPy arrays, so a candidate
+    point is tested against all of them at once (PERF.87). Objects are only
+    ever appended to a sector, so each call just adds what is new."""
+
+    def __init__(self):
+        self.positions = np.empty((64, 3))
+        self.hill = np.empty(64)
+        self.count = 0
+        self.seen_systems = 0
+        self.seen_phenomena = 0
+
+    def _append(self, position, obj):
+        if self.count == len(self.hill):
+            self.positions = np.concatenate([self.positions, np.empty_like(self.positions)])
+            self.hill = np.concatenate([self.hill, np.empty_like(self.hill)])
+        self.positions[self.count] = position
+        self.hill[self.count] = hill_radius_ly(obj)
+        self.count += 1
+
+    def _refresh(self, sector):
+        if len(sector.entries) < self.seen_systems or len(sector.phenomena) < self.seen_phenomena:
+            self.count = self.seen_systems = self.seen_phenomena = 0
+        for entry in sector.entries[self.seen_systems:]:
+            self._append(entry.position, entry.star_system)
+        self.seen_systems = len(sector.entries)
+        for entry in sector.phenomena[self.seen_phenomena:]:
+            if hasattr(entry.phenomenon, "system_perimeter"):
+                self._append(entry.position, entry.phenomenon)
+        self.seen_phenomena = len(sector.phenomena)
+
+    def clear_of(self, sector, candidate, min_separation_ly, hill_new):
+        """Whether `candidate` is at least the required distance from every
+        massive neighbour, with the result of
+        `math.dist(candidate, position) >= required` for each."""
+        self._refresh(sector)
+        n = self.count
+        if n == 0:
+            return True
+        positions = self.positions[:n]
+        if min_separation_ly is not None:
+            required = np.full(n, float(min_separation_ly))
+        else:
+            required = hill_new + self.hill[:n]
+        delta = positions - np.asarray(candidate)
+        squared = np.einsum("ij,ij->i", delta, delta)
+        clear = squared > (required * (1 + _CLEAR_MARGIN)) ** 2
+        if clear.all():
+            return True
+        for i in np.nonzero(~clear)[0]:
+            if not math.dist(candidate, tuple(positions[i])) >= required[i]:
+                return False
+        return True
+
+
 class SpaceSector:
     """
     A named collection of star systems laid out within a cubic region of
@@ -740,6 +802,7 @@ class SpaceSector:
         self.cell = cell
         self.entries = []
         self.phenomena = []
+        self._neighbor_cache = _NeighborArrays()
         self.center_galactic_ly = (0.0, 0.0, 0.0)
         self.epoch_unix = None
         """float or None: When the positions and velocities of the sector's
@@ -860,15 +923,10 @@ class SpaceSector:
             ValueError: If no such point could be found within
                        `program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS` tries.
         """
+        hill_new = hill_radius_ly(obj) if min_separation_ly is None else None
         for attempt in range(1, program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS + 1):
             candidate = self._sample_point()
-            if all(
-                distance_between(candidate, position) >= (
-                    min_separation_ly if min_separation_ly is not None
-                    else required_separation_ly(obj, neighbor)
-                )
-                for neighbor, position in self._massive_neighbors()
-            ):
+            if self._neighbor_cache.clear_of(self, candidate, min_separation_ly, hill_new):
                 log.debug(f"Sector {self.name!r}: random position {_fmt_position(candidate)} accepted on attempt "
                           f"{attempt}/{program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} (uniform in the "
                           f"{self.edge_ly} ly {'cell' if self.cell is not None else 'cube'}, clear of every massive neighbor's "

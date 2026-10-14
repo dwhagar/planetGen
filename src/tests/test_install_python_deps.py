@@ -246,7 +246,7 @@ def test_server_lock_has_the_app_servers():
 
 # --- OPS.26: the NumPy stack comes from one place ------------------------------
 
-NUMPY_LINKED = {"numpy", "scipy", "astropy", "scikit-image", "numba"}
+NUMPY_LINKED = {"numpy", "scipy", "scikit-image", "numba"}
 """Runtime requirements with compiled code built against NumPy's C API."""
 
 
@@ -260,14 +260,14 @@ def _numpy_stack():
 def test_the_numpy_stack_lists_every_numpy_built_requirement():
     specs, names = _numpy_stack()
     assert NUMPY_LINKED <= {spec.split(">=")[0] for spec in _script_requirements()}
-    assert {spec.split(">=")[0] for spec in specs} == NUMPY_LINKED | {"pyerfa"} == set(names)
+    assert {spec.split(">=")[0] for spec in specs} == NUMPY_LINKED == set(names)
     # Each at setup.py's own floor.
     for spec in specs:
         if spec.split(">=")[0] in NUMPY_LINKED:
             assert spec in _script_requirements(), spec
     lock_pins = _lock_pins()
     locked = {name for name, _, _, _ in lock_pins.read_lock(os.path.join(ROOT, "requirements.lock"))}
-    assert "pyerfa" in locked
+    assert not {"astropy", "pyerfa"} & locked  # GEN.211: a test-only dependency now
 
 
 def test_managed_paths_install_the_numpy_stack_whole():

@@ -66,6 +66,7 @@ ring where each doubled master wedge would still hold at least this many
 slots."""
 
 
+@functools.lru_cache(maxsize=65536)
 def _ring_centerline_edges(ring_index):
     """`2*pi*(i + 1/2)`, ring `i`'s centerline circumference in edges.
 

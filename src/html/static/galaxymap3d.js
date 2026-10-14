@@ -67,6 +67,7 @@ const {
 const {
   FADE_OCTAVES, POINT_FADE, POINT_RANK_MIN_LEVEL, STAR_DOT_PX, birthRadius, cloudSizeShare, opacitySum, starZoomOpacity, tileRanks,
 } = await import(`./starfade.js${VERSION_QUERY}`);
+const { unpackResponse, unpackTile } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
   PHENOMENON_MAGNITUDE, STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude,
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, RAMP,
@@ -1070,9 +1071,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // looked up here (loadStoredTiles) before the server is asked.
   var TILE_DB_NAME = "planetgen-tiles";
   var TILE_DB_STORE = "tiles";
-  // The most tile JSON kept (about, from each tile's text length), oldest
-  // use first out.
-  var TILE_DB_MAX_BYTES = 96 * 1024 * 1024;
+  // The most packed tile bytes kept, oldest use first out.
+  var TILE_DB_MAX_BYTES = 64 * 1024 * 1024;
   var TILE_DB_TRIM_MS = 30000;
   var tileDbPromise = null;
   var tileDbTrimmedAt = 0;
@@ -1136,7 +1136,8 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // The stored tiles among `keys` for `generation`, as a Map key -> tile.
+  // The stored tiles among `keys` for `generation`, as a Map key -> packed
+  // bytes (tilepack.js reads them).
   function readStoredTiles(generation, keys) {
     if (!generation || !keys.length) {
       return Promise.resolve(new Map());
@@ -1148,8 +1149,8 @@ function initGalaxyMap3d(canvasEl, data) {
         var request = store.get(tileRecordId(generation, key));
         request.onsuccess = function () {
           var record = request.result;
-          if (record && record.tile) {
-            found.set(key, record.tile);
+          if (record && record.bytes) {
+            found.set(key, record.bytes);
             record.at = now;
             store.put(record);
           }
@@ -1168,7 +1169,7 @@ function initGalaxyMap3d(canvasEl, data) {
       tiles.forEach(function (entry) {
         store.put({
           id: tileRecordId(generation, entry.key), scope: data.storageKey, gen: generationName(generation),
-          key: entry.key, at: now, size: entry.size, tile: entry.tile,
+          key: entry.key, at: now, size: entry.bytes.length, bytes: entry.bytes,
         });
       });
     }).then(trimStoredTiles);
@@ -1255,12 +1256,20 @@ function initGalaxyMap3d(canvasEl, data) {
       if (generation !== currentGeneration) {
         return 0;
       }
-      found.forEach(function (tile, key) {
-        if (memoryGet(tileMemory, key) === undefined) {
-          memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
+      var loaded = 0;
+      found.forEach(function (bytes, key) {
+        if (memoryGet(tileMemory, key) !== undefined) {
+          return;
+        }
+        try {
+          memorySet(tileMemory, key, unpackTile(bytes), TILE_MEMORY_MAX);
+          loaded += 1;
+        } catch (err) {
+          // A damaged record is fetched again, and replaced.
+          removeStoredTiles(generation, [key]);
         }
       });
-      return found.size;
+      return loaded;
     });
   }
 
@@ -1268,26 +1277,21 @@ function initGalaxyMap3d(canvasEl, data) {
     return memoryGet(tileMemory, key);
   }
 
-  // Remembers tiles from a response in memory and, once, in IndexedDB.
-  function putTiles(tiles) {
+  // Remembers tiles from a response in memory and, once, in IndexedDB (as
+  // the packed bytes the server sent: `packed` maps a key to them; the
+  // page's own opening tile has none and is only kept in memory).
+  function putTiles(tiles, packed) {
     var entries = [];
     Object.keys(tiles).forEach(function (key) {
       var tile = tiles[key];
       memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
       // A tile the database was too busy to finish (PERF.76) is drawn as it is
       // but not kept for the next visit; it is asked for again below.
-      if (!tile.incomplete) {
-        entries.push({ key: key, tile: tile, size: tileSize(tile) });
+      if (!tile.incomplete && packed && packed.has(key)) {
+        entries.push({ key: key, bytes: packed.get(key) });
       }
     });
     writeStoredTiles(currentGeneration, entries);
-  }
-
-  // About how many bytes a tile's JSON is, without writing it out: the
-  // stars dominate.
-  function tileSize(tile) {
-    var count = (tile.stars || []).length + (tile.generated || []).length;
-    return 120 * count + 150 * (tile.points || []).length + 200 * (tile.clouds || []).length + 64;
   }
 
   // The tile keys that changed between fromStamp and toStamp, from a
@@ -1345,12 +1349,12 @@ function initGalaxyMap3d(canvasEl, data) {
     return true;
   }
 
-  function absorb(payload) {
+  function absorb(payload, packed) {
     if (!payload) {
       return false;
     }
     var stampChanged = adoptStamp(payload);
-    putTiles(payload.tiles || {});
+    putTiles(payload.tiles || {}, packed);
     return stampChanged;
   }
 
@@ -1569,7 +1573,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.111: with "Charted only" on, a star outside charted (generated)
   // sectors is drawn at this share of its opacity, as the blocks are
   // (galaxyblocks.buildCells). A generated star is charted, a bright
-  // star once its sector is filled (`system_id`); black holes, neutron
+  // star once its sector is filled (`charted`); black holes, neutron
   // stars and quasars are landmarks and stay lit.
   var UNCHARTED_STAR_DIM = 0.2;
 
@@ -1750,7 +1754,7 @@ function initGalaxyMap3d(canvasEl, data) {
       zoomFades.set(fade, 4 * i);
     });
     stars.forEach(function (star, i) {
-      uncharted[i] = star.generated || star.phenomenon || star.system_id != null ? 0 : 1;
+      uncharted[i] = star.generated || star.phenomenon || star.charted ? 0 : 1;
       var look = star.phenomenon ? POINT_LOOKS[star.type] || DEFAULT_POINT_LOOK : null;
       var t = look ? Math.min(1, look[1] + 0.15 * (star.size || 0)) : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
@@ -2260,14 +2264,16 @@ function initGalaxyMap3d(canvasEl, data) {
         if (!response.ok) {
           throw new Error(data.fetchPath + " returned " + response.status);
         }
-        return response.json();
+        return response.arrayBuffer();
       })
-      .then(function (payload) {
+      .then(function (body) {
+        var unpacked = unpackResponse(body);
+        var payload = Object.assign({ tiles: unpacked.tiles }, unpacked.header);
         if (activeAbort === controller) {
           activeAbort = null;
         }
         fetchFailures = 0;
-        var stampChanged = absorb(payload);
+        var stampChanged = absorb(payload, unpacked.packed);
         askAgainForIncomplete(payload.tiles || {});
         var stillMissing = renderFromCache(neededTiles());
         // A new stamp dropped changed (or all) cached tiles, and a view
@@ -2395,13 +2401,14 @@ function initGalaxyMap3d(canvasEl, data) {
           if (!response.ok) {
             throw new Error(data.fetchPath + " returned " + response.status);
           }
-          return response.text();
+          return response.arrayBuffer();
         })
-        .then(function (text) {
+        .then(function (body) {
+          var unpacked = unpackResponse(body);
           prefetching = false;
-          prefetchedBytes += text.length;
+          prefetchedBytes += body.byteLength;
           // A new stamp means the view's own tiles may be stale too.
-          if (absorb(JSON.parse(text))) {
+          if (absorb(Object.assign({ tiles: unpacked.tiles }, unpacked.header), unpacked.packed)) {
             scheduleFetch(false);
           } else {
             schedulePrefetch();
