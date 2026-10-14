@@ -14,7 +14,7 @@ import os
 
 import pytest  # noqa: E402
 
-from planetgen.web.lib import tilecache  # noqa: E402
+from planetgen.web.lib import tilecache, tilepack  # noqa: E402
 
 
 FAKE_STAR = {
@@ -216,13 +216,13 @@ def test_unwritable_cache_dir_falls_back_to_the_api(api, monkeypatch, tmp_path):
 
 def test_corrupt_cache_file_is_refetched(api):
     tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.json")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("{not json")
+    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.bin")
+    with open(path, "wb") as f:
+        f.write(b"not a tile")
     result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
     assert result["cached"] == 0
-    with open(path, encoding="utf-8") as f:
-        assert json.load(f)["stars"]
+    with open(path, "rb") as f:
+        assert tilepack.unpack_tile(f.read())["stars"]
 
 
 def test_prune_deletes_oldest_files_down_to_budget(tmp_path):
@@ -231,12 +231,12 @@ def test_prune_deletes_oldest_files_down_to_budget(tmp_path):
     stamp_dir.mkdir(parents=True)
     (root / "db" / "stamp.json").write_text('{"stamp": "00000000000000aa"}')
     for i in range(10):
-        path = stamp_dir / f"t12_{i}_0_0.json"
+        path = stamp_dir / f"t12_{i}_0_0.bin"
         path.write_text("x" * 1000)
         os.utime(path, (1000 + i, 1000 + i))
     tilecache.prune(str(root), max_bytes=5000)
     remaining = sorted(p.name for p in stamp_dir.iterdir())
-    assert remaining == [f"t12_{i}_0_0.json" for i in range(6, 10)]
+    assert remaining == [f"t12_{i}_0_0.bin" for i in range(6, 10)]
     assert (root / "db" / "stamp.json").exists()
 
 
@@ -341,25 +341,31 @@ def test_a_star_without_a_radius_or_temperature_stays_without(api):
 
 def test_the_wire_body_is_the_stored_bytes_joined(api):
     keys = ["12/1/2/3", "12/1/2/4"]
-    cold = tilecache.fetch_tiles_wire("mydb", keys)
-    warm = tilecache.fetch_tiles_wire("mydb", keys)
-    assert json.loads(warm)["cached"] == 2 and json.loads(cold)["cached"] == 0
-    body = json.loads(cold)
-    assert list(body["tiles"]) == keys and body["stamp"] == api.stamp and body["edge_pc"] == 3.526
-    assert body["tiles"]["12/1/2/3"]["stars"][0]["star_type"] == "G"
+    cold_body = tilecache.fetch_tiles_wire("mydb", keys)
+    warm_body = tilecache.fetch_tiles_wire("mydb", keys)
+    warm, _ = tilepack.unpack_response(warm_body)
+    cold, tiles = tilepack.unpack_response(cold_body)
+    assert warm["cached"] == 2 and cold["cached"] == 0
+    assert list(tiles) == keys and cold["stamp"] == api.stamp and cold["edge_pc"] == 3.526
+    assert tiles["12/1/2/3"]["stars"][0]["star_type"] == "G"
     assert len(api.tile_calls) == 1, "the second request was served from disk"
+    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.bin")
+    with open(path, "rb") as f:
+        assert f.read() in warm_body, "a tile goes out as the bytes the cache stores"
 
 
-def test_an_empty_request_still_makes_valid_json(api):
-    body = tilecache.fetch_tiles_wire("mydb", [])
-    assert json.loads(body)["tiles"] == {}
+def test_an_empty_request_still_makes_a_valid_response(api):
+    header, tiles = tilepack.unpack_response(tilecache.fetch_tiles_wire("mydb", []))
+    assert tiles == {} and header["stamp"] == api.stamp
 
 
 def test_a_torn_tile_file_is_refetched_not_sent(api):
     tilecache.fetch_tiles_wire("mydb", ["12/1/2/3"])
-    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.json")
+    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.bin")
+    with open(path, "rb") as f:
+        whole = f.read()
     with open(path, "wb") as f:
-        f.write(b'{"stars":[')
-    body = tilecache.fetch_tiles_wire("mydb", ["12/1/2/3"])
-    assert json.loads(body)["tiles"]["12/1/2/3"]["stars"]
+        f.write(whole[:-5])
+    _, tiles = tilepack.unpack_response(tilecache.fetch_tiles_wire("mydb", ["12/1/2/3"]))
+    assert tiles["12/1/2/3"]["stars"]
     assert len(api.tile_calls) == 2

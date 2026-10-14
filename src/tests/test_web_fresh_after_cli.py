@@ -52,6 +52,7 @@ from tests.publicids import pid
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from planetgen.physics.units import ly_to_pc  # noqa: E402
 from tests.publicids import pid, pids
+from tests.tile_support import tile_payload
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
@@ -198,9 +199,9 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     api_tiles_url = f"/api/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
     # Warm the page cache and the disk tile cache.
     assert _placed_count(site.html("/galaxy")) == 1
-    warm = site.get(tiles_url).get_json()
+    warm = tile_payload(site.get(tiles_url))
     assert "placed" not in warm["tiles"][WHOLE_GALAXY_TILE], "MAP.157: the web tile carries only what the page reads"
-    assert site.get(tiles_url).get_json()["cached"] == 1
+    assert tile_payload(site.get(tiles_url))["cached"] == 1
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == [pid("sector", first["id"], mysql_config)]
 
     _generate(mysql_config, "galaxy", "--ring", "0", "--num-systems", "1", "--backfill-from", "none")
@@ -212,21 +213,21 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids
     # The web caches still trust their last stamp check...
     assert _placed_count(site.html("/galaxy")) == 1
-    stale = site.get(tiles_url).get_json()
+    stale = tile_payload(site.get(tiles_url))
     assert stale["cached"] == 1 and stale["stamp"] == warm["stamp"]
 
     # ...until it falls due, and then show the new sectors.
     site.let_stamp_checks_fall_due()
     page = site.html("/galaxy")
     assert _placed_count(page) == 3
-    fresh = site.get(tiles_url).get_json()
+    fresh = tile_payload(site.get(tiles_url))
     assert fresh["stamp"] != warm["stamp"]
     assert fresh["cached"] == 0
     # The changed tile was cached again.
-    again = site.get(tiles_url).get_json()
+    again = tile_payload(site.get(tiles_url))
     assert again["cached"] == 1 and again["stamp"] == fresh["stamp"]
     # The browser holding the old stamp is told which tiles to drop.
-    told = site.get(f"{tiles_url}&stamp={warm['stamp']}").get_json()
+    told = tile_payload(site.get(f"{tiles_url}&stamp={warm['stamp']}"))
     assert WHOLE_GALAXY_TILE in [key for entry in told["history"] for key in entry["tiles"]]
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids
 
@@ -263,7 +264,7 @@ def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config
     systems_before = site.html("/systems")
     assert escape(first["name"]) in sectors_before
     assert all(escape(name) in systems_before for name in old_systems)
-    site.html(f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}")
+    tile_payload(site.get(f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"))
 
     _generate(mysql_config, "sector", "--name", "Fresh From The Shell", "--num-systems", "2")
     _generate(mysql_config, "system", "--name", "Lonely Shell Star", "-planets")
@@ -292,7 +293,7 @@ def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_confi
     page_url = f"/sector/{pid('sector', first['id'])}"
     tiles_url = f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
     before = site.html(page_url)
-    warm = site.get(tiles_url).get_json()
+    warm = tile_payload(site.get(tiles_url))
     assert "Shell Cloud" not in before
     assert warm["tiles"][WHOLE_GALAXY_TILE]["clouds"] == []
 
@@ -300,6 +301,6 @@ def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_confi
               "--name", "Shell Cloud")
     site.let_stamp_checks_fall_due()
     assert "Shell Cloud" in site.html(page_url)
-    fresh = site.get(tiles_url).get_json()
+    fresh = tile_payload(site.get(tiles_url))
     assert fresh["stamp"] != warm["stamp"]
     assert [cloud["name"] for cloud in fresh["tiles"][WHOLE_GALAXY_TILE]["clouds"]] == ["Shell Cloud"]
