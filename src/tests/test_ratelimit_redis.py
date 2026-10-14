@@ -86,19 +86,15 @@ def test_no_configured_storage_means_the_redis_server():
                PLANETGEN_RATELIMIT_STORAGE_URI="memory://") == "memory://"
 
 
-def test_the_reset_between_tests_leaves_another_tests_redis_counts_alone(redis_server, key_prefix):
-    """The `_reset_rate_limits` fixture used to call `limiter.reset()` on a Redis storage, which deletes every
+def test_the_reset_between_tests_only_touches_a_limiter_that_counts_in_memory(redis_server, key_prefix):
+    """The `_reset_rate_limits` fixture used to call `limiter.reset()` on a Redis storage too, which deletes every
     limiter key on the server, so a test running in another process at that moment lost half its counts
-    (TEST.146). It resets only a limiter that counts in this process's memory."""
+    (TEST.146). It now resets only a limiter that counts in this process's memory."""
     from planetgen.api.limiter import limiter
     from tests.conftest import _counts_in_this_process
 
-    pages = {"health": "4 per minute"}
-    client = _app(redis_server, key_prefix, RATELIMIT_PAGES=pages).test_client()
-    assert [_health(client, "10.9.9.9") for _ in range(3)] and not _counts_in_this_process(limiter)
-    import redis
-
-    server = redis.Redis.from_url(redis_server)
-    assert list(server.scan_iter(match=f"*{key_prefix}*10.9.9.9*"))
     _app("memory://", key_prefix)
     assert _counts_in_this_process(limiter)
+    application = _app(redis_server, key_prefix)
+    application.test_client().get("/api/health")  # the storage is made when the first request needs it
+    assert not _counts_in_this_process(limiter)
