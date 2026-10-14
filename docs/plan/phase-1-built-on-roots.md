@@ -199,6 +199,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
+| TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  |  |
+| TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.150, MAP.152 |  |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules |  |  |
 | ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) |  |  |
@@ -235,7 +237,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars |  | Foundations lane 1. |
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts |  | Foundations lane 1. |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
-| PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls |  | Foundations lane 1. |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers |  | Foundations lane 1. |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |

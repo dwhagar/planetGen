@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.53 |
 | SEC | SEC.33 |
-| TEST | TEST.140 |
+| TEST | TEST.142 |
 | USR | USR.11 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -1090,7 +1090,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
 | PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | done, PR #1206 |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
-| PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | open |
+| PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | done, PR #1236 |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
 | PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | open |
 | PERF.84 | Neighbour linking stalls on a large run (bug) | none | open |
@@ -1487,6 +1487,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) | none | open |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | open |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules | none | open |
+| TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) | none | open |
+| TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
