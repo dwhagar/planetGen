@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1015] - 2026-10-14
+
+### Fixed
+- **A table that hits the database's time limit says the database is busy and asks again, instead of failing.** The table route answered a statement timeout with a 502 and no retry hint, and the table threw the rows away. It now answers 504 with `Retry-After`; the table keeps the rows already loaded, shows "The database is busy. Showing the rows loaded so far; trying again." and asks again after 2 s, 4 s, 8 s ... 30 s, as the Galaxy Map does.
+
 ## [8.0.1014] - 2026-10-14
 
 ### Changed
