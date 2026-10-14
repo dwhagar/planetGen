@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1000] - 2026-10-14
+
+### Added
+- **One function for the "map luminosity" of a mass (GEN.200).** `stellar_evolution.map_luminosity_sol(mass)` gives the luminosity a main-sequence star of that mass would have by the map's table (0.23 M^2.3 below 0.43 Msun, M^4 to 2, 1.5 M^3.5 to 20, then linear: 20 Msun about 53,700 Lsun, a 4 million Msun black hole about 1e10), so a faint but massive neutron star or black hole can be ranked for the Galaxy Map by the star of its mass. It is separate from the star generators' own relation, and the differences are written down in the design note and in `tuning.py`. Nothing uses it yet: the scatter, the stored column and the tile query follow (GEN.201, DB.23, MAP.171).
+
 ## [8.0.999] - 2026-10-14
 
 ### Changed
