@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.147 |
+| TEST | TEST.148 |
 | USR | USR.12 |
 | OPS | OPS.50 |
 | DOC | DOC.45 |
@@ -489,7 +489,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
 | DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | done, PR #1127 |
-| DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | open |
+| DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | done, PR #1365 |
 | DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | done, PR #1317 |
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
@@ -736,7 +736,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | none | open |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | none | open |
 | GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | done, PR #1252 |
-| GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | none | open |
+| GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | none | done, PR #1365 |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | done, PR #1239 |
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
@@ -1144,7 +1144,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) | none | done, PR #1300 |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) | none | open |
 | PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | open |
-| PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | open |
+| PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | done, PR #1364 |
 | PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | open |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | open |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | open |
@@ -1552,6 +1552,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | open |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | open |
+| TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

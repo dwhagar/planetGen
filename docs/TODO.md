@@ -1241,7 +1241,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reconciliation in the same query, so this item follows MAP.152 and
   uses its tile choice. Not a prerequisite of the 8.1 headline
   (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
-  Prerequisites: DB.23, GEN.201, MAP.152. Related: MAP.148,
+  Prerequisite: MAP.152. Related: MAP.148,
   MAP.164, MAP.165, MAP.159, MAP.146.
   Status (2026-10-09): DB.24 done (Foundations lane 1, 2026-10-14,
   #1317, schema v83): nebula_field holds every kept class M and N cloud,
@@ -3350,31 +3350,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the multiples.
   Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
 
-- [ ] **GEN.201 Fill the map luminosity in the scatter and in existing galaxies**
-  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
-  the following mass/luminosity to allow us to store a 'map visibility'
-  value for phenomena that aren't bright but have large mass. The idea
-  being that a neutron star of say 2 solar masses should be given
-  placement on the map when a star's brightness at 2 solar masses would
-  be visible. Same for black holes, if a super massive black hole has a
-  mass well above the brightest star, then it's visibility on the map
-  should be keyed to that. This allows us to put items on the map that
-  aren't bright enough to be seen but are of importance (major
-  gravitational locations are always important to navigation)." Done:
-  the phenomenon scatter writes `map_luminosity_sol` from the mass with
-  the shared function when it inserts a row (every pass, including "Redo
-  scatters", GEN.196), so a reseed fills it; existing galaxies get it
-  from a one-off maintenance command that fills the column in id-range
-  batches with the progress bar and ETA of PERF.66, resumable, no
-  downtime for readers (default: both, since Boss resets by hand and the
-  command saves a full reseed). Check: after a reseed and after the
-  command, the same rows carry the same values (a test on a small
-  galaxy). Owner: Foundations lane 1.
-  Decided (Boss, 2026-10-14 19:55Z, on a decision
-  card relayed by the coordinator): both. The scatter fills the map
-  luminosity for new galaxies and a one-off command fills existing ones.
-  Prerequisite: DB.23. Related: MAP.171, GEN.185, GEN.196.
-
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -3850,13 +3825,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
   and approved every default in it on 2026-10-14 21:08Z (see the
   Decided line below). Filed from the same review, independent of the
-  rebuild: PERF.93 (bug), OPS.48, PERF.94, ADM.54.
+  rebuild: PERF.93 (bug, done, PR #1364), OPS.48, PERF.94, ADM.54.
   Decided (Boss, 2026-10-14 21:08Z): Option A of
   the Redis review, every default approved. Build steps filed as PERF.95
   (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
   scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
   cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
-  when they are; it follows the dead-worker bug PERF.93 and the client
+  when they are; it follows the dead-worker bug PERF.93 (done) and the client
   module PERF.94 in Foundations lane 1. DOC.20 rewrites the notes after
   step 6.
 
@@ -3922,28 +3897,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   full timing, and a full row per object only behind an opt-in flag.
   Prerequisites: none. Related: PERF.33.
 
-- [ ] **PERF.93 api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug)**
-  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
-  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
-  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
-  benchmarks in research/redis-review/bench/). api_jobs.ensure_workers
-  starts min(waiting, worker_count()) minus Worker.count(queue) minus
-  the workers still starting. Worker.count is the size of a Redis set
-  that only a worker's start-up maintenance cleans. Measured in the
-  review: after kill -9 of a worker the count stayed at 1 for the whole
-  test, and still at 1 after the worker's own key had expired (80 s), so
-  queued API jobs wait on a phantom worker and, with a cap of one,
-  nothing replaces it. A job whose worker was killed is also noticed
-  only after about 90 s (heartbeat TTL 30 s plus 60 s) and then runs
-  again because of Retry(max=1). Not reproduced end to end through
-  planetGen's own code; the cause and the measurement are in the note
-  (finding F4, F5). Done when: ensure_workers counts live workers only
-  (a liveness check, and the worker registry is cleaned first), a test
-  kills a worker and shows a replacement starts and the queued job runs,
-  and the late-noticed killed job is covered or noted. Independent of
-  PERF.86. Bugfixes lane 2.
-  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78.
-
 - [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
   1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
@@ -3980,7 +3933,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   count from the Queue page, Ludicrous Speed as a number). Done when:
   those items' behaviours work on the new spine and a test kills a
   worker and a replacement starts.
-  Prerequisites: PERF.93, PERF.94. Related: PERF.86, PERF.40, PERF.78,
+  Prerequisite: PERF.94. Related: PERF.86, PERF.40, PERF.78,
   ADM.15.
 
 - [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
@@ -4194,32 +4147,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
-- [ ] **DB.23 Store a "map luminosity" for phenomena that are faint but massive (Alembic migration)**
-  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
-  the following mass/luminosity to allow us to store a 'map visibility'
-  value for phenomena that aren't bright but have large mass. The idea
-  being that a neutron star of say 2 solar masses should be given
-  placement on the map when a star's brightness at 2 solar masses would
-  be visible. Same for black holes, if a super massive black hole has a
-  mass well above the brightest star, then it's visibility on the map
-  should be keyed to that. This allows us to put items on the map that
-  aren't bright enough to be seen but are of importance (major
-  gravitational locations are always important to navigation)." Done: a
-  new column `map_luminosity_sol` (FLOAT, null allowed) on
-  `phenomenon_scatter`, next to `mass_solar` (MAP.165), added by the
-  next Alembic revision (0082 or the next free one) with the
-  previous-version fixture and the models regenerated. Only the kinds
-  that have a mass get a value (black holes, neutron stars and quasars;
-  planetary nebulae and supernova remnants stay null, hypervelocity
-  stars keep their own luminosity). Black holes and neutron stars in
-  generated sectors are few, so they take the value from the shared
-  function (GEN.200) when the map reads them and get no column
-  (default). Decided by default: FLOAT, 4 bytes a row, about 0.27 GB at
-  68 million rows; no index unless the tile query needs one (PERF.68
-  measures that). Owner: Foundations lane 1 (the only lane that adds
-  migrations), after PERF.70.
-  Prerequisites: none. Related: GEN.201, MAP.171, MAP.165.
 
 - [ ] **DB.25 A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration)**
   Foundations lane 2 (2026-10-14, after #1335): with the 3-ary ladder
@@ -5282,6 +5209,16 @@ clears each one.
   the Test Suite Rebuild thread (group B style), not a lane. Fixed in
   the thread's open PR, which lands with TEST.145.
   Prerequisites: none. Related: TEST.139, TEST.145.
+
+- [ ] **TEST.147 Two nebula-field table tests fail under load and pass alone (bug)**
+  Reported by Bugfixes lane 2 (2026-10-14 22:05Z) in a scripts/test.py
+  changed run at load 3.7:
+  src/tests/test_nebula_field_table.py::test_the_table_holds_the_kept_classes_m_and_n_and_the_rows_equal_the_fields_clouds
+  and ::test_a_plan_run_links_the_clouds_a_galaxy_already_holds failed,
+  then passed alone on re-run. Main was not checked. Done when the cause
+  is found and the suite shows no load flake for these two. Owner: the
+  Test Suite Rebuild thread, not a lane.
+  Prerequisites: none. Related: TEST.126, TEST.139.
 
 ## USR: User accounts
 
