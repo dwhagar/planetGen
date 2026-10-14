@@ -123,7 +123,7 @@ def check_compact_mass_limit(args, parser):
 
 
 COMPACT_MIN_MASS_HELP = (
-    "The lowest mass (solar masses) of a neutron star or black hole placed galaxy-wide (GEN.195): one of "
+    "The lowest mass (solar masses) of a neutron star or black hole placed galaxy-wide: one of "
     + ", ".join(f"{preset:g}" for preset in program_constants.COMPACT_MIN_MASS_PRESETS)
     + ", or 'star' to use the stellar mass limit (--phenomenon-min-mass), which is also the default "
       "when this is left out. Lighter ones are drawn when their sector is filled. A lower limit places "
@@ -208,11 +208,14 @@ def validate_logging_args(args, parser):
                      "(there's nowhere else for debug output to go).")
 
 
+_RING_LIMIT = f"{run_galaxy.LARGE_RING_WARNING_THRESHOLD:,}"
+"""str: The ring size past which a run needs `--limit` or `--yes`, as the help says it."""
+
 STRICT_HELP = ("Stop instead of warning: a run the console would otherwise go ahead with after a "
                "warning (the database disk too small, a ring or block past "
-               "LARGE_RING_WARNING_THRESHOLD sectors without --limit or --yes, an address outside the "
+               f"{_RING_LIMIT} sectors without --limit or --yes, an address outside the "
                "galaxy's outline, --min-habitable above a sector's drawn count, a forced body no "
-               "system had room for) ends with an error and nothing generated, as before GEN.81.")
+               "system had room for) ends with an error and nothing generated.")
 
 
 def add_system_arguments(parser):
@@ -390,7 +393,7 @@ def add_shared_generation_options(parser):
                         help="Guarantee at least this many systems in the sector have a habitable world, "
                              "chosen randomly among them, without requiring every system to have one.")
     parser.add_argument('--directive', action='append', default=None, metavar='MINIMUM',
-                        help="Redraw each sector until it holds at least this much (GEN.96): systems>=N, "
+                        help="Redraw each sector until it holds at least this much: systems>=N, "
                              "habitable>=N or type:X>=N (X: O B A F G K M wd bh ns). Repeat for more. "
                              "After --directive-attempts draws the closest one is kept and the run "
                              "reports which minimum it missed.")
@@ -582,7 +585,7 @@ def add_galaxy_arguments(parser):
                             help="Block mode: generate every not-yet-generated sector the galaxy's outline "
                                  "allows inside one Galaxy Map drill-down block, given by its key "
                                  "(size.ring.wedge.slab, as in the map's stage links, e.g. 3.40.7.0). "
-                                 "Needs --limit or --yes past LARGE_RING_WARNING_THRESHOLD sectors.")
+                                 f"Needs --limit or --yes past {_RING_LIMIT} sectors.")
     mode_group.add_argument('--center-sector', type=int, metavar='SECTOR_ID',
                             help="Local-neighborhood mode: generate every not-yet-generated sector "
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
@@ -606,8 +609,8 @@ def add_galaxy_arguments(parser):
                         help="With --ring I: shell mode, generating every not-yet-generated sector in "
                              "ring I through every layer the outline reaches (a cylindrical shell). Far "
                              "larger than one ring at one layer, so it needs --limit or --yes past "
-                             "LARGE_RING_WARNING_THRESHOLD sectors.")
-    course_group = parser.add_argument_group("course mode (NAV.48)")
+                             f"{_RING_LIMIT} sectors.")
+    course_group = parser.add_argument_group("course mode")
     course_group.add_argument('--course', nargs=2, metavar=('FROM', 'TO'),
                               help="Course mode: generate the uncharted sectors that block the NAV course "
                                    "between two objects (a star's object ID, or <kind>:<ID> for a body or "
@@ -617,7 +620,7 @@ def add_galaxy_arguments(parser):
     course_group.add_argument('--course-border', action='store_true',
                               help="With --course: also generate the uncharted cells that share a face "
                                    "with those on the course.")
-    span_group = parser.add_argument_group("span mode (ADM.29)")
+    span_group = parser.add_argument_group("span mode")
     span_group.add_argument('--rings', metavar='FIRST:LAST',
                             help="Span mode: generate every not-yet-generated sector in these rings (N or "
                                  "FIRST:LAST, inclusive). Default: every ring the outline reaches.")
@@ -639,7 +642,7 @@ def add_galaxy_arguments(parser):
                         help="Don't ask before generating: skips the size and time question asked on a "
                              "terminal before filling more than one sector, and with --ring (or --ring "
                              "--shell, or --block) the confirmation normally required before generating "
-                             "more than LARGE_RING_WARNING_THRESHOLD sectors. A run the database disk "
+                             f"more than {_RING_LIMIT} sectors. A run the database disk "
                              "can't hold is still refused.")
     parser.add_argument('--estimate-only', action='store_true',
                         help="Only show the size and time estimate (and whether the disk would refuse the "
@@ -667,7 +670,7 @@ def add_galaxy_arguments(parser):
                              "be combined with --density/--num-systems (those override every position's "
                              "density uniformly, leaving no per-position value to compare against).")
     parser.add_argument('--neighborhoods', type=int, default=1, metavar='N',
-                        help="Random-start mode: generate N random neighborhoods (GEN.97) instead of one. Each "
+                        help="Random-start mode: generate N random neighborhoods instead of one. Each "
                              "start is inside the galaxy with its whole neighborhood, and at least twice the "
                              "radius from every other start, so they never overlap.")
     parser.add_argument('--neighborhood-gamma', type=finite_float, default=0.0, metavar='G',
@@ -675,13 +678,13 @@ def add_galaxy_arguments(parser):
                              "probability min(1, relative density) ** G; 0 (the default) keeps every one, "
                              "so starts are uniform by volume.")
     parser.add_argument('--avoid-filled-space', action='store_true',
-                        help="Random-start mode (GEN.186): drop any random centre whose neighborhood touches a "
+                        help="Random-start mode: drop any random centre whose neighborhood touches a "
                              "sector that is already generated, so every neighborhood grows in empty space. "
                              "Logs how many candidate centres qualified. Without it, a neighborhood may "
                              "overlap filled space (the sectors already there are kept, not redone).")
     parser.add_argument('--cylinder-sectors', type=finite_float, metavar='X',
-                        help="Instead of --radius-pc, with --center-sector or --ring --slot: a radial fill "
-                             "(ADM.30), a round disc X sectors across the plane (1 is the centre and its "
+                        help="Instead of --radius-pc, with --center-sector or --ring --slot: a radial fill: "
+                             "a round disc X sectors across the plane (1 is the centre and its "
                              "face neighbours) through --cylinder-layers layers either side.")
     parser.add_argument('--cylinder-layers', type=int, metavar='H',
                         help="With --cylinder-sectors: layers above and below the centre's to include. "
@@ -690,7 +693,7 @@ def add_galaxy_arguments(parser):
                         help="Skip the last step of the run, which saves the path every star system, "
                              "rogue planet and comet takes through its sector (for the sectors the run "
                              "created and the ones around them). 'planetgen orbits' saves them later.")
-    backfill_group = parser.add_argument_group("bright stars after the run (GEN.30)")
+    backfill_group = parser.add_argument_group("bright stars after the run")
     backfill_group.add_argument('--backfill-from', choices=run_galaxy.BACKFILL_FROM_CHOICES, default="edge",
                                 help="Once every sector of the run is generated, backfill the bright stars "
                                      "out from the run's edge ('edge', the default) -- or not at all "
@@ -709,7 +712,7 @@ def add_galaxy_arguments(parser):
                                 help="With --then-scatter: the scatter's threshold, solar luminosities. "
                                      f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
     backfill_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
-                                help="With --then-scatter: the stellar mass limit of the scatters (GEN.183), solar "
+                                help="With --then-scatter: the stellar mass limit of the scatters, solar "
                                      "masses; blank keeps the one already stored, else "
                                      f"{program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
     backfill_group.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
@@ -1003,7 +1006,7 @@ def add_plan_arguments(parser):
                                    "The phenomena (black holes, neutron stars, nebulae, ...) are a separate "
                                    "scatter: --phenomena-only.")
     bright_group.add_argument('--force', action='store_true',
-                              help="No longer needed: the scatter always leaves filled sectors out (GEN.30).")
+                              help="No longer needed: the scatter always leaves filled sectors out.")
     bright_group.add_argument('--workers', type=int, default=None,
                               help="How many layers of bright stars to draw at once, each in its own "
                                    "low-priority worker process. Default: 80%% of this machine's cores "
@@ -1027,8 +1030,8 @@ def add_plan_arguments(parser):
                                       "bright stars (to change --phenomenon-min-mass). Filled sectors are left out.")
     phenomena_group.add_argument('--redo-scatters', nargs='+', choices=program_constants.REDO_SCATTERS, default=None,
                                  metavar='SCATTER',
-                                 help="Redo only the scatters named, on the stored plan, each with this run's settings "
-                                      "(GEN.196): 'mass' (the massive stars, --phenomenon-min-mass), 'luminosity' "
+                                 help="Redo only the scatters named, on the stored plan, each with this run's settings: "
+                                      "'mass' (the massive stars, --phenomenon-min-mass), 'luminosity' "
                                       "(the bright stars, --bright-star-min-luminosity) and 'phenomena' (the "
                                       "neutron stars, black holes and other phenomena, --compact-min-mass). Each "
                                       "clears and rewrites only its own rows; the central black hole or quasar is "
@@ -1037,12 +1040,12 @@ def add_plan_arguments(parser):
     phenomena_group.add_argument('--redo-nebula-field', nargs='?', const='dry-run',
                                  choices=program_constants.REDO_NEBULA_FIELD_MODES, default=None, metavar='MODE',
                                  help="Bring an existing galaxy's stored molecular clouds in line with the current "
-                                      "nebula keep rates (GEN.205). 'dry-run' (the default) only counts the stored "
+                                      "nebula keep rates. 'dry-run' (the default) only counts the stored "
                                       "field clouds the rule now rejects; 'apply' counts, then deletes them "
                                       "(clearing what pointed at them, refreshing containment in the sectors they "
                                       "reached) and draws the nebula_field table again. Nothing else is touched.")
     phenomena_group.add_argument('--fill-map-luminosity', action='store_true',
-                                 help="Fill the map luminosity (DB.23, GEN.201) of the scattered phenomena of a galaxy "
+                                 help="Fill the map luminosity of the scattered phenomena of a galaxy "
                                       "scattered before schema v84, from their stored masses, in id-range batches "
                                       "that readers never wait for. Resumable: it only fills rows still empty. A "
                                       "new scatter writes the value with each row.")
@@ -1340,7 +1343,7 @@ def build_parser():
 
     versions_parser = subparsers.add_parser(
         'versions',
-        description="Lists the version key each galaxy database was updated under (OPS.13), newest first.",
+        description="Lists the version key each galaxy database was updated under, newest first.",
         help="List the version keys recorded by updates.")
     store.add_mysql_connection_args(versions_parser)
     add_logging_arguments(versions_parser)
@@ -1356,7 +1359,7 @@ def build_parser():
 
     check_db_parser = subparsers.add_parser(
         'check-db',
-        description="Checks the database for damage and changes nothing (DB.8): schema revision, table health, "
+        description="Checks the database for damage and changes nothing: schema revision, table health, "
                     "rows without parents, ids, impossible values, sector counts and version keys. Ends with one "
                     "pass or fail line per check; exits 1 when it found damage and 2 when a check could not run.",
         help="Check the database for damage (writes nothing).")
@@ -1372,7 +1375,7 @@ def build_parser():
         'benchmark',
         description="Times a small galaxy from the plan to the finished fill in scratch databases and prints "
                     "the time and database work of every stage, at each worker count asked, with an optional "
-                    "profile of the fill (PERF.31).",
+                    "profile of the fill.",
         help="Time where generation spends its time.")
     benchmark.add_benchmark_arguments(benchmark_parser)
     add_logging_arguments(benchmark_parser)
@@ -1580,7 +1583,7 @@ def main():
     seed = secrets.randbits(128)
     draw.set_run_seed(seed)
     log.debug(f"Seeded the run's random number generator with {seed}; galaxy sectors and bright stars draw "
-              f"from the galaxy's own seed instead (GEN.39).")
+              f"from the galaxy's own seed instead.")
 
     # TEST.68: a bulk run checks the math first and writes nothing at all
     # (not even the activity log's start line) when it fails.

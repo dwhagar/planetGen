@@ -43,7 +43,7 @@ def process_args():
     systems_parser.add_argument('--sector-id', help="Only systems in this sector.")
 
     near_parser = subparsers.add_parser(
-        'near', help="Find everything generated within a distance of a place (NAV.43).",
+        'near', help="Find everything generated within a distance of a place.",
     )
     near_parser.add_argument('place', help="An object reference (system:<ID>, planet:<ID>, nebula:<ID> ...; a bare "
                                            "three-part ID is a system) or a galaxy-frame point 'x,y,z' in parsecs.")
