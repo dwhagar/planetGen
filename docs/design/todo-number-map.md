@@ -1261,7 +1261,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | done, PR #1299 |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
-| UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
+| UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | done, PR #1315 |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | open |
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | open |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
