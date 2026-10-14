@@ -201,3 +201,7 @@ Run from `src` with `PYTHONPATH=.`; they need numpy and astropy (and scipy for t
 ## 11. Built so far (MAP.151a)
 
 `planetgen/galaxy/region.py` is the frame of section 5.2: `Region` (centre, reach across the plane, layers either side) lists a round region as one `RingArc` per ring (first slot, count, whole ring) with the wrap of section 6, counts it without visiting a cell, hands out `Span`s and non-wrapping slot ranges for SQL, and yields the same `(ring, layer, slot, x, y, z, distance)` cells the ADM.30 fills used to pick by walking a sphere. The fills use it. Still to build: the 3-ary block ladder (MAP.151b), per-level aggregates and the window query (MAP.151c), and the map reading windows (MAP.151d).
+
+## 12. Built so far (MAP.151c, server)
+
+`planetgen/galaxy/window.py` is the data window of section 1: `window_cells(centre, g)` lists the cells of one ladder level whose centres lie within `g/2` cells of the middle cell across the plane and `(g-1)/2` slabs of its layer (the frame is `region.Region` over the lattice of blocks, in units of a sector edge, with the level's wedge counts), `window_parents` names the stages they come from, and `crop_stages` cuts those stages to the window. `/galaxy/window?at=&g=` (`tilecache.fetch_window`) serves it from the stage cache: nine cells across touch at most 12 stage files for blocks of 27 or 243 sectors a side away from the axis, and up to 64 level-3 stages for a window of sectors (the last ladder step is 3, not 9). No new cache files, no new query and no migration. The map does not read it yet (MAP.151d).

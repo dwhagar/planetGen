@@ -116,7 +116,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `ratelimit.storage_uri` | text | empty | after a restart | any admin | `PLANETGEN_RATELIMIT_STORAGE_URI` | Where limits count; empty means the Redis server in redis.url, memory:// counts per process (right with exactly one worker). |
 | `ratelimit.pages.search` | text | 30 per minute | after a restart | any admin | none | Limit per client address on /search and /galaxy/locate. Empty turns it off. |
 | `ratelimit.pages.galaxy` | text | 60 per minute | after a restart | any admin | none | Limit on /galaxy, the Galaxy Map page. Empty turns it off. |
-| `ratelimit.pages.galaxy_tiles` | text | 600 per minute | after a restart | any admin | none | Limit on /galaxy/tiles, /galaxy/stage and /galaxy/territories, fetched as the map's camera moves. Empty turns it off. |
+| `ratelimit.pages.galaxy_tiles` | text | 600 per minute | after a restart | any admin | none | Limit on /galaxy/tiles, /galaxy/stage, /galaxy/window and /galaxy/territories, fetched as the map's camera moves. Empty turns it off. |
 | `ratelimit.pages.health` | text | 60 per minute | after a restart | any admin | none | Limit on /api/health. Empty turns it off. |
 | `ratelimit.pages.other` | text | 300 per minute | after a restart | any admin | none | Limit on every other page, counted together. Empty turns it off. |
 | `login_allowlist` | list of text | empty list | after a restart | the Owner | `PLANETGEN_LOGIN_ALLOWLIST` | Client addresses or networks (CIDR) never locked out after failed logins; loopback never is either. Environment: comma- or space-separated. |

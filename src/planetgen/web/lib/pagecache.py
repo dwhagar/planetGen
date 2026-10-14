@@ -56,7 +56,7 @@ DEFAULTS = PageCache().model_dump()
 """dict: The model's defaults (`settings.PageCache`), the settings a cache
 built without any uses."""
 
-UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/stamp", "/auth", "/admin")
+UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/window", "/galaxy/stamp", "/auth", "/admin")
 """tuple: Paths never cached here: the stamp itself, the Galaxy Map's tile
 and stage data (`tilecache.py` keeps those on disk), and anything that
 depends on who is asking."""

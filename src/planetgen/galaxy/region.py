@@ -17,7 +17,7 @@ import math
 from collections import namedtuple
 
 from planetgen.galaxy.geometry import (
-    layer_center_z_pc, ring_radius_pc, ring_sector_count, sector_address_at, sector_position_pc,
+    layer_center_z_pc, layer_index_at, ring_radius_pc, ring_sector_count, sector_position_pc,
 )
 from planetgen.galaxy.span import Span
 
@@ -39,14 +39,18 @@ when that is every slot of the ring."""
 class Region:
     """A cylinder of sectors; see the module docstring."""
 
-    def __init__(self, center_pc, horizontal_pc, half_layers, edge_pc):
+    def __init__(self, center_pc, horizontal_pc, half_layers, edge_pc, slot_count=ring_sector_count):
         """
         Args:
             center_pc (tuple): `(x, y, z)` parsecs, the centre of the round
                 shape; its layer is the middle of the layers.
             horizontal_pc (float): `>= 0`, the reach across the plane.
             half_layers (int): `>= 0`, layers either side of the centre's.
-            edge_pc (float): `> 0`.
+            edge_pc (float): `> 0`, a cell's edge: sectors for the sector
+                grid, or `m` sector edges for a lattice of blocks `m` a side.
+            slot_count (callable): `ring -> slots in that ring`; the sector
+                grid's `ring_sector_count` unless the cells are blocks
+                (`galaxy.drill.drill_wedge_count`).
 
         Raises:
             ValueError: On a negative reach or layer count or a non-positive edge.
@@ -61,7 +65,8 @@ class Region:
         self.horizontal_pc = float(horizontal_pc)
         self.half_layers = int(half_layers)
         self.edge_pc = float(edge_pc)
-        self.center_layer = sector_address_at(self.center_pc, self.edge_pc)[1]
+        self.slot_count = slot_count
+        self.center_layer = layer_index_at(self.center_pc[2], self.edge_pc)
         self._arcs = None
 
     @classmethod
@@ -78,7 +83,7 @@ class Region:
         return self.center_layer - self.half_layers, self.center_layer + self.half_layers
 
     def _planar_distance(self, ring, slot):
-        n = ring_sector_count(ring)
+        n = self.slot_count(ring)
         r = ring_radius_pc(ring, self.edge_pc)
         theta = (slot + 0.5) * 2 * math.pi / n
         return math.hypot(r * math.cos(theta) - self.center_pc[0], r * math.sin(theta) - self.center_pc[1])
@@ -88,7 +93,7 @@ class Region:
 
     def _ring_arc(self, ring):
         """The slots of `ring` inside the circle, as a `RingArc`, or `None`."""
-        n = ring_sector_count(ring)
+        n = self.slot_count(ring)
         r_m = ring_radius_pc(ring, self.edge_pc)
         cx, cy = self.center_pc[0], self.center_pc[1]
         r_c = math.hypot(cx, cy)
@@ -134,12 +139,11 @@ class Region:
             self._arcs = [arc for arc in arcs if arc is not None]
         return list(self._arcs)
 
-    @staticmethod
-    def slot_ranges(arc):
+    def slot_ranges(self, arc):
         """`arc`'s slots as inclusive `(first, last)` pairs that never wrap --
         one pair, or two where the arc passes slot 0 (what SQL `BETWEEN`
         takes)."""
-        n = ring_sector_count(arc.ring)
+        n = self.slot_count(arc.ring)
         last = arc.first + arc.count - 1
         if last < n:
             return [(arc.first, last)]
@@ -147,11 +151,14 @@ class Region:
 
     def spans(self):
         """The region as `span.Span`s, one per ring: its layers, that ring
-        and its slot arc (`None`, all slots, for a whole ring)."""
+        and its slot arc (`None`, all slots, for a whole ring). Only for the
+        sector grid: a `Span` counts slots as `ring_sector_count` does."""
+        if self.slot_count is not ring_sector_count:
+            raise ValueError("spans describe the sector grid, not a lattice of blocks")
         layers = self.layer_range
         return [
             Span(rings=(arc.ring, arc.ring), layers=layers,
-                 slots=None if arc.whole else (arc.first, (arc.first + arc.count - 1) % ring_sector_count(arc.ring)))
+                 slots=None if arc.whole else (arc.first, (arc.first + arc.count - 1) % self.slot_count(arc.ring)))
             for arc in self.ring_arcs()
         ]
 
@@ -180,7 +187,7 @@ class Region:
             for arc in arcs:
                 if outer is not None and arc.ring > outer:
                     break
-                n = ring_sector_count(arc.ring)
+                n = self.slot_count(arc.ring)
                 for k in range(arc.count):
                     yield arc.ring, layer, (arc.first + k) % n
 
@@ -189,7 +196,7 @@ class Region:
         the region's centre, as `geometry.enumerate_sectors_within_radius`
         yields them: `(ring, layer, slot, x, y, z, distance_pc)`."""
         for ring, layer, slot in self.addresses(bounds):
-            n = ring_sector_count(ring)
+            n = self.slot_count(ring)
             r = ring_radius_pc(ring, self.edge_pc)
             theta = (slot + 0.5) * 2 * math.pi / n
             x, y, z = r * math.cos(theta), r * math.sin(theta), layer_center_z_pc(layer, self.edge_pc)

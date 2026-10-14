@@ -59,7 +59,7 @@ def test_an_arc_that_crosses_slot_zero_wraps_and_splits_for_sql():
     arc = next(a for a in region.ring_arcs() if a.ring == 40)
     n = ring_sector_count(40)
     assert not arc.whole and arc.first > arc.count and arc.first + arc.count > n
-    low, high = Region.slot_ranges(arc)
+    low, high = region.slot_ranges(arc)
     assert low == (arc.first, n - 1) and high[0] == 0 and high[1] == arc.first + arc.count - n - 1
     assert sorted(slot for a, b in (low, high) for slot in range(a, b + 1)) == sorted(
         slot for _r, _l, slot in region.addresses() if _r == 40 and _l == 0)

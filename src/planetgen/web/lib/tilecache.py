@@ -53,6 +53,7 @@ from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, ge
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
+from planetgen.galaxy.window import DEFAULT_WINDOW, check_width, crop_stages, parse_window_key, window_cells, window_parents
 from planetgen.galaxy.viewport import parse_tile_key, tile_key
 
 DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
@@ -698,6 +699,41 @@ def fetch_stage(db, at=None):
             if owned and path:
                 singleflight.release(owned)
     return {**stage, "stamp": stamp}
+
+
+def fetch_window(db, at, g=DEFAULT_WINDOW):
+    """
+    One Galaxy Map data window (MAP.151, `galaxy.window`): `g` cells across
+    around the cell `at`, cut from the stages of the parent blocks it
+    touches. Those stages come from `fetch_stage`, so a warm cache serves
+    the window without a query, and a window shares its files with every
+    other window and stage in the neighbourhood.
+
+    Args:
+        db (str): The `?db=` value.
+        at (str): A cell key `m.ring.wedge.slab` of any level, `1.ring.slot.layer` for a sector.
+        g (int): Cells across, one of `window.WINDOW_WIDTHS`.
+
+    Returns:
+        dict: `window.crop_stages`' result, plus `stamp`.
+
+    Raises:
+        TileRequestError: On a malformed key or width.
+        apiclient.ApiError / NotFoundError: If the API is needed and fails.
+    """
+    try:
+        centre = parse_window_key(at)
+        width = check_width(g)
+    except ValueError as exc:
+        raise TileRequestError(str(exc))
+    stages = {}
+    stamp = None
+    for parent in window_parents(window_cells(centre, width)):
+        key = format_drill_key(parent) if parent else "galaxy"
+        stage = fetch_stage(db, None if parent is None else key)
+        stamp = stamp or stage.get("stamp")
+        stages[key] = stage
+    return {**crop_stages(centre, width, stages), "stamp": stamp}
 
 
 def prune(root, max_bytes=None):
