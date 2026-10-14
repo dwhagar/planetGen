@@ -142,6 +142,17 @@ ensure_redis() {
     echo "  Nothing needs it yet; the work queue will (docs/deployment/README.md)." >&2
 }
 
+# Warns, with the exact line to add, when the running Redis server's
+# settings don't suit planetGen (OPS.48): append-only file off, a memory
+# policy that evicts, no memory limit, or listening beyond loopback. Never
+# edits the Redis config (examples/redis/planetgen.conf is the example).
+check_redis_settings() {
+    local url
+    url="$("$PYTHON" -c "from planetgen.util.settings import get_settings; print(get_settings().redis.url)")" || return 0
+    redis_answers "$url" || return 0
+    "$PYTHON" "$SCRIPT_DIR/scripts/check_redis_settings.py" "$url" || true
+}
+
 # Whether a Redis server answers PING at the URL in $1, using the redis
 # library install-python-deps.sh installed.
 redis_answers() {
