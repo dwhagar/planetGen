@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1029] - 2026-10-14
+
+### Changed
+- **A binary pair is drawn in the same place on the Galaxy Map and the Sector Map (MAP.186).** The Galaxy Map's tiles added a system's stored offset to its sector's centre as if it were already in the galaxy's axes, but the offset follows the sector's own axes, which the Sector Map rotated into place; every generated star in a tile was therefore off from where the Sector Map put it, a pair most visibly. Tiles now rotate the offset the same way, the nearby search measures from the same real place, and a pair's second star sits its real separation from the first by one rule used in both maps. The Sector Map still draws a close pair's two dots apart so they read as two (their real gap is far too small to see at that scale), and says so in its help and in its scene data (`binariesCompressed`); `/sector/<id>/scene?binaries=real` draws them at their real gap.
+
 ## [8.0.1028] - 2026-10-14
 
 ### Changed
