@@ -1,0 +1,2 @@
+### Fixed
+- **A Galaxy Map link that opens a system or a body now works with the current object IDs.** The map reads `system=` and `object=` in a link as digits only, but a system's and a body's printed ID is hex digits in dashed groups (`0008000000-4000000-00D`), so a reload, a shared link or Back to an opened system dropped the system. Both parts accept the printed ID now, kept in upper case; no other digits-only reference parser is left in the page scripts.
