@@ -995,6 +995,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
                 descriptor.capitalize() if not phenomenon.get("class") else descriptor]
         bits = [bit for bit in bits if bit]
         data["typeLabel"] = f'Rogue Planet ({", ".join(bits)})' if bits else "Rogue Planet"
+        if phenomenon.get("gravity_g"):
+            data["gravityText"] = f'{format_number(phenomenon["gravity_g"], ",.3g")} g'    # UX.99
     elif phenomenon_type == "interstellar_comet":
         data["kind"] = "interstellarComet"
         data["typeLabel"] = f'Interstellar Comet ({descriptor.capitalize()})' if descriptor else "Interstellar Comet"
