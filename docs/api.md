@@ -1186,12 +1186,14 @@ shape as above.
   `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
   `{"class": "M", "force": false}` re-generates the body's surface
   conditions as that class (radius, density, composition, atmosphere,
-  temperature, pressure and life), keeping its orbit, mass, name, row
-  and moons. A class its mass doesn't fit (a gas giant class for a small
-  rocky world) is refused with `409` and a message, and nothing changes.
-  Without `force` only a recommended class is accepted (`409` otherwise);
-  with `"force": true` any class its mass fits is, even one that can't
-  form where the body is. The body
+  temperature, pressure and life), keeping its orbit, name, row,
+  moons and (unless confirmed out of range, below) mass. A class that doesn't suit the body (its mass outside the
+  class's range, the class not forming in the body's zone, a planet too
+  small for its moons, a moon too big for its planet's) or that isn't
+  recommended is refused with `409` unless `"force": true` confirms it;
+  the message says what it would break, ending "Confirm to set it
+  anyway", and nothing changes. Confirmed, the class is set even so; a
+  mass outside the class's range goes to the nearest end of it. The body
   keeps the class it was given; the rest of the system is re-spaced
   around it, nothing is removed, and what still doesn't validate comes
   back in `warnings`.

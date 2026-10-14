@@ -56,6 +56,8 @@ def _api_message(exc):
     message = re.sub(r"^planetGen API error \(\d+\): ", "", str(exc))
     if getattr(exc, "status_code", None) in (401, 403):
         return "Not allowed. Change the admin username and password the installer set first."
+    if message.endswith("Confirm to set it anyway"):
+        return message + ": tick “Set it anyway” and change the class again."
     if "drop_facilities" in message:
         return message.split(";")[0] + ". Tick “also delete its facilities” to go ahead."
     return message
@@ -77,10 +79,9 @@ def _call(kind, target_id, action, drop_facilities):
     body = {"drop_facilities": True} if drop_facilities else None
     db = db_name()
     if action == "class":
-        choice = request.form.get("planet_class") or ""
-        force, _sep, planet_class = choice.rpartition(":")
         return apiclient.admin_edit(cookie_header, db, "POST", f"{_BODY_PATHS[kind]}/{target_id}/class",
-                                    {"class": planet_class, "force": force == "force"})
+                                    {"class": request.form.get("planet_class") or "",
+                                     "force": request.form.get("confirm_class") == "1"})
     if action == "star":
         return apiclient.admin_edit(cookie_header, db, "POST", f"/systems/{target_id}/star",
                                     {"star_type": request.form.get("star_type") or "",

@@ -54,13 +54,14 @@
         {%- for code in row.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
       </optgroup>
       {%- endif %}
-      <optgroup label="Force (may leave it unstable)">
-        {%- for code in row.forced %}<option value="force:{{ code }}">{{ code }}</option>{% endfor %}
+      <optgroup label="Needs confirming (may break it)">
+        {%- for code in row.forced %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
       </optgroup>
     </select></label>
+    <label class="edit-drop"><input type="checkbox" name="confirm_class" value="1"> Set it anyway, even if the class doesn't suit its size, mass or zone</label>
 {%- endset %}
 {%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ row.label ~ "'s class",
-    'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet, a forced one is kept even where it couldn\'t form.',
+    'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet. Any other class says what it would break and is only set when you tick “Set it anyway”.',
     'fields': class_fields, 'button': 'Change ' ~ row.label ~ "'s class"}] %}
 {%- endif %}
 {%- set _ = add_edit_actions(body_actions, row.label,
