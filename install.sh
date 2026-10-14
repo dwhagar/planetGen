@@ -11,10 +11,10 @@
 # here instead:
 #
 #   1. Runs `scripts/install-python-deps.sh` to install the Python package
-#      and its libraries: a build-isolated `pip install` on an ordinary
-#      Python, or distribution (apt) packages on an externally managed one
-#      (PEP 668, e.g. Ubuntu 24.04+), with system-wide pip only for
-#      libraries the distribution lacks or ships too old. No venv.
+#      and its libraries into planetGen's own virtual environment
+#      (/usr/local/planetgen/venv, OPS.45), from the hash-checked lock.
+#      Apache's mod_wsgi, the command-line tools and the background jobs
+#      all run from it; the system Python is left alone.
 #   2. Runs `planetgen.cli.migrate` (with a progress bar; when a migration is
 #      pending it first asks, y/N with a 30-second timeout defaulting to
 #      N, whether to delete the galaxy data instead) against the
@@ -111,10 +111,8 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 echo "== 1/8: Installing the Python package and its libraries =="
-# pip on an ordinary Python; distribution packages (plus system-wide pip
-# for anything the distribution lacks or ships too old) on an externally
-# managed one (PEP 668, e.g. Ubuntu 24.04+). See that script for
-# the details of each path; it prints which one it took.
+# planetGen's own virtual environment (OPS.45); see that script for the
+# details. PYTHON is the interpreter it is made from.
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
 use_site_python
 

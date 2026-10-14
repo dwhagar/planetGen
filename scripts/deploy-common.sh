@@ -14,7 +14,7 @@
 # Expects PYTHON and SCRIPT_DIR (the repo root) to be set, and to run as
 # root.
 
-MACOS_VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
+VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
 MACOS_LOG_DIR=/usr/local/planetgen/log
 GUNICORN_LABEL=org.planetgen.gunicorn
 GUNICORN_PLIST="/Library/LaunchDaemons/$GUNICORN_LABEL.plist"
@@ -23,7 +23,7 @@ is_macos() {
     [[ "$(uname -s)" == Darwin ]]
 }
 
-# The Python to set up the site with when PYTHON isn't given: on macOS
+# The Python the venv is made from when PYTHON isn't given: on macOS
 # Homebrew's python3 (Apple Silicon, then Intel) rather than the Command
 # Line Tools' /usr/bin/python3; elsewhere python3 on the PATH.
 default_python() {
@@ -39,12 +39,10 @@ default_python() {
     command -v python3 || command -v python || true
 }
 
-# After install-python-deps.sh: on macOS the site runs from the venv it
-# made, so every later step uses that Python.
+# After install-python-deps.sh: the site runs from the venv it made
+# (OPS.45), so every later step uses that Python.
 use_site_python() {
-    if is_macos; then
-        PYTHON="$MACOS_VENV/bin/python"
-    fi
+    PYTHON="$VENV/bin/python"
 }
 
 # Copies an example launchd plist into /Library/LaunchDaemons with the
@@ -58,7 +56,7 @@ install_launchd_plist() {
         echo "launchd: $target present"
         return 0
     fi
-    sed -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" -e "s|/usr/local/planetgen/venv|$MACOS_VENV|g" "$@" \
+    sed -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" -e "s|/usr/local/planetgen/venv|$VENV|g" "$@" \
         "$example" > "$target"
     chown root:wheel "$target"
     chmod 644 "$target"
@@ -187,6 +185,7 @@ ensure_apache_modules() {
     if (( ${#enabled[@]} )); then
         APACHE_NEEDS_RESTART=1
     fi
+    check_apache_python_home
     check_mod_wsgi_python
 }
 
@@ -208,11 +207,29 @@ reload_apache_if_running() {
     return 1
 }
 
+# Warns when Apache's vhost does not run the app under the venv
+# (WSGIDaemonProcess ... python-home=$VENV, OPS.45): without it mod_wsgi
+# uses the system Python, which has none of planetGen's libraries. The
+# vhost is the admin's own file, so this only says what to add.
+check_apache_python_home() {
+    local conf
+    conf="$(grep -rlE '^[[:space:]]*WSGIDaemonProcess[[:space:]]+planetgen-api' /etc/apache2 2>/dev/null | head -n1 || true)"
+    [[ -n "$conf" ]] || return 0
+    if grep -E '^[[:space:]]*WSGIDaemonProcess[[:space:]]+planetgen-api' "$conf" | grep -qF "python-home=$VENV"; then
+        echo "Apache runs the site under $VENV."
+    else
+        echo "warning: $conf does not run the site under planetGen's virtual environment." >&2
+        echo "  Add python-home=$VENV to its WSGIDaemonProcess planetgen-api line" >&2
+        echo "  (examples/apache/planetgen.conf.example), then restart Apache." >&2
+    fi
+}
+
 # mod_wsgi embeds the Python it was built against, not whatever `python3`
 # is. The libraries (which live in that Python's own
 # site-packages) are set up for $PYTHON, so the two must be the same
-# version or Apache won't see them. Warns rather than fails: the fix is
-# a package choice for the admin.
+# version or Apache won't see them (with the venv, $PYTHON is the venv's
+# python, which is made from the system's). Warns rather than fails: the fix
+# is a package choice for the admin.
 check_mod_wsgi_python() {
     local so=/usr/lib/apache2/modules/mod_wsgi.so built ours
     [[ -e "$so" ]] && command -v ldd >/dev/null 2>&1 || return 0

@@ -61,14 +61,16 @@ RuntimeDirectoryMode=0750
 # threads, one slow request does not trip it. The per-request limit is
 # the proxy's (proxy_read_timeout 60s in the nginx example).
 #
-# gunicorn 25.1 and later (Ubuntu 26.04's apt package is 25.1.0): add
-# --no-control-socket. The control socket (for the gunicornc tool, unused
+# gunicorn comes from planetGen's own virtual environment (OPS.45;
+# scripts/install-python-deps.sh makes it from requirements-server.lock,
+# which pins gunicorn 25.1 or later), not from apt. 25.1 and later want
+# --no-control-socket: the control socket (for the gunicornc tool, unused
 # here) tries to create ~/.gunicorn in www-data's home, and in 25.1-26.x
 # leaks a thread and a file descriptor on every reload
-# (benoitc/gunicorn#3648). Older gunicorn (Ubuntu 24.04 ships 20.1.0)
-# rejects the flag. Check with: gunicorn --version
-ExecStart=/usr/bin/gunicorn \
+# (benoitc/gunicorn#3648).
+ExecStart=/usr/local/planetgen/venv/bin/gunicorn \
     --pythonpath /var/lib/planetGen/src/html \
+    --no-control-socket \
     --bind unix:/run/planetgen/gunicorn.sock \
     --umask 0007 \
     --workers 1 \

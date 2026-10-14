@@ -210,7 +210,10 @@ system specification file format and the incompatible option pairs.
 
 ### Other tools
 
-Each runs as `python3 -m <module>`; `--help` shows its options:
+Each runs as `python3 -m <module>` from planetGen's own virtual environment
+(`/usr/local/planetgen/venv/bin/python -m <module>` on a server `install.sh`
+set up; a bare `python3` there finds none of the libraries); `--help` shows
+its options:
 
 - **`planetgen.cli.orbits`** advances the galaxy by the time elapsed since
   the last run: planets, moons and orbiting facilities around their
