@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1010] - 2026-10-14
+
+### Changed
+- The to-do list now points at the new research notes on the camera fade, the protective gear ladder and the long-term suitability of a planet.
+
 ## [8.0.1009] - 2026-10-14
 
 ### Added
