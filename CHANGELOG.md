@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.998] - 2026-10-14
+
+### Changed
+- The plan retires the finished timing statistics item and adds one test fix for a paged-table test.
+
 ## [8.0.997] - 2026-10-14
 
 ### Changed
