@@ -203,6 +203,11 @@ generated. Now they belong to the galaxy (`planetgen/galaxy/nebula_field.py`):
   small-radius rows, or a lower `NEBULA_FIELD_MAX_GAS_FACTOR` and class M radius
   range. The 5e-6 is Boss's chosen research value (2026-09-30), so this stays a
   recommendation until he decides.
+  Correction (research 2026-10-10, [nebula-density-vs-reality.md](nebula-density-vs-reality.md)):
+  the four classes are drawn 1 : 3 : 2 : 1, not at equal weight, so the volume inside a
+  cloud is 2%, 8%, 19% and 24% at those gas factors, not 3%, 13%, 35% and 46%; the
+  metaball shape fills only 12% of its bounding sphere; and the recommended rates are in
+  that note.
 
 ## Naming (GEN.13, built in v40, version 7.31.0)
 

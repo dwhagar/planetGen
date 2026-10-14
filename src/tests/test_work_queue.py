@@ -115,6 +115,21 @@ def test_several_workers_run_every_task():
     assert queue.submitted == queue.finished == 12
 
 
+def test_submit_each_gives_the_same_results_in_few_tasks():
+    """PERF.79: many small items go out in a few chunks, each item still finishing with its own weight."""
+    def run(workers):
+        results, done = _collector()
+        with workQueue.WorkQueue("each", workers=workers) as queue:
+            queue.submit_each("square", [(f"n {n}", n, n + 1, done) for n in range(40)], _square)
+        return sorted(results), queue.submitted
+
+    inline, inline_tasks = run(1)
+    pooled, pooled_tasks = run(2)
+    assert pooled == inline == sorted((n * n, n + 1) for n in range(40))
+    assert inline_tasks == 40
+    assert pooled_tasks == 2 * workQueue.CHUNKS_PER_WORKER
+
+
 def test_task_results_do_not_depend_on_the_worker_count():
     def run(workers):
         drawn = {}

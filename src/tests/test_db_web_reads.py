@@ -197,6 +197,7 @@ def test_a_timed_out_api_request_is_a_504(client, monkeypatch):
         raise pymysql.err.OperationalError(1969, "Query execution was interrupted (max_statement_time exceeded)")
 
     monkeypatch.setattr("planetgen.api.routes.list_phenomena", slow)
+    monkeypatch.setattr("planetgen.api.routes.count_phenomena", lambda *_args, **_kwargs: 0)
     response = client.get("/api/phenomena")
     assert response.status_code == 504
     assert "QUERY_TIMEOUT" in response.get_json()["error"]
@@ -208,5 +209,6 @@ def test_other_database_errors_stay_500(client, monkeypatch):
         raise pymysql.err.OperationalError(2013, "Lost connection to MySQL server during query")
 
     monkeypatch.setattr("planetgen.api.routes.list_phenomena", broken)
+    monkeypatch.setattr("planetgen.api.routes.count_phenomena", lambda *_args, **_kwargs: 0)
     response = client.get("/api/phenomena")
     assert response.status_code == 500

@@ -1,0 +1,53 @@
+{#- Chart the uncharted sectors on a course (web/nav_page.py `nav_chart`, NAV.48). -#}
+{% extends "base.html" %}
+{% block content %}
+{%- if error %}
+<section class="panel">
+  <p class="error" role="alert">{{ error }}</p>
+  <p><a href="{{ course_url }}">&larr; Back to the course</a></p>
+</section>
+{%- else %}
+<section class="panel" aria-labelledby="chart-heading">
+  <h2 id="chart-heading">What charting this course takes</h2>
+  {%- if not plan.unknown_hops %}
+  <p>This course crosses no uncharted sector, so there is nothing to chart.</p>
+  {%- else %}
+  <p>{{ plan.unknown_hops }} hop{{ "" if plan.unknown_hops == 1 else "s" }} of the route cross{{ "es" if plan.unknown_hops == 1 else "" }} unknown space.
+  {%- if plan.count %} Charting {{ "them" if plan.unknown_hops != 1 else "it" }} means generating {{ "{:,}".format(plan.count) }} sector{{ "" if plan.count == 1 else "s" }}{{ " (a border of one cell included)" if border else "" }}, the cells of those hops only; the course is plotted again once they exist.
+  {%- else %} All of the uncharted sectors they cross lie outside the galaxy, so none can be generated.{% endif %}</p>
+  {%- if plan.outside_galaxy %}
+  <p class="hint">{{ plan.outside_galaxy }} uncharted cell{{ "" if plan.outside_galaxy == 1 else "s" }} on the line lie{{ "s" if plan.outside_galaxy == 1 else "" }} outside the galaxy and {{ "is" if plan.outside_galaxy == 1 else "are" }} never generated.</p>
+  {%- endif %}
+  {%- if bypass_text %}
+  <p>{{ bypass_text }}</p>
+  {%- endif %}
+  {%- endif %}
+</section>
+
+{%- if plan.count %}
+<section class="panel" aria-labelledby="chart-form-heading">
+  <h2 id="chart-form-heading">Chart these sectors</h2>
+  <form method="get" action="{{ url_for('web.nav_chart') }}" class="search-form">
+    <input type="hidden" name="from" value="{{ from_param }}">
+    <input type="hidden" name="to" value="{{ to_param }}">
+    <label><input type="checkbox" name="border" value="1"{% if border %} checked{% endif %}> Also chart a border of one cell around them (about 3 to 9 times as many sectors)</label>
+    <div class="search-actions"><button type="submit" class="btn">Update</button></div>
+  </form>
+  <form method="post" action="{{ generate_url }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="galaxy">
+    <input type="hidden" name="mode" value="course">
+    <input type="hidden" name="course_from" value="{{ origin.ref }}">
+    <input type="hidden" name="course_to" value="{{ destination.ref }}">
+    {%- if border %}<input type="hidden" name="course_border" value="1">{% endif %}
+    {%- if needs_confirm %}
+    <label><input type="checkbox" name="course_confirm" value="1" required> I want to generate {{ "{:,}".format(plan.count) }} sectors (more than the {{ "{:,}".format(plan.confirm_over) }} that need confirming)</label>
+    {%- endif %}
+    <p class="hint">The Generate page shows the size and time first and asks you to confirm before anything starts. It runs as a background job; plot the course again when it has finished.</p>
+    <div class="search-actions"><button type="submit" class="btn">Check the size and time</button></div>
+  </form>
+</section>
+{%- endif %}
+<p><a href="{{ course_url }}">&larr; Back to the course</a></p>
+{%- endif %}
+{% endblock %}

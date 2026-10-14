@@ -82,7 +82,7 @@ CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS
 LEFT_OUT_TABLES = frozenset({
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs",
-    "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "species", "polities", "system_owners", "population_state",
+    "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "sector_system_counts", "species", "polities", "system_owners", "population_state",
     "system_configs", "system_config_slots",
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module

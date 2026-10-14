@@ -36,10 +36,15 @@ function encode(pairs) {
 }
 
 // The table route's query for one page of rows: the state, the `offset` and
-// `limit`, and `facets=1` when the filter menus' counts are wanted.
-export function dataQuery(state, offset, limit, withFacets) {
+// `limit`, `facets=1` when the filter menus' counts are wanted, and `after`
+// (the previous page's `next` key) when it is known, so a page far down the
+// list is read from there instead of by skipping rows (PERF.75).
+export function dataQuery(state, offset, limit, withFacets, after) {
   var pairs = stateParams(state, null);
   pairs.push(["offset", offset], ["limit", limit]);
+  if (after) {
+    pairs.push(["after", after]);
+  }
   if (withFacets) {
     pairs.push(["facets", "1"]);
   }
@@ -71,21 +76,26 @@ export function pagesFor(first, last, pageSize) {
 }
 
 // The rows fetched so far, by page. `fetchPage(page, generation)` returns a
-// promise of `{rows, total, facets}`. `reset()` forgets everything (the
+// promise of `{rows, total, facets, next}`; its third argument is the `next`
+// of the page before, when that page was fetched. `reset()` forgets everything (the
 // sort or a filter changed) and makes every answer still on its way stale,
 // so a slow old answer can't land in the new table.
 export function createPageStore(pageSize, fetchPage) {
   var pages = new Map();
+  var keys = new Map();
   var pending = new Map();
   var generation = 0;
   var store = {
     total: 0,
+    capped: false,
     facets: null,
     reset: function () {
       generation += 1;
       pages = new Map();
+      keys = new Map();
       pending = new Map();
       store.total = 0;
+      store.capped = false;
       store.facets = null;
     },
     row: function (index) {
@@ -105,12 +115,16 @@ export function createPageStore(pageSize, fetchPage) {
         return pending.get(page);
       }
       var mine = generation;
-      var request = fetchPage(page, mine).then(function (body) {
+      var request = fetchPage(page, mine, keys.get(page - 1)).then(function (body) {
         if (mine !== generation) {
           return false;
         }
         pages.set(page, body.rows);
+        if (body.next) {
+          keys.set(page, body.next);
+        }
         store.total = body.total;
+        store.capped = Boolean(body.capped);
         if (body.facets) {
           store.facets = body.facets;
         }

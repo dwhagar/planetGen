@@ -49,6 +49,25 @@ the Galaxy Map tint: density of the effect sets transparency and no fill
 goes above 50% opacity, so stars and routes stay readable. The legend states
 the unit under the Customary or metric choice (UX.36 number formatting).
 
+## The size of a gradient measure comes from the orbital thresholds (planned)
+
+Boss (2026-10-10 22:14Z): "add note to TODO for the future plan of gravitational map, use the preset minimum movement values from the orbital system to build the size of each gradient measure."
+
+The orbital update system already fixes, per scale, the smallest movement that counts (`THRESHOLDS_M` in `physics/position.py`, section 3 of [orbital-updates.md](orbital-updates.md), pinned by `test_update_due.py`):
+
+| Scale | Preset minimum movement | In metres | Objects |
+|---|---|---|---|
+| Galactic | 0.01 mpc (about 2 AU, 3.1e8 km) | `0.01 * PARSEC_M / 1000` | stars, black holes, neutron stars, stand-alone bodies |
+| System | 0.01 AU (about 1.5e6 km) | `0.01 * AU` | planets, companion stars |
+| Planetary | 100,000 km | `1.0e8` | moons and other satellites |
+
+The plan, to be settled in GEN.198, GEN.199 and PERF.72:
+
+- **Step of a gradient measure.** The tidal tensor and the size of the gradient are taken by differencing the field over a step. That step is the preset minimum movement of the scale being drawn: galactic for a sector grid, system for a System Map grid, planetary for a planet or moon neighbourhood. Below it the orbital system itself says an object has not moved, so a finer difference measures nothing the rest of the galaxy can see.
+- **Size of a zone.** A zone edge is a whole number of those steps, so the gradient of a zone is the difference of two samples that are a real number of steps apart. The default sector grid (16 zones of 0.25 pc over a 4 pc edge) is 250 mpc, which is 25,000 galactic steps. A zone is never finer than one step; a setting that asks for finer zones is refused.
+- **When a zone changes.** A source that has not moved by its own threshold has not moved in the orbital system, so it does not change the grid: the cache (GEN.199) is thrown away only for the zones a source left or entered once it passes its threshold, which is the same event that sets its next update due time (GEN.106).
+- **One set of numbers.** The grid reads the thresholds from the same constants as the orbital update, not a copy, so changing a threshold there changes the gradient step and the cache rule together.
+
 ## Items
 
 GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199

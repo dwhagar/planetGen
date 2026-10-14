@@ -60,6 +60,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
+const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
@@ -381,17 +382,14 @@ function showHint(text, keep) {
 
 // --- Clouds: nebulae and supernova remnants --------------------------------
 
-// A nebula's color by its type, the same hues the Sector Map uses
-// (planetgen/web/maps/starmap.py's _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core
-// and edge opacity). A dark nebula is a near-black silhouette.
-var NEBULA_LOOKS = {
-  diffuse: ["#e3a6c8", 0.47, 0.14],
-  emission: ["#ff6f91", 0.69, 0.25],
-  reflection: ["#6fa8ff", 0.63, 0.22],
-  planetary: ["#5be8c9", 0.66, 0.24],
-  dark: ["#1c1c24", 0.91, 0.56],
-};
-var DEFAULT_NEBULA_LOOK = ["#c9a8e0", 0.56, 0.22];
+// A nebula's color by its type, per theme (static/nebulalook.js, MAP.175): the
+// same hues the Sector Map uses (planetgen/web/maps/starmap.py's
+// _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core and edge opacity),
+// each reaching 3:1 against the map's background on its theme. A dark
+// nebula is a dust-coloured silhouette on the dark theme and a near-black
+// one on the light.
+var NEBULA_LOOKS = nebulaLooks(isLightBackground());
+var DEFAULT_NEBULA_LOOK = NEBULA_LOOKS.default;
 
 function capitalize(text) {
   text = String(text || "");
@@ -1279,7 +1277,11 @@ function initGalaxyMap3d(canvasEl, data) {
     Object.keys(tiles).forEach(function (key) {
       var tile = tiles[key];
       memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
-      entries.push({ key: key, tile: tile, size: tileSize(tile) });
+      // A tile the database was too busy to finish (PERF.76) is drawn as it is
+      // but not kept for the next visit; it is asked for again below.
+      if (!tile.incomplete) {
+        entries.push({ key: key, tile: tile, size: tileSize(tile) });
+      }
     });
     writeStoredTiles(currentGeneration, entries);
   }
@@ -2267,6 +2269,7 @@ function initGalaxyMap3d(canvasEl, data) {
         }
         fetchFailures = 0;
         var stampChanged = absorb(payload);
+        askAgainForIncomplete(payload.tiles || {});
         var stillMissing = renderFromCache(neededTiles());
         // A new stamp dropped changed (or all) cached tiles, and a view
         // needing more than one request's worth of tiles has more to
@@ -2298,6 +2301,35 @@ function initGalaxyMap3d(canvasEl, data) {
       });
   }
   var fetchFailures = 0;
+
+  // PERF.76: a tile whose slowest piece timed out arrives marked `incomplete`
+  // (the map shows what it has). Its pieces are fetched again after a growing
+  // pause (5 s, 10 s ... 30 s), up to INCOMPLETE_ROUNDS times, while the
+  // database catches up.
+  var INCOMPLETE_ROUNDS = 6;
+  var incompleteRounds = 0;
+  var incompleteTimer = null;
+  function askAgainForIncomplete(tiles) {
+    var partial = Object.keys(tiles).filter(function (key) {
+      return tiles[key] && tiles[key].incomplete;
+    });
+    if (incompleteTimer) {
+      clearTimeout(incompleteTimer);
+      incompleteTimer = null;
+    }
+    if (!partial.length) {
+      incompleteRounds = 0;
+      return;
+    }
+    if (incompleteRounds >= INCOMPLETE_ROUNDS) {
+      return;
+    }
+    incompleteRounds += 1;
+    incompleteTimer = setTimeout(function () {
+      incompleteTimer = null;
+      fetchFromServer(partial);
+    }, Math.min(30000, 5000 * incompleteRounds));
+  }
 
   // The tiles one pick in (about PREFETCH_ZOOM times closer), fetched at low
   // priority once the view's own are in and the camera has been still for

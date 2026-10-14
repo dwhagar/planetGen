@@ -2967,6 +2967,14 @@ with stepping stones just outside it)."""
 NAV_CORRIDOR_MAX_SYSTEMS = 300000
 """int: A corridor holding more systems than this is not widened further."""
 
+NAV_BYPASS_MAX_EDGES = 60000
+"""int: Most distinct hops NAV.48's bypass test (a route search that may not cross an
+uncharted sector) looks at before it gives up and says the answer is unknown."""
+
+NAV_CHART_CONFIRM_SECTORS = 5000
+"""int: Charting the sectors of a course (NAV.48) asks for an explicit confirmation past this many sectors
+(Boss, 2026-10-10); the PERF.3 disk refusal applies on top."""
+
 
 # --- Facilities (schema v42) ---
 
