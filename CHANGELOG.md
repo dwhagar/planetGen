@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1087] - 2026-10-14
+
+### Changed
+- TODO: DOC.39 (restore the headline rule), OPS.46 (warn only) and GEN.201 (both) recorded as decided; TODO items resolved: none / Added: none.
+
 ## [8.0.1086] - 2026-10-14
 
 ### Changed
