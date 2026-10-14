@@ -1461,6 +1461,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (83, _table_marker("nebula_field")),
     (82, _table_marker("sector_system_counts")),
     (81, _column_marker("galaxy_shape", "core_amplitude")),
     (80, _column_marker("phenomenon_scatter", "mass_solar")),
@@ -5486,6 +5487,46 @@ def clear_phenomenon_scatter(conn):
     conn.commit()
 
 
+NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radius_ly", "center_x_pc", "center_y_pc",
+                        "center_z_pc")
+"""tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order)."""
+
+
+def clear_nebula_field(conn):
+    """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed."""
+    conn.execute("TRUNCATE TABLE nebula_field")
+    conn.commit()
+
+
+def insert_nebula_field(conn, rows, batch_size=5000):
+    """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order), `batch_size` to a statement. Returns the rows
+    written."""
+    head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS)}) VALUES "
+    written = 0
+    batch = []
+    for row in rows:
+        batch.append("(" + ",".join(map(_scatter_value, row)) + ")")
+        if len(batch) >= batch_size:
+            conn.execute_literal(head + ",".join(batch))
+            written += len(batch)
+            batch = []
+    if batch:
+        conn.execute_literal(head + ",".join(batch))
+        written += len(batch)
+    return written
+
+
+def link_nebula_field_stored(conn):
+    """Marks the `nebula_field` rows whose cloud is already a `nebulae` row (found by its centre, as
+    `_insert_field_nebulae` finds one) as stored, with that nebula's object ID: after a plan redraws the table
+    over a galaxy that already holds some of its clouds. Returns the rows linked."""
+    cursor = conn.execute(
+        "UPDATE nebula_field f JOIN nebulae n ON n.center_x_pc = f.center_x_pc AND n.center_y_pc = f.center_y_pc"
+        " AND n.center_z_pc = f.center_z_pc SET f.stored = 1, f.uid = n.uid")
+    conn.commit()
+    return cursor.rowcount
+
+
 def record_phenomenon_scatter(conn, seed, min_mass_solar):
     """Stores the seed and the mass cut (GEN.167) a finished phenomenon
     scatter used: their presence tells a sector fill to build its objects
@@ -6288,9 +6329,22 @@ def _insert_field_nebulae(conn, sector, sector_id):
             edge_pc = sector.sector_edge_pc or tuning.DEFAULT_SECTOR_EDGE_PC
             conn.uid_issuer.given_nebula_uid = objectUid.to_bytes(nebulaField.cloud_object_id(
                 cloud_field[0], cloud_field[1], nebula, center, edge_pc, births))
-        insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
+        nebula_id = insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
         if conn.uid_issuer is not None:
             conn.uid_issuer.given_nebula_uid = None
+        _mark_nebula_field_stored(conn, nebula_id, center)
+
+
+def _mark_nebula_field_stored(conn, nebula_id, center):
+    """Sets `stored` and the object ID on the `nebula_field` row of the field cloud just stored as nebula `nebula_id`
+    (DB.24), found by its cell and exact centre; nothing if the table has no such row (a class P or Q cloud, or a
+    galaxy planned before v83)."""
+    x, y, z = center
+    i, j, k = nebulaField.cell_index(center)
+    conn.execute(
+        "UPDATE nebula_field SET stored = 1, uid = (SELECT uid FROM nebulae WHERE id = ?)"
+        " WHERE cell_i = ? AND cell_j = ? AND cell_k = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ?",
+        (nebula_id, i, j, k, x, y, z))
 
 
 def _sector_object_ids(sector, galaxy_position):

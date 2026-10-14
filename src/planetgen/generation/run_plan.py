@@ -23,7 +23,7 @@ from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.galaxy import seed as galaxySeed, settings_file
+from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed, settings_file
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
@@ -963,6 +963,54 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
             for layer_index, outer_ring in layers], _phenomenon_layer_task)
 
 
+def _nebula_field_task(payload):
+    """One first-index slab of field cells of the nebula field table -- a work queue task: draws its kept classes M
+    and N clouds from the seed and writes them (DB.24). Returns the rows written."""
+    conn = store.get_connection(payload["mysql_config"])
+    try:
+        written = store.insert_nebula_field(conn, nebulaField.table_rows(
+            payload["galaxy_seed"], payload["shape"], payload["i"], payload["radius_pc"], payload["half_height_pc"]))
+        conn.commit()
+    finally:
+        conn.close()
+    return written
+
+
+def build_nebula_field(args, conn, skeleton, extents, progress):
+    """
+    Draws `nebula_field` (DB.24): every kept cloud of classes M and N of the galaxy's molecular cloud field, from
+    the seed, one slab of field cells per task, replacing the earlier table. A nebula already stored from the field
+    is linked back to its row afterwards. Returns the rows written.
+    """
+    galaxy_seed = store.get_galaxy_seed(conn)
+    outer_ring = max(outer for _layer, outer in extents)
+    top_layer = max(abs(layer) for layer, _outer in extents)
+    radius_pc, half_height_pc = nebulaField.field_extent_pc(skeleton.edge_pc, outer_ring, top_layer)
+    edge = program_constants.NEBULA_FIELD_CELL_PC
+    slabs = range(math.floor(-radius_pc / edge), math.floor(radius_pc / edge) + 1)
+    store.clear_nebula_field(conn)
+    written = [0]
+    with steps.Step(f"Drawing the nebula field (0 of {len(slabs):,} slabs)", "nebula-field", len(slabs), args=args,
+                    progress=progress, workers=run_common._worker_count(args)) as bar:
+        done = [0]
+
+        def on_done(result, _seconds, _weight):
+            written[0] += result
+            done[0] += 1
+            bar.update(advance=1, description=f"Drawing the nebula field ({done[0]:,} of {len(slabs):,} slabs)")
+
+        mysql_config = store.mysql_config_from_args(args)
+        with run_common._work_queue(args, "Nebula field") as queue:
+            queue.submit_each("nebula-field", [
+                (f"slab {i}", {"mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape,
+                               "i": i, "radius_pc": radius_pc, "half_height_pc": half_height_pc}, 1.0, on_done)
+                for i in slabs], _nebula_field_task)
+    linked = store.link_nebula_field_stored(conn)
+    log.normal(f"Nebula field: {written[0]:,} clouds of classes M and N"
+               + (f", {linked:,} already stored." if linked else "."))
+    return written[0]
+
+
 def scatter_phenomena(args):
     """
     Pre-places the galaxy's black holes, neutron stars, planetary nebulae
@@ -1036,6 +1084,12 @@ def scatter_phenomena(args):
                                 workers=run_common._worker_count(args), percent=True, record=False) as bar:
                     _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton,
                                               e_value, seed, min_mass_solar, filled)
+            finally:
+                log.reset_console()
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                build_nebula_field(args, conn, skeleton, extents, progress)
             finally:
                 log.reset_console()
         with run_common._generation_progress() as progress:
