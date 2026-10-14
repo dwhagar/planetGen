@@ -3904,23 +3904,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.54 Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter**
-  Reported by Bugfixes lane 1 (2026-10-10 06:36Z), left out of PERF.52
-  because it is not a small fix: the admin generation-stats table
-  records the GEN.185 star scatter as one layer, but the scatter now has
-  separate mass-limit and luminosity-limit passes (and the phenomenon
-  passes). Done: the stats record each pass on its own row, the admin
-  table shows them, and the size and time estimates use the right row
-  for the plan being estimated. Phase 2.
-  Note (2026-10-10): PERF.63 (PR #1174) cut the phenomena pass from
-  about 37 min to 3.7 min at the default scale (2,041 layers, 68.2M
-  objects), so writing the rows to the database is now the dominant cost of a scatter run; PERF.73
-  measures and cuts it. The per-pass stats rows here should therefore
-  record compute time and write time separately for the phenomena pass.
-  Moved to Phase 1 (Boss, 2026-10-10 22:19Z, generation-first priority).
-  Owner: Bugfixes lane 1, after the PERF.67 stats code (merged in #1249).
-  Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
-
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/gravity-map.md, section 'How it is
   computed', extended with measurements) says what a grid of 16 zones
@@ -3987,8 +3970,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `insert_sector` is 40 s of the 227 s profile. Done: the insert is
   measured by statement (batching, executemany, fewer round trips) and
   cut, with the rows identical. Related to the uid work in PERF.31's
-  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10),
-  after PERF.54.
+  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10).
   Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
   hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
   for scatter writes); try it here. pymysql is 8% of the profiled fill.
@@ -5162,7 +5144,8 @@ clears each one.
   files, one PR per file with the owning lane's word; 5 Boss decides
   after the proof period whether the changed-only run may replace the
   full run for small changes. Baseline (12:28Z, 4 cores): 15,622 tests,
-  55 min 12 s, 14 failed. Plan: docs/design/test-suite-rebuild.md.
+  55 min 12 s, 14 failed. Stage 1 merged (#1280, 2026-10-14): full run 56 min 24 s, quick loop
+  2 min 33 s. Plan: docs/design/test-suite-rebuild.md.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
 
