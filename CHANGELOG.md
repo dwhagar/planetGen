@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1246] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the unit ladders (UX.22) and time symbols (UX.81) as open work; they merged in #1504. The two design-note ladders for planet bulk density and measured angles were not built because no page shows them.
+
+TODO items resolved: UX.22, UX.81 / Added: none
+
 ## [8.0.1245] - 2026-10-15
 
 ### Changed
