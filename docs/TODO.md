@@ -3633,6 +3633,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   05:39Z).
   Prerequisites: none. Related: PERF.96 (done, PR #1553), PERF.33 (done, PR #1553).
 
+- [ ] **PERF.102 The migration progress display shows no estimated time remaining on either bar (bug)**
+  Boss (2026-10-15 15:54 EDT), on his test server: "migration ETA
+  doesn't work". During a migration run the progress bars and the
+  elapsed time show, but neither bar shows an estimated time remaining.
+  Owner: Core (2026-10-15), grouped with PERF.101, which has the same
+  symptom for the phenomena index build. Done: the migration progress
+  display (`planetgen.cli.migrate`, run from update.sh) shows an estimated time
+  remaining on both bars from the first step that reports progress, and
+  a step with no progress updates says so instead of showing nothing; a
+  test covers the estimate for a step that reports progress and a step
+  that does not. Shares the progress and ETA code with PERF.101: fix
+  them together or in order. Bug.
+  Prerequisites: none. Related: PERF.101.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
