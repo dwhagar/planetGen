@@ -92,6 +92,8 @@ def temperature_need(world):
 
 def air_need(world):
     """`(rank, gear, why)` for the air: the worst of its oxygen and the gases a filter can take out."""
+    if not habitability.has_atmosphere(world):
+        return "suit", "a sealed suit with its own air", f"there is no atmosphere ({world.pressure_kpa:.1f} kPa)"
     need = ("none", None, "the oxygen and the gases are within their long-term limits")
     o2 = inspired_o2_kpa(world)
     if o2 < limit("inspired_o2_min_kpa"):
