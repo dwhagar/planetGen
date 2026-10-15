@@ -179,20 +179,33 @@ def kit_sentence(world, needs=None):
     return _join(dict.fromkeys(_short(need[1]) for need in body if SUIT_RANK[need[0]] == top and need[1]))
 
 
-def paragraph(world, bold, compact_host=None):
+def rating(world, compact_host=None):
     """
-    The habitability description of a scored rocky body as one paragraph (GEN.208, GEN.216): the PHI-6
-    value and what a visitor needs overall, then each of the six categories with its colour and value,
-    one short sentence of the number and its consequence. `bold` wraps a phrase in the page format's
-    emphasis. Nothing is said beyond the categories and the gear.
+    The habitability rating of a scored rocky body as data (GEN.208, GEN.216, UX.104): `overall` (the
+    PHI-6 value), `gear` (what a visitor needs overall) and `rows`, one per category in `DOMAINS`
+    order: `domain`, `tier`, `score` and `text`, the one short sentence of the number and its
+    consequence.
     """
     scores = habitability.phi4(world)
     needs = requirements(world)
-    parts = [f"{bold('PHI-6 habitability')} is {scores['PHI-4']:.2f}, and a visitor needs {kit_sentence(world, needs)}."]
+    rows = []
     for name in habitability.DOMAINS:
         value, colour = scores[name]
         sentence = _suitability_clause(world) if name == "Suitability" else _clause(name, world, needs[name], compact_host)
-        parts.append(f"{bold(f'{name}: {colour}')} ({value:.2f}). {sentence}")
+        rows.append({"domain": name, "tier": colour, "score": value, "text": sentence})
+    return {"overall": scores["PHI-4"], "gear": kit_sentence(world, needs), "rows": rows}
+
+
+def paragraph(world, bold, compact_host=None):
+    """
+    The habitability description of a scored rocky body as one paragraph: the PHI-6 value and what a
+    visitor needs overall, then each of the six categories with its colour and value. `bold` wraps a
+    phrase in the page format's emphasis. Nothing is said beyond the categories and the gear.
+    """
+    result = rating(world, compact_host)
+    parts = [f"{bold('PHI-6 habitability')} is {result['overall']:.2f}, and a visitor needs {result['gear']}."]
+    for row in result["rows"]:
+        parts.append(f"{bold(row['domain'] + ': ' + row['tier'])} ({row['score']:.2f}). {row['text']}")
     return " ".join(parts)
 
 
