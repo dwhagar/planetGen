@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1391] - 2026-10-15
+
+**Headline:** A new design note shows how to ask the database for everything inside a sphere with a single cell key and a covering index, measured on real MySQL 8 against the box, the spatial index and walking the sectors.
+
+### Changed
+- Added `docs/design/spherical-region-queries.md`: the cell key (Morton, 0.25 pc cubes, 262 kpc box, a generated column), the sphere-to-key-runs cover, the `VALUES` join statement, counts, nearest-first and the dense core, index maintenance cost, what was not measured, and eight proposed TODO items. No code changed.
+
+TODO items resolved: none / Added: none (the proposed items are in the note's section 9)
+
 ## [8.0.1390] - 2026-10-15
 
 **Headline:** The multi-star design note now catalogues every observed and theoretical multi-star and star-like-object system type, with its rate, where it occurs and how it is generated.
