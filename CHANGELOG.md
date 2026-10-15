@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1170] - 2026-10-15
+
+### Changed
+
+- **One paragraph says where a body falls and what it needs (GEN.208).** The habitability description of a planet or moon is now one paragraph: the overall value and colour, then each of the six categories (Pressure, Temperature, Air, Water, Radiation, Suitability) with its colour, the reason and the gear it asks for, and last the kit a visitor needs overall. A category that a sealed suit makes moot says so, and a category that makes the surface impossible while the others are fine is named.
+- **Every limit is in one table (GEN.208).** The pressure, oxygen, temperature, wet-bulb and dose limits of the habitability bands and the protective gear are rows of one table that both read, so the score, the gear and the description agree. Where the earlier table and the research notes differed, the more permissive value is used: mask minimum 14.3 kPa (not 20), no-gear minimum 50 kPa (not 70), hyperbaric suit to 10,000 kPa (not 5,000), inspired oxygen minimum 8 kPa (not 19.5), insulated suit to -50 C (not -40), wet bulb 31 C (not 30). A heat-shielded suit above 140 C is new.
+
 ## [8.0.1169] - 2026-10-15
 
 ### Changed
