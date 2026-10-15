@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1363] - 2026-10-15
+
+**Headline:** The architecture document describes the code as it is now, module by module.
+
+### Changed
+- `docs/design/architecture.md` has a code map built from the real `src/planetgen/` packages (generation, physics, galaxy, population, names, describe, util, queue, db, admin, cli, wiki, api, web) and the current static files and scripts, in place of the old flat `stellarObjects` map.
+- The generating flow now follows the shell, band and wedge grid, the two scatter passes and the steps after a run; the serving flow describes the Galaxy Map as it is while its block ladder is rebuilt on shells; the database, login, job and release flows use today's module names, and the CI row reflects the scheduled, manual-only workflow.
+
 ## [8.0.1362] - 2026-10-15
 
 **Headline:** The sector grid is documented as the shells, bands and wedges it now is.
