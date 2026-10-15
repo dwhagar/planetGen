@@ -38,7 +38,6 @@ from planetgen.queue import api_jobs
 from planetgen.util import draw
 
 from planetgen.db.query import (
-    galaxy_layer_specs,
     facilities_for_system,
     facilities_in_sector,
     facility_detail,
@@ -903,10 +902,9 @@ def galaxy_shape():
     many sectors are charted, with a row per layer (a sample past 41).
     """
     conn = get_db()
-    skeleton = get_galaxy_shape(conn)
     return jsonify({"shape": galaxy_density_shape(conn), "bright_stars": bright_star_scatter_status(conn),
                     "version_warning": version_check.galaxy_warning(conn),
-                    "layers": galaxy_layer_specs(conn, skeleton.edge_pc) if skeleton else None})
+                    "layers": None})    # UX.111 puts the shell specs here
 
 
 @bp.route("/galaxy/cell")

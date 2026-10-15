@@ -39,7 +39,7 @@ _EMPTY_TABLE_ROWS = {
         " VALUES (1, 'crop', 'Crop', 'text')"),
     # Only a `planetgen plan` scatter writes these.
     "phenomenon_scatter": (
-        "INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, position_x_mpc,"
+        "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
         " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),
 }
 

@@ -30,11 +30,18 @@ def old_schema_versions():
 def load_old_schema(config, version):
     """Creates `version`'s tables in the empty database `config` names,
     recorded as that version, the way that release's `_ensure_schema`
-    left a new database."""
+    left a new database. Tables already there (a pooled test database holds the
+    current schema) are dropped first, so none keeps its newer columns."""
     with gzip.open(os.path.join(OLD_SCHEMA_DIR, f"schema_v{version}.sql.gz"), "rt", encoding="utf-8") as handle:
         script = handle.read()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        tables = [next(iter(row.values())) for row in conn.execute("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'").fetchall()]
+        if tables:
+            conn.execute("SET FOREIGN_KEY_CHECKS = 0")
+            for table in tables:
+                conn.execute(f"DROP TABLE `{table}`")
+            conn.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.executescript(script)
         conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (version,))
         conn.commit()

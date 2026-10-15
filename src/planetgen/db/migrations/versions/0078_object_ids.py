@@ -82,7 +82,9 @@ def _reshape(connection, table):
 def _number_top_level(connection):
     """Generated serials by sector, systems first; returns `{system id: ID}`."""
     addresses = {}
-    for row in connection.execute(sa.text("SELECT id, ring_index, layer_index, ring_slot_index FROM sectors")):
+    names = ("shell_index", "band_index", "wedge_index") if _has_column(connection, "sectors", "shell_index") \
+        else ("ring_index", "layer_index", "ring_slot_index")
+    for row in connection.execute(sa.text(f"SELECT id, {', '.join(names)} FROM sectors")):
         if None not in (row[1], row[2], row[3]):
             addresses[row[0]] = (row[1], row[2], row[3])
     next_serial = {}

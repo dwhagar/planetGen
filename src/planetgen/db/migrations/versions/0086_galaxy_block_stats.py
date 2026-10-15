@@ -1,13 +1,12 @@
 """The `galaxy_block_stats` table: the drill-down stage sums stored per block of each ladder level (DB.25).
 
-Schema v86. The migration creates the table and fills it from the sectors and their stats that the galaxy
-already holds, a ring at a time. Skipped when the table is there, so a stopped run can be started again.
+Schema v86. The migration creates the table (and, until 0091 dropped the table, filled it from the sectors and their
+stats that the galaxy already holds, a ring at a time; now it leaves it empty). Skipped when the table is there, so a
+stopped run can be started again.
 """
 
 import sqlalchemy as sa
 from alembic import op
-
-from planetgen.db import alembic_runner
 
 revision = "0086"
 down_revision = "0085"
@@ -42,25 +41,5 @@ def upgrade():
 
 
 def _fill(connection):
-    """Computes every block's sums from the generated sectors (`db.block_stats.accumulate`)."""
-    from planetgen.db import block_stats
-
-    rings = [row[0] for row in connection.execute(sa.text(
-        "SELECT DISTINCT ring_index FROM sectors WHERE ring_index IS NOT NULL ORDER BY ring_index")).fetchall()]
-    cells = {}
-    for done, ring in enumerate(rings, start=1):
-        rows = connection.execute(sa.text(
-            "SELECT s.ring_index, s.layer_index, s.ring_slot_index, st.actual_systems, st.expected_systems,"
-            " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol FROM (SELECT * FROM sectors WHERE"
-            " ring_index = :ring) s LEFT JOIN sector_stats st ON st.ring_index = s.ring_index"
-            " AND st.layer_index = s.layer_index AND st.ring_slot_index = s.ring_slot_index"), {"ring": ring})
-        for r in rows.fetchall():
-            block_stats.accumulate(cells, (r[0], r[1], r[2]), *r[3:])
-        alembic_runner.report_progress("Block totals", done, len(rings))
-    columns = block_stats.COLUMNS[:-1]  # `ladder_step` is a v89 column; its default is the step
-    insert = sa.text(
-        "INSERT INTO galaxy_block_stats (" + ", ".join(columns) + ") VALUES ("
-        + ", ".join(":" + column for column in columns) + ")")
-    rows = [dict(zip(columns, row)) for row in block_stats.cell_rows(cells)]
-    for start in range(0, len(rows), BATCH):
-        connection.execute(insert, rows[start:start + BATCH])
+    """Left empty: revision 0091 (DB.32) drops this table with the cylinder's block ladder, so the totals this once
+    computed from the generated sectors (`db/block_stats.py`, deleted with it) would never be read."""

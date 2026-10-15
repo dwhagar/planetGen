@@ -6734,7 +6734,7 @@ def get_sector_galaxy_position(conn, sector_id):
     Reads back a sector's stored galaxy-frame placement (see `schema.sql`'s
     "v4" header note) -- used by `galaxyGen.py`'s local-neighborhood mode
     to look up an existing sector's own center before enumerating its
-    neighbors (`galaxyGeometry.enumerate_sectors_within_radius`).
+    neighbors (`spherical.enumerate_sectors_within_radius`).
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -6825,7 +6825,7 @@ def compute_phenomenon_placement(conn, sector_id):
     does.
 
     The center is a uniformly random point inside `sector_id`'s own grid
-    cell (`galaxyGeometry.SectorCell`; a sector with no grid address falls
+    cell (`spherical.SectorCell`; a sector with no grid address falls
     back to a `+/- edge_pc / 2` cube around its center) -- so the
     phenomenon's center always falls inside that sector, regardless of the phenomenon's own `radius_ly` (which may be
     far larger than the sector itself, and is free to spill into
