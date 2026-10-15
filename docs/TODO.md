@@ -1001,7 +1001,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tiles are picked by distance from the camera, the per-level brightness
   floors are gone and stars fade by distance. The client part (scale
   cross-fades, per-tile origins) is next, so this item stays open. The
-  star-drawing items MAP.198 to MAP.203 (Bug 1's MAP.203, Bug 2's
+  star-drawing items MAP.198 to MAP.203 (MAP.203 done, PR #1519; Bug 2's
   MAP.199 (done, PR #1513) and MAP.200) are unblocked from the server side; they still
   start from main and check the client part's branch before touching
   the shared camera and star code.
@@ -1409,21 +1409,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with MAP.152 (Foundations Maps). GitHub issue
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
   Prerequisite: MAP.199 (done, PR #1513). Related: MAP.198 (done, PR #1470), MAP.152, MAP.146.
-
-- [ ] **MAP.203 Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug)**
-  Boss, 2026-10-15 02:15Z, with three screenshots: when viewing a
-  sector, the stars and such look too big compared to what the user just
-  saw on the Galaxy Map. The sector view should look more like the
-  Galaxy Map, and the sector map is changed at the same time to match.
-  Done: star and object sizes in the sector view follow the Galaxy Map's
-  look at the hand-off (no jump in apparent size), the sector map
-  matches, on both themes, with a browser test. Owner: Bugfixes lane 1
-  (Bug 1), right after OPS.50 (done, PR #1425). It touches the shared star drawing
-  (galaxymap3d.js, starfade.js, sectorscene.js and the star shader) that
-  Foundations Maps changes in MAP.152 (server part merges about 02:55Z,
-  client part next), so start from main after that merge. GitHub issue
-  [#1420](https://github.com/dwhagar/planetGen/issues/1420).
-  Prerequisites: none. Related: MAP.152, MAP.198 (done, PR #1470), MAP.146.
 
 - [ ] **MAP.204 Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug)**
   Boss (2026-10-15 05:33Z): "BUG: Attempting to select a region under

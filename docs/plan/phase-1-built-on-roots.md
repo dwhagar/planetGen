@@ -113,7 +113,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) |  |  |
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) |  |  |
-| MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.23 |  |
 | API.25 | A structured description endpoint, and Markdown and wikitext on request only |  |  |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request |  |  |
