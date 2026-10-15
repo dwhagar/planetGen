@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.112 |
+| UX | UX.113 |
 | MAP | MAP.207 |
 | NAV | NAV.60 |
 | GEN | GEN.229 |
@@ -1359,6 +1359,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.109 | Remove the old per-class description text | none | open |
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | open |
 | UX.111 | Reads, API and web wording on shells | none | open |
+| UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
