@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1382] - 2026-10-15
+
+**Headline:** Scatters carry no systems; planets and moons come only when a sector is filled.
+
+### Changed
+- GEN.129, GEN.130, GEN.240, GEN.241, GEN.242 and GEN.243 record Boss's 2026-10-15 rules: scatters and backscatters get no systems, planets or moons; nebulae need stars and phenomena, not planets; a sector fill represents every object kind and builds the systems that phenomena can have at real-world probabilities.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1381] - 2026-10-15
 
 **Headline:** The Wolf-Rayet and protostar system rules and the later phenomenon types are on the TODO list.
