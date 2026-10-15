@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1409] - 2026-10-15
+
+**Headline:** GEN.268 (the system-type registry) is retired; GEN.261 is next.
+
+### Changed
+
+- GEN.268 (#1702) leaves the open list; GEN.261 carries Core 2's note on its module name and the integer owner numbers.
+
+TODO items resolved: GEN.268 / Added: none
+
 ## [8.0.1408] - 2026-10-15
 
 **Headline:** Every multi-star and star-like-object system type in the catalogue now has an entry in one rate table, ready for the member-tree generator to read.
