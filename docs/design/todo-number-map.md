@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.60 |
 | GEN | GEN.214 |
 | PERF | PERF.101 |
-| DB | DB.29 |
+| DB | DB.30 |
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
@@ -495,6 +495,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings | none | done, PR #1423 |
 | DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | open |
 | DB.28 | One migration for the facility type tables and the new facility columns | none | open |
+| DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
