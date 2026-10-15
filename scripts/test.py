@@ -192,6 +192,15 @@ def failed_tests(path=FAILURES_FILE):
     return found
 
 
+TIMEOUT_TEXT = "from pytest-timeout"
+"""str: What pytest-timeout writes when it stops a test (`Failed: Timeout (>900.0s) from pytest-timeout.`)."""
+
+
+def timed_out_tests(path=FAILURES_FILE):
+    """The node ids in the failure log that pytest-timeout stopped (TEST.153), in the order they failed."""
+    return [nodeid for nodeid, record in failed_tests(path).items() if TIMEOUT_TEXT in record.get("text", "")]
+
+
 def rerun_failures(environment):
     """Runs each failed test again alone (one process, no other tests, no xdist) and prints the verdicts."""
     failed = failed_tests()
@@ -285,8 +294,13 @@ def main(argv=None):
         signal.signal(signal.SIGTERM, previous_handler)
     seconds = time.time() - started
     save_run(key, seconds, status == 0)
+    timed_out = timed_out_tests()
+    if timed_out:
+        print(f"--- TIMED OUT: {len(timed_out)} test(s) ran past the per-test limit and were stopped:", flush=True)
+        for nodeid in timed_out:
+            print(f"  {nodeid}", flush=True)
     print(f"scripts/test.py {key}: {'PASS' if status == 0 else 'FAIL'} in {minutes(round(seconds))}: "
-          f"{describe_counts(totals)}", flush=True)
+          f"{describe_counts(totals)}" + (f" ({len(timed_out)} TIMED OUT)" if timed_out else ""), flush=True)
     return status
 
 
