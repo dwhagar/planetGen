@@ -124,7 +124,7 @@ def test_a_check_that_cannot_run_is_not_called_damage(saved, monkeypatch):
 def _row_counts(config):
     """Exact row counts: `information_schema.tables.table_rows` is an InnoDB estimate that the server
     refreshes in the background, so it moves under load without anything writing."""
-    names = [row["table_name"] for row in _rows(config, "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name")]
+    names = [row["table_name"] for row in _rows(config, "SELECT table_name AS table_name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name")]
     return [(name, _rows(config, f"SELECT COUNT(*) AS n FROM `{name}`")[0]["n"]) for name in names]
 
 

@@ -133,7 +133,8 @@ def test_a_sector_center_maps_back_to_its_own_address(address, edge):
 @example((1e-300, -1e-300, 0.0), 4.0)
 def test_any_point_lands_in_a_cell_whose_bounds_hold_it(point, edge):
     x, y, z = point
-    assume(abs(x) < 1e9 and abs(y) < 1e9 and abs(z) < 1e9)
+    # Past about 1e7 edges the wedge multiplier leaves its table (`spherical.SMOOTH_LIMIT`), far beyond the 262 kpc reach.
+    assume(math.sqrt(x * x + y * y + z * z) < 1e6 * edge)
     shell, band, wedge = spherical.sector_address_at(point, edge)
     assert 0 <= wedge < spherical.wedge_count(shell, band)
     r = math.sqrt(x * x + y * y + z * z)

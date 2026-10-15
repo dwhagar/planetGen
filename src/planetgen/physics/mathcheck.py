@@ -39,7 +39,6 @@ report and exits 1 if anything failed.
 
 import logging
 import math
-import random
 import sys
 import time
 from contextlib import contextmanager
@@ -605,28 +604,28 @@ def _point_in_cell_failures():
     """Seeded random points whose sector (`sector_address_at`) does not hold them: radius within
     the shell, colatitude within the band, longitude within the wedge."""
     edge = tuning.DEFAULT_SECTOR_EDGE_PC
-    rng = random.Random(SEED)
     failures = 0
-    for _ in range(20000):
-        radius = edge * 10 ** rng.uniform(-1, 3.5)
-        z = rng.uniform(-1, 1)
-        lon = rng.uniform(0, 2 * math.pi)
-        planar = math.sqrt(1 - z * z)
-        point = (radius * planar * math.cos(lon), radius * planar * math.sin(lon), radius * z)
-        shell, band, wedge = spherical.sector_address_at(point, edge)
-        inner, outer = spherical.shell_bounds_pc(shell, edge)
-        if not inner <= radius < outer:
-            failures += 1
-            continue
-        if shell == 0:
-            continue
-        north, south = spherical.band_colatitude_bounds(shell, band)
-        if not north - 1e-12 <= math.acos(z) <= south + 1e-12:
-            failures += 1
-            continue
-        start, end = spherical.wedge_longitude_bounds(shell, band, wedge)
-        failures += spherical.wedge_count(shell, band) > 1 and not start - 1e-12 <= lon <= end + 1e-12
-        failures += not spherical.sector_cell_test((shell, band, wedge), edge)(point)
+    with _seeded_global_random(SEED):
+        for _ in range(20000):
+            radius = edge * 10 ** draw.uniform(-1, 3.5)
+            z = draw.uniform(-1, 1)
+            lon = draw.uniform(0, 2 * math.pi)
+            planar = math.sqrt(1 - z * z)
+            point = (radius * planar * math.cos(lon), radius * planar * math.sin(lon), radius * z)
+            shell, band, wedge = spherical.sector_address_at(point, edge)
+            inner, outer = spherical.shell_bounds_pc(shell, edge)
+            if not inner <= radius < outer:
+                failures += 1
+                continue
+            if shell == 0:
+                continue
+            north, south = spherical.band_colatitude_bounds(shell, band)
+            if not north - 1e-12 <= math.acos(z) <= south + 1e-12:
+                failures += 1
+                continue
+            start, end = spherical.wedge_longitude_bounds(shell, band, wedge)
+            failures += spherical.wedge_count(shell, band) > 1 and not start - 1e-12 <= lon <= end + 1e-12
+            failures += not spherical.sector_cell_test((shell, band, wedge), edge)(point)
     return failures
 
 
