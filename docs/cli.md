@@ -476,6 +476,115 @@ counts as what it points at (a sector's address, an object's unique
 ID). It reads the galaxy as stored; comparing a rebuild with the
 stored galaxy is internal testing only.
 
+## Helper tools
+
+Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `warm_map`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `dedupe` and `lockouts` (for its device and two-factor options) take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `warm_map` reads the database from `config.json`; `worker` and `config` take no database options. `orbits` and `query` also take `--version`.
+
+| Command | What it is for |
+|---|---|
+| `python3 -m planetgen.cli.orbits` | Moves every object that is due along its orbit. |
+| `python3 -m planetgen.cli.warm_map` | Builds the Galaxy Map's opening view ahead of time. |
+| `python3 -m planetgen.cli.worker` | Runs one queue worker. |
+| `python3 -m planetgen.cli.query` | Lists what is stored. |
+| `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
+| `python3 -m planetgen.cli.reset` | Empties the galaxy. |
+| `python3 -m planetgen.cli.lockouts` | Lists and lifts login lockouts. |
+| `python3 -m planetgen.cli.dedupe` | Renames duplicate sector and system names. |
+| `python3 -m planetgen.cli.config` | Checks the settings and rewrites the generated files. |
+
+### orbits
+
+The positional update. Each planet, moon, star, binary pair, comet, facility and standalone phenomenon keeps its own clock (`epoch_unix`) and a time it next needs storing (`next_update_due`); a run moves only what is due, from its own epoch to now by the database server's clock, then refiles anything that drifted into another sector, refreshes containment (nebulae and remnants), nearest systems and location text, and recomputes the sector paths. A run prints how many years passed since the last one, what it moved and how many objects changed sector. It never moves anything backwards: if the server's clock went back it says so, moves nothing and restarts the clock. There is no `update-orbits` command; this is it. Run it from cron or by hand, as often as you like (a run with nothing due changes nothing):
+
+```bash
+python3 -m planetgen.cli.orbits
+```
+
+### warm_map
+
+Builds the tile cache for the Galaxy Map's opening view so the first visitor after a release does not wait for it. `update.sh` runs it in the background after every update; run it by hand after clearing the tile cache. It prints how many tiles it built, how many were already cached and how long it took, and exits 1 (with a warning) if the view could not be built, which only means the first visit builds it.
+
+```bash
+python3 -m planetgen.cli.warm_map
+```
+
+### worker
+
+One RQ worker, at the lowered priority generation workers run at. The site and the generation runs start these themselves (`planetgen.queue.workers.ensure_workers`); run one by hand only to add capacity or to watch one. Redis is read from `--url`, else `PLANETGEN_REDIS_URL`, else `redis.url` in `config.json`.
+
+*   `QUEUE ...`: the queues to serve, first one first (default: the interactive queue). A worker serves one kind of queue, the web queues or a run's own, never both.
+*   `--burst`: exit once the queues are empty.
+*   `--idle-seconds <int>`: exit after this long without work (default 60; ignored with `--burst`).
+*   `--name <name>`: the worker's name (default: RQ picks one).
+*   `--url <redis-url>`: the Redis server.
+
+```bash
+python3 -m planetgen.cli.worker --burst
+```
+
+### query
+
+Lists what is stored, read-only. The subcommands are `sectors` (every sector with its size and system count), `systems`, `near`, `planets` and `moons`.
+
+*   `systems [--star-type TYPE] [--sector-id ID]`
+*   `near PLACE --distance PC [--kinds a,b] [--limit N] [--offset N]`: everything within a distance (at most 50 pc) of an object (`system:<ID>`, `planet:<ID>`, `nebula:<ID>` ...; a bare three-part ID is a system) or of a galaxy-frame point `x,y,z` in parsecs.
+*   `planets` and `moons`: `[--class C] [--min-radius-km N] [--max-radius-km N] [--sector-id ID] [--system-id ID]`
+
+```bash
+python3 -m planetgen.cli.query sectors
+python3 -m planetgen.cli.query planets --class M --sector-id <ID>
+```
+
+### migrate
+
+Applies any schema migration the database is missing and does nothing if it is current. `install.sh` and `update.sh` run it, so you rarely need to. It shows a progress bar (a line per step when output is not a terminal). `--status` prints `<current version> <target version> <pending steps> <database>` and changes nothing, which is how `update.sh` decides whether to ask about the database. A database older than schema v61 is refused.
+
+```bash
+python3 -m planetgen.cli.migrate --status
+```
+
+### reset
+
+Empties every generated table of the galaxy (`TRUNCATE`, so the schema stays), keeping `schema_migrations` and the id counters (`id_blocks`), so the next galaxy's ids carry on past the old one's. It never touches the control database (admin accounts, sessions, API keys, audit log). **It cannot be undone.** By default it asks you to type the database's name back; `--yes` skips that for scripts. Look first with `--dry-run`, which lists each table and its row count and changes nothing.
+
+```bash
+python3 -m planetgen.cli.reset --dry-run
+```
+
+### lockouts
+
+For an admin locked out of the site. With no option it lists what is locked; the lockouts live in Redis, on the rate-limit storage (`ratelimit.storage_uri`, else `redis.url`). One of these lifts or resets:
+
+*   `--ip ADDRESS`: lift one address (an IPv6 address by its /64).
+*   `--user NAME`: lift one username.
+*   `--all`: lift every lockout.
+*   `--forget-devices USER`: that admin's browsers lose their trusted-device cookies.
+*   `--reset-two-factor USER`: turn off that admin's two-factor sign-in (for a lost phone and lost recovery codes).
+
+Each lift is written to the activity log as `DB lockout.lift`.
+
+```bash
+python3 -m planetgen.cli.lockouts
+python3 -m planetgen.cli.lockouts --ip 203.0.113.5
+```
+
+### dedupe
+
+A one-off clean-up for a database made before names were kept unique: it finds sector and system names that duplicate each other, within or across the two levels, and renames them with the same Greek/Roman and diminutive decoration new rows get, sectors first. A planet's or moon's name follows its system. Running it again changes nothing once the names are clean. It needs only ordinary `SELECT`, `INSERT` and `UPDATE` grants.
+
+```bash
+python3 -m planetgen.cli.dedupe
+```
+
+### config
+
+`check` validates `config.json` and `settings.json` the way the app reads them (an unknown key is an error) and exits 1 naming every field that does not fit. `docs` rewrites the generated parts, the option table in [config.md](config.md), `config.json.example` and `config.schema.json`, from the settings model; a test fails when they differ from what it would write, so run it after changing an option.
+
+```bash
+python3 -m planetgen.cli.config check
+python3 -m planetgen.cli.config docs
+```
+
 ## Planned commands
 
 Not built yet. Each names its TODO item and phase; the design is in
