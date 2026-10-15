@@ -5,7 +5,7 @@ Covers `_rotate_to_galaxy_frame` -- the fix for the Sector Map's star dots
 being plotted as if their own sector-local (x, y, z) axes already ran
 parallel to the galaxy frame's, when the wedge outline/"Galactic Center"
 compass arrow were always correctly expressed in the galaxy frame
-directly -- via `planetgen.galaxy.geometry.sector_orientation`'s
+directly -- via `planetgen.galaxy.spherical.sector_orientation`'s
 convention (local +X radially outward from the galactic axis, +Y along the
 ring, +Z galactic north), applied at render time from the sector's own
 stored `center_x/y/z_pc` rather than needing any new stored orientation.

@@ -4,7 +4,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation import run_galaxy, steps
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc
 
 from tests.test_phenomenon_scatter import EDGE_PC, _seed_galaxy
 

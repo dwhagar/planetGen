@@ -21,9 +21,7 @@ import random
 import pytest
 
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
-from planetgen.galaxy.geometry import (
-    cylindrical_radius_pc, layer_center_z_pc, ring_radius_pc, sector_address_at, sector_position_pc,
-)
+from planetgen.galaxy.spherical import band_center_pc, sector_address_at, sector_position_pc, shell_radius_pc
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 
 EDGE_LY = 11.5
@@ -71,10 +69,12 @@ def _approx(value):
     return pytest.approx(value, rel=1e-9, abs=1e-6)
 
 
-def test_slot_centers_are_galaxy_frame_parsecs_on_their_own_ring_and_layer():
-    for (ring_index, layer_index, _slot), position in _sampled_slots()[:2000]:
-        assert cylindrical_radius_pc(position) == _approx(ring_radius_pc(ring_index, EDGE_PC))
-        assert position[2] == _approx(layer_center_z_pc(layer_index, EDGE_PC))
+def test_slot_centers_are_galaxy_frame_parsecs_on_their_own_shell_and_band():
+    for (shell, band, _wedge), position in _sampled_slots()[:2000]:
+        plane, z = band_center_pc(shell, band, EDGE_PC)
+        assert math.sqrt(sum(v * v for v in position)) == _approx(shell_radius_pc(shell, EDGE_PC))
+        assert math.hypot(position[0], position[1]) == _approx(plane)
+        assert position[2] == _approx(z)
 
 
 def test_qualifying_slots_trace_a_flattened_disk_not_a_ball():

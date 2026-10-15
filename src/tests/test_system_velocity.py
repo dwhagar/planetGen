@@ -9,7 +9,7 @@ import random
 import pytest
 
 from planetgen.db import store
-from planetgen.galaxy import geometry
+from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.system_position import galactic_velocity_ms, peculiar_velocity_ms, random_unit_vector
 from planetgen.generation import run_sector
@@ -40,7 +40,7 @@ def _runaway_system(speed_kms=400.0, direction=(0.0, 0.0, 1.0)):
 
 
 def _sector(system, cfg):
-    center_pc = geometry.sector_position_pc(*ADDRESS, EDGE_PC)
+    center_pc = spherical.sector_position_pc(*ADDRESS, EDGE_PC)
     sector = SpaceSector("Velocity Round Trip", edge_ly=EDGE_LY)
     sector.add_system(system, position=(1.0, -0.5, 0.5), system_config=cfg)
     sector.place_in_galaxy(tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M for c in center_pc))

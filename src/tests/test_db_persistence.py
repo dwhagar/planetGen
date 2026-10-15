@@ -1425,7 +1425,7 @@ def test_system_grid_nearest_matches_brute_force():
 
 
 def test_galaxy_to_local_undoes_local_to_galaxy():
-    from planetgen.galaxy.geometry import galaxy_to_local_pc, local_to_galaxy_pc
+    from planetgen.galaxy.spherical import galaxy_to_local_pc, local_to_galaxy_pc
     center = (30.0, -40.0, 2.0)
     offset = (1.2, -0.7, 0.3)
     assert galaxy_to_local_pc(center, local_to_galaxy_pc(center, offset)) == pytest.approx(offset)

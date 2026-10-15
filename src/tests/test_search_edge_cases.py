@@ -23,7 +23,7 @@ import pytest
 from planetgen.db import query
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 

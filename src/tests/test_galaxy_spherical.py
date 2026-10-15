@@ -205,7 +205,7 @@ def test_sampled_points_map_back_to_their_own_cell():
     for address in addresses:
         cell = SectorCell.for_address(*address, EDGE_PC)
         test = sector_cell_test(address, EDGE_PC)
-        from planetgen.galaxy.geometry import local_to_galaxy_pc
+        from planetgen.galaxy.spherical import local_to_galaxy_pc
         for _ in range(300):
             local = cell.sample(rng)
             assert cell.contains(local), address
@@ -220,7 +220,7 @@ def test_sampling_is_uniform_in_volume():
     samples = [cell.sample(rng) for _ in range(20000)]
     # The cell's own frame: the mean of a uniform fill sits near the centroid, and the
     # outer half of the radial range holds more points than the inner half, by volume.
-    from planetgen.galaxy.geometry import local_to_galaxy_pc
+    from planetgen.galaxy.spherical import local_to_galaxy_pc
     radii = [math.sqrt(sum(c * c for c in local_to_galaxy_pc(cell.center, s))) for s in samples]
     middle = ((cell.r_inner ** 3 + cell.r_outer ** 3) / 2) ** (1 / 3)
     assert sum(1 for r in radii if r < middle) / len(radii) == pytest.approx(0.5, abs=0.02)
@@ -446,7 +446,7 @@ def test_no_point_of_a_cell_is_farther_from_its_center_than_the_reach():
         for address in list(shell_cells(shell))[::1 if shell < 100 else 997]:
             center = sector_position_pc(*address, EDGE_PC)
             cell = SectorCell.for_address(*address, EDGE_PC)
-            from planetgen.galaxy.geometry import local_to_galaxy_pc
+            from planetgen.galaxy.spherical import local_to_galaxy_pc
             points = sector_cell_vertices_pc(*address, EDGE_PC)
             points += [local_to_galaxy_pc(center, cell.sample(rng)) for _ in range(6)]
             for point in points:

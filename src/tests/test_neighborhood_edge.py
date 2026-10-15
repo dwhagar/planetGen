@@ -21,7 +21,7 @@ pytest.skip("GEN.227/UX.111: runs through the Generate page's job forms, which U
             "UX restores this module when the page takes the shell flags", allow_module_level=True)
 
 from planetgen import tuning  # noqa: E402
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.skeleton import build_layer_extents
 from planetgen.db import store
 from planetgen.web import generate_page, jobs
