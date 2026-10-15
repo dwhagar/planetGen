@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1282] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired the spherical grid module item (#1549); recorded that its wedge-count rule will be rewritten as one uniform rule and that the schema rename, generation paths and web wording land as one switch.
+
+TODO items resolved: GEN.224 / Added: none
+
 ## [8.0.1281] - 2026-10-15
 
 ### Added
