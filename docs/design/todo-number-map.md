@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.60 |
 | GEN | GEN.213 |
 | PERF | PERF.101 |
-| DB | DB.26 |
+| DB | DB.27 |
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
@@ -492,6 +492,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | done, PR #1365 |
 | DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | done, PR #1317 |
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | done, PR #1376 |
+| DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
