@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1294] - 2026-10-15
+
+### Added
+
+- A "Units" button in the settings menu switches measurements between Automatic (as before), Metric only and Customary (feet, miles, pounds, mph, psi, °F). The choice is remembered in your browser and applies to the star, planet, moon, belt and comet rows of a system page, the property tables of a phenomenon page, and the values the map panels show when they open.
+
 ## [8.0.1293] - 2026-10-15
 
 ### Changed
