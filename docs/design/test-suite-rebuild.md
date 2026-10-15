@@ -306,3 +306,23 @@ A `scripts/test.py changed` run stood at 99% for over an hour: `test_a_paused_qu
 - **`test_the_map_help_is_a_menu_item_that_opens_a_dialog`** (the one failure above, "passes alone", 39.5 s under load 8.4): the Menu item calls `dialog.show()` only once Shoelace has upgraded the element, so the test waits for `show` first.
 - **TEST.157** was a point one parsec from the system placed inside a random nebula shape; it now uses the system's own point, like its sibling test (300 of 300 loop runs pass; the old form failed several of 300).
 
+## 22. The folded flake list, looped on an idle machine (Quality lane, 2026-10-15)
+
+Each test run 60 times (`-n 2`, a fresh random draw each time, nothing else on the machine) before anyone calls it load:
+
+| Item | Test | Result |
+|---|---|---|
+| TEST.132 | `test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star` | **3 of 60 failed**: the backfill drew no stars for the neighbour cell the test fills next. Fixed (the test fills the nearest cell given stars); 100 of 100 pass |
+| TEST.157 | `test_system_detail_names_the_containing_nebula` | reproduced and fixed (section 21) |
+| TEST.111 | `test_ensure_sector_generated_creates_then_reuses_the_same_sector` | 0 of 60 |
+| TEST.116 | `test_bughunt_end_to_end` (both tests) | 0 of 60 |
+| TEST.127 | `test_nebula_shape_endpoint_serves_a_mesh` | 0 of 60 |
+| TEST.128 | `test_spatial_position_db.py` | 0 of 60 (the shared-database cause went with stage 3) |
+| TEST.134 | `test_many_processes_starting_at_once_start_one_job` | 0 of 60 |
+| TEST.140 | `test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing` | 0 of 60 |
+| TEST.137 | `test_a_neighborhood_from_the_generate_page` (all cases) | 0 of 40 each |
+| TEST.141 | `test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector` (all cases) | 0 of 40 each |
+| (sibling of TEST.132) | `test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers` | 0 of 40 |
+
+A test with 0 failures in 60 has a failure rate under about 5% at 95% confidence, so these stay on the list for the five-clean-full-runs proof; none has a reproducer. The loop used a small plugin that repeats a test through a parametrized fixture; the 60-run loop of the six slowest takes about 27 minutes on 2 workers.
+
