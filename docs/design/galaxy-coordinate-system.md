@@ -8,10 +8,8 @@ The grid went in with schema v91 (migration `0091_spherical_sectors.py`).
 Code: `src/planetgen/galaxy/spherical.py` (the grid), `skeleton.py` (the
 outline), `density.py` (the density model, see `galaxy-disk-density.md`) and
 `planetgen plan` / `planetgen galaxy`. The Galaxy Map's block ladder, stages
-and windows are being rebuilt on shells (MAP.205, MAP.206); until then
-`galaxy/drill.py`, `viewport.py` and the parts of `galaxy/geometry.py` they
-use still describe the old cylinder, and `/api/galaxy/stage` and
-`/api/galaxy/window` answer an error.
+and windows sit on the same grid (`galaxy/drill.py`, `galaxy/window.py`,
+`spherical-block-ladder.md`; MAP.205, MAP.206).
 
 The cylindrical ring, layer and slot grid this replaced is kept in
 [`archive/galaxy-coordinate-system-cylinder.md`](archive/galaxy-coordinate-system-cylinder.md),

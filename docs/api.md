@@ -324,12 +324,9 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
   65,536 pc on a side centered on the galactic origin, each level halves
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
-  (`ix` counts cubes along x from the root cube's −x face). The Galaxy Map is
-  being rebuilt on shells (MAP.205/MAP.206): the parts that depended on the old
-  block ladder (`filled`, and `stars` and `generated` where they used it) answer
-  empty until the new map lands. A part that took too long is also left empty and
-  named in the tile's `incomplete` list. Returns
-  `{"tiles": {"<key>": {"placed": [...], "planned": [...], "filled": {...},
+  (`ix` counts cubes along x from the root cube's −x face). A part that took
+  too long is left empty and named in the tile's `incomplete` list. Returns
+  `{"tiles": {"<key>": {"placed": [...], "planned": [...], "sector_count": n,
   "clouds": [...], "stars": [...], "generated": [...], "points": [...]}},
   "edge_pc": ...,
   "has_shape": ...}`:
@@ -338,14 +335,12 @@ connectivity to that specific schema rather than the default one.
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
   predates per-sector edge tracking), lowest id first,
   at most 250; `planned` lists the tile's qualifying not-yet-generated
-  slots, only for 16 pc tiles (empty otherwise); `filled` counts every
-  placed sector in the tile, nothing sampled (`queryDb.galaxy_filled_in_box`):
-  `{"g": 1, "cells": [[shell, band, wedge, id, system_count, name], ...]}`
-  one per sector, or, for large tiles or more than 5,000 sectors, `{"g": g,
-  "cells": [[shell, band, wedge, count], ...]}` per cell of `g` sectors a side
-  (`g` a power of 3; the cell grid of the block ladder is part of the Galaxy
-  Map rebuild).
-  The Galaxy Map sums these into its blocks. `clouds` lists the placed
+  slots, only for 16 pc tiles (empty otherwise); `sector_count` is how many
+  placed sectors have their center in the tile, nothing left out
+  (`queryDb.galaxy_sector_count_in_box`), which the tile's share of the
+  generated-star budget goes by. The Galaxy Map's blocks come from the stored
+  block totals (`/api/galaxy/stage` and `/api/galaxy/window`), not from the
+  tiles. `clouds` lists the placed
   nebulae and supernova remnants whose sphere reaches into the tile
   (`queryDb.galaxy_clouds_in_box`), largest first, at most 200:
   `{type, id, name, descriptor, class, radius_pc, x, y, z}`. `stars`
@@ -377,13 +372,27 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/galaxy/stage?at=<block key>` and
   `GET /api/galaxy/window?at=<block key>&g=<n>` — the Galaxy Map's drill-down
   stage (`queryDb.galaxy_stage`) and data window (`queryDb.galaxy_window`,
-  MAP.151b): how many generated sectors each child block holds, with the
-  `sector_stats` sums (`systems`, `expected_systems`, `stars`, `mean_age_gy`,
-  `luminosity_sol`). **Not available yet.** The spherical switch dropped the old
-  243/81/27/9/3-sector block ladder these were built on (`design/galaxy-drilldown-navigation.md`
-  describes it), and both routes will be rebuilt on shells with MAP.205 and
-  MAP.206, with new block keys. Until then they raise `NotImplementedError`
-  and answer a server error. Their key format and answer shape are documented here when the new map lands.
+  MAP.151b, MAP.205): how many generated sectors each child block holds, with
+  the `sector_stats` sums. A block key is `m.shell.band.wedge` with `m` one of
+  243, 81, 27, 9, 3 (a sector is `1.shell.band.wedge`), as
+  `design/spherical-block-ladder.md` defines the ladder (`galaxy/drill.py`).
+  A stage answers `{"at", "edge_pc", "child_m", "children", "sectors"}`: `at`
+  is the canonical key (`null` when `at` is left out: the galaxy, which lists the
+  level-243 blocks that hold a generated sector), `children` is
+  `[{"shell", "band", "wedge", "generated", "stats"}]` for each child block
+  one size down that holds a generated sector (`stats`:
+  `{"systems", "expected_systems", "stars", "mean_age_gy",
+  "luminosity_sol"}`), and, when the children are sectors (`child_m` 1),
+  `sectors` lists each generated one: `{"shell", "band", "wedge", "id",
+  "name", "system_count", "stats"}` (otherwise `null`). Above the sector the
+  figures are read from `galaxy_block_stats`. A window is a ball: `g` (3, 5, 7,
+  9 or 11) cells of the key's size across, every block whose center lies within
+  `g * m / 2` sector edges of the center block's center. It answers `{"at",
+  "g", "child_m", "cells", "children", "sectors"}`: `cells` is every cell of the
+  ball (`[[shell, band, wedge], ...]`), `children` is the ones that hold a
+  generated sector, as a stage lists them, and `sectors` is `null`; a
+  window of sectors (`m` 1) is refused, because its names come from the stages of
+  its parents. A malformed key or width is a 400.
 - `GET /api/galaxy/locate?q=<part of a name>` — the Galaxy Map address
   bar's name lookup (`queryDb.galaxy_locate`): `{"matches": [{"kind"
   (`"sector"`, `"system"`, `"planet"` or `"moon"`), "ref", "id", "name",
@@ -404,9 +413,8 @@ connectivity to that specific schema rather than the default one.
   "tiles", "stages"}` (`queryDb.galaxy_changes`): the keys of the tiles
   that changed since that `state`, found from `sectors.modified_at`, new
   sector ids and new star-system ids, and the drill-down stages holding
-  those sectors (`stages`, always empty until MAP.205/MAP.206 rebuild the block ladder
-  on shells; the stage keys it needs are not available yet, so a change that
-  moves a sector currently answers a server error). `full` is `true` (and both lists empty) when that can't
+  those sectors (`stages`, the keys `queryDb.galaxy_stage_keys` gives for each changed
+  sector: `galaxy` and every block above the sector). `full` is `true` (and both lists empty) when that can't
   be pinned to tiles: a deleted sector, a new shape or release, more than
   1,000 changed sectors, new bright stars (a backfill), or a missing or
   unreadable `since`. When `full` is only because so much changed at once
@@ -1672,10 +1680,6 @@ Planned API changes, as of 2026-10-15. None is built; the
 items and their full text are in `docs/TODO.md`, and the phases in
 `docs/plan/`.
 
-- **Galaxy Map routes on shells (MAP.205, MAP.206).** `/api/galaxy/stage` and
-  `/api/galaxy/window` are rebuilt on the spherical grid, and the parts of
-  `/api/galaxy/tiles` and `/api/galaxy/changes` that used the old block ladder
-  come back with them (see "Read").
 - **Every API call logged (API.15, phase 1).** By default every call is
   logged with the time, the route, the account that made it (the key's
   owner for an API key, the signed-in admin for the web site, and `god`
