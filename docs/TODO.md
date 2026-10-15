@@ -3355,16 +3355,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.214 Planet descriptions still say PHI-4 where they should say PHI-6 (bug)**
-  Boss (2026-10-15 03:46Z): "Bug, still says PHI-4 not PHI-6 on planet
-  descriptions." The habitability description (GEN.207, GEN.208) names
-  the index PHI-4; it should read PHI-6 everywhere a planet or moon
-  description shows it. Done when no planet, moon or help text names the
-  wrong index, with a test over the generated description. Rebase on
-  main: Foundations Generation's GEN.148 flux half touches the
-  temperature rating, so keep the edit to the description text.
-  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457), UX.101.
-
 - [ ] **GEN.215 Air shows Green with 0 Air when the air pressure is 0 (bug)**
   Boss (2026-10-15 03:46Z): "Bug, Air will say Green with 0 Air when
   there's 0 air pressure because it's free of toxins." With no
@@ -3400,7 +3390,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the two items before it; do it after them. Done when every rating
   line reads like the examples and tests pin the wording. Rebase on
   main; Foundations Generation avoids the description text meanwhile.
-  Prerequisites: GEN.214, GEN.215. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
+  Prerequisite: GEN.215. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

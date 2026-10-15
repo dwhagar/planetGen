@@ -754,7 +754,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process | none | done, PR #1310 |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | none | open |
 | GEN.213 | Mercury-like bodies never keep their magnetic field (bug) | none | done, PR #1412 |
-| GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) | none | open |
+| GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) | none | done, PR #1472 |
 | GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) | none | open |
 | GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
