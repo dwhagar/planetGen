@@ -3392,6 +3392,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   main; Foundations Generation avoids the description text meanwhile.
   Prerequisite: GEN.215. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
 
+- [ ] **GEN.217 Refresh the stored habitability numbers on existing planets and moons**
+  The habitability paragraph is recomputed on every request, but the
+  stored numbers (flux_variation, phi4, the six phi4_* and tier_*
+  columns, equipment_tier, hab_note) are stale or NULL on old rows (the
+  six-domain columns are NULL on rows made before schema v87). The
+  planet-row chip, tooltip, search page and habitability facet counts
+  therefore disagree with the paragraph, and no command refreshes them.
+  Add `plan --fill-habitability` (run_plan.py), in the style of
+  `--fill-map-luminosity` and `--fill-block-stats`: per system, load the
+  graph, run insolation.refresh_system and the same scoring step the
+  life pass uses, and UPDATE only the habitability columns of planets
+  and moons. Resumable per system. No migration, no shim. Found by
+  Foundations Generation (no new Boss message).
+  Prerequisites: GEN.216. Related: GEN.214 (done, PR #1472), GEN.215,
+  GEN.216.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**

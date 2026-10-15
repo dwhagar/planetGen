@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.103 |
 | MAP | MAP.204 |
 | NAV | NAV.60 |
-| GEN | GEN.217 |
+| GEN | GEN.218 |
 | PERF | PERF.101 |
 | DB | DB.31 |
 | API | API.25 |
@@ -757,6 +757,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) | none | done, PR #1472 |
 | GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) | none | open |
 | GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) | none | open |
+| GEN.217 | Refresh the stored habitability numbers on existing planets and moons | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
