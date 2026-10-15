@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1274] - 2026-10-15
+
+### Added
+
+- A research note on wedge counts and shared meridians for the spherical-sector block ladder, with measured options (`docs/design/spherical-ladder-meridians.md`). No code changed.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1273] - 2026-10-15
 
 ### Changed
