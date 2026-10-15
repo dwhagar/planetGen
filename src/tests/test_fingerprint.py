@@ -124,7 +124,7 @@ def test_a_change_moves_only_its_own_sectors_digest(make_database, monkeypatch):
         conn.commit()
         assert _region(config) == before
         planet = conn.execute(
-            "SELECT p.id, s.ring_index, s.layer_index, s.ring_slot_index FROM planets p"
+            "SELECT p.id, s.shell_index, s.band_index, s.wedge_index FROM planets p"
             " JOIN star_systems ss ON ss.id = p.star_system_id JOIN sectors s ON s.id = ss.sector_id"
             " ORDER BY p.id LIMIT 1").fetchone()
         conn.execute("UPDATE planets SET mass_kg = mass_kg * 1.000001 WHERE id = ?", (planet["id"],))
@@ -133,8 +133,8 @@ def test_a_change_moves_only_its_own_sectors_digest(make_database, monkeypatch):
         conn.close()
     after = _region(config)
     changed = [label for (label, old), (_label, new) in zip(before.sectors, after.sectors) if old != new]
-    assert changed == [f"{planet['ring_index']} {planet['layer_index']} {planet['ring_slot_index']}"]
+    assert changed == [f"{planet['shell_index']} {planet['band_index']} {planet['wedge_index']}"]
     assert after.region != before.region and after.plan == before.plan
-    one = _region(config, addresses=[(planet["ring_index"], planet["layer_index"], planet["ring_slot_index"])])
+    one = _region(config, addresses=[(planet["shell_index"], planet["band_index"], planet["wedge_index"])])
     assert one.plan is None and one.sectors == [(changed[0], dict(after.sectors)[changed[0]])]
     assert _print(config, "--sector", *changed[0].split())[0] == f"{changed[0]} {dict(after.sectors)[changed[0]]}"

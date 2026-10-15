@@ -61,12 +61,12 @@ def test_sector_grid_address_round_trips(mysql_config):
     try:
         galaxy_position = {
             "center_x_pc": 5.0, "center_y_pc": 6.0, "center_z_pc": -7.0,
-            "galactic_radius_pc": 10.49, "ring_index": 2, "layer_index": -3, "ring_slot_index": 9,
+            "galactic_radius_pc": 10.49, "shell_index": 2, "band_index": -3, "wedge_index": 9,
         }
         sector_id = store.insert_sector(conn, SpaceSector(name="AddressTest"), galaxy_position=galaxy_position)
         conn.commit()
         row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
-        assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) == (2, -3, 9)
+        assert (row["shell_index"], row["band_index"], row["wedge_index"]) == (2, -3, 9)
         assert row["center_z_pc"] == pytest.approx(-7.0)
         assert store.get_sector_id_at(conn, 2, -3, 9) == sector_id
         assert store.get_sector_id_at(conn, 2, 3, 9) is None
@@ -80,7 +80,7 @@ def test_standalone_sector_has_no_grid_address(mysql_config):
         sector_id = store.insert_sector(conn, SpaceSector(name="NoGalaxyPos"), galaxy_position=None)
         conn.commit()
         row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
-        assert row["ring_index"] is None and row["layer_index"] is None and row["ring_slot_index"] is None
+        assert row["shell_index"] is None and row["band_index"] is None and row["wedge_index"] is None
     finally:
         conn.close()
 

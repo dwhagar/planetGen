@@ -35,7 +35,7 @@ from planetgen import tuning
 from planetgen.db import query
 from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy.geometry import enumerate_sectors_within_radius, local_to_galaxy_pc
+from planetgen.galaxy.spherical import enumerate_sectors_within_radius, local_to_galaxy_pc
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
 
 MAX_DISTANCE_PC = 50.0
@@ -171,9 +171,9 @@ def _sector_counts(conn, center, distance, margin):
     if shape is None:
         return 0, 0
     bounds = query.get_galaxy_bounds(conn)
-    reached = {(ring, layer, slot)
-               for ring, layer, slot, *_rest in enumerate_sectors_within_radius(center, distance, float(shape.edge_pc))
-               if bounds.contains(ring, layer)}
+    reached = {(shell, band, wedge)
+               for shell, band, wedge, *_rest in enumerate_sectors_within_radius(center, distance, float(shape.edge_pc))
+               if bounds.contains(shell, band)}
     reach = distance + margin
     rows = conn.execute(
         """

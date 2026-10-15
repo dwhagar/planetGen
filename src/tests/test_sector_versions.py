@@ -85,7 +85,7 @@ def test_the_galaxy_warning_reads_the_settings_file(mysql_config, tmp_path, monk
     shape = build_galaxy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
         bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
-    store.save_galaxy_shape(shape, edge_pc=4.0, outer_ring_index=1,
+    store.save_galaxy_shape(shape, edge_pc=4.0, outer_shell_index=1,
                             expected_system_count_at_density_1=1.0, config=mysql_config, galaxy_seed=seed)
     settings_file.write(_planned(release="0.0.1"), seed)
     conn = store.get_connection(mysql_config)

@@ -72,7 +72,7 @@ ADDRESS_TABLES = ("bright_stars", "phenomenon_scatter")
 """tuple: Tables keyed by a sector address (`shell_index`, `band_index`,
 `wedge_index`) rather than a sector row."""
 
-PLAN_TABLES = ("galaxy_shape", "galaxy_layer", "galaxy_column")
+PLAN_TABLES = ("galaxy_shape", "galaxy_shell")
 """tuple: The galaxy's plan, compared for the whole galaxy."""
 
 CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS_TABLES + PLAN_TABLES
@@ -82,7 +82,7 @@ CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS
 LEFT_OUT_TABLES = frozenset({
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs",
-    "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
+    "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
     "system_configs", "system_config_slots",
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module
@@ -129,7 +129,7 @@ def _digest(lines):
 @dataclass
 class Fingerprint:
     """A region's fingerprint: `sectors` is `[(label, digest)]` in address
-    order (a placed sector's label is `"ring layer slot"`, an unplaced
+    order (a placed sector's label is `"shell band wedge"`, an unplaced
     one's `"unplaced <name>"`), `plan` the plan's digest (the whole galaxy
     only, else `None`), `region` the digest over both."""
     sectors: list
@@ -265,7 +265,7 @@ def _sector_label(row):
 def _sector_lines(reader, sector_id, address):
     """The canonical lines of one sector's content: `sector_id` its row's
     id (or `None` for a cell with only address-keyed rows), `address`
-    `(ring, layer, slot)` (or `None` when unplaced)."""
+    `(shell, band, wedge)` (or `None` when unplaced)."""
     owned = {}
 
     def keep(table, rows):
@@ -298,7 +298,7 @@ def _sector_lines(reader, sector_id, address):
 def sector_digest(conn, sector_id=None, address=None):
     """
     The fingerprint of one sector: its row `sector_id`, or the cell at
-    `address` `(ring, layer, slot)` (with its sector row, if there is one).
+    `address` `(shell, band, wedge)` (with its sector row, if there is one).
 
     Returns:
         str: The hex SHA-256 of the sector's sorted canonical lines.
@@ -324,7 +324,7 @@ def plan_digest(conn):
     return _digest(sorted(lines))
 
 
-def _cells(conn, rings=None, addresses=None):
+def _cells(conn, shells=None, addresses=None):
     """`[(label, sector id or None, address or None)]` of every sector and
     address-keyed cell in the region, in address order (unplaced sectors
     last, by name)."""
@@ -342,24 +342,24 @@ def _cells(conn, rings=None, addresses=None):
     chosen = []
     for order in sorted(cells):
         label, sector_id, address = cells[order]
-        if rings is not None or addresses is not None:
+        if shells is not None or addresses is not None:
             if address is None:
                 continue
-            if not ((rings and address[0] in rings) or (addresses and address in addresses)):
+            if not ((shells and address[0] in shells) or (addresses and address in addresses)):
                 continue
         chosen.append((label, sector_id, address))
     return chosen
 
 
-def region_fingerprint(conn, rings=None, addresses=None, on_progress=None):
+def region_fingerprint(conn, shells=None, addresses=None, on_progress=None):
     """
-    The fingerprint of a region: the sectors on `rings` and at `addresses`
-    (`(ring, layer, slot)` tuples), or with neither the whole galaxy, plan
+    The fingerprint of a region: the sectors on `shells` and at `addresses`
+    (`(shell, band, wedge)` tuples), or with neither the whole galaxy, plan
     included.
 
     Args:
         conn (Connection): An open connection.
-        rings (iterable of int, optional): Whole rings to include.
+        shells (iterable of int, optional): Whole shells to include.
         addresses (iterable of tuple, optional): Single sectors to include.
         on_progress (callable, optional): `on_progress(label, done, total)`
             after each sector.
@@ -367,15 +367,15 @@ def region_fingerprint(conn, rings=None, addresses=None, on_progress=None):
     Returns:
         Fingerprint: The per-sector digests, the plan's and the region's.
     """
-    rings = None if rings is None else set(rings)
+    shells = None if shells is None else set(shells)
     addresses = None if addresses is None else {tuple(a) for a in addresses}
     reader = _Reader(conn)
-    cells = _cells(conn, rings, addresses)
+    cells = _cells(conn, shells, addresses)
     sectors = []
     for done, (label, sector_id, address) in enumerate(cells, start=1):
         sectors.append((label, _digest(_sector_lines(reader, sector_id, address))))
         if on_progress is not None:
             on_progress("sectors", done, len(cells))
-    plan = plan_digest(conn) if rings is None and addresses is None else None
+    plan = plan_digest(conn) if shells is None and addresses is None else None
     lines = ([f"plan {plan}"] if plan is not None else []) + [f"{label} {digest}" for label, digest in sectors]
     return Fingerprint(sectors=sectors, plan=plan, region=_digest(lines))

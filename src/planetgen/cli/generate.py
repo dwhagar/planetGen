@@ -1400,7 +1400,7 @@ def run_fingerprint(args):
     (`planetgen.db.fingerprint`, GEN.58)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        result = fingerprint.region_fingerprint(conn, args.shell, args.sector)
+        result = fingerprint.region_fingerprint(conn, shells=args.shell, addresses=args.sector)
         warning = version_check.galaxy_warning(conn)
     finally:
         conn.close()

@@ -35,7 +35,7 @@ The checks:
    first, from the speed this server recorded for it, and the pass draws
    its own progress bar.
 
-`--ring` and `--sector` scope the value, count and version-key checks to
+`--shell` and `--sector` scope the value, count and version-key checks to
 those sectors; the others always look at the whole database. A galaxy too
 big to check in one go is checked a region at a time.
 """
@@ -167,14 +167,14 @@ class Report:
 
 @dataclass
 class Scope:
-    """Which sectors the sector-scoped checks look at: whole `rings` and
-    single `addresses` (`(ring, layer, slot)`); neither means all."""
-    rings: tuple = ()
+    """Which sectors the sector-scoped checks look at: whole `shells` and
+    single `addresses` (`(shell, band, wedge)`); neither means all."""
+    shells: tuple = ()
     addresses: tuple = ()
 
     @property
     def everything(self):
-        return not self.rings and not self.addresses
+        return not self.shells and not self.addresses
 
     def where(self, sector_sql):
         """Returns `(sql, params)`: a condition on `sector_sql` (empty for
@@ -182,9 +182,9 @@ class Scope:
         if self.everything:
             return "", ()
         clauses, params = [], []
-        if self.rings:
-            clauses.append("shell_index IN (%s)" % ",".join(["%s"] * len(self.rings)))
-            params.extend(self.rings)
+        if self.shells:
+            clauses.append("shell_index IN (%s)" % ",".join(["%s"] * len(self.shells)))
+            params.extend(self.shells)
         for address in self.addresses:
             clauses.append("(shell_index = %s AND band_index = %s AND wedge_index = %s)")
             params.extend(address)

@@ -44,6 +44,7 @@ _PHENOMENA = ("black_holes", "neutron_stars", "nebulae", "supernova_remnants", "
               "interstellar_comets", "asteroid_fields")
 _BODIES = ("stars", "planets", "moons", "asteroid_belts", "comets")
 _CHUNK = 20000
+_READDRESS_CHUNK = 100000
 _SOLAR_LUMINOSITY_W = 3.828e26
 
 # The object ID layout of galaxy/object_uid.py: 12/12/16 bits of sector, 28 of serial (2 of kind), 12 of body.
@@ -132,6 +133,30 @@ def _has_table(connection, table):
 def _touch(connection, table):
     """`, modified_at = modified_at` for a table that has the column: an UPDATE then leaves the time alone."""
     return ", modified_at = modified_at" if _has_column(connection, table, "modified_at") else ""
+
+
+def _has_index(connection, table, index):
+    return connection.execute(sa.text(
+        "SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE()"
+        " AND TABLE_NAME = :t AND INDEX_NAME = :i"), {"t": table, "i": index}).scalar()
+
+
+_ADDRESS_INDEXED = ("bright_stars", "phenomenon_scatter")
+
+
+def _drop_address_indexes(connection):
+    """The two big tables' address indexes are dropped for the bulk update and built again after (far cheaper than
+    keeping them up to date row by row); a DDL statement ends the conversion's transaction, so both are outside it."""
+    for table in _ADDRESS_INDEXED:
+        if _has_index(connection, table, f"idx_{table}_address"):
+            connection.execute(sa.text(f"ALTER TABLE {table} DROP INDEX idx_{table}_address"))
+
+
+def _add_address_indexes(connection):
+    for table in _ADDRESS_INDEXED:
+        if not _has_index(connection, table, f"idx_{table}_address"):
+            connection.execute(sa.text(
+                f"ALTER TABLE {table} ADD KEY idx_{table}_address (shell_index, band_index, wedge_index)"))
 
 
 def _id_ranges(connection, table, where=""):
@@ -267,6 +292,9 @@ class _Conversion:
 
     def cover_old_sectors(self):
         """Every cell whose centre lies in an old sector is a sector too, with that old sector as its container."""
+        self.sql("CREATE TEMPORARY TABLE IF NOT EXISTS cover_cell ("
+                 " shell INT NOT NULL, band INT NOT NULL, wedge INT NOT NULL, container BIGINT UNSIGNED NULL,"
+                 " PRIMARY KEY (shell, band, wedge)) ENGINE=InnoDB")
         last = 0
         while True:
             rows = self.sql("SELECT id, x, y, z, ring, layer, slot FROM old_sector WHERE id > :last ORDER BY id"
@@ -280,8 +308,12 @@ class _Conversion:
                     if _old_address_at((cx, cy, cz), self.edge) == (ring, layer, slot):
                         cells.append({"a": shell, "b": band, "w": wedge, "c": old_id})
             if cells:
-                self.sql("INSERT INTO new_cell (shell, band, wedge, container) VALUES (:a, :b, :w, :c)"
-                         " ON DUPLICATE KEY UPDATE container = VALUES(container)", cells)
+                self.sql("TRUNCATE TABLE cover_cell")
+                self.sql("INSERT INTO cover_cell (shell, band, wedge, container) VALUES (:a, :b, :w, :c)", cells)
+                self.sql("UPDATE new_cell n JOIN cover_cell c ON c.shell = n.shell AND c.band = n.band"
+                         " AND c.wedge = n.wedge SET n.container = c.container")
+                self.sql("INSERT IGNORE INTO new_cell (shell, band, wedge, container)"
+                         " SELECT shell, band, wedge, container FROM cover_cell")
             last = rows[-1][0]
 
     # -- the new sectors --------------------------------------------------------------------------------------------
@@ -373,14 +405,14 @@ class _Conversion:
         last = 0
         while True:
             rows = self.sql(f"SELECT id, position_x_mpc, position_y_mpc, position_z_mpc FROM {table}"
-                            " WHERE id > :last ORDER BY id LIMIT :n", {"last": last, "n": _CHUNK}).fetchall()
+                            " WHERE id > :last ORDER BY id LIMIT :n", {"last": last, "n": _READDRESS_CHUNK}).fetchall()
             if not rows:
                 break
             moved = []
             for row_id, px, py, pz in rows:
                 address = self.spherical.sector_address_at((px / 1000.0, py / 1000.0, pz / 1000.0), self.edge)
                 moved.append({"i": row_id, "a": address[0], "b": address[1], "w": address[2]})
-            self.sql("DELETE FROM moved")
+            self.sql("TRUNCATE TABLE moved")
             self.sql("INSERT INTO moved (id, shell, band, wedge) VALUES (:i, :a, :b, :w)", moved)
             self.sql(f"UPDATE {table} t JOIN moved m ON m.id = t.id"
                      " SET t.shell_index = m.shell, t.band_index = m.band, t.wedge_index = m.wedge")
@@ -547,6 +579,7 @@ def upgrade():
     connection = op.get_bind()
     _change_tables(connection)
     if _has_table(connection, "galaxy_layer"):
+        _drop_address_indexes(connection)
         edge = connection.execute(sa.text("SELECT edge_pc FROM galaxy_shape WHERE id = 1")).scalar()
         if edge is None:
             edge = connection.execute(sa.text(
@@ -555,3 +588,4 @@ def upgrade():
             _Conversion(connection, float(edge)).run()
     for table in ("galaxy_layer", "galaxy_column", "galaxy_block_stats"):
         connection.execute(sa.text(f"DROP TABLE IF EXISTS {table}"))
+    _add_address_indexes(connection)

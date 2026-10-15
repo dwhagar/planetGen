@@ -87,14 +87,14 @@ def test_scoping_to_another_sector_skips_the_damage(saved):
     _sql(saved, "UPDATE planets SET radius_km = -5")
     elsewhere = check.Scope(addresses=((1, 0, 0),))
     assert _status(_run(saved, scope=elsewhere))["values"] == check.PASS
-    here = check.Scope(addresses=((PLACE["ring_index"], PLACE["layer_index"], PLACE["ring_slot_index"]),))
+    here = check.Scope(addresses=((PLACE["shell_index"], PLACE["band_index"], PLACE["wedge_index"]),))
     assert _status(_run(saved, scope=here))["values"] == check.FAIL
 
 
 def test_a_stale_system_count_is_a_warning_not_damage(saved):
     _heal_key(saved)
-    _sql(saved, "INSERT INTO sector_stats (ring_index, layer_index, ring_slot_index, actual_systems)"
-                f" VALUES ({PLACE['ring_index']}, {PLACE['layer_index']}, {PLACE['ring_slot_index']}, 99)"
+    _sql(saved, "INSERT INTO sector_stats (shell_index, band_index, wedge_index, actual_systems)"
+                f" VALUES ({PLACE['shell_index']}, {PLACE['band_index']}, {PLACE['wedge_index']}, 99)"
                 " ON DUPLICATE KEY UPDATE actual_systems = 99")
     report = _run(saved)
     assert _status(report)["counts"] == check.WARN

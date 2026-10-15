@@ -60,15 +60,15 @@ CENTRES = {
 def galaxy(mysql_config, tmp_path, monkeypatch):
     """A planned toy galaxy with a real outline, and a jobs directory."""
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "jobs"))
-    _seed_skeleton(mysql_config, outer_ring_index=OUTER_RING, e_value=E_VALUE, layers=EXTENTS)
+    _seed_skeleton(mysql_config, outer_shell_index=OUTER_RING, e_value=E_VALUE, layers=EXTENTS)
     return mysql_config
 
 
 def _sectors(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
-        return {(row["ring_index"], row["layer_index"], row["ring_slot_index"])
-                for row in conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors").fetchall()}
+        return {(row["shell_index"], row["band_index"], row["wedge_index"])
+                for row in conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()}
     finally:
         conn.close()
 
