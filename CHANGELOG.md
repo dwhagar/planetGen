@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1220] - 2026-10-15
+
+### Added
+- **`scripts/test.py <command> --resume` continues a run that was killed or stopped** (TEST.151). With the same build id (same code and files, packages, Python, MySQL and Redis versions, command and day) it skips the tests that passed in the earlier run and runs the rest. It says RESUMING first and `(RESUMED build ...: N more passed ...)` on its last line, runs nothing and exits 2 if the build changed (naming the parts that did), and never stores its short duration as the command's usual time. An interrupted run's last line now says how many tests had passed and that `--resume` continues it.
+
 ## [8.0.1219] - 2026-10-15
 
 ### Changed
