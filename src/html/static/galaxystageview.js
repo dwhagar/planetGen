@@ -1428,7 +1428,10 @@ export function createStageView(host) {
     const option = display.options[index];
     const mid = (option.a0 + option.a1) / 2;
     const span = spanOf(option.blocks, mid);
-    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, { z0: span.z0, z1: span.z1 }), 1);
+    // A sector opened in place keeps its old top outline and no shade: its
+    // own scene is drawn inside, and picking its stars must not be dimmed.
+    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, entered ? null : { z0: span.z0, z1: span.z1 }), 1);
+    if (entered) return;
     const shade = [];
     option.blocks.forEach(function (block) { Array.prototype.push.apply(shade, prismTriangles(block.bounds, mid)); });
     const fill = new THREE.Mesh(
