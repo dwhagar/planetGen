@@ -1324,7 +1324,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
 | UX.76 | Icons and highlights follow the light and dark theme (bug) | none | done, PR #800 |
 | UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
-| UX.78 | Unit preference: Automatic, Metric only or Customary | none | open |
+| UX.78 | Unit preference: Automatic, Metric only or Customary | none | done, PR #1562 |
 | UX.79 | Python and JS round half-way values differently (bug) | none | done, PR #843 |
 | UX.80 | Negative values that round to zero print "-0" (bug) | none | done, PR #843 |
 | UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | done, PR #1504 |
