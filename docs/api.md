@@ -544,7 +544,30 @@ connectivity to that specific schema rather than the default one.
   `<domain>_min`/`<domain>_max` (`energy`, `materials`, `information`,
   `medical`, `propulsion`, `defense`) keep a range, ends included; a value
   that is not a number from 0 to 7 is `400`.
-- `GET /api/species/<id>` — one species; `404` if unknown.
+- `GET /api/species/<id>` — one species; `404` if unknown. It carries
+  `limits` (POP.12): one row per environment limit of the human table
+  (`name`, `unit`, `meaning`, `human`, `value`, `changed`), the species' own
+  value in `value` and `changed` true where it differs from the human one.
+  The limits are made from the species' homeworld until they are stored
+  (DB.30).
+- `GET /api/planets/<id>/habitable-species`, `GET /api/moons/<id>/habitable-species`
+  — the species that could live on that body (POP.12), scored against each
+  species' own limits through the six habitability domains: `unaided` (no
+  domain is Red) and `equipped` (could with the kit its tech level can make,
+  Water not Red, and not already unaided), each entry with `id`, `name`,
+  `homeworld_planet_id`, `tech_level`, `phi4`, `equipment` (the kit its limits
+  ask for), `failing` (the Red domains) and `domains` (`{score, tier}` per
+  domain), best first. `scored` is false for a gas giant or a body saved
+  without a score (both lists empty). `404` if unknown.
+- `GET /api/systems/<id>/habitable-species` — the same for every rocky
+  planet and moon of a system that some species could live on: `bodies` of
+  `{kind, id, name, unaided, equipped}`.
+- `GET /api/species/<id>/habitable-worlds/systems/<system>` and
+  `.../sectors/<sector>` — the other way round: the rocky planets and moons of
+  one system, or of every system of one sector (at most 2,000 bodies; `truncated`
+  says if there were more), that this species could live on, as `unaided` and
+  `equipped` lists of `{kind, id, name, star_system_id}` and the same
+  verdict fields.
 - `GET /api/planets/<id>/species` — the species whose homeworld that
   planet is; `404` when it has none.
 - `GET /api/polities?limit=<n>&offset=<n>` — every polity (one per

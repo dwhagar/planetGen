@@ -21,6 +21,7 @@ phosphate umol/L, inventories in Earth units.
 """
 
 import math
+from collections import namedtuple
 from dataclasses import dataclass, field
 
 from planetgen.physics.protection_limits import limit
@@ -94,6 +95,38 @@ single-year limit)."""
 SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
 """float: ICRP's limit for any one year, 50 mSv: where `m_rad` starts
 charging for shielding."""
+
+Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high")
+"""namedtuple: The limits the five core domains are scored against: the Armstrong pressure, the least inspired
+O2, the chronic and acute inspired O2 edges, the uncompensable wet bulb, and the pressure, temperature and
+dose bands with `o2_high`, the band of too much O2. `HUMAN` is the visitor's; `bands` builds a species'
+(POP.12)."""
+
+
+def bands(overrides=None):
+    """
+    The `Bands` of a set of limits: every `protection_limits.LIMIT_ROWS` value in use, except those `overrides`
+    (`{limit name: value}`) replaces. Nothing else about a species changes the score.
+    """
+    def value(name):
+        return limit(name) if overrides is None or name not in overrides else overrides[name]
+
+    armstrong, chronic, acute = value("armstrong_kpa"), value("inspired_o2_chronic_kpa"), value("inspired_o2_acute_kpa")
+    return Bands(
+        armstrong=armstrong, o2_min=value("inspired_o2_min_kpa"), o2_chronic=chronic, o2_acute=acute,
+        wet_bulb=value("wet_bulb_c"),
+        pressure=(value("pressure_low_outer_kpa"), armstrong, value("mask_min_kpa"), value("pressure_no_gear_kpa"),
+                  value("pressure_blue_max_kpa"), value("pressure_narcosis_kpa"), value("pressure_hyperbaric_max_kpa"),
+                  value("pressure_outer_kpa")),
+        temperature=(value("cold_outer_c"), value("cold_suit_c"), value("cold_clothing_c"), value("comfort_low_c"),
+                     value("comfort_high_c"), value("heat_garment_c"), value("heat_max_c"), value("hot_outer_c")),
+        dose=(None, None, None, None, value("dose_blue_sv_yr"), value("dose_green_sv_yr"), value("dose_yellow_sv_yr"),
+              value("dose_outer_sv_yr")),
+        o2_high=(None, None, None, None, chronic, chronic, acute, acute * 10))
+
+
+HUMAN = bands()
+"""Bands: The human visitor's limits."""
 
 # Gas limits, kPa partial pressure: (chronic, acute), from the Atmospheric
 # Toxicity table (Lambertsen 1971; Schwieterman et al. 2019).
@@ -344,8 +377,8 @@ def wet_bulb_c(temperature_c, relative_humidity):
             + 0.00391838 * rh ** 1.5 * math.atan(0.023101 * rh) - 4.686035)
 
 
-def pressure_score(world):
-    return band_score(world.pressure_kpa, PRESSURE_BAND, log=True)
+def pressure_score(world, limits=HUMAN):
+    return band_score(world.pressure_kpa, limits.pressure, log=True)
 
 
 def temperature_extremes_c(world):
@@ -361,18 +394,18 @@ def temperature_extremes_c(world):
     return kelvin * (1.0 - f / 2.0) ** 0.25 - 273.15, kelvin * (1.0 + f / 2.0) ** 0.25 - 273.15
 
 
-def temperature_score(world):
+def temperature_score(world, limits=HUMAN):
     """Pressure's partner: the worse of the cycle's cold and hot extremes (they are one value for a lone star)."""
     cold, hot = temperature_extremes_c(world)
-    score = min(band_score(cold, TEMPERATURE_BAND), band_score(hot, TEMPERATURE_BAND))
-    if -20.0 <= hot <= 50.0 and wet_bulb_c(hot, world.relative_humidity) >= WET_BULB_CRIT_C:
+    score = min(band_score(cold, limits.temperature), band_score(hot, limits.temperature))
+    if -20.0 <= hot <= 50.0 and wet_bulb_c(hot, world.relative_humidity) >= limits.wet_bulb:
         score = min(score, 0.75 - 1e-9)  # an uncompensable wet bulb needs cooling garments: Yellow
     return score
 
 
-def inspired_o2_kpa(world):
+def inspired_o2_kpa(world, limits=HUMAN):
     """Inspired O2 (the inspired-gas equation): F_O2 (P - 6.3 kPa)."""
-    return world.gases.get("O2", 0.0) * max(0.0, world.pressure_kpa - ARMSTRONG_KPA)
+    return world.gases.get("O2", 0.0) * max(0.0, world.pressure_kpa - limits.armstrong)
 
 
 def gas_inputs(world):
@@ -392,13 +425,13 @@ O2_HIGH_BAND = (None, None, None, None, INSPIRED_O2_CHRONIC_KPA, INSPIRED_O2_CHR
 """tuple: The log band of inspired O2 against too much of it (the low side is a mask, see `_gas_scores`)."""
 
 
-def _gas_scores(world):
+def _gas_scores(world, limits=HUMAN):
     scores = {}
-    o2 = inspired_o2_kpa(world)
+    o2 = inspired_o2_kpa(world, limits)
     # Low O2: a mask fixes it wherever a mask works (Green); where it doesn't,
     # the pressure domain already says so.
-    o2_low = 1.0 if o2 >= INSPIRED_O2_MIN_KPA else 0.75
-    scores["O2"] = min(o2_low, band_score(o2, O2_HIGH_BAND, log=True))
+    o2_low = 1.0 if o2 >= limits.o2_min else 0.75
+    scores["O2"] = min(o2_low, band_score(o2, limits.o2_high, log=True))
     for gas, kpa, band in gas_inputs(world):
         scores[gas] = band_score(kpa, band, log=True)
     return scores
@@ -437,16 +470,16 @@ def has_atmosphere(world):
     return world.pressure_kpa >= NO_ATMOSPHERE_KPA
 
 
-def air_score(world):
+def air_score(world, limits=HUMAN):
     """Air Chemistry: is the air breathable, the worst of oxygen and the filtered gases. A world with no
     atmosphere has no air to breathe: 0."""
     if not has_atmosphere(world):
         return 0.0
-    return min(_gas_scores(world).values())
+    return min(_gas_scores(world, limits).values())
 
 
-def radiation_score(world):
-    return band_score(world.dose_sv_yr, DOSE_BAND, log=True)
+def radiation_score(world, limits=HUMAN):
+    return band_score(world.dose_sv_yr, limits.dose, log=True)
 
 
 # --- Suitability (GEN.207) --------------------------------------------------------------------
@@ -492,10 +525,10 @@ def food_score(world):
     return FOOD_SCORE[stage]
 
 
-def shelter_score(world):
+def shelter_score(world, limits=HUMAN):
     """The shelter rung: shelter from radiation and the open sky, which is the surface dose's
     colour (Table 2: on Red worlds only deep lava tubes or buried habitats, on Blue ones open ground)."""
-    return radiation_score(world)
+    return radiation_score(world, limits)
 
 
 def suitability_ceiling(core):
@@ -512,10 +545,10 @@ def suitability_ceiling(core):
     return "Blue"
 
 
-def suitability_score(world, core=None):
+def suitability_score(world, core=None, limits=HUMAN):
     """Suitability: the lowest of the water, food and shelter rungs, held under `suitability_ceiling`."""
-    core = core if core is not None else core_scores(world)
-    lowest = min(water_access_score(world), food_score(world), shelter_score(world))
+    core = core if core is not None else core_scores(world, limits)
+    lowest = min(water_access_score(world), food_score(world), shelter_score(world, limits))
     return min(lowest, CEILING_SCORE[suitability_ceiling(core)])
 
 
@@ -526,10 +559,10 @@ DOMAINS = (*CORE_DOMAINS, "Suitability")
 """tuple: The six domains, in the order the page lists them."""
 
 
-def core_scores(world):
+def core_scores(world, limits=HUMAN):
     """The five core domains' scores by name."""
-    return {"Pressure": pressure_score(world), "Temperature": temperature_score(world),
-            "Air": air_score(world), "Water": water_score(world), "Radiation": radiation_score(world)}
+    return {"Pressure": pressure_score(world, limits), "Temperature": temperature_score(world, limits),
+            "Air": air_score(world, limits), "Water": water_score(world), "Radiation": radiation_score(world, limits)}
 
 
 def overall_score(scores):
@@ -568,27 +601,28 @@ def overall_score(scores):
     return min(mean, CEILING_SCORE[max(caps, key=TIERS.index)])
 
 
-def phi4(world):
+def phi4(world, limits=HUMAN):
     """`{domain: (score, tier)}` for the six domains and `"PHI-4"`, the overall score
-    (`overall_score`; stored as `phi4`, the name it had with four domains)."""
-    core = core_scores(world)
-    domains = {**core, "Suitability": suitability_score(world, core)}
+    (`overall_score`; stored as `phi4`, the name it had with four domains). `limits` are the `Bands` of
+    whoever is scored: the human visitor unless a species' (POP.12)."""
+    core = core_scores(world, limits)
+    domains = {**core, "Suitability": suitability_score(world, core, limits)}
     result = {name: (round(score, 4), tier(score)) for name, score in domains.items()}
     overall = overall_score(domains)
     result["PHI-4"] = round(overall, 4)
     return result
 
 
-def equipment(world):
+def equipment(world, limits=HUMAN):
     """The kit a human visitor needs: "ideal", "breathing mask", "mask
     with scrubber", "sealed suit" (a pressure suit, or a sealed suit
     against a Red temperature or air) or "full life support with
     radiation hardening", from the worst of Pressure, Temperature, Air and
     Radiation and what made it so. (Water chemistry and Suitability are
     about drinking and eating, not the kit.)"""
-    scores = {"Pressure": pressure_score(world), "Temperature": temperature_score(world),
-              "Air": air_score(world), "Radiation": radiation_score(world)}
-    gases = _gas_scores(world)
+    scores = {"Pressure": pressure_score(world, limits), "Temperature": temperature_score(world, limits),
+              "Air": air_score(world, limits), "Radiation": radiation_score(world, limits)}
+    gases = _gas_scores(world, limits)
     if scores["Radiation"] < 0.4:
         return "full life support with radiation hardening"
     if scores["Pressure"] < 0.75 or min(scores.values()) < 0.4:

@@ -9,6 +9,7 @@ pagination rules.
 
 from flask import Blueprint, jsonify, request
 
+from planetgen.db import species_fit
 from planetgen.population import model
 
 from .common import ApiError
@@ -98,8 +99,68 @@ def species_list():
 
 @bp.route("/species/<int:species_id>")
 def species_detail(species_id):
-    """`GET /api/species/<id>` -- one species."""
-    found = model.species_detail(get_db(), species_id)
+    """`GET /api/species/<id>` -- one species, with its environment `limits` (POP.12): every row of the human limits
+    table with the species' own value, `changed` where it differs."""
+    db = get_db()
+    found = model.species_detail(db, species_id)
+    if found is None:
+        raise ApiError(f"no such species: {species_id}", status_code=404)
+    found["limits"] = species_fit.limits_table(species_fit.limits_for_species(db, [species_id])[species_id])
+    return jsonify(found)
+
+
+def _habitable_species(kind, body_id):
+    found = species_fit.species_for_body(get_db(), kind, body_id)
+    if found is None:
+        raise ApiError(f"no such {kind}: {body_id}", status_code=404)
+    return jsonify(found)
+
+
+@bp.route("/planets/<uid:planet_id>/habitable-species")
+def planet_habitable_species(planet_id):
+    """
+    `GET /api/planets/<id>/habitable-species` -- the species that could live on this planet (POP.12): `unaided`
+    (no Red habitability domain against the species' own limits) and `equipped` (could with the kit their tech level
+    can make). `scored` is false for a gas giant, which has no surface.
+    """
+    return _habitable_species("planet", planet_id)
+
+
+@bp.route("/moons/<uid:moon_id>/habitable-species")
+def moon_habitable_species(moon_id):
+    """`GET /api/moons/<id>/habitable-species` -- the same for a moon."""
+    return _habitable_species("moon", moon_id)
+
+
+@bp.route("/systems/<uid:system_id>/habitable-species")
+def system_habitable_species(system_id):
+    """
+    `GET /api/systems/<id>/habitable-species` -- for each rocky planet and moon of a system that has any, the
+    species that could live there (POP.12), as `bodies` of `{kind, id, name, unaided, equipped}`; the system page's
+    "Species that could live here" panel.
+    """
+    found = species_fit.species_for_system(get_db(), system_id)
+    if found is None:
+        raise ApiError(f"no such system: {system_id}", status_code=404)
+    return jsonify(found)
+
+
+@bp.route("/species/<int:species_id>/habitable-worlds/systems/<uid:system_id>")
+def species_habitable_in_system(species_id, system_id):
+    """
+    `GET /api/species/<id>/habitable-worlds/systems/<system>` -- the rocky planets and moons of one system that this
+    species could live on (POP.12), as `unaided` and `equipped` lists of worlds with their verdicts.
+    """
+    found = species_fit.bodies_for_species(get_db(), species_id, system_id=system_id)
+    if found is None:
+        raise ApiError(f"no such species: {species_id}", status_code=404)
+    return jsonify(found)
+
+
+@bp.route("/species/<int:species_id>/habitable-worlds/sectors/<uid:sector_id>")
+def species_habitable_in_sector(species_id, sector_id):
+    """`GET /api/species/<id>/habitable-worlds/sectors/<sector>` -- the same over every system of one sector."""
+    found = species_fit.bodies_for_species(get_db(), species_id, sector_id=sector_id)
     if found is None:
         raise ApiError(f"no such species: {species_id}", status_code=404)
     return jsonify(found)

@@ -4370,6 +4370,20 @@ def _stored_life_stage(conn, table, row):
     return habitability_world.life_stage(row["life_chemical"], paragraphs)
 
 
+def stored_world(conn, table, row, with_life=True):
+    """
+    The `habitability.World` of a stored rocky planet or moon `row` (`planets` or `moons`), as its stored score
+    was worked out (a pulsar's, neutron star's or black hole's planet at its lethal dose), or `None` for a gas
+    giant or a body saved without a score (POP.12). `with_life` false leaves out the evolutionary paragraphs
+    (two queries a body) when only the physical conditions matter.
+    """
+    if row["body_type"] == "g" or row["surface_temperature_k"] is None or row["energy_flux_w_m2"] is None:
+        return None
+    values = {**dict(row), "life_stage": _stored_life_stage(conn, table, row) if with_life else "none"}
+    host = re.match(r"Planet of an? ([a-z ]+):", row["hab_note"] or "")
+    return habitability_world.world_from(values, lethal_host=host.group(1) if host else None)
+
+
 def _refresh_cloud_doses(conn, system_changes):
     """
     GEN.87: re-derives the cosmic-ray multiplier (`dose_helio_mult`) and the
