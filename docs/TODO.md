@@ -5067,24 +5067,10 @@ clears each one.
   Decided (Boss, 2026-10-15, tapped Build
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
-  automatic and not part of the merge gate. Build items TEST.150,
+  automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
   TEST.151 and TEST.152, owner the Test Suite Rebuild thread (TEST.133
   done, #1405).
   Prerequisites: none. Related: TEST.139.
-
-- [ ] **TEST.150 Test run progress log and build id for resuming a run**
-  Option A of TEST.148 (Boss chose it, 2026-10-15). Every test worker
-  appends one line per finished test to .test-progress/<build-id>.jsonl
-  (test id, outcome, seconds, worker), one write per line like the
-  failure log, so a killed run loses at most the tests running at that
-  moment. The build id is a hash of the git tree of HEAD, the content of
-  every uncommitted or untracked file, the lock files and pytest.ini,
-  the test command and its selection, the Python version, the database
-  server name and version, and the UTC date. A new run without the
-  resume flag starts a new log; a log for another build is kept for a
-  day, then removed. Done when the log and the build id exist with tests
-  (the id changes when any of those inputs change and not otherwise).
-  Prerequisite: none (TEST.133 done, #1405). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
   Option A of TEST.148. `scripts/test.py <command> --resume` computes
@@ -5099,7 +5085,7 @@ clears each one.
   so: a PR that used one says which build and run it continued. Done
   when a run killed in either phase resumes and finishes with the same
   verdict a full run gives, with tests for the skip list.
-  Prerequisite: TEST.150. Related: TEST.148, TEST.139.
+  Prerequisite: TEST.150 (done, PR #1431). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
   Option A of TEST.148. A killed run can leave keys on the shared Redis:

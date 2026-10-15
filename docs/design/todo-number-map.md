@@ -1567,7 +1567,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
 | TEST.149 | Two physics tests fail under load and pass alone (bug) | none | done, PR #1405 |
-| TEST.150 | Test run progress log and build id for resuming a run | none | open |
+| TEST.150 | Test run progress log and build id for resuming a run | none | done, PR #1431 |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
 | TEST.153 | A single hung test can stall a whole run (bug) | none | open |
