@@ -3242,14 +3242,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
-- [ ] **GEN.178 Magnetic fields: the induced field of an ocean moon**
-  Left over from GEN.86 (PR #908): the induced magnetic field of a moon
-  with a subsurface ocean in its parent's changing field is not
-  modelled. Done: the induced field is computed for ocean moons and
-  stored beside the intrinsic field, with a test on a known case (a
-  Europa-like moon of a gas giant).
-  Prerequisites: DB.26 (done, PR #1423; the induced_moment_a_m2 column), GEN.88 merged (PR #963). Related: GEN.86.
-
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
   Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
   directive a sector was generated under and the record of its attempts
