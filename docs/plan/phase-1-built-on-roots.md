@@ -74,6 +74,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | DB.26 | Research follow-up to GEN.84 (built). |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | DB.26 | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor |  | Left over from GEN.86 (PR #908). |
+| GEN.213 | Mercury gets a magnetic field it should not (bug) |  |  |
 
 ### Tech levels and facilities
 
@@ -115,7 +116,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
 | MAP.197 | Remove the obsolete drill container code left by the map flip |  |  |
-| TEST.135 | Big-galaxy query-budget test for the nebula reads | TEST.133 | Foundations lane 1. |
+| TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | MAP.172 | Foundations lane 2. |
@@ -191,10 +192,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
-| TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) |  |  |
-| TEST.149 | Two physics tests fail under load and pass alone (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| TEST.150 | Test run progress log and build id for resuming a run | TEST.133 |  |
+| TEST.150 | Test run progress log and build id for resuming a run |  |  |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | TEST.150 |  |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | TEST.151 |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
@@ -254,7 +253,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count |  | PERF.86 step 1 |
 | DB.26 | One migration for the habitability columns: flux variation, the induced moment, the nebula age, photon rate and hosts, and the air, water and suitability ratings |  |  |
 | OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix |  |  |
-| TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |

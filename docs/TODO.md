@@ -3401,6 +3401,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
+- [ ] **GEN.213 Mercury gets a magnetic field it should not (bug)**
+  Seen by Foundations Generation (2026-10-15) while working on GEN.177.
+  The generator gives Mercury a magnetic field it should not have.
+  Foundations Generation fixes it together with GEN.177 (the
+  stagnant-lid factor), right after GEN.177 in its queue. Done: Mercury
+  no longer gets the field, with a test on Mercury. GitHub issue
+  [#1406](https://github.com/dwhagar/planetGen/issues/1406).
+  Prerequisites: none. Related: GEN.177.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -4814,24 +4823,6 @@ clears each one.
   thread.
   Prerequisites: none. Related: TEST.111, TEST.128.
 
-- [ ] **TEST.133 A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): move `make_synthetic.py`
-  (research/db-timeouts/scripts/, 2,000,000 systems in about 2 minutes)
-  into the test tools, run EXPLAIN on every page and API list query, and
-  fail when a query examines more rows than its page needs. This is the
-  test that PERF.68 and PERF.70 each ask for, built once. Owner:
-  Foundations lane 1.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement as an opt-in `budget` test tier (not in the merge gate or
-  CI, run by hand before a performance merge), after stage 3 of the
-  rebuild; Foundations lane 1 drops it from its queue. Owner: the Test
-  Suite Rebuild thread.
-  Prerequisites: none. Related: PERF.68, PERF.69, PERF.70, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
   Bugfixes lane 1 (2026-10-10, full local suite 19:41Z to 20:54Z, -n 4):
   src/tests/test_web_jobs_damage.py::test_many_processes_starting_at_once_start_one_job
@@ -4862,7 +4853,7 @@ clears each one.
   implement after TEST.133 and DB.24, in the same opt-in `budget` tier;
   Foundations lane 1 drops it from its queue. Owner: the Test Suite
   Rebuild thread.
-  Prerequisite: TEST.133. Related: PERF.68.
+  Prerequisite: none (TEST.133 done, #1405). Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
@@ -5036,16 +5027,6 @@ clears each one.
   Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
-- [ ] **TEST.147 Two nebula-field table tests fail under load and pass alone (bug)**
-  Reported by Bugfixes lane 2 (2026-10-14 22:05Z) in a scripts/test.py
-  changed run at load 3.7:
-  src/tests/test_nebula_field_table.py::test_the_table_holds_the_kept_classes_m_and_n_and_the_rows_equal_the_fields_clouds
-  and ::test_a_plan_run_links_the_clouds_a_galaxy_already_holds failed,
-  then passed alone on re-run. Main was not checked. Done when the cause
-  is found and the suite shows no load flake for these two. Owner: the
-  Test Suite Rebuild thread, not a lane.
-  Prerequisites: none. Related: TEST.126, TEST.139.
-
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
   Boss (2026-10-15 00:09Z): wants to be able to restart a test run where
   it left off so long as the build is the same, so a run that is stopped
@@ -5065,22 +5046,9 @@ clears each one.
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
   automatic and not part of the merge gate. Build items TEST.150,
-  TEST.151 and TEST.152, owner the Test Suite Rebuild thread, after
-  TEST.133.
+  TEST.151 and TEST.152, owner the Test Suite Rebuild thread (TEST.133
+  done, #1405).
   Prerequisites: none. Related: TEST.139.
-
-- [ ] **TEST.149 Two physics tests fail under load and pass alone (bug)**
-  Reported by Foundations lane 1 (2026-10-15 00:18Z) in a
-  scripts/test.py changed run that selected the whole suite (15,433
-  passed):
-  tests/test_update_due.py::test_only_due_planets_and_moons_move_and_count
-  and
-  tests/test_planet_physics_fixes.py::test_atmospheric_pressure_correlates_positively_with_gravity
-  failed under load and passed alone. Done when the cause is found (a
-  shared-state or time assumption, or an unseeded draw) and the suite
-  shows no flake for these two. Owner: the Test Suite Rebuild thread,
-  not a lane.
-  Prerequisites: none. Related: TEST.126, TEST.139.
 
 - [ ] **TEST.150 Test run progress log and build id for resuming a run**
   Option A of TEST.148 (Boss chose it, 2026-10-15). Every test worker
@@ -5094,7 +5062,7 @@ clears each one.
   resume flag starts a new log; a log for another build is kept for a
   day, then removed. Done when the log and the build id exist with tests
   (the id changes when any of those inputs change and not otherwise).
-  Prerequisite: TEST.133. Related: TEST.148, TEST.139.
+  Prerequisite: none (TEST.133 done, #1405). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
   Option A of TEST.148. `scripts/test.py <command> --resume` computes

@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.103 |
 | MAP | MAP.198 |
 | NAV | NAV.60 |
-| GEN | GEN.213 |
+| GEN | GEN.214 |
 | PERF | PERF.101 |
 | DB | DB.27 |
 | API | API.25 |
@@ -749,6 +749,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall | none | open |
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process | none | done, PR #1310 |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | none | open |
+| GEN.213 | Mercury gets a magnetic field it should not (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1541,7 +1542,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
-| TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | open |
+| TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | done, PR #1405 |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
 | TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | done, PR #1239 |
@@ -1555,9 +1556,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | done, PR #1367 |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | done, PR #1367 |
-| TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | open |
+| TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
-| TEST.149 | Two physics tests fail under load and pass alone (bug) | none | open |
+| TEST.149 | Two physics tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.150 | Test run progress log and build id for resuming a run | none | open |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
