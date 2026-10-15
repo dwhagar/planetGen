@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1154] - 2026-10-15
+
+### Added
+
+- Three Galaxy Map bug items are filed for the Bugfixes lane: outline and shade the block a click zooms into, one shared centre for zoom and rotation, and on-map zoom and move controls.
+
 ## [8.0.1153] - 2026-10-15
 
 ### Changed
