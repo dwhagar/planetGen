@@ -9,6 +9,9 @@ rogue planets folded into one Contents row, plus the nebula or remnant
 a system or phenomenon sits inside (schema v39).
 """
 
+import html
+import re
+
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
@@ -21,10 +24,15 @@ class _Config(Config):
     SECRET_KEY = "test-secret"
 
 
+def _plain(text):
+    """A field's text without the measurement span around it (UX.78)."""
+    return html.unescape(re.sub(r"<[^>]*>", "", str(text)))
+
+
 def _fields(kind, detail):
     """label -> text (the class links are checked in test_class_pages.py)."""
     with create_app(_Config).test_request_context("/"):
-        return {label: text for label, text, _url in system_pages.phenomenon_fields(kind, detail)}
+        return {label: _plain(text) for label, text, _url in system_pages.phenomenon_fields(kind, detail)}
 
 
 def test_black_hole_class_and_rogue_mass_class_rows():

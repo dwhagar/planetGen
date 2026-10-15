@@ -44,6 +44,7 @@ subhead (badges or actions under the <h1>). -#}
     <nav class="site-account" aria-label="Settings">
     <ul>
       <li><button type="button" class="theme-toggle" data-theme-toggle hidden>Theme: System</button></li>
+      <li><button type="button" class="theme-toggle" data-units-toggle hidden>Units: Automatic</button></li>
       {%- if admin %}
       {{ gear_link('account', 'Account', 'account') }}
       {{ gear_link('admin', 'Admin', 'admin') }}
@@ -75,6 +76,7 @@ subhead (badges or actions under the <h1>). -#}
 <link rel="stylesheet" href="{{ static_url('style.css') }}">
 <link rel="stylesheet" href="{{ static_url('shoelace-theme.css') }}">
 <script type="module" src="{{ static_url('components.js') }}"></script>
+<script type="module" src="{{ static_url('units.js') }}"></script>
 <script type="module" src="{{ static_url('menuplace.js') }}"></script>
 {%- if breadcrumbs %}
 <script type="module" src="{{ static_url('pagecrumbs.js') }}"></script>

@@ -28,11 +28,11 @@ row's detail instead.
 
 from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
-from planetgen.web.lib.fmt import esc, format_distance_km, format_gravity_g_short, format_number, format_speed_kms
-from planetgen.web.lib.mdrender import markdown_to_html
-from planetgen.web.lib.tabledisplay import (
-    format_body_distance, format_period, format_luminosity, format_mass, format_star_radius,
+from planetgen.web.lib.fmt import (
+    distance_km_html, esc, format_gravity_g_short, format_number, period_years_html, quantity_html, speed_kms_html,
 )
+from planetgen.web.lib.mdrender import markdown_to_html
+from planetgen.web.lib.tabledisplay import format_star_radius
 
 
 def _link(url, text_html):
@@ -64,10 +64,10 @@ def stars_html(stars, class_url=None, notes_html=""):
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
-        f'<td data-label="Mass">{format_mass(star["mass_kg"])}</td>'
+        f'<td data-label="Mass">{quantity_html("mass", star["mass_kg"])}</td>'
         f'<td data-label="Radius">{format_star_radius(star["radius_km"])}</td>'
         f'<td data-label="Temp">{format_number(star["temperature_k"])} K</td>'
-        f'<td data-label="Luminosity">{format_luminosity(star["luminosity_w"])}</td>'
+        f'<td data-label="Luminosity">{quantity_html("power", star["luminosity_w"])}</td>'
         "</tr>"
         for star in stars
     )
@@ -147,10 +147,10 @@ def facility_row(facility):
         "name": esc(facility["name"]),
         "kind": esc(facility_kind_label(facility["kind"])),
         "placement": _FACILITY_PLACEMENT_LABELS.get(facility["placement"], esc(facility["placement"])),
-        "distance": format_distance_km(facility["orbit_distance_km"]) if orbital else None,
-        "period": esc(format_period(facility["orbit_period_years"]))
+        "distance": distance_km_html(facility["orbit_distance_km"]) if orbital else None,
+        "period": period_years_html(facility["orbit_period_years"])
         if orbital and facility.get("orbit_period_years") is not None else None,
-        "speed": format_speed_kms(facility["orbital_speed_kms"])
+        "speed": speed_kms_html(facility["orbital_speed_kms"])
         if orbital and facility.get("orbital_speed_kms") is not None else None,
     }
 
@@ -328,8 +328,8 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         stats.append('<span class="flag flag-yes">Inhabited</span>')
     stats += [
         # Not esc()'d: built from floats and fixed unit literals.
-        _stat(format_body_distance(body["distance_km"], is_moon)),
-        _stat(format_period(body["period_years"]) if body.get("period_years") is not None else ""),
+        _stat(distance_km_html(body["distance_km"])),
+        _stat(period_years_html(body["period_years"]) if body.get("period_years") is not None else ""),
         _stat(_gravity_text(body.get("gravity_g"))),
         _habitability_chip(body),
     ]
@@ -375,9 +375,9 @@ def _belt_row_html(belt, sections, by_host=None, admin_rows=None):
     the range is missing) and its top minerals.
     """
     if belt.get("lower_limit_km") is not None and belt.get("upper_limit_km") is not None:
-        where = f'{format_distance_km(belt["lower_limit_km"])} to {format_distance_km(belt["upper_limit_km"])}'
+        where = f'{distance_km_html(belt["lower_limit_km"])} to {distance_km_html(belt["upper_limit_km"])}'
     else:
-        where = format_distance_km(belt["distance_km"])
+        where = distance_km_html(belt["distance_km"])
     stats = [
         _stat(esc(belt["density"]).capitalize() if belt.get("density") else ""),
         _stat(where),
@@ -411,8 +411,8 @@ def _comet_row_html(comet, sections, class_url=None):
     stats = [
         _stat(f"{kind} comet"),
         _stat("Active" if comet["is_active"] else "Dormant"),
-        _stat(f'Perihelion {format_distance_km(comet["perihelion_distance_km"])}'),
-        _stat(format_period(comet["orbital_period_years"]) if comet.get("orbital_period_years") is not None
+        _stat(f'Perihelion {distance_km_html(comet["perihelion_distance_km"])}'),
+        _stat(period_years_html(comet["orbital_period_years"]) if comet.get("orbital_period_years") is not None
               else "Single apparition"),
     ]
     # UX.29: every comet links its class, a parabolic one too.

@@ -40,6 +40,11 @@ NOT_NUMBER_FORMATTERS = {
     (fmt, "esc"),  # escapes any value's str(): "nan" is the value's own text
     (fmt, "static_url"),
     (fmt, "quote"),  # urllib's, imported
+    (fmt, "quantity_html"),  # the page spans (UX.78), tested below
+    (fmt, "distance_km_html"),
+    (fmt, "distance_ly_html"),
+    (fmt, "period_years_html"),
+    (fmt, "speed_kms_html"),
     (fmt, "linkify_nearest"),
     (fmt, "nearest_systems_html"),
     (fmt, "utc_time_html"),
@@ -154,6 +159,29 @@ def test_distance_overflowing_to_infinite_km_is_a_dash():
     for formatter in (fmt.format_distance_au, fmt.format_distance_ly, fmt.format_distance_pc):
         assert formatter(1e300) == "&ndash;"
     assert fmt.format_distance_km(1e300).endswith("ly)")
+
+
+@pytest.mark.parametrize("formatter", [fmt.distance_km_html, fmt.distance_ly_html, fmt.period_years_html,
+                                       fmt.speed_kms_html, lambda v: fmt.quantity_html("mass", v)])
+@pytest.mark.parametrize("value", NON_NUMBERS, ids=_id)
+def test_a_measurement_span_of_no_number_is_a_bare_dash(formatter, value):
+    assert formatter(value) == "–"
+
+
+@pytest.mark.parametrize("value", BAD_NUMBERS, ids=_id)
+def test_a_measurement_span_never_raises_or_prints_garbage(value):
+    for quantity in ("length", "mass", "temperature", "number density"):
+        out = fmt.quantity_html(quantity, value)
+        assert out == "–" or out.startswith('<span class="qty" data-q="' + quantity + '" data-si="')
+        assert not _GARBAGE.search(re.sub(r"<[^>]*>", "", out)), out
+
+
+def test_a_measurement_span_carries_the_si_value_and_the_automatic_text():
+    assert str(fmt.quantity_html("length", 384_400, 1000.0)) == (
+        '<span class="qty" data-q="length" data-si="384400000.0">384,400 km</span>')
+    assert str(fmt.quantity_html("temperature", 737, companions=False)) == (
+        '<span class="qty" data-q="temperature" data-si="737.0" data-nc>737 K</span>')
+    assert isinstance(fmt.quantity_html("mass", 1.0), type(fmt.Markup("")))
 
 
 def test_format_number_keeps_ints_and_specs():
