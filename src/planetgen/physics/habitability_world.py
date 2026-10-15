@@ -80,8 +80,19 @@ LETHAL_DOSE_SV_YR = 1000.0
 """float: The dose a compact object's planet is rated at, Sv/yr: the outer
 Red edge of the radiation domain, where its score is 0."""
 
+LETHAL_HABITAT_DOSE_GY_YR = 10_000.0
+"""float: The absorbed dose where a compact object's planet keeps its life, Gy/yr:
+10 kGy/yr, the D10 of Deinococcus radiodurans (5 to 10 kGy; design note
+activity-magnetism-radiation-hydrosphere.md 4.6), the hardest microbe known,
+so no `L_rad` is left."""
+
 COMPACT_HOSTS = {"NS": "neutron star", "BH": "black hole"}
 """dict: The `yerkes_class` of a compact host and what it is called."""
+
+DEFAULT_HARSHNESS = 0.5
+"""float: The harshness of a world with no score (a gas giant, a body saved
+before the scores existed): the middle of the 0 to 1 range, so it moves
+nothing (population-and-politics.md, tech-level trait hooks)."""
 
 LIGHT_SHARE = 0.06
 CHEMICAL_SHARE = 0.01
@@ -230,7 +241,7 @@ def world_from(values, lethal_host=None):
     habitat_dose = (values.get("dose_ground_msv_yr") or 0.0) / 1000.0 if under_ice else surface_dose
     if lethal_host:
         surface_dose = max(surface_dose, LETHAL_DOSE_SV_YR)
-        habitat_dose = max(habitat_dose, LETHAL_DOSE_SV_YR)
+        habitat_dose = max(habitat_dose, LETHAL_HABITAT_DOSE_GY_YR * habitability.SV_PER_GY)
     aqueous = medium == "water"
     activity = values.get("water_activity") if aqueous and values.get("water_activity") is not None else 1.0
     brine = values.get("ocean_class") == "chloride brine"
@@ -298,6 +309,21 @@ def compact_host_name(star):
     if kind == "neutron star" and getattr(star, "pulsar_type", "non-pulsing") != "non-pulsing":
         return "pulsar"
     return kind
+
+
+def harshness(values):
+    """
+    How hard a world is on the people living on it, 0 (every domain Blue) to
+    1 (a domain at 0), for the tech draw and facility ratings: one minus the
+    worst domain score (`phi4_<domain>`), so it follows the colour tier of
+    the worst domain. `DEFAULT_HARSHNESS` for a body with no score. `values`
+    is a body or a `planets`/`moons` row, read by column name.
+    """
+    get = values.get if hasattr(values, "get") else (lambda name: getattr(values, name, None))
+    scores = [get(f"phi4_{domain}") for domain in DOMAINS]
+    if any(score is None for score in scores):
+        return DEFAULT_HARSHNESS
+    return round(1.0 - min(scores), 4)
 
 
 def _clear(body):

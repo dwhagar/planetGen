@@ -72,11 +72,20 @@ TEMPERATURE_BAND = (-120.0, -50.0, -20.0, 0.0, 31.0, 45.0, 122.0, 200.0)
 edge), Red beyond. A wet bulb at or above 31 deg C makes Blue or Green
 Yellow (see `temperature_score`)."""
 
-DOSE_BAND = (None, None, None, None, 0.05, 0.1, 10.0, 1000.0)
-"""Surface dose, Sv/yr (log). Blue below 50 mSv/yr (occupational limit),
-Green to 100 mSv/yr, Yellow to 10 Sv/yr (shelter underground; the PHI-4
-doc's Red edge and the Eigen threshold the Xenobiology doc puts at 10
-Gy/yr), Red beyond, 0 at 1000 Sv/yr."""
+DOSE_BAND = (None, None, None, None, 0.02, 0.1, 1.0, 1000.0)
+"""Surface dose, Sv/yr (log), for a person. Blue to 20 mSv/yr (the ICRP
+occupational limit averaged over five years), Green to 100 mSv/yr (past the
+50 mSv single-year limit, `SINGLE_YEAR_DOSE_SV`, a visit is still allowed),
+Yellow to 1 Sv/yr (shelter or shielding needed; 1 Sv in a year is the
+threshold of radiation sickness), Red beyond, 0 at 1000 Sv/yr. Fills the gap
+the PHI-4 doc leaves between 100 mSv/yr and 10 Gy/yr (the Eigen threshold of
+`L_rad` is for microbes and stays there): activity-magnetism-radiation-
+hydrosphere.md 4.6, Boss's defaults of 2026-10-10 (Blue 20 mSv/yr, 50 as the
+single-year limit)."""
+
+SINGLE_YEAR_DOSE_SV = 0.05
+"""float: ICRP's limit for any one year, 50 mSv: where `m_rad` starts
+charging for shielding."""
 
 # Gas limits, kPa partial pressure: (chronic, acute), from the Atmospheric
 # Toxicity table (Lambertsen 1971; Schwieterman et al. 2019).
@@ -141,9 +150,22 @@ about 80 W/m^2 of photosynthetic light; a radiolytic subsurface 1e-4 to
 1e-3). Log-scaled because the sources span ten decades; the doc's
 tanh(Phi / Phi_ref) has no Phi_ref that scores both."""
 
+LIEBIG_MIN_WEIGHT = 0.65
+"""float: The share of PHI_bio's exponent that goes to the weakest likelihood
+(Liebig's law of the minimum); the rest goes to the geometric mean. 0.65
+minimises the error against the Master doc's own worked table, 0.046 RMS
+(weights 0.55 to 0.75 give 0.046 to 0.050; habitability-index.md 7.1)."""
+
 DOSE_THRESH_GY = 10.0
 SIGMA_DOSE_GY = 100.0
 """float: L_rad's threshold and fall-off, Gy/yr (Daly, 2012; the doc)."""
+
+SV_PER_GY = 3.06
+"""float: Sv per Gy of the cosmic-ray and particle dose a surface takes:
+Mars's surface is 0.236 Sv/yr in 0.077 Gy/yr (MSL/RAD, Hassler et al. 2014).
+`L_rad` reads absorbed dose in Gy/yr and a person's bands read effective dose
+in Sv/yr (`World.dose_gy_yr`); a gamma-only dose (weighting 1) is 3 times
+higher in Gy than this says, which no world near the 10 Gy/yr line notices."""
 
 CO_TOX_KPA = 0.01
 CO2_TOX_KPA = 2.0
@@ -185,8 +207,8 @@ only, or none (imported). Replaces the doc's undefined tanh((H2O + alpha
 ClO4) / E_specific)."""
 
 SHIELD_EXPONENT = 0.2
-"""float: M_rad = (0.05 / D)^0.2 above 50 mSv/yr: the shielding a base must
-add grows with log(D); Mars's 0.25 Sv/yr scores 0.73 and Europa's surface
+"""float: M_rad = (0.05 / D)^0.2 above the 50 mSv/yr single-year limit: the
+shielding a base must add grows with log(D); Mars's 0.25 Sv/yr scores 0.73 and Europa's surface
 (about 2000 Sv/yr) 0.12. Replaces the doc's undefined lambda."""
 
 # --- Surface dose from the atmosphere ---------------------------------------------------
@@ -251,6 +273,13 @@ class World:
         if self.surface_dose_sv_yr is not None:
             return self.surface_dose_sv_yr
         return gcr_surface_dose_sv_yr(column_mass_g_cm2(self.pressure_kpa, self.gravity_ms2))
+
+    @property
+    def habitat_dose_gy_yr(self):
+        """The absorbed dose where the solvent is, Gy/yr (`SV_PER_GY`): the
+        quantity `L_rad` and the microbes' thresholds are written in."""
+        sv = self.habitat_dose_sv_yr if self.habitat_dose_sv_yr is not None else self.dose_sv_yr
+        return sv / SV_PER_GY
 
 
 # --- PHI-4 display ---------------------------------------------------------------------------
@@ -433,16 +462,23 @@ def l_ener(world):
 
 
 def l_rad(world):
-    dose = world.habitat_dose_sv_yr if world.habitat_dose_sv_yr is not None else world.dose_sv_yr
-    excess = max(0.0, dose - DOSE_THRESH_GY)
+    dose_gy = world.habitat_dose_gy_yr
+    excess = max(0.0, dose_gy - DOSE_THRESH_GY)
     return math.exp(-0.5 * (excess / SIGMA_DOSE_GY) ** 2)
 
 
 def phi_bio(world):
-    """The product of the four likelihoods (not the doc's geometric mean,
-    which forgives a missing solvent: each is a requirement, and all must
-    hold)."""
-    return l_solv(world) * l_chem(world) * l_ener(world) * l_rad(world)
+    """The Liebig blend of the four likelihoods (GEN.148; habitability-index.md
+    7.1): the weakest term to the power `LIEBIG_MIN_WEIGHT` times the
+    geometric mean of all four to the rest. Any term at 0 gives 0, so a
+    missing solvent is still a hard gate (the doc's plain geometric mean
+    forgave it), while one weak term no longer drags a world to the strict
+    product's score."""
+    terms = (l_solv(world), l_chem(world), l_ener(world), l_rad(world))
+    lowest = min(terms)
+    if lowest <= 0.0:
+        return 0.0
+    return lowest ** LIEBIG_MIN_WEIGHT * math.prod(terms) ** ((1.0 - LIEBIG_MIN_WEIGHT) / len(terms))
 
 
 def t_metazoa(world):
@@ -495,7 +531,7 @@ def m_isru(world):
 
 def m_rad(world):
     dose = world.dose_sv_yr
-    return 1.0 if dose <= 0.05 else (0.05 / dose) ** SHIELD_EXPONENT
+    return 1.0 if dose <= SINGLE_YEAR_DOSE_SV else (SINGLE_YEAR_DOSE_SV / dose) ** SHIELD_EXPONENT
 
 
 def phi_tech(world):

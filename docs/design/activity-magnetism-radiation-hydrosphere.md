@@ -392,9 +392,12 @@ atmosphere around an active M dwarf with no dipole receives Sv per year.
   between 100 mSv/yr and 10 Gy/yr** (Mars surface 236 mSv/yr, the Moon 520).
   This research proposed Blue 20 mSv/yr or less (ICRP), Green up to 100
   mSv/yr, Yellow (human) 0.1 to 1 Sv/yr, Yellow (microbial) 1 to 10 Gy/yr, Red
-  over 10 Gy/yr. The settled GEN.84 bands ([habitability-index.md](habitability-index.md)
-  2) are Blue under 0.05 Sv/yr (the 50 mSv/yr occupational limit), Green to 0.1,
-  Yellow to 10 Sv/yr, Red beyond.
+  over 10 Gy/yr. GEN.84 first settled on Blue under 0.05 Sv/yr, Green to 0.1,
+  Yellow to 10 Sv/yr; **GEN.148 built this section's proposal** for a person's
+  tiers ([habitability-index.md](habitability-index.md) 2): Blue to 20 mSv/yr,
+  Green to 100 mSv/yr, Yellow to 1 Sv/yr, Red beyond (50 mSv/yr stays the
+  single-year limit that starts `M_rad`), and `L_rad` reads absorbed dose in
+  Gy/yr (3.06 Sv per Gy).
 - The 10 Gy/yr threshold is Eigen's, about the origin of replicating molecules,
   not the survival of extremophiles, which tolerate 1,000x more acute dose.
 
