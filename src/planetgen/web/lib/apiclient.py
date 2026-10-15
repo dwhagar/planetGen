@@ -51,7 +51,7 @@ _TIMEOUT_SECONDS = 30
 """int: Was 15 -- confirmed too tight for GET /api/search specifically
 (TimeoutError in production): that one endpoint always runs its full
 facet+autocomplete query set up front regardless of whether any filter is
-active (queryDb.search), which used to mean an unindexed full-table
+active (db.query.search), which used to mean an unindexed full-table
 scan/sort per query (see schema.sql's "v22" header note, which adds the
 missing indexes -- the real fix). This wider margin is deliberately kept
 as a second line of defense on top of that, not a replacement for it: even
@@ -378,7 +378,7 @@ def get_sectors(db, limit=None, offset=None, sort=None, descending=False, quadra
 
 def get_sector(db, sector_id):
     """Returns `GET /api/sectors/<id>`'s detail dict -- see
-    `queryDb.sector_detail`'s docstring for the shape."""
+    `db.query.sector_detail`'s docstring for the shape."""
     _require_db(db)
     return _request(f"/sectors/{sector_id}", {"db": db})
 
@@ -409,7 +409,7 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
 def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False):
     """Returns `GET /api/uncharted-systems`'s envelope (UX.87): a page of
     the scattered stars no system was built around yet, with the `total`
-    waiting. `sort` is one of `queryDb.UNCHARTED_SYSTEM_SORTS`."""
+    waiting. `sort` is one of `db.query.UNCHARTED_SYSTEM_SORTS`."""
     _require_db(db)
     params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
               ("order", "desc" if descending else "asc" if sort else None)]
@@ -418,7 +418,7 @@ def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=Fal
 
 def get_system(db, system_id):
     """Returns `GET /api/systems/<id>`'s detail dict -- see
-    `queryDb.system_detail`'s docstring for the shape."""
+    `db.query.system_detail`'s docstring for the shape."""
     _require_db(db)
     return _request(f"/systems/{system_id}", {"db": db})
 
@@ -495,7 +495,7 @@ def get_galaxy_made(db, since, until=None):
 
 def get_galaxy_phenomena(db):
     """Returns `GET /api/galaxy/phenomena`'s `items` list (every
-    galaxy-placed nebula/asteroid field) -- see `queryDb.
+    galaxy-placed nebula/asteroid field) -- see `db.query.
     galaxy_placed_phenomena`'s docstring for the shape."""
     _require_db(db)
     return _request("/galaxy/phenomena", {"db": db})["items"]
@@ -555,7 +555,7 @@ def get_uncharted_sector(db, shell_index, band_index, wedge_index):
 def get_galaxy_tiles(db, tile_keys):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/
-    `has_shape` -- see `queryDb.galaxy_tiles`). Callers go
+    `has_shape` -- see `db.query.galaxy_tiles`). Callers go
     through `planetgen/web/lib/tilecache.py`, which only asks for tiles it hasn't
     already cached on disk.
 
@@ -569,7 +569,7 @@ def get_galaxy_tiles(db, tile_keys):
 
 def get_galaxy_stage(db, at=None):
     """Returns `GET /api/galaxy/stage`'s payload (`at`/`child_m`/
-    `children`/`sectors` -- see `queryDb.galaxy_stage`). Callers go
+    `children`/`sectors` -- see `db.query.galaxy_stage`). Callers go
     through `planetgen/web/lib/tilecache.py`, which caches each stage on disk."""
     _require_db(db)
     return _request("/galaxy/stage", {"db": db, "at": at})
@@ -577,7 +577,7 @@ def get_galaxy_stage(db, at=None):
 
 def get_galaxy_window(db, at, g):
     """Returns `GET /api/galaxy/window`'s payload (`at`/`g`/`child_m`/
-    `cells`/`children` -- see `queryDb.galaxy_window`): a window of cells
+    `cells`/`children` -- see `db.query.galaxy_window`): a window of cells
     bigger than a sector, read from the stored block totals in one query."""
     _require_db(db)
     return _request("/galaxy/window", {"db": db, "at": at, "g": g})
@@ -682,7 +682,7 @@ def get_population_status(db):
 def get_galaxy_locate(db, q):
     """Returns `GET /api/galaxy/locate`'s `matches` (sectors and systems
     named like `q`, each with its sector address -- see
-    `queryDb.galaxy_locate`)."""
+    `db.query.galaxy_locate`)."""
     _require_db(db)
     return _request("/galaxy/locate", {"db": db, "q": q})["matches"]
 
@@ -705,7 +705,7 @@ def get_nebula_surroundings(db, nebula_id):
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
     `tiles`/`stages`) -- which cube tiles and drill-down stages changed since `since`, an earlier call's
-    `state` (see `queryDb.galaxy_changes`). `planetgen/web/lib/tilecache.py` uses it to
+    `state` (see `db.query.galaxy_changes`). `planetgen/web/lib/tilecache.py` uses it to
     refresh only the tiles an edit touched."""
     _require_db(db)
     return _request("/galaxy/changes", {"db": db, "since": since})
@@ -714,7 +714,7 @@ def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, type
                   placed=None, facets=False):
     """Returns `GET /api/phenomena`'s full paginated envelope
     (`items`/`total`/`limit`/`offset`, plus `facets` when asked) -- see
-    `queryDb.list_phenomena`'s docstring for the shape. `sort`, `types`,
+    `db.query.list_phenomena`'s docstring for the shape. `sort`, `types`,
     `descriptors` and `placed` (True/False) are the table's sort and
     filters (UX.41)."""
     _require_db(db)
@@ -728,14 +728,14 @@ def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, type
 
 def get_phenomenon(db, phenomenon_type, phenomenon_id):
     """Returns `GET /api/phenomena/<type>/<id>`'s detail dict -- see
-    `queryDb.phenomenon_detail`'s docstring for the shape."""
+    `db.query.phenomenon_detail`'s docstring for the shape."""
     _require_db(db)
     return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
 def get_object(db, ref):
     """Returns `GET /api/objects/<ref>`'s dict (kind, name, parent chain,
-    sibling references, positions) -- see `queryDb.resolve_object`."""
+    sibling references, positions) -- see `db.query.resolve_object`."""
     _require_db(db)
     return _request(f"/objects/{ref}", {"db": db})
 
@@ -743,14 +743,14 @@ def get_object(db, ref):
 def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
-    `queryDb.search`'s docstring for the full shape.
+    `db.query.search`'s docstring for the full shape.
 
     Args:
         db (str): The `db` query parameter.
         texts (dict): `{"sector_q", "system_q", "star_q", "planet_q",
             "moon_q"}` -> search term.
         tags (dict): `{facet: iterable of value}` -- one entry per
-            `queryDb.SEARCH_TAG_FACETS` name; a repeated query parameter
+            `db.query.SEARCH_TAG_FACETS` name; a repeated query parameter
             per active value (e.g. `class=M&class=K`).
         sizes (dict, optional): `{"star", "planet", "moon"} -> (min_km,
             max_km)`, each bound `None` for "unbounded" -- sent as
@@ -889,13 +889,13 @@ def auth_change_credentials(cookie_header, current_password, new_username, new_p
     Returns:
         tuple[dict, list[str]]: The updated identity and fresh session's
             `Set-Cookie` headers (the old session is invalidated server-
-            side -- see `adminAuth.change_credentials`).
+            side -- see `admin.auth.change_credentials`).
 
     Raises:
         ApiError: `status_code == 400` for a wrong current password, a
             taken username, or a `new_password` failing policy -- the
             message is safe to show the caller as-is (see
-            `adminAuth.AuthError`).
+            `admin.auth.AuthError`).
     """
     return _auth_request(
         "POST", "/auth/change-credentials", cookie_header=cookie_header,
@@ -917,7 +917,7 @@ def auth_list_api_keys(cookie_header):
 def auth_create_api_key(cookie_header, label, scopes=None, expires_days=None):
     """`POST /api/auth/api-keys` -- returns `{"id", "label", "scopes",
     "expires_days", "key"}`; `key` is the raw key, shown this once (see
-    `adminAuth.create_api_key`)."""
+    `admin.auth.create_api_key`)."""
     payload = {"label": label}
     if scopes:
         payload["scopes"] = list(scopes)
@@ -1166,7 +1166,7 @@ def admin_set_sector_wiki_url(cookie_header, db, sector_id, wiki_url):
 
 def get_system_facilities(db, system_id):
     """Returns `GET /api/systems/<id>/facilities`'s `items`: every
-    facility in the system (`queryDb._facility_dict`'s shape)."""
+    facility in the system (`db.query._facility_dict`'s shape)."""
     _require_db(db)
     return _request(f"/systems/{system_id}/facilities", {"db": db})["items"]
 

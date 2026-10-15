@@ -192,7 +192,7 @@ orbit radius (it sizes the view ball: `viewRadius`), so what's just off-screen i
 already there when the camera turns."""
 
 MAX_TILES_PER_REQUEST = 128
-"""int: Mirrors `queryDb.MAX_TILES_PER_REQUEST`."""
+"""int: Mirrors `db.query.MAX_TILES_PER_REQUEST`."""
 
 CAMERA_START_THETA_DEG = -32.0
 CAMERA_START_PHI_DEG = 60.0
@@ -276,8 +276,8 @@ MODEL_TERM_FIELDS = (
     "thick_disk_amplitude", "thick_disk_scale_length_pc", "thick_disk_scale_height_pc",
     "bulge_scale_y_pc", "bulge_scale_z_pc", "core_scale_radius_pc", "bar_cos", "bar_sin",
 )
-"""The `galaxyDensity.model_terms` it reads too (the thick disk and the
-bar), which `queryDb.galaxy_density_shape` serves alongside the shape."""
+"""The `galaxy.density.model_terms` it reads too (the thick disk and the
+bar), which `db.query.galaxy_density_shape` serves alongside the shape."""
 
 
 def _density_shape(galaxy_shape):
@@ -455,7 +455,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             return shape, or `None` if `planetgen plan` has never been
             run -- when `None`, the panel shows a hint that density
             shading isn't real yet (see
-            `queryDb.galaxy_tiles`'s own `has_shape` field, which
+            `db.query.galaxy_tiles`'s own `has_shape` field, which
             `initial_view` already carries through).
         edge_pc (float): The sector edge length, parsecs
                          (`initial_view["edge_pc"]`, passed separately

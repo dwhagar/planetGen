@@ -13,7 +13,7 @@ mode, never by `StarSystem._generate_planets`'s normal per-slot rolls.
 A core-collapse remnant (as opposed to a Type Ia remnant, which leaves
 nothing behind -- the progenitor white dwarf is thermonuclearly disrupted
 entirely) may still contain the collapsed stellar core that caused the
-explosion, embedded via `compactRemnant.BlackHole`/`NeutronStar`.
+explosion, embedded via `phenomena.compact_remnant.BlackHole`/`NeutronStar`.
 """
 
 import math
@@ -114,7 +114,7 @@ class SupernovaRemnant(LazySaladName):
             name (str, optional): An explicit name. Random if omitted.
         """
         self.system_config = system_config
-        # A draft name: `_db.insert_supernova_remnant` reserves it through
+        # A draft name: `store.insert_supernova_remnant` reserves it through
         # the system-name registry (v40), and the core follows.
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)

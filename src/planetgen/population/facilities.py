@@ -9,7 +9,7 @@ influence (`orbit_limits`), asteroid ones sit in an asteroid belt (at a
 random spot, circling its star from there: `belt_position`) or field,
 and stand-alone ones are parked in space inside a
 sector. `tuning.FACILITY_RULES` says which kinds go where.
-This module holds the rules and the orbit math; `_db.add_facility` stores
+This module holds the rules and the orbit math; `store.add_facility` stores
 one.
 """
 
@@ -149,7 +149,7 @@ def belt_position(lower_km, upper_km, rng=draw):
 def orbit_for(host_mass_kg, host_radius_km, distance_km=None, highest_km=None):
     """
     A circular orbit around a host, the way planets and moons get theirs:
-    Kepler's third law for the period (`planetPhysics.
+    Kepler's third law for the period (`physics.planets.
     calculate_orbital_period_years`) and `2 pi r / T` for the speed.
 
     Args:

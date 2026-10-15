@@ -18,7 +18,7 @@ PERF.58). Every cell inside the outline can hold one, however sparse
 The backfill goes the other way: around the generated sectors it adds the
 stars the scatter left out, sector by sector and by initial mass
 (GEN.187, `backfill_mass_cells`): the sectors a face away from the filled
-region down to 1 solar mass, the next ring down to 2, then 5, then 8
+region down to 1 solar mass, the next sectors out down to 2, then 5, then 8
 (`tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`), each sector keeping the
 stars below the luminosity the scatter already placed. A staged scatter's
 luminosity bands (`backfill_cells`, GEN.44) still top up what a sector
@@ -77,7 +77,7 @@ from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 
 POPULATIONS = ("young", "intermediate", "old", "bulge")
-"""tuple: The stellar populations `galaxyDensity.population_densities`
+"""tuple: The stellar populations `galaxy.density.population_densities`
 splits a position's density into, each scattered on its own."""
 
 ANGLE_BINS = 32
@@ -223,7 +223,7 @@ def _finite_or_none(value):
 
 
 def _row(shell_index, band_index, wedge, point, population, params, rng):
-    """One star in `_db.BRIGHT_STAR_COLUMNS` order."""
+    """One star in `store.BRIGHT_STAR_COLUMNS` order."""
     x, y, z = point
     return (
         shell_index, band_index, wedge,
@@ -246,7 +246,7 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
     Args:
         shape (GalaxyShape): The galaxy's shape.
         extents (list): `(shell_index, high_band)` per shell, as
-            `galaxySkeleton.build_shell_extents` returns them.
+            `galaxy.skeleton.build_shell_extents` returns them.
         edge_pc (float): The sector edge.
         expected_at_density_1 (float): Systems per sector at density 1.
         min_luminosity_sol (float): The threshold, in solar luminosities.
@@ -265,7 +265,7 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
             `(None, mass limit)`.
 
     Yields:
-        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     for done, (shell_index, high_band) in enumerate(extents, start=1):
         yield from scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
@@ -285,7 +285,7 @@ def band_fractions(min_luminosity_sol, max_luminosity_sol=None, mass_range=None)
 BAND_WEIGHT_STARS = 5.0
 """float: What walking one band of a shell costs, in stars drawn: a
 band's density bins take about as long as placing and drawing five
-stars (measured 2026-10-01: 0.2 ms a ring against about 40 us a star),
+stars (measured 2026-10-01: 0.2 ms a band against about 40 us a star),
 so an empty edge shell still counts for something (PERF.9). The phenomena
 pass still walks its bands; the star passes do not (`OBJECT_FIRST_BAND_WEIGHT_STARS`)."""
 
@@ -451,7 +451,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         check (bool): Assert that the density never exceeds the majorant (tests).
 
     Yields:
-        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     rng = draw.Stream(f"{seed}:objects:shell:{shell_index}")
     skip_addresses = skip_addresses or set()
@@ -510,7 +510,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
             `(None, mass limit)`.
 
     Yields:
-        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
     shares = {(k, population): bright_band_fraction(low, high, population, mass_range)
@@ -545,7 +545,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
 def mass_band_edges(mass_limit_sol, ring_masses=None):
     """
     The fixed mass edges (GEN.187) the mass backfill's bands lie between,
-    ascending: the ring masses (`tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)
+    ascending: the ring masses, one per step away from the filled region (`tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)
     and the galaxy's mass limit (the mass pass placed every star from it up).
     """
     edges = set(ring_masses if ring_masses is not None else tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)
@@ -612,7 +612,7 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
         edges (list): `mass_band_edges`.
 
     Yields:
-        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population)

@@ -5,7 +5,7 @@ Interactive 2D "System Map" for `system.py`: a true top-down plot of every
 body's *real* position, not a schematic. Each star, planet, moon, and
 asteroid belt is placed at its actual angle (from `position_x/y_km`,
 already stored relative to whatever it orbits -- see
-`planetPhysics.update_orbital_position`'s docstring) and a distance from
+`physics.planets.update_orbital_position`'s docstring) and a distance from
 its own anchor that's log-scaled into a shared pixel budget the whole
 scene uses (`_radial_scale_bounds`/`_radial_px`) -- a log scale is what
 lets one diagram span both a close binary's ~0.05-0.3 AU separation and an
@@ -18,7 +18,7 @@ minimal-displacement fix, not a wholesale relayout) -- true position
 first, decluttering only where it's actually needed.
 
 A single-star or 'close' (P-type) binary system's planets all orbit a
-shared origin (the barycenter -- see `doubleStar.BinaryStarProxy`'s
+shared origin (the barycenter -- see `binary.BinaryStarProxy`'s
 docstring: a 'close' pair's own two stars are placed around that same
 origin too, split by their real mass ratio from
 `star_systems.binary_mutual_position_x/y/z_km`, the secondary's position
@@ -998,7 +998,7 @@ def _binary_star_positions_km(system, stars):
     rather than treating the primary as a fixed, unmoving anchor. Used both
     to actually place each star's own marker and, for a 'close' (P-type)
     pair, as the shared origin every planet/belt in the system also orbits
-    (`doubleStar.BinaryStarProxy` merges the pair into one *effective*
+    (`binary.BinaryStarProxy` merges the pair into one *effective*
     star sitting at that same barycenter -- see its own docstring).
 
     Args:
@@ -1233,7 +1233,7 @@ def _star_temp_text(star):
 
 def _star_label(system, star):
     """A star's shown name: its own (a binary's stars are `<system> <word>`
-    -- see `bodyNames.py`), falling back to the system's."""
+    -- see `names/bodies.py`), falling back to the system's."""
     return star.get("name") or system["name"]
 
 
@@ -1273,7 +1273,7 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
     `_render_moon_scene`'s "drill into it" pattern one level up (a star,
     not a planet), per the module docstring's note on why a wide pair's
     true star-to-star separation (tens to thousands of AU -- see
-    `wideBinary.py`'s own module docstring) can't share one radial pixel
+    `generation/wide_binary.py`'s own module docstring) can't share one radial pixel
     budget with either star's own, much smaller planetary system: sharing
     one budget either crushed both stars' planets down near the frame's
     center to make room for the real separation, or -- since the two
@@ -1307,7 +1307,7 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
     # `planetgen.db.query.system_detail`'s docstring), but a fixed, merely
     # representative distance -- this scene's own outer edge -- rather
     # than the real separation itself, which is routinely 10-1000x any
-    # planet's own distance from its star (see `wideBinary.py`'s sampled
+    # planet's own distance from its star (see `generation/wide_binary.py`'s sampled
     # range) and would otherwise place the marker far outside this
     # diagram's fixed frame.
     bx = system.get("binary_mutual_position_x_km") or 0.0
@@ -1440,7 +1440,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
         facility_hosts[("asteroid_belt", belt["id"])] = (ax_px, ay_px, r_px, False)
 
     _relax_markers(markers, _MARKER_GAP_PX)
-    # A close pair is orbited as one (`_db._facility_host`): a facility on
+    # A close pair is orbited as one (`store._facility_host`): a facility on
     # either star circles the barycenter, clear of both markers.
     pair_r = max((math.hypot(m["cx"] - _CENTER_PX, m["cy"] - _CENTER_PX) + m["r"] for m in star_markers),
                  default=0.0)

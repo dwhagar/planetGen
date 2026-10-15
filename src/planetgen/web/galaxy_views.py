@@ -373,7 +373,7 @@ galaxy_window.json_only = True  # not a page: tests/test_web_a11y.py skips it
 def galaxy_locate():
     """
     JSON for the map's address bar: `?q=<part of a name>`. Returns
-    `{"matches": [...]}` (`queryDb.galaxy_locate`); a 404 from the API is
+    `{"matches": [...]}` (`db.query.galaxy_locate`); a 404 from the API is
     a 404 and any other API failure a 502, both as `{"error": ...}` JSON.
     """
     q = (request.args.get("q") or "").strip()[:200]

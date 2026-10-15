@@ -20,7 +20,7 @@ module follows that research's four steps:
    T_eff. A giant has no surface; its conditions are given at 1 bar.
 
 `rogue_surface_conditions` returns plain numbers, so the same code fills
-a new `RoguePlanet` and back-fills stored rows (`_db._migrate_v47_to_v48`).
+a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 """
 
 import math

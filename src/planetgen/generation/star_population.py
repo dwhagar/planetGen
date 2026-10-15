@@ -509,7 +509,7 @@ def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=
 def pick_population(densities, rng=draw):
     """
     Picks a population for one star at a position, in proportion to
-    `galaxyDensity.population_densities` there.
+    `galaxy.density.population_densities` there.
 
     Args:
         densities (dict): Population name -> density, as

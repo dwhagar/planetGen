@@ -83,7 +83,7 @@ def rename_comet_designation(name, old_host, new_host):
     """
     `name` with its host swapped when it's a `comet_designation` whose
     host is `old_host` or starts with `old_host` followed by a space
-    (`bodyNames.rename_prefix`'s rule), else `None`.
+    (`names.bodies.rename_prefix`'s rule), else `None`.
     """
     if name is None or len(name) < 3 or name[1] != "/" or name[0] not in "PC" or "-" not in name:
         return None
@@ -216,7 +216,7 @@ class Comet(LazySaladName, HoldsOrbitPosition):
                 `tuning.COMET_PARABOLIC_CHANCE`.
         """
         self.system_config = system_config
-        # A placeholder: `_db.insert_star_system` replaces it with the
+        # A placeholder: `store.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
@@ -300,7 +300,7 @@ class Comet(LazySaladName, HoldsOrbitPosition):
         meant to be called again by any future periodic updater once
         `mean_anomaly_deg`/`parabolic_mean_anomaly` has been advanced by
         elapsed time -- the same "recompute anything derived from current
-        orbital position" role `planetPhysics.update_orbital_position`
+        orbital position" role `physics.planets.update_orbital_position`
         plays for a planet/moon after its own `orbital_phase_deg` changes.
         """
         mean_anomaly_rad = math.radians(self.mean_anomaly_deg) if self.mean_anomaly_deg is not None else None

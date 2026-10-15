@@ -7,12 +7,12 @@ Planet Physical and Orbital Generation
 This module determines what a planet or moon physically *is*: its orbital
 zone, class, radius, mass, density, composition, atmosphere, surface
 gravity, and atmospheric conditions, plus the generation of any moons it
-has. It operates on `Planet` instances (from `planetData`) passed in as
+has. It operates on `Planet` instances (from `planet`) passed in as
 arguments, rather than as methods on the class, so that generation logic is
 kept separate from the `Planet` object's own definition and presentation.
 
 Life chemistry and evolutionary data are intentionally NOT determined here —
-see `planetLife.apply_life_data`, which `StarSystem` applies to every planet
+see `life.apply_life_data`, which `StarSystem` applies to every planet
 and moon in a system after all of them have been generated.
 """
 
@@ -1167,7 +1167,7 @@ def generate_moons(planet, moon_count=None):
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
 
-    # Deferred import: planetData imports this module at load time, so Planet
+    # Deferred import: planet imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.
     from planetgen.generation.planet import Planet
 

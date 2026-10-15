@@ -8,7 +8,7 @@ Pure math for the NAV feature: the course (distance, bearing, mark)
 between two absolute 3D positions, and warp and fold travel times along that
 distance. This module has no idea where a position came from -- it doesn't
 know about sectors, systems, or the database -- callers (the NAV DB query
-layer, `queryDb.nav_between`) are responsible for resolving two endpoints
+layer, `db.query.nav_between`) are responsible for resolving two endpoints
 down to a comparable pair of `(x, y, z)` light-year positions in the same
 frame, and naming that frame's center, before calling in here.
 
@@ -29,7 +29,7 @@ reference plane:
       every course leaves the heliopause and this frame is never chosen;
       `compute_course` supports it for in-system navigation. The edge is
       the system's own heliopause, squeezed by any cloud around it
-      (`queryDb.system_detail`'s `heliopause_au`).
+      (`db.query.system_detail`'s `heliopause_au`).
 
 With D = target - ship, U the frame's unit up vector, N the ship-to-center
 vector with its U part removed (normalized), and E = N x U:

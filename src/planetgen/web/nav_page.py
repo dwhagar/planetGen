@@ -3,7 +3,7 @@
 """
 The NAV page, `/nav` (was `nav.py`): course, distance and optimal route
 between two endpoints, each a star system or a standalone phenomenon.
-The course and route come from `GET /api/nav` (`queryDb.nav_between`);
+The course and route come from `GET /api/nav` (`db.query.nav_between`);
 this page only picks the endpoints and renders the result.
 
 URL scheme (all GET, so every step is bookmarkable):
@@ -20,7 +20,7 @@ An endpoint is an object reference (`planetgen.galaxy.objectref`):
 `comet`, NAV.16), or `<phenomenon type>:<id>` (`nebula`, `asteroid_field`,
 `black_hole`, `neutron_star`, `supernova_remnant`, `rogue_planet`,
 `interstellar_comet`, `quasar`). A bare number means a system. A course
-to or from a body adds legs inside its system (see `queryDb.nav_course`).
+to or from a body adds legs inside its system (see `db.query.nav_course`).
 `to` may be given without `from` ("navigate to here"): the origin picker
 then carries it along, so choosing an origin lands on the course.
 
@@ -165,7 +165,7 @@ def _resolve(kind, entity_id):
         "ref": endpoint(kind, detail["id"]), "kind": "phenomenon", "type": kind, "id": detail["id"],
         "name": detail["name"],
         "url": page_url("phenomenon", phenomenon_type=kind, phenomenon_id=detail["id"]),
-        # queryDb._phenomenon_nav_key's format.
+        # db.query._phenomenon_nav_key's format.
         "key": f"phenomenon:{kind}:{detail['id']}",
         "anchor_kind": "phenomenon", "anchor_id": detail["id"], "system_id": None,
         "sector_id": None, "placed": detail.get("galactic_radius_pc") is not None,

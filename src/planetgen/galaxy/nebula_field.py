@@ -18,7 +18,7 @@ sectors run in. A cube's cloud count is a Poisson draw: the
 `"molecular-cloud"` density (`PHENOMENON_DENSITY_PC3`) times the cube's
 volume times the gas factor at its center (`gas_factor`, more in the arms
 and near the plane). A sector takes every cloud whose sphere reaches it
-(`clouds_reaching`), and `_db.insert_sector` stores each one once: the
+(`clouds_reaching`), and `store.insert_sector` stores each one once: the
 first sector saved that it reaches is its home, and later sectors find it
 already stored.
 """
@@ -220,7 +220,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
 def clouds_reaching(galaxy_seed, shape, center_pc, reach_pc):
     """
     Every field cloud whose sphere comes within `reach_pc` of `center_pc`
-    (a sector's center and half diagonal, as `_db.sectors_reached_by`
+    (a sector's center and half diagonal, as `store.sectors_reached_by`
     tests it), as `(Nebula, center_pc)` pairs, nearest cell first.
     """
     edge = tuning.NEBULA_FIELD_CELL_PC

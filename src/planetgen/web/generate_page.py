@@ -988,8 +988,8 @@ def _job_view(job):
     view["progress_text"] = _progress_text(progress)
     view.update(overall_view(job, remaining))
     view.update(stage_view(job))
-    # PERF.4: the second bar (the bright-star layers being drawn while
-    # layers are slow), or blank.
+    # PERF.4: the second bar (the bright-star shells being drawn while
+    # shells are slow), or blank.
     detail = progress.get("detail") if not job.get("finished") else None
     view["progress_detail_text"] = ""
     if detail:
@@ -1092,7 +1092,7 @@ def remaining_label(remaining, running=True):
 
 
 def _progress_text(progress):
-    """`"Sectors: 12 of 40"`, or `"Bright stars (3 of 81 layers): 12%"` for
+    """`"Sectors: 12 of 40"`, or `"Bright stars (3 of 81 shells): 12%"` for
     a bar written as a share (PERF.9), or `""` before the first report."""
     description = progress.get("description")
     if not description:

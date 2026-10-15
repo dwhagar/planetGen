@@ -240,7 +240,7 @@ class Star(LazySaladName):
     exists -- a `Star` never computes this on its own construction, the
     same reasoning `a_crit_au` documents above. Applies identically to a
     `BlackHole`/`NeutronStar` (both subclass `Star`), consistent with
-    `_db.advance_orbital_phases`' class-blind bulk `UPDATE`s.
+    `store.advance_orbital_phases`' class-blind bulk `UPDATE`s.
     """
 
     def to_dict(self):
@@ -648,7 +648,7 @@ class Star(LazySaladName):
                 (the default) falls back to the fixed
                 `constants.GALACTIC_CENTER_DISTANCE_LY` constant --
                 the correct behavior for a system generated outside any
-                galaxy context (e.g. `sectorGen.py`'s own standalone CLI,
+                galaxy context (e.g. `generation/run_sector.py`'s own standalone CLI,
                 whose sectors are never placed in a galaxy).
 
         Returns:
@@ -861,7 +861,7 @@ class Star(LazySaladName):
                 degrees -- the value `planetgen.db.store.advance_orbital_phases`
                 advances over time, the same role `orbital_phase_deg` plays
                 for a planet/moon's own orbit (see
-                `planetPhysics.generate_orbital_motion_properties`).
+                `physics.planets.generate_orbital_motion_properties`).
                 `StarSystem.__init__` rolls this once per system and passes
                 the *same* value to the primary star, the secondary star
                 (if any), and the `BinaryStarProxy` -- a binary pair's
@@ -1117,7 +1117,7 @@ class Star(LazySaladName):
         """
         Builds a real `Star` from a `stellarEvolution.star_params` dict (a
         pre-placed bright star read back from storage, or a draw from
-        `stellarPopulation`) without re-rolling any of its generated
+        `star_population`) without re-rolling any of its generated
         properties: only the derived ones (habitable zone, Hill sphere,
         heliosphere, galactic orbit) are computed, exactly as `__init__`
         computes them. Accepts `__init__`'s `galactic_center_dist_ly` and

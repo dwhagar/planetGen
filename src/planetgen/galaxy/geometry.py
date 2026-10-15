@@ -26,7 +26,7 @@ Ring and slot counts are the same on every layer, so the grid is a stack
 of identical circular slices: cell `(i, j, k)` sits directly above
 `(i, j - 1, k)` and every slot boundary is one vertical plane through the
 whole stack ("aligned prism" columns). A layer only holds the rings out to
-where the galaxy's density gives out (`galaxySkeleton.build_layer_extents`),
+where the galaxy's density gives out (`galaxy.skeleton.build_layer_extents`),
 so the slices shrink away from the plane, but any ring a layer has is cut
 exactly like that ring on every other layer.
 

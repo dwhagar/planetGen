@@ -6,7 +6,7 @@ overlapping, for a binary), every nearby standalone phenomenon
 (nebula/asteroid field/supernova remnant/black hole/neutron star/rogue
 planet/interstellar comet/quasar), and a small clickable indicator toward
 each immediately surrounding sector (`_neighbor_indicator_data`, see
-`queryDb.sector_neighbors`), as the JSON `map_scene_data` returns. The
+`db.query.sector_neighbors`), as the JSON `map_scene_data` returns. The
 sector page answers it at `/sector/<id>/scene`, and the Galaxy Map draws it
 (`static/galaxysector.js`, `static/sectorscene.js`, via three.js, vendored
 at `static/vendor/three.module.min.js`, see that directory's
@@ -480,7 +480,7 @@ def _neighbor_indicator_data(link_url, neighbor):
     Args:
         link_url (callable): Builds an existing neighbor's own `href`
                        (see the module docstring).
-        neighbor (dict): One entry from `queryDb.sector_neighbors`.
+        neighbor (dict): One entry from `db.query.sector_neighbors`.
 
     Returns:
         dict or None: The indicator's scene entry (`x`/`y`/`z`,
@@ -844,7 +844,7 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
     a point of light (`light`, see `_star_light`); `r` is its core radius
     in scene units, still what spaces a binary's pair apart and sizes its
     highlight ring's fallback. Labeled with the star's own name (a
-    binary's stars are `<system> <word>` -- see `bodyNames.py`), falling
+    binary's stars are `<system> <word>` -- see `names/bodies.py`), falling
     back to the system's.
     """
     dot_r = _star_dot_radius(star["radius_km"])
@@ -947,7 +947,7 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
 
     Args:
         link_url (callable): Builds `href` (see the module docstring).
-        phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
+        phenomenon (dict): One entry from `db.query.phenomena_near_sector`
                            (`id`, `type`, `name`, `descriptor`, `radius_ly`,
                            `distance_ly`, and `home`: `False` marks the
                            entry `neighbor`).
@@ -1236,7 +1236,7 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         designation (str): Its galaxy designation.
         center_pc (sequence): Its center, galaxy-frame parsecs.
         edge_pc (float): The grid's sector edge.
-        contents (dict): `queryDb.uncharted_sector_contents`: `stars` and `scattered`.
+        contents (dict): `db.query.uncharted_sector_contents`: `stars` and `scattered`.
         generate (dict, optional): `generate_target`, for the Generate buttons.
     """
     half_edge_pc = edge_pc / 2.0
