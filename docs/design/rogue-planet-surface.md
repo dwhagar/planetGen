@@ -1,5 +1,7 @@
 # Rogue planet surface conditions
 
+**Status (2026-10-15):** built (schema v48; `planetgen/physics/rogue_surface.py`).
+
 A rogue planet has no star. Its surface is set by its own heat alone,
 leaking out of its interior and radiating into the 2.725 K cosmic
 background. This note records the model `planetgen/physics/rogue_surface.py`

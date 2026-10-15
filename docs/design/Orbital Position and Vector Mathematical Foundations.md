@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [orbital-solvers-and-integrators](orbital-solvers-and-integrators.md), [orbital-updates](orbital-updates.md).
+
 Mathematical Foundations, Theoretical Mechanics, and Numerical Stability Boundaries of Computational Algorithms
 ===============================================================================================================
 

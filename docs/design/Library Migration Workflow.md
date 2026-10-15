@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [db-check-and-parity-repair](db-check-and-parity-repair.md), [library-migration](library-migration.md), [units-and-number-formatting](units-and-number-formatting.md).
+
 # Open-Source Library Migration and Refactoring Roadmap for planetGen
 
 ## Executive Summary and Architectural Principles

@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [collisions-and-mergers](collisions-and-mergers.md), [course-avoidance](course-avoidance.md), [orbital-updates](orbital-updates.md).
+
 To prevent the "bullet through paper" tunneling problem during large update steps ($\Delta t$), you must replace instantaneous distance checks with **Continuous Collision Detection (CCD)** based on **Swept-Sphere Capsule Intersections** and **Adaptive Time-to-Impact Bisection** (Brent, 1973; Higham, 2002).
 
 ### Mathematical Foundation of Continuous Collision Detection

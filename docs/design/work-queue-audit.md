@@ -1,5 +1,7 @@
 # What the site starts, and what moves to the work queue (PERF.19)
 
+**Status (2026-10-15):** built (PERF.19, #492; PERF.24, #517). PERF.86 (open) replaces the parent and child job tree and the `work_lease` described here with plain Redis queues.
+
 The audit PERF.19 asks for. Boss (2026-10-01 22:13Z): "I want
 _everything_ that communicates with the API to use the work queue
 whenever possible." This lists every path where the API or the website

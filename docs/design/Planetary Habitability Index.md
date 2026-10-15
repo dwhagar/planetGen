@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [activity-magnetism-radiation-hydrosphere](activity-magnetism-radiation-hydrosphere.md), [atmospheres-retention-and-classes](atmospheres-retention-and-classes.md), [habitability-index](habitability-index.md), [units-and-number-formatting](units-and-number-formatting.md).
+
 The **Planetary Habitability Index (PHI-4)** evaluates planetary environments across four critical physiological and thermodynamic domains, integrating universal biological constraints with specific species adaptations. The index scales from **Blue** (ideal conditions) to **Red** (lethal extremes), with **Green** representing the baseline sweet spot for unassisted or minimally assisted survival.
 
 ### 1. Pressure (Atmospheric & Hydrostatic)

@@ -1,5 +1,7 @@
 # Click-centred drill-down: step sizes and region shapes (MAP.146 study)
 
+**Status (2026-10-15):** decided and built as MAP.151, the region data layer (#1539: `galaxy/region.py`, `galaxy/window.py`, `/galaxy/window`, `tilecache.fetch_window`), with the free camera MAP.150 (#1382). The cells, frame and block sizes below are those of the cylinder grid; the spherical sector switch (Boss, 2026-10-15) redoes the block ladder (MAP.205, MAP.206).
+
 Research only, 2026-10-09. No code, TODO.md or PR changes. Boss decides.
 
 Question (Boss): MAP.146 keeps the old 243 / 27 / 3 / 1 sector steps, centred on the click. Is there anything more effective or efficient, with more granular control?

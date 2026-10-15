@@ -1,5 +1,7 @@
 # Interstellar object rates
 
+**Status (2026-10-15):** built in 7.18.0 (schema v37, PR #136; GEN.1 and GEN.2). The GEN.100 retune (#793) changed the rates afterwards; see [compact-remnant-regions.md](compact-remnant-regions.md).
+
 Reference numbers for GEN.1 (rates) and GEN.2 (rogue planet masses),
 from the research Boss supplied on 2026-09-30. Built in version 7.18.0
 (schema v37, PR #136): `program_constants.PHENOMENON_DENSITY_PC3`,

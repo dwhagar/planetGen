@@ -1,5 +1,7 @@
 # Generation benchmark report (PERF.31)
 
+**Status (2026-10-15):** a measurement report (PERF.31, #1179), a dated snapshot of one build box. Where it says a scatter is one job whose chunks are tasks, PERF.86 (open) changes that: each scatter becomes its own queue item.
+
 Measured with `planetgen benchmark --workers 1,2 --profile` on the lane's
 build box (4 cores, 16 GB, MariaDB 10.11 on the same box, Redis local).
 Galaxy: seed `...BEEF`, plan to ring 12 (a small galaxy: 2,041 layers), then

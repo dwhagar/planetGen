@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [api-design-standards](api-design-standards.md), [performance-eta-queue-and-caching](performance-eta-queue-and-caching.md), [settings-seo-and-accounts](settings-seo-and-accounts.md).
+
 # Single-Server Migration Guide & Codebase Modernization Outline
 
 This guide outlines a step-by-step conversion strategy to modernize the planetGen architecture while maintaining a single-server, broker-less deployment model (Celery Project, 2024; Python Software Foundation, 2024). It replaces custom queues and DOM scripts with standard Python concurrency mechanisms and open-source frontend libraries.

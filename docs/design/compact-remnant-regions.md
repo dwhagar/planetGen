@@ -1,5 +1,7 @@
 # Neutron stars and black holes by region and type: what is observed
 
+**Status (2026-10-15):** research, 2026-10-09; reference data for the GEN.100 rate retune, which is built (#793).
+
 Research of 2026-10-09 (GEN.100 rate retune; rates are in `interstellar-object-rates.md`). Found by web search; numbers are as the sources state them. Where a source gave no figure I say so instead of filling one in.
 
 ## What the sources say
