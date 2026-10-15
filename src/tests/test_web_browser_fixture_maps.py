@@ -251,7 +251,10 @@ def test_sector_map_scale_line_follows_the_zoom(page, map_site):
 
     page.locator("#galaxymap3d-menu > summary").click()
     page.locator('#galaxymap3d-controls [data-action="reset-view"]').click()
-    page.wait_for_timeout(300)
+    for _ in range(40):  # the view eases back; a loaded machine takes longer than a fixed pause
+        page.wait_for_timeout(250)
+        if _scale_line(page) == (label, width):
+            break
     assert _scale_line(page) == (label, width), "Reset view goes back to the opening zoom"
 
 
