@@ -310,9 +310,6 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
      ["--shell", "40", "--band", "-1", "--wedge", "7", "--radius-pc", "12.0"]),
     ({"mode": "center", "center_by": "address", "center_shell": "40", "center_wedge": "7", "center_radius_pc": "12"},
      ["--shell", "40", "--band", "0", "--wedge", "7", "--radius-pc", "12.0"]),
-    ({"mode": "center", "center_by": "address", "center_shell": "40", "center_wedge": "7",
-      "center_ball_sectors": "3"},
-     ["--shell", "40", "--band", "0", "--wedge", "7", "--ball-sectors", "3"]),
     # x = 10, z = 4 is in shell 3 one band up; x = -10 is on the other side of the plane, wedge 9 of 18.
     ({"mode": "center", "center_by": "position", "center_x_pc": "10", "center_y_pc": "0", "center_z_pc": "4",
       "center_radius_pc": "20"},

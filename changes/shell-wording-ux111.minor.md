@@ -3,6 +3,6 @@
 - The Galaxy Map and the Sector Map show a notice that the map is being rebuilt for the new grid until the map work lands.
 
 ### Removed
-- The Generate page's whole-ring, column and Galaxy Map block modes, and the radius-in-sectors cylinder fields (the ball radius replaces them).
+- The Generate page's whole-ring, column and Galaxy Map block modes, and the radius-in-sectors cylinder fields.
 
 TODO items resolved: UX.111 / Added: none

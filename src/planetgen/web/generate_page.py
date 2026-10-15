@@ -434,10 +434,6 @@ def center_argv(form, edge_pc=None):
         argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
     else:
         raise FormError("Choose how to name the center sector.")
-    sectors = _number(form, "center_ball_sectors", "Radius (sectors)", float, minimum=0.5, maximum=40)
-    if sectors is not None:
-        argv += ["--ball-sectors", f"{sectors:g}"]
-        return argv, f"{description} ({sectors:g} sectors out)"
     radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1,
                      maximum=MAX_GENERATE_RADIUS_PC)
     return argv + ["--radius-pc", str(radius)], description

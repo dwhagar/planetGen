@@ -312,8 +312,6 @@
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
       {%- elif mode == "center" %}
         {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="A sphere around the center.") }}
-        {{ field("center_ball_sectors", "or radius (sectors)", step="any", min=0.5, max=40,
-                 hint="A ball this many sectors out from the center (1 is the center and its face neighbors); used instead of the radius in parsecs.") }}
       {%- elif mode == "address" %}
         {{ field("address_shell", "Shell", step="1", min=0, max=max_shell) }}
         {{ field("address_band", "Band", placeholder="0", step="1") }}
