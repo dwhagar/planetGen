@@ -31,6 +31,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | MAP.205 | Galaxy Map block ladder for shells |  |  |
 | MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
+| TEST.158 | The math check tests the spherical shell, band and wedge grid |  |  |
 | DOC.46 | Docs for the spherical sector grid |  |  |
 
 ### References
@@ -182,6 +183,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
+| API.26 | Bump API_VERSION for the shell, band and wedge sector address |  |  |
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
 
