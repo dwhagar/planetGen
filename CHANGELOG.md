@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1225] - 2026-10-15
+
+### Changed
+
+- UX.22 progress recorded: step 5 (luminosity, power and heat flow on unit ladders) merged in #1488; steps 6 and 7 remain.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1224] - 2026-10-15
 
 ### Changed
