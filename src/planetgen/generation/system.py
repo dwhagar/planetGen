@@ -26,7 +26,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import life as planetLife, prevalence, validation
-from planetgen.physics import constants, magnetism
+from planetgen.physics import constants, insolation, magnetism
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -471,6 +471,7 @@ class StarSystem:
         # in the same pass (after life data, since it reads evolutionary_data) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
         with log.timed_phase("life data pass"):
+            insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
             for obj in self.planets + self.secondary_planets:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue

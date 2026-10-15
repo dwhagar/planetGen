@@ -77,14 +77,14 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
-    "equipment_tier", "hab_note", "energy_flux_w_m2",
+    "equipment_tier", "hab_note", "energy_flux_w_m2", "flux_variation",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
-`moons` (`energy_flux_w_m2` is the one input the score keeps: the dose
-refresh re-scores a body from its columns alone)."""
+`moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
+dose refresh re-scores a body from its columns alone)."""
 
-SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name != "energy_flux_w_m2")
-"""tuple: The fields `compute` returns (all but the stored energy flux)."""
+SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation"))
+"""tuple: The fields `compute` returns (all but the stored energy flux and flux variation)."""
 
 LETHAL_DOSE_SV_YR = 1000.0
 """float: The dose a compact object's planet is rated at, Sv/yr: the outer
@@ -157,6 +157,7 @@ def values_from_body(body):
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "life_stage": life_stage(getattr(body, "life_chemical", None), getattr(body, "evolutionary_data", None)),
+        "flux_variation": getattr(body, "flux_variation", None),
     }
     for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
         values[field] = getattr(body, field, None)
@@ -291,6 +292,7 @@ def world_from(values, lethal_host=None):
         temperature_c=values["surface_temperature_k"] - constants.CELSIUS_ZERO_K,
         gases=gases,
         gravity_ms2=(values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY,
+        flux_variation=values.get("flux_variation") or 0.0,
         relative_humidity=relative_humidity(values),
         solvent=medium,
         water_activity=activity,

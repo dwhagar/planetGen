@@ -1,0 +1,3 @@
+### Changed
+
+- **A swinging light counts against a planet's temperature rating (GEN.148).** A planet of one star of a wide pair, or a circumbinary planet, gets a stored `flux_variation`: how much its total starlight swings, as a fraction of the mean, because the companion's distance changes or the bright star is off the pair's centre. The Temperature rating now takes the worse of the cold and hot ends of that swing (`T` to the fourth root of the light), and the description lists the two ends. A planet of a single star is unchanged. Planets generated before this release have no swing until regenerated.

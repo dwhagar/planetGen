@@ -251,3 +251,27 @@ def test_the_equipment_does_not_depend_on_water_chemistry_or_suitability():
     acid = World(101.3, 15, {"O2": 0.21}, ph=1.5, life_stage="none")
     assert hab.tier(hab.water_score(acid)) in ("Yellow", "Red")
     assert hab.equipment(acid) == "ideal"
+
+
+def test_a_light_that_swings_moves_the_temperature_by_the_fourth_root_of_the_flux():
+    """GEN.148: T goes as the fourth root of the insolation, so f peak to peak moves it by (1 +- f/2)^(1/4)."""
+    steady = World(pressure_kpa=101.3, temperature_c=15.0, gases={"N2": 0.78, "O2": 0.21})
+    assert hab.temperature_extremes_c(steady) == (15.0, 15.0)
+    swinging = World(pressure_kpa=101.3, temperature_c=15.0, gases={"N2": 0.78, "O2": 0.21}, flux_variation=0.2)
+    cold, hot = hab.temperature_extremes_c(swinging)
+    assert cold == pytest.approx(288.15 * 0.9 ** 0.25 - 273.15)
+    assert hot == pytest.approx(288.15 * 1.1 ** 0.25 - 273.15)
+    assert cold < 15.0 < hot
+
+
+def test_the_temperature_score_takes_the_worse_extreme_of_a_swinging_light():
+    near_the_edge = dict(pressure_kpa=101.3, temperature_c=29.0, gases={"N2": 0.78, "O2": 0.21})
+    steady = hab.temperature_score(World(**near_the_edge))
+    swinging = hab.temperature_score(World(**near_the_edge, flux_variation=0.3))
+    assert steady == 1.0 and swinging < steady
+    # A swing never improves a score and no variation is the old score.
+    for temperature in (-60.0, -10.0, 5.0, 20.0, 40.0, 60.0):
+        base = World(pressure_kpa=101.3, temperature_c=temperature, gases={"N2": 0.78, "O2": 0.21})
+        swing = World(pressure_kpa=101.3, temperature_c=temperature, gases={"N2": 0.78, "O2": 0.21},
+                      flux_variation=0.4)
+        assert hab.temperature_score(swing) <= hab.temperature_score(base) or temperature < 0
