@@ -72,15 +72,15 @@ def test_the_outline_narrows_with_distance_and_is_a_run_about_the_plane(milky_wa
 
 
 def test_candidate_cells_match_the_cylinder_within_the_polar_dip(milky_way):
-    """The cylinder holds 23,920,622,421 candidates. The study counted 23.933 billion qualifying cells shell by
+    """The cylinder holds 23,920,622,421 candidates. The study counted about 23.93 billion qualifying cells shell by
     shell; the outline is one band range per shell, so it also holds the cells of shells 928 to 1020 between the
-    equatorial run and the polar one (the bound dips near the pole there), 1.1% more."""
+    equatorial run and the polar one (the bound dips near the pole there), 1.2% more."""
     extents, _outer, _confirmed = milky_way
     cylinder = candidate_sector_count(build_layer_extents(MILKY_WAY, EDGE_PC, THRESHOLD)[0])
     shells = shell_candidate_sector_count(extents)
     assert cylinder == 23_920_622_421
     assert 0.99 * cylinder < shells < 1.02 * cylinder
-    assert shells == pytest.approx(24_203_885_593, rel=1e-9)
+    assert shells == pytest.approx(24_204_797_995, rel=1e-9)
 
 
 @pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 927, 928, 960, 1000, 1020, 1021, 1500, 2500, 3500, 3764])

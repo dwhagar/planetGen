@@ -42,7 +42,7 @@ EDGE_PC = 4.0
 RIM_RHO_PC = 6 * EDGE_PC / (2 * math.pi)
 
 
-@pytest.mark.parametrize("shell, expected", [(0, 1), (1, 14), (2, 50), (3, 104), (4, 194), (5, 296), (10, 1250)])
+@pytest.mark.parametrize("shell, expected", [(0, 1), (1, 14), (2, 50), (3, 104), (4, 206), (5, 296), (10, 1250)])
 def test_cell_count_of_the_first_shells(shell, expected):
     assert cell_count(shell) == expected
     assert sum(1 for _ in shell_cells(shell)) == expected
@@ -52,8 +52,29 @@ def test_shell_four_is_cut_as_the_study_measured():
     layout = shell_layout(4)
     assert math.degrees(layout.cap_colatitude) == pytest.approx(13.81, abs=0.01)
     assert layout.band_count == 11
-    assert [wedge_count(4, b) for b in range(5, -6, -1)] == [6, 12, 18, 24, 24, 24, 24, 24, 18, 12, 6][::1]
+    assert [wedge_count(4, b) for b in range(5, -6, -1)] == [12, 12, 18, 24, 24, 24, 24, 24, 18, 12, 12]
     assert band_range(4) == (-6, 6)
+
+
+@pytest.mark.parametrize("x, expected", [(0.2, 1), (1.0, 1), (1.4, 1), (1.5, 2), (11.0, 12), (11.9, 12), (13.0, 14),
+                                         (16.9, 16), (17.0, 18), (19.0, 20), (22.5, 24), (22.4, 21), (4320.0, 4320)])
+def test_the_wedge_multiplier_is_the_seven_smooth_number_nearest_in_ratio(x, expected):
+    assert spherical.nearest_smooth(x) == expected
+
+
+def test_every_band_of_every_shell_uses_one_rule():
+    """Boss (2026-10-15): 6 * m with m made only of 2, 3, 5 and 7 and nearest the 4 pc arc, in every ordinary band
+    of every shell from 4 out; no outline, window or neighbouring shell enters."""
+    for shell in [4, 5, 9, 31, 250, 1000, 3764, 4095]:
+        low, high = band_range(shell)
+        radius = shell * EDGE_PC
+        for band in range(low + 1, high):
+            m, remainder = divmod(wedge_count(shell, band), 6)
+            assert remainder == 0 and m >= 1
+            for prime in (2, 3, 5, 7):
+                while m % prime == 0:
+                    m //= prime
+            assert m == 1
 
 
 @pytest.mark.parametrize("shell", [4, 10, 100, 1000, 3764])
@@ -231,8 +252,8 @@ def test_a_cell_in_another_unit_scales_by_the_unit_cubed():
 
 
 def test_the_measured_arcs_in_a_deep_shell():
-    """Study figure: about 99.8% of cells have their band and wedge arcs within 0.5% of 4 pc, in the real galaxy;
-    here every cell of four shells around shell 1000."""
+    """Study figure (uniform primes-up-to-7 rule): wedge arcs within 2% of 4 pc for nearly every cell; here every
+    cell of four shells around shell 1000, the few near a pole excepted."""
     close = total = 0
     for shell in range(1000, 1004):
         low, high = band_range(shell)
@@ -243,9 +264,9 @@ def test_the_measured_arcs_in_a_deep_shell():
             lon_arc = 2 * math.pi * radius * math.sin((north + south) / 2) / wedge_count(shell, band)
             n = wedge_count(shell, band)
             total += n
-            if abs(lat_arc / EDGE_PC - 1) < 0.005 and abs(lon_arc / EDGE_PC - 1) < 0.005:
+            if abs(lat_arc / EDGE_PC - 1) < 0.005 and abs(lon_arc / EDGE_PC - 1) < 0.02:
                 close += n
-    assert close / total > 0.998
+    assert close / total > 0.97
 
 
 @pytest.mark.parametrize("shell", [4, 5, 6, 30])
@@ -350,7 +371,7 @@ def test_the_module_keeps_the_study_names_and_none_of_the_cylinder_words():
 
 
 def test_designations_round_trip_and_fit_forty_bits():
-    for address in [(0, 0, 0), (1, 1, 0), (1, -1, 0), (4, 6, 0), (4, -6, 0), (10, 0, 59), (3764, 2, 23649),
+    for address in [(0, 0, 0), (1, 1, 0), (1, -1, 0), (4, 6, 0), (4, -6, 0), (10, 0, 59), (3764, 2, 23519),
                     (1020, 1602, 0), (1020, -1602, 0), (4095, 0, 0)]:
         text = spherical.provisional_sector_designation(*address)
         assert spherical.parse_sector_designation(text) == address
@@ -359,7 +380,7 @@ def test_designations_round_trip_and_fit_forty_bits():
 
 def test_a_designation_is_the_sector_field_of_the_object_ids_born_there():
     from planetgen.galaxy import object_uid
-    for address in [(0, 0, 0), (7, -3, 11), (3764, 2, 23649), (1020, -1602, 0)]:
+    for address in [(0, 0, 0), (7, -3, 11), (3764, 2, 23519), (1020, -1602, 0)]:
         designation = spherical.provisional_sector_designation(*address)
         printed = object_uid.format_id(object_uid.pack(*address, object_uid.SERIAL_GENERATED, 5, 7))
         assert int(printed.split("-")[0], 16) == int(designation, 16)

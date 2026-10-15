@@ -21,9 +21,10 @@ wedge)`, and the three words mean:
   (`z > 0`), negative bands south.
 - **Wedge** (longitude): a band is cut by meridians, pole to pole, into
   `wedge_count` equal wedges, wedge `w` spanning longitude `[2*pi*w/W,
-  2*pi*(w+1)/W)` from `+X` counterclockwise. `W` is always a multiple of 6
-  (about one edge of arc), so the six meridians that cut every cap's rim are
-  wedge boundaries in every band of the shell.
+  2*pi*(w+1)/W)` from `+X` counterclockwise. `W` is `6 * m` with `m` a number
+  whose prime factors are only 2, 3, 5 and 7, nearest the count that gives one
+  edge of arc (the same rule in every band of every shell), so the six
+  meridians that cut every cap's rim are wedge boundaries in every band.
 
 A **cap** is the circular segment of a shell within colatitude `alpha` of a
 pole, one cell at each pole. Six wedges meet its rim with a gap of exactly one
@@ -43,6 +44,7 @@ Every distance here is in parsecs unless a function says otherwise, matching
 `sectors.center_x/y/z_pc`. Pure geometry: no database, no I/O.
 """
 
+import bisect
 import functools
 import math
 
@@ -202,22 +204,70 @@ def _band_index(layout, band):
     return layout.high_band - band
 
 
+def _smooth_numbers():
+    """Every number up to `SMOOTH_LIMIT` whose prime factors are only 2, 3, 5
+    and 7, ascending."""
+    found = []
+    a = 1
+    while a <= SMOOTH_LIMIT:
+        b = a
+        while b <= SMOOTH_LIMIT:
+            c = b
+            while c <= SMOOTH_LIMIT:
+                d = c
+                while d <= SMOOTH_LIMIT:
+                    found.append(d)
+                    d *= 7
+                c *= 5
+            b *= 3
+        a *= 2
+    return tuple(sorted(found))
+
+
+SMOOTH_LIMIT = 10 ** 7
+"""int: The largest wedge multiplier `m` the rule can pick (about 4,300 at the
+outermost shell of a 40-bit birth-sector field)."""
+
+SMOOTH_MULTIPLIERS = _smooth_numbers()
+"""tuple: The numbers `m` may take, ascending: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+12, 14, 15, 16, 18, 20, 21 ..."""
+
+
+def nearest_smooth(x):
+    """The 7-smooth number nearest `x` in ratio (`x / lo` against `hi / x`; a
+    tie goes to the lower), at least 1."""
+    if x <= 1.0:
+        return 1
+    high = bisect.bisect_left(SMOOTH_MULTIPLIERS, x)
+    if high >= len(SMOOTH_MULTIPLIERS):
+        raise ValueError(f"wedge multiplier {x} is past the table's {SMOOTH_LIMIT}")
+    upper = SMOOTH_MULTIPLIERS[high]
+    if upper == x:
+        return upper
+    lower = SMOOTH_MULTIPLIERS[high - 1]
+    return lower if x * x <= lower * upper else upper
+
+
 def _wedges_at(layout, i):
     """Wedges of the ordinary band `i` places south of the shell's top (the
-    rule behind `wedge_count`)."""
+    rule behind `wedge_count`). The count is worked out for the northern one
+    of a mirrored pair, so the two always agree."""
     if layout.table_wedges is not None:
         return layout.table_wedges[i]
+    i = min(i, layout.band_count - 1 - i)
     centre = (layout.edge(i) + layout.edge(i + 1)) / 2
     arc = TWO_PI * layout.shell * math.sin(centre) / BAND_ARC_EDGES
-    return CAP_RIM_WEDGES * max(1, int(math.floor(arc / CAP_RIM_WEDGES + 0.5)))
+    return CAP_RIM_WEDGES * nearest_smooth(arc / CAP_RIM_WEDGES)
 
 
 def wedge_count(shell, band):
     """
-    How many wedges a band holds: `6 * max(1, round(2 * pi * R * sin(phi) /
-    (6 * e)))` with `phi` the band's centre colatitude, so the wedge's arc at
-    the band's centre stays near one edge and the six cap meridians stay wedge
-    boundaries. A cap and the core are one cell: `1`.
+    How many wedges a band holds: `6 * m`, `m` the number with no prime
+    factor above 7 nearest (in ratio) to `2 * pi * R * sin(phi) / (6 * e)`,
+    `phi` the band's centre colatitude, and at least 1. The wedge's arc at the
+    band's centre stays near one edge, the six cap meridians stay wedge
+    boundaries, and the rule is the same in every band of every shell (Boss,
+    2026-10-15). A cap and the core are one cell: `1`.
 
     Raises:
         ValueError: If `band` is not a band of the shell.
