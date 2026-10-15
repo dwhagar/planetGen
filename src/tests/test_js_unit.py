@@ -40,7 +40,7 @@ def fixtures():
     """The values the JavaScript tests compare against, as a dict."""
     from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
     from planetgen.galaxy.density import build_galaxy_shape, shape_with_terms
-    from planetgen.galaxy.geometry import provisional_sector_designation, ring_sector_count
+    from planetgen.galaxy.spherical import band_range, provisional_sector_designation, wedge_count
     from planetgen.galaxy.skeleton import expected_system_count_at_density_1
     from planetgen.physics.units import pc_to_ly
 
@@ -49,15 +49,17 @@ def fixtures():
              "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
 
     designations = []
-    # Up to the biggest ring the designation's slot field holds (rings
-    # past 32 bits of packing included, which is why the browser needs
-    # BigInt).
-    for ring in (0, 1, 2, 7, 100, 3749, 40000, 166000):
-        count = min(ring_sector_count(ring), 1 << 20)
-        for layer in (-4096, -1, 0, 1, 4095):
-            for slot in sorted({0, count // 2, count - 1}):
-                designations.append({"ring": ring, "layer": layer, "slot": slot,
-                                     "designation": provisional_sector_designation(ring, layer, slot)})
+    # Shells up to the designation's 12 bits (past 32 bits of packing, which is why the browser needs BigInt); bands within the
+    # designation's 12-bit field (|band| < 2040 here).
+    for shell in (0, 1, 2, 7, 100, 3749, 4095):
+        low, high = band_range(shell)
+        for band in sorted({max(low, -2040), max(low, -1), 0, min(high, 1), min(high, 2040)}):
+            if not low <= band <= high:
+                continue
+            count = wedge_count(shell, band)
+            for wedge in sorted({0, count // 2, count - 1}):
+                designations.append({"shell": shell, "band": band, "wedge": wedge,
+                                     "designation": provisional_sector_designation(shell, band, wedge)})
 
     def actions(html):
         # The row and its Menu (MAP.55), up to the side panel's end.
@@ -173,7 +175,7 @@ def sector_map():
     neighbour (test_starmap.py's own fixtures): the JSON
     `/sector/<id>/scene` answers."""
     from planetgen.web.maps.starmap import map_scene_data
-    from tests.test_starmap import _link, _make_system, _neighbor, _phenomenon
+    from tests.test_starmap import _link, _make_system, _phenomenon
 
     near = _make_system(100.0, 50.0, -30.0)
     far = dict(_make_system(-200.0, -120.0, 80.0), id=2, name="Far System")
@@ -181,7 +183,10 @@ def sector_map():
         _link, 1000.0, (5, 0, 17), (500.0, 200.0, -100.0), [near, far],
         phenomena=[_phenomenon(), dict(_phenomenon(type_="rogue_planet", descriptor=None, radius_ly=0.0,
                                                    offset=(-3.0, 1.0, 2.0)), id=2, name="Lonely")],
-        neighbors=[_neighbor(exists=True, sector_id=42, sector_name="Next Door")],
+        neighbors=[{
+            "shell_index": 6, "band_index": -2, "wedge_index": 9, "direction_pc": [1.0, 0.0, 0.0],
+            "exists": True, "sector_id": 42, "sector_name": "Next Door", "designation": "600000063",
+        }],
     )
     return {"data": data}
 

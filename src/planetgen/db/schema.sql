@@ -1246,13 +1246,17 @@
 --   `outer_shell_index`; `galaxy_layer` and `galaxy_column` are replaced by
 --   `galaxy_shell` (one row per shell: the highest band its outline reaches and the
 --   cell count of that run); `galaxy_block_stats` is dropped (the Galaxy Map's block
---   ladder is gone). Every address means something else, so the migration CONVERTS:
+--   ladder is rebuilt on shells in v92). Every address means something else, so the migration CONVERTS:
 --   every system, phenomenon and facility keeps its place, velocity and epoch and is
 --   linked to the new sector that holds it, the sector rows are rebuilt on shells
 --   (a cell that holds an object, or whose centre lay in a generated sector), object
 --   IDs are renumbered for the new birth sector (body numbers kept), the scatter and
 --   bright stars take the address of their cell, `sector_stats` is rebuilt for the
 --   generated sectors, and the outline is built again from the stored shape.
+--
+-- v92: `galaxy_block_stats` again, for the block ladder on shells (MAP.205): keyed
+--   `(m, shell_index, band_index, wedge_index)`, no `ladder_step` (the ladder is the
+--   code's `galaxy/drill.py`; a ladder change is a migration that refills the table).
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1495,6 +1499,30 @@ CREATE TABLE IF NOT EXISTS galaxy_shell (
     shell_index       INT NOT NULL PRIMARY KEY,
     high_band_index   INT NOT NULL,
     cell_count        BIGINT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- galaxy_block_stats (v92, MAP.205): one row per block `(m, shell_index,
+-- band_index, wedge_index)` of a level of the Galaxy Map's block ladder above the
+-- sector (`galaxy.drill`, docs/design/spherical-block-ladder.md: blocks `m` shells
+-- deep, rows of blocks by colatitude, wedges by longitude) that holds at least one
+-- generated sector, with the sums of what those sectors hold: `sector_count`,
+-- `systems`, `expected_systems`, `stars`, `age_sum` (each sector's mean age times its
+-- stars) and `luminosity_sol`. A stage's child stats are these rows (a level-3
+-- block's children are its sectors, read from `sector_stats`). Written by
+-- `db/block_stats.py` when sectors are saved or deleted, and by `planetgen plan
+-- --fill-block-stats`; no foreign key, as the blocks are not rows of their own.
+CREATE TABLE IF NOT EXISTS galaxy_block_stats (
+    m                 SMALLINT UNSIGNED NOT NULL,
+    shell_index       INT NOT NULL,
+    band_index        INT NOT NULL,
+    wedge_index       INT NOT NULL,
+    sector_count      INT UNSIGNED NOT NULL,
+    systems           BIGINT UNSIGNED NOT NULL,
+    expected_systems  DOUBLE NOT NULL,
+    stars             BIGINT UNSIGNED NOT NULL,
+    age_sum           DOUBLE NOT NULL,
+    luminosity_sol    DOUBLE NOT NULL,
+    PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Singleton row (same pattern as galaxy_shape above) tracking when

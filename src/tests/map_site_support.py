@@ -34,20 +34,20 @@ from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 
 DB = "planetgen_map_fixture"
 EDGE_PC = 4.0
-OUTER_RING = 3749
+OUTER_SHELL = 3749
 SOLAR_LUMINOSITY_W = 3.828e26
 SUN_RADIUS_KM = 695700.0
 
 SECTOR_ID = 7
-"""The sector `/sector/<id>` shows: ring 0, layer 0, slot 1."""
+"""The sector `/sector/<id>` shows: shell 1, band 0, wedge 1."""
 
-# (id, ring, layer, slot, name): generated sectors, all in the core so a
+# (id, shell, band, wedge, name): generated sectors, all in the core so a
 # walk down the drill-down from the whole galaxy reaches them.
 SECTORS = [
-    (SECTOR_ID, 0, 0, 1, "Fixture Prime"),
-    (8, 0, 0, 2, "Fixture Second"),
-    (9, 1, 0, 3, "Fixture Ring One"),
-    (10, 2, 1, 5, "Fixture High"),
+    (SECTOR_ID, 1, 0, 1, "Fixture Prime"),
+    (8, 8, 0, 3, "Fixture Second"),
+    (9, 9, 0, 5, "Fixture Shell Nine"),
+    (10, 9, 1, 4, "Fixture High"),
 ]
 
 
@@ -91,7 +91,7 @@ def _star_field():
     `galaxy_bright_stars_in_box` shape), luminosities 1e-4 to 1e5 L_sun."""
     import random
 
-    from planetgen.galaxy.geometry import sector_address_at
+    from planetgen.galaxy.spherical import sector_address_at
 
     rng = random.Random(87)
     stars = []
@@ -100,14 +100,14 @@ def _star_field():
         x = STAR_FIELD_CENTER_PC[0] + rng.uniform(-20.0, 20.0)
         y = STAR_FIELD_CENTER_PC[1] + rng.uniform(-20.0, 20.0)
         z = STAR_FIELD_CENTER_PC[2] + rng.uniform(-6.0, 6.0)
-        ring, layer, slot = sector_address_at((x, y, z), EDGE_PC)
+        shell, band, wedge = sector_address_at((x, y, z), EDGE_PC)
         temperature = 2600.0 + 30000.0 * (math.log10(lum) + 4.0) / 9.0 * rng.uniform(0.6, 1.0)
         stars.append({
             "id": 9000 + i, "name": None,
             "x": x, "y": y, "z": z,
             "luminosity_sol": float("%.4g" % lum), "temperature_k": round(temperature),
             "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "fixture",
-            "ring_index": ring, "layer_index": layer, "ring_slot_index": slot,
+            "shell_index": shell, "band_index": band, "wedge_index": wedge,
             # Every star "generated" (in a filled sector) so its panel links to a system page.
             "system_id": SYSTEMS[i % len(SYSTEMS)][0],
         })
@@ -166,22 +166,22 @@ def galaxy_shape():
     """The stored shape `GET /api/galaxy/shape` would return."""
     shape = shape_with_terms(build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4))
     shape.update({
-        "edge_pc": EDGE_PC, "outer_ring_index": OUTER_RING,
+        "edge_pc": EDGE_PC, "outer_shell_index": OUTER_SHELL,
         "expected_system_count_at_density_1": expected_system_count_at_density_1(pc_to_ly(EDGE_PC)),
     })
     return shape
 
 
-def _sector_center_pc(ring, layer, slot):
-    from planetgen.galaxy.geometry import sector_position_pc
+def _sector_center_pc(shell, band, wedge):
+    from planetgen.galaxy.spherical import sector_position_pc
 
-    return sector_position_pc(ring, layer, slot, EDGE_PC)
+    return sector_position_pc(shell, band, wedge, EDGE_PC)
 
 
 def sector_detail(sector_id=SECTOR_ID):
     """`GET /api/sectors/<id>` for the fixture sector."""
-    _id, ring, layer, slot, name = next(s for s in SECTORS if s[0] == sector_id)
-    cx, cy, cz = _sector_center_pc(ring, layer, slot)
+    _id, shell, band, wedge, name = next(s for s in SECTORS if s[0] == sector_id)
+    cx, cy, cz = _sector_center_pc(shell, band, wedge)
     systems = []
     for system_id, system_name, x, y, z, stars in (SYSTEMS if sector_id == SECTOR_ID else []):
         systems.append({
@@ -192,7 +192,7 @@ def sector_detail(sector_id=SECTOR_ID):
         })
     return {
         "id": sector_id, "name": name, "edge_mpc": EDGE_PC * 1000.0, "edge_ly": pc_to_ly(EDGE_PC),
-        "ring_index": ring, "layer_index": layer, "ring_slot_index": slot, "placed": True,
+        "shell_index": shell, "band_index": band, "wedge_index": wedge, "placed": True,
         "center_x_pc": cx, "center_y_pc": cy, "center_z_pc": cz, "wiki_url": None,
         "systems": systems,
         "phenomena": [dict(p) for p in PHENOMENA] if sector_id == SECTOR_ID else [],
@@ -200,7 +200,7 @@ def sector_detail(sector_id=SECTOR_ID):
     }
 
 
-UNCHARTED_CELL = (0, 0, 0)
+UNCHARTED_CELL = (1, 0, 0)
 """A cell of the core no sector was generated in, where the fixture's scatters left a bright star, a black
 hole and a nebula (MAP.162)."""
 
@@ -232,7 +232,7 @@ def galaxy_stage(at=None):
         counts.setdefault(chain[level + 1], []).append(s[0])
     sectors = None
     if child_m == 1:
-        sectors = [{"ring": s[1], "layer": s[2], "slot": s[3], "id": s[0], "name": s[4],
+        sectors = [{"shell": s[1], "band": s[2], "wedge": s[3], "id": s[0], "name": s[4],
                     "system_count": len(SYSTEMS) if s[0] == SECTOR_ID else 0, "stats": _stats([s[0]])}
                    for s, _chain in inside]
     return {"at": format_drill_key(block), "child_m": child_m, "children": _children(counts), "sectors": sectors}
@@ -248,8 +248,8 @@ def _stats(ids):
 
 
 def _children(counts):
-    return [{"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": len(ids), "stats": _stats(ids)}
-            for b, ids in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))]
+    return [{"shell": b.shell, "band": b.band, "wedge": b.wedge, "generated": len(ids), "stats": _stats(ids)}
+            for b, ids in sorted(counts.items(), key=lambda item: (item[0].shell, -item[0].band, item[0].wedge))]
 
 
 def system_scene_payload(system_id):
@@ -297,11 +297,11 @@ class FixtureApi:
 
     def get_galaxy_sectors(self, db):
         out = []
-        for sector_id, ring, layer, slot, name in SECTORS:
-            cx, cy, cz = _sector_center_pc(ring, layer, slot)
+        for sector_id, shell, band, wedge, name in SECTORS:
+            cx, cy, cz = _sector_center_pc(shell, band, wedge)
             out.append({"id": sector_id, "name": name, "x": cx, "y": cy, "z": cz,
-                        "galactic_radius_pc": math.hypot(cx, cy), "ring_index": ring, "layer_index": layer,
-                        "ring_slot_index": slot, "system_count": len(SYSTEMS) if sector_id == SECTOR_ID else 0})
+                        "galactic_radius_pc": math.hypot(cx, cy, cz), "shell_index": shell,
+                        "system_count": len(SYSTEMS) if sector_id == SECTOR_ID else 0})
         return out
 
     def get_galaxy_shape(self, db):
@@ -332,12 +332,12 @@ class FixtureApi:
                 nearest = [min(max(cloud[axis], lo[i]), hi[i]) for i, axis in enumerate("xyz")]
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)
-            tiles[key] = {"placed": [], "planned": [], "filled": None, "clouds": clouds, "stars": stars,
+            tiles[key] = {"placed": [], "planned": [], "sector_count": 0, "clouds": clouds, "stars": stars,
                           "generated": None, "points": points}
         return {"tiles": tiles, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):
-        return galaxy_stage(at)
+        return dict(galaxy_stage(at), edge_pc=EDGE_PC)
 
     def get_galaxy_window(self, db, at, g):
         """`queryDb.galaxy_window` over `SECTORS`: the cells of the window that hold a fixture sector."""
@@ -345,17 +345,17 @@ class FixtureApi:
 
         centre = parse_window_key(at)
         width = check_width(g)
-        cells = window_cells(centre, width)
-        wanted = {(c.ring, c.wedge, c.slab) for c in cells}
+        cells = window_cells(centre, EDGE_PC, width)
+        wanted = {(c.shell, c.band, c.wedge) for c in cells}
         level = DRILL_LEVELS.index(centre.m)
         counts = {}
         for s in SECTORS:
             cell = drill_chain_of(s[1], s[2], s[3])[level]
-            if (cell.ring, cell.wedge, cell.slab) in wanted:
+            if (cell.shell, cell.band, cell.wedge) in wanted:
                 counts.setdefault(cell, []).append(s[0])
-        children = sorted(_children(counts), key=lambda c: (c["slab"], c["ring"], c["wedge"]))
+        children = _children(counts)
         return {"at": format_drill_key(centre), "g": width, "child_m": centre.m,
-                "cells": [[c.ring, c.wedge, c.slab] for c in cells], "children": children, "sectors": None}
+                "cells": [[c.shell, c.band, c.wedge] for c in cells], "children": children, "sectors": None}
 
     def get_population_status(self, db):
         return dict(apiclient.POPULATION_NONE)
@@ -377,18 +377,18 @@ class FixtureApi:
     def get_system_scene(self, db, system_id):
         return system_scene_payload(system_id)
 
-    def get_bright_stars_in_cell(self, db, ring_index, layer_index, ring_slot_index):
+    def get_bright_stars_in_cell(self, db, shell_index, band_index, wedge_index):
         return []
 
-    def get_uncharted_sector(self, db, ring_index, layer_index, ring_slot_index):
+    def get_uncharted_sector(self, db, shell_index, band_index, wedge_index):
         """`GET /api/galaxy/uncharted`: `UNCHARTED_CELL` holds a bright star and a black hole and a
         nebula that no sector was made for; every other cell is empty (MAP.162)."""
-        from planetgen.galaxy.geometry import provisional_sector_designation
+        from planetgen.galaxy.spherical import provisional_sector_designation
 
-        address = (ring_index, layer_index, ring_slot_index)
+        address = (shell_index, band_index, wedge_index)
         cx, cy, cz = _sector_center_pc(*address)
         generated = next((s[0] for s in SECTORS if s[1:4] == address), None)
-        cell = {"ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": ring_slot_index,
+        cell = {"shell_index": shell_index, "band_index": band_index, "wedge_index": wedge_index,
                 "designation": provisional_sector_designation(*address), "center_pc": [cx, cy, cz],
                 "edge_pc": EDGE_PC, "sector_id": generated, "stars": [], "scattered": []}
         if address == UNCHARTED_CELL:

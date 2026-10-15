@@ -37,7 +37,6 @@ from planetgen.galaxy.viewport import (  # noqa: E402
     tiles_intersecting_sphere,
 )
 from planetgen.tuning import GALAXY_RADIUS_PC  # noqa: E402
-from tests.maps_pending import MAPS_PENDING
 
 EDGE_PC = 4.0
 
@@ -61,16 +60,15 @@ def test_view_radius_bounds_without_a_shape_uses_the_default_galaxy_radius():
     assert min_radius == pytest.approx(EDGE_PC * 1.5)
 
 
-@MAPS_PENDING
-def test_view_radius_bounds_with_a_shape_uses_its_own_outer_ring_index():
-    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_ring_index": 99})
-    assert max_radius == pytest.approx((99 + 1) * EDGE_PC * 1.05 / math.tan(math.radians(CAMERA_FOV_DEG / 2)))
+def test_view_radius_bounds_with_a_shape_uses_its_own_outer_shell_index():
+    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_shell_index": 99})
+    assert max_radius == pytest.approx((99 + 0.5) * EDGE_PC * 1.05 / math.tan(math.radians(CAMERA_FOV_DEG / 2)))
 
 
 def test_view_radius_bounds_max_fits_the_whole_galaxy_in_view():
     # At the zoomed-all-the-way-out radius, half the field of view must
     # span at least the galaxy's own padded outer edge.
-    shape = {"outer_ring_index": 99}
+    shape = {"outer_shell_index": 99}
     _min_radius, max_radius = view_radius_bounds(EDGE_PC, shape)
     visible_half_height = max_radius * math.tan(math.radians(CAMERA_FOV_DEG / 2))
     assert visible_half_height >= galaxy_extent_pc(EDGE_PC, shape) - 1e-9
@@ -84,7 +82,7 @@ def test_view_radius_bounds_min_has_an_absolute_floor():
 
 
 def test_view_radius_bounds_max_is_always_well_past_min():
-    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_ring_index": 0})
+    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_shell_index": 0})
     assert max_radius >= min_radius * 10
 
 
@@ -120,11 +118,11 @@ def test_panel_includes_the_canvas_and_controls():
 
 def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own():
     """MAP.68: the sector page's map is this engine locked to one sector."""
-    pinned = {"ring": 5, "layer": 1, "slot": 20, "center_pc": (500.0, 200.0, 10.0)}
+    pinned = {"shell": 5, "band": 1, "wedge": 20, "center_pc": (500.0, 200.0, 10.0)}
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), sector_url="/sector/{id}",
                                      territory_path=None, pinned=pinned)
     data = _json_payload(html)
-    assert data["pinned"] == {"ring": 5, "layer": 1, "slot": 20}
+    assert data["pinned"] == {"shell": 5, "band": 1, "wedge": 20}
     assert data["initialCenter"] == [500.0, 200.0, 10.0]
     assert data["minViewRadiusPc"] <= data["initialRadiusPc"] <= data["maxViewRadiusPc"]
     assert '<h2 class="sr-only">Sector Map</h2>' in html
@@ -188,10 +186,9 @@ def test_panel_has_the_bookmarks_menu():
     assert "data-bookmarks-panel" in menu.group(2)
 
 
-@MAPS_PENDING
 def test_panel_json_payload_has_every_field_the_client_reads():
     view = _empty_view(has_shape=True)
-    html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 50}, EDGE_PC, view,
+    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, view,
                                      fetch_path="/galaxy/tiles", sector_url="/sector/{id}")
     data = _json_payload(html)
 
@@ -203,9 +200,10 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["territoryPath"] == "/galaxy/territories"
     assert data["sectorUrl"] == "/sector/{id}"
     assert data["hasShape"] is True
-    for field in ("tileRootEdgePc", "tileMaxLevel", "fetchRadiusFactor", "maxTilesPerRequest",
-                  "blockMinPx", "blockBudget"):
+    for field in ("tileRootEdgePc", "tileMaxLevel", "fetchRadiusFactor", "maxTilesPerRequest"):
         assert field in data
+    # The block ladder fixes block sizes (docs/design/spherical-block-ladder.md): nothing to tune per view.
+    assert "blockMinPx" not in data and "blockBudget" not in data and "galaxyEdgePc" not in data
     assert data["edgePc"] == pytest.approx(EDGE_PC)
     assert data["edgeLy"] > 0
     assert data["clickZoomFactorMin"] == CLICK_ZOOM_FACTOR_MIN
@@ -213,10 +211,7 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["initialCenter"] == [0.0, 0.0, 0.0]
     assert data["initialRadiusPc"] == data["maxViewRadiusPc"]
     assert data["fovDeg"] == CAMERA_FOV_DEG
-    assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_ring_index": 50}))
-    # The wedge lines stop at the outermost ring's outside, not the padded view radius (MAP.43).
-    assert data["galaxyEdgePc"] == pytest.approx(51 * EDGE_PC)
-    assert data["galaxyEdgePc"] < data["galaxyRadiusPc"]
+    assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_shell_index": 50}))
     assert data["initial"] == view
     assert data["generate"] is None
     assert data["phenomenonUrl"] is None
@@ -236,14 +231,14 @@ def test_panel_shows_a_hint_when_no_shape_has_been_built():
 
 
 def test_panel_omits_the_hint_when_a_shape_exists():
-    html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 50}, EDGE_PC, _empty_view(has_shape=True))
+    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, _empty_view(has_shape=True))
     assert "density skeleton hasn't been built yet" not in html
 
 
 def test_panel_embeds_the_density_shape_for_the_prisms():
     fields = DENSITY_SHAPE_FIELDS + MODEL_TERM_FIELDS
     shape = {field: float(i + 1) for i, field in enumerate(fields)}
-    shape.update({"outer_ring_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
+    shape.update({"outer_shell_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
     data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
     assert data["densityShape"] == dict({field: shape[field] for field in fields},
                                         sector_min_density=pytest.approx(1 / 9.0))
@@ -251,7 +246,7 @@ def test_panel_embeds_the_density_shape_for_the_prisms():
 
 def test_panel_has_no_density_shape_without_the_model_terms():
     shape = {field: float(i + 1) for i, field in enumerate(DENSITY_SHAPE_FIELDS)}
-    shape.update({"outer_ring_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
+    shape.update({"outer_shell_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
     data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
     assert data["densityShape"] is None
 
@@ -275,12 +270,12 @@ def test_panel_includes_the_initial_views_tiles():
     view = _empty_view(has_shape=True)
     view["tiles"]["1/1/1/1"] = {
         "placed": [{"id": 1, "name": "Real Sector", "x": 1.0, "y": 2.0, "z": 3.0,
-                     "galactic_radius_pc": 3.7, "ring_index": 1, "layer_index": 0, "ring_slot_index": 0,
+                     "galactic_radius_pc": 3.7, "shell_index": 1, "band_index": 0, "wedge_index": 0,
                      "designation": "ABC", "system_count": 4}],
         "planned": [],
         "filled": {"g": 1, "cells": [[1, 0, 0, 1, 4, "Real Sector"]]},
     }
-    html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 10}, EDGE_PC, view)
+    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 10}, EDGE_PC, view)
     data = _json_payload(html)
     assert data["initial"]["tiles"]["1/1/1/1"]["placed"][0]["name"] == "Real Sector"
     assert data["initial"]["tiles"]["1/1/1/1"]["filled"]["cells"][0][5] == "Real Sector"
@@ -295,7 +290,7 @@ def test_initial_tile_request_is_the_distance_cut_round_the_starting_camera(orbi
     (what the page's `neededTiles` asks for), plus the finest tiles round the target
     when the camera starts close, at most `INITIAL_TILE_LIMIT`."""
     center = (321.0, -45.0, 6.0)
-    bounds = tile_bounds_pc(EDGE_PC, {"outer_ring_index": 3750, "half_height_pc": 1500.0})
+    bounds = tile_bounds_pc(EDGE_PC, {"outer_shell_index": 3750})
     keys = initial_tile_request(orbit_radius, center, bounds)
     cut = fetch_cut_tiles(camera_position_pc(orbit_radius, center), center, bounds)
     detail = tiles_intersecting_sphere(12, center, 8.0) if orbit_radius <= 120.0 else []
@@ -305,14 +300,12 @@ def test_initial_tile_request_is_the_distance_cut_round_the_starting_camera(orbi
         parse_tile_key(key)
 
 
-def test_the_tile_bounds_cover_the_galaxy_and_its_layers():
-    low, high = tile_bounds_pc(EDGE_PC, {"outer_ring_index": 3750, "half_height_pc": 1500.0})
-    radius = galaxy_extent_pc(EDGE_PC, {"outer_ring_index": 3750})
-    assert low == (-radius, -radius, -1536.0) and high == (radius, radius, 1536.0)
-    # Without stored layers, a tenth of the radius, rounded up to a multiple of 64.
-    no_layers = tile_bounds_pc(EDGE_PC, {"outer_ring_index": 3750})
-    assert no_layers[1][2] % 64 == 0 and 0.1 * radius <= no_layers[1][2] < 0.1 * radius + 64
-    assert tile_bounds_pc(EDGE_PC, None)[1][0] == galaxy_extent_pc(EDGE_PC, None)
+def test_the_tile_bounds_are_a_box_round_the_galaxys_ball():
+    """The shells are balls, so the polar caps reach as far above the plane as the plane's edge reaches out."""
+    radius = galaxy_extent_pc(EDGE_PC, {"outer_shell_index": 3750})
+    low, high = tile_bounds_pc(EDGE_PC, {"outer_shell_index": 3750, "half_height_pc": 1500.0})
+    assert low == (-radius, -radius, -radius) and high == (radius, radius, radius)
+    assert tile_bounds_pc(EDGE_PC, None)[1] == (galaxy_extent_pc(EDGE_PC, None),) * 3
 
 
 def test_stars_are_not_part_of_the_near_field():

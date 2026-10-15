@@ -1,46 +1,45 @@
 // html/static/galaxyprisms.js
 //
 // The 3D Galaxy Map's sector grid and predicted-density shading
-// (galaxymap3d.js), drawn as cylindrical segment prisms. Space is cut the
-// way planetgen/galaxy/geometry.py cuts it into sectors: rings one
-// sector edge wide around the galactic axis, layers one edge tall (layer 0
-// straddles z = 0) and each ring split into wedges about one edge long.
-// One cell is one prism: an annular wedge with curved inner and outer
-// walls, flat top and bottom, and two flat radial sides.
-//
-// Level of detail: zoomed out, one prism stands for a block ("mega
-// sector") of m x m x ~m whole sectors, m a power of three, picked from
-// the screen scale so a block is still BLOCK_MIN_PX wide at the focus
-// (blockSizeForScale). The block grid at any one size is fixed in space,
-// so panning never shifts the blocks, only adds and drops them at the
-// edges; zoomed all the way in, one block is one sector. Drawn full size,
-// the blocks make one solid, so only its surface is listed.
+// (galaxymap3d.js), on the spherical shell grid the generator cuts space
+// into (planetgen/galaxy/spherical.py, docs/design/spherical-sector-
+// coordinates.md). A cell is named (shell, band, wedge): a shell is a
+// spherical skin one sector edge deep around the galactic origin (shell 0
+// the core ball), a band a latitude ring of the shell, a wedge one of the
+// band's equal longitude steps, pole to pole. Each polar cap is one cell.
+// This module is the page's copy of that arithmetic: the grid itself, the
+// block ladder (planetgen/galaxy/drill.py), the data window
+// (planetgen/galaxy/window.py), the galaxy's outline from the density bound
+// (planetgen/galaxy/skeleton.py) and how many sectors a block can hold under
+// it, and the geometry of a cell: a spherical box with curved inner and
+// outer walls, two cones for the band's colatitudes and two flat meridian
+// sides. Every function repeats the Python step for step (JavaScript's
+// round-half-up included) and tests/test_galaxyprisms.py checks the two
+// agree.
 //
 // Density comes from the galaxy's own analytic model
-// (planetgen.galaxy.density.relative_density), evaluated right here
-// from the shape parameters the page embeds -- no server round trip,
-// no sampled point cloud. Each prism is shaded by its mean density over
-// a few sample points.
+// (planetgen.galaxy.density.relative_density), evaluated right here from the
+// shape parameters the page embeds -- no server round trip, no sampled point
+// cloud. Each cell is shaded by its mean density over a few sample points.
 //
-// No three.js import: this module only does the arithmetic and hands
-// back plain typed arrays, so it runs under plain node for tests
+// No three.js import: this module only does the arithmetic and hands back
+// plain typed arrays, so it runs under plain node for tests
 // (src/tests/test_galaxyprisms.py) and in the page's Web Worker
 // (galaxyblocks.js).
 
-// Prisms thinner than this relative density are skipped entirely -- only
-// when the shape doesn't carry the galaxy's own sector threshold
-// (shape.sector_min_density, the density a sector needs to expect one
-// star). With it, a prism is drawn exactly when it holds at least one
-// sector the generator's skeleton would allow, so at one sector per prism
-// the map's outline is the galaxy's layers.
+// The drawing floor: cells thinner than this relative density are left out -- only when the
+// shape doesn't carry the galaxy's own sector threshold (shape.sector_min_density, the density
+// a sector needs to expect one system). With it, a sector is drawn exactly when the
+// generator's skeleton would allow it, so at one sector per cell the map's outline is the
+// galaxy's.
 export var PRISM_MIN_DENSITY = 0.02;
 // Curved walls get one segment per this many radians of arc.
 var ARC_SEGMENT_RAD = 0.12;
 var MAX_ARC_SEGMENTS = 24;
-// Sample points per prism: radial x azimuth x vertical.
+// Sample points per cell: radial x colatitude x longitude.
 var SAMPLES_R = 2;
-var SAMPLES_THETA = 2;
-var SAMPLES_Z = 3;
+var SAMPLES_LON = 2;
+var SAMPLES_COLAT = 3;
 
 function sechSquared(x) {
   var ax = Math.abs(x);
@@ -123,732 +122,927 @@ function densityUpperBound(r0, zMinAbs, shape) {
   return shape.k_norm * (bulgeBound(r0, zMinAbs, shape) + disk + thickDisk(r0, zMinAbs, shape));
 }
 
-// --- The sector grid (mirrors planetgen/galaxy/geometry.py) -----------
+// --- The sector grid (mirrors planetgen/galaxy/spherical.py) ---------------
 //
-// Ring i: cylindrical radius [i*e, (i+1)*e). Layer j: z in [(j-1/2)*e,
-// (j+1/2)*e), so layer 0 straddles the plane. Slot k: one of
-// ringSectorCount(i) equal wedges counterclockwise from +X. Every point in
-// space falls in exactly one cell.
+// Shell k: radius [(k - 1/2) e, (k + 1/2) e), centreline k * e, shell 0 the
+// core ball of radius e / 2. A shell from 2 out has two polar caps (colatitude
+// below alpha = asin(rho / R), rho the six-edge rim's chord radius) and an
+// odd number of bands of equal colatitude step between them; band 0 is the
+// equatorial band, positive bands lie north. A band holds 6 * m wedges, m
+// with no prime factor above 7, nearest one edge of arc; a cap and the core
+// are one cell. Shell 1 is cut by hand. Every point of space falls in
+// exactly one cell.
 
-// Master wedges ring `ring` sits in: 3 at the center, doubling (6, 12,
-// ... 1,536) at the first ring where each doubled wedge would hold at
-// least 8 slots. Every master line runs from where it starts out to the
-// edge, and is a slot boundary in every ring outward. Mirrors
-// galaxyGeometry.ring_master_count.
-export function ringMasterCount(ring) {
-  var c = 2 * Math.PI * (ring + 0.5);
-  var master = 3;
-  if (!isFinite(c)) return NaN;
-  while (c >= 2 * master * 8) master *= 2;
-  return master;
-}
+var TWO_PI = 2 * Math.PI;
+var CAP_RIM_WEDGES = 6;
+var BAND_ARC_EDGES = 1.0;
+var CAP_CHORD_RADIUS_EDGES = CAP_RIM_WEDGES / TWO_PI;
+// Shells the rim rule cannot cut: shell: [cap colatitude (degrees), wedges per band north to south].
+var HAND_CUT_SHELLS = { 1: [37.5, [12]] };
+// The designation packs shell, biased band and wedge into 40 bits.
+var DESIGNATION_WEDGE_BITS = 16n;
+var DESIGNATION_BAND_BITS = 12n;
+var DESIGNATION_BAND_BIAS = 2048;
+var SMOOTH_LIMIT = 1e7;
 
-// Slots in sector ring `ring`: the multiple of its master count nearest
-// 2 * pi * (i + 1/2) -- 3, 9, 15, 21, 27, 36, ... -- so each slot's arc is
-// within about 6% of one edge. The same on every layer, so the columns
-// line up through the whole stack. Mirrors galaxyGeometry.ring_sector_count.
-export function ringSectorCount(ring) {
-  var master = ringMasterCount(ring);
-  return Math.max(master, master * Math.round((2 * Math.PI * (ring + 0.5)) / master));
-}
-
-// The (ring, layer, slot) cell holding galaxy-frame point (x, y, z).
-// As galaxyGeometry.sector_address_at: each division-based guess is
-// checked against the cell's own bounds and moved by one if it rounded
-// across a face (GEN.31: one ulp under layer 0's top face is layer 0).
-export function sectorAddressAt(x, y, z, edgePc) {
-  var r = Math.sqrt(x * x + y * y);
-  var ring = settleIndex(r, Math.floor(r / edgePc), function (i) { return [i * edgePc, (i + 1) * edgePc]; });
-  var layer = settleIndex(z, Math.floor(z / edgePc + 0.5), function (j) { return [(j - 0.5) * edgePc, (j + 0.5) * edgePc]; });
-  var n = ringSectorCount(ring);
-  // Python's atan2(y, x) % (2 * pi), to the bit: a tiny negative angle
-  // becomes 2 * pi itself and lands in the last slot.
-  var theta = Math.atan2(y, x);
-  theta = theta < 0 ? theta + 2 * Math.PI : theta + 0;
-  var slot = Math.min(n - 1, Math.floor((theta * n) / (2 * Math.PI)));
-  var step = (2 * Math.PI) / n;
-  if (slot > 0 && theta < slot * step) slot -= 1;
-  else if (slot < n - 1 && theta >= (slot + 1) * step) slot += 1;
-  return { ring: ring, layer: layer, slot: slot };
-}
-
-function settleIndex(value, guess, boundsOf) {
-  var b = boundsOf(guess);
-  if (value < b[0]) return guess - 1;
-  if (value >= b[1]) return guess + 1;
-  return guess;
-}
-
-// Every sector the straight segment from start to end ([x, y, z] pc, both
-// ends included) passes through, in the order it first enters each one:
-// [{ring, layer, slot}, ...]. The browser twin of
-// galaxyGeometry.sectors_along_segment (NAV.38), which explains the method.
-export function sectorsAlongSegment(start, end, edgePc) {
-  var x0 = start[0], y0 = start[1], z0 = start[2];
-  var dx = end[0] - x0, dy = end[1] - y0, dz = end[2] - z0;
-  var at = function (t) {
-    return t === 1 ? [end[0], end[1], end[2]] : [x0 + t * dx, y0 + t * dy, z0 + t * dz];
-  };
-  var cuts = [0, 1];
-  var addCut = function (t) { if (t > 0 && t < 1) cuts.push(t); };
-  if (dz !== 0) {
-    var zLow = Math.min(z0, end[2]), zHigh = Math.max(z0, end[2]);
-    var jHigh = sectorAddressAt(0, 0, zHigh, edgePc).layer;
-    for (var j = sectorAddressAt(0, 0, zLow, edgePc).layer; j <= jHigh; j++) {
-      addCut(((j + 0.5) * edgePc - z0) / dz);
-    }
-  }
-  var a = dx * dx + dy * dy;
-  if (a > 0) {
-    var b = x0 * dx + y0 * dy;
-    var c = x0 * x0 + y0 * y0;
-    var tNear = Math.min(1, Math.max(0, -b / a));
-    addCut(tNear);
-    var near = at(tNear);
-    var ringLow = sectorAddressAt(near[0], near[1], 0, edgePc).ring;
-    var ringHigh = Math.max(sectorAddressAt(x0, y0, 0, edgePc).ring, sectorAddressAt(end[0], end[1], 0, edgePc).ring);
-    for (var i = Math.max(1, ringLow); i <= ringHigh; i++) {
-      var radius = i * edgePc;
-      var disc = b * b - a * (c - radius * radius);
-      if (disc < 0) continue;
-      var root = Math.sqrt(disc);
-      addCut((-b - root) / a);
-      addCut((-b + root) / a);
-    }
-  }
-  var byValue = function (p, q) { return p - q; };
-  var turn = x0 * dy - y0 * dx;
-  if (turn !== 0) {
-    var ordered = cuts.slice().sort(byValue);
-    for (var k = 0; k + 1 < ordered.length; k++) {
-      var ta = ordered[k], tb = ordered[k + 1];
-      var mid = at((ta + tb) / 2);
-      var n = ringSectorCount(sectorAddressAt(mid[0], mid[1], mid[2], edgePc).ring);
-      var sa = slotOfAngle(at(ta), n), sb = slotOfAngle(at(tb), n);
-      var first = turn > 0 ? sa : sb, last = turn > 0 ? sb : sa;
-      if (last < first) last += n;
-      var step = (2 * Math.PI) / n;
-      for (var f = first - 1; f < last + 3; f++) {
-        var phi = (((f % n) + n) % n) * step;
-        var ux = Math.cos(phi), uy = Math.sin(phi);
-        var denom = ux * dy - uy * dx;
-        if (denom === 0) continue;
-        var t = -(ux * y0 - uy * x0) / denom;
-        if (t > ta && t < tb) {
-          var p = at(t);
-          if (ux * p[0] + uy * p[1] > 0) cuts.push(t);
-        }
+// Every number up to SMOOTH_LIMIT whose prime factors are only 2, 3, 5 and 7, ascending.
+var SMOOTH_MULTIPLIERS = (function () {
+  var found = [];
+  for (var a = 1; a <= SMOOTH_LIMIT; a *= 2) {
+    for (var b = a; b <= SMOOTH_LIMIT; b *= 3) {
+      for (var c = b; c <= SMOOTH_LIMIT; c *= 5) {
+        for (var d = c; d <= SMOOTH_LIMIT; d *= 7) found.push(d);
       }
     }
   }
-  cuts.sort(byValue);
-  var out = [];
-  var known = new Set();
-  var visit = function (p) {
-    var s = sectorAddressAt(p[0], p[1], p[2], edgePc);
-    var key = s.ring + ':' + s.layer + ':' + s.slot;
-    if (!known.has(key)) {
-      known.add(key);
-      out.push(s);
-    }
-  };
-  for (var m = 0; m + 1 < cuts.length; m++) {
-    if (cuts[m] === cuts[m + 1]) continue;
-    visit(at(cuts[m]));
-    visit(at((cuts[m] + cuts[m + 1]) / 2));
+  return found.sort(function (p, q) { return p - q; });
+}());
+
+// bisect_left: the first index whose value is not below x.
+function bisectLeft(values, x) {
+  var lo = 0;
+  var hi = values.length;
+  while (lo < hi) {
+    var mid = (lo + hi) >> 1;
+    if (values[mid] < x) lo = mid + 1;
+    else hi = mid;
   }
-  visit(end);
-  return out;
+  return lo;
 }
 
-function slotOfAngle(p, n) {
-  var theta = Math.atan2(p[1], p[0]);
-  theta = theta < 0 ? theta + 2 * Math.PI : theta;
-  return Math.min(n - 1, Math.floor((theta * n) / (2 * Math.PI)));
+// bisect_right: the first index whose value is above x.
+function bisectRight(values, x) {
+  var lo = 0;
+  var hi = values.length;
+  while (lo < hi) {
+    var mid = (lo + hi) >> 1;
+    if (x < values[mid]) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo;
 }
 
-// One sector's cell as bounds: {r0, r1, t0, t1, z0, z1}.
-export function sectorCellBounds(ring, layer, slot, edgePc) {
-  var step = (2 * Math.PI) / ringSectorCount(ring);
+// The 7-smooth number nearest x in ratio (a tie goes to the lower), at least 1.
+function nearestSmooth(x) {
+  if (x <= 1.0) return 1;
+  var high = bisectLeft(SMOOTH_MULTIPLIERS, x);
+  if (high >= SMOOTH_MULTIPLIERS.length) throw new Error("wedge multiplier " + x + " is past the table");
+  var upper = SMOOTH_MULTIPLIERS[high];
+  if (upper === x) return upper;
+  var lower = SMOOTH_MULTIPLIERS[high - 1];
+  return x * x <= lower * upper ? lower : upper;
+}
+
+function makeLayout(shell, cap, bandCount, table) {
   return {
-    r0: ring * edgePc, r1: (ring + 1) * edgePc,
-    t0: slot * step, t1: (slot + 1) * step,
-    z0: (layer - 0.5) * edgePc, z1: (layer + 0.5) * edgePc,
+    shell: shell, cap: cap, bandCount: bandCount,
+    bandStep: bandCount ? (Math.PI - 2 * cap) / bandCount : 0.0,
+    highBand: Math.floor((bandCount - 1) / 2),
+    table: table,
   };
 }
 
-// The 8 corners of a cell given as bounds, galaxy frame. Index is
-// 4*r_bit + 2*z_bit + theta_bit, as galaxyGeometry.sector_cell_vertices_pc.
+var LAYOUT_CACHE_MAX = 20000;
+var layouts = new Map();
+
+// How one shell is cut: {shell, cap (alpha), bandCount (odd; 0 for the core),
+// bandStep, highBand, table (wedges per band for a hand-cut shell)}.
+export function shellLayout(shell) {
+  var layout = layouts.get(shell);
+  if (layout) return layout;
+  if (!(shell >= 0) || Math.floor(shell) !== shell) throw new Error("shell must be a whole number >= 0, got " + shell);
+  if (shell === 0) {
+    layout = makeLayout(0, 0.0, 0, null);
+  } else if (HAND_CUT_SHELLS[shell]) {
+    var cut = HAND_CUT_SHELLS[shell];
+    layout = makeLayout(shell, cut[0] * (Math.PI / 180), cut[1].length, cut[1]);
+  } else {
+    var alpha = Math.asin(CAP_CHORD_RADIUS_EDGES / shell);
+    var n = 2 * Math.floor(shell * (Math.PI - 2 * alpha) / BAND_ARC_EDGES / 2) + 1;
+    layout = makeLayout(shell, alpha, n, null);
+  }
+  if (layouts.size >= LAYOUT_CACHE_MAX) layouts.clear();
+  layouts.set(shell, layout);
+  return layout;
+}
+
+// Colatitude of the i-th band edge (0 .. bandCount), north to south, symmetric about the equator.
+function layoutEdge(layout, i) {
+  var n = layout.bandCount;
+  if (i <= Math.floor(n / 2)) return layout.cap + i * layout.bandStep;
+  return Math.PI - (layout.cap + (n - i) * layout.bandStep);
+}
+
+// [lowest, highest] band of a shell, caps included; [0, 0] for the core.
+export function bandRange(shell) {
+  if (shell === 0) return [0, 0];
+  var layout = shellLayout(shell);
+  return [-(layout.highBand + 1), layout.highBand + 1];
+}
+
+export function isCap(shell, band) {
+  return shell > 0 && Math.abs(band) === shellLayout(shell).highBand + 1;
+}
+
+function checkBand(shell, band) {
+  var range = bandRange(shell);
+  if (!(range[0] <= band && band <= range[1])) {
+    throw new Error("band " + band + " out of range for shell " + shell + " (holds " + range[0] + ".." + range[1] + ")");
+  }
+}
+
+// Wedges of the ordinary band `i` places south of the shell's top: the rule is worked out for the
+// northern one of a mirrored pair, so the two always agree.
+function wedgesAt(layout, i) {
+  if (layout.table) return layout.table[i];
+  i = Math.min(i, layout.bandCount - 1 - i);
+  var centre = (layoutEdge(layout, i) + layoutEdge(layout, i + 1)) / 2;
+  var arc = TWO_PI * layout.shell * Math.sin(centre) / BAND_ARC_EDGES;
+  return CAP_RIM_WEDGES * nearestSmooth(arc / CAP_RIM_WEDGES);
+}
+
+// How many wedges a band holds; a cap and the core are one cell.
+export function wedgeCount(shell, band) {
+  checkBand(shell, band);
+  if (shell === 0 || isCap(shell, band)) return 1;
+  var layout = shellLayout(shell);
+  return wedgesAt(layout, layout.highBand - band);
+}
+
+// [inner, outer] radius of shell `shell`, parsecs: the core is [0, e / 2].
+export function shellBoundsPc(shell, edgePc) {
+  if (shell === 0) return [0.0, edgePc / 2];
+  return [(shell - 0.5) * edgePc, (shell + 0.5) * edgePc];
+}
+
+// [north, south] colatitude of a band, radians from galactic north: a cap is [0, alpha] or
+// [pi - alpha, pi], the core [0, pi].
+export function bandColatitudeBounds(shell, band) {
+  checkBand(shell, band);
+  if (shell === 0) return [0.0, Math.PI];
+  var layout = shellLayout(shell);
+  if (isCap(shell, band)) {
+    return band > 0 ? [0.0, layout.cap] : [Math.PI - layout.cap, Math.PI];
+  }
+  var i = layout.highBand - band;
+  return [layoutEdge(layout, i), layoutEdge(layout, i + 1)];
+}
+
+// [start, end] longitude of one wedge, radians from +X counterclockwise.
+export function wedgeLongitudeBounds(shell, band, wedge) {
+  var n = checkWedge(shell, band, wedge);
+  var step = TWO_PI / n;
+  return [wedge * step, (wedge + 1) * step];
+}
+
+function checkWedge(shell, band, wedge) {
+  var n = wedgeCount(shell, band);
+  if (!(wedge >= 0 && wedge < n) || Math.floor(wedge) !== wedge) {
+    throw new Error("wedge " + wedge + " out of range for shell " + shell + " band " + band + " (holds " + n + " wedges)");
+  }
+  return n;
+}
+
+// [cylindrical radius, z] of a band's centre line, parsecs: where every wedge of the band has its centre.
+export function bandCentrePc(shell, band, edgePc) {
+  checkBand(shell, band);
+  if (shell === 0) return [0.0, 0.0];
+  var r = shell * edgePc;
+  if (isCap(shell, band)) return [0.0, band > 0 ? r : -r];
+  if (band === 0) return [r, 0.0];
+  var bounds = bandColatitudeBounds(shell, band);
+  var colat = (bounds[0] + bounds[1]) / 2;
+  return [r * Math.sin(colat), r * Math.cos(colat)];
+}
+
+// A sector's centre [x, y, z], parsecs: on its shell's centreline at the middle of its band's
+// colatitude and its wedge's longitude; a cap's is on the axis, the core's the origin.
+export function sectorPositionPc(shell, band, wedge, edgePc) {
+  checkWedge(shell, band, wedge);
+  var centre = bandCentrePc(shell, band, edgePc);
+  if (centre[0] === 0.0) return [0.0, 0.0, centre[1]];
+  var lon = wedgeLongitudeBounds(shell, band, wedge);
+  var mid = (lon[0] + lon[1]) / 2;
+  return [centre[0] * Math.cos(mid), centre[0] * Math.sin(mid), centre[1]];
+}
+
+// The shell whose [inner, outer) range holds a radius.
+export function shellIndexAt(radiusPc, edgePc) {
+  if (radiusPc < edgePc / 2) return 0;
+  var guess = Math.floor(radiusPc / edgePc + 0.5);
+  var bounds = shellBoundsPc(guess, edgePc);
+  if (radiusPc < bounds[0]) return guess - 1;
+  if (radiusPc >= bounds[1]) return guess + 1;
+  return guess;
+}
+
+function layoutBandAt(layout, colatitude) {
+  var alpha = layout.cap;
+  if (colatitude < alpha) return layout.highBand + 1;
+  if (colatitude >= Math.PI - alpha) return -(layout.highBand + 1);
+  var n = layout.bandCount;
+  var i = Math.min(n - 1, Math.max(0, Math.trunc((colatitude - alpha) / layout.bandStep)));
+  if (colatitude < layoutEdge(layout, i) && i > 0) i -= 1;
+  else if (colatitude >= layoutEdge(layout, i + 1) && i < n - 1) i += 1;
+  return layout.highBand - i;
+}
+
+// The band of shell `shell` holding a colatitude (radians from galactic north), a cap included.
+export function bandAt(shell, colatitude) {
+  if (shell === 0) return 0;
+  return layoutBandAt(shellLayout(shell), colatitude);
+}
+
+// Python's atan2(y, x) % (2 * pi), to the bit: a tiny negative angle becomes 2 * pi itself and
+// lands in the last wedge.
+function bearing(y, x) {
+  var theta = Math.atan2(y, x);
+  return theta < 0 ? theta + TWO_PI : theta + 0;
+}
+
+// The wedge of a band of `n` holding bearing `theta` in [0, 2 * pi]: each division-based guess is
+// checked against the wedge's own edges and moved by one if it rounded across one.
+function wedgeOfBearing(theta, n) {
+  if (n === 1) return 0;
+  var wedge = Math.min(n - 1, Math.floor((theta * n) / TWO_PI));
+  var step = TWO_PI / n;
+  if (wedge > 0 && theta < wedge * step) wedge -= 1;
+  else if (wedge < n - 1 && theta >= (wedge + 1) * step) wedge += 1;
+  return wedge;
+}
+
+// The (shell, band, wedge) cell holding galaxy-frame point (x, y, z).
+export function sectorAddressAt(x, y, z, edgePc) {
+  var radius = Math.sqrt(x * x + y * y + z * z);
+  var shell = shellIndexAt(radius, edgePc);
+  if (shell === 0) return { shell: 0, band: 0, wedge: 0 };
+  var layout = shellLayout(shell);
+  var band = layoutBandAt(layout, Math.atan2(Math.sqrt(x * x + y * y), z));
+  var n = wedgeCount(shell, band);
+  return { shell: shell, band: band, wedge: wedgeOfBearing(bearing(y, x), n) };
+}
+
+// One sector's cell as bounds: {r0, r1, c0, c1, t0, t1} -- radius, colatitude and longitude, the
+// colatitudes and longitudes in radians.
+export function sectorBounds(shell, band, wedge, edgePc) {
+  var radii = shellBoundsPc(shell, edgePc);
+  var colat = bandColatitudeBounds(shell, band);
+  var lon = wedgeLongitudeBounds(shell, band, wedge);
+  return { r0: radii[0], r1: radii[1], c0: colat[0], c1: colat[1], t0: lon[0], t1: lon[1] };
+}
+
+// The 8 corners of a cell given as bounds, galaxy frame. Index is 4*r_bit + 2*lat_bit + lon_bit, as
+// spherical.sector_cell_vertices_pc: corners i and i ^ 1, i ^ 2, i ^ 4 share an edge.
 export function cellVertices(b) {
   var out = [];
   [b.r0, b.r1].forEach(function (r) {
-    [b.z0, b.z1].forEach(function (z) {
+    [b.c0, b.c1].forEach(function (c) {
       [b.t0, b.t1].forEach(function (t) {
-        out.push([r * Math.cos(t), r * Math.sin(t), z]);
+        var s = r * Math.sin(c);
+        out.push([s * Math.cos(t), s * Math.sin(t), r * Math.cos(c)]);
       });
     });
   });
   return out;
 }
 
-// A cell's center (ring centerline, middle angle, mid height) in the three
-// coordinate systems the map shows: Cartesian (x, y, z), cylindrical
+// Whether a cell's longitude runs the whole way round (a cap or the core): it has no meridian sides.
+export function isFullTurn(b) {
+  return b.t1 - b.t0 >= TWO_PI - 1e-9;
+}
+
+// A cell's middle: halfway between its radii, colatitudes and longitudes; a cell all the way round
+// (a cap, the core) sits on the axis.
+export function cellCenter(b) {
+  var r = (b.r0 + b.r1) / 2;
+  var c = (b.c0 + b.c1) / 2;
+  if (isFullTurn(b)) return [0, 0, r * Math.cos(c)];
+  var t = (b.t0 + b.t1) / 2;
+  var s = r * Math.sin(c);
+  return [s * Math.cos(t), s * Math.sin(t), r * Math.cos(c)];
+}
+
+// A cell's center in the three coordinate systems the map shows: Cartesian (x, y, z), cylindrical
 // (R, theta, z) and spherical (r, theta, polar angle from galactic north).
 export function cellCoordinates(b) {
-  var r = (b.r0 + b.r1) / 2;
-  var t = (b.t0 + b.t1) / 2;
-  var z = (b.z0 + b.z1) / 2;
-  var x = r * Math.cos(t);
-  var y = r * Math.sin(t);
-  var rho = Math.sqrt(x * x + y * y + z * z);
+  var p = cellCenter(b);
+  var t = isFullTurn(b) ? 0 : (b.t0 + b.t1) / 2;
+  var rho = Math.sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
   return {
-    cartesian: [x, y, z],
-    cylindrical: [r, t, z],
-    spherical: [rho, t, rho > 0 ? Math.acos(z / rho) : 0],
+    cartesian: p,
+    cylindrical: [Math.hypot(p[0], p[1]), t, p[2]],
+    spherical: [rho, t, rho > 0 ? Math.acos(p[2] / rho) : 0],
   };
 }
 
-// --- Mega-blocks -------------------------------------------------------------
-//
-// Zoomed out, one prism stands for a block of whole sectors, m a side,
-// where m is a power of three. The block grid is the sector grid scaled by
-// m: block ring I covers sector rings I*m .. I*m + m - 1, and block layer S
-// covers sector layers S*m - (m-1)/2 .. S*m + (m-1)/2, so its top and bottom
-// sit on sector layer walls and block layer 0 still straddles the plane
-// (an even m would split sector layer 0). At m = 1 a block is one sector.
-//
-// Block wedges follow the master wedges of the block's innermost ring
-// (ringMasterCount; a member ring in a later zone has twice as many, so
-// its master lines include these). blockWedgeCount aims for
-// round(2 * pi * (I + 1/2)) wedges, so a block is about m edges long, and
-// takes the nearest count that is a divisor or a multiple of the master
-// count, as long as that is within BLOCK_WEDGE_TOLERANCE of the aim:
-// - A divisor (large m, out in the disk): every wedge side is a master
-//   line, so a slot wall in every member ring, and the block is exactly
-//   the sectors inside its outline.
-// - A multiple: each master wedge split into equal parts. The split lines
-//   don't follow slot walls.
-// - Neither close enough: the aim itself, not aligned.
-// A sector belongs to the block its slot's center falls in, which for an
-// aligned block is simply the sectors inside it, so every sector is in
-// exactly one block. Blocks hold m^3 sectors give or take 20% (a third
-// at m = 3, where a block holds only a few slots per ring).
-
-// A block is at least this many CSS pixels across at the view's focus.
-// Finer than that, single blocks stop being something a viewer can pick
-// out or click. The page passes its own (data.blockMinPx, from
-// planetgen/web/maps/galaxymap3d.py); this is the default.
-export var BLOCK_MIN_PX = 4;
-// The most blocks one view draws (default; the page passes
-// data.blockBudget). Past it, blocks get three times bigger.
-export var BLOCK_BUDGET = 60000;
-// How far off round(2 * pi * (I + 1/2)) a master-aligned wedge count may
-// be before blockWedgeCount gives up on alignment. Tighter keeps blocks
-// closer to m^3 sectors but aligns fewer of them: at 1.2, 87% of block
-// rings are aligned at m = 27 and 96% at m = 81.
-var BLOCK_WEDGE_TOLERANCE = 1.2;
-// Density caches (see blocksInView) are cleared past this many entries.
-var DENSITY_CACHE_MAX = 200000;
-
-function isPowerOfThree(m) {
-  while (m > 1 && m % 3 === 0) m /= 3;
-  return m === 1;
+// Whether galaxy-frame point (x, y, z) lies in a cell given as bounds (lower faces inclusive, upper
+// exclusive, as the grid holds a point).
+export function boundsContain(b, x, y, z) {
+  var r = Math.sqrt(x * x + y * y + z * z);
+  if (r < b.r0 || r >= b.r1) return false;
+  if (r === 0) return true;
+  var colat = Math.atan2(Math.sqrt(x * x + y * y), z);
+  if (colat < b.c0 || (colat >= b.c1 && b.c1 < Math.PI)) return false;
+  if (isFullTurn(b) || (x === 0 && y === 0)) return true;
+  var t = bearing(y, x);
+  return t >= b.t0 && t < b.t1;
 }
 
-// Sectors per block side for a view with pcPerPixel parsecs per CSS pixel
-// at its focus: the smallest power of 3 with m * edge >= minPx *
-// pcPerPixel, so one block always covers at least a pixel's worth of
-// sectors. Capped where the whole disk is a handful of block rings
-// (galaxyRadius / 3 across), since bigger blocks only lose the shape.
-export function blockSizeForScale(pcPerPixel, edgePc, minPx, galaxyRadius) {
-  var need = ((minPx || BLOCK_MIN_PX) * (pcPerPixel || 0)) / edgePc;
-  var cap = galaxyRadius > 0 ? galaxyRadius / (3 * edgePc) : Infinity;
-  var m = 1;
-  while (m < need && m * 3 <= cap) {
-    m *= 3;
-  }
-  return m;
+// provisional_sector_designation's hex code: shell << 28 | (band + 2048) << 16 | wedge (BigInt, since it runs
+// past 32 bits).
+export function sectorDesignation(shell, band, wedge) {
+  var packed = (((BigInt(shell) << DESIGNATION_BAND_BITS) | BigInt(band + DESIGNATION_BAND_BIAS)) << DESIGNATION_WEDGE_BITS)
+    | BigInt(wedge);
+  return packed.toString(16).toUpperCase();
 }
 
-// Wedges in block ring `ring` for blocks m sectors a side (see above).
-export function blockWedgeCount(ring, m) {
-  if (m === 1) return ringSectorCount(ring);
-  var masters = ringMasterCount(ring * m);
-  var target = Math.max(3, Math.round(2 * Math.PI * (ring + 0.5)));
-  var best = masters * Math.max(1, Math.round(target / masters));
-  // Master counts are 3 * 2^n, so their divisors are 2^j and 3 * 2^j.
-  for (var d = 1; d < masters; d *= 2) {
-    [d, 3 * d].forEach(function (w) {
-      if (w < masters && Math.abs(Math.log(w / target)) < Math.abs(Math.log(best / target))) {
-        best = w;
-      }
-    });
-  }
-  return Math.abs(Math.log(best / target)) <= Math.log(BLOCK_WEDGE_TOLERANCE) ? best : target;
+// sectorDesignation's inverse, or null for anything that isn't one (not hex, past 40 bits, or not a cell of the grid).
+export function parseSectorDesignation(text) {
+  var hex = String(text == null ? "" : text).trim();
+  if (!/^[0-9A-Fa-f]{1,10}$/.test(hex)) return null;
+  var packed = BigInt("0x" + hex);
+  var wedge = Number(packed & ((1n << DESIGNATION_WEDGE_BITS) - 1n));
+  var band = Number((packed >> DESIGNATION_WEDGE_BITS) & ((1n << DESIGNATION_BAND_BITS) - 1n)) - DESIGNATION_BAND_BIAS;
+  var shell = Number(packed >> (DESIGNATION_WEDGE_BITS + DESIGNATION_BAND_BITS));
+  if (!cellExists(shell, band, wedge)) return null;
+  return { shell: shell, band: band, wedge: wedge };
 }
 
-// Sector address ranges a block covers: {ringFirst, ringLast, layerFirst,
-// layerLast} (inclusive). Its slots are those whose centers fall in its
-// wedge in each member ring (see blockSlotRange).
-export function blockSectorRanges(ring, slab, m) {
-  var half = (m - 1) / 2;
-  return {
-    ringFirst: ring * m, ringLast: ring * m + m - 1,
-    layerFirst: slab * m - half, layerLast: slab * m + half,
-  };
-}
-
-// The slots of sector ring `sectorRing` inside wedge `seg` of block ring
-// `ring`: {first, last} (inclusive; last < first when none). `wedges`
-// (optional) is blockWedgeCount(ring, m), when the caller has it.
-export function blockSlotRange(ring, seg, m, sectorRing, wedges) {
-  wedges = wedges || blockWedgeCount(ring, m);
-  var n = ringSectorCount(sectorRing);
-  // Slot k's center is at (k + 1/2) / n of a turn; it is in the wedge when
-  // seg / wedges <= (k + 1/2) / n < (seg + 1) / wedges. Integer math, so
-  // wedge sides on slot walls never round the wrong way.
-  var first = Math.ceil((2 * seg * n - wedges) / (2 * wedges));
-  var last = Math.ceil((2 * (seg + 1) * n - wedges) / (2 * wedges)) - 1;
-  return { first: Math.max(0, first), last: Math.min(n - 1, last) };
+// Whether (shell, band, wedge) is a cell of the grid.
+export function cellExists(shell, band, wedge) {
+  if (!Number.isSafeInteger(shell) || !Number.isSafeInteger(band) || !Number.isSafeInteger(wedge)) return false;
+  if (shell < 0 || shell >= 4096 || wedge < 0) return false;
+  var range = bandRange(shell);
+  if (band < range[0] || band > range[1]) return false;
+  return wedge < wedgeCount(shell, band);
 }
 
 // --- Drill-down ladder ------------------------------------------------------
 //
-// The drill-down's nested blocks (docs/design/galaxy-drilldown-navigation.md,
-// section 3, 3-ary since MAP.151b): 243, 81, 27, 9, 3 and 1 sectors a side,
-// each block wholly inside one block of the next size up. A block is {m, ring, wedge, slab}; at m = 1 it
-// is a sector, with the slot as `wedge` and the layer as `slab`.
-// planetgen/galaxy/drill.py is the same rules for the server, and
-// tests/test_galaxydrill.py checks that the two agree.
+// The drill-down's nested blocks (docs/design/spherical-block-ladder.md):
+// 243, 81, 27, 9 and 3 shells deep and a sector (1), each block wholly inside
+// one block of the next size up by counts. A block is {m, shell, band, wedge}:
+// block shell `shell` holds the sector shells shell*m .. shell*m + m - 1 (its
+// centreline radius is shell*m + (m - 1)/2 edges), `band` is a signed row of
+// blocks (0 the equatorial row) and `wedge` one of the row's equal longitude
+// steps. At m = 1 it is a sector as spherical.py names it. A sector joins the
+// level-3 block holding its centre. planetgen/galaxy/drill.py is the same
+// rules for the server, and tests/test_galaxyprisms.py checks the two agree.
 
 export var DRILL_LEVELS = [243, 81, 27, 9, 3, 1];
 
-// How many child blocks a side one block holds, at every level.
+// How many child block shells deep one block is, at every level.
 var DRILL_STEP = 3;
+var DRILL_TOP = 243;
 
-function drillTarget(ring) {
-  return Math.max(3, Math.round(2 * Math.PI * (ring + 0.5)));
+function jsRound(x) {
+  return Math.floor(x + 0.5);
 }
 
-// Wedges in block ring `ring` at size m. 243 keeps blockWedgeCount; 81, 27,
-// 9 and 3 take the parent ring's count times max(1, round(target / parent)), so
-// every parent wedge line is also a child wedge line; 1 is the ring's
-// slots.
-export function drillWedgeCount(m, ring) {
-  if (m === 1) return ringSectorCount(ring);
-  if (m === 243) return blockWedgeCount(ring, 243);
-  var parent = drillWedgeCount(m * DRILL_STEP, Math.floor(ring / DRILL_STEP));
-  return parent * Math.max(1, Math.round(drillTarget(ring) / parent));
+// The odd integer nearest x, a tie going up, and at least 1.
+function oddRound(x) {
+  return Math.max(1, 2 * Math.floor(x / 2) + 1);
 }
 
-// The block one size up holding `block`, or null at 243. A sector joins
-// the level-3 wedge holding its slot's center.
+// Centreline radius of block shell `shell` at size m, in edges.
+export function blockRadius(m, shell) {
+  return shell * m + (m - 1) / 2;
+}
+
+var LEVEL_INDEX = { 243: 0, 81: 1, 27: 2, 9: 3, 3: 4 };
+
+function ladderKey(m, shell, band) {
+  return ((LEVEL_INDEX[m] * 8192 + shell) * 16384) + band + 8192;
+}
+
+var bandCounts = new Map();
+var wedgeCounts = new Map();
+var LADDER_CACHE_MAX = 600000;
+
+function checkLevel(m) {
+  if (LEVEL_INDEX[m] === undefined) throw new Error("block size must be one of 243, 81, 27, 9, 3, got " + m);
+}
+
+// Rows of blocks in block shell `shell` at size m (always odd): 243 takes the odd integer nearest
+// pi * R / m; the others the parent block shell's count times the odd integer nearest that over the parent's.
+export function drillBandCount(m, shell) {
+  checkLevel(m);
+  var key = LEVEL_INDEX[m] * 8192 + shell;
+  var cached = bandCounts.get(key);
+  if (cached !== undefined) return cached;
+  var target = Math.PI * blockRadius(m, shell) / m;
+  var count;
+  if (m === DRILL_TOP) {
+    count = oddRound(target);
+  } else {
+    var parent = drillBandCount(m * DRILL_STEP, Math.floor(shell / DRILL_STEP));
+    count = parent * oddRound(target / parent);
+  }
+  bandCounts.set(key, count);
+  return count;
+}
+
+// The signed row of the parent block shell holding row `band`.
+function parentBandOf(m, shell, band) {
+  var count = drillBandCount(m, shell);
+  var parentCount = drillBandCount(m * DRILL_STEP, Math.floor(shell / DRILL_STEP));
+  var row = (count - 1) / 2 - band;
+  var parentRow = Math.floor(row / (count / parentCount));
+  return (parentCount - 1) / 2 - parentRow;
+}
+
+// The north-to-south index of a signed row.
+function rowOf(m, shell, band) {
+  var count = drillBandCount(m, shell);
+  var row = (count - 1) / 2 - band;
+  if (!(row >= 0 && row < count)) {
+    throw new Error("band " + band + " is not a row of block shell " + shell + " at size " + m);
+  }
+  return row;
+}
+
+// Wedges in row `band` of block shell `shell` at size m: 243 takes round(2 pi R sin(theta) / m), theta the
+// row's centre colatitude; the others the parent row's count times max(1, round(that over the parent's)).
+export function drillWedgeCount(m, shell, band) {
+  if (m === 1) return wedgeCount(shell, band);
+  checkLevel(m);
+  if (wedgeCounts.size > LADDER_CACHE_MAX) wedgeCounts.clear();
+  var key = ladderKey(m, shell, band);
+  var cached = wedgeCounts.get(key);
+  if (cached !== undefined) return cached;
+  var count = drillBandCount(m, shell);
+  var row = rowOf(m, shell, band);
+  var theta = (row + 0.5) * Math.PI / count;
+  var target = 2 * Math.PI * blockRadius(m, shell) * Math.sin(theta) / m;
+  var wedges;
+  if (m === DRILL_TOP) {
+    wedges = Math.max(1, jsRound(target));
+  } else {
+    var parent = drillWedgeCount(m * DRILL_STEP, Math.floor(shell / DRILL_STEP), parentBandOf(m, shell, band));
+    wedges = parent * Math.max(1, jsRound(target / parent));
+  }
+  wedgeCounts.set(key, wedges);
+  return wedges;
+}
+
+// The row (signed) of block shell `shell` at size m holding a colatitude; the poles go to the end rows.
+function centreRow(m, shell, colatitude) {
+  var count = drillBandCount(m, shell);
+  var row = Math.min(count - 1, Math.max(0, Math.floor(colatitude * count / Math.PI)));
+  return (count - 1) / 2 - row;
+}
+
+// The colatitude a sector's centre lies at: the middle of its band, the plane for band 0, the axis for a
+// cap, and pi / 2 for the core.
+export function cellColatitude(shell, band) {
+  if (shell === 0) return Math.PI / 2;
+  if (isCap(shell, band)) return band > 0 ? 0.0 : Math.PI;
+  if (band === 0) return Math.PI / 2;
+  var bounds = bandColatitudeBounds(shell, band);
+  return (bounds[0] + bounds[1]) / 2;
+}
+
+// The block wedge holding a sector wedge's centre longitude, in integers; a centre exactly on a meridian
+// goes to the higher wedge.
+function cellWedgeIn(cellWedges, cellWedge, blockWedges) {
+  return Math.floor(((2 * cellWedge + 1) * blockWedges) / (2 * cellWedges));
+}
+
+// The block one size up holding `block` ({m, shell, band, wedge}, or a sector at m = 1), or null at 243.
 export function drillParent(block) {
   var m = block.m;
-  if (m === 243) return null;
   if (m === 1) {
-    var ring3 = Math.floor(block.ring / DRILL_STEP);
+    var parentShell = Math.floor(block.shell / DRILL_STEP);
+    var parentBand = centreRow(DRILL_STEP, parentShell, cellColatitude(block.shell, block.band));
+    if (block.shell === 0 || isCap(block.shell, block.band)) {
+      return { m: DRILL_STEP, shell: parentShell, band: parentBand, wedge: 0 };
+    }
+    var parentWedges = drillWedgeCount(DRILL_STEP, parentShell, parentBand);
     return {
-      m: 3, ring: ring3,
-      wedge: Math.floor(((2 * block.wedge + 1) * drillWedgeCount(3, ring3)) / (2 * ringSectorCount(block.ring))),
-      slab: Math.floor((block.slab + 1) / DRILL_STEP),
+      m: DRILL_STEP, shell: parentShell, band: parentBand,
+      wedge: cellWedgeIn(wedgeCount(block.shell, block.band), block.wedge, parentWedges),
     };
   }
-  var ring = Math.floor(block.ring / DRILL_STEP);
-  var q = drillWedgeCount(m, block.ring) / drillWedgeCount(m * DRILL_STEP, ring);
-  return { m: m * DRILL_STEP, ring: ring, wedge: Math.floor(block.wedge / q), slab: Math.floor((block.slab + 1) / DRILL_STEP) };
+  checkLevel(m);
+  if (m === DRILL_TOP) return null;
+  var shell = Math.floor(block.shell / DRILL_STEP);
+  var band = parentBandOf(m, block.shell, block.band);
+  var q = drillWedgeCount(m, block.shell, block.band) / drillWedgeCount(m * DRILL_STEP, shell, band);
+  return { m: m * DRILL_STEP, shell: shell, band: band, wedge: Math.floor(block.wedge / q) };
 }
 
-// Sector (ring, layer, slot)'s blocks from the top: [243, 81, 27, 9, 3, sector].
-export function drillChainOf(ring, layer, slot) {
-  var chain = [{ m: 1, ring: ring, wedge: slot, slab: layer }];
-  while (chain[chain.length - 1].m !== 243) chain.push(drillParent(chain[chain.length - 1]));
+// Sector (shell, band, wedge)'s blocks from the top: [243, 81, 27, 9, 3, sector].
+export function drillChainOf(shell, band, wedge) {
+  var chain = [{ m: 1, shell: shell, band: band, wedge: wedge }];
+  while (chain[chain.length - 1].m !== DRILL_TOP) chain.push(drillParent(chain[chain.length - 1]));
   return chain.reverse();
 }
 
-// The galaxy home's blocks grouped by slab, lowest first: [{slab, blocks}]:
-// every level-243 block out to sector ring maxRing on the slabs reaching
-// maxLayer (the outline's galaxy_layer), or just slab 0 without one.
-// Whether the outline allows any sector in them is the stage's job.
-export function galaxyBlockGroups(maxRing, maxLayer) {
-  var hi = maxLayer == null ? 0 : Math.floor((maxLayer + 121) / 243);
-  var groups = [];
-  for (var slab = -hi; slab <= hi; slab++) {
-    var blocks = [];
-    for (var r = 0; r <= Math.floor(maxRing / 243); r++) {
-      for (var w = 0; w < drillWedgeCount(243, r); w++) blocks.push({ m: 243, ring: r, wedge: w, slab: slab });
-    }
-    groups.push({ slab: slab, blocks: blocks });
-  }
-  return groups;
-}
-
-// "m.ring.wedge.slab", a stage URL's `at`.
+// "m.shell.band.wedge", a stage URL's `at`.
 export function formatDrillKey(block) {
-  return [block.m, block.ring, block.wedge, block.slab].join(".");
+  return [block.m, block.shell, block.band, block.wedge].join(".");
 }
 
-// A drill block's bounds, {r0, r1, t0, t1, z0, z1}: rings ring*m to
-// ring*m + m - 1, its wedge of drillWedgeCount(m, ring), and slab*m's
-// layers +/- (m - 1)/2. At m = 1, the sector's own cell.
+export function sameBlock(a, b) {
+  if (!a || !b) return a === b;
+  return a.m === b.m && a.shell === b.shell && a.band === b.band && a.wedge === b.wedge;
+}
+
+// A block's bounds, {r0, r1, c0, c1, t0, t1}: the radii of its sector shells, its row's colatitudes (equal
+// steps of the block shell's rows) and its wedge's longitudes. Block shell 0's inner radius is 0. At m = 1,
+// the sector's own cell.
 export function drillBlockBounds(block, edgePc) {
-  var size = block.m * edgePc;
-  var dTheta = (2 * Math.PI) / drillWedgeCount(block.m, block.ring);
+  var m = block.m;
+  if (m === 1) return sectorBounds(block.shell, block.band, block.wedge, edgePc);
+  checkLevel(m);
+  var rows = drillBandCount(m, block.shell);
+  var row = rowOf(m, block.shell, block.band);
+  var step = TWO_PI / drillWedgeCount(m, block.shell, block.band);
   return {
-    r0: block.ring * size, r1: (block.ring + 1) * size,
-    t0: block.wedge * dTheta, t1: (block.wedge + 1) * dTheta,
-    z0: (block.slab - 0.5) * size, z1: (block.slab + 0.5) * size,
+    r0: block.shell === 0 ? 0.0 : (block.shell * m - 0.5) * edgePc,
+    r1: ((block.shell + 1) * m - 0.5) * edgePc,
+    c0: row * Math.PI / rows, c1: (row + 1) * Math.PI / rows,
+    t0: block.wedge * step, t1: (block.wedge + 1) * step,
   };
 }
 
-// The slots of sector ring `sectorRing` in drill block `block` (whose
-// rings hold it): the slots whose centers fall in its wedge, {first,
-// last} (last < first when none). The wedges nest, so these are exactly
-// the slots whose chain passes through `block`.
-export function drillSlotRange(block, sectorRing) {
-  if (block.m === 1) return { first: block.wedge, last: block.wedge };
-  return blockSlotRange(block.ring, block.wedge, block.m, sectorRing, drillWedgeCount(block.m, block.ring));
+// Whether {m, shell, band, wedge} is a block (or sector) of the ladder.
+export function isBlock(block) {
+  var m = block.m;
+  if (DRILL_LEVELS.indexOf(m) < 0) return false;
+  if (!Number.isSafeInteger(block.shell) || !Number.isSafeInteger(block.band) || !Number.isSafeInteger(block.wedge)) return false;
+  if (block.shell < 0 || block.wedge < 0) return false;
+  if (m === 1) return cellExists(block.shell, block.band, block.wedge);
+  if (block.shell >= 8192) return false;
+  var rows = drillBandCount(m, block.shell);
+  if (Math.abs(block.band) > (rows - 1) / 2) return false;
+  return block.wedge < drillWedgeCount(m, block.shell, block.band);
+}
+
+// The colatitude of a block row's centre (rows are equal steps from the north pole).
+function blockColatitude(m, shell, band) {
+  var rows = drillBandCount(m, shell);
+  return ((rows - 1) / 2 - band + 0.5) * Math.PI / rows;
+}
+
+// A cell's centre in parsecs, [x, y, z]: a sector's own, a block's at its block shell's centreline radius, its
+// row's centre colatitude and its wedge's centre longitude (window.cell_position_pc).
+export function cellPositionPc(cell, edgePc) {
+  if (cell.m === 1) return sectorPositionPc(cell.shell, cell.band, cell.wedge, edgePc);
+  var radius = blockRadius(cell.m, cell.shell) * edgePc;
+  var colat = blockColatitude(cell.m, cell.shell, cell.band);
+  var lon = (cell.wedge + 0.5) * TWO_PI / drillWedgeCount(cell.m, cell.shell, cell.band);
+  var plane = radius * Math.sin(colat);
+  return [plane * Math.cos(lon), plane * Math.sin(lon), radius * Math.cos(colat)];
+}
+
+// The cell of size `m` (a block size, or 1 for a sector) holding galaxy-frame point (x, y, z). A block is found
+// by its block shell, row and wedge; a sector by the grid.
+export function cellAt(m, x, y, z, edgePc) {
+  if (m === 1) {
+    var s = sectorAddressAt(x, y, z, edgePc);
+    return { m: 1, shell: s.shell, band: s.band, wedge: s.wedge };
+  }
+  checkLevel(m);
+  var radius = Math.sqrt(x * x + y * y + z * z) / edgePc;
+  var shell = Math.max(0, Math.floor((radius + 0.5) / m));
+  var rows = drillBandCount(m, shell);
+  var colat = Math.atan2(Math.sqrt(x * x + y * y), z);
+  var row = Math.min(rows - 1, Math.max(0, Math.floor(colat * rows / Math.PI)));
+  var band = (rows - 1) / 2 - row;
+  var wedges = drillWedgeCount(m, shell, band);
+  var wedge = wedgeOfBearing(bearing(y, x), wedges);
+  return { m: m, shell: shell, band: band, wedge: wedge };
 }
 
 // --- The data window ---------------------------------------------------------
 //
 // planetgen/galaxy/window.py (MAP.151) for the page: `g` cells across around
-// a chosen cell of one level, the cells whose centres lie within g/2 cells of
-// the middle one across the plane and (g - 1)/2 slabs of its layer, in
-// slab, ring, wedge order. The lattice is the sector grid scaled by the cell
-// size, so no edge length is needed: a block m sectors a side has its ring
-// centreline at (ring + 1/2) * m edges, its wedge centre at (wedge + 1/2) of
-// drillWedgeCount(m, ring) turns and its slab midplane at slab * m edges.
-// tests/test_window.py checks the two agree.
+// a chosen cell of one level, a ball: every cell of the centre's level whose
+// centre lies within g * m / 2 edges of the centre cell's centre, found per
+// shell in closed form (a ball meets a sphere in a cap, so the bands to look
+// at are those within the cap's angular radius, and in each the wedges within
+// a longitude half-width). tests/test_galaxyprisms.py checks the two agree.
 
 export var WINDOW_WIDTHS = [3, 5, 7, 9, 11];
 export var DEFAULT_WINDOW = 9;
-var WINDOW_EPS = 1e-9;
+var TOLERANCE_PC = 1e-9;
 
-// The wedges of ring `ring` inside the window's circle, {first, count,
-// whole} (count wedges from `first`, wrapping past the ring's last), or
-// null when it reaches none: Region._ring_arc.
-function windowArc(m, ring, cx, cy, reach) {
-  var n = drillWedgeCount(m, ring);
-  var rm = (ring + 0.5) * m;
-  var rc = Math.hypot(cx, cy);
-  if (Math.abs(rm - rc) > reach + WINDOW_EPS) return null;
-  if (rc < WINDOW_EPS || rm + rc <= reach) return { first: 0, count: n, whole: true };
-  function inside(k) {
-    var theta = (k + 0.5) * 2 * Math.PI / n;
-    return Math.hypot(rm * Math.cos(theta) - cx, rm * Math.sin(theta) - cy) <= reach + WINDOW_EPS;
+var bandCache = new Map();
+var BAND_CACHE_MAX = 400;
+
+// The sector bands of a shell north to south with their centre colatitudes: {bands, centres}.
+function shellBands(shell) {
+  var cached = bandCache.get(shell);
+  if (cached) return cached;
+  var range = bandRange(shell);
+  var bands = [];
+  var centres = [];
+  for (var b = range[1]; b >= range[0]; b--) {
+    bands.push(b);
+    centres.push(cellColatitude(shell, b));
   }
-  function mod(k) { return ((k % n) + n) % n; }
-  var step = 2 * Math.PI / n;
-  var halfWidth = Math.acos(Math.max(-1, Math.min(1, (rm * rm + rc * rc - reach * reach) / (2 * rm * rc))));
-  var thetaC = Math.atan2(cy, cx);
-  var first = Math.ceil((thetaC - halfWidth) / step - 0.5 - WINDOW_EPS);
-  var last = Math.floor((thetaC + halfWidth) / step - 0.5 + WINDOW_EPS);
-  var count = last - first + 1;
-  // The angles can be a hair off at the arc's ends; the exact distance
-  // decides the end wedges, one step either way.
-  while (count < n && inside(mod(first - 1))) { first -= 1; count += 1; }
-  while (count < n && inside(mod(first + count))) count += 1;
-  while (count > 0 && !inside(mod(first))) { first += 1; count -= 1; }
-  while (count > 0 && !inside(mod(first + count - 1))) count -= 1;
-  if (count <= 0) return null;
-  if (count >= n) return { first: 0, count: n, whole: true };
-  return { first: mod(first), count: count, whole: false };
+  if (bandCache.size >= BAND_CACHE_MAX) bandCache.clear();
+  cached = { bands: bands, centres: centres };
+  bandCache.set(shell, cached);
+  return cached;
 }
 
-// The window's cells, [{m, ring, wedge, slab}]: `centre` is a cell of any
-// level (a sector as {m: 1, ring, wedge: slot, slab: layer}) and `g` one of
-// WINDOW_WIDTHS (default DEFAULT_WINDOW).
-export function windowCells(centre, g) {
-  g = g || DEFAULT_WINDOW;
-  var m = centre.m;
-  var n0 = drillWedgeCount(m, centre.ring);
-  var theta0 = (centre.wedge + 0.5) * 2 * Math.PI / n0;
-  var r0 = (centre.ring + 0.5) * m;
-  var cx = r0 * Math.cos(theta0);
-  var cy = r0 * Math.sin(theta0);
-  var reach = g * m / 2;
-  var rc = Math.hypot(cx, cy);
-  var low = Math.max(0, Math.ceil((rc - reach) / m - 0.5 - WINDOW_EPS));
-  var high = Math.floor((rc + reach) / m - 0.5 + WINDOW_EPS);
-  var arcs = [];
-  for (var ring = low; ring <= high; ring++) {
-    var arc = windowArc(m, ring, cx, cy, reach);
-    if (arc) arcs.push({ ring: ring, first: arc.first, count: arc.count, wedges: drillWedgeCount(m, ring) });
-  }
-  var half = (g - 1) / 2;
-  var cells = [];
-  for (var slab = centre.slab - half; slab <= centre.slab + half; slab++) {
-    for (var a = 0; a < arcs.length; a++) {
-      for (var k = 0; k < arcs[a].count; k++) {
-        cells.push({ m: m, ring: arcs[a].ring, wedge: (arcs[a].first + k) % arcs[a].wedges, slab: slab });
-      }
+// The shell ids of level m (block shells, or sector shells for 1) whose centreline radius lies in [low, high] (pc),
+// with that radius.
+function levelShells(m, lowPc, highPc, edgePc) {
+  var out = [];
+  if (m === 1) {
+    var first = Math.max(0, Math.floor(lowPc / edgePc));
+    var last = Math.ceil(highPc / edgePc);
+    for (var k = first; k <= last; k++) {
+      if (lowPc <= k * edgePc && k * edgePc <= highPc) out.push([k, k * edgePc]);
     }
+    return out;
+  }
+  var firstBlock = Math.max(0, Math.floor((lowPc / edgePc - (m - 1) / 2) / m));
+  var lastBlock = Math.ceil((highPc / edgePc - (m - 1) / 2) / m);
+  for (var s = firstBlock; s <= lastBlock; s++) {
+    var radius = blockRadius(m, s) * edgePc;
+    if (lowPc <= radius && radius <= highPc) out.push([s, radius]);
+  }
+  return out;
+}
+
+// [band, centre colatitude] of the rows (blocks) or bands (sectors) of one shell whose centre colatitude lies in
+// [lowColat, highColat], north to south.
+function windowBands(m, shell, lowColat, highColat) {
+  var bands;
+  var centres;
+  if (m === 1) {
+    if (shell === 0) return [[0, Math.PI / 2]];
+    var cached = shellBands(shell);
+    bands = cached.bands;
+    centres = cached.centres;
+  } else {
+    var rows = drillBandCount(m, shell);
+    bands = [];
+    centres = [];
+    for (var b = (rows - 1) / 2; b >= -(rows - 1) / 2; b--) {
+      bands.push(b);
+      centres.push(blockColatitude(m, shell, b));
+    }
+  }
+  var start = bisectLeft(centres, lowColat);
+  var stop = bisectRight(centres, highColat);
+  var out = [];
+  for (var i = start; i < stop; i++) out.push([bands[i], centres[i]]);
+  return out;
+}
+
+// The wedges of a band of `count` whose centre longitude may lie within `halfWidth` of `lon0` (a superset).
+function wedgeCandidates(count, lon0, halfWidth) {
+  var all = [];
+  if (halfWidth >= Math.PI || count === 1) {
+    for (var w = 0; w < count; w++) all.push(w);
+    return all;
+  }
+  var step = TWO_PI / count;
+  var first = Math.floor((lon0 - halfWidth) / step - 0.5);
+  var last = Math.ceil((lon0 + halfWidth) / step - 0.5);
+  var seen = new Set();
+  for (var k = first; k <= last; k++) seen.add(((k % count) + count) % count);
+  return Array.from(seen).sort(function (p, q) { return p - q; });
+}
+
+// The cells of level m (a block size, or 1 for sectors) whose centre lies within `reachPc` of `centrePc`, ordered
+// by shell, then band north to south, then wedge.
+export function cellsInBall(m, centrePc, reachPc, edgePc) {
+  var x0 = centrePc[0];
+  var y0 = centrePc[1];
+  var z0 = centrePc[2];
+  var rho0 = Math.sqrt(x0 * x0 + y0 * y0 + z0 * z0);
+  var theta0 = rho0 ? Math.acos(Math.max(-1.0, Math.min(1.0, z0 / rho0))) : 0.0;
+  var lon0 = Math.atan2(y0, x0);
+  var cells = [];
+  levelShells(m, rho0 - reachPc - TOLERANCE_PC, rho0 + reachPc + TOLERANCE_PC, edgePc).forEach(function (entry) {
+    var shell = entry[0];
+    var radius = entry[1];
+    var psi;
+    var cosNeed;
+    if (rho0 === 0 || radius === 0) {
+      psi = Math.PI;
+      cosNeed = -1.0;
+    } else {
+      cosNeed = (radius * radius + rho0 * rho0 - reachPc * reachPc) / (2 * radius * rho0);
+      psi = cosNeed <= -1 ? Math.PI : (cosNeed >= 1 ? 0.0 : Math.acos(cosNeed));
+    }
+    // Block rows are wide: look one row's width beyond the cap for rows whose centre may still be inside.
+    var slack = m > 1 ? Math.PI / drillBandCount(m, shell) : Math.PI / Math.max(1, bandRange(shell)[1] * 2 + 1);
+    windowBands(m, shell, theta0 - psi - slack, theta0 + psi + slack).forEach(function (row) {
+      var band = row[0];
+      var colat = row[1];
+      var count = m > 1 ? drillWedgeCount(m, shell, band) : wedgeCount(shell, band);
+      var denominator = Math.sin(colat) * Math.sin(theta0);
+      var wedges;
+      if (Math.abs(denominator) < 1e-9 || radius === 0) {
+        wedges = [];
+        for (var w = 0; w < count; w++) wedges.push(w);
+      } else {
+        var cosLon = (cosNeed - Math.cos(colat) * Math.cos(theta0)) / denominator;
+        var half = cosLon <= -1 ? Math.PI : (cosLon >= 1 ? 0.0 : Math.acos(cosLon));
+        wedges = wedgeCandidates(count, lon0, half + TWO_PI / count);
+      }
+      wedges.forEach(function (wedge) {
+        var cell = { m: m, shell: shell, band: band, wedge: wedge };
+        var p = cellPositionPc(cell, edgePc);
+        var dx = p[0] - x0;
+        var dy = p[1] - y0;
+        var dz = p[2] - z0;
+        if (Math.sqrt(dx * dx + dy * dy + dz * dz) <= reachPc + TOLERANCE_PC) cells.push(cell);
+      });
+    });
+  });
+  return cells;
+}
+
+// The window's cells, [{m, shell, band, wedge}]: every cell of `centre`'s level whose centre lies within
+// g * m / 2 edges of centre's. `centre` itself is always among them.
+export function windowCells(centre, edgePc, g) {
+  g = g || DEFAULT_WINDOW;
+  var reach = g * centre.m * edgePc / 2.0;
+  var cells = cellsInBall(centre.m, cellPositionPc(centre, edgePc), reach, edgePc);
+  if (!cells.some(function (c) { return sameBlock(c, centre); })) {
+    cells.push({ m: centre.m, shell: centre.shell, band: centre.band, wedge: centre.wedge });
+    cells.sort(function (p, q) { return p.shell - q.shell || q.band - p.band || p.wedge - q.wedge; });
   }
   return cells;
 }
 
-// A cell's mean density and its azimuthal mean ({density, mean}), as
-// blocksInView shades blocks by.
-export function boundsDensity(b, shape) {
-  return meanDensity(b.r0, b.r1, b.t0, b.t1, b.z0, b.z1, shape);
+// --- The galaxy's outline and how many sectors a block can hold ---------------------
+//
+// The galaxy's outline on the shell grid (planetgen.galaxy.skeleton.build_shell_extents), worked out from the
+// analytic density bound: every shell out to the last whose equatorial band can hold a sector, each with the
+// highest band it reaches. A shell's qualifying bands are one run around the plane, -high .. high (both caps when
+// high is the shell's top band). Sectors allowed in a shell are those wedges of those bands.
+
+// Whether sector band (shell, band) can hold a sector: the density bound at its centre line reaches the galaxy's
+// sector threshold (shape.sector_min_density, the density a sector needs to expect one system), else the drawing
+// floor.
+export function bandAllowed(shell, band, edgePc, shape) {
+  var centre = bandCentrePc(shell, band, edgePc);
+  var threshold = shape.sector_min_density > 0 ? shape.sector_min_density : PRISM_MIN_DENSITY;
+  return densityUpperBound(centre[0], Math.abs(centre[1]), shape) >= threshold;
 }
 
-// Whether sector (ring, layer) is drawn: sectorAllowed with the galaxy's
-// sector threshold, else (an older shape without one) the drawing floor
-// blockExists uses.
-export function sectorDrawable(ring, layer, edgePc, shape) {
-  if (shape.sector_min_density > 0) return sectorAllowed(ring, layer, edgePc, shape);
-  return densityUpperBound(ring * edgePc, Math.max(0, Math.abs(layer) - 0.5) * edgePc, shape) >= PRISM_MIN_DENSITY;
+// The highest |band| of shell `shell` with a cell that can qualify: the pole cap is checked first (if it qualifies
+// the whole shell is in), and otherwise the qualifying bands are one run from the equator, found by bisection.
+// Assumes the equatorial band qualifies.
+function highestQualifyingBand(shell, edgePc, shape) {
+  var top = bandRange(shell)[1];
+  if (bandAllowed(shell, top, edgePc, shape)) return top;
+  var low = 0;
+  var high = top - 1;
+  while (low < high) {
+    var middle = Math.floor((low + high + 1) / 2);
+    if (bandAllowed(shell, middle, edgePc, shape)) low = middle;
+    else high = middle - 1;
+  }
+  return low;
 }
 
-// Whether sector (ring, layer) can exist: the galaxy's density bound at
-// its ring centerline and layer center reaches shape.sector_min_density
-// (the skeleton's rule, planetgen.galaxy.skeleton). Without a
-// threshold in the shape, everything counts.
-export function sectorAllowed(ring, layer, edgePc, shape) {
-  if (!(shape.sector_min_density > 0)) return true;
-  return densityUpperBound((ring + 0.5) * edgePc, Math.abs(layer) * edgePc, shape) >= shape.sector_min_density;
+// The outline: {high: Int32Array (per shell, the highest band reached, -1 for none), outerShell (the last shell
+// with any, -1 for none), shapeless}. Without a shape the outline is every band of every shell out to the
+// galaxy's radius.
+export function galaxyOutline(edgePc, shape, galaxyRadius) {
+  var limit = Math.max(0, Math.ceil(galaxyRadius / edgePc));
+  if (!shape) {
+    var all = new Int32Array(limit + 1);
+    for (var k = 0; k <= limit; k++) all[k] = bandRange(k)[1];
+    return { high: all, outerShell: limit, shapeless: true };
+  }
+  var extents = [];
+  if (bandAllowed(0, 0, edgePc, shape)) {
+    extents.push(0);
+    var shell = 0;
+    while (shell < limit + 1 && bandAllowed(shell + 1, 0, edgePc, shape)) {
+      shell += 1;
+      extents.push(highestQualifyingBand(shell, edgePc, shape));
+    }
+  }
+  return { high: Int32Array.from(extents), outerShell: extents.length - 1, shapeless: false };
 }
 
-// How many sectors the block holds: in each member ring, the slots in its
-// wedge, times the member layers the skeleton allows there.
-export function blockSectorCount(ring, seg, slab, m, edgePc, shape) {
-  var ranges = blockSectorRanges(ring, slab, m);
-  var wedges = blockWedgeCount(ring, m);
+// The highest band sector shell `shell` reaches under `outline`, or -1.
+export function outlineHigh(outline, shell) {
+  return shell >= 0 && shell < outline.high.length ? outline.high[shell] : -1;
+}
+
+// Whether sector (shell, band, wedge) can hold anything under `outline`.
+export function sectorInOutline(shell, band, wedge, outline) {
+  if (!cellExists(shell, band, wedge)) return false;
+  return Math.abs(band) <= outlineHigh(outline, shell);
+}
+
+// The sectors of the sector shell `k` that join block row `row` of `rows` equal colatitude steps at block level 3's
+// own rows (`rows3` of them) -- the bands whose centre lies in level-3 rows [lo, hi) -- as [firstIndex, lastIndex+1) of the
+// shell's north-to-south band list, held back to the bands the outline allows.
+function bandSlice(k, lo, hi, rows3, high) {
+  var cached = shellBands(k);
+  var centres = cached.centres;
+  var start = lo === 0 ? 0 : bisectLeft(centres, lo * Math.PI / rows3);
+  var stop = hi === rows3 ? centres.length : bisectLeft(centres, hi * Math.PI / rows3);
+  var top = bandRange(k)[1];
+  // Bands top - high .. top + high are allowed (indices count down from the north cap).
+  return [Math.max(start, top - high), Math.min(stop, top + high + 1)];
+}
+
+// The sectors of wedge range [first, last] of a band of `n`, whose centres lie in level-3 wedges [a, b) of a row of
+// `w3`: integer arithmetic, so wedge lines on sector walls never round the wrong way (drill._wedge_cells).
+function wedgeRun(n, a, b, w3) {
+  var first = Math.max(0, Math.ceil((2 * a * n - w3) / (2 * w3)));
+  var last = Math.min(n - 1, Math.ceil((2 * b * n - w3) / (2 * w3)) - 1);
+  return Math.max(0, last - first + 1);
+}
+
+// How many sectors block `block` (level 3 or more) can hold under `outline`: the sectors of its sector shells whose centre
+// joins it, held back to the bands the outline allows (drill.block_addresses). With `stopAtOne`, only whether there
+// is any: 1 or 0, quickly.
+function countSectors(block, outline, stopAtOne) {
+  var m = block.m;
+  var rows = drillBandCount(m, block.shell);
+  var row = rowOf(m, block.shell, block.band);
+  var blockWedges = drillWedgeCount(m, block.shell, block.band);
+  var x = block.wedge;
   var total = 0;
-  for (var i = ranges.ringFirst; i <= ranges.ringLast; i++) {
-    var slots = blockSlotRange(ring, seg, m, i, wedges);
-    var perLayer = Math.max(0, slots.last - slots.first + 1);
-    if (!perLayer) continue;
-    for (var j = ranges.layerFirst; j <= ranges.layerLast; j++) {
-      if (!shape || sectorAllowed(i, j, edgePc, shape)) total += perLayer;
+  for (var k = block.shell * m; k < block.shell * m + m; k++) {
+    var high = outlineHigh(outline, k);
+    if (high < 0) continue;
+    if (k === 0) {
+      if (block.band === 0 && x === 0) {
+        total += 1;
+        if (stopAtOne) return 1;
+      }
+      continue;
+    }
+    var shell3 = Math.floor(k / DRILL_STEP);
+    var rows3 = drillBandCount(DRILL_STEP, shell3);
+    var f = rows3 / rows;
+    var top = bandRange(k)[1];
+    for (var row3 = row * f; row3 < (row + 1) * f; row3++) {
+      var slice = bandSlice(k, row3, row3 + 1, rows3, high);
+      if (slice[0] >= slice[1]) continue;
+      var band3 = (rows3 - 1) / 2 - row3;
+      var w3 = drillWedgeCount(DRILL_STEP, shell3, band3);
+      var q = w3 / blockWedges;
+      for (var i = slice[0]; i < slice[1]; i++) {
+        var band = top - i;
+        if (isCap(k, band)) {
+          if (x === 0) {
+            total += 1;
+            if (stopAtOne) return 1;
+          }
+          continue;
+        }
+        var run = wedgeRun(wedgeCount(k, band), x * q, (x + 1) * q, w3);
+        if (run > 0) {
+          total += run;
+          if (stopAtOne) return 1;
+        }
+      }
     }
   }
   return total;
 }
 
-// Whether a block has anything to draw. The density bound ignores angle,
-// so this depends only on the block's ring and layer. With the galaxy's
-// sector threshold (shape.sector_min_density) it is exactly "holds at
-// least one sector the skeleton allows": the densest member is the
-// innermost ring's centerline on the member layer nearest the plane.
-// Without one, blocks thinner than PRISM_MIN_DENSITY everywhere are
-// skipped. Nothing at or past galaxyRadius exists.
-export function blockExists(ring, slab, m, edgePc, shape, galaxyRadius) {
-  var size = m * edgePc;
-  if (ring < 0 || (galaxyRadius > 0 && ring * size >= galaxyRadius)) return false;
-  var layers = blockSectorRanges(ring, slab, m);
-  var nearLayer = layers.layerFirst <= 0 && layers.layerLast >= 0
-    ? 0 : Math.min(Math.abs(layers.layerFirst), Math.abs(layers.layerLast));
-  if (shape.sector_min_density > 0) {
-    return sectorAllowed(ring * m, nearLayer, edgePc, shape);
-  }
-  var z0 = (slab - 0.5) * size;
-  var z1 = z0 + size;
-  var zMinAbs = z0 <= 0 && z1 >= 0 ? 0 : Math.min(Math.abs(z0), Math.abs(z1));
-  return densityUpperBound(ring * size, zMinAbs, shape) >= PRISM_MIN_DENSITY;
+// How many sectors drill block `block` can hold under `outline` (a sector: 1 or 0).
+export function drillBlockTotal(block, outline) {
+  if (block.m === 1) return sectorInOutline(block.shell, block.band, block.wedge, outline) ? 1 : 0;
+  return countSectors(block, outline, false);
 }
 
-// The blocks for a view: blockSizeForScale's size, made three times
-// coarser while the surface listing overflows the budget. densityCacheFor(m)
-// returns the density cache for that size. Options:
-// - pcPerPixel: parsecs per CSS pixel at the focus;
-// - sliceZ: a galaxy-frame z, or null for the whole solid; every block
-//   layer above the one holding it is hidden;
-// - viewerZ: the camera's z (see blocksInView);
-// - minPx (BLOCK_MIN_PX) and budget (BLOCK_BUDGET).
-// Returns {m, slice, blocks} (slice: the block layer cut at, or null).
-export function blocksForView(center, viewRadius, edgePc, galaxyRadius, shape, densityCacheFor, options) {
-  options = options || {};
-  var budget = options.budget > 0 ? options.budget : BLOCK_BUDGET;
-  var m = blockSizeForScale(options.pcPerPixel, edgePc, options.minPx, galaxyRadius);
-  var maxM = blockSizeForScale(Infinity, edgePc, options.minPx, galaxyRadius);
-  for (;;) {
-    var slice = options.sliceZ == null ? null : Math.round(options.sliceZ / (m * edgePc));
-    var blocks = blocksInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCacheFor(m), {
-      slice: slice, viewerZ: options.viewerZ, limit: m < maxM ? budget : Infinity,
-    });
-    if (blocks) {
-      return { m: m, slice: slice, blocks: blocks };
-    }
-    m *= 3;
-  }
+// Whether the block can hold any sector under `outline`.
+export function drillBlockHolds(block, outline) {
+  if (block.m === 1) return sectorInOutline(block.shell, block.band, block.wedge, outline);
+  return countSectors(block, outline, true) > 0;
 }
 
-// Block (ring, seg, slab) m sectors a side holding galaxy-frame point
-// (x, y, z): the same cell every sector whose center is there belongs to.
-export function blockAddressAt(x, y, z, m, edgePc) {
-  var size = m * edgePc;
-  var ring = Math.floor(Math.hypot(x, y) / size);
-  var wedges = blockWedgeCount(ring, m);
-  var theta = ((Math.atan2(y, x) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  return {
-    ring: ring,
-    seg: Math.min(wedges - 1, Math.floor((theta * wedges) / (2 * Math.PI))),
-    slab: Math.round(z / size),
-  };
-}
-
-// One block as blocksInView lists it (bounds, density, meanDensity), for
-// a block the listing skipped -- an interior one holding filled sectors.
-// Without a shape, density and meanDensity are null.
-export function blockAt(ring, seg, slab, m, edgePc, shape, densityCache) {
-  var size = m * edgePc;
-  var dTheta = (2 * Math.PI) / blockWedgeCount(ring, m);
-  var b = {
-    ring: ring, seg: seg, slab: slab,
-    r0: ring * size, r1: (ring + 1) * size, t0: seg * dTheta, t1: (seg + 1) * dTheta,
-    z0: (slab - 0.5) * size, z1: (slab + 0.5) * size,
-  };
-  if (!shape) {
-    b.density = null;
-    b.meanDensity = null;
-    return b;
-  }
-  var key = ring + "/" + seg + "/" + slab;
-  var sampled = densityCache ? densityCache.get(key) : undefined;
-  if (sampled === undefined) {
-    sampled = meanDensity(b.r0, b.r1, b.t0, b.t1, b.z0, b.z1, shape);
-    if (densityCache) {
-      densityCache.set(key, sampled);
-    }
-  }
-  b.density = sampled.density;
-  b.meanDensity = sampled.mean;
-  return b;
-}
-
-// Blocks m sectors a side overlapping the view ball. Returns [{ring, seg,
-// slab, r0, r1, t0, t1, z0, z1, density, meanDensity}]: the block's
-// address on the block grid and its bounds (see blockSectorRanges for the
-// sectors inside), or null once more than options.limit are found.
-// Options:
-// - surfaceOnly (default true): list only blocks with a missing ring or
-//   layer neighbour (the axis counts as filled), since the blocks make one
-//   solid and nothing inside it shows. Existence depends only on ring and
-//   layer, so interior pairs are skipped before any wedge is looked at.
-// - slice: a block layer; every layer above it counts as empty, so the
-//   cut face is drawn.
-// - viewerZ: the camera's z. A missing neighbour below a block exposes
-//   only its bottom face, which faces away from a camera above that face
-//   (and the same for tops), so blocks exposed only that way are dropped.
-// densityCache (a Map, optional) keeps per-block densities between calls
-// at the same size.
-// Unfilled blocks are translucent on the page, but the listing still
-// skips the interior: unfilled space is drawn as a shell (its outline and
-// the slice face), and the page adds the interior blocks that hold filled
-// sectors itself (blockAt), which show through that shell.
-export function blocksInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCache, options) {
-  if (!isPowerOfThree(m)) throw new Error("blocks are a power of 3 sectors a side");
-  options = options || {};
-  var surfaceOnly = options.surfaceOnly !== false;
-  var viewerZ = options.viewerZ == null ? null : options.viewerZ;
-  var slice = options.slice == null ? Infinity : options.slice;
-  var limit = options.limit == null ? Infinity : options.limit;
-  var size = m * edgePc;
-  var cx = center[0];
-  var cy = center[1];
-  var cz = center[2];
-  var rc = Math.hypot(cx, cy);
-  var thetaC = Math.atan2(cy, cx);
-  var rLimit = galaxyRadius > 0 ? galaxyRadius : Infinity;
-  var ringLo = Math.max(0, Math.floor((rc - viewRadius) / size));
-  var ringHi = Math.floor(Math.min(rc + viewRadius, rLimit) / size);
-  var slabLo = Math.round((cz - viewRadius) / size);
-  var slabHi = Math.min(slice, Math.round((cz + viewRadius) / size));
-  if (densityCache && densityCache.size > DENSITY_CACHE_MAX) {
-    densityCache.clear();
-  }
-  var existsMemo = new Map();
-  function exists(ring, slab) {
-    if (ring < 0) return true; // the axis
-    if (slab > slice) return false;
-    var key = ring + "/" + slab;
-    var value = existsMemo.get(key);
-    if (value === undefined) {
-      value = blockExists(ring, slab, m, edgePc, shape, galaxyRadius);
-      existsMemo.set(key, value);
-    }
-    return value;
-  }
-  var found = [];
-  for (var ring = ringLo; ring <= ringHi; ring++) {
-    var r0 = ring * size;
-    var r1 = r0 + size;
-    var rMid = r0 + size / 2;
-    var nSeg = blockWedgeCount(ring, m);
-    var dTheta = (2 * Math.PI) / nSeg;
-    // Half a block's diagonal, generously.
-    var reach = 0.5 * Math.hypot(size, rMid * dTheta, size);
-    var segFirst = 0;
-    var segCount = nSeg;
-    if (rc > viewRadius) {
-      var halfWidth = Math.asin(Math.min(1, viewRadius / rc)) + dTheta;
-      if (halfWidth < Math.PI) {
-        segFirst = Math.floor((thetaC - halfWidth) / dTheta);
-        segCount = Math.min(nSeg, Math.floor((thetaC + halfWidth) / dTheta) - segFirst + 1);
-      }
-    }
-    for (var slab = slabLo; slab <= slabHi; slab++) {
-      var zMid = slab * size;
-      if (Math.abs(zMid - cz) > viewRadius + reach || !exists(ring, slab)) {
-        continue;
-      }
-      var z0 = zMid - size / 2;
-      var z1 = z0 + size;
-      if (surfaceOnly && exists(ring - 1, slab) && exists(ring + 1, slab)
-          && (exists(ring, slab - 1) || (viewerZ !== null && viewerZ >= z0))
-          && (exists(ring, slab + 1) || (viewerZ !== null && viewerZ <= z1))) {
-        continue;
-      }
-      for (var k = 0; k < segCount; k++) {
-        var seg = (((segFirst + k) % nSeg) + nSeg) % nSeg;
-        var t0 = seg * dTheta;
-        var t1 = t0 + dTheta;
-        var tMid = t0 + dTheta / 2;
-        var dxy = Math.hypot(rMid * Math.cos(tMid) - cx, rMid * Math.sin(tMid) - cy);
-        if (Math.hypot(dxy, zMid - cz) > viewRadius + reach) {
-          continue;
-        }
-        var key = ring + "/" + seg + "/" + slab;
-        var sampled = densityCache ? densityCache.get(key) : undefined;
-        if (sampled === undefined) {
-          sampled = meanDensity(r0, r1, t0, t1, z0, z1, shape);
-          if (densityCache) {
-            densityCache.set(key, sampled);
-          }
-        }
-        if (found.length >= limit) {
-          return null;
-        }
-        found.push({ ring: ring, seg: seg, slab: slab, r0: r0, r1: r1, t0: t0, t1: t1, z0: z0, z1: z1, density: sampled.density, meanDensity: sampled.mean });
-      }
-    }
-  }
-  return found;
-}
-
-// The prism's mean density and its azimuthal mean (bulge + disk, arm
-// factor 1), both over a few sample points weighted by the volume each
-// stands for (r dr): the outer samples of a wide prism cover more space
-// than the inner ones. The page shades by both: density / mean is the arm
-// factor, which picks out the spiral.
-function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
+// A cell's mean density and its azimuthal mean ({density, mean}) over a few
+// sample points, each weighted by the volume it stands for (r^2 sin(colatitude)):
+// the outer samples of a deep cell cover more space than the inner ones. The page
+// shades by both: density / mean is the arm factor, which picks out the spiral.
+export function boundsDensity(b, shape) {
   var total = 0;
   var totalMean = 0;
   var weights = 0;
   for (var i = 0; i < SAMPLES_R; i++) {
-    var r = r0 + ((i + 0.5) / SAMPLES_R) * (r1 - r0);
-    for (var j = 0; j < SAMPLES_THETA; j++) {
-      var t = t0 + ((j + 0.5) / SAMPLES_THETA) * (t1 - t0);
-      var x = r * Math.cos(t);
-      var y = r * Math.sin(t);
-      for (var k = 0; k < SAMPLES_Z; k++) {
-        var parts = densityParts(x, y, z0 + ((k + 0.5) / SAMPLES_Z) * (z1 - z0), shape);
-        total += r * parts[0];
-        totalMean += r * parts[1];
-        weights += r;
+    var r = b.r0 + ((i + 0.5) / SAMPLES_R) * (b.r1 - b.r0);
+    for (var j = 0; j < SAMPLES_COLAT; j++) {
+      var c = b.c0 + ((j + 0.5) / SAMPLES_COLAT) * (b.c1 - b.c0);
+      var weight = r * r * Math.sin(c);
+      var plane = r * Math.sin(c);
+      var z = r * Math.cos(c);
+      for (var k = 0; k < SAMPLES_LON; k++) {
+        var t = b.t0 + ((k + 0.5) / SAMPLES_LON) * (b.t1 - b.t0);
+        var parts = densityParts(plane * Math.cos(t), plane * Math.sin(t), z, shape);
+        total += weight * parts[0];
+        totalMean += weight * parts[1];
+        weights += weight;
       }
     }
   }
@@ -857,70 +1051,42 @@ function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
 
 // --- Geometry --------------------------------------------------------------
 //
-// One mesh for every prism in view: positions, per-vertex normals and a
-// per-vertex prism index (the caller turns that into a color). Faces are
-// wound counter-clockwise seen from outside, so front-face culling shows
-// each prism's outside only.
+// One mesh for every cell in view: positions, per-vertex normals and a
+// per-vertex cell index (the caller turns that into a color). A cell is a
+// spherical box: an outer and an inner wall (spheres), a north and a south
+// face (cones at the band's colatitudes) and two meridian sides (flat). A
+// cap has no north face and no sides, the core is one sphere. Faces are wound
+// counter-clockwise seen from outside, so front-face culling shows each cell's
+// outside only. Each face carries its own 0..1 place (u along the longitude or
+// the radius, v along the colatitude) for the shader to find its edges by.
 
-// With options.skipShared, blocks that carry their address (ring, seg,
-// slab, as blocksInView lists them) and come from one listing, so one
-// block size, leave out every face they share with a neighbour in the
-// same list: in an opaque mesh nothing behind such a face ever shows.
-// Tops and bottoms always match their neighbour's exactly, and so do the
-// radial sides along a ring; inner and outer walls only when the
-// neighbouring ring has the same wedge count. Only for opaque blocks: in
-// translucent ones the inner faces are what draws the block grid through
-// the glass, and dropping them turned the shell into smeared bands.
-var FACE_OUTER = 1;
-var FACE_INNER = 2;
-var FACE_TOP = 4;
-var FACE_BOTTOM = 8;
-var FACE_START = 16;
-var FACE_END = 32;
-
-function sharedFaces(prisms) {
-  var skip = new Uint8Array(prisms.length);
-  if (!prisms.length || prisms[0].ring == null) {
-    return skip;
-  }
-  var keys = new Set();
-  var wedgesOf = new Map();
-  prisms.forEach(function (p) {
-    keys.add(p.ring + "/" + p.seg + "/" + p.slab);
-    wedgesOf.set(p.ring, Math.round((2 * Math.PI) / (p.t1 - p.t0)));
-  });
-  function has(ring, seg, slab) {
-    return keys.has(ring + "/" + seg + "/" + slab);
-  }
-  prisms.forEach(function (p, n) {
-    var wedges = wedgesOf.get(p.ring);
-    var mask = 0;
-    if (has(p.ring, p.seg, p.slab + 1)) mask |= FACE_TOP;
-    if (has(p.ring, p.seg, p.slab - 1)) mask |= FACE_BOTTOM;
-    if (wedges > 1 && has(p.ring, (p.seg + wedges - 1) % wedges, p.slab)) mask |= FACE_START;
-    if (wedges > 1 && has(p.ring, (p.seg + 1) % wedges, p.slab)) mask |= FACE_END;
-    if (wedgesOf.get(p.ring + 1) === wedges && has(p.ring + 1, p.seg, p.slab)) mask |= FACE_OUTER;
-    if (p.r0 > 0 && wedgesOf.get(p.ring - 1) === wedges && has(p.ring - 1, p.seg, p.slab)) mask |= FACE_INNER;
-    skip[n] = mask;
-  });
-  return skip;
+// Points of a cell: radius r, colatitude c, longitude t.
+function spherePoint(r, c, t) {
+  var plane = r * Math.sin(c);
+  return [plane * Math.cos(t), plane * Math.sin(t), r * Math.cos(c)];
 }
 
-export function buildPrismGeometry(prisms, options) {
+export function buildPrismGeometry(cells) {
   var vertexCount = 0;
   var indexCount = 0;
-  var arcsOf = new Uint16Array(prisms.length);
-  var skipOf = options && options.skipShared ? sharedFaces(prisms) : new Uint8Array(prisms.length);
-  prisms.forEach(function (p, n) {
-    var arcs = Math.max(1, Math.min(MAX_ARC_SEGMENTS, Math.ceil((p.t1 - p.t0) / ARC_SEGMENT_RAD)));
-    arcsOf[n] = arcs;
-    var skip = skipOf[n];
-    var curved = [FACE_OUTER, FACE_INNER, FACE_TOP, FACE_BOTTOM].filter(function (face) {
-      return !(skip & face) && (face !== FACE_INNER || p.r0 > 0);
-    }).length;
-    var sides = (skip & FACE_START ? 0 : 1) + (skip & FACE_END ? 0 : 1);
-    vertexCount += curved * 2 * (arcs + 1) + 4 * sides;
-    indexCount += curved * 6 * arcs + 6 * sides;
+  var plans = cells.map(function (b) {
+    var lon = Math.max(1, Math.min(MAX_ARC_SEGMENTS, Math.ceil((b.t1 - b.t0) / ARC_SEGMENT_RAD)));
+    var lat = Math.max(1, Math.min(MAX_ARC_SEGMENTS, Math.ceil((b.c1 - b.c0) / ARC_SEGMENT_RAD)));
+    var plan = {
+      lon: lon, lat: lat,
+      inner: b.r0 > 0, north: b.c0 > 0, south: b.c1 < Math.PI, sides: !isFullTurn(b),
+    };
+    var walls = 1 + (plan.inner ? 1 : 0);
+    vertexCount += walls * (lat + 1) * (lon + 1);
+    indexCount += walls * 6 * lat * lon;
+    var cones = (plan.north ? 1 : 0) + (plan.south ? 1 : 0);
+    vertexCount += cones * 2 * (lon + 1);
+    indexCount += cones * 6 * lon;
+    if (plan.sides) {
+      vertexCount += 2 * 2 * (lat + 1);
+      indexCount += 2 * 6 * lat;
+    }
+    return plan;
   });
   var positions = new Float32Array(vertexCount * 3);
   var normals = new Float32Array(vertexCount * 3);
@@ -930,43 +1096,22 @@ export function buildPrismGeometry(prisms, options) {
   var nv = 0;
   var ni = 0;
 
-  // (u, v) is the vertex's place across its own face, 0..1 each way --
-  // what the shader finds the face's edges by.
-  function vertex(x, y, z, nx, ny, nz, owner, u, v) {
+  function vertex(p, n, owner, u, v) {
     uvs[2 * nv] = u;
     uvs[2 * nv + 1] = v;
     var o = 3 * nv;
-    positions[o] = x;
-    positions[o + 1] = y;
-    positions[o + 2] = z;
-    normals[o] = nx;
-    normals[o + 1] = ny;
-    normals[o + 2] = nz;
+    positions[o] = p[0];
+    positions[o + 1] = p[1];
+    positions[o + 2] = p[2];
+    normals[o] = n[0];
+    normals[o + 1] = n[1];
+    normals[o + 2] = n[2];
     owners[nv] = owner;
     nv++;
   }
 
-  // Two rows of (arcs + 1) vertices already written from `base`; joins
-  // them into quads, each wound to face its own normal.
-  function stitch(base, columns) {
-    for (var i = 0; i < columns; i++) {
-      var a = base + i;
-      var b = a + 1;
-      var d = base + columns + 1 + i;
-      var c = d + 1;
-      if (facesNormal(a, b, c, d)) {
-        indices[ni++] = a; indices[ni++] = b; indices[ni++] = c;
-        indices[ni++] = a; indices[ni++] = c; indices[ni++] = d;
-      } else {
-        indices[ni++] = a; indices[ni++] = c; indices[ni++] = b;
-        indices[ni++] = a; indices[ni++] = d; indices[ni++] = c;
-      }
-    }
-  }
-
-  // Whether quad a-b-c-d, taken in that order, winds counter-clockwise
-  // around a's normal. (c - a) x (d - b) is the quad's normal even when two
-  // of its corners coincide, as they do where a wedge meets the axis.
+  // Whether quad a-b-c-d, taken in that order, winds counter-clockwise around a's normal. (c - a) x (d - b) is the
+  // quad's normal even when two of its corners coincide, as they do where a wedge meets the axis.
   function facesNormal(a, b, c, d) {
     var ux = positions[3 * c] - positions[3 * a];
     var uy = positions[3 * c + 1] - positions[3 * a + 1];
@@ -980,69 +1125,98 @@ export function buildPrismGeometry(prisms, options) {
     return nx * normals[3 * a] + ny * normals[3 * a + 1] + nz * normals[3 * a + 2] >= 0;
   }
 
-  var cosT = new Float64Array(MAX_ARC_SEGMENTS + 1);
-  var sinT = new Float64Array(MAX_ARC_SEGMENTS + 1);
+  // A grid of `rows + 1` rows of `columns + 1` vertices already written from `base`, joined into quads each wound to
+  // face its own normal.
+  function stitch(base, columns, rows) {
+    for (var j = 0; j < rows; j++) {
+      for (var i = 0; i < columns; i++) {
+        var a = base + j * (columns + 1) + i;
+        var b = a + 1;
+        var d = a + columns + 1;
+        var c = d + 1;
+        if (facesNormal(a, b, c, d)) {
+          indices[ni++] = a; indices[ni++] = b; indices[ni++] = c;
+          indices[ni++] = a; indices[ni++] = c; indices[ni++] = d;
+        } else {
+          indices[ni++] = a; indices[ni++] = c; indices[ni++] = b;
+          indices[ni++] = a; indices[ni++] = d; indices[ni++] = c;
+        }
+      }
+    }
+  }
 
-  for (var n = 0; n < prisms.length; n++) {
-    var p = prisms[n];
-    var arcs = arcsOf[n];
-    var skip = skipOf[n];
-    for (var k = 0; k <= arcs; k++) {
-      var t = p.t0 + (k / arcs) * (p.t1 - p.t0);
-      cosT[k] = Math.cos(t);
-      sinT[k] = Math.sin(t);
-    }
+  cells.forEach(function (b, n) {
+    var plan = plans[n];
+    var lon = plan.lon;
+    var lat = plan.lat;
     var base;
-    var row;
-    // Outer wall, then inner wall (none for the ring at the very center).
-    if (!(skip & FACE_OUTER)) {
+    var j;
+    var i;
+    var t;
+    var c;
+    // The two walls: outer, then inner (none at the very centre).
+    [b.r1, b.r0].forEach(function (r, wall) {
+      if (wall === 1 && !plan.inner) return;
+      var sign = wall === 0 ? 1 : -1;
       base = nv;
-      for (row = 0; row < 2; row++) {
-        for (k = 0; k <= arcs; k++) {
-          vertex(p.r1 * cosT[k], p.r1 * sinT[k], row ? p.z1 : p.z0, cosT[k], sinT[k], 0, n, k / arcs, row);
+      for (j = 0; j <= lat; j++) {
+        c = b.c0 + (j / lat) * (b.c1 - b.c0);
+        for (i = 0; i <= lon; i++) {
+          t = b.t0 + (i / lon) * (b.t1 - b.t0);
+          var p = spherePoint(r, c, t);
+          var radial = spherePoint(1, c, t);
+          vertex(p, [sign * radial[0], sign * radial[1], sign * radial[2]], n, i / lon, j / lat);
         }
       }
-      stitch(base, arcs);
-    }
-    if (p.r0 > 0 && !(skip & FACE_INNER)) {
+      stitch(base, lon, lat);
+    });
+    // The two cones: north (colatitude c0), south (c1).
+    [b.c0, b.c1].forEach(function (cone, face) {
+      if (face === 0 ? !plan.north : !plan.south) return;
+      var sign = face === 0 ? -1 : 1;
       base = nv;
-      for (row = 0; row < 2; row++) {
-        for (k = 0; k <= arcs; k++) {
-          vertex(p.r0 * cosT[k], p.r0 * sinT[k], row ? p.z1 : p.z0, -cosT[k], -sinT[k], 0, n, k / arcs, row);
+      [b.r0, b.r1].forEach(function (r, row) {
+        for (i = 0; i <= lon; i++) {
+          t = b.t0 + (i / lon) * (b.t1 - b.t0);
+          var p = spherePoint(r, cone, t);
+          // The cone's normal points away from the cell: along or against increasing colatitude.
+          vertex(p, [sign * Math.cos(cone) * Math.cos(t), sign * Math.cos(cone) * Math.sin(t), -sign * Math.sin(cone)], n, i / lon, row);
         }
-      }
-      stitch(base, arcs);
-    }
-    // Top and bottom.
-    for (var cap = 0; cap < 2; cap++) {
-      if (skip & (cap ? FACE_TOP : FACE_BOTTOM)) {
-        continue;
-      }
-      var z = cap ? p.z1 : p.z0;
-      var nz = cap ? 1 : -1;
-      base = nv;
-      for (row = 0; row < 2; row++) {
-        var r = row ? p.r1 : p.r0;
-        for (k = 0; k <= arcs; k++) {
-          vertex(r * cosT[k], r * sinT[k], z, 0, 0, nz, n, k / arcs, row);
+      });
+      stitch(base, lon, 1);
+    });
+    // The two meridian sides: start (t0), end (t1).
+    if (plan.sides) {
+      [b.t0, b.t1].forEach(function (side, face) {
+        var sign = face === 0 ? -1 : 1;
+        var normal = [-Math.sin(side) * sign, Math.cos(side) * sign, 0];
+        base = nv;
+        for (j = 0; j <= lat; j++) {
+          c = b.c0 + (j / lat) * (b.c1 - b.c0);
+          [b.r0, b.r1].forEach(function (r, row) {
+            vertex(spherePoint(r, c, side), normal, n, row, j / lat);
+          });
         }
-      }
-      stitch(base, arcs);
+        // Rows here run along the colatitude (two vertices each: inner, outer): a strip of `lat` quads.
+        stitchStrip(base, lat);
+      });
     }
-    // The two radial sides.
-    for (var side = 0; side < 2; side++) {
-      if (skip & (side ? FACE_END : FACE_START)) {
-        continue;
+  });
+
+  // A strip of `segments + 1` pairs of vertices from `base`, [inner, outer] each, joined into quads.
+  function stitchStrip(base, segments) {
+    for (var s = 0; s < segments; s++) {
+      var a = base + 2 * s;
+      var b = a + 1;
+      var d = a + 2;
+      var c = d + 1;
+      if (facesNormal(a, b, c, d)) {
+        indices[ni++] = a; indices[ni++] = b; indices[ni++] = c;
+        indices[ni++] = a; indices[ni++] = c; indices[ni++] = d;
+      } else {
+        indices[ni++] = a; indices[ni++] = c; indices[ni++] = b;
+        indices[ni++] = a; indices[ni++] = d; indices[ni++] = c;
       }
-      var c = side ? cosT[arcs] : cosT[0];
-      var s = side ? sinT[arcs] : sinT[0];
-      var sign = side ? 1 : -1;
-      base = nv;
-      vertex(p.r0 * c, p.r0 * s, p.z0, -s * sign, c * sign, 0, n, 0, 0);
-      vertex(p.r1 * c, p.r1 * s, p.z0, -s * sign, c * sign, 0, n, 1, 0);
-      vertex(p.r0 * c, p.r0 * s, p.z1, -s * sign, c * sign, 0, n, 0, 1);
-      vertex(p.r1 * c, p.r1 * s, p.z1, -s * sign, c * sign, 0, n, 1, 1);
-      stitch(base, 1);
     }
   }
 

@@ -1,59 +1,61 @@
 """
 planetgen/galaxy/drill.py
 
-The Galaxy Map's block ladder (docs/design/galaxy-drilldown-navigation.md,
-section 3, made 3-ary by MAP.151b, docs/design/drilldown-region-sizes.md):
-blocks 243, 81, 27, 9, 3 and 1 sectors a side, nested so that every block
-sits wholly inside one block of the next size up.
-`static/galaxyprisms.js`'s `drill*` functions are the same rules for the
-page; `tests/test_galaxydrill.py` checks that the two agree.
+The Galaxy Map's block ladder on the spherical sector grid
+(docs/design/spherical-block-ladder.md; the grid is `galaxy/spherical.py`).
+Blocks are `m` shells deep, `m` = 243, 81, 27, 9 and 3, and a block of one is
+a sector; each block sits wholly inside one block of the next size up.
+`static/galaxyprisms.js`'s `drill*` functions are the same rules for the page;
+`tests/test_galaxydrill.py` checks that the two agree.
 
-A block is `(m, ring, wedge, slab)`: `m` sectors a side, block ring `ring`
-(sector rings `ring*m` to `ring*m + m - 1`), wedge `wedge` of
-`drill_wedge_count(m, ring)` counterclockwise from +X, and slab `slab`
-(sector layers `slab*m - (m-1)/2` to `slab*m + (m-1)/2`). At `m = 1` the
-"block" is a sector: `(1, ring, slot, layer)`.
+A block is `(m, shell, band, wedge)`:
 
-Rings and layers nest on their own (section 3.3). Wedges are made to nest
-by the nested wedge rule (section 3.4): each child ring's wedge count is a
-whole multiple of its parent ring's, so every parent wedge line is also a
-child wedge line. Sectors join the level-3 block holding their center
-(section 3.5), as `blockSlotRange` already does.
+- `shell`: block shell `s`, holding the sector shells `s*m` to `s*m + m - 1`
+  (block shell 0 also holds the core ball). Its centreline radius is
+  `R = s*m + (m - 1)/2` edges.
+- `band`: a row of blocks between two colatitudes, signed like a sector's band
+  (0 the equatorial row, positive north). A block shell has `drill_band_count`
+  rows, an odd number of equal colatitude steps, so the galactic plane runs
+  through the middle of the equatorial row. A row's blocks aim at `m` edges of
+  arc.
+- `wedge`: one of the row's `drill_wedge_count` equal longitude steps, from
+  +X counterclockwise.
 
-Every level is three times its child, so a window of cells changes size by
-a third at a time. Everything here is integer math apart from the level-243 wedge count,
-which copies `blockWedgeCount` step for step (including JavaScript's
-round-half-up) so both sides pick the same count.
+At `m = 1` the block is a sector, `(1, shell, band, wedge)` as
+`spherical.py` names it.
+
+Blocks nest by counts. A child block shell's row count is a whole odd
+multiple of its parent's, so every parent row edge is a child row edge, and a
+child row's wedge count is a whole multiple of the wedge count of the parent
+row that holds it, so every parent wedge line is a child wedge line. A sector
+joins the level-3 block holding its centre (Boss, 2026-10-15 06:58Z): the
+block shell of its shell, the row holding its band's centre colatitude, and
+the wedge holding its centre longitude. The core and the polar caps lie on the
+axis: they join wedge 0 of the polar rows (the core, the equatorial row).
+
+Everything is integer math apart from the row and wedge counts, which are
+rounded from floats; `galaxyprisms.js` copies each expression step for step
+(including JavaScript's round-half-up) so both sides pick the same counts.
 """
 
 import math
+from bisect import bisect_left
 from collections import namedtuple
 from functools import lru_cache
 
-from planetgen.galaxy.geometry import ring_master_count, ring_sector_count
+from planetgen.galaxy import spherical
 
 DRILL_LEVELS = (243, 81, 27, 9, 3, 1)
-"""tuple: Block sizes from the galaxy down to a sector. Each step divides
-by `DRILL_STEP`. (MAP.151b: the ladder was 243, 27, 3, 1, steps of 9 and 3;
-a 729 block, coarser than the 243-block galaxy home, is left out.)"""
+"""tuple: Block sizes from the galaxy down to a sector. Each step divides by
+`DRILL_STEP`."""
 
 DRILL_STEP = 3
-"""int: How many child blocks a side one block holds, at every level."""
+"""int: How many child block shells deep one block is."""
 
 DRILL_TOP = DRILL_LEVELS[0]
 
-BLOCK_WEDGE_TOLERANCE = 1.2
-"""float: `galaxyprisms.js`'s own `BLOCK_WEDGE_TOLERANCE`, used by the
-level-243 wedge count."""
-
-DrillBlock = namedtuple("DrillBlock", ["m", "ring", "wedge", "slab"])
-"""One block of the ladder; at `m = 1`, a sector `(1, ring, slot, layer)`."""
-
-
-def _round_half_up(numerator, denominator):
-    """`Math.round(numerator / denominator)` for integers, denominator > 0,
-    without a float."""
-    return (2 * numerator + denominator) // (2 * denominator)
+DrillBlock = namedtuple("DrillBlock", ["m", "shell", "band", "wedge"])
+"""One block of the ladder; at `m = 1`, a sector `(1, shell, band, wedge)`."""
 
 
 def _js_round(x):
@@ -61,58 +63,114 @@ def _js_round(x):
     return math.floor(x + 0.5)
 
 
-def _target_wedges(ring):
-    """`max(3, round(2*pi*(I + 1/2)))`, a block ring's aimed-for count."""
-    return max(3, _js_round(2 * math.pi * (ring + 0.5)))
-
-
-def _top_wedge_count(ring):
-    """`blockWedgeCount(ring, 243)`: the master-aligned count nearest the
-    target, if within `BLOCK_WEDGE_TOLERANCE`, else the target."""
-    masters = ring_master_count(ring * DRILL_TOP)
-    target = _target_wedges(ring)
-    best = masters * max(1, _js_round(target / masters))
-    d = 1
-    while d < masters:
-        for w in (d, 3 * d):
-            if w < masters and abs(math.log(w / target)) < abs(math.log(best / target)):
-                best = w
-        d *= 2
-    return best if abs(math.log(best / target)) <= math.log(BLOCK_WEDGE_TOLERANCE) else target
+def _odd_round(x):
+    """The odd integer nearest `x`, a tie going up, and at least 1."""
+    return max(1, 2 * math.floor(x / 2) + 1)
 
 
 def _check_level(m):
-    if m not in DRILL_LEVELS:
-        raise ValueError(f"block size must be one of {DRILL_LEVELS}, got {m}")
+    if m not in DRILL_LEVELS[:-1]:
+        raise ValueError(f"block size must be one of {DRILL_LEVELS[:-1]}, got {m}")
+
+
+def block_radius(m, shell):
+    """Centreline radius of block shell `shell` at size `m`, in edges."""
+    return shell * m + (m - 1) / 2
 
 
 @lru_cache(maxsize=65536)
-def drill_wedge_count(m, ring):
+def drill_band_count(m, shell):
     """
-    Wedges in block ring `ring` at size `m` (the nested wedge rule):
+    Rows of blocks in block shell `shell` at size `m` (always odd):
 
-    - 243: `blockWedgeCount(ring, 243)`, unchanged.
-    - 81, 27, 9 and 3: the parent ring's (`ring // 3`) count times
-      `max(1, round(T / W_parent))`, `T` this ring's target
-      `max(3, round(2*pi*(ring + 1/2)))`.
-    - 1: the ring's slots, `ring_sector_count`.
+    - 243: the odd integer nearest `pi * R / m`, `R` the block shell's
+      centreline radius in edges, so a row's arc is about `m` edges.
+    - 81, 27, 9 and 3: the parent block shell's (`shell // 3`) count times the
+      odd integer nearest `T / parent`, `T` as above.
 
-    Args:
-        m (int): One of `DRILL_LEVELS`.
-        ring (int): Block ring `>= 0`.
-
-    Returns:
-        int: The wedge count.
+    Raises:
+        ValueError: For a level that is not a block size or a negative shell.
     """
     _check_level(m)
-    if ring < 0:
-        raise ValueError(f"ring must be >= 0, got {ring}")
-    if m == 1:
-        return ring_sector_count(ring)
+    if shell < 0:
+        raise ValueError(f"shell must be >= 0, got {shell}")
+    target = math.pi * block_radius(m, shell) / m
     if m == DRILL_TOP:
-        return _top_wedge_count(ring)
-    parent = drill_wedge_count(m * DRILL_STEP, ring // DRILL_STEP)
-    return parent * max(1, _round_half_up(_target_wedges(ring), parent))
+        return _odd_round(target)
+    parent = drill_band_count(m * DRILL_STEP, shell // DRILL_STEP)
+    return parent * _odd_round(target / parent)
+
+
+def _row_of(m, shell, band):
+    """The north-to-south index of a signed row."""
+    count = drill_band_count(m, shell)
+    row = (count - 1) // 2 - band
+    if not 0 <= row < count:
+        raise ValueError(
+            f"band {band} is not a row of block shell {shell} at size {m} (rows {-(count // 2)}..{count // 2})")
+    return row
+
+
+@lru_cache(maxsize=1 << 20)
+def drill_wedge_count(m, shell, band):
+    """
+    Wedges in row `band` of block shell `shell` at size `m`:
+
+    - 243: `max(1, round(2*pi*R*sin(theta) / m))`, `theta` the row's centre
+      colatitude, so a wedge's arc at the row's centre is about `m` edges.
+    - 81, 27, 9 and 3: the count of the parent row holding this one times
+      `max(1, round(T / parent))`, `T` as above.
+
+    Raises:
+        ValueError: For a level that is not a block size or a row that does
+            not exist.
+    """
+    _check_level(m)
+    count = drill_band_count(m, shell)
+    row = _row_of(m, shell, band)
+    theta = (row + 0.5) * math.pi / count
+    target = 2 * math.pi * block_radius(m, shell) * math.sin(theta) / m
+    if m == DRILL_TOP:
+        return max(1, _js_round(target))
+    parent_band = _parent_band(m, shell, band)
+    parent = drill_wedge_count(m * DRILL_STEP, shell // DRILL_STEP, parent_band)
+    return parent * max(1, _js_round(target / parent))
+
+
+def _parent_band(m, shell, band):
+    """The signed row of the parent block shell holding row `band`."""
+    count = drill_band_count(m, shell)
+    parent_count = drill_band_count(m * DRILL_STEP, shell // DRILL_STEP)
+    row = (count - 1) // 2 - band
+    parent_row = row // (count // parent_count)
+    return (parent_count - 1) // 2 - parent_row
+
+
+def _centre_row(m, shell, colatitude):
+    """The row (signed) of block shell `shell` at size `m` holding a
+    colatitude; the poles go to the end rows."""
+    count = drill_band_count(m, shell)
+    row = min(count - 1, max(0, math.floor(colatitude * count / math.pi)))
+    return (count - 1) // 2 - row
+
+
+def cell_colatitude(shell, band):
+    """The colatitude a sector's centre lies at: the middle of its band, the
+    plane for band 0, the axis for a cap, and `pi / 2` for the core."""
+    if shell == 0:
+        return math.pi / 2
+    if spherical.is_cap(shell, band):
+        return 0.0 if band > 0 else math.pi
+    if band == 0:
+        return math.pi / 2
+    north, south = spherical.band_colatitude_bounds(shell, band)
+    return (north + south) / 2
+
+
+def _cell_wedge_in(cell_wedges, cell_wedge, block_wedges):
+    """The block wedge holding a sector wedge's centre longitude, in integers;
+    a centre exactly on a meridian goes to the higher wedge."""
+    return ((2 * cell_wedge + 1) * block_wedges) // (2 * cell_wedges)
 
 
 def drill_parent(block):
@@ -121,99 +179,170 @@ def drill_parent(block):
     block.
 
     Args:
-        block (DrillBlock or tuple): `(m, ring, wedge, slab)`, or a sector
-            `(1, ring, slot, layer)`.
+        block (DrillBlock or tuple): `(m, shell, band, wedge)`, or a sector
+            `(1, shell, band, wedge)`.
 
     Returns:
         DrillBlock or None.
     """
-    m, ring, wedge, slab = block
+    m, shell, band, wedge = block
+    if m == 1:
+        parent_shell = shell // DRILL_STEP
+        parent_band = _centre_row(DRILL_STEP, parent_shell, cell_colatitude(shell, band))
+        if shell == 0 or spherical.is_cap(shell, band):
+            return DrillBlock(DRILL_STEP, parent_shell, parent_band, 0)
+        parent_wedges = drill_wedge_count(DRILL_STEP, parent_shell, parent_band)
+        return DrillBlock(DRILL_STEP, parent_shell, parent_band,
+                          _cell_wedge_in(spherical.wedge_count(shell, band), wedge, parent_wedges))
     _check_level(m)
     if m == DRILL_TOP:
         return None
-    if m == 1:
-        parent_ring = ring // DRILL_STEP
-        # A sector joins the level-3 wedge holding its slot's center.
-        parent_wedge = ((2 * wedge + 1) * drill_wedge_count(3, parent_ring)) // (2 * ring_sector_count(ring))
-        return DrillBlock(3, parent_ring, parent_wedge, (slab + 1) // DRILL_STEP)
-    parent_ring = ring // DRILL_STEP
-    q = drill_wedge_count(m, ring) // drill_wedge_count(m * DRILL_STEP, parent_ring)
-    return DrillBlock(m * DRILL_STEP, parent_ring, wedge // q, (slab + 1) // DRILL_STEP)
+    parent_shell = shell // DRILL_STEP
+    parent_band = _parent_band(m, shell, band)
+    q = drill_wedge_count(m, shell, band) // drill_wedge_count(m * DRILL_STEP, parent_shell, parent_band)
+    return DrillBlock(m * DRILL_STEP, parent_shell, parent_band, wedge // q)
 
 
-def drill_chain_of(ring, layer, slot):
+def drill_chain_of(shell, band, wedge):
     """
-    Sector `(ring, layer, slot)`'s blocks from the top: `[level 243,
-    81, 27, 9, 3, the sector itself]`.
+    Sector `(shell, band, wedge)`'s blocks from the top: `[level 243, 81, 27,
+    9, 3, the sector itself]`.
     """
-    chain = [DrillBlock(1, ring, slot, layer)]
+    chain = [DrillBlock(1, shell, band, wedge)]
     while chain[-1].m != DRILL_TOP:
         chain.append(drill_parent(chain[-1]))
     return chain[::-1]
 
 
-def drill_slabs(block):
-    """
-    The child slabs of `block`, lowest first (child-level numbering; at
-    `m = 3`, sector layers).
-    """
-    m, _ring, _wedge, slab = block
-    _check_level(m)
-    if m == 1:
-        raise ValueError("a sector has no children")
-    return list(range(slab * DRILL_STEP - 1, slab * DRILL_STEP + 2))
+def _wedge_cells(cell_wedges, wedge, block_wedges):
+    """The sector wedges `[first, last]` of a band whose centres fall in block
+    wedge `wedge` of a row of `block_wedges` (an empty range when none do)."""
+    first = max(0, -((block_wedges - 2 * wedge * cell_wedges) // (2 * block_wedges)))
+    last = min(cell_wedges - 1, -((block_wedges - 2 * (wedge + 1) * cell_wedges) // (2 * block_wedges)) - 1)
+    return first, last
 
 
-def drill_block_sectors(block, layer):
+def _bands_in(shell, row, rows):
+    """The sector bands of `shell` (not the core), north to south, whose
+    centre colatitude lies in row `row` of `rows` equal steps; the poles belong
+    to the end rows."""
+    low, high = spherical.band_range(shell)
+    bands = list(range(high, low - 1, -1))
+    centres = [cell_colatitude(shell, b) for b in bands]
+    start = 0 if row == 0 else bisect_left(centres, row * math.pi / rows)
+    stop = len(bands) if row == rows - 1 else bisect_left(centres, (row + 1) * math.pi / rows)
+    return bands[start:stop]
+
+
+def drill_block_sectors(block):
     """
-    The sectors of level-3 block `block` on sector layer `layer`, as
-    `DrillBlock(1, ring, slot, layer)` -- the slots whose centers fall in
-    its wedge, in each of its three rings (section 3.5).
+    The sectors of level-3 block `block`, as `DrillBlock(1, shell, band,
+    wedge)`: in each of its three shells, the bands whose centre lies in its
+    row and, in each, the wedges whose centre lies in its wedge.
     """
-    m, ring, wedge, _slab = block
-    if m != 3:
+    m, shell, band, wedge = block
+    if m != DRILL_STEP:
         raise ValueError(f"only level-3 blocks hold sectors, got m={m}")
-    wedges = drill_wedge_count(3, ring)
+    rows = drill_band_count(m, shell)
+    row = _row_of(m, shell, band)
+    block_wedges = drill_wedge_count(m, shell, band)
     sectors = []
-    for i in range(3 * ring, 3 * ring + 3):
-        n = ring_sector_count(i)
-        first = max(0, -((wedges - 2 * wedge * n) // (2 * wedges)))
-        last = min(n - 1, -((wedges - 2 * (wedge + 1) * n) // (2 * wedges)) - 1)
-        sectors.extend(DrillBlock(1, i, k, layer) for k in range(first, last + 1))
+    for k in range(shell * DRILL_STEP, shell * DRILL_STEP + DRILL_STEP):
+        if k == 0:
+            if band == 0 and wedge == 0:
+                sectors.append(DrillBlock(1, 0, 0, 0))
+            continue
+        for b in _bands_in(k, row, rows):
+            if spherical.is_cap(k, b):
+                if wedge == 0:
+                    sectors.append(DrillBlock(1, k, b, 0))
+                continue
+            first, last = _wedge_cells(spherical.wedge_count(k, b), wedge, block_wedges)
+            sectors.extend(DrillBlock(1, k, b, w) for w in range(first, last + 1))
     return sectors
 
 
 def drill_children(block):
     """
-    `block`'s children, grouped by child slab: `[(slab, [DrillBlock,
-    ...]), ...]`, lowest slab first. A level-3 block's children are its
-    sectors, grouped by layer.
+    `block`'s children, grouped by child shell: `[(shell, [DrillBlock, ...]),
+    ...]`, innermost shell first. A level-3 block's children are its sectors,
+    grouped by sector shell (shells it holds none of are left out).
     """
-    m, ring, wedge, _slab = block
-    if m == 3:
-        return [(layer, drill_block_sectors(block, layer)) for layer in drill_slabs(block)]
+    m, shell, band, wedge = block
+    _check_level(m)
     f = DRILL_STEP
+    if m == DRILL_STEP:
+        by_shell = {}
+        for sector in drill_block_sectors(block):
+            by_shell.setdefault(sector.shell, []).append(sector)
+        return sorted(by_shell.items())
     child_m = m // f
-    parent_wedges = drill_wedge_count(m, ring)
+    parent_rows = drill_band_count(m, shell)
+    parent_wedges = drill_wedge_count(m, shell, band)
+    row = _row_of(m, shell, band)
     groups = []
-    for slab in drill_slabs(block):
+    for child_shell in range(shell * f, shell * f + f):
+        child_rows = drill_band_count(child_m, child_shell)
+        step = child_rows // parent_rows
         blocks = []
-        for i in range(ring * f, ring * f + f):
-            q = drill_wedge_count(child_m, i) // parent_wedges
-            blocks.extend(DrillBlock(child_m, i, s, slab) for s in range(wedge * q, wedge * q + q))
-        groups.append((slab, blocks))
+        for child_row in range(row * step, row * step + step):
+            child_band = (child_rows - 1) // 2 - child_row
+            q = drill_wedge_count(child_m, child_shell, child_band) // parent_wedges
+            blocks.extend(DrillBlock(child_m, child_shell, child_band, w) for w in range(wedge * q, wedge * q + q))
+        groups.append((child_shell, blocks))
     return groups
 
 
+def block_addresses(block):
+    """
+    Every sector address `(shell, band, wedge)` inside `block` of any level
+    (a sector's own, for level 1), shell by shell outward: a level-3 block's
+    sectors (`drill_block_sectors`), and a bigger block's children's,
+    recursively.
+    """
+    m = block.m if hasattr(block, "m") else block[0]
+    if m == 1:
+        yield tuple(block)[1:]
+        return
+    if m == DRILL_STEP:
+        for sector in drill_block_sectors(block):
+            yield (sector.shell, sector.band, sector.wedge)
+        return
+    for _shell, children in drill_children(block):
+        for child in children:
+            yield from block_addresses(child)
+
+
+def drill_block_bounds(block, edge_pc):
+    """
+    A block's analytic bounds: `((inner radius, outer radius), (north
+    colatitude, south colatitude), (start longitude, end longitude))`, parsecs
+    and radians. Block shell 0's inner radius is 0.
+    """
+    m, shell, band, wedge = block
+    if m == 1:
+        inner, outer = spherical.shell_bounds_pc(shell, edge_pc)
+        north, south = spherical.band_colatitude_bounds(shell, band)
+        start, end = spherical.wedge_longitude_bounds(shell, band, wedge)
+        return (inner, outer), (north, south), (start, end)
+    _check_level(m)
+    rows = drill_band_count(m, shell)
+    row = _row_of(m, shell, band)
+    inner = 0.0 if shell == 0 else (shell * m - 0.5) * edge_pc
+    outer = ((shell + 1) * m - 0.5) * edge_pc
+    step = 2 * math.pi / drill_wedge_count(m, shell, band)
+    return (inner, outer), (row * math.pi / rows, (row + 1) * math.pi / rows), (wedge * step, (wedge + 1) * step)
+
+
 def format_drill_key(block):
-    """`"m.ring.wedge.slab"`, the stage URL's `at` value."""
+    """`"m.shell.band.wedge"`, the stage URL's `at` value."""
     return ".".join(str(int(v)) for v in block)
 
 
 def parse_drill_key(key):
     """
-    `format_drill_key`'s inverse, checked: a known size, rings and wedges
-    in range for that size. Slabs aren't checked against the outline.
+    `format_drill_key`'s inverse, checked: a known size, a block shell, and a
+    row and wedge that exist at that size.
 
     Raises:
         ValueError: On anything else.
@@ -222,11 +351,14 @@ def parse_drill_key(key):
     if len(parts) != 4:
         raise ValueError(f"not a block key: {key!r}")
     try:
-        m, ring, wedge, slab = (int(p) for p in parts)
+        m, shell, band, wedge = (int(p) for p in parts)
     except ValueError:
         raise ValueError(f"not a block key: {key!r}") from None
     if m not in DRILL_LEVELS[:-1]:
         raise ValueError(f"block size must be one of {DRILL_LEVELS[:-1]}, got {m}")
-    if ring < 0 or not 0 <= wedge < drill_wedge_count(m, ring):
+    if shell < 0:
         raise ValueError(f"no such block: {key!r}")
-    return DrillBlock(m, ring, wedge, slab)
+    rows = drill_band_count(m, shell)
+    if abs(band) > rows // 2 or not 0 <= wedge < drill_wedge_count(m, shell, band):
+        raise ValueError(f"no such block: {key!r}")
+    return DrillBlock(m, shell, band, wedge)

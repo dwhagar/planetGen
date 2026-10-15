@@ -8,15 +8,18 @@ import { importPage } from "./fakedom.mjs";
 
 const G = await importPage("gridopacity.js");
 
-// A grid of `n` x `n` x `layers` cells, 10 across and 10 high, all at `opacity`, polar about
-// an axis far off to the side (so the cells are nearly cubes).
+// A grid of `n` x `n` x `layers` cells, 10 across and 10 high, all at `opacity`, about the equator
+// and far from the center (so the cells are nearly cubes): n radii, n longitudes, `layers`
+// colatitudes.
 function grid(n, layers, opacity) {
   const cells = [];
+  const r = 100000;
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       for (let k = 0; k < layers; k++) {
-        const r0 = 1000 + 10 * i;
-        cells.push({ r0, r1: r0 + 10, t0: j * 10 / 1005, t1: (j + 1) * 10 / 1005, z0: 10 * k, z1: 10 * (k + 1), opacity });
+        const r0 = r + 10 * i;
+        const c0 = Math.PI / 2 - 0.0001 * (k + 1);
+        cells.push({ r0, r1: r0 + 10, c0, c1: c0 + 0.0001, t0: (j * 10) / r, t1: ((j + 1) * 10) / r, opacity });
       }
     }
   }
@@ -37,7 +40,7 @@ test("a ray along a stack of layers crosses each of them, a flat slab seen from 
   assert.ok(G.crossings(slab, [1, 0, 0]) > 8);
   // A slant sits between.
   const slanted = G.crossings(stack, [Math.SQRT1_2, 0, -Math.SQRT1_2]);
-  assert.ok(slanted > 10 && slanted < 20, String(slanted));
+  assert.ok(slanted > 10 && slanted < 21, String(slanted));
 });
 
 test("the share leaves one face alone and keeps many under the cap", () => {

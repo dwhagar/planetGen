@@ -1,18 +1,14 @@
 """
-Tests for `galaxyGeometry.sectors_along_segment` (NAV.38), every sector a
-straight segment passes through, and its browser twin
-`galaxyprisms.sectorsAlongSegment` (run under node, skipped where node
-isn't installed): along an axis, diagonally, through the core, out into
-the halo, in a face and through an edge, against dense sampling, and the
-two languages against each other.
+Tests for `galaxy.geometry.sectors_along_segment` (NAV.38), every sector a
+straight segment passes through: along an axis, diagonally, through the
+core, out into the halo, in a face and through an edge, against dense
+sampling. The browser twin is gone with the cylinder grid (MAP.206); the
+shell grid's own walk is `spherical.sectors_along_segment`
+(test_galaxy_spherical.py).
 """
 
-import json
 import math
-import os
 import random
-import shutil
-import subprocess
 
 import pytest
 
@@ -22,8 +18,6 @@ from planetgen.galaxy.geometry import (
 )
 
 EDGE = 4.0
-NODE = shutil.which("node")
-MODULE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static", "galaxyprisms.js")
 
 
 def _sampled(start, end, steps=20000):
@@ -159,29 +153,3 @@ def test_out_into_the_halo_and_far_rings():
     assert _sampled(start, end, steps=200000) <= set(cells)
     for a, b in zip(cells, cells[1:]):
         assert _adjacent(a, b)
-
-
-@pytest.mark.skipif(NODE is None, reason="node is not installed")
-def test_javascript_twin_agrees():
-    rng = random.Random(38)
-    segments = [
-        ((0.5, 0.0, 0.0), (100.0, 0.0, 0.0)),
-        ((-50.0, -3.0, -9.0), (50.0, 3.0, 9.0)),
-        ((-20.0, 0.0, 1.0), (20.0, 0.0, 1.0)),
-        ((8000.0, 10.0, 0.0), (8600.0, -400.0, 900.0)),
-        ((10.0, 1.0, 2.0), (60.0, 1.0, 2.0)),
-        ((3.0, 4.0, 5.0), (3.0, 4.0, 5.0)),
-    ]
-    for _ in range(40):
-        center = (rng.uniform(-3000, 3000), rng.uniform(-3000, 3000), rng.uniform(-50, 50))
-        segments.append(tuple(tuple(c + rng.uniform(-60, 60) for c in center) for _ in range(2)))
-    source = (
-        f"import * as P from {json.dumps('file://' + os.path.abspath(MODULE))};\n"
-        f"const segs = {json.dumps(segments)};\n"
-        f"console.log(JSON.stringify(segs.map(s => P.sectorsAlongSegment(s[0], s[1], {EDGE}))));\n"
-    )
-    result = subprocess.run([NODE, "--input-type=module", "-e", source], capture_output=True, text=True, check=True)
-    got = json.loads(result.stdout)
-    for (start, end), js in zip(segments, got):
-        py = sectors_along_segment(start, end, EDGE)
-        assert [(c["ring"], c["layer"], c["slot"]) for c in js] == py, (start, end)

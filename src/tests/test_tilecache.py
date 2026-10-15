@@ -51,7 +51,7 @@ class FakeApi:
 
     def get_galaxy_stage(self, db, at=None):
         self.stage_calls.append(at)
-        return {"at": at, "child_m": 27, "children": [{"ring": 1, "wedge": 2, "slab": 0, "generated": 5}], "sectors": None}
+        return {"at": at, "child_m": 27, "children": [{"shell": 1, "band": 0, "wedge": 2, "generated": 5}], "sectors": None}
 
     def get_galaxy_tiles(self, db, tile_keys):
         self.tile_calls.append(list(tile_keys))
@@ -258,22 +258,22 @@ def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_p
 
 
 def test_stages_are_cached_until_their_chain_changes(api, monkeypatch):
-    first = tilecache.fetch_stage("mydb", "243.7.14.0")
+    first = tilecache.fetch_stage("mydb", "243.7.3.0")
     assert first["children"][0]["generated"] == 5 and first["stamp"] == api.stamp
-    tilecache.fetch_stage("mydb", "243.7.14.0")
-    tilecache.fetch_stage("mydb", "27.63.115.-1")
+    tilecache.fetch_stage("mydb", "243.7.3.0")
+    tilecache.fetch_stage("mydb", "27.63.-2.5")
     tilecache.fetch_stage("mydb", None)
     tilecache.fetch_stage("mydb", None)
-    assert api.stage_calls == ["243.7.14.0", "27.63.115.-1", None]
+    assert api.stage_calls == ["243.7.3.0", "27.63.-2.5", None]
 
     api.stamp = "00000000000000bb"
     api.changed = []
-    api.changed_stages = ["galaxy", "243.7.14.0"]
+    api.changed_stages = ["galaxy", "243.7.3.0"]
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
-    tilecache.fetch_stage("mydb", "27.63.115.-1")
-    tilecache.fetch_stage("mydb", "243.7.14.0")
+    tilecache.fetch_stage("mydb", "27.63.-2.5")
+    tilecache.fetch_stage("mydb", "243.7.3.0")
     tilecache.fetch_stage("mydb", None)
-    assert api.stage_calls[3:] == ["243.7.14.0", None]
+    assert api.stage_calls[3:] == ["243.7.3.0", None]
 
 
 def test_stage_keys_are_checked(api):

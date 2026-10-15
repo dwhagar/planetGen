@@ -106,7 +106,7 @@ _TILE_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radi
 
 _TILE_KEEP_SECTIONS = ("clouds", "stars", "generated", "points", "incomplete")
 """tuple: The sections of a tile the page reads; `placed`, `planned` and
-`filled` (9 to 35% of every tile) are not served. `incomplete` (PERF.76) names the pieces the database was too busy
+`sector_count` (9 to 35% of every tile) are not served. `incomplete` (PERF.76) names the pieces the database was too busy
 to give; such a tile is served but never stored."""
 
 
@@ -245,7 +245,7 @@ def _delete_tiles(generation_dir, tile_keys):
 
 def _stage_filename(key):
     """A drill-down stage's cache file: `sgalaxy.json` for the galaxy,
-    else `s<m>_<ring>_<wedge>_<slab>.json`."""
+    else `s<m>_<shell>_<band>_<wedge>.json`."""
     if key == "galaxy":
         return "sgalaxy.json"
     return "s" + format_drill_key(parse_drill_key(key)).replace(".", "_") + ".json"
@@ -425,7 +425,7 @@ def _trim_star(star):
 def trim_tile(tile):
     """
     A tile as the page's script reads it (MAP.157): without `placed`,
-    `planned` and `filled`, its stars cut to `_TILE_STAR_KEYS` and rounded
+    `planned` and `sector_count`, its stars cut to `_TILE_STAR_KEYS` and rounded
     (`_trim_star`), every other float rounded to `_ROUND_DIGITS` decimals.
     Measured on 400 real tiles this is 48% fewer gzipped bytes.
     """
@@ -662,7 +662,7 @@ def fetch_stage(db, at=None):
 
     Args:
         db (str): The `?db=` value.
-        at (str or None): A block key `m.ring.wedge.slab`, or `None` for
+        at (str or None): A block key `m.shell.band.wedge`, or `None` for
             the galaxy.
 
     Returns:
@@ -713,7 +713,7 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
 
     Args:
         db (str): The `?db=` value.
-        at (str): A cell key `m.ring.wedge.slab` of any level, `1.ring.slot.layer` for a sector.
+        at (str): A cell key `m.shell.band.wedge` of any level, `1.shell.band.wedge` for a sector.
         g (int): Cells across, one of `window.WINDOW_WIDTHS`.
 
     Returns:
@@ -732,14 +732,15 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
         # Cells bigger than a sector: the stored block totals, in one query.
         stamp = current_stamp(db, cache_dir())["stamp"]
         return {**get_galaxy_window(db, format_drill_key(centre), width), "stamp": stamp}
+    # The sector edge comes with every stage; the galaxy's is always cached.
+    galaxy = fetch_stage(db, None)
+    edge_pc = galaxy["edge_pc"]
+    stamp = galaxy.get("stamp")
     stages = {}
-    stamp = None
-    for parent in window_parents(window_cells(centre, width)):
+    for parent in window_parents(window_cells(centre, edge_pc, width)):
         key = format_drill_key(parent) if parent else "galaxy"
-        stage = fetch_stage(db, None if parent is None else key)
-        stamp = stamp or stage.get("stamp")
-        stages[key] = stage
-    return {**crop_stages(centre, width, stages), "stamp": stamp}
+        stages[key] = galaxy if parent is None else fetch_stage(db, key)
+    return {**crop_stages(centre, width, stages, edge_pc), "stamp": stamp}
 
 
 def prune(root, max_bytes=None):

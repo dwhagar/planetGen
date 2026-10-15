@@ -127,24 +127,31 @@ export function limitingMagnitude(focusLimit, p) {
   return focusLimit - CONTEXT_MAGNITUDE_DROP * (1 - p);
 }
 
-// Whether a camera at (x, y, z) is inside a block with bounds {r0, r1, t0,
-// t1, z0, z1} (polar around the galaxy's axis, as the stage API gives them).
+// Whether a camera at (x, y, z) is inside a block with bounds {r0, r1, c0, c1, t0, t1} (spherical about the
+// galaxy's center: radii, colatitudes from galactic north and longitudes, as galaxyprisms.drillBlockBounds
+// gives them). A cell all the way round (a cap, the core) holds every longitude.
 export function blockContains(b, x, y, z) {
-  if (z < b.z0 || z >= b.z1) return false;
-  const r = Math.hypot(x, y);
+  const r = Math.sqrt(x * x + y * y + z * z);
   if (r < b.r0 || r >= b.r1) return false;
   if (r === 0) return true;
-  const t = ((Math.atan2(y, x) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const colat = Math.atan2(Math.sqrt(x * x + y * y), z);
+  if (colat < b.c0 || (colat >= b.c1 && b.c1 < Math.PI)) return false;
+  if (b.t1 - b.t0 >= 2 * Math.PI - 1e-9 || (x === 0 && y === 0)) return true;
+  const theta = Math.atan2(y, x);
+  const t = theta < 0 ? theta + 2 * Math.PI : theta + 0;
   return t >= b.t0 && t < b.t1;
 }
 
 // A block's center in world space ([x, y, z]), the middle of its bounds,
-// as galaxyprisms.cellCoordinates works it (the block shader compares it
+// as galaxyprisms.cellCenter works it (the block shader compares it
 // with its vertices' `prismCenter` to tell which block is the container).
 export function blockCenter(b) {
   const r = (b.r0 + b.r1) / 2;
+  const c = (b.c0 + b.c1) / 2;
+  if (b.t1 - b.t0 >= 2 * Math.PI - 1e-9) return [0, 0, r * Math.cos(c)];
   const t = (b.t0 + b.t1) / 2;
-  return [r * Math.cos(t), r * Math.sin(t), (b.z0 + b.z1) / 2];
+  const plane = r * Math.sin(c);
+  return [plane * Math.cos(t), plane * Math.sin(t), r * Math.cos(c)];
 }
 
 // The same near-field arithmetic in GLSL: `float nearField(vec3 view, float D,

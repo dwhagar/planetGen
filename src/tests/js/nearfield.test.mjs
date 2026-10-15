@@ -101,18 +101,31 @@ test("picking needs a share of 0.35", () => {
   assert.equal(N.visibleEnough(N.TUBE_MIN_ALPHA), false);
 });
 
-test("a camera is inside the block whose polar bounds hold it", () => {
-  const b = { r0: 100, r1: 104, t0: 0, t1: Math.PI / 2, z0: -2, z1: 2 };
+test("a camera is inside the block whose spherical bounds hold it", () => {
+  // A cell 100 to 104 pc out, within 30 degrees of the plane, over the first quarter turn.
+  const b = { r0: 100, r1: 104, c0: Math.PI / 3, c1: (2 * Math.PI) / 3, t0: 0, t1: Math.PI / 2 };
   assert.equal(N.blockContains(b, 102, 1, 0), true);
-  assert.equal(N.blockContains(b, 102, 1, 2), false, "the top wall is outside");
+  assert.equal(N.blockContains(b, 102, 1, 60), false, "above the northern edge");
+  assert.equal(N.blockContains(b, 102, 1, -60), false, "below the southern edge");
   assert.equal(N.blockContains(b, 99, 0, 0), false);
   assert.equal(N.blockContains(b, 104, 0, 0), false);
-  assert.equal(N.blockContains(b, 102, -1, 0), false, "the other side of the bearing");
-  assert.equal(N.blockContains({ ...b, t0: 3 * Math.PI / 2, t1: 2 * Math.PI }, 102, -1, 0), true, "bearings wrap to 0..2 pi");
+  assert.equal(N.blockContains(b, 102, -1, 0), false, "the other side of the longitude");
+  assert.equal(N.blockContains({ ...b, t0: (3 * Math.PI) / 2, t1: 2 * Math.PI }, 102, -1, 0), true, "longitudes wrap to 0..2 pi");
   const c = N.blockCenter(b);
   assert.ok(Math.abs(c[0] - 102 * Math.cos(Math.PI / 4)) < 1e-9);
   assert.ok(Math.abs(c[1] - 102 * Math.sin(Math.PI / 4)) < 1e-9);
-  assert.equal(c[2], 0);
+  assert.ok(Math.abs(c[2]) < 1e-9);
+  // A polar cap holds every longitude, on the axis.
+  const cap = { r0: 100, r1: 104, c0: 0, c1: 0.3, t0: 0, t1: 2 * Math.PI };
+  assert.equal(N.blockContains(cap, 0, 0, 102), true);
+  assert.equal(N.blockContains(cap, -3, -1, 101), true);
+  assert.equal(N.blockContains(cap, 102, 0, 0), false);
+  assert.deepEqual(N.blockCenter(cap).slice(0, 2), [0, 0]);
+  // The core is a ball.
+  const core = { r0: 0, r1: 2, c0: 0, c1: Math.PI, t0: 0, t1: 2 * Math.PI };
+  assert.equal(N.blockContains(core, 0, 0, 0), true);
+  assert.equal(N.blockContains(core, 1, 1, -1), true);
+  assert.equal(N.blockContains(core, 2, 0, 0), false);
 });
 
 test("the shader's twin carries the same constants", () => {

@@ -14,11 +14,14 @@ writes are readable by Apache.
 Prints how many tiles it built and how long that took. The work is the
 same the first `/galaxy` visit does, so it stays correct however many
 stars the galaxy holds; it never blocks an update because update.sh does
-not wait for it.
+not wait for it. When it succeeds it also ends the maintenance the sector-grid
+switch started (`maintenance.SECTOR_SWITCH`, UX.112): the site is closed only
+while the maps are being rebuilt.
 """
 
 import sys
 
+from planetgen.admin import maintenance
 from planetgen.db import store
 from planetgen.generation import run_common, steps
 from planetgen.web.app import create_app
@@ -46,6 +49,10 @@ def main():
             sys.exit(1)
     print(f"Galaxy Map opening view: {result['tiles']} tiles ({result['cached']} already cached) "
           f"in {result['seconds']:.1f} s.")
+    # The Galaxy Map is back on the new sector grid (MAP.206): the site reopens (UX.112). An admin's own
+    # maintenance, and one with another cause, stays.
+    if maintenance.turn_off_for(maintenance.SECTOR_SWITCH, by="map rebuild"):
+        print("Maintenance mode is off: the Galaxy Map is rebuilt.")
 
 
 if __name__ == "__main__":

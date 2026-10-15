@@ -17,51 +17,54 @@ function median(values) {
   return sorted[Math.floor(sorted.length / 2)];
 }
 
-// The stage's cells (each {r0, r1, t0, t1, z0, z1, opacity}, polar about the
-// galaxy's axis) as the numbers the estimate needs: the extent of the whole
-// stage and the typical cell edge, horizontally and vertically (world
-// units), and the most opaque cell. null for no cells.
+// The stage's cells (each {r0, r1, c0, c1, t0, t1, opacity}, spherical about the
+// galaxy's center: radii, colatitudes and longitudes) as the numbers the
+// estimate needs: the extent of the whole stage along each axis, the typical
+// cell edge (the cube root of its volume, the cells being near cubes: a shell
+// is as deep as a sector is wide) and the most opaque cell. null for no cells.
 export function cellStats(cells) {
   if (!cells || !cells.length) return null;
-  const across = [];
-  const high = [];
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  const edges = [];
+  const low = [Infinity, Infinity, Infinity];
+  const high = [-Infinity, -Infinity, -Infinity];
   let maxOpacity = 0;
   cells.forEach(function (c) {
     const r = (c.r0 + c.r1) / 2;
+    const colat = (c.c0 + c.c1) / 2;
     const t = (c.t0 + c.t1) / 2;
-    const x = r * Math.cos(t);
-    const y = r * Math.sin(t);
-    const z = (c.z0 + c.z1) / 2;
-    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-    minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
-    across.push(Math.sqrt(Math.max(c.r1 - c.r0, 1e-9) * Math.max(r * (c.t1 - c.t0), 1e-9)));
-    high.push(Math.max(c.z1 - c.z0, 1e-9));
+    const plane = r * Math.sin(colat);
+    const at = [plane * Math.cos(t), plane * Math.sin(t), r * Math.cos(colat)];
+    for (let k = 0; k < 3; k++) {
+      low[k] = Math.min(low[k], at[k]);
+      high[k] = Math.max(high[k], at[k]);
+    }
+    const volume = ((c.r1 * c.r1 * c.r1 - c.r0 * c.r0 * c.r0) / 3) * (Math.cos(c.c0) - Math.cos(c.c1)) * (c.t1 - c.t0);
+    edges.push(Math.cbrt(Math.max(volume, 1e-27)));
     maxOpacity = Math.max(maxOpacity, c.opacity || 0);
   });
-  const edgeH = median(across);
-  const edgeV = median(high);
+  const edge = median(edges);
   return {
-    edgeH: edgeH, edgeV: edgeV,
-    extentH: Math.max(maxX - minX, maxY - minY) + edgeH,
-    extentV: maxZ - minZ + edgeV,
+    edge: edge,
+    extent: [high[0] - low[0] + edge, high[1] - low[1] + edge, high[2] - low[2] + edge],
     maxOpacity: maxOpacity,
   };
 }
 
 // About how many cells the longest ray through the stage crosses, looking
 // along `direction` (a unit vector, any sign): its path inside the stage's
-// box times the cells per unit length along it. At least 1.
+// box times the cells per unit length along it (a ray crosses a face of a
+// cubic cell for every |component| of its direction per edge). At least 1.
 export function crossings(stats, direction) {
   if (!stats) return 1;
-  const h = Math.hypot(direction[0], direction[1]);
-  const v = Math.abs(direction[2]);
   let path = Infinity;
-  if (h > 1e-9) path = Math.min(path, stats.extentH / h);
-  if (v > 1e-9) path = Math.min(path, stats.extentV / v);
+  let rate = 0;
+  for (let k = 0; k < 3; k++) {
+    const d = Math.abs(direction[k]);
+    if (d > 1e-9) path = Math.min(path, stats.extent[k] / d);
+    rate += d / stats.edge;
+  }
   if (!isFinite(path)) return 1;
-  return Math.max(1, path * (h / stats.edgeH + v / stats.edgeV));
+  return Math.max(1, path * rate);
 }
 
 // What n faces of opacity `a` add up to.

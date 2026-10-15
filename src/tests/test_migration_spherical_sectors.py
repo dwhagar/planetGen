@@ -273,8 +273,13 @@ def test_the_outline_is_rebuilt_and_the_old_tables_are_gone(mysql_config, old_ga
         assert shells[0]["shell_index"] == 0 and shells[-1]["shell_index"] == shape["outer_shell_index"] > 3
         assert all(s["cell_count"] == spherical.cells_in_band_range(s["shell_index"], s["high_band_index"])
                    for s in shells)
-        for table in ("galaxy_layer", "galaxy_column", "galaxy_block_stats"):
+        for table in ("galaxy_layer", "galaxy_column"):
             assert not conn.execute("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
                                     " AND TABLE_NAME = ?", (table,)).fetchall()
+        # 0092 builds the map's block totals again, keyed by shell, band and wedge (MAP.205).
+        columns = {r["COLUMN_NAME"] for r in conn.execute(
+            "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
+            " AND TABLE_NAME = 'galaxy_block_stats'").fetchall()}
+        assert {"m", "shell_index", "band_index", "wedge_index"} <= columns
     finally:
         conn.close()

@@ -141,7 +141,7 @@ function open(href, options) {
       const data = structuredClone(F.sectorMap.data);
       data.centerPc = [1000, 2000, 30];
       data.halfEdgePc = 5;
-      Object.assign(data, { uncharted: true, designation: S.sectorDesignation(at.ring, at.layer, at.slot) });
+      Object.assign(data, { uncharted: true, designation: S.sectorDesignation(at.shell, at.band, at.wedge) });
       try {
         return Promise.resolve(options.unchartedScene(data, at));
       } catch (err) {
@@ -243,12 +243,12 @@ test("clampPan pulls the view's middle back onto the reach sphere", () => {
 test("sectorDesignation packs like Python's provisional_sector_designation", () => {
   assert.ok(F.designations.length > 50);
   for (const d of F.designations) {
-    assert.equal(G3.sectorDesignation(d.ring, d.layer, d.slot), d.designation, JSON.stringify(d));
-    assert.equal(S.sectorDesignation(d.ring, d.layer, d.slot), d.designation, JSON.stringify(d));
-    assert.deepEqual(S.parseSectorDesignation(d.designation), { ring: d.ring, layer: d.layer, slot: d.slot });
+    assert.equal(G3.sectorDesignation(d.shell, d.band, d.wedge), d.designation, JSON.stringify(d));
+    assert.equal(S.sectorDesignation(d.shell, d.band, d.wedge), d.designation, JSON.stringify(d));
+    assert.deepEqual(S.parseSectorDesignation(d.designation), { shell: d.shell, band: d.band, wedge: d.wedge });
   }
   // Past 32 bits of packing: BigInt, not a Number shift (which wraps).
-  const wide = F.designations.find((d) => d.ring >= 4);
+  const wide = F.designations.find((d) => d.shell >= 4000);
   assert.ok(wide.designation.length > 8);
 });
 
@@ -519,13 +519,13 @@ test("a stage URL opens that stage; a bad one opens the galaxy and says why", as
 });
 
 test("?sector= opens the stage around that sector with it selected", async () => {
-  const d = { ring: 400, layer: 0, slot: 1000 };
-  const designation = S.sectorDesignation(d.ring, d.layer, d.slot);
+  const d = { shell: 400, band: 0, wedge: 1000 };
+  const designation = S.sectorDesignation(d.shell, d.band, d.wedge);
   const m = await start("http://localhost/galaxy?sector=" + designation);
   const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
-  assert.deepEqual(m.view.stage(), S.sectorStage(d.ring, d.layer, d.slot, outline, F.edgePc));
+  assert.deepEqual(m.view.stage(), S.sectorStage(d.shell, d.band, d.wedge, outline));
   const crumbs = crumbLabels(m);
-  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel({ m: 1, ring: d.ring, wedge: d.slot, slab: d.layer }) + " (1)");
+  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel(d) + " (1)");
   assert.equal(m.calls.cells.length, 1, "the sector's panel is shown");
   assert.deepEqual(m.calls.cells[0].address, d);
 });
@@ -543,7 +543,7 @@ test("the address bar flies to a sector, or says what is wrong", async () => {
 
   input.value = "0/0/99";
   m.els.address.dispatchEvent(new FakeEvent("submit"));
-  assert.equal(m.els.notice.textContent, "Ring 0 has no slot 99.");
+  assert.equal(m.els.notice.textContent, "Band 0 of shell 0 has no wedge 99.");
 
   input.value = "";
   m.els.address.dispatchEvent(new FakeEvent("submit"));
@@ -557,11 +557,11 @@ test("the address bar flies to a sector, or says what is wrong", async () => {
 });
 
 test("the address bar looks names up: one match flies there, several are listed", async () => {
-  const sector = { kind: "sector", name: "Bead", sector_id: 7, ring: 400, layer: 0, slot: 1000 };
+  const sector = { kind: "sector", name: "Bead", sector_id: 7, shell_index: 400, band_index: 0, wedge_index: 1000 };
   const answers = {
     Bead: [sector],
     Nowhere: [],
-    Many: [Object.assign({}, sector, { name: "Many A" }), { kind: "system", name: "Many B", sector_id: 8, sector_name: "Far", ring: 401, layer: 1, slot: 10 }],
+    Many: [Object.assign({}, sector, { name: "Many A" }), { kind: "system", name: "Many B", sector_id: 8, sector_name: "Far", shell_index: 401, band_index: 1, wedge_index: 10 }],
   };
   const m = await start(undefined, {
     locate: (name) => (name === "Broken" ? Promise.reject(new Error("503")) : Promise.resolve(answers[name])),
@@ -598,19 +598,12 @@ test("the address bar looks names up: one match flies there, several are listed"
 
 async function freeStage() {
   const m = await start();
-  // A window of blocks one size down, seen at the isometric slant while it holds several slabs.
+  // A window of blocks one size down, seen at the isometric slant.
   await drillOnce(m);
   assert.equal(m.view.stage().win.centre.m, 81);
-  const slabs = new Set(m.view.stage().win && lastWindowSlabs(m));
-  assert.ok(Math.abs(lastCamera(m).tilt - (slabs.size > 1 ? SV.ISO_TILT : 0)) < 1e-9, "a window of several slabs is seen at a slant");
+  assert.ok(Math.abs(lastCamera(m).tilt - SV.ISO_TILT) < 1e-9, "a window is seen at a slant");
   assert.equal(button(m, "reset-view").disabled, false);
   return m;
-}
-
-// The slabs of the blocks in the window drawn now.
-function lastWindowSlabs(m) {
-  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
-  return S.resolveStage(m.view.stage(), outline, F.edgePc).view.blocks.map((b) => b.slab);
 }
 
 test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () => {
@@ -742,10 +735,12 @@ test("clicking a block on the map zooms into a window around its middle", async 
   const stage = m.view.stage();
   assert.equal(stage.win.centre.m, 81);
   assert.equal(stage.win.g, 9);
-  const block = /^Block (\d+)·(\d+),/.exec(spot.text);
+  const block = /^Block ([\d,]+)·(-?\d+)·([\d,]+),/.exec(spot.text);
   assert.ok(block, spot.text);
-  assert.equal(P.drillParent(stage.win.centre).ring, Number(block[1]), "centred on the block clicked");
-  assert.equal(P.drillParent(stage.win.centre).wedge, Number(block[2]));
+  const parent = P.drillParent(stage.win.centre);
+  assert.equal(parent.shell, Number(block[1].replace(/,/g, "")), "centred on the block clicked");
+  assert.equal(parent.band, Number(block[2]));
+  assert.equal(parent.wedge, Number(block[3].replace(/,/g, "")));
   assert.match(m.win.location.search, /^\?win=81\.\d+\.\d+\.-?\d+$/, "the URL names the window by its centre");
 });
 
@@ -823,13 +818,13 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
   const tip = m.els.tooltip.textContent;
   const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*uncharted$/.exec(tip);
   assert.ok(match, "the tooltip names a sector: " + tip);
-  const sector = { ring: Number(match[1].replace(/,/g, "")), layer: Number(match[2]), slot: Number(match[3].replace(/,/g, "")) };
+  const sector = { shell: Number(match[1].replace(/,/g, "")), band: Number(match[2]), wedge: Number(match[3].replace(/,/g, "")) };
 
   key(m, "Enter");
   await arrive(m);
   assert.equal(m.win.location.assigned.length, 0);
   const crumbs = crumbLabels(m);
-  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel({ m: 1, ring: sector.ring, wedge: sector.slot, slab: sector.layer }));
+  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel(sector));
   assert.deepEqual(m.calls.cells[m.calls.cells.length - 1].address, sector);
 
   known = sector;
@@ -841,6 +836,10 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
   assert.deepEqual(m.calls.scenes, [42]);
   assert.equal(S.parseStageQuery(m.win.location.search).open, true, "the URL says the sector is open: " + m.win.location.search);
   assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
+  // The window it was picked in rides the link, so a fresh load shows the same steps.
+  const url = S.parseStageQuery(m.win.location.search);
+  assert.deepEqual(url.stage, m.view.stage());
+  assert.match(m.win.location.search, /^\?win=1\.[^&]+&sector=\w+&open=1$/);
   assert.equal(m.calls.hidden.length, 1, "the galaxy's own stars leave the cell");
   assert.ok(m.calls.hidden[0].r1 > 0);
   assert.ok(m.view.stage(), "still on the stage that holds it");
@@ -852,7 +851,7 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
   assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
 });
 
-// Drills a fresh map down to one layer of sectors and returns the address of the sector
+// Drills a fresh map down to a window of sectors and returns the address of the sector
 // the pointer is on next (not generated: the server lists no sectors). Taking a choice
 // on the way down already opens the first sector, so the calls are cleared first.
 async function toAnUnchartedSector(m) {
@@ -862,7 +861,7 @@ async function toAnUnchartedSector(m) {
   assert.ok(match, "the tooltip names a sector: " + m.els.tooltip.textContent);
   m.calls.uncharted.length = 0;
   m.calls.hidden.length = 0;
-  return { ring: Number(match[1].replace(/,/g, "")), layer: Number(match[2]), slot: Number(match[3].replace(/,/g, "")) };
+  return { shell: Number(match[1].replace(/,/g, "")), band: Number(match[2]), wedge: Number(match[3].replace(/,/g, "")) };
 }
 
 test("a sector nothing was generated in opens in place with what the scatters left, marked uncharted (MAP.162)", async () => {
@@ -882,7 +881,7 @@ test("a sector nothing was generated in opens in place with what the scatters le
   assert.match(crumbs[crumbs.length - 1], /^Sector .* \(uncharted\)$/);
   const cell = m.calls.cells[m.calls.cells.length - 1];
   assert.deepEqual(cell.address, sector);
-  assert.equal(cell.uncharted.designation, S.sectorDesignation(sector.ring, sector.layer, sector.slot));
+  assert.equal(cell.uncharted.designation, S.sectorDesignation(sector.shell, sector.band, sector.wedge));
   assert.ok(cell.uncharted.stars > 0);
   const badge = m.win.document.querySelector(".sector-uncharted-badge");
   assert.ok(badge && /Uncharted sector/.test(badge.textContent), "the frame carries a badge");
@@ -923,15 +922,15 @@ test("?sector=...&open=1 opens an uncharted sector from the address (MAP.162)", 
   const m = await start("http://localhost/galaxy?sector=" + S.sectorDesignation(3, 0, 4) + "&open=1", {
     unchartedScene: (data) => data,
   });
-  assert.deepEqual(m.calls.uncharted, [{ ring: 3, layer: 0, slot: 4 }]);
+  assert.deepEqual(m.calls.uncharted, [{ shell: 3, band: 0, wedge: 4 }]);
   assert.ok(m.win.document.querySelector(".sector-uncharted-badge"));
 });
 
 test("a sector page's map opens its sector, keeps to it and sends another sector to its page (MAP.68)", async () => {
-  const pinned = { ring: 3, layer: 0, slot: 4 };
+  const pinned = { shell: 3, band: 0, wedge: 4 };
   const server = () => ({ children: [], sectors: [
     Object.assign({ id: 42, name: "Pinned", system_count: 3 }, pinned),
-    Object.assign({ id: 43, name: "Beside", system_count: 2 }, { ring: 4, layer: 0, slot: 4 }),
+    Object.assign({ id: 43, name: "Beside", system_count: 2 }, { shell: 3, band: 0, wedge: 5 }),
   ] });
   const m = await start("http://localhost/sector/42", { server, pinned });
   assert.deepEqual(m.calls.scenes, [42], "its sector is opened with nothing asked of the URL");
@@ -958,7 +957,7 @@ test("a sector page's map opens its sector, keeps to it and sends another sector
 });
 
 test("kinds of object are hidden per sector, kept in the URL and read back from it (MAP.79)", async () => {
-  const pinned = { ring: 3, layer: 0, slot: 4 };
+  const pinned = { shell: 3, band: 0, wedge: 4 };
   const server = () => ({ children: [], sectors: [Object.assign({ id: 42, name: "Pinned", system_count: 3 }, pinned)] });
   const m = await start("http://localhost/sector/42?hide=nebula,nonsense", { server, pinned });
   assert.equal(m.view.kindHidden("nebula"), true, "the URL's choice is on the opened sector");
@@ -975,7 +974,7 @@ test("kinds of object are hidden per sector, kept in the URL and read back from 
 });
 
 test("on the Galaxy Map a hidden kind rides every stage URL and stays hidden after Up (MAP.79)", async () => {
-  const sector = { ring: 3, layer: 0, slot: 4 };
+  const sector = { shell: 3, band: 0, wedge: 4 };
   const server = () => ({ children: [], sectors: [Object.assign({ id: 42, name: "Bead", system_count: 3 }, sector)] });
   const m = await start("http://localhost/galaxy?sector=" + S.sectorDesignation(3, 0, 4) + "&open=1&hide=star", { server });
   assert.deepEqual(m.calls.scenes, [42]);
@@ -987,18 +986,19 @@ test("on the Galaxy Map a hidden kind rides every stage URL and stays hidden aft
 });
 
 test("a stage URL names the system opened in place (MAP.125)", () => {
-  const asked = S.parseStageQuery("?sector=100000001&open=1&system=702");
+  const CODE = S.sectorDesignation(3, 0, 4);
+  const asked = S.parseStageQuery("?sector=" + CODE + "&open=1&system=702");
   assert.equal(asked.system, "702");
   assert.equal(asked.open, true);
   // MAP.196: the printed object ID (hex digits in dashed groups) is read too, not only digits.
-  const printed = S.parseStageQuery("?sector=100000001&open=1&system=0008000000-4000000-00d&object=planet:0008000000-4000000-00e");
+  const printed = S.parseStageQuery("?sector=" + CODE + "&open=1&system=0008000000-4000000-00d&object=planet:0008000000-4000000-00e");
   assert.equal(printed.system, "0008000000-4000000-00D");
   assert.equal(printed.object, "planet:0008000000-4000000-00E");
-  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=FE81000A2B-0000005-000").system, "FE81000A2B-0000005-000");
-  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=0008000000-4000000-00D-1").system, null);
-  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=12&object=sector:0008000000-4000000-00D").object, null);
-  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=x").system, null);
-  assert.equal(S.parseStageQuery("?sector=100000001&open=1").system, null);
-  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=702&object=planet:12").object, "planet:12");
-  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=702&object=nope").object, null);
+  assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=FE81000A2B-0000005-000").system, "FE81000A2B-0000005-000");
+  assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=0008000000-4000000-00D-1").system, null);
+  assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=12&object=sector:0008000000-4000000-00D").object, null);
+  assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=x").system, null);
+  assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1").system, null);
+  assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=702&object=planet:12").object, "planet:12");
+  assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=702&object=nope").object, null);
 });

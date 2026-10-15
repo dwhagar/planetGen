@@ -19,16 +19,16 @@
 //   to `dist` from `target` along the quaternion's back (+z) axis, turned
 //   by it
 //   (and the tiles, scale bar and wedge lines with it);
-// - setWedgeClip(clip): only the wedge in view shown, {r0, r1, a0, a1,
-//   z0, z1, cells (its blocks' bounds)} (null: the whole galaxy, with its
-//   bearing labels);
+// - setWedgeClip(clip): only the cells in view shown, {cells (their bounds
+//   {r0, r1, c0, c1, t0, t1}: radii, colatitudes and longitudes)} (null: the
+//   whole galaxy);
 // - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a
-//   container ("?at=m.ring.wedge.slab", or "" for the galaxy);
+//   container ("?at=m.shell.band.wedge", or "" for the galaxy);
 // - fetchWindow(query): a Promise of GET /galaxy/window's JSON for a window
-//   ("?at=m.ring.wedge.slab&g=9");
+//   ("?at=m.shell.band.wedge&g=9");
 // - showBlockInfo(info), showPlacedInfo(entry), showCellInfo(cell),
 //   showHint(text): the info panel (showBlockInfo's info: {block, total,
-//   generated, hint, enter, generate});
+//   generated, hint, enter});
 // - picker: the map's picker (mappick.js; a new one when missing), whose
 //   other layers (phenomena, clouds) take a click or hover inside a
 //   container before the blocks: their tooltip(entry), hover(entry) and
@@ -38,7 +38,7 @@
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
 // - fetchSectorScene(id): a Promise of GET /sector/<id>/scene's JSON, the
 //   sector opened in place (MAP.66; galaxysector.js);
-// - fetchUnchartedScene({ring, layer, slot}) (optional): a Promise of the
+// - fetchUnchartedScene({shell, band, wedge}) (optional): a Promise of the
 //   scene JSON of a cell nothing was generated in, which opens in place
 //   with an "Uncharted" mark when the scatters left objects in it (MAP.162);
 // - fetchSystemScene(href): a Promise of GET /system/<id>/scene's JSON, a
@@ -50,6 +50,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 
 const S = await import(`./galaxystages.js${VERSION_QUERY}`);
+const P = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
@@ -74,13 +75,12 @@ const DRAG_CLICK_PX = 6;
 // What the + and - buttons of a sector page's map zoom by (MAP.68).
 const BUTTON_ZOOM = 1.25;
 // Each zoom step flies the camera to a preset for what it shows (MAP.97,
-// Boss 2026-10-02: "when it zooms to a block it moves as isometric, wen
-// it zooms to a slab it moves to top-down and the other direction as
-// well. The only exception is the galaxy strtas out top-down so we can
-// see the spiral arms."): the whole galaxy and a window of one slab
-// straight down, a window of several slabs at the isometric slant, so
-// its slabs show side by side. Layers and blocks touch: no space
-// between them (Boss, 2026-10-01).
+// Boss 2026-10-02: "when it zooms to a block it moves as isometric ...
+// The only exception is the galaxy strtas out top-down so we can see the
+// spiral arms."): the whole galaxy straight down, a window (a ball of cells
+// on the shells, MAP.205) at the isometric slant, so its cells show side by
+// side and one above another. Cells touch: no space between them (Boss,
+// 2026-10-01).
 export const ISO_TILT = Math.atan(Math.SQRT2);
 // Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
 // whole galaxy too since MAP.85): drag turns it, right-drag or
@@ -149,9 +149,9 @@ export function createStageView(host) {
   let stage = S.galaxyStage();
   let resolved = null;
   let selectedSector = null;
-  // The sector opened in place: {sector: {ring, layer, slot}, id, center,
+  // The sector opened in place: {sector: {shell, band, wedge}, id, center,
   // halfEdge, fitPoints}, while galaxysector.js has its scene up.
-  // A sector page's map (MAP.68): the one sector, ring/layer/slot, it is
+  // A sector page's map (MAP.68): the one sector, shell/band/wedge, it is
   // locked to; it has no steps, history or URL of its own.
   const pinned = host.pinned || null;
   let entered = null;
@@ -207,7 +207,7 @@ export function createStageView(host) {
   }
 
   // The stage API's answer for window `win` (null: the galaxy), as
-  // {generated: Map(key -> count), sectors: Map("ring/slot/layer" ->
+  // {generated: Map(key -> count), sectors: Map("shell/band/wedge" ->
   // sector)}; null while it loads (and on an error, which leaves counts
   // at 0).
   function dataFor(win) {
@@ -227,16 +227,16 @@ export function createStageView(host) {
         const generated = new Map();
         const stats = new Map();
         (payload.children || []).forEach(function (child) {
-          generated.set(child.ring + "/" + child.wedge + "/" + child.slab, child.generated);
-          stats.set(child.ring + "/" + child.wedge + "/" + child.slab, child.stats || null);
+          generated.set(cellKey(child), child.generated);
+          stats.set(cellKey(child), child.stats || null);
         });
         const sectors = new Map();
         (payload.sectors || []).forEach(function (sector) {
-          sectors.set(sector.ring + "/" + sector.slot + "/" + sector.layer, sector);
+          sectors.set(cellKey(sector), sector);
         });
         entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map() };
         payload.sectors && payload.sectors.forEach(function (sector) {
-          entry.value.sectorGenerated.set(sector.ring + "/" + sector.slot + "/" + sector.layer, 1);
+          entry.value.sectorGenerated.set(cellKey(sector), 1);
         });
         entry.ready = true;
         return entry.value;
@@ -262,9 +262,14 @@ export function createStageView(host) {
     }
   }
 
+  // A cell's key among the data's: "shell/band/wedge" (the level is the container's).
+  function cellKey(cell) {
+    return cell.shell + "/" + cell.band + "/" + cell.wedge;
+  }
+
   function generatedOf(block, data) {
     if (!data) return 0;
-    const key = block.ring + "/" + block.wedge + "/" + block.slab;
+    const key = cellKey(block);
     if (block.m === 1) return data.sectorGenerated.get(key) || 0;
     return data.generated.get(key) || 0;
   }
@@ -274,7 +279,7 @@ export function createStageView(host) {
   // luminosity_sol} from the stage API), or null.
   function statsOf(block, data) {
     if (!data) return null;
-    const key = block.ring + "/" + block.wedge + "/" + block.slab;
+    const key = cellKey(block);
     if (block.m === 1) {
       const sector = data.sectors.get(key);
       return sector ? sector.stats || null : null;
@@ -292,10 +297,6 @@ export function createStageView(host) {
       }).filter(function (o) { return o.blocks.length; });
     }
     return options;
-  }
-
-  function slabsIn(blocks) {
-    return Array.from(new Set(blocks.map(function (b) { return b.slab; }))).sort(function (p, q) { return p - q; });
   }
 
   function isSectorView(r) {
@@ -319,26 +320,12 @@ export function createStageView(host) {
     return !r.stage.win;
   }
 
-  // The bounds a set of blocks covers in the plane, bearings counted
-  // either way from `mid` (the middle of the view's bearings, so a block
-  // reaching a little before the view's first bearing doesn't wrap all the
-  // way round): {r0, r1, t0, t1, z0, z1}.
-  function spanOf(blocks, mid) {
-    const span = { r0: Infinity, r1: 0, t0: Infinity, t1: -Infinity, z0: Infinity, z1: -Infinity };
-    blocks.forEach(function (block) {
-      const b = block.bounds;
-      const t0 = mid + wrapAngle(b.t0 - mid);
-      span.r0 = Math.min(span.r0, b.r0);
-      span.r1 = Math.max(span.r1, b.r1);
-      span.t0 = Math.min(span.t0, t0);
-      span.t1 = Math.max(span.t1, t0 + (b.t1 - b.t0));
-      span.z0 = Math.min(span.z0, b.z0);
-      span.z1 = Math.max(span.z1, b.z1);
-    });
-    return span;
-  }
-
   // --- Drawing a stage ---------------------------------------------------------
+
+  // How many sectors `block` can hold: 1 for a sector, else the count under the outline (null without a shape).
+  function totalOf(block) {
+    return block.m === 1 ? 1 : S.blockTotal(block, getOutline());
+  }
 
   // One stage's meshes: a group per choice (so the hovered one stays and
   // the others fade), with each cell's choice behind the meshes for
@@ -354,10 +341,11 @@ export function createStageView(host) {
     const cellsOf = options.map(function (option, index) {
       return option.blocks.map(function (block) {
         const b = block.bounds;
+        const filled = generatedOf(block, data);
         return {
-          ring: block.ring, seg: block.wedge, slab: block.slab,
-          r0: b.r0, r1: b.r1, t0: b.t0, t1: b.t1, z0: b.z0, z1: b.z1,
-          filled: generatedOf(block, data), total: block.total, stats: statsOf(block, data), block: block,
+          shell: block.shell, band: block.band, wedge: block.wedge,
+          r0: b.r0, r1: b.r1, c0: b.c0, c1: b.c1, t0: b.t0, t1: b.t1,
+          filled: filled, total: filled > 0 ? totalOf(block) : 0, stats: statsOf(block, data), block: block,
           option: index,
         };
       });
@@ -404,19 +392,24 @@ export function createStageView(host) {
     options.forEach(function (option) {
       option.blocks.forEach(function (block) {
         if (!(generatedOf(block, data) > 0)) return;
-        const b = block.bounds;
-        const mid = (b.t0 + b.t1) / 2;
-        Array.prototype.push.apply(points, edgePoints(S.outlineEdges([block], mid), b.z1, { z0: b.z0, z1: b.z1 }));
+        Array.prototype.push.apply(points, S.cellEdgePoints(block.bounds));
       });
     });
     if (!points.length) return null;
     const line = new THREE.LineSegments(
-      new THREE.BufferGeometry().setFromPoints(points),
+      lineGeometry(points),
       new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: CHARTED_LINE_OPACITY, depthTest: false, depthWrite: false }),
     );
     line.renderOrder = 4;
     line.frustumCulled = false;
     return line;
+  }
+
+  // A line-segment geometry from a flat [x, y, z, ...] list of end points.
+  function lineGeometry(points) {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    return geometry;
   }
 
   function disposeDisplay(d) {
@@ -464,31 +457,12 @@ export function createStageView(host) {
     return Math.min(vertical, Math.atan(Math.tan(vertical) * aspect));
   }
 
-  // Points round blocks' bounds, for fitting the view to them: each
-  // block's corners, and along its outer arc every 22.5 degrees, top and
-  // bottom.
-  function boundsPoints(blocks) {
-    const points = [];
-    blocks.forEach(function (block) {
-      const b = block.bounds;
-      const steps = Math.max(1, Math.ceil((b.t1 - b.t0) / (Math.PI / 8)));
-      [b.z0, b.z1].forEach(function (z) {
-        points.push(b.r0 * Math.cos(b.t0), b.r0 * Math.sin(b.t0), z, b.r0 * Math.cos(b.t1), b.r0 * Math.sin(b.t1), z);
-        for (let k = 0; k <= steps; k++) {
-          const t = b.t0 + ((b.t1 - b.t0) * k) / steps;
-          points.push(b.r1 * Math.cos(t), b.r1 * Math.sin(t), z);
-        }
-      });
-    });
-    return points;
-  }
-
   // The points a stage's view is fitted round, worked out once per stage.
   const fitPointsCache = new WeakMap();
   function fitPointsOf(r) {
     let points = fitPointsCache.get(r);
     if (!points) {
-      points = boundsPoints(r.view.blocks);
+      points = S.boundsPoints(r.view.blocks);
       fitPointsCache.set(r, points);
     }
     return points;
@@ -583,11 +557,9 @@ export function createStageView(host) {
   }
 
   // The preset tilt for a stage (MAP.97): straight down for the whole
-  // galaxy and for a window of one slab, the isometric slant for a window
-  // of several.
+  // galaxy, the isometric slant for a window.
   function presetTilt(r) {
-    if (isWholeGalaxy(r)) return 0;
-    return slabsIn(r.view.blocks).length > 1 ? ISO_TILT : 0;
+    return isWholeGalaxy(r) ? 0 : ISO_TILT;
   }
 
   // The camera for a stage, with the view's middle bearing pointing up
@@ -599,17 +571,11 @@ export function createStageView(host) {
     if (!blocks.length) {
       return { target: [0, 0, 0], dist: host.galaxyRadius * 2.4, quat: presetQuat(-Math.PI / 2, 0) };
     }
-    const fp = S.footprint(blocks);
-    let z0 = Infinity;
-    let z1 = -Infinity;
-    blocks.forEach(function (block) {
-      z0 = Math.min(z0, block.bounds.z0);
-      z1 = Math.max(z1, block.bounds.z1);
-    });
+    const extent = S.extentOf(blocks);
     // A window looks from outside its middle, the core's bearing up the screen.
-    const theta = isWholeGalaxy(r) ? -Math.PI / 2 : Math.atan2(fp.center[1], fp.center[0]) + Math.PI;
+    const theta = isWholeGalaxy(r) ? -Math.PI / 2 : Math.atan2(extent.center[1], extent.center[0]) + Math.PI;
     const quat = presetQuat(theta, presetTilt(r));
-    const fit = centeredFit(fitPointsOf(r), [fp.center[0], fp.center[1], (z0 + z1) / 2], quat);
+    const fit = centeredFit(fitPointsOf(r), extent.center, quat);
     return { target: fit.target, dist: fit.dist, quat: quat };
   }
 
@@ -820,10 +786,6 @@ export function createStageView(host) {
     });
   }
 
-  function wrapAngle(a) {
-    return Math.atan2(Math.sin(a), Math.cos(a));
-  }
-
   // Animates the camera from `from` to `to` along van Wijk and Nuij's
   // path in the plane, easing the height and turn (the shortest way
   // between the two turns) alongside; calls
@@ -857,11 +819,7 @@ export function createStageView(host) {
       host.setWedgeClip(null);
       return;
     }
-    const span = spanOf(r.view.blocks, (r.view.a0 + r.view.a1) / 2);
-    host.setWedgeClip({
-      r0: span.r0, r1: span.r1, a0: span.t0, a1: span.t1, z0: span.z0, z1: span.z1,
-      cells: r.view.blocks.map(function (block) { return block.bounds; }),
-    });
+    host.setWedgeClip({ cells: r.view.blocks.map(function (block) { return block.bounds; }) });
   }
 
   // A stage's query with what a URL keeps beyond the stage: the NAV pick
@@ -1049,7 +1007,7 @@ export function createStageView(host) {
     const data = dataFor(S.holder(r.stage));
     const charted = r.view.blocks.filter(function (block) { return generatedOf(block, data) > 0; });
     if (!charted.length) return;
-    const fit = centeredFit(boundsPoints(charted), v.target.slice(), v.quat);
+    const fit = centeredFit(S.boundsPoints(charted), v.target.slice(), v.quat);
     const full = fitDistance(fitPointsOf(r), v.fit.target, v.quat);
     const zoom = Math.max(GALAXY_MIN_ZOOM, Math.min(1, fit.dist / full));
     if (zoom >= 1) return;
@@ -1153,7 +1111,7 @@ export function createStageView(host) {
     same: function (a, b) {
       if (a.kind !== b.kind) return false;
       if (a.kind === "stage") return S.sameStage(a.stage, b.stage);
-      return a.ring === b.ring && a.layer === b.layer && a.slot === b.slot;
+      return a.shell === b.shell && a.band === b.band && a.wedge === b.wedge;
     },
   });
   selection.onChange(function (change) {
@@ -1164,13 +1122,13 @@ export function createStageView(host) {
   // window's own crumb names it).
   function isSelectedCentre() {
     const win = stage.win;
-    return !!(selectedSector && win && win.centre.m === 1 && win.centre.ring === selectedSector.ring
-      && win.centre.slab === selectedSector.layer && win.centre.wedge === selectedSector.slot);
+    return !!(selectedSector && win && win.centre.m === 1 && win.centre.shell === selectedSector.shell
+      && win.centre.band === selectedSector.band && win.centre.wedge === selectedSector.wedge);
   }
 
   function syncSelection() {
     if (selectedSector && !isSelectedCentre()) {
-      selection.select({ kind: "sector", ring: selectedSector.ring, layer: selectedSector.layer, slot: selectedSector.slot, stage: stage }, { quiet: true });
+      selection.select({ kind: "sector", shell: selectedSector.shell, band: selectedSector.band, wedge: selectedSector.wedge, stage: stage }, { quiet: true });
     } else {
       selection.select({ kind: "stage", stage: stage }, { quiet: true });
     }
@@ -1193,7 +1151,7 @@ export function createStageView(host) {
     if (entered) {
       // Out of the sector, to the stage it sits in with it still selected.
       closeSector();
-      pushEntry(withKept("?sector=" + S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot)));
+      pushEntry(withKept(sectorQuery(selectedSector, false)));
       const back = cameraFor(resolved);
       flyCamera(viewNow(), back, null, function () {
         view = settledView(back);
@@ -1284,7 +1242,7 @@ export function createStageView(host) {
     },
     entryOf: function (hit) {
       const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
-      return cell ? columnChoice(cell.option) : null;
+      return cell ? columnChoice(cell.option, hit.point) : null;
     },
   });
 
@@ -1298,42 +1256,32 @@ export function createStageView(host) {
   }
 
   // The choice under a screen point (an index into display.options), or
-  // -1; while the pick is a slab, the slab of the block under it. Every
-  // choice lights on hover, picking a NAV end too: only taking one
-  // needs something generated
-  // (pickable, NAV.31).
+  // -1. Every choice lights on hover, picking a NAV end too: only taking one
+  // needs something generated (pickable, NAV.31).
   function optionAt(clientX, clientY) {
     const found = picker.pick(clientX, clientY, function (layer) { return layer === choiceLayer; });
     return found ? found.entry : -1;
   }
 
   // The whole galaxy is seen from above, where a ray meets the topmost of
-  // a column's stacked blocks: the choice is the column's block holding the
+  // a column's stacked blocks: the choice is the block of the column
+  // (the blocks above and below the point `point` of the plane) holding the
   // most generated sectors, else the one nearest the midplane.
-  function columnChoice(index) {
-    if (!display || !isWholeGalaxy(display.resolved) || !display.options[index]) return index;
-    if (!display.columns) {
-      display.columns = new Map();
-      display.options.forEach(function (option, n) {
-        const block = option.blocks[0];
-        const key = block.ring + "/" + block.wedge;
-        const column = display.columns.get(key) || [];
-        column.push(n);
-        display.columns.set(key, column);
-      });
-    }
-    const block = display.options[index].blocks[0];
-    const column = display.columns.get(block.ring + "/" + block.wedge);
-    if (!column || column.length < 2) return index;
-    let best = column[0];
-    let bestGenerated = -1;
-    column.forEach(function (n) {
-      const candidate = display.options[n].blocks[0];
+  function columnChoice(index, point) {
+    if (!display || !isWholeGalaxy(display.resolved) || !display.options[index] || !point) return index;
+    const off = function (b) { return Math.abs((b.c0 + b.c1) / 2 - Math.PI / 2); };
+    let best = index;
+    let bestGenerated = generatedOf(display.options[index].blocks[0], display.data);
+    let bestOff = off(display.options[index].blocks[0].bounds);
+    display.options.forEach(function (option, n) {
+      const candidate = option.blocks[0];
+      if (n === index || !S.columnContains(candidate.bounds, point.x, point.y)) return;
       const generated = generatedOf(candidate, display.data);
-      const bestSlab = Math.abs(display.options[best].blocks[0].slab);
-      if (generated > bestGenerated || (generated === bestGenerated && Math.abs(candidate.slab) < bestSlab)) {
+      const away = off(candidate.bounds);
+      if (generated > bestGenerated || (generated === bestGenerated && away < bestOff)) {
         best = n;
         bestGenerated = generated;
+        bestOff = away;
       }
     });
     return best;
@@ -1352,42 +1300,6 @@ export function createStageView(host) {
     }
   }
 
-  // Line pieces [x, y, z] pairs tracing `edges` (galaxystages.outlineEdges)
-  // at height z; with `walls` ({z0, z1}), at both heights and up the side
-  // from z0 to z1 at each corner where a radial edge turns along a circle
-  // (an arc runs the disk's whole height).
-  function edgePoints(edges, z, walls) {
-    const points = [];
-    const at = function (r, t, h) { return new THREE.Vector3(r * Math.cos(t), r * Math.sin(t), h); };
-    const heights = walls ? [walls.z0, walls.z1] : [z];
-    heights.forEach(function (h) {
-      edges.radial.forEach(function (e) { points.push(at(e.r0, e.t, h), at(e.r1, e.t, h)); });
-      edges.circles.forEach(function (e) {
-        const steps = Math.max(1, Math.ceil((e.t1 - e.t0) / (Math.PI / 90)));
-        for (let k = 0; k < steps; k++) {
-          points.push(at(e.r, e.t0 + ((e.t1 - e.t0) * k) / steps, h), at(e.r, e.t0 + ((e.t1 - e.t0) * (k + 1)) / steps, h));
-        }
-      });
-    });
-    if (walls) {
-      // A corner is a radial edge's end no other radial edge carries on
-      // from (a straight side running across a ring boundary has none).
-      const ends = new Map();
-      edges.radial.forEach(function (e) {
-        [e.r0, e.r1].forEach(function (r) {
-          const key = Math.round(r * 1e3) + "/" + Math.round(Math.cos(e.t) * 1e9) + "/" + Math.round(Math.sin(e.t) * 1e9);
-          const end = ends.get(key) || { r: r, t: e.t, n: 0 };
-          end.n += 1;
-          ends.set(key, end);
-        });
-      });
-      ends.forEach(function (end) {
-        if (end.n === 1 && end.r > 0) points.push(at(end.r, end.t, walls.z0), at(end.r, end.t, walls.z1));
-      });
-    }
-    return points;
-  }
-
   function addOutline(points, opacity) {
     if (!outlineGroup) {
       outlineGroup = new THREE.Group();
@@ -1395,7 +1307,7 @@ export function createStageView(host) {
       host.scene.add(outlineGroup);
     }
     const line = new THREE.LineSegments(
-      new THREE.BufferGeometry().setFromPoints(points),
+      lineGeometry(points),
       new THREE.LineBasicMaterial({ color: accent, depthTest: false, transparent: true, opacity: opacity }),
     );
     line.renderOrder = 6;
@@ -1403,41 +1315,24 @@ export function createStageView(host) {
     outlineGroup.add(line);
   }
 
-  // The solid of one block as triangles [x, y, z]: top and bottom, the two
-  // radial sides and the two arcs.
-  function prismTriangles(b, mid) {
-    const t0 = mid + wrapAngle(b.t0 - mid);
-    let dt = (((b.t1 - b.t0) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    if (dt === 0) dt = 2 * Math.PI;
-    const steps = Math.max(1, Math.ceil(dt / (Math.PI / 60)));
-    const at = function (r, k, h) { const t = t0 + (dt * k) / steps; return new THREE.Vector3(r * Math.cos(t), r * Math.sin(t), h); };
-    const points = [];
-    const quad = function (a, c, d, e) { points.push(a, c, d, a, d, e); };
-    for (let k = 0; k < steps; k++) {
-      [b.z0, b.z1].forEach(function (h) { quad(at(b.r0, k, h), at(b.r1, k, h), at(b.r1, k + 1, h), at(b.r0, k + 1, h)); });
-      quad(at(b.r1, k, b.z0), at(b.r1, k + 1, b.z0), at(b.r1, k + 1, b.z1), at(b.r1, k, b.z1));
-      if (b.r0 > 0) quad(at(b.r0, k, b.z0), at(b.r0, k + 1, b.z0), at(b.r0, k + 1, b.z1), at(b.r0, k, b.z1));
-    }
-    [0, steps].forEach(function (k) { quad(at(b.r0, k, b.z0), at(b.r1, k, b.z0), at(b.r1, k, b.z1), at(b.r0, k, b.z1)); });
-    return points;
-  }
-
   // An accent outline round the whole block a click would open (MAP.18,
-  // MAP.52, MAP.198): every edge of its solid, top and bottom and up the
-  // corners, and a faint shade over its faces, on top of the map.
+  // MAP.52, MAP.198): every edge of its cell, and a faint shade over its
+  // faces, on top of the map.
   function outlineOption(index, keep) {
     if (!keep) clearOutline();
     const option = display.options[index];
-    const mid = (option.a0 + option.a1) / 2;
-    const span = spanOf(option.blocks, mid);
-    // A sector opened in place keeps its old top outline and no shade: its
-    // own scene is drawn inside, and picking its stars must not be dimmed.
-    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, entered ? null : { z0: span.z0, z1: span.z1 }), 1);
+    const points = [];
+    option.blocks.forEach(function (block) { Array.prototype.push.apply(points, S.cellEdgePoints(block.bounds)); });
+    addOutline(points, 1);
+    // A sector opened in place keeps its outline and no shade: its own scene
+    // is drawn inside, and picking its stars must not be dimmed.
     if (entered) return;
-    const shade = [];
-    option.blocks.forEach(function (block) { Array.prototype.push.apply(shade, prismTriangles(block.bounds, mid)); });
+    const built = P.buildPrismGeometry(option.blocks.map(function (block) { return block.bounds; }));
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(built.positions, 3));
+    geometry.setIndex(new THREE.BufferAttribute(built.indices, 1));
     const fill = new THREE.Mesh(
-      new THREE.BufferGeometry().setFromPoints(shade),
+      geometry,
       new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: HOVER_SHADE_OPACITY, depthTest: false, depthWrite: false, side: THREE.DoubleSide }),
     );
     fill.renderOrder = 5;
@@ -1490,16 +1385,18 @@ export function createStageView(host) {
   // screen.
   function tooltipAtOption(index) {
     const option = display.options[index];
-    const fp = S.footprint(option.blocks);
-    tooltip.showAt(optionText(index), camera, canvasEl, fp.center[0], fp.center[1], option.blocks[0].bounds.z1);
+    const middle = S.extentOf(option.blocks).center;
+    tooltip.showAt(optionText(index), camera, canvasEl, middle[0], middle[1], middle[2]);
   }
 
   function blockText(block, data) {
     const b = block.bounds;
-    const bearing = S.bearingRange(b);
     const generated = generatedOf(block, data);
+    const longitude = S.bearingRange(b);
+    const latitude = S.latitudeRange(b);
     const parts = [(block.m === 1 ? "Sector " : "Block ") + S.blockLabel(block),
-      "bearing " + bearing[0].toFixed(1) + "°–" + bearing[1].toFixed(1) + "°",
+      P.isFullTurn(b) ? "all longitudes" : "longitude " + longitude[0].toFixed(1) + "°–" + longitude[1].toFixed(1) + "°",
+      "latitude " + latitude[1].toFixed(1) + "°–" + latitude[0].toFixed(1) + "°",
       Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
     if (block.m === 1) parts.push(generated > 0 ? "charted" : "uncharted");
     else parts.push(S.formatCount(generated) + (block.total != null ? " of " + S.formatCount(block.total) : "") + " sectors charted");
@@ -1522,10 +1419,10 @@ export function createStageView(host) {
   // the window's data.
   function generatedIn(block, data) {
     if (!data) return null;
-    if (stage.win.centre.m !== 1) return data.generated.get(block.ring + "/" + block.wedge + "/" + block.slab) || 0;
+    if (stage.win.centre.m !== 1) return data.generated.get(cellKey(block)) || 0;
     let generated = 0;
     data.sectors.forEach(function (sector) {
-      const parent = S.drillParent({ m: 1, ring: sector.ring, wedge: sector.slot, slab: sector.layer });
+      const parent = S.drillParent({ m: 1, shell: sector.shell, band: sector.band, wedge: sector.wedge });
       if (S.sameBlock(parent, block)) generated += 1;
     });
     return generated;
@@ -1543,46 +1440,22 @@ export function createStageView(host) {
     const data = dataFor(S.holder(stage));
     const generated = generatedIn(block, data);
     const total = getOutline().shapeless ? null : S.drillBlockTotal(block, getOutline());
-    host.showBlockInfo({
-      block: block, total: total, generated: generated, hint: hint, enter: null,
-      generate: generateOffer(block, total, generated),
-    });
-  }
-
-  // In a window of sectors, for an admin: {block, layer, wholeBlock} for the
-  // "Generate this layer" and "Generate this block" buttons
-  // (generatebuttons.js's blockGenerateButtons) of the level-3 block holding
-  // the centre, `layer` the centre's own while it is not all generated. Null
-  // when there is nothing to offer.
-  function generateOffer(block, total, generated) {
-    if (!host.canGenerate || !stage.win || stage.win.centre.m !== 1) return null;
-    const blockDone = total != null && generated != null && total > 0 && generated >= total;
-    const data = dataFor(S.holder(stage));
-    const layerBlocks = resolved.view.blocks.filter(function (b) {
-      return b.slab === stage.win.centre.slab && S.sameBlock(S.drillParent(b), block);
-    });
-    let layer = stage.win.centre.slab;
-    if (!getOutline().shapeless && layerBlocks.length && layerBlocks.every(function (b) { return generatedOf(b, data) > 0; })) layer = null;
-    if (blockDone && layer == null) return null;
-    return { block: S.formatDrillKey(block), layer: layer, wholeBlock: !blockDone };
+    host.showBlockInfo({ block: block, total: total, generated: generated, hint: hint, enter: null });
   }
 
   function sectorEntry(block, sector) {
-    const c = block.bounds;
-    const r = (c.r0 + c.r1) / 2;
-    const t = (c.t0 + c.t1) / 2;
-    const z = (c.z0 + c.z1) / 2;
+    const middle = P.cellCenter(block.bounds);
     return {
       id: sector.id, name: sector.name, system_count: sector.system_count,
-      ring_index: block.ring, layer_index: block.slab, ring_slot_index: block.wedge,
-      designation: S.sectorDesignation(block.ring, block.slab, block.wedge),
-      galactic_radius_pc: Math.hypot(r * Math.cos(t), r * Math.sin(t), z),
+      shell_index: block.shell, band_index: block.band, wedge_index: block.wedge,
+      designation: S.sectorDesignation(block.shell, block.band, block.wedge),
+      galactic_radius_pc: Math.hypot(middle[0], middle[1], middle[2]),
     };
   }
 
   function sectorRecord(block) {
     const data = dataFor(S.holder(stage));
-    return data ? data.sectors.get(block.ring + "/" + block.wedge + "/" + block.slab) : null;
+    return data ? data.sectors.get(cellKey(block)) : null;
   }
 
   function showSectorInfo(block) {
@@ -1591,15 +1464,15 @@ export function createStageView(host) {
     const sector = sectorRecord(block);
     if (sector) host.showPlacedInfo(sectorEntry(block, sector));
     else host.showCellInfo({
-      m: 1, bounds: block.bounds, address: { ring: block.ring, layer: block.slab, slot: block.wedge }, filled: 0,
+      m: 1, bounds: block.bounds, address: { shell: block.shell, band: block.band, wedge: block.wedge }, filled: 0,
       uncharted: isEnteredCell(block) && entered.uncharted ? sectorStage.unchartedSummary() : null,
     });
   }
 
   // Whether `block` is the sector open in place.
   function isEnteredCell(block) {
-    return !!entered && entered.sector.ring === block.ring && entered.sector.layer === block.slab
-      && entered.sector.slot === block.wedge;
+    return !!entered && entered.sector.shell === block.shell && entered.sector.band === block.band
+      && entered.sector.wedge === block.wedge;
   }
 
   // A stage's own hint in the info panel.
@@ -1647,7 +1520,7 @@ export function createStageView(host) {
         return;
       }
       if (entered) closeSector();
-      selectedSector = { ring: block.ring, layer: block.slab, slot: block.wedge };
+      selectedSector = { shell: block.shell, band: block.band, wedge: block.wedge };
       setHover({ option: index, sticky: true });
       showSectorInfo(block);
       renderCrumbs();
@@ -1664,15 +1537,17 @@ export function createStageView(host) {
   function takePick(pick, at) {
     if (pinned) return;
     const base = display && display.resolved ? display.resolved.stage : stage;
+    // The window opens round the middle of what the click went through, not the face it met first.
+    if (at) at = S.chordMiddle(pick.block.bounds || P.drillBlockBounds(pick.block, edgePc), at, host.camera.position);
     let into = S.windowInto(base, pick.block, at, edgePc);
     // A click near the galaxy's edge can fall on a cell that holds no sector:
     // the window goes to the nearest cell towards the block's middle that does.
     if (into && at && S.resolveStage(into, getOutline(), edgePc).problem) {
-      const b = S.drillBlockBounds(pick.block, edgePc);
-      const t = (b.t0 + b.t1) / 2;
-      const middle = { x: ((b.r0 + b.r1) / 2) * Math.cos(t), y: ((b.r0 + b.r1) / 2) * Math.sin(t) };
+      const middle = P.cellCenter(S.drillBlockBounds(pick.block, edgePc));
       for (let k = 1; k <= 4; k++) {
-        const nearer = S.windowInto(base, pick.block, { x: at.x + ((middle.x - at.x) * k) / 4, y: at.y + ((middle.y - at.y) * k) / 4 }, edgePc);
+        const nearer = S.windowInto(base, pick.block, {
+          x: at.x + ((middle[0] - at.x) * k) / 4, y: at.y + ((middle[1] - at.y) * k) / 4, z: at.z + ((middle[2] - at.z) * k) / 4,
+        }, edgePc);
         if (nearer && !S.resolveStage(nearer, getOutline(), edgePc).problem) {
           into = nearer;
           break;
@@ -1685,8 +1560,8 @@ export function createStageView(host) {
   function sectorOption(sector) {
     if (!display) return -1;
     return display.options.findIndex(function (option) {
-      return option.blocks.length === 1 && option.blocks[0].m === 1 && option.blocks[0].ring === sector.ring
-        && option.blocks[0].wedge === sector.slot && option.blocks[0].slab === sector.layer;
+      return option.blocks.length === 1 && option.blocks[0].m === 1 && option.blocks[0].shell === sector.shell
+        && option.blocks[0].band === sector.band && option.blocks[0].wedge === sector.wedge;
     });
   }
 
@@ -1709,7 +1584,7 @@ export function createStageView(host) {
   // "Uncharted") only when the scatters left objects in it (MAP.162).
   function enterSector(block, record, options) {
     const token = ++enterToken;
-    const at = { ring: block.ring, layer: block.slab, slot: block.wedge };
+    const at = { shell: block.shell, band: block.band, wedge: block.wedge };
     notice("Opening " + (record ? record.name || "the sector" : "the sector") + "…");
     sectorStage.open(record ? record.id : null, block.bounds, record ? null : at).then(function (geo) {
       if (!active || token !== enterToken) return;
@@ -1728,7 +1603,7 @@ export function createStageView(host) {
         sector: at, id: record ? record.id : null, uncharted: !record, center: geo.center, halfEdge: geo.halfEdge,
         fitPoints: geo.fitPoints,
       };
-      if (options.push) pushEntry(withKept("?sector=" + S.sectorDesignation(at.ring, at.layer, at.slot) + "&open=1"));
+      if (options.push) pushEntry(withKept(sectorQuery(at, true)));
       showSectorInfo(block);
       applyHover();
       renderCrumbs();
@@ -1762,7 +1637,17 @@ export function createStageView(host) {
 
   // The URL of the open sector, ?sector=<designation>&open=1.
   function sectorOpenQuery() {
-    return "?sector=" + S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot) + "&open=1";
+    return sectorQuery(selectedSector, true);
+  }
+
+  // The URL of a sector in the stage on screen: ?sector=<designation>, with &open=1 when it is open. A sector
+  // picked in a window that is not the one round it keeps that window (?win=...&sector=...), so a fresh load
+  // of the link shows the same steps; one picked in its own window needs only the designation.
+  function sectorQuery(sector, open) {
+    const code = "sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) + (open ? "&open=1" : "");
+    const own = S.sectorStage(sector.shell, sector.band, sector.wedge, getOutline());
+    if (stage && stage.win && !(own && S.sameStage(own, stage))) return S.stageQuery(stage) + "&" + code;
+    return "?" + code;
   }
 
   function closeSystem() {
@@ -2084,7 +1969,7 @@ export function createStageView(host) {
     }
     touchPending = -1;
     showTooltip("", 0, 0);
-    act(index, found && found.hit ? { x: found.hit.point.x, y: found.hit.point.y } : null);
+    act(index, found && found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null);
   }
 
   // Drag turns the view, right-drag or Shift-drag moves it, two fingers
@@ -2196,14 +2081,14 @@ export function createStageView(host) {
   function bookmarkEntry() {
     if (!resolved) return null;
     if (selectedSector) {
-      const designation = S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot);
+      const designation = S.sectorDesignation(selectedSector.shell, selectedSector.band, selectedSector.wedge);
       const data = dataFor(S.holder(stage));
-      const sector = data ? data.sectors.get(selectedSector.ring + "/" + selectedSector.slot + "/" + selectedSector.layer) : null;
+      const sector = data ? data.sectors.get(cellKey(selectedSector)) : null;
       // The sector page itself, without a pick mode's query.
       const page = sector && host.sectorUrl(sector.id) ? host.sectorUrl(sector.id).split("?")[0] : null;
       return {
         kind: "sector", value: designation,
-        name: sector ? sector.name : "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer }),
+        name: sector ? sector.name : "Sector " + S.blockLabel(selectedSector),
         url: page || location.pathname + "?sector=" + encodeURIComponent(designation),
         sectorId: sector ? sector.id : null,
       };
@@ -2233,7 +2118,7 @@ export function createStageView(host) {
     if (selectedSector && !isSelectedCentre()) {
       const uncharted = entered && entered.uncharted && !pinned;
       items.push({
-        label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer })
+        label: "Sector " + S.blockLabel(selectedSector)
           + (uncharted ? " (uncharted)" : ""),
         last: true, sector: true,
       });
@@ -2304,17 +2189,21 @@ export function createStageView(host) {
 
   // --- The address bar (section 9.3) -----------------------------------------
 
-  // Flies to the stage showing sector {ring, layer, slot} among its
-  // layer's neighbours (MAP.26) and selects it.
+  // Flies to the stage showing sector {shell, band, wedge} among its
+  // neighbours (MAP.26) and selects it.
+  // The sector a locate match (`/galaxy/locate`) sits in, as {shell, band, wedge}.
+  function matchAddress(match) {
+    return { shell: match.shell_index, band: match.band_index, wedge: match.wedge_index };
+  }
+
   function locate(sector) {
-    const next = S.sectorStage(sector.ring, sector.layer, sector.slot, getOutline());
+    const next = S.sectorStage(sector.shell, sector.band, sector.wedge, getOutline());
     if (!next) {
-      notice("Sector " + S.blockLabel({ m: 1, ring: sector.ring, wedge: sector.slot, slab: sector.layer })
-        + " is outside the galaxy.");
+      notice("Sector " + S.blockLabel(sector) + " is outside the galaxy.");
       return false;
     }
-    selectedSector = { ring: sector.ring, layer: sector.layer, slot: sector.slot };
-    go(next, { keepSector: true, query: "?sector=" + S.sectorDesignation(sector.ring, sector.layer, sector.slot) });
+    selectedSector = { shell: sector.shell, band: sector.band, wedge: sector.wedge };
+    go(next, { keepSector: true, query: "?sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) });
     return true;
   }
 
@@ -2365,7 +2254,7 @@ export function createStageView(host) {
         button.textContent = matchLabel(match);
         button.addEventListener("click", function () {
           clearMatches();
-          locate(match);
+          locate(matchAddress(match));
         });
         item.appendChild(button);
       }
@@ -2403,7 +2292,7 @@ export function createStageView(host) {
           window.location.assign(bodyUrl(only));
           return;
         }
-        locate(only);
+        locate(matchAddress(only));
         return;
       }
       notice(matches.length + " names match; pick one.");
@@ -2452,7 +2341,7 @@ export function createStageView(host) {
   // asked for, the smallest stage showing the whole course (section 9.4).
   function stageFromLocation(useCourse) {
     if (pinned) {
-      const next = S.sectorStage(pinned.ring, pinned.layer, pinned.slot, getOutline());
+      const next = S.sectorStage(pinned.shell, pinned.band, pinned.wedge, getOutline());
       if (!next) return { stage: S.galaxyStage(), sector: null, problem: "This sector is outside the galaxy." };
       return { stage: next, sector: pinned, open: true, problem: null };
     }
@@ -2460,12 +2349,10 @@ export function createStageView(host) {
     if (parsed.problem) return { stage: S.galaxyStage(), sector: null, problem: parsed.problem };
     if (parsed.sector) {
       const s = parsed.sector;
-      const next = S.sectorStage(s.ring, s.layer, s.slot, getOutline());
+      const next = parsed.stage.win && !S.resolveStage(parsed.stage, getOutline(), edgePc).problem
+        ? parsed.stage : S.sectorStage(s.shell, s.band, s.wedge, getOutline());
       if (!next) {
-        return {
-          stage: S.galaxyStage(), sector: null,
-          problem: "Sector " + S.blockLabel({ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }) + " is outside the galaxy.",
-        };
+        return { stage: S.galaxyStage(), sector: null, problem: "Sector " + S.blockLabel(s) + " is outside the galaxy." };
       }
       return { stage: next, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
     }
