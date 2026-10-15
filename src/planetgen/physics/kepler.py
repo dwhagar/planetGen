@@ -11,7 +11,7 @@ circular-orbit model, needed for any body whose orbit isn't nearly
 circular. `cometData.Comet` is the motivating case here (see
 docs/design/comet-orbital-realism.md): a Halley-like bound comet reaches
 eccentricities around 0.97, and a single-apparition long-period comet is,
-for practical purposes, parabolic. `planetPhysics.py`'s planets/moons
+for practical purposes, parabolic. `physics/planets.py`'s planets/moons
 stay on the existing circular-orbit model (`orbital_phase_deg` advancing
 linearly) -- real planetary eccentricities are small enough that the
 difference is negligible, and introducing time-varying angular speed
@@ -26,7 +26,7 @@ body's actual angular position) via Kepler's equation (elliptical) or
 Barker's equation (parabolic) first.
 
 All functions here use this generator's existing AU/years/solar-mass unit
-convention (see `planetPhysics.calculate_orbital_period_years`), under
+convention (see `physics.planets.calculate_orbital_period_years`), under
 which the two-body gravitational parameter mu = G*M simplifies to
 `4*pi^2 * M_solar_masses` -- exactly `4*pi^2` for a one-solar-mass primary,
 since Kepler's third law (`T^2 = a^3/M` in these units) reduces to
@@ -85,7 +85,7 @@ def gravitational_parameter_au3_yr2(primary_mass_solar):
 def mean_motion_per_year(semi_major_axis_au, primary_mass_solar):
     """
     An elliptical orbit's mean motion `n = 2*pi/P` (radians/year), via
-    Kepler's third law (`planetPhysics.calculate_orbital_period_years`'s
+    Kepler's third law (`physics.planets.calculate_orbital_period_years`'s
     same `T = sqrt(a^3/M)` formula) -- the constant rate a *fictitious*
     mean anomaly advances at, standing in for the body's real (non-
     uniform) angular speed.

@@ -361,7 +361,7 @@ type's own base `_NAMES` list.
 # Used by `planetgen/names/uniqueness.py` to keep every sector and
 # system name in a database distinct -- see that module's own docstring
 # for the sector > system hierarchy these feed into. Kept here, alongside every other naming word list, rather
-# than in `nameUniqueness.py` itself, so all of this project's naming
+# than in `names/uniqueness.py` itself, so all of this project's naming
 # vocabulary lives in one place.
 
 GREEK_LETTERS = [
@@ -370,7 +370,7 @@ GREEK_LETTERS = [
     "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega",
 ]
 """
-The 24-letter Greek alphabet, in order -- `nameUniqueness.resolve_greek_roman_collision`'s
+The 24-letter Greek alphabet, in order -- `names.uniqueness.resolve_greek_roman_collision`'s
 first-tier decoration for two sectors (or two systems) that generated the
 same base name: the existing one becomes "Alpha <name>", the next
 collision "Beta <name>", and so on through "Omega <name>".
@@ -432,7 +432,7 @@ Italian, German, Portuguese, Finnish, Swedish, Polish, Polish again
 Zulu/Xhosa) -- transliterated to plain ASCII, no diacritics, same
 convention `UNIVERSAL_PHONEMES` above already follows.
 
-`nameUniqueness.resolve_diminutive` uses these, in order, as a prefix on
+`names.uniqueness.resolve_diminutive` uses these, in order, as a prefix on
 a *system's* name when it collides with an existing sector's (or a
 sector's with an existing system's -- see that module's docstring for why
 the system side always carries the decoration, never the sector): "Little
@@ -453,6 +453,6 @@ again, German again, and Georgian) -- same transliteration convention as
 
 Before v34, planets and moons whose names collided got one of these as a
 suffix ("<name> Kin"). They're named from their system now
-(`bodyNames.py`), so nothing adds these any more; `planetgen.cli.render_parity`
+(`names/bodies.py`), so nothing adds these any more; `planetgen.cli.render_parity`
 still reads them to recognize the old form in a pre-v29 database.
 """

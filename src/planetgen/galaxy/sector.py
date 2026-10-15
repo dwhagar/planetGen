@@ -264,7 +264,7 @@ def hill_radius_ly(obj):
     (see `Star.calculate_system_perimeter`). Accepts either a `StarSystem`
     (reading `.star.system_perimeter`) or a bare `Star`-like object that
     already computes its own `system_perimeter` directly -- a standalone
-    `BlackHole`/`NeutronStar` (`compactRemnant.CompactRemnant`) generated
+    `BlackHole`/`NeutronStar` (`phenomena.compact_remnant.CompactRemnant`) generated
     as one of a sector's own exotic phenomena, which is exactly as real a
     gravitating mass as any ordinary star and needs the identical
     minimum-separation treatment (see `SpaceSector.add_phenomenon`).
@@ -811,7 +811,7 @@ class SpaceSector:
         self.sector_edge_pc = None
         """float or None: The galaxy's sector edge, parsecs, once the sector
         is placed in the galaxy (`place_in_galaxy`): its entries then know
-        their ring, layer and slot."""
+        their shell, band and wedge."""
         # Galaxy-scale molecular clouds reaching this sector (GEN.47,
         # `nebulaField.clouds_reaching`): `(Nebula, center_pc)` pairs, each
         # stored once by whichever sector it reaches is saved first.
@@ -993,7 +993,7 @@ class SpaceSector:
     def add_preplaced_system(self, star_system, position, system_config=None):
         """
         Adds a system built around a star pre-placed at plan time (the
-        galaxy's bright stars; see `stellarPopulation.sample_bright_stars`)
+        galaxy's bright stars; see `star_population.sample_bright_stars`)
         at the star's stored position. A sector places these first, so
         every system added afterward (`add_system`, `grow_from_seed`) keeps
         clear of their Hill spheres like any other.
@@ -1060,12 +1060,12 @@ class SpaceSector:
         Adds an already-generated exotic phenomenon (`phenomenonGen.py`'s
         seven types) to the sector -- the `add_system` counterpart for
         anything that isn't a `StarSystem`. See `generate_sector_phenomena`
-        (`sectorGen.py`) for how a sector's own phenomena population is
+        (`generation/run_sector.py`) for how a sector's own phenomena population is
         actually decided and generated.
 
         A standalone `BlackHole`/`NeutronStar` is a real, stellar-mass
         gravitating body -- it exposes `system_perimeter` exactly like any
-        `Star` does (see `compactRemnant.CompactRemnant`) -- so it gets
+        `Star` does (see `phenomena.compact_remnant.CompactRemnant`) -- so it gets
         placed the same Hill-sphere-aware way `add_system` places a star
         system, via `_random_position`/`_massive_neighbors`: never within
         another star system's or compact remnant's own Hill sphere, and no
@@ -1190,7 +1190,7 @@ class SpaceSector:
             system_factory (callable): A zero-argument callable returning a
                 freshly generated `StarSystem` for each placement attempt.
                 This module deliberately does not generate systems itself
-                (it doesn't import `systemGen.py`'s CLI-oriented generation
+                (it doesn't import `generation/run_system.py`'s CLI-oriented generation
                 logic) -- the caller supplies it.
             target_count (int, optional): The sector's desired total system
                 count once growth stops (including systems already

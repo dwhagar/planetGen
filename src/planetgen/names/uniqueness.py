@@ -6,7 +6,7 @@ Name-uniqueness decoration -- pure functions, no database access.
 Guarantees, across a whole database, that no two sectors share a name, no
 two star systems share a name, and no sector/system pair shares a name.
 Enforced as one consistent hierarchy: **sector > system**. Stars, planets
-and moons are named from their system (`bodyNames.py` -- `Voranthis II`,
+and moons are named from their system (`names/bodies.py` -- `Voranthis II`,
 `Voranthis IIa`), so they're unique whenever the system is and never need
 a search of their own.
 

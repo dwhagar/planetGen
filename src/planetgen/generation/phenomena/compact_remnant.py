@@ -12,7 +12,7 @@ place of an ordinary `Star` -- e.g. a pulsar with a fallback-disk planet
 (real examples exist, PSR B1257+12), or a lone stellar-mass black hole with
 nothing left orbiting it at all.
 
-Both classes subclass `Star` the same way `doubleStar.BinaryStarProxy`
+Both classes subclass `Star` the same way `binary.BinaryStarProxy`
 does: `_skip_property_init=True` skips `Star.__init__`'s own
 `generate_star()`-driven property block, and this module fills in the same
 attribute surface (`mass`, `radius`, `temperature`, `luminosity`, `age`,
@@ -114,7 +114,7 @@ class CompactRemnant(Star):
     """
 
     # A standalone black hole's or neutron star's name is a draft:
-    # `_db.insert_black_hole`/`insert_neutron_star` reserve it through the
+    # `store.insert_black_hole`/`insert_neutron_star` reserve it through the
     # system-name registry (v40), as quasars and rogue planets do.
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None):
         """
@@ -249,7 +249,7 @@ class BlackHole(CompactRemnant):
     yerkes_class` -- `NOT NULL` -- still holds a value) with this class's
     own fields. `mass`/`radius` are still serialized via the inherited
     names (they ARE `mass_solar`-in-kg / `event_horizon_radius_km`, kept
-    as plain `Star`-compatible attributes so `StarSystem`/`_db.insert_star`
+    as plain `Star`-compatible attributes so `StarSystem`/`store.insert_star`
     need no special-casing)."""
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,

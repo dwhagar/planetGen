@@ -11,15 +11,15 @@ own mass, luminosity, habitable zone) and can independently host its own
 planets, with each star's maximum stable planetary orbit limited by the
 other star's gravitational perturbation.
 
-This is deliberately NOT a variant of `doubleStar.BinaryStarProxy` and does
+This is deliberately NOT a variant of `binary.BinaryStarProxy` and does
 NOT subclass `Star`. `BinaryStarProxy` exists specifically to merge two
 stars into one *effective* star (combined mass/luminosity/habitable zone)
 for P-type (circumbinary) planet placement -- the opposite model from an
 S-type pair, where the two stars never merge. Putting a non-merging,
-non-`Star`-shaped orbital-elements class inside `doubleStar.py` would
+non-`Star`-shaped orbital-elements class inside `generation/binary.py` would
 misrepresent the physics that module's own class hierarchy already commits
 to, so this lives in its own sibling module instead, the same way
-`starData.py`/`planetData.py`/`asteroidData.py` each own one concept.
+`generation/star.py`/`generation/planet.py`/`asteroidData.py` each own one concept.
 
 `WideBinaryPair` itself only carries the pair's own two-body orbital
 elements (separation, eccentricity, inclination, ascending node, phase,
@@ -97,11 +97,11 @@ class WideBinaryPair:
 
     `primary_position_*_au`/`secondary_position_*_au` (schema v20) are each
     star's own offset from the pair's barycenter -- the same proper
-    two-body treatment `doubleStar.BinaryStarProxy` gets, alongside the
+    two-body treatment `binary.BinaryStarProxy` gets, alongside the
     pre-existing `position_x/y/z_au` (still the secondary's position
     relative to the primary, unchanged). `secondary_mass_fraction` is the
     constant `secondary.mass / (primary.mass + secondary.mass)`, stored so
-    `_db.advance_orbital_phases` never needs to join back to `stars`.
+    `store.advance_orbital_phases` never needs to join back to `stars`.
     """
 
     def __init__(self, system_config, primary: Star, secondary: Star):
@@ -147,7 +147,7 @@ class WideBinaryPair:
         # engine only ever tracks circular-orbit positions/speeds for every
         # other body (planets, moons, and the existing P-type pair's own
         # mutual orbit), including in the database's raw-SQL phase-advance
-        # mirror (`_db.advance_orbital_phases`), which can't express a
+        # mirror (`store.advance_orbital_phases`), which can't express a
         # Kepler-equation solve as a plain SQL UPDATE. Eccentricity here is
         # real and used for `periapsis_au`/`apoapsis_au` above and for the
         # Holman & Wiegert stability limit below -- it just isn't threaded
@@ -159,7 +159,7 @@ class WideBinaryPair:
         # No protoplanetary-disk reason for the pair's own orbital plane to
         # align with anything -- same full-sphere convention already used
         # for the close/P-type pair's own mutual orbit
-        # (doubleStar.BinaryStarProxy.__init__).
+        # (binary.BinaryStarProxy.__init__).
         self.inclination_deg = draw.uniform(0, 180)
         self.ascending_node_deg = draw.uniform(0, 360)
         self.phase_deg = draw.uniform(0, 360)
@@ -168,7 +168,7 @@ class WideBinaryPair:
         )
 
         # Each star's own offset from the pair's barycenter (AU) -- see
-        # doubleStar.BinaryStarProxy.__init__'s identical comment for why
+        # binary.BinaryStarProxy.__init__'s identical comment for why
         # both stars get their own offset rather than one sitting fixed.
         self.secondary_mass_fraction = secondary.mass / total_mass_kg
         primary_mass_fraction = 1.0 - self.secondary_mass_fraction
@@ -298,7 +298,7 @@ class WideBinaryPair:
         pair's own orbital relationship. Does NOT include either
         constituent star's own individual details (those are each star's
         own `Star.to_paragraph_list()`, rendered separately -- see
-        `systemData.StarSystem.__str__`'s wide-binary branch).
+        `system.StarSystem.__str__`'s wide-binary branch).
 
         Returns:
             list: A single-element list: [the pair's own data block].

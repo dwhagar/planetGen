@@ -10,7 +10,7 @@ would evolve, and (for habitable, non-moon worlds) its evolutionary
 timeline narrative.
 
 Life data is intentionally NOT computed during `Planet` construction (see
-`planetPhysics.generate_planet_properties`) — every planet and moon is
+`physics.planets.generate_planet_properties`) — every planet and moon is
 generated in a "no life data yet" state. Instead, `StarSystem.__init__`
 calls `apply_life_data` on every planet and moon in the system, after all
 of them have been generated and after `Star.adjust_age_for_planets` has

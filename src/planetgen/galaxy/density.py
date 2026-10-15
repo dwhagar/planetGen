@@ -14,7 +14,7 @@ The model gives a `relative_density` at any galaxy-frame position,
 normalized so it equals `1.0` at a chosen calibration point (by
 convention, the position on the disk plane, at the inter-arm minimum
 azimuth, at `calibration_radius_pc` from the galactic center) -- matching
-the same "1.0 = realistic local density" convention `sectorGen.py
+the same "1.0 = realistic local density" convention `generation/run_sector.py
 --density` already uses elsewhere in this codebase. A sector's own
 predicted star count is then `SpaceSector.expected_system_count() *
 relative_density(sector_center)`; a sector with a predicted count `< 1` is
@@ -29,7 +29,7 @@ a Milky-Way-scale one. `GalaxyShape.build` computes the one derived value
 specific constant, since that would only make sense for a galaxy actually
 built to that real scale.
 
-This module is pure and side-effect-free, like `galaxyGeometry.py` --
+This module is pure and side-effect-free, like `galaxy/geometry.py` --
 callers own deciding what to do with a `relative_density` value (whether
 that's an occupancy decision, a `--density` multiplier, or just an
 analysis figure), and own persistence, if any.
@@ -145,7 +145,7 @@ def model_terms(shape):
 
 def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` in one plain dict: what the
-    Galaxy Map's prisms read (`queryDb.galaxy_density_shape`)."""
+    Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
     return {**shape._asdict(), **model_terms(shape)}
 
 
@@ -409,8 +409,8 @@ def relative_density(position_pc, shape):
 def total_density_array(x, y, z, shape):
     """
     The sum of `population_densities` (each term counted as none when negative,
-    as `bright_stars._densities` does) at arrays of points `x`, `y` and a height `z` (one, or an array that broadcasts against them): the weight a ring's angle bin carries in the phenomena scatter,
-    for a whole layer at once (PERF.63). A shape with no negative term gives
+    as `bright_stars._densities` does) at arrays of points `x`, `y` and a height `z` (one, or an array that broadcasts against them): the weight a band's angle bin carries in the phenomena scatter,
+    for a whole band at once (PERF.63). A shape with no negative term gives
     `relative_density` itself.
     """
     terms = model_terms(shape)

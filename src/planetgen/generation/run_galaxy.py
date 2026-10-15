@@ -75,7 +75,7 @@ class _BatchDensity:
     uses for a single lazily-generated sector, applied across a whole run
     instead of every sector sharing one flat CLI value.
 
-    The outline check (`galaxySkeleton.GalaxyBounds.contains`) always
+    The outline check (`galaxy.skeleton.GalaxyBounds.contains`) always
     applies: nothing is ever generated outside the galaxy, even with an
     explicit `--density`/`--num-systems`. Past it, an explicit flag is a
     deliberate, uniform override for the whole run (`resolve` returns
@@ -115,7 +115,7 @@ class _BatchDensity:
 
     @property
     def bounds(self):
-        """The stored outline, a `galaxySkeleton.GalaxyBounds`."""
+        """The stored outline, a `galaxy.skeleton.GalaxyBounds`."""
         self._load()
         return self._bounds
 
@@ -661,7 +661,7 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
     position_pc = sector_position_pc(shell_index, band_index, wedge_index, skeleton.edge_pc)
     qualifies = bounds.contains(shell_index, band_index)
     if not qualifies and not outside_ok:
-        # Past the shell's stored highest band -- galaxySkeleton's bound is
+        # Past the shell's stored highest band -- galaxy.skeleton's bound is
         # exact, so this is a certain "no".
         return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
@@ -1426,7 +1426,7 @@ def run_span(args, edge_pc, progress):
 def course_cells(config, from_ref, to_ref, border=False):
     """
     The uncharted cells that block the NAV course between two systems (NAV.48), the plan
-    `queryDb.nav_chart_plan` works out from the stored galaxy as it is now.
+    `db.query.nav_chart_plan` works out from the stored galaxy as it is now.
 
     Args:
         config (MySQLConfig): The database.

@@ -70,7 +70,7 @@ def is_name_valid(name):
     - The name should not exist in the NLTK dictionary of words.
     - The name should not contain any substring from the NSFW (Not Safe For Work) word list,
       also checked with its apostrophes and spaces removed.
-    - No word of the name may be a `nameUniqueness` decoration word (`_DECORATION_WORDS`).
+    - No word of the name may be a `names.uniqueness` decoration word (`_DECORATION_WORDS`).
     - The name should not contain more than two consecutive vowels.
     - The name should not contain more than two consecutive consonants.
     - The name should not contain any of the defined bad consonant clusters.
@@ -88,9 +88,9 @@ def is_name_valid(name):
     if name_lower in dictionary_words():
         return False
     if any(token in _DECORATION_WORDS for token in name_lower.split()):
-        # A word that is also a nameUniqueness decoration ("Liten",
+        # A word that is also a names.uniqueness decoration ("Liten",
         # "Ohana", ...) would be stripped off an undecorated name by
-        # `nameUniqueness.strip_decoration`, grouping it with another base.
+        # `names.uniqueness.strip_decoration`, grouping it with another base.
         return False
     # Checked with apostrophes/spaces removed too: an apostrophe spliced in
     # by a phoneme chunk ("pak'i", "k'ike") must not hide an offensive word.
@@ -133,7 +133,7 @@ _DECORATION_WORDS = frozenset(
     word.lower() for word in (*GREEK_LETTERS, *DIMINUTIVE_PREFIXES, *COMPANION_SUFFIXES,
                               *ROMAN_NUMERALS_BY_VALUE.values())
 )
-"""Every word `nameUniqueness` decorates a name with (lowercase) -- see
+"""Every word `names.uniqueness` decorates a name with (lowercase) -- see
 `is_name_valid`/`generate_phoneme_salad_name`, which keep generated words
 from ever being one of them."""
 
@@ -217,7 +217,7 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                             stars/planets/moons, where that reads fine as
                             one name. Callers that combine multiple calls
                             into one already-multi-word name (e.g.
-                            `sectorGen.generate_sector_name`, which joins
+                            `run_sector.generate_sector_name`, which joins
                             two of these into a two-word sector name) must
                             pass `False` here, or a single call splitting
                             internally would silently make the combined
@@ -227,7 +227,7 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                             prefix/suffix are attached, trimming from the
                             end. Default `1.0` keeps every syllable
                             (unchanged behavior for stars/planets/moons).
-                            `sectorGen.generate_sector_name` passes `0.5`
+                            `run_sector.generate_sector_name` passes `0.5`
                             here so sector names -- built by joining two
                             of these calls into one two-word name -- come
                             out roughly half as long per word; base names
@@ -245,7 +245,7 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                             overhead that doesn't shrink with
                             `syllable_fraction`, so a long base name can
                             still produce a longer-than-intended result
-                            without this. `sectorGen.generate_sector_name`
+                            without this. `run_sector.generate_sector_name`
                             passes `7` here alongside `syllable_fraction=0.5`
                             to reliably keep each half of a sector name
                             short.
@@ -352,7 +352,7 @@ def generate_sector_name():
     No literal "Sector" suffix. `planetgen`'s `sector`/`galaxy` subcommands
     override this entirely via `--name`/`-n`, which hard-sets the whole
     name instead; `planetgen.db.store`'s name-uniqueness machinery
-    (`nameUniqueness.py`) also calls this directly, to draw an entirely
+    (`names/uniqueness.py`) also calls this directly, to draw an entirely
     fresh sector name on the rare occasion a collision exhausts every
     decoration this project has for one -- both reasons this lives here,
     in the `planetgen` package, rather than in `planetgen` itself, which

@@ -134,7 +134,7 @@ def run_line(galaxy_seed, run):
         galaxy_seed (bytes | None): The galaxy's 16-byte seed; `None`
             when it has none yet (never planned, or a run that doesn't
             touch the galaxy).
-        run (str): What runs, such as `galaxy --ring 3`.
+        run (str): What runs, such as `galaxy --shell 3`.
     """
     seed = bytes(galaxy_seed).hex().upper() if galaxy_seed is not None else "none yet"
     return f"Galaxy seed {seed}, PlanetGen {__version__} ({version_key()}), run: {run}"

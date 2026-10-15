@@ -16,7 +16,7 @@ a renamed system's derived names follow it (`store.rename_star_system`).
 Live generation already guarantees no new duplicate ever lands in the
 database going forward; this script is only for cleaning up whatever's
 already there. Processes one level at a time, top-down (sectors, then
-systems) -- exactly the order `nameUniqueness`'s own hierarchy needs,
+systems) -- exactly the order `names.uniqueness`'s own hierarchy needs,
 since a system's cross-level check against `sector_name_registry` has to
 see the sectors' *final*, already-resolved state. Reuses `store.py`'s own `reserve_*_name`/`confirm_*_name` functions
 directly -- the same two-phase reservation `insert_sector`/etc. call --

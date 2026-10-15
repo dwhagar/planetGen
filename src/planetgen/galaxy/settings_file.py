@@ -103,7 +103,7 @@ def build(settings, seed, naming_key=None, shape=None, words=None):
         settings (dict): The plan options (`PLAN_SETTINGS`), defaults included.
         seed (bytes): The 16-byte galaxy seed.
         naming_key (str, optional): The galaxy's naming key (GEN.70).
-        shape (dict, optional): The resolved skeleton numbers (edge, outer ring...).
+        shape (dict, optional): The resolved skeleton numbers (edge, outer shell...).
         words (dict, optional): `{"dictionary": set, "offensive": set}`; the
             name generator's lists by default.
     """

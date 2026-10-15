@@ -82,7 +82,7 @@ class BinaryStarProxy(Star):
     see `orbits.calculate_reflex_offset`'s docstring for why that vector is
     never altered). `binary_secondary_mass_fraction` (a plain attribute,
     not a property) is the constant `secondary_mass / (primary_mass +
-    secondary_mass)`, stored so `_db.advance_orbital_phases`' SQL never
+    secondary_mass)`, stored so `store.advance_orbital_phases`' SQL never
     needs to join back to `stars` for either mass.
     """
 
@@ -178,7 +178,7 @@ class BinaryStarProxy(Star):
         # barycenter, entirely separate from (and vastly faster than) their
         # shared galactic orbit above. Kepler's third law in (AU, years,
         # Msun) units needs only the *combined* mass, not which star is
-        # "primary" (planetPhysics.calculate_orbital_period_years's own
+        # "primary" (physics.planets.calculate_orbital_period_years's own
         # "primary" parameter is just whatever mass the orbit is around --
         # here that's the pair's own barycenter, so the combined mass is
         # exactly right, not an approximation). inclination/ascending_node
@@ -201,11 +201,11 @@ class BinaryStarProxy(Star):
             minimum_update_interval_years(self.binary_mutual_orbital_period_years)
         # The secondary's position relative to the primary (AU) -- the same
         # "position relative to whatever this orbit is actually around"
-        # convention planetPhysics.update_orbital_position uses for a
+        # convention physics.planets.update_orbital_position uses for a
         # planet/moon, just with the mutual orbit's own (unrestricted,
         # non-near-ecliptic) inclination/ascending_node/phase above rather
         # than a planet's small-tilt ones. `planetgen.cli.orbits`/
-        # `_db.advance_orbital_phases` recomputes this in lockstep every
+        # `store.advance_orbital_phases` recomputes this in lockstep every
         # time `binary_mutual_orbital_phase_deg` advances, the same way it
         # already does for planets/moons.
         self.binary_mutual_position_x, self.binary_mutual_position_y, self.binary_mutual_position_z = \
@@ -219,7 +219,7 @@ class BinaryStarProxy(Star):
         # center, in exact opposite directions along the same
         # binary_mutual_position_* vector, scaled by the OTHER star's mass
         # fraction of the total. binary_secondary_mass_fraction is stored
-        # (rather than recomputed each time) so `_db.advance_orbital_phases`'
+        # (rather than recomputed each time) so `store.advance_orbital_phases`'
         # SQL can rescale the freshly-advanced mutual vector without ever
         # joining back to `stars` for either mass. secondary_position always
         # equals primary_position + binary_mutual_position by construction.
