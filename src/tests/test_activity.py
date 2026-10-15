@@ -106,7 +106,7 @@ def test_a_mercury_like_planet_keeps_its_field_at_any_age():
         for _ in range(50):
             body = _body(0.055, 5.43, 1407.6, age=age)
             magnetism.generate_field(body)
-            assert 1e18 < body.magnetic_moment_a_m2 < 3e20
+            assert 1e18 < body.magnetic_moment_a_m2 < 3e21  # 3e19 A m2, log-normal 0.5 dex
     small_rocky = _body(0.03, 5.43, 24.0)  # under 0.05 Earth masses: too small for a dynamo
     magnetism.generate_field(small_rocky)
     assert small_rocky.magnetic_moment_a_m2 == 0.0
