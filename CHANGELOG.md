@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1155] - 2026-10-15
+
+### Added
+
+- A Galaxy Map bug item is filed for the Bugfixes lane: a selected sector that is not filled should stay highlighted until something else is selected.
+
 ## [8.0.1154] - 2026-10-15
 
 ### Added
