@@ -305,7 +305,7 @@ def test_a_cancelled_parallel_run_ends_cancelled_and_frees_the_lease(control_con
     assert states <= {"done", "cancelled"}
 
 
-GALAXY_RING = 3
+GALAXY_SHELL = 5
 # Enough systems per sector that a loaded machine cannot finish the whole
 # run between the first sector being saved and the test's signal landing
 # (TEST.101: with 6 the run sometimes ended on its own, exit status 0).
@@ -366,7 +366,7 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
     env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database, PLANETGEN_WORKERS="2")
     env.pop(workQueue.PARENT_ENV_VAR, None)
     run = subprocess.Popen(
-        [sys.executable, "-m", "planetgen.cli.generate", "galaxy", "--ring", str(GALAXY_RING),
+        [sys.executable, "-m", "planetgen.cli.generate", "galaxy", "--shell", str(GALAXY_SHELL),
          "--num-systems", str(NUM_SYSTEMS), "--workers", "2"] + _mysql_argv(control_config),
         cwd=REPO, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, start_new_session=True,
         # A process inherits an ignored Ctrl+C, and the run then leaves it

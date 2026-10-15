@@ -16,8 +16,7 @@ from planetgen.db import store as _db
 from planetgen.galaxy import nebula_field
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
-from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
-from planetgen.galaxy.spherical import sector_address_at as shell_address_at
+from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, shell_bounds_pc, wedge_count
 from planetgen.physics.units import ly_to_pc
 
 from tests.bughunt_support import forced_system_config
@@ -113,18 +112,26 @@ def _generate_at(mysql_config, address):
         return run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
 
 
+def _three_in_a_row():
+    """Three neighbouring wedges of one band on the arm's crest at the solar circle."""
+    shell, band, wedge = sector_address_at(_on_ring(ARM_ANGLE), EDGE_PC)
+    return [(shell, band, (wedge + step) % wedge_count(shell, band)) for step in range(3)]
+
+
+def _seed_outline(config, addresses):
+    shell = addresses[0][0]
+    _db.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=shell + 2,
+                          expected_system_count_at_density_1=1.0, config=config, galaxy_seed=SEED)
+    _db.replace_galaxy_shells([(s, 2) for s in range(shell - 2, shell + 3)], config=config)
+
+
 def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypatch):
     """Generated sectors store each field cloud reaching them once, at its
     own galaxy-frame center, and every one of those sectors' systems
     inside it says so."""
-    _db.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=3000,
-                          expected_system_count_at_density_1=1.0, config=mysql_config, galaxy_seed=SEED)
-    _db.replace_galaxy_layers([(layer, 3000) for layer in range(-2, 3)], config=mysql_config)
+    addresses = _three_in_a_row()
+    _seed_outline(mysql_config, addresses)
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 20.0)
-
-    # Three sectors in a row on the arm's crest at the solar circle.
-    ring, layer, slot = sector_address_at(_on_ring(ARM_ANGLE), EDGE_PC)
-    addresses = [(ring, layer, slot + step) for step in range(3)]
     for address in addresses:
         _generate_at(mysql_config, address)
 
@@ -193,7 +200,7 @@ def test_a_cloud_is_born_in_the_sector_holding_its_centroid(monkeypatch):
         value = object_uid.unpack(nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC))
         mpc = nebula_field.centroid_mpc(nebula, center)
         assert value.serial_kind == object_uid.SERIAL_FIELD and value.body == 0
-        assert (value.shell, value.band, value.wedge) == shell_address_at(tuple(v / 1000.0 for v in mpc), EDGE_PC)
+        assert (value.shell, value.band, value.wedge) == sector_address_at(tuple(v / 1000.0 for v in mpc), EDGE_PC)
 
 
 def test_field_cloud_ids_are_unique_and_do_not_depend_on_the_order_asked():
@@ -226,13 +233,10 @@ def test_a_stored_cloud_has_the_same_id_whichever_sector_is_saved_first(mysql_co
     from tests.db_schema_support import scratch_database
 
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 20.0)
-    ring, layer, slot = sector_address_at(_on_ring(ARM_ANGLE), EDGE_PC)
-    addresses = [(ring, layer, slot + step) for step in range(3)]
+    addresses = _three_in_a_row()
 
     def ids_after(config, order):
-        _db.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=3000,
-                              expected_system_count_at_density_1=1.0, config=config, galaxy_seed=SEED)
-        _db.replace_galaxy_layers([(lay, 3000) for lay in range(-2, 3)], config=config)
+        _seed_outline(config, addresses)
         for address in order:
             _generate_at(config, address)
         conn = _db.get_connection(config)
@@ -256,12 +260,12 @@ def test_a_centroid_is_rounded_to_a_milliparsec_before_its_sector_is_taken():
     """GEN.176's face case: noise below a milliparsec cannot move a cloud across a sector face."""
     from types import SimpleNamespace
 
-    face = ly_to_pc(0.0) + EDGE_PC * 100.0       # a point on a layer face, parsecs
+    face = shell_bounds_pc(100, EDGE_PC)[1]       # a point on a shell face, parsecs
     def cloud_with(offset):
         shape = SimpleNamespace(interior_centroid=lambda: (0.0, 0.0, offset))
         return SimpleNamespace(get_shape=lambda: shape, radius_ly=1.0)
 
-    centre = (SOLAR_RADIUS_PC, 0.0, face)
+    centre = (face, 0.0, 0.0)
     quiet = cloud_with(0.0)
     noisy = cloud_with(1e-9)                      # a billionth of the radius: far below 1 mpc
     assert nebula_field.centroid_mpc(quiet, centre) == nebula_field.centroid_mpc(noisy, centre)

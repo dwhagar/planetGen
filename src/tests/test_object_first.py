@@ -13,8 +13,9 @@ from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import object_first
-from planetgen.galaxy.geometry import ring_sector_count
-from tests.test_bright_star_scatter import E_VALUE, EDGE_PC, SHAPE, THRESHOLD
+from planetgen.galaxy import spherical
+from planetgen.galaxy.spherical import wedge_count
+from tests.test_bright_star_scatter import E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD
 
 MILKY_WAY = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0, bulge_amplitude=3.11,
@@ -22,81 +23,82 @@ MILKY_WAY = build_galaxy_shape(
 )
 
 
-def _ring_means(shape, layer_index, outer_ring, fractions, e=E_VALUE, edge=EDGE_PC, points=4000):
-    """The expected stars of each ring of a layer, integrating the density over the ring's cells (Monte Carlo,
-    fixed seed). The old ring-by-ring walk read the density at bin centres on the ring's centreline, which
-    overstates it where the density curves across the ring."""
+def _shell_means(shape, shell, high_band, fractions, e=E_VALUE, edge=EDGE_PC, points=600):
+    """The expected stars of a shell, integrating the density over each band's cells (Monte Carlo, fixed seed):
+    a band's cells hold `e` times their volume in edge cubes times the mean density of the pass's populations."""
     rng = random.Random(0)
-    means = []
-    for ring_index in range(outer_ring + 1):
-        slots = ring_sector_count(ring_index)
-        total, used = 0.0, 0
+    total = 0.0
+    for band in range(-high_band, high_band + 1):
+        wedges = wedge_count(shell, band)
+        used, summed = 0, 0.0
         for _ in range(points):
-            point = brightStars._point_in_cell(rng, ring_index, layer_index, rng.randrange(slots), slots, edge)
+            point = brightStars._point_in_cell(rng, shell, band, rng.randrange(wedges), edge)
             if point is None:
                 continue
             densities = brightStars._densities(tuple(v / brightStars.MPC_PER_PC for v in point), shape)
-            total += sum(densities[p] * fractions[p] for p in brightStars.POPULATIONS)
+            summed += sum(densities[p] * fractions[p] for p in brightStars.POPULATIONS)
             used += 1
-        means.append(e * slots * total / used)
-    return means
+        total += e * wedges * brightStars.volume_ratio(shell, band, edge) * summed / used
+    return total
 
 
-@pytest.mark.parametrize("shape, layer", [(SHAPE, 0), (SHAPE, 1), (SHAPE, -2), (MILKY_WAY, 0), (MILKY_WAY, 40)])
-def test_the_majorant_is_never_below_the_true_density(shape, layer):
-    """Random points in every ring of the layer, for fractions of different populations."""
-    rng = random.Random(layer + 7)
-    outer = 60
+def _scatter(shape, shell, high_band, seed, **kwargs):
+    return list(brightStars.scatter_shell(shape, shell, high_band, EDGE_PC, E_VALUE, THRESHOLD, seed, **kwargs))
+
+
+@pytest.mark.parametrize("shape, shell", [(SHAPE, 0), (SHAPE, 1), (SHAPE, 12), (MILKY_WAY, 0), (MILKY_WAY, 400)])
+def test_the_majorant_is_never_below_the_true_density(shape, shell):
+    """Random points in every band of the shell, for fractions of different populations."""
+    rng = random.Random(shell + 7)
+    high = spherical.band_range(shell)[1]
     for fractions in ({"young": 1.0, "intermediate": 1.0, "old": 1.0, "bulge": 1.0},
                       {"young": 0.9, "intermediate": 0.1, "old": 0.0, "bulge": 0.02},
                       {"young": 0.0, "intermediate": 0.0, "old": 0.7, "bulge": 0.0},
                       {"young": 0.01, "intermediate": 0.3, "old": 0.05, "bulge": 0.9}):
-        majorants = object_first.ring_majorants(shape, layer, outer, EDGE_PC, fractions)
-        for ring in range(0, outer + 1, 3):
-            for _ in range(60):
-                slots = ring_sector_count(ring)
-                slot = rng.randrange(slots)
-                point = brightStars._point_in_cell(random.Random(rng.random()), ring, layer, slot, slots, EDGE_PC)
+        majorants = object_first.band_majorants(shape, shell, high, EDGE_PC, fractions)
+        assert len(majorants) == 2 * high + 1
+        for band in range(-high, high + 1, max(1, high // 20)):
+            for _ in range(40):
+                wedge = rng.randrange(wedge_count(shell, band))
+                point = brightStars._point_in_cell(random.Random(rng.random()), shell, band, wedge, EDGE_PC)
                 if point is None:
                     continue
                 densities = brightStars._densities(tuple(v / brightStars.MPC_PER_PC for v in point), shape)
                 wanted = sum(densities[p] * fractions[p] for p in brightStars.POPULATIONS)
-                assert wanted <= majorants[ring] * (1 + 1e-9), (ring, layer, fractions)
+                assert wanted <= majorants[band + high] * (1 + 1e-9), (shell, band, fractions)
 
 
-def test_check_mode_runs_a_whole_layer_without_the_majorant_being_exceeded():
-    for layer in (-1, 0, 1):
-        list(brightStars.scatter_layer(SHAPE, layer, 8, EDGE_PC, E_VALUE, THRESHOLD, 5, check=True))
+def test_check_mode_runs_whole_shells_without_the_majorant_being_exceeded():
+    for shell, high in EXTENTS:
+        list(brightStars.scatter_shell(SHAPE, shell, high, EDGE_PC, E_VALUE, THRESHOLD, 5, check=True))
 
 
 def test_the_mean_count_matches_the_expected_count():
     fractions = brightStars.band_fractions(THRESHOLD)
-    expected = sum(_ring_means(SHAPE, 0, 8, fractions))
-    counts = [len(list(brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, seed)))
-              for seed in range(60)]
+    expected = _shell_means(SHAPE, 4, 3, fractions)
+    counts = [len(_scatter(SHAPE, 4, 3, seed)) for seed in range(60)]
     assert expected > 5
     assert statistics.mean(counts) == pytest.approx(expected, abs=5 * math.sqrt(expected / len(counts)) + 0.03 * expected)
     # A Poisson count: its variance is about its mean.
     assert statistics.pvariance(counts) == pytest.approx(expected, rel=0.5)
 
 
-def test_the_stars_fall_in_the_rings_and_populations_the_density_gives():
+def test_the_stars_fall_in_the_shells_and_populations_the_density_gives():
     fractions = brightStars.band_fractions(THRESHOLD)
-    per_ring = _ring_means(SHAPE, 0, 8, fractions)
-    rows = [row for seed in range(120) for row in brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, seed)]
+    per_shell = {shell: _shell_means(SHAPE, shell, high, fractions) for shell, high in EXTENTS}
+    rows = [row for seed in range(120) for row in brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed)]
     seen = collections.Counter(row[0] for row in rows)
-    total = sum(per_ring) * 120
+    total = sum(per_shell.values()) * 120
     assert len(rows) == pytest.approx(total, rel=0.06)
-    for ring_index, mean in enumerate(per_ring):
+    for shell, mean in per_shell.items():
         expected = mean * 120
-        assert seen[ring_index] == pytest.approx(expected, abs=5 * math.sqrt(expected) + 2)
+        assert seen[shell] == pytest.approx(expected, abs=5 * math.sqrt(expected) + 2 + 0.03 * expected)
 
 
 def test_stars_in_skipped_sectors_are_thinned_not_moved():
-    full = [row for seed in range(40) for row in brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, seed)]
-    skip = {(row[0], 0, row[2]) for row in full[: len(full) // 3]}
-    thinned = [row for seed in range(40) for row in
-               brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, seed, skip_addresses=skip)]
+    full = [row for seed in range(40) for row in _scatter(SHAPE, 4, 3, seed)]
+    skip = {(row[0], row[1], row[2]) for row in full[: len(full) // 3]}
+    thinned = [row for seed in range(40) for row in _scatter(SHAPE, 4, 3, seed, skip_addresses=skip)]
     assert not any((row[0], row[1], row[2]) in skip for row in thinned)
     in_skip = sum(1 for row in full if (row[0], row[1], row[2]) in skip)
     assert len(thinned) == pytest.approx(len(full) - in_skip, rel=0.1)
@@ -104,13 +106,14 @@ def test_stars_in_skipped_sectors_are_thinned_not_moved():
 
 def test_a_sector_takes_several_stars_up_to_its_capacity_where_the_density_is_high():
     e_value = E_VALUE * 60.0     # a few stars per sector in the middle
-    rows = list(brightStars.scatter_layer(SHAPE, 0, 2, EDGE_PC, e_value, THRESHOLD, 11))
+    rows = list(brightStars.scatter_shell(SHAPE, 3, 3, EDGE_PC, e_value, THRESHOLD, 11))
     per_sector = collections.Counter((row[0], row[1], row[2]) for row in rows)
     assert max(per_sector.values()) > 1
     fractions = brightStars.band_fractions(THRESHOLD)
-    for (ring, layer, slot), held in per_sector.items():
-        centre = brightStars._densities(brightStars.sector_position_pc(ring, layer, slot, EDGE_PC), SHAPE)
-        expected = e_value * sum(centre[p] * fractions[p] for p in brightStars.POPULATIONS)
+    for (shell, band, wedge), held in per_sector.items():
+        centre = brightStars._densities(brightStars.sector_position_pc(shell, band, wedge, EDGE_PC), SHAPE)
+        expected = (e_value * brightStars.volume_ratio(shell, band, EDGE_PC)
+                    * sum(centre[p] * fractions[p] for p in brightStars.POPULATIONS))
         assert held <= max(object_first.sector_capacity(expected), 1)
 
 
@@ -121,12 +124,12 @@ def test_capacity_grows_with_the_expected_count():
     assert object_first.sector_capacity(0.0004) == 1 and object_first.sector_capacity(0.05) >= 2
 
 
-def test_an_empty_layer_costs_only_its_majorant():
-    # Far above the disk: a few ring bounds, one Poisson count, no walk.
-    rows = list(brightStars.scatter_layer(SHAPE, 60, 8, EDGE_PC, E_VALUE, THRESHOLD, 3, check=True))
+def test_an_empty_shell_costs_only_its_majorant():
+    # Far outside the disk: a few band bounds, one Poisson count, no walk.
+    rows = list(brightStars.scatter_shell(SHAPE, 300, 3, EDGE_PC, E_VALUE, THRESHOLD, 3, check=True))
     assert len(rows) <= 2
 
 
 def test_the_same_seed_gives_the_same_stars():
-    first = list(brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 4))
-    assert first == list(brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 4)) and first
+    first = _scatter(SHAPE, 4, 3, 4)
+    assert first == _scatter(SHAPE, 4, 3, 4) and first

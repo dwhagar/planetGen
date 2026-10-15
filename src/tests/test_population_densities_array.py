@@ -34,36 +34,38 @@ def test_array_form_matches_one_point_form():
 def test_bright_star_bins_match_one_point_form():
     shape = SHAPES[0]
     edge = tuning.DEFAULT_SECTOR_EDGE_PC
-    slots, bins = bright_stars._ring_bins(40, 3, shape, 1.0, edge)
-    z = bright_stars.layer_center_z_pc(3, edge)
-    radius = bright_stars.ring_radius_pc(40, edge)
-    for k, got in enumerate(bins):
-        theta = (k + 0.5) * 2 * math.pi / len(bins)
-        want = _densities((radius * math.cos(theta), radius * math.sin(theta), z), shape)
-        for population, value in want.items():
-            assert math.isclose(got[population], value, rel_tol=1e-12, abs_tol=1e-300)
+    shell, high = 40, 3
+    bands = bright_stars._band_bins(shell, 0, high, shape, edge)
+    assert len(bands) == 2 * high + 1
+    for band, (wedges, bins) in zip(range(-high, high + 1), bands):
+        assert wedges == bright_stars.wedge_count(shell, band) and len(bins) == min(wedges, bright_stars.ANGLE_BINS)
+        plane, z = bright_stars.band_center_pc(shell, band, edge)
+        for k, got in enumerate(bins):
+            theta = (k + 0.5) * 2 * math.pi / len(bins)
+            want = _densities((plane * math.cos(theta), plane * math.sin(theta), z), shape)
+            for population, value in want.items():
+                assert math.isclose(got[population], value, rel_tol=1e-12, abs_tol=1e-300)
 
 
-def test_layer_expected_stars_matches_one_point_form():
+def test_shell_expected_stars_matches_one_point_form():
     shape = SHAPES[0]
     edge = tuning.DEFAULT_SECTOR_EDGE_PC
     fractions = {population: 0.3 for population in bright_stars.POPULATIONS}
-    for layer in (0, 4, 30):
-        got = bright_stars.layer_expected_stars(shape, layer, 120, edge, 2.0, fractions)
-        z = bright_stars.layer_center_z_pc(layer, edge)
-        rings = 121
-        count = min(rings, bright_stars.WEIGHT_RING_SAMPLES)
-        step = rings / count
+    for shell, high in ((0, 0), (4, 3), (30, 12)):
+        got = bright_stars.shell_expected_stars(shape, shell, high, edge, 2.0, fractions)
+        bands = 2 * high + 1
+        count = min(bands, bright_stars.WEIGHT_BAND_SAMPLES)
+        step = bands / count
         want = 0.0
         for k in range(count):
-            ring = min(int((k + 0.5) * step), rings - 1)
-            slots = bright_stars.ring_sector_count(ring)
-            bins = min(slots, bright_stars.WEIGHT_ANGLE_BINS)
-            radius = bright_stars.ring_radius_pc(ring, edge)
-            ring_expected = 0.0
+            band = -high + min(int((k + 0.5) * step), bands - 1)
+            wedges = bright_stars.wedge_count(shell, band)
+            bins = min(wedges, bright_stars.WEIGHT_ANGLE_BINS)
+            plane, z = bright_stars.band_center_pc(shell, band, edge)
+            band_expected = 0.0
             for j in range(bins):
                 theta = (j + 0.5) * 2 * math.pi / bins
-                densities = _densities((radius * math.cos(theta), radius * math.sin(theta), z), shape)
-                ring_expected += sum(densities[p] * fractions[p] for p in bright_stars.POPULATIONS)
-            want += 2.0 * slots / bins * ring_expected * step
+                densities = _densities((plane * math.cos(theta), plane * math.sin(theta), z), shape)
+                band_expected += sum(densities[p] * fractions[p] for p in bright_stars.POPULATIONS)
+            want += 2.0 * wedges * bright_stars.volume_ratio(shell, band, edge) / bins * band_expected * step
         assert math.isclose(got, want, rel_tol=1e-12)

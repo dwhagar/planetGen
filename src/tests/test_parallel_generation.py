@@ -8,7 +8,7 @@ TEST.19 and TEST.22: parallel generation (`--workers`, PERF.7/PERF.8).
   would.
 - GEN.39: one galaxy seed gives the same sectors, contents and all, at
   any worker count, and every one of its 128 bits counts.
-- TEST.22: every bulk mode (`--shell`, `--block`, `--column`,
+- TEST.22: every bulk mode (`--shell`, `--band`, a span,
   `--center-sector`, random start, `sector --num-sectors N`) on two
   workers counts what it saved and never fills a sector twice.
 
@@ -24,10 +24,9 @@ import pytest
 
 from planetgen.util import draw
 from planetgen.cli import generate as generate_cli
-from planetgen.galaxy.drill import parse_drill_key
-from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.galaxy import spherical
+from planetgen.galaxy.spherical import wedge_count
 from planetgen.generation import run_common
-from planetgen.generation import run_galaxy
 from planetgen.queue import work
 from planetgen.db import store
 from planetgen.names import uniqueness
@@ -148,11 +147,11 @@ def _run(command, argv, config, monkeypatch):
 def _systems_per_sector(config):
     conn = store.get_connection(config)
     try:
-        return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): row["n"]
+        return {(row["shell_index"], row["band_index"], row["wedge_index"]): row["n"]
                 for row in conn.execute(
-                    "SELECT s.ring_index, s.layer_index, s.ring_slot_index, COUNT(ss.id) AS n"
+                    "SELECT s.shell_index, s.band_index, s.wedge_index, COUNT(ss.id) AS n"
                     " FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
-                    " GROUP BY s.id, s.ring_index, s.layer_index, s.ring_slot_index").fetchall()}
+                    " GROUP BY s.id, s.shell_index, s.band_index, s.wedge_index").fetchall()}
     finally:
         conn.close()
 
@@ -174,9 +173,9 @@ def test_one_galaxy_seed_makes_the_same_sectors_at_any_worker_count(make_databas
     results = {}
     for count in (1, workers):
         config = _seeded_galaxy(make_database)
-        counts = _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", str(count)],
+        counts = _run("galaxy", ["--shell", "1", "--num-systems", "4", "--workers", str(count)],
                       config, monkeypatch)
-        assert counts["sectors"] == len(_systems_per_sector(config)) == ring_sector_count(1)
+        assert counts["sectors"] == len(_systems_per_sector(config)) == spherical.cell_count(1)
         assert counts["systems"] == sum(_systems_per_sector(config).values())
         results[count] = galaxy_rows(config)
     assert results[1]["star_systems"] and results[1]["planets"]
@@ -191,7 +190,7 @@ def test_galaxy_seeds_differing_only_in_their_high_64_bits_make_different_sector
     results = []
     for seed in (GALAXY_SEED, other):
         config = _seeded_galaxy(make_database, seed)
-        _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", "1"], config, monkeypatch)
+        _run("galaxy", ["--shell", "1", "--num-systems", "4", "--workers", "1"], config, monkeypatch)
         results.append(galaxy_rows(config))
     assert results[0]["star_systems"] != results[1]["star_systems"]
 
@@ -200,7 +199,7 @@ def _systems_by_sector(config):
     conn = store.get_connection(config)
     try:
         rows = conn.execute(
-            "SELECT s.ring_index, s.layer_index, s.ring_slot_index, ss.name, ss.position_x_mpc, ss.position_y_mpc,"
+            "SELECT s.shell_index, s.band_index, s.wedge_index, ss.name, ss.position_x_mpc, ss.position_y_mpc,"
             " ss.position_z_mpc FROM star_systems ss JOIN sectors s ON s.id = ss.sector_id").fetchall()
     finally:
         conn.close()
@@ -216,11 +215,11 @@ def _systems_by_sector(config):
 
 def test_a_sector_comes_out_the_same_whichever_run_fills_it(make_database, monkeypatch):
     """A sector's seed is its address's, not its place in the run: filled
-    in a run of three or with all of its ring, a sector holds the same."""
+    in a run of three or with all of its shell, a sector holds the same."""
     part = _seeded_galaxy(make_database)
-    _run("galaxy", ["--ring", "1", "--limit", "3", "--num-systems", "4", "--workers", "1"], part, monkeypatch)
+    _run("galaxy", ["--shell", "1", "--limit", "3", "--num-systems", "4", "--workers", "1"], part, monkeypatch)
     whole = _seeded_galaxy(make_database)
-    _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", "2"], whole, monkeypatch)
+    _run("galaxy", ["--shell", "1", "--num-systems", "4", "--workers", "2"], whole, monkeypatch)
     some, every = _systems_by_sector(part), _systems_by_sector(whole)
     assert len(some) == 3
     assert some == {address: every[address] for address in some}
@@ -234,7 +233,7 @@ def _sector_addresses(config):
     conn = store.get_connection(config)
     try:
         return [tuple(row.values()) for row in conn.execute(
-            "SELECT ring_index, layer_index, ring_slot_index FROM sectors").fetchall()]
+            "SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()]
     finally:
         conn.close()
 
@@ -267,43 +266,41 @@ def galaxy_db(make_database):
     return config
 
 
-def test_shell_on_two_workers_fills_every_slot_and_layer_once(galaxy_db, monkeypatch):
-    counts = _run("galaxy", ["--ring", "0", "--shell", "--limit", "9", "--yes"] + _workers(), galaxy_db, monkeypatch)
+def test_shell_on_two_workers_fills_every_wedge_and_band_once(galaxy_db, monkeypatch):
+    counts = _run("galaxy", ["--shell", "3", "--limit", "9", "--yes"] + _workers(), galaxy_db, monkeypatch)
     addresses = _check_run(galaxy_db, counts)
     assert len(addresses) == 9
-    assert {ring for ring, _layer, _slot in addresses} == {0}
+    assert {shell for shell, _band, _wedge in addresses} == {3}
     assert counts["systems"] == _table_count(galaxy_db, "star_systems")
     # Again: only the rest of the shell, never a second copy.
-    again = _run("galaxy", ["--ring", "0", "--shell", "--limit", "6", "--yes"] + _workers(), galaxy_db, monkeypatch)
+    again = _run("galaxy", ["--shell", "3", "--limit", "6", "--yes"] + _workers(), galaxy_db, monkeypatch)
     _check_run(galaxy_db, again, before=addresses)
     assert again["sectors"] == 6
 
 
-def test_column_on_two_workers_fills_one_slot_on_every_layer_once(galaxy_db, monkeypatch):
-    # A column covers every stored layer, so keep the galaxy thin.
-    store.replace_galaxy_layers([(layer, 999) for layer in range(-2, 3)], config=galaxy_db)
-    counts = _run("galaxy", ["--ring", "1", "--slot", "2", "--column"] + _workers(), galaxy_db, monkeypatch)
+def test_band_on_two_workers_fills_every_wedge_once(galaxy_db, monkeypatch):
+    counts = _run("galaxy", ["--shell", "3", "--band", "1"] + _workers(), galaxy_db, monkeypatch)
     addresses = _check_run(galaxy_db, counts)
-    assert sorted(addresses) == [(1, layer, 2) for layer in range(-2, 3)]
-    again = _run("galaxy", ["--ring", "1", "--slot", "2", "--column"] + _workers(), galaxy_db, monkeypatch)
+    assert sorted(addresses) == [(3, 1, wedge) for wedge in range(wedge_count(3, 1))]
+    again = _run("galaxy", ["--shell", "3", "--band", "1"] + _workers(), galaxy_db, monkeypatch)
     assert again["sectors"] == 0
     assert sorted(_sector_addresses(galaxy_db)) == sorted(addresses)
 
 
-def test_block_on_two_workers_fills_each_sector_once(galaxy_db, monkeypatch):
-    block = "3.1.0.0"
-    expected = list(run_galaxy.block_addresses(parse_drill_key(block), 0))
-    argv = ["--block", block, "--block-layer", "0", "--limit", "4", "--yes"] + _workers()
+def test_span_on_two_workers_fills_each_sector_once(galaxy_db, monkeypatch):
+    expected = {(shell, 0, wedge) for shell in (2, 3) for wedge in range(wedge_count(shell, 0))}
+    argv = ["--shells", "2:3", "--bands", "0", "--limit", "7", "--yes"] + _workers()
     counts = _run("galaxy", argv, galaxy_db, monkeypatch)
     addresses = _check_run(galaxy_db, counts)
-    assert len(addresses) == min(4, len(expected))
+    assert len(addresses) == 7
     again = _run("galaxy", argv, galaxy_db, monkeypatch)
     addresses = _check_run(galaxy_db, again, before=addresses)
-    assert set(addresses) <= {tuple(address) for address in expected}
+    assert len(addresses) == 14
+    assert set(addresses) <= expected
 
 
 def test_center_sector_on_two_workers_fills_its_neighborhood_once(galaxy_db, monkeypatch):
-    _run("galaxy", ["--ring", "2", "--limit", "1"] + _workers(1), galaxy_db, monkeypatch)
+    _run("galaxy", ["--shell", "2", "--limit", "1"] + _workers(1), galaxy_db, monkeypatch)
     conn = store.get_connection(galaxy_db)
     try:
         center = conn.execute("SELECT id FROM sectors").fetchone()["id"]
@@ -321,7 +318,7 @@ def test_center_sector_on_two_workers_fills_its_neighborhood_once(galaxy_db, mon
 
 
 def test_random_start_on_two_workers_fills_each_sector_once(galaxy_db, monkeypatch):
-    counts = _run("galaxy", ["--max-ring", "3", "--radius-pc", "9"] + _workers(), galaxy_db, monkeypatch)
+    counts = _run("galaxy", ["--max-shell", "3", "--radius-pc", "9"] + _workers(), galaxy_db, monkeypatch)
     addresses = _check_run(galaxy_db, counts)
     assert addresses
     assert counts["systems"] == _table_count(galaxy_db, "star_systems")
@@ -331,11 +328,11 @@ def test_unplaced_sectors_on_two_workers_are_each_saved_once(galaxy_db, monkeypa
     counts = _run("sector", ["--num-sectors", "5", "--yes", "--workers", "2"], galaxy_db, monkeypatch)
     conn = store.get_connection(galaxy_db)
     try:
-        rows = conn.execute("SELECT id, name, ring_index FROM sectors").fetchall()
+        rows = conn.execute("SELECT id, name, shell_index FROM sectors").fetchall()
     finally:
         conn.close()
     assert len(rows) == counts["sectors"] == 5
-    assert all(row["ring_index"] is None for row in rows)
+    assert all(row["shell_index"] is None for row in rows)
     assert len({row["name"] for row in rows}) == 5
     assert counts["systems"] == _table_count(galaxy_db, "star_systems")
 
@@ -347,7 +344,7 @@ def test_every_object_has_its_object_id_whatever_the_worker_count(make_database,
     found = {}
     for count in (1, 4):
         config = _seeded_galaxy(make_database)
-        _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", str(count)], config, monkeypatch)
+        _run("galaxy", ["--shell", "1", "--num-systems", "4", "--workers", str(count)], config, monkeypatch)
         conn = store.get_connection(config)
         try:
             found[count] = {table: sorted(bytes(row["uid"]) if row["uid"] is not None else None

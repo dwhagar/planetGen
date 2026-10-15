@@ -23,7 +23,7 @@ from hypothesis import strategies as st
 
 from planetgen import tuning
 from planetgen.galaxy import (
-    density as galaxyDensity, geometry as gg, skeleton as galaxySkeleton, viewport as gv,
+    density as galaxyDensity, geometry as gg, skeleton as galaxySkeleton, spherical, viewport as gv,
 )
 from tests.fuzz_support import finite
 
@@ -473,90 +473,84 @@ def test_skeleton_bound_is_an_upper_bound_at_every_angle(shape, r_cyl, z, theta)
 
 @settings(max_examples=30)
 @given(SHAPES, st.sampled_from([4.0, 50.0, 200.0]), st.floats(0.001, 50))
-def test_layer_extents_are_symmetric_nested_and_really_qualify(shape, edge, threshold):
-    extents, outer, confirmed = galaxySkeleton.build_layer_extents(shape, edge, threshold, max_ring=3000, max_layer=400)
+def test_shell_extents_run_from_the_core_and_really_qualify(shape, edge, threshold):
+    extents, outer, confirmed = galaxySkeleton.build_shell_extents(shape, edge, threshold, max_shell=300)
     if not extents:
         assert outer == -1
-        assert not galaxySkeleton._qualifies(shape, edge, 0, 0, threshold)
+        assert not galaxySkeleton._band_qualifies(shape, edge, 0, 0, threshold)
         return
-    by_layer = dict(extents)
-    assert by_layer[0] == outer
-    for layer, ring in extents:
-        assert by_layer[-layer] == ring  # symmetric about the plane
-        assert 0 <= ring <= outer
-        assert by_layer.get(layer - (1 if layer > 0 else -1), outer) >= ring if layer else True
-        assert galaxySkeleton._qualifies(shape, edge, ring, layer, threshold)
-        if confirmed:  # a capped plane walk caps every layer above it too
-            assert not galaxySkeleton._qualifies(shape, edge, ring + 1, layer, threshold)
-    top = max(by_layer)
-    if top < 400:
-        assert not galaxySkeleton._qualifies(shape, edge, 0, top + 1, threshold)
+    assert [shell for shell, _high in extents] == list(range(outer + 1))
+    for shell, high in extents:
+        top = spherical.band_range(shell)[1]
+        assert 0 <= high <= top
+        assert galaxySkeleton._band_qualifies(shape, edge, shell, 0, threshold)
+        assert galaxySkeleton._band_qualifies(shape, edge, shell, high, threshold)
+        if high < top:  # the last qualifying band, not just a qualifying one
+            assert not galaxySkeleton._band_qualifies(shape, edge, shell, high + 1, threshold)
+    if confirmed:
+        assert not galaxySkeleton._band_qualifies(shape, edge, outer + 1, 0, threshold)
+    else:
+        assert outer == 300
 
 
-@given(st.lists(st.tuples(st.integers(-30, 30), st.integers(0, 60)), max_size=30, unique_by=lambda t: t[0]))
+@st.composite
+def outlines(draw, max_outer=60):
+    """`(shell, high_band)` rows for shells `0 .. outer`, each reaching any band the shell has."""
+    outer = draw(st.integers(0, max_outer))
+    return [(shell, draw(st.integers(0, spherical.band_range(shell)[1]))) for shell in range(outer + 1)]
+
+
+@given(outlines())
 def test_candidate_sector_count_matches_direct_sum(extents):
-    expected = sum(sum(gg.ring_sector_count(r) for r in range(outer + 1)) for _layer, outer in extents)
-    assert galaxySkeleton.candidate_sector_count(extents) == expected
-
-
-@given(st.lists(st.tuples(st.integers(-30, 30), st.integers(0, 60)), max_size=30, unique_by=lambda t: t[0]))
-def test_column_extents_are_the_layer_extents_on_their_side(extents):
-    columns = galaxySkeleton.column_extents(extents)
-    for ring, low, high in columns:
-        reaching = [layer for layer, outer in extents if outer >= ring]
-        assert low == min(reaching) and high == max(reaching)
-    all_rings = {r for _l, outer in extents for r in range(outer + 1)}
-    assert [c[0] for c in columns] == sorted(all_rings)
+    expected = sum(sum(spherical.wedge_count(shell, band) for band in range(-high, high + 1))
+                   for shell, high in extents)
+    assert galaxySkeleton.shell_candidate_sector_count(extents) == expected
+    assert [count for _s, _h, count in galaxySkeleton.shell_candidate_counts(extents)] == [
+        spherical.cells_in_band_range(shell, high) for shell, high in extents]
 
 
 @st.composite
 def bounds_and_rng(draw):
-    top = draw(st.integers(0, 6))
-    plane = draw(st.integers(0, 25))
-    rings = [plane]
-    for _ in range(top):
-        rings.append(draw(st.integers(0, rings[-1])))
-    extents = [(j, rings[abs(j)]) for j in range(-top, top + 1)]
-    return galaxySkeleton.GalaxyBounds(extents, 4.0), draw(st.integers(0, 2**32))
+    return galaxySkeleton.GalaxyBounds(draw(outlines(25)), 4.0), draw(st.integers(0, 2**32))
 
 
 @given(bounds_and_rng(), st.one_of(st.none(), st.integers(-3, 30)))
-def test_random_address_is_inside_and_respects_max_ring(pair, max_ring):
+def test_random_address_is_inside_and_respects_max_shell(pair, max_shell):
     bounds, seed = pair
     rng = random.Random(seed)
     for _ in range(40):
-        address = bounds.random_address(rng, max_ring=max_ring)
+        address = bounds.random_address(rng, max_shell=max_shell)
         if address is None:
-            assert max_ring is not None and max_ring < 0
+            assert max_shell is not None and max_shell < 0
             return
-        ring, layer, slot = address
-        assert bounds.contains(ring, layer)
-        assert 0 <= slot < gg.ring_sector_count(ring)
-        if max_ring is not None:
-            assert ring <= max_ring
+        shell, band, wedge = address
+        assert bounds.contains(shell, band)
+        assert 0 <= wedge < spherical.wedge_count(shell, band)
+        if max_shell is not None:
+            assert shell <= max_shell
 
 
 def test_random_address_is_uniform_over_every_cell():
     # Tiny outline, many draws: every cell hit, none more than ~2x another.
-    bounds = galaxySkeleton.GalaxyBounds([(-1, 0), (0, 2), (1, 0)], 4.0)
+    bounds = galaxySkeleton.GalaxyBounds([(0, 0), (1, 1), (2, 0)], 4.0)
     rng = random.Random(7)
     counts = {}
     draws = bounds.cell_count() * 400
     for _ in range(draws):
         address = bounds.random_address(rng)
         counts[address] = counts.get(address, 0) + 1
-    assert len(counts) == bounds.cell_count() == 3 + 3 + (3 + 9 + 15)
+    assert len(counts) == bounds.cell_count() == 1 + (1 + 12 + 1) + spherical.wedge_count(2, 0)
     assert max(counts.values()) < 2 * min(counts.values())
 
 
-@given(bounds_and_rng(), st.integers(-10, 40), st.integers(-10, 10))
-def test_bounds_contains_and_describe_miss_agree(pair, ring, layer):
+@given(bounds_and_rng(), st.integers(-10, 70), st.integers(-70, 70))
+def test_bounds_contains_and_describe_miss_agree(pair, shell, band):
     bounds, _seed = pair
-    if bounds.contains(ring, layer):
-        assert 0 <= ring <= bounds.outer_ring[layer]
+    if bounds.contains(shell, band):
+        assert 0 <= shell <= bounds.outer_shell_index and abs(band) <= bounds.high_band[shell]
     else:
-        message = bounds.describe_miss(ring, layer)
-        assert str(layer) in message or str(ring) in message
+        message = bounds.describe_miss(shell, band)
+        assert str(shell) in message or str(band) in message
 
 
 def test_empty_bounds_are_falsy_and_hold_nothing():
@@ -564,7 +558,7 @@ def test_empty_bounds_are_falsy_and_hold_nothing():
     assert not bounds
     assert bounds.cell_count() == 0
     assert bounds.random_address(random.Random(1)) is None
-    assert bounds.top_layer_index == -1 and bounds.outer_ring_index == -1
+    assert bounds.outer_shell_index == -1
     assert not bounds.contains(0, 0)
 
 

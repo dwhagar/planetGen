@@ -10,8 +10,8 @@ the `to_dict`/`from_dict`/`save`/`load` round trip.
 `test_bughunt_sector_placement.py` crams a handful of real large systems
 into one small cube. This file instead drives the placement code with
 hypothesis-chosen *geometry*: sector edges from 0 to 10^4 ly, real
-cylindrical galaxy cells from ring 0 (a wedge touching the galactic axis)
-to ring 10^6 (a thin slab), Hill radii from 0 to far larger than the
+spherical galaxy cells from shell 0 (the core ball)
+to shell 10^6 (a thin shell piece), Hill radii from 0 to far larger than the
 sector, flat `min_separation_ly` overrides including 0, negative and NaN,
 target counts from 0 to 10^6, `k` from 0 up, and mixes of star systems
 with massive (black hole / neutron star) and non-massive phenomena.
@@ -47,7 +47,8 @@ from planetgen.physics import constants as pc
 from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import SectorCell, ring_sector_count
+from planetgen.galaxy import spherical
+from planetgen.galaxy.spherical import SectorCell, band_range, wedge_count
 from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
 from planetgen.generation.system import StarSystem
 
@@ -148,7 +149,18 @@ HILL_LY = st.one_of(
     st.sampled_from([0.0, 1e-12, 0.05, 0.5, 1.71, 7.5, 1e3, 1e6]),
     st.floats(min_value=0.0, max_value=20.0),
 )
-RINGS = st.one_of(st.sampled_from([0, 1, 2, 3, 100, 10**6]), st.integers(0, 5000))
+SHELLS = st.one_of(st.sampled_from([0, 1, 2, 3, 100, 10**6]), st.integers(0, 5000))
+
+
+@st.composite
+def addresses(draw, shells=SHELLS):
+    """A valid `(shell, band, wedge)`: the bands run past the equator to each cap, the wedges all around."""
+    shell = draw(shells)
+    low, high = band_range(shell)
+    band = draw(st.one_of(st.sampled_from([low, 0, high]), st.integers(low, high)))
+    wedge = draw(st.one_of(st.sampled_from([0, wedge_count(shell, band) - 1]),
+                           st.integers(0, wedge_count(shell, band) - 1)))
+    return shell, band, wedge
 
 
 @st.composite
@@ -156,7 +168,7 @@ def sectors(draw):
     edge = draw(EDGES)
     cell = None
     if edge > 0 and draw(st.booleans()):
-        cell = SectorCell.for_ring(draw(RINGS), edge)
+        cell = SectorCell.for_address(*draw(addresses()), edge)
     name = draw(hostile_text)
     return SpaceSector(name, edge_ly=edge, cell=cell)
 
@@ -286,23 +298,26 @@ class _EndpointRng:
         return b if self.bits.pop(0) else a
 
 
-@given(ring=RINGS, edge=st.floats(1e-3, 1e4), bits=st.lists(st.booleans(), min_size=3, max_size=3))
-def test_cell_samples_on_every_face_are_inside(ring, edge, bits):
-    cell = SectorCell.for_ring(ring, edge)
+@given(address=addresses(), edge=st.floats(1e-3, 1e4), bits=st.lists(st.booleans(), min_size=3, max_size=3))
+def test_cell_samples_on_every_face_are_inside(address, edge, bits):
+    cell = SectorCell.for_address(*address, edge)
     point = cell.sample(_EndpointRng(bits))
     assert all(math.isfinite(c) for c in point)
-    assert cell.contains(point), (ring, edge, bits, point)
+    assert cell.contains(point), (address, edge, bits, point)
 
 
-@given(ring=RINGS, edge=st.floats(1e-3, 1e4), seed=SEEDS)
-def test_cell_samples_are_inside_and_volume_matches(ring, edge, seed):
-    cell = SectorCell.for_ring(ring, edge)
+@given(address=addresses(), edge=st.floats(1e-3, 1e4), seed=SEEDS)
+def test_cell_samples_are_inside_and_volume_matches(address, edge, seed):
+    cell = SectorCell.for_address(*address, edge)
     rng = random.Random(seed)
     for _ in range(20):
         assert cell.contains(cell.sample(rng))
-    # Every ring's slots tile the annulus: n * slot volume == annulus volume.
-    annulus = math.pi * (cell.r_outer ** 2 - cell.r_inner ** 2) * 2 * cell.half_height
-    assert cell.volume * ring_sector_count(ring) == pytest.approx(annulus, rel=1e-9)
+    # A band's wedges tile its piece of the shell: n * wedge volume == the band's volume.
+    shell, band, _wedge = address
+    r_inner, r_outer = spherical.shell_bounds_pc(shell, edge)
+    north, south = spherical.band_colatitude_bounds(shell, band)
+    piece = 2 * math.pi / 3 * (r_outer ** 3 - r_inner ** 3) * (math.cos(north) - math.cos(south))
+    assert cell.volume * wedge_count(shell, band) == pytest.approx(piece, rel=1e-9)
 
 
 # ---------------------------------------------------------------------------
@@ -541,10 +556,10 @@ def test_from_dict_without_generated_key_rebuilds_from_the_recipe():
     assert rebuilt.entries[0].star_system.star.name == system.star.name  # name pinned in the recipe
 
 
-@given(ring=st.integers(0, 10**6), edge=st.floats(1e-3, 1e4))
-@example(ring=5, edge=DEFAULT_EDGE)
-def test_round_trip_keeps_the_galaxy_cell(ring, edge):
-    cell = SectorCell.for_ring(ring, edge)
+@given(address=addresses(), edge=st.floats(1e-3, 1e4))
+@example(address=(5, 0, 3), edge=DEFAULT_EDGE)
+def test_round_trip_keeps_the_galaxy_cell(address, edge):
+    cell = SectorCell.for_address(*address, edge)
     sector = SpaceSector("celled", edge_ly=edge, cell=cell)
     rebuilt = SpaceSector.from_dict(json.loads(json.dumps(sector.to_dict())))
     assert rebuilt.volume_ly3 == pytest.approx(sector.volume_ly3)
@@ -553,16 +568,16 @@ def test_round_trip_keeps_the_galaxy_cell(ring, edge):
         assert rebuilt.contains(point) == sector.contains(point)
 
 
-@pytest.mark.parametrize("ring", [0, 5, 40])
-def test_db_load_rebuilds_the_galaxy_cell_from_the_ring_address(mysql_config, ring):
+@pytest.mark.parametrize("address", [(0, 0, 0), (5, 0, 3), (40, -2, 1), (40, 59, 0)])
+def test_db_load_rebuilds_the_galaxy_cell_from_the_address(mysql_config, address):
     """The `sectors` table has no cell column; `store.load_sector` must
-    rebuild it from the stored ring address and edge (a galaxy-placed
+    rebuild it from the stored address and edge (a galaxy-placed
     sector used to come back as a cube)."""
     from planetgen.db import store
     edge = DEFAULT_EDGE
-    sector = SpaceSector("celled db", edge_ly=edge, cell=SectorCell.for_ring(ring, edge))
+    sector = SpaceSector("celled db", edge_ly=edge, cell=SectorCell.for_address(*address, edge))
     placement = {"center_x_pc": 1.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 1.0,
-                 "ring_index": ring, "layer_index": 0, "ring_slot_index": 0}
+                 "shell_index": address[0], "band_index": address[1], "wedge_index": address[2]}
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=placement)
     conn = store.get_connection(mysql_config)
     try:

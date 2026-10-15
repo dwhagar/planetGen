@@ -202,7 +202,7 @@ def galaxy(mysql_config):
         with conn:
             sector_id = conn.execute(
                 "INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, "
-                "ring_index, layer_index, ring_slot_index) VALUES ('Test Reach', 4000, 8000, 0, 0, 8000, 1, 0, 0)"
+                "shell_index, band_index, wedge_index) VALUES ('Test Reach', 4000, 8000, 0, 0, 8000, 1, 0, 0)"
             ).lastrowid
             _place(conn, sector_id, capital_a, -1.5)
             _place(conn, sector_id, capital_b, 1.5)

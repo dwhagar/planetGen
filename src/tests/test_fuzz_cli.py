@@ -42,7 +42,7 @@ from hypothesis import HealthCheck, assume, example, given, note, settings
 from hypothesis import strategies as st
 
 from planetgen.cli import generate as generate_cli
-from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.galaxy.spherical import cells_in_band_range
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_system
 from planetgen.generation.star import STAR_TYPE_PATTERN
@@ -267,22 +267,22 @@ def test_accepted_values_satisfy_every_documented_bound(data, command):
     if command == "sector":
         assert args.num_sectors >= 1
     if command == "galaxy":
-        for name in ("ring", "slot", "max_ring"):
+        for name in ("shell", "wedge", "max_shell"):
             assert get(name) is None or get(name) >= 0
-        for name in ("ring", "max_ring"):
-            assert get(name) is None or get(name) <= limits.MAX_GENERATE_RING
+        for name in ("shell", "max_shell"):
+            assert get(name) is None or get(name) <= limits.MAX_GENERATE_SHELL
         assert get("limit") is None or 1 <= get("limit") <= limits.MAX_GENERATE_LIMIT
         assert get("radius_pc") is None or 0 < get("radius_pc") <= limits.MAX_GENERATE_RADIUS_PC
         assert get("min_start_density") is None or get("min_start_density") > 0
     if command == "plan":
-        assert args.arm_density >= args.interarm_density >= 0 and args.max_ring >= 1
+        assert args.arm_density >= args.interarm_density >= 0 and args.max_shell >= 1
 
 
 # Float options whose validators use `x <= 0` / `x < 0 or x >= 1` style
 # checks, which NaN (every comparison False) used to slip straight through
 # (now rejected at parse time by `generate_cli.finite_float`).
 _FLOAT_OPTIONS = sorted({(c, o) for c in COMMANDS for o, kind, _ in OPTION_TABLE[c] if kind == "float"})
-_BASE_ARGV = {"galaxy": ["--ring", "0"]}
+_BASE_ARGV = {"galaxy": ["--shell", "0"]}
 
 
 @pytest.mark.parametrize("argv", [
@@ -511,7 +511,7 @@ def plan_argv(draw):
     evaluate -- positive finite scales, a non-zero arm count, a pitch
     strictly inside (0, 90] degrees, a calibration radius within a few
     dozen scale lengths (see the degenerate-shape test for what's rejected outside) --
-    at scales from toy (1 pc) to absurd (1e5 pc), with a small --max-ring
+    at scales from toy (1 pc) to absurd (1e5 pc), with a small --max-shell
     so a huge galaxy's scan stays fast."""
     length = draw(st.sampled_from([1.0, 12.0, 40.0, 2800.0, 1e5]))
     argv = [
@@ -524,12 +524,12 @@ def plan_argv(draw):
         "--bulge-amplitude", repr(draw(st.sampled_from([0.0, 1.0, 1e3, -0.5]))),
         "--arm-count", str(draw(st.sampled_from([1, 2, 4, 1000, -2]))),
         "--pitch-angle-deg", repr(draw(st.sampled_from([1e-3, 15.0, 89.999, 90.0, -15.0]))),
-        # 1.0/-0.1 and --max-ring 0 are the validator's own rejections (exit 2),
+        # 1.0/-0.1 and --max-shell 0 are the validator's own rejections (exit 2),
         # drawn less often than the accepted values.
         "--arm-density", repr(draw(st.sampled_from([1.4, 2.5, 1.4, 2.5, 0.0, -0.1]))),
         "--interarm-density", repr(draw(st.sampled_from([0.6, 0.0, 0.6, 0.0, 9.0]))),
         "--core-density", repr(draw(st.sampled_from([0.0, 5.0, 0.0, 5.0, -1.0]))),
-        "--max-ring", str(draw(st.sampled_from([1, 5, 200, 1, 5, 200, 0]))),
+        "--max-shell", str(draw(st.sampled_from([1, 5, 200, 1, 5, 200, 0]))),
     ]
     if draw(st.booleans()):
         argv += ["--calibration-radius-pc", repr(length * draw(st.sampled_from([1e-3, 1.0, 2.82, 30.0])))]
@@ -569,7 +569,7 @@ _PLAN_TRACEBACKS = [
 def test_plan_degenerate_shape_is_a_usage_error(extra, consequence):
     """Regression: each of these used to die with the listed raw
     traceback; validate_plan_args only checked the arm densities and
-    --max-ring. Now every one is a usage error before touching MySQL."""
+    --max-shell. Now every one is a usage error before touching MySQL."""
     assert _parse(["plan", "--quiet"] + extra) == 2
 
 
@@ -579,26 +579,27 @@ def test_plan_degenerate_shape_is_a_usage_error(extra, consequence):
 
 # Relative density ~1 everywhere near the center (no bulge, no arms, huge
 # scale lengths, calibrated at 1 pc) so every sector expects the realistic
-# ~4 systems -- fast -- and an outline of rings 0..3, layers -1..1.
+# ~4 systems -- fast -- and an outline of shells 0..3, bands -1..1.
 _FLAT_SHAPE = build_galaxy_shape(
     disk_scale_length_pc=1e6, disk_scale_height_pc=1e6, bulge_scale_radius_pc=1.0,
     bulge_amplitude=0.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.0,
     calibration_radius_pc=1.0,
 )
-_OUTER_RING = 3
+_OUTER_SHELL = 3
+_FLAT_OUTLINE = [(0, 0), (1, 1), (2, 1), (3, 1)]
 
 
 def _plan_flat_galaxy(mysql_config):
-    store.save_galaxy_shape(_FLAT_SHAPE, edge_pc=EDGE_PC, outer_ring_index=_OUTER_RING,
-                          expected_system_count_at_density_1=expected_system_count_at_density_1(),
-                          config=mysql_config)
-    store.replace_galaxy_layers([(1, _OUTER_RING), (0, _OUTER_RING), (-1, _OUTER_RING)], config=mysql_config)
+    store.save_galaxy_shape(_FLAT_SHAPE, edge_pc=EDGE_PC, outer_shell_index=_OUTER_SHELL,
+                            expected_system_count_at_density_1=expected_system_count_at_density_1(),
+                            config=mysql_config)
+    store.replace_galaxy_shells(_FLAT_OUTLINE, config=mysql_config)
 
 
 def _placed_sector_id(mysql_config):
-    """Generates ring 0 slot 0 and returns its sector id -- a real,
+    """Generates the core sector and returns its sector id -- a real,
     galaxy-placed sector for --center-sector."""
-    assert_clean(["galaxy", "--quiet", "--ring", "0", "--limit", "1", "--num-systems", "1"]
+    assert_clean(["galaxy", "--quiet", "--shell", "0", "--limit", "1", "--num-systems", "1"]
                  + mysql_argv(mysql_config))
     conn = store.get_connection(mysql_config)
     try:
@@ -614,17 +615,17 @@ GALAXY_FLOATS = ["5e-324", "1e-9", "0.5", "4", "12", "-1", "0", "1e300"]
 
 @st.composite
 def galaxy_argv(draw, center_id):
-    mode = draw(st.sampled_from(["ring", "slot", "center", "random"]))
+    mode = draw(st.sampled_from(["shell", "sector", "center", "random"]))
     # --strict: the old refusals (an address outside the outline, a huge
-    # ring) stay refusals here, so nothing lands outside the outline and
-    # no hostile ring is generated whole (GEN.81 warns and goes ahead).
+    # shell) stay refusals here, so nothing lands outside the outline and
+    # no hostile shell is generated whole (GEN.81 warns and goes ahead).
     argv = ["galaxy", "--quiet", "--strict"]
-    if mode in ("ring", "slot"):
-        argv += ["--ring", draw(st.sampled_from(GALAXY_INTS))]
-        if draw(st.booleans()):
-            argv += ["--layer", draw(st.sampled_from(GALAXY_INTS))]
-        if mode == "slot":
-            argv += ["--slot", draw(st.sampled_from(GALAXY_INTS))]
+    if mode in ("shell", "sector"):
+        argv += ["--shell", draw(st.sampled_from(GALAXY_INTS))]
+        if mode == "sector" or draw(st.booleans()):
+            argv += ["--band", draw(st.sampled_from(GALAXY_INTS))]
+        if mode == "sector":
+            argv += ["--wedge", draw(st.sampled_from(GALAXY_INTS))]
         else:
             argv += ["--limit", draw(st.sampled_from(["1", "2", "0", "-1"]))]
             if draw(st.booleans()):
@@ -635,12 +636,12 @@ def galaxy_argv(draw, center_id):
     else:
         argv += ["--radius-pc", draw(st.sampled_from(["1e-9", "0.5", "-1", "0"]))]
         if draw(st.booleans()):
-            argv += ["--max-ring", draw(st.sampled_from(["0", "1", "-1", "1000000000000"]))]
+            argv += ["--max-shell", draw(st.sampled_from(["0", "1", "-1", "1000000000000"]))]
         if draw(st.booleans()):
             argv += ["--min-start-density", draw(st.sampled_from(["1e-300", "0.5", "1e300", "0", "-1"]))]
-    if mode != "slot" and draw(st.booleans()):
+    if mode != "sector" and draw(st.booleans()):
         argv += ["--num-systems", draw(st.sampled_from(["1", "0", "-1"]))]
-    elif mode != "slot" and draw(st.booleans()):
+    elif mode != "sector" and draw(st.booleans()):
         argv += ["--density", draw(st.sampled_from(["1e-300", "0.2", "1", "0", "-1"]))]
     return argv
 
@@ -657,14 +658,14 @@ def test_galaxy_runs_clean_with_hostile_numbers(mysql_config, data, seed):
     # Nothing generated may ever land outside the stored outline.
     conn = store.get_connection(mysql_config)
     try:
-        rows = conn.execute("SELECT ring_index, layer_index FROM sectors").fetchall()
+        rows = conn.execute("SELECT shell_index, band_index FROM sectors").fetchall()
     finally:
         conn.close()
-    assert all(0 <= r["ring_index"] <= _OUTER_RING and -1 <= r["layer_index"] <= 1 for r in rows), rows
+    assert all(0 <= r["shell_index"] <= _OUTER_SHELL and -1 <= r["band_index"] <= 1 for r in rows), rows
 
 
 def test_galaxy_before_plan_is_a_clean_refusal(mysql_config):
-    assert assert_clean(["galaxy", "--quiet", "--ring", "0", "--limit", "1", "--num-systems", "1"]
+    assert assert_clean(["galaxy", "--quiet", "--shell", "0", "--limit", "1", "--num-systems", "1"]
                         + mysql_argv(mysql_config)) == 1
 
 
@@ -681,7 +682,7 @@ def _recording_fill_task(payload):
 @pytest.mark.parametrize("radius,consequence", [
     ("nan", "was a raw ValueError: cannot convert float NaN to integer"),
     ("inf", "was a raw OverflowError from math.ceil(-inf)"),
-    ("1e300", "was a hang enumerating ~1e300 rings; now past the radius bound"),
+    ("1e300", "was a hang enumerating ~1e300 shells; now past the radius bound"),
     ("1e308", "the largest finite radius; now past the radius bound"),
     (repr(limits.MAX_GENERATE_RADIUS_PC), "the largest allowed radius, wider than the test galaxy"),
 ])
@@ -702,9 +703,9 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radi
     assert_clean(["galaxy", "--quiet", "--center-sector", str(center), "--radius-pc", radius,
                   "--num-systems", "1"] + mysql_argv(mysql_config), limit=10)
     asked = [tuple(address) for address in worker_patches.read_json_lines(str(tmp_path / "asked.jsonl"))]
-    cells = sum(ring_sector_count(ring) for ring in range(_OUTER_RING + 1)) * 3
+    cells = sum(cells_in_band_range(shell, high) for shell, high in _FLAT_OUTLINE)
     assert len(asked) == len(set(asked)) <= cells
-    assert all(0 <= ring <= _OUTER_RING and -1 <= layer <= 1 for ring, layer, _slot in asked)
+    assert all(0 <= shell <= _OUTER_SHELL and -1 <= band <= 1 for shell, band, _wedge in asked)
     if radius in ("1e300", "1e308"):
         assert asked == []
     elif radius not in ("nan", "inf"):
@@ -713,5 +714,5 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radi
 
 def test_galaxy_density_nan_does_not_hang(mysql_config):
     _plan_flat_galaxy(mysql_config)
-    assert_clean(["galaxy", "--quiet", "--ring", "0", "--limit", "1", "--density", "nan"]
+    assert_clean(["galaxy", "--quiet", "--shell", "0", "--limit", "1", "--density", "nan"]
                  + mysql_argv(mysql_config), limit=5)

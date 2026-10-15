@@ -5,10 +5,11 @@ Run Galaxy
 ==========
 
 The `galaxy` command: many sectors placed as one galaxy, each at its
-ring/layer/slot address in the cylindrical grid, with its systems inside
-the sector's own cell. Four modes: `--ring` (batch), `--ring --slot`
-(one address), `--center-sector`/`--radius-pc` (local neighborhood),
-or neither (random start), plus blocks, columns and shells.
+shell/band/wedge address in the spherical grid, with its systems inside
+the sector's own cell. Modes: `--shell` (a shell, or with `--band` one band
+of it, or with `--wedge` too one sector), `--shells/--bands/--wedges` (a
+span), `--center-sector`/`--radius-pc` (local neighborhood), `--course`,
+or none (random start).
 `ensure_sector_generated` and `generate_sector_neighborhood` are the
 same per-sector logic for the web, run when a visitor reaches a sector,
 against the skeleton `run_plan` builds.
@@ -31,12 +32,12 @@ from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy.region import BALL_EDGE_ALLOWANCE, Region
-from planetgen.galaxy.drill import (
-    DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key,
-)
-from planetgen.galaxy.geometry import (
-    SectorCell, enumerate_sectors_within_radius, galactic_radius_pc, neighbor_addresses,
-    provisional_sector_designation, ring_sector_count, sector_address_at, sector_position_pc,
+from planetgen.galaxy import spherical
+from planetgen.galaxy.frame import galactic_radius_pc
+from planetgen.galaxy.span import Span
+from planetgen.galaxy.spherical import (
+    SectorCell, enumerate_sectors_within_radius, neighbor_addresses,
+    provisional_sector_designation, sector_address_at, sector_position_pc,
 )
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.generation import object_timing
@@ -49,10 +50,10 @@ from planetgen.util import draw
 
 
 LARGE_RUN_WARNING_THRESHOLD = 2000
-"""int: `--ring I` requires `--limit` or `--yes` when ring `I` holds more
-slots than this (see `ring_sector_count`) -- from ring 321, ~4,200 ly
-out. Anything larger takes a real, unbounded amount of time and disk, so
-it needs an explicit choice."""
+"""int: `--shell I` (and a span) requires `--limit` or `--yes` when it holds
+more sectors than this -- a band of shell 200 holds a few hundred, a whole
+shell from about shell 12 on. Anything larger takes a real, unbounded amount
+of time and disk, so it needs an explicit choice."""
 
 
 BACKFILL_FROM_CHOICES = ("edge", "none")
@@ -60,9 +61,9 @@ BACKFILL_FROM_CHOICES = ("edge", "none")
 
 
 def _format_address(address):
-    """`(ring, layer, slot)` as the words the CLI prints."""
-    shell_index, band_index, slot_index = address
-    return f"ring {shell_index} layer {band_index} slot {slot_index}"
+    """`(shell, band, wedge)` as the words the CLI prints."""
+    shell_index, band_index, wedge_index = address
+    return f"shell {shell_index} band {band_index} wedge {wedge_index}"
 
 
 class _BatchDensity:
@@ -123,7 +124,7 @@ class _BatchDensity:
         Args:
             args (argparse.Namespace): The `galaxy` subcommand's own parsed
                 (and validated) arguments.
-            address (tuple): This sector's `(ring, layer, slot)`.
+            address (tuple): This sector's `(shell, band, wedge)`.
             position_pc (tuple): This sector's `(x, y, z)` center, parsecs.
             outside_ok (bool): Resolve an address outside the outline too
                 (one the user named outright, GEN.81) instead of `None`.
@@ -183,22 +184,21 @@ def _fill_context(args, address, position_pc):
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit)
 
 
-def backfill_ring_targets(addresses, bounds, ring_masses=None):
+def backfill_step_targets(addresses, bounds, step_masses=None):
     """
-    The mass backfill's rings (GEN.187) around some sectors: ring 1 is the
-    sectors a face away from `addresses` (no diagonals,
-    `geometry.neighbor_addresses`), ring 2 the ones a face away from ring 1,
-    and so on, each counted from the previous ring's outer edge, one ring per
-    entry of `ring_masses` (default
+    The mass backfill's steps (GEN.187) outward from some sectors: step 1 is
+    the sectors a face away from `addresses` (no diagonals,
+    `spherical.neighbor_addresses`), step 2 the ones a face away from step 1,
+    and so on, one step per entry of `step_masses` (default
     `program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`). Cells outside the
     galaxy's outline (`bounds`) are left out.
 
     Returns:
-        dict: `(ring, layer, slot)` -> the lightest initial mass (solar
-            masses) its ring takes stars down to; the nearest ring has the
+        dict: `(shell, band, wedge)` -> the lightest initial mass (solar
+            masses) its step takes stars down to; the nearest step has the
             lowest. `addresses` themselves are not in it.
     """
-    masses = program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL if ring_masses is None else ring_masses
+    masses = program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL if step_masses is None else step_masses
     seen = set(addresses)
     frontier = sorted(seen)
     targets = {}
@@ -226,10 +226,10 @@ def backfill_bright_stars(config, center_pc):
 def backfill_bright_stars_around(config, centers_pc, progress=None):
     """
     The bright-star backfill around generated sectors (GEN.23; by initial
-    mass in rings since GEN.187, per sector since GEN.44): the sectors a face
+    mass in steps since GEN.187, per sector since GEN.44): the sectors a face
     away from `centers_pc`' sectors get every star born from 1 solar mass
-    up, the ring after that from 2, then 5, then 8
-    (`backfill_ring_targets`); past the fourth ring the scatter's own mass
+    up, the step after that from 2, then 5, then 8
+    (`backfill_step_targets`); past the fourth step the scatter's own mass
     limit stands. A sector filled, or already taken that deep (by an earlier
     backfill, or by the scatter's mass pass), is skipped, and one a nearer
     sector reaches later is topped up with only the masses it lacks, so no
@@ -257,7 +257,7 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
             zeros without a stored skeleton.
     """
     summary = {"sectors": 0, "stars": 0}
-    layers = {}
+    shells = {}
     # Finding the sectors to draw can take a while on a large run; the
     # bar is there from the start (ADM.26), unmeasured until the count is known.
     bar = steps.Step("Bright-star backfill (finding sectors)", "backfill", None, progress=progress,
@@ -272,7 +272,7 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
         mass_limit = store.bright_star_mass_limit(conn)
         bounds = store.get_galaxy_bounds(conn)
         centers = {sector_address_at(center, skeleton.edge_pc) for center in centers_pc}
-        targets = backfill_ring_targets(centers, bounds)
+        targets = backfill_step_targets(centers, bounds)
         if mass_limit is not None:
             targets = {address: mass for address, mass in targets.items() if mass < mass_limit}
         held = store.sector_bright_masses(conn, targets)
@@ -286,7 +286,7 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
             def on_sector():
                 bar.update(advance=1)
         drawn = run_plan._draw_sector_masses(conn, skeleton, todo, galaxy_level, mass_limit, seed,
-                                             on_sector=on_sector, layers=layers)
+                                             on_sector=on_sector, shells=shells)
         summary["sectors"], summary["stars"] = drawn
         failed = False
     except BaseException:
@@ -295,7 +295,7 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
     finally:
         conn.close()
         bar.close(success=not failed)     # nothing to draw: no bar left unmeasured
-    run_plan.log_layers("Bright-star backfill", layers)
+    run_plan.log_shells("Bright-star backfill", shells)
     if summary["sectors"]:
         log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), masses "
                   f"{','.join(f'{mass:g}' for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)} Msun")
@@ -452,7 +452,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
 
     Args:
         args (argparse.Namespace): Parsed arguments (see `add_galaxy_arguments`).
-        address (tuple): This sector's `(ring, layer, slot)`.
+        address (tuple): This sector's `(shell, band, wedge)`.
         position_pc (tuple): Its `(x, y, z)` center, parsecs.
         edge_pc (float): The sector edge length, parsecs.
         channel (optional): Where a worker reports the save's progress
@@ -463,16 +463,16 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
             -- `sector_name` is read back after saving, since name
             uniqueness (v22) may rename it on save.
     """
-    shell_index, band_index, slot_index = address
+    shell_index, band_index, wedge_index = address
     x, y, z = position_pc
     radius_pc = galactic_radius_pc(position_pc)
-    cell = SectorCell.for_ring(shell_index, pc_to_ly(edge_pc))
+    cell = SectorCell.for_address(shell_index, band_index, wedge_index, pc_to_ly(edge_pc))
 
     fill = _fill_context(args, address, position_pc)
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": radius_pc,
-        "shell_index": shell_index, "band_index": band_index, "wedge_index": slot_index,
+        "shell_index": shell_index, "band_index": band_index, "wedge_index": wedge_index,
     }
     galaxy_seed = _galaxy_seed(args)
     # GEN.47: the galaxy's molecular clouds that reach this sector.
@@ -615,11 +615,11 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
     turned into "return what the other call just created".
 
     A new sector's bright-star backfill runs here too, unless `backfill`
-    is false: `planetgen galaxy --slot` leaves it to the end of the run
+    is false: `planetgen galaxy --shell --band --wedge` leaves it to the end of the run
     (`backfill_after_run`), where it has its own progress bar (PERF.28).
 
     An address outside the galaxy's stored outline is generated only with
-    `outside_ok` (`planetgen galaxy --slot` naming it outright, GEN.81),
+    `outside_ok` (`planetgen galaxy --shell --band --wedge` naming it outright, GEN.81),
     at the halo floor's density.
 
     A new sector's paths (and its neighbours') are saved by a queued job
@@ -636,7 +636,7 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
               (`sector_generation_summary_lines`, only when `created`).
 
     Raises:
-        ValueError: If `wedge_index` is out of range for the ring.
+        ValueError: If `wedge_index` is out of range for the band.
         RuntimeError: If the galaxy's skeleton has never been built --
                      run `planetgen plan` first.
     """
@@ -661,7 +661,7 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
     position_pc = sector_position_pc(shell_index, band_index, wedge_index, skeleton.edge_pc)
     qualifies = bounds.contains(shell_index, band_index)
     if not qualifies and not outside_ok:
-        # Past the layer's stored outer ring -- galaxySkeleton's bound is
+        # Past the shell's stored highest band -- galaxySkeleton's bound is
         # exact, so this is a certain "no".
         return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
@@ -789,129 +789,38 @@ def _require_inside(args, bounds, shell_index, band_index, what):
     return False
 
 
-def run_ring_batch(args, edge_pc, progress):
+def ball_extent(sectors, edge_pc):
     """
-    Batch mode: generates every not-yet-generated sector in ring
-    `args.ring` at layer `args.layer` (up to `args.limit`, if given) --
-    when neither `--density` nor `--num-systems` was given, each takes its
-    own position's density (see `_BatchDensity.resolve`); sparse ones are
-    generated too (GEN.76).
-
-    Args:
-        args (argparse.Namespace): Parsed arguments; `args.ring` set.
-        edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
-        progress (rich.progress.Progress): `run_galaxy`'s shared progress
-            display -- an outer "Sectors" task is added here and advanced
-            once per slot visited.
-
-    Raises:
-        SystemExit: Under `--strict`, if the ring and layer lie outside the
-                   galaxy's stored outline, or the ring's slot count
-                   exceeds `LARGE_RUN_WARNING_THRESHOLD` and neither
-                   `--limit` nor `--yes` was given. Without it each is a
-                   warning and the ring is generated (GEN.81).
+    The radius, in parsecs, of a radial fill of `sectors` sectors across
+    (ADM.30): `sectors` edges plus `BALL_EDGE_ALLOWANCE`, so one sector holds
+    the centre and its face neighbours and a bigger one a round shape joined
+    by face adjacency. The fill is a ball (`--radius-pc`), so the Generate
+    page turns its "sectors" field into the radius with this.
     """
-    shell_index, band_index = args.ring, args.layer
-    total_slots = ring_sector_count(shell_index)
-
-    if total_slots > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        run_common._refuse_or_warn(args, f"Ring {shell_index} holds {total_slots} sector slots, a very large run "
-                              f"(--limit N generates only the first N not-yet-generated slots).")
-
-    mysql_config = store.mysql_config_from_args(args)
-    batch_density = _BatchDensity(mysql_config)
-    # Named outright, so generated even outside the outline (GEN.81).
-    outside_ok = not _require_inside(args, batch_density.bounds, shell_index, band_index,
-                                     f"ring {shell_index} layer {band_index}")
-
-    conn = store.get_connection(mysql_config)
-    try:
-        occupied = {a for a in store.get_occupied_addresses(conn, [shell_index]) if a[1] == band_index}
-    finally:
-        conn.close()
-
-    what = f"ring {shell_index} layer {band_index}"
-    batch = []
-    skipped = 0
-    for slot_index in range(total_slots):
-        if args.limit is not None and len(batch) >= args.limit:
-            break
-        address = (shell_index, band_index, slot_index)
-        if address in occupied:
-            continue
-
-        position_pc = sector_position_pc(shell_index, band_index, slot_index, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc, outside_ok=outside_ok)
-        if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (outside its layer's "
-                      f"stored extent)")
-            skipped += 1
-            continue
-        batch.append((address, position_pc, sector_args, ""))
-
-    run_common._check_estimate(args, [item[2] for item in batch], what, progress)
-    with run_common.sector_bar(progress, args, f"Sectors ({what})", len(batch)) as bar:
-        _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, bar)
-    generated = len(batch)
-    skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
-    log.normal(
-        f"Generated {generated} new sector(s) in ring {shell_index} layer {band_index} "
-        f"({total_slots} total slots, {len(occupied)} already existed{skip_note})."
-    )
+    return (sectors + BALL_EDGE_ALLOWANCE) * edge_pc
 
 
-def cylinder_extent(sectors, layers, edge_pc):
-    """
-    The `(horizontal_pc, half_layers, sphere_pc)` of a radial fill (ADM.30):
-    the in-plane radius for `sectors` sectors, the layers either side of
-    the centre's, and the radius of a sphere that holds the whole can.
-    """
-    horizontal_pc = (sectors + BALL_EDGE_ALLOWANCE) * edge_pc
-    return horizontal_pc, layers, math.hypot(horizontal_pc, (layers + 0.5) * edge_pc)
-
-
-def _cylinder_of(args, edge_pc):
-    """`(horizontal_pc, half_layers)` when `args` asks for a radial fill, else `None`."""
-    sectors = getattr(args, "cylinder_sectors", None)
-    if sectors is None:
-        return None
-    return cylinder_extent(sectors, args.cylinder_layers, edge_pc)[:2]
-
-
-def _region_text(args, edge_pc):
+def _region_text(args):
     """The fill's size in words, for logs and the estimate."""
-    cylinder = _cylinder_of(args, edge_pc)
-    if cylinder is None:
-        return f"within {args.radius_pc:g} pc"
-    return f"within {args.cylinder_sectors:g} sectors and {args.cylinder_layers} layers either side"
+    return f"within {args.radius_pc:g} pc"
 
 
-def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, cylinder=None):
+def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
     """
     Every address within `radius_pc` of `center` that lies inside the
     galaxy's outline, the set of those already occupied, and how many
     addresses in the sphere were left out for lying outside it -- the
-    sphere is trimmed to the galaxy before anything is generated. With
-    `cylinder` (`(horizontal_pc, half_layers)`, ADM.30) the sphere is
-    only the search volume: a cell stays when it is within
-    `horizontal_pc` of the centre across the plane and within
-    `half_layers` layers of the centre's.
+    sphere is trimmed to the galaxy before anything is generated.
     """
     if bounds:
         # Nothing in the galaxy lies farther from `center` than this, so a
         # larger radius only enumerates (and discards) empty space --
-        # `--radius-pc 1e300` used to walk ~1e300 rings before trimming.
-        top_layer = max(abs(layer) for layer in bounds.outer_ring)
-        reach_pc = (math.hypot(center[0], center[1]) + abs(center[2])
-                    + (bounds.outer_shell_index + top_layer + 2) * edge_pc)
+        # `--radius-pc 1e300` used to walk ~1e300 shells before trimming.
+        reach_pc = math.sqrt(sum(c * c for c in center)) + (bounds.outer_shell_index + 2) * edge_pc
         radius_pc = min(radius_pc, reach_pc)
     candidates = []
     outside = 0
-    if cylinder is not None:
-        found = Region(center, cylinder[0], cylinder[1], edge_pc).cells()
-    else:
-        found = enumerate_sectors_within_radius(center, radius_pc, edge_pc)
-    for candidate in found:
+    for candidate in enumerate_sectors_within_radius(center, radius_pc, edge_pc):
         if bounds.contains(candidate[0], candidate[1]):
             candidates.append(candidate)
         else:
@@ -928,7 +837,7 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
     """
     The not-yet-generated sectors among `candidates`
     (`_neighborhood_candidates`), as `_submit_batch` items, in
-    the order `candidates` came (ring by ring, not nearest first: sort them
+    the order `candidates` came (shell by shell, not nearest first: sort them
     by distance before applying any limit, GEN.101); `suffix` may hold
     `{distance}` (pc).
 
@@ -938,14 +847,14 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
     batch = []
     skipped = 0
     already_existed = 0
-    for shell_index, band_index, slot_index, x, y, z, distance_pc in candidates:
-        address = (shell_index, band_index, slot_index)
+    for shell_index, band_index, wedge_index, x, y, z, distance_pc in candidates:
+        address = (shell_index, band_index, wedge_index)
         if address in occupied or address in skip:
             already_existed += 1
             continue
         sector_args = batch_density.resolve(args, address, (x, y, z))
         if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (outside its layer's "
+            log.debug(f"{_format_address(address)}: skipped (outside its shell's "
                       f"stored extent)")
             skipped += 1
             continue
@@ -957,14 +866,14 @@ def run_local_neighborhood(args, edge_pc, progress):
     """
     Local-neighborhood mode: generates every not-yet-generated
     sector within `args.radius_pc` parsecs of `args.center_sector`'s own
-    stored center -- see `run_ring_batch` for how each sector's density is set.
+    stored center -- see `_BatchDensity.resolve` for how each sector's density is set.
 
     Args:
         args (argparse.Namespace): Parsed arguments;
             `args.center_sector`/`args.radius_pc` must not be `None`.
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
         progress (rich.progress.Progress): `run_galaxy`'s shared progress
-            display (see `run_ring_batch`). `run_random_start` also calls
+            display (see `run_shell`). `run_random_start` also calls
             this directly after generating its own seed sector.
 
     Raises:
@@ -985,7 +894,7 @@ def run_local_neighborhood(args, edge_pc, progress):
         log.error(
             f"sector_id={args.center_sector} has never been placed in a galaxy (its galaxy-position "
             f"columns are NULL) -- --center-sector requires an already galaxy-placed sector (one "
-            f"generated via 'planetgen galaxy' itself, not 'planetgen sector'). Use --ring to "
+            f"generated via 'planetgen galaxy' itself, not 'planetgen sector'). Use --shell to "
             f"generate placed sectors from scratch instead."
         )
         raise SystemExit(1)
@@ -995,13 +904,13 @@ def run_local_neighborhood(args, edge_pc, progress):
     )
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
-    center_ring, center_layer, _slot = sector_address_at(center, edge_pc)
-    _require_inside(args, batch_density.bounds, center_ring, center_layer,
+    center_shell, center_band, _wedge = sector_address_at(center, edge_pc)
+    _require_inside(args, batch_density.bounds, center_shell, center_band,
                     f"sector_id={args.center_sector} sits at {_format_address(sector_address_at(center, edge_pc))}")
     candidates, occupied, outside = _neighborhood_candidates(
-        center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds, _cylinder_of(args, edge_pc),
+        center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds,
     )
-    region = _region_text(args, edge_pc)
+    region = _region_text(args)
 
     batch, already_existed, skipped = _neighborhood_batch(
         args, candidates, occupied, batch_density, f", {{distance:.2f}} pc from sector_id={args.center_sector}",
@@ -1017,7 +926,7 @@ def run_local_neighborhood(args, edge_pc, progress):
     outside_note = f", {outside} beyond the galaxy's edge left out" if outside else ""
     log.normal(
         f"Generated {generated} new sector(s) {region} of sector_id={args.center_sector} "
-        f"({len(candidates)} candidate slot(s) inside the galaxy{outside_note}, {already_existed} already "
+        f"({len(candidates)} candidate sector(s) inside the galaxy{outside_note}, {already_existed} already "
         f"existed{skip_note})."
     )
 
@@ -1112,11 +1021,11 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
 
     center = (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
     batch_density = _BatchDensity(config)
-    center_ring, center_layer, _slot = sector_address_at(center, edge_pc)
-    if not batch_density.bounds.contains(center_ring, center_layer):
+    center_shell, center_band, _wedge = sector_address_at(center, edge_pc)
+    if not batch_density.bounds.contains(center_shell, center_band):
         raise ValueError(
             f"sector_id={center_sector_id} lies outside the galaxy: "
-            f"{batch_density.bounds.describe_miss(center_ring, center_layer)}."
+            f"{batch_density.bounds.describe_miss(center_shell, center_band)}."
         )
     candidates, occupied, outside = _neighborhood_candidates(
         center, radius_pc, edge_pc, config, batch_density.bounds,
@@ -1173,8 +1082,8 @@ def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
     cut by the galaxy's edge (GEN.97)."""
     x, y, z = position_pc
     for dx, dy, dz in ((0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
-        ring, layer, _slot = sector_address_at((x + dx * radius_pc, y + dy * radius_pc, z + dz * radius_pc), edge_pc)
-        if not bounds.contains(ring, layer):
+        shell, band, _wedge = sector_address_at((x + dx * radius_pc, y + dy * radius_pc, z + dz * radius_pc), edge_pc)
+        if not bounds.contains(shell, band):
             return False
     return True
 
@@ -1208,7 +1117,7 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
     many = args.neighborhoods > 1
     gamma = args.neighborhood_gamma
     for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
-        address = batch_density.bounds.random_address(draw, max_ring=args.max_ring)
+        address = batch_density.bounds.random_address(draw, max_shell=args.max_shell)
         if store.get_sector_id_at(conn, *address) is not None:
             continue
         position_pc = sector_position_pc(*address, edge_pc)
@@ -1236,10 +1145,10 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
 
 def run_random_start(args, edge_pc, progress):
     """
-    Random-start mode (no `--ring`/`--center-sector` given): picks a
+    Random-start mode (no `--shell`/`--center-sector` given): picks a
     random, not-yet-occupied sector address -- drawn only from
     inside the galaxy's stored outline (`GalaxyBounds.random_address`,
-    every sector equally likely, optionally only out to `--max-ring`), so
+    every sector equally likely, optionally only out to `--max-shell`), so
     the start and the neighborhood around it are always in the galaxy --
     retried up to `program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS`
     times, generates it, then generates every not-yet-generated sector
@@ -1282,15 +1191,15 @@ def run_random_start(args, edge_pc, progress):
                    f"{drawn.get('centres', 0) - drawn.get('filled', 0):,} qualified.")
     if not starts:
         density_note = (
-            f", meeting --min-start-density {args.min_start_density} (try lowering it or --max-ring "
+            f", meeting --min-start-density {args.min_start_density} (try lowering it or --max-shell "
             f"-- most volume-weighted draws land in the galaxy's own sparser outskirts)"
             if args.min_start_density is not None else ""
         )
-        within = f"within {args.max_ring} rings" if args.max_ring is not None else "in the galaxy"
+        within = f"within {args.max_shell} shells" if args.max_shell is not None else "in the galaxy"
         log.error(
             f"Could not find an unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
             f"-- this galaxy may already be almost entirely generated within that range, or that range "
-            f"may hold too little real stellar density; try a larger --max-ring."
+            f"may hold too little real stellar density; try a larger --max-shell."
         )
         raise SystemExit(1)
     if len(starts) < args.neighborhoods:
@@ -1330,32 +1239,32 @@ def run_random_start(args, edge_pc, progress):
         run_local_neighborhood(args, edge_pc, progress)
 
 
-def run_single_slot(args, edge_pc, progress):
+def run_single_sector(args, edge_pc, progress):
     """
-    Single-address mode: generates exactly the one sector at `(--ring I,
-    --layer J, --slot K)` via the same `ensure_sector_generated` the
+    Single-address mode: generates exactly the one sector at `(--shell I,
+    --band J, --wedge K)` via the same `ensure_sector_generated` the
     galaxy map's "recalculate on visit" path uses -- the direct route from
     an address copied out of the interactive 3D Galaxy Map. With
     `--radius-pc`, then generates that sector's neighborhood
     (`run_local_neighborhood`), the Sector Map's "Generate neighborhood".
 
     Raises:
-        SystemExit: If `--slot` is out of range for the ring, or the
-                   address is outside the galaxy's stored outline.
+        SystemExit: If the address is out of range for the band, or is outside
+                   the galaxy's stored outline under `--strict`.
     """
-    address = (args.ring, args.layer, args.slot)
-    total_slots = ring_sector_count(args.ring)
-    if not (0 <= args.slot < total_slots):
+    address = (args.shell, args.band, args.wedge)
+    total_wedges = spherical.wedge_count(args.shell, args.band)
+    if not (0 <= args.wedge < total_wedges):
         log.error(
-            f"--slot {args.slot} is out of range for ring {args.ring} (holds {total_slots} slots, "
-            f"0..{total_slots - 1})."
+            f"--wedge {args.wedge} is out of range for shell {args.shell} band {args.band} (holds {total_wedges} "
+            f"wedges, 0..{total_wedges - 1})."
         )
         raise SystemExit(1)
 
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     # Named outright, so generated even outside the outline (GEN.81).
-    outside_ok = not _require_inside(args, batch_density.bounds, args.ring, args.layer,
+    outside_ok = not _require_inside(args, batch_density.bounds, args.shell, args.band,
                                      _format_address(address))
     position_pc = sector_position_pc(*address, edge_pc)
     conn = store.get_connection(mysql_config)
@@ -1373,11 +1282,11 @@ def run_single_slot(args, edge_pc, progress):
     what = _format_address(address)
     if args.radius_pc is not None:
         candidates, occupied, _outside = _neighborhood_candidates(
-            position_pc, args.radius_pc, edge_pc, mysql_config, batch_density.bounds, _cylinder_of(args, edge_pc),
+            position_pc, args.radius_pc, edge_pc, mysql_config, batch_density.bounds,
         )
         batch, _existed, _skipped = _neighborhood_batch(args, candidates, occupied, batch_density, skip={address})
         sectors += [item[2] for item in batch]
-        what += f" and the sectors {_region_text(args, edge_pc)} of it"
+        what += f" and the sectors {_region_text(args)} of it"
     run_common._check_estimate(args, sectors, what, progress)
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
@@ -1406,33 +1315,38 @@ def run_single_slot(args, edge_pc, progress):
         run_local_neighborhood(args, edge_pc, progress)
 
 
-def _layers_reaching(bounds, shell_index):
-    """Every layer the galaxy's stored outline reaches at `shell_index`,
-    lowest first (the column `galaxy_column` stores for that ring)."""
-    return sorted(layer for layer in bounds.outer_ring if bounds.contains(shell_index, layer))
-
-
-def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density):
+def _generate_addresses(args, addresses, shells, total, what, edge_pc, progress, batch_density, outside_ok=False):
     """
-    Generates every not-yet-generated address of `addresses`
-    in order (up to `args.limit`, when set) -- the loop behind column and
-    shell modes; see `run_ring_batch` for how each sector's density is set.
+    Generates every not-yet-generated address of `addresses` (an iterable of
+    `(shell, band, wedge)`, walked lazily, in order) up to `args.limit` when
+    set -- the loop behind the shell, span and course modes; see
+    `_BatchDensity.resolve` for how each sector's density is set.
+
+    Args:
+        shells (iterable): The shells `addresses` lie in, to look up what is
+            already generated there.
+        total (int): How many addresses there are, for the closing line.
+        outside_ok (bool): Generate addresses outside the outline too (ones
+            the user named outright, GEN.81).
     """
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        occupied = set(store.get_occupied_addresses(conn, {a[0] for a in addresses}))
+        occupied = set(store.get_occupied_addresses(conn, set(shells)))
     finally:
         conn.close()
 
-    pending = [a for a in addresses if a not in occupied]
     limit = getattr(args, "limit", None)
     batch = []
     skipped = 0
-    for address in pending:
+    existed = 0
+    for address in addresses:
+        if address in occupied:
+            existed += 1
+            continue
         if limit is not None and len(batch) >= limit:
             break
         position_pc = sector_position_pc(*address, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
+        sector_args = batch_density.resolve(args, address, position_pc, outside_ok=outside_ok)
         if sector_args is None:
             skipped += 1
             continue
@@ -1443,151 +1357,70 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
         _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, bar)
     generated = len(batch)
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
-    log.normal(
-        f"Generated {generated} new sector(s) in {what} ({len(addresses)} total, "
-        f"{len(addresses) - len(pending)} already existed{skip_note})."
-    )
-
-
-def block_layers(block):
-    """
-    Every sector layer a drill-down block spans, lowest first: a size-3
-    block's three (`drill_slabs`), and for a bigger one the layers of
-    each of its child slabs in turn.
-    """
-    m, _ring, _wedge, slab = block
-    if m == 3:
-        return drill_slabs(block)
-    child_m = DRILL_LEVELS[DRILL_LEVELS.index(m) + 1]
-    layers = []
-    for child_slab in drill_slabs(block):
-        layers.extend(block_layers(type(block)(child_m, 0, 0, child_slab)))
-    return layers
-
-
-def block_addresses(block, layer=None):
-    """
-    Every sector address `(ring, layer, slot)` inside drill-down block
-    `block` (only on sector layer `layer` when given), ring by ring --
-    a size-3 block's sectors (`drill_block_sectors`, design doc section
-    3.5), and a bigger block's children's, recursively.
-    """
-    if block.m == 3:
-        layers = drill_slabs(block) if layer is None else [layer]
-        for sector_layer in layers:
-            for sector in drill_block_sectors(block, sector_layer):
-                yield (sector.ring, sector_layer, sector.wedge)
-        return
-    for _slab, children in drill_children(block):
-        for child in children:
-            if layer is not None and layer not in block_layers(child):
-                continue
-            yield from block_addresses(child, layer)
-
-
-def run_block(args, edge_pc, progress):
-    """
-    Block mode: every sector the galaxy's outline allows inside one
-    drill-down block (`--block`, optionally one `--block-layer`). Needs
-    `--limit` or `--yes` when that is more than
-    `LARGE_RUN_WARNING_THRESHOLD` sectors.
-
-    Raises:
-        SystemExit: If the outline allows nothing in the block, or it is
-                   too large and neither `--limit` nor `--yes` was given.
-    """
-    batch_density = _BatchDensity(store.mysql_config_from_args(args))
-    bounds = batch_density.bounds
-    key = format_drill_key(args.block)
-    where = f"block {key}" + (f" layer {args.block_layer}" if args.block_layer is not None else "")
-    confirmed = args.limit is not None or args.yes
-    addresses = []
-    for address in block_addresses(args.block, args.block_layer):
-        if not bounds.contains(address[0], address[1]):
-            continue
-        addresses.append(address)
-        if not confirmed and len(addresses) == LARGE_RUN_WARNING_THRESHOLD + 1:
-            run_common._refuse_or_warn(args, f"{where.capitalize()} holds more than {LARGE_RUN_WARNING_THRESHOLD} "
-                                  f"sector slots, a very large run (--limit N generates only the first N).")
-    if not addresses:
-        run_common._refuse_or_warn(args, f"The galaxy's outline allows no sector in {where}, so there is nothing "
-                              f"to generate.")
-        return
-    _generate_addresses(args, addresses, where, edge_pc, progress, batch_density)
-
-
-def run_column(args, edge_pc, progress):
-    """
-    Column mode: every sector at `(--ring I, --slot K)` through every
-    layer the galaxy's outline reaches at ring I.
-
-    Raises:
-        SystemExit: If `--slot` is out of range for the ring, or the
-                   outline doesn't reach the ring at all.
-    """
-    total_slots = ring_sector_count(args.ring)
-    if not (0 <= args.slot < total_slots):
-        log.error(
-            f"--slot {args.slot} is out of range for ring {args.ring} (holds {total_slots} slots, "
-            f"0..{total_slots - 1})."
-        )
-        raise SystemExit(1)
-    batch_density = _BatchDensity(store.mysql_config_from_args(args))
-    layers = _layers_reaching(batch_density.bounds, args.ring)
-    if not layers:
-        _require_inside(args, batch_density.bounds, args.ring, 0, f"ring {args.ring}")
-        log.normal(f"No layer of the outline reaches ring {args.ring}: nothing to generate.")
-        return
-    addresses = [(args.ring, layer, args.slot) for layer in layers]
-    _generate_addresses(args, addresses, f"the column at ring {args.ring} slot {args.slot}",
-                        edge_pc, progress, batch_density)
+    already = f"{total - len(batch) - skipped} already existed" if limit is None else f"{existed} already existed"
+    log.normal(f"Generated {generated} new sector(s) in {what} ({total} total, {already}{skip_note}).")
 
 
 def run_shell(args, edge_pc, progress):
     """
-    Shell mode: every sector of ring `--ring I` through every layer the
-    galaxy's outline reaches there. Needs `--limit` or `--yes` when that
-    is more than `LARGE_RUN_WARNING_THRESHOLD` sectors.
+    Shell mode: every not-yet-generated sector of shell `--shell I` the
+    galaxy's outline holds -- or, with `--band J`, of that one band (named
+    outright, so generated even outside the outline, GEN.81). When the shell
+    holds more than `LARGE_RUN_WARNING_THRESHOLD` sectors it needs `--limit`
+    or `--yes`.
 
     Raises:
-        SystemExit: If the outline doesn't reach the ring, or the shell is
-                   too large and neither `--limit` nor `--yes` was given.
+        SystemExit: If the outline doesn't reach the shell (under `--strict`
+                   for a named band), or the run is too large and neither
+                   `--limit` nor `--yes` was given.
     """
+    shell_index = args.shell
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
-    layers = _layers_reaching(batch_density.bounds, args.ring)
-    if not layers:
-        _require_inside(args, batch_density.bounds, args.ring, 0, f"ring {args.ring}")
-        log.normal(f"No layer of the outline reaches ring {args.ring}: nothing to generate.")
-        return
-    total_slots = ring_sector_count(args.ring)
-    total = total_slots * len(layers)
+    bounds = batch_density.bounds
+    outside_ok = False
+    if args.band is not None:
+        band = args.band
+        what = f"shell {shell_index} band {band}"
+        outside_ok = not _require_inside(args, bounds, shell_index, band, what)
+        total = spherical.wedge_count(shell_index, band)
+        addresses = ((shell_index, band, wedge) for wedge in range(total))
+    else:
+        what = f"shell {shell_index}"
+        if shell_index not in bounds.high_band:
+            _require_inside(args, bounds, shell_index, 0, what)
+            log.normal(f"No band of the outline reaches shell {shell_index}: nothing to generate.")
+            return
+        span = Span(shells=(shell_index, shell_index))
+        total = span.count(bounds)
+        addresses = span.addresses(bounds)
     if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        run_common._refuse_or_warn(args, f"The shell at ring {args.ring} holds {total} sector slots ({total_slots} "
-                              f"slots across {len(layers)} layers), a very large run (--limit N generates "
-                              f"only the first N).")
-    addresses = [(args.ring, layer, slot) for layer in layers for slot in range(total_slots)]
-    _generate_addresses(args, addresses, f"the shell at ring {args.ring}", edge_pc, progress, batch_density)
+        run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run "
+                                         f"(--limit N generates only the first N not-yet-generated sectors).")
+    _generate_addresses(args, addresses, [shell_index], total, what, edge_pc, progress, batch_density,
+                        outside_ok=outside_ok)
 
 
 def run_span(args, edge_pc, progress):
     """
     Span mode (ADM.29): every not-yet-generated sector in `args.span`, a
-    range of rings, layers and slots, inside the galaxy's outline. The
-    count comes from prefix sums, so the size warning is instant. Needs
-    `--limit` or `--yes` when it is more than `LARGE_RUN_WARNING_THRESHOLD`
-    sectors.
+    range of shells, bands and wedges, inside the galaxy's outline. The
+    count comes from the outline's stored cell counts, so the size warning is
+    instant. Needs `--limit` or `--yes` when it is more than
+    `LARGE_RUN_WARNING_THRESHOLD` sectors.
     """
     span = args.span
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
-    total = span.count(batch_density.bounds)
+    bounds = batch_density.bounds
+    total = span.count(bounds)
     what = span.describe()
     if total == 0:
         log.normal(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
         return
     if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total} sectors, a very large run "
+        run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run "
                                          f"(--limit N generates only the first N).")
-    _generate_addresses(args, list(span.addresses(batch_density.bounds)), what, edge_pc, progress, batch_density)
+    _generate_addresses(args, span.addresses(bounds), span._shells(bounds), total, what, edge_pc, progress,
+                        batch_density)
 
 
 def course_cells(config, from_ref, to_ref, border=False):
@@ -1657,12 +1490,13 @@ def run_course(args, edge_pc, progress):
         raise SystemExit(1)
     if plan["outside_galaxy"]:
         log.normal(f"{plan['outside_galaxy']} uncharted cell(s) lie outside the galaxy and are left out.")
-    _generate_addresses(args, cells, what, edge_pc, progress, _BatchDensity(config))
+    _generate_addresses(args, cells, {cell[0] for cell in cells}, len(cells), what, edge_pc, progress,
+                        _BatchDensity(config))
 
 
 def run_galaxy(args):
     """
-    Dispatches to block, column, shell, single-address, ring-batch,
+    Dispatches to span, course, single-address, shell,
     local-neighborhood, or random-start mode, owning the one `rich.progress.Progress` display
     they share. First checks the galaxy has been planned at the standard
     sector edge, since every mode validates its addresses against that
@@ -1690,7 +1524,7 @@ def run_galaxy(args):
                   f"{edge_pc:g} pc -- re-run 'planetgen plan'.")
         raise SystemExit(1)
     if not bounds:
-        log.error("The stored plan has no layers at all (nothing in this galaxy shape expects a star "
+        log.error("The stored plan has no shells at all (nothing in this galaxy shape expects a star "
                   "per sector) -- re-run 'planetgen plan' with a different shape.")
         raise SystemExit(1)
 
@@ -1737,20 +1571,14 @@ def _run_galaxy_mode(args, edge_pc, progress):
     """`run_galaxy`'s dispatch to the mode its arguments ask for."""
     if not _random_start_mode(args):
         stages.enter("sectors")
-    if getattr(args, "block", None) is not None:
-        run_block(args, edge_pc, progress)
-    elif getattr(args, "span", None) is not None:
+    if getattr(args, "span", None) is not None:
         run_span(args, edge_pc, progress)
     elif getattr(args, "course", None) is not None:
         run_course(args, edge_pc, progress)
-    elif args.column:
-        run_column(args, edge_pc, progress)
-    elif args.shell:
+    elif args.wedge is not None:
+        run_single_sector(args, edge_pc, progress)
+    elif args.shell is not None:
         run_shell(args, edge_pc, progress)
-    elif args.slot is not None:
-        run_single_slot(args, edge_pc, progress)
-    elif args.ring is not None:
-        run_ring_batch(args, edge_pc, progress)
     elif args.center_sector is not None:
         run_local_neighborhood(args, edge_pc, progress)
     else:

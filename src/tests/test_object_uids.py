@@ -3,7 +3,7 @@
 """
 Object IDs in the database (GEN.69, DB.20, GEN.171, `galaxy/uid.py`,
 `galaxy/object_uid.py`, `store.assign_uids`): a saved sector's rows checked
-against the layout, the run-time counters and the migration's numbering.
+against the layout and the run-time counters.
 """
 
 import pytest
@@ -169,37 +169,6 @@ def test_the_issuer_numbers_systems_then_bodies():
     foreign = issuer.issue("star_systems", ["id", "sector_id"], (11, 2))
     assert [ids.unpack(ids.from_bytes(raw)).body for raw in (system, star, planet)] == [0, 1, 2]
     assert foreign is None and issuer.complete
-
-
-def test_the_migration_numbers_existing_rows_by_row_order(mysql_config):
-    import importlib
-
-    migration = importlib.import_module("planetgen.db.migrations.versions.0078_object_ids")
-    from planetgen.db import alembic_runner
-
-    store.save_sector(_sector("Uid Migrated", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
-    tables = ("star_systems", *store.BODY_UID_TABLES, *store.PHENOMENON_UID_TABLES)
-    conn = store.get_connection(mysql_config)
-    try:
-        for table in tables:
-            conn.execute(f"UPDATE {table} SET uid = NULL")
-        conn.commit()
-    finally:
-        conn.close()
-    with alembic_runner._engine(mysql_config).begin() as connection:
-        migration._number_bodies(connection, migration._number_top_level(connection))
-
-    systems = _rows(mysql_config, "SELECT id, uid FROM star_systems ORDER BY id")
-    assert [(_decoded(r).serial_kind, _decoded(r).serial, _decoded(r).body) for r in systems] == [
-        (ids.SERIAL_GENERATED, n, 0) for n in range(3)]
-    [rogue] = _rows(mysql_config, "SELECT uid FROM rogue_planets")
-    assert _decoded(rogue).serial == 3
-    by_system = {}
-    for table in store.BODY_UID_TABLES:
-        for row in _rows(mysql_config, f"SELECT star_system_id, uid FROM {table} ORDER BY id"):
-            by_system.setdefault(row["star_system_id"], []).append(ids.body_of(ids.from_bytes(row["uid"])))
-    assert all(sorted(numbers) == list(range(1, len(numbers) + 1)) for numbers in by_system.values())
-    assert [numbers[0] for numbers in by_system.values()] == [1] * len(by_system)
 
 
 def test_a_body_deleted_through_an_edit_keeps_its_number_used(mysql_config):

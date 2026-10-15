@@ -76,11 +76,11 @@ def test_a_saved_sector_loads_back_with_every_entry_and_body_in_place(mysql_conf
 def test_a_loaded_sector_knows_every_objects_cell_and_velocity(mysql_config):
     """GEN.121, GEN.124: the entries and the bodies of their systems come back with their sector address and
     the velocity they had when saved."""
-    from planetgen.galaxy import geometry
+    from planetgen.galaxy import spherical
 
     address = (1500, 2, 700)
     edge_pc = 11.5 * constants.LIGHTYEAR_M / constants.PARSEC_M
-    center_pc = geometry.sector_position_pc(*address, edge_pc)
+    center_pc = spherical.sector_position_pc(*address, edge_pc)
     # A planet gets its place only once the sector is placed in the galaxy, and a few systems
     # have planets without one (about 1 run in 300 drew only those): draw until one has.
     for _ in range(300):
