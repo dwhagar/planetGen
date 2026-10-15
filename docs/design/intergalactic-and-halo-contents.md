@@ -290,6 +290,29 @@ Computed from the address, not stored, like the interstellar debris count alread
 - Pages and API: the sector page shows the profile; a read-only profile lookup for an uncharted address.
 - Tests: tiling and ID round trip at the widest shell of the reach; determinism of a profile and of an empty sector; the pre-placed share of every population; King solver against the textbook concentrations; no double count of a cluster star.
 
+### 5.10 Nebulae that need a star
+
+Boss asked whether the required objects are generated when a nebula is made. Answer, from the code at this checkout [S]: for planetary nebulae and supernova remnants, yes, always; for emission and reflection nebulae, only when the host star already exists in the sector; otherwise the nebula carries the host as text; molecular clouds need none; there is no Wolf-Rayet class. The table says what each kind requires, what the code does, and what the sphere-wide design adds.
+
+| Nebula | Required inside | Today | Gap | Far from the disk (the design) |
+|---|---|---|---|---|
+| Planetary, H to L | exactly one hot central star (exposed core 0.55 to 0.9 solar masses, 30,000 to 200,000 K), often with a close companion | **real, always.** `_add_planetary_nebula` builds a new system whose only star is a white dwarf drawn from `PLANETARY_NEBULA_CENTRAL_STAR_TYPES`; the scatter rows take the same path (`_build_scattered`). The sector can refuse it when full (the nebula is then dropped) | the draw has no companion; central stars are O3VII to B0VII, heavier than the real 0.59 solar masses (the correction table already notes this) | **kept everywhere**: old stars make them, so halo, cluster and old-satellite cells keep them at the old-star rate (a few halo ones are known [R]) |
+| Supernova remnant, core collapse (R, S, T, U, V) | a neutron star (about 85%) or black hole (15%), offset by its kick, or none | **real.** `SupernovaRemnant.__init__` embeds one in 60% of core-collapse remnants (75% of all remnants); the scatter uses the same constructor | none for the hidden 40%: that is the intended "no detectable core" case | **zero in old populations** (no progenitor); needs the young share |
+| Supernova remnant, Type Ia (W) | no compact object | **real**: none embedded (25% of remnants) | the Type Ia share is a constant (`SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE = 0.25`), right for the disk, wrong for old populations | **share 1 in old populations**, the only remnant they make |
+| Emission (H II), C, D, E | one O or early-B star (C), a small cluster (D), a massive young cluster (E); G an early-B star | **real only through `add_star_hosted_nebulae`**: it grows the nebula around a hot main-sequence star the sector already holds (O at 0.25, B0 to B2 at 0.25; class age limits 1, 10, 20, 5 Myr). A nebula made any other way has the host in its `hosts` text only, with **no star object**; the cluster members of C, D, E, G are text only | the scatter does not place emission or reflection nebulae; a host star that is not in the sector (pre-placed before its sector exists) gets no nebula (open MAP.182, default do not build) | **none unless the cell is young**: halo, cluster and old-satellite populations have no O or B stars [C], so the host rule yields nothing; the Magellanic mix can |
+| Reflection, F | a B or A star, too cool to ionize (B3 to B9 at 0.05, A at 0.01; age limit 50 Myr) | the same host-first rule; text-only host otherwise | same | same |
+| Molecular and dark clouds, M, N, P, Q | none illuminating; P none or one protostar, Q embedded protostars | clouds come from the seeded `nebula_field`; **no protostar objects are generated** | embedded protostars are text only | needs the cell's `gas`; none in halo, clusters or old satellites; the Magellanic mix can |
+| Wolf-Rayet bubble | a Wolf-Rayet star | **no class exists** (`anomalies.md`, Tier 2) | whole feature | young cells only |
+
+The rule to build, one for every cell: **a nebula's required objects are decided by its kind, not by where it is, and they are made when the nebula is made.** Concretely:
+
+1. Kinds with a point rate (planetary, supernova remnant) keep building their core (white dwarf, neutron star, black hole) at creation, in any cell.
+2. Emission, reflection and Wolf-Rayet nebulae are *hosted*: the host star is chosen first, from the cell's young population, and the nebula is grown around it. The hot-star scatters (bright and mass passes) are the sphere-wide host supply: where they place nothing (halo, old clusters), no hosted nebula exists. The text-only `hosts` list for the cluster classes (D, E, G) becomes real member stars drawn from the cell's young `mix` when the nebula is created, or the class is not offered in that cell.
+3. Which kinds a cell can have follows from the profile (section 5.3): `kind_factors` scale hosted nebulae and core-collapse remnants with the young share, planetary nebulae and Type Ia remnants with the old share, molecular clouds with `gas`; the Type Ia share becomes a profile field (1 where there is no young population).
+4. An asked halo cell therefore never shows an H II region or a pulsar-bearing remnant, and may show a planetary nebula with its white dwarf or a Type Ia remnant with nothing inside. A Magellanic cell can show all of them, hosts included.
+
+What I did not check: what `nebula_field` returns beyond the disk today; the build must make it read the cell's `gas`, not the disk position alone.
+
 ## 6. What it costs
 
 | Item | Cost | Tag |
@@ -340,8 +363,9 @@ One train, in build order. Titles only; the TODO thread numbers them and assigns
 8. **Sector page and API** (Interface): the profile on the page, a read-only profile lookup for an uncharted address, gas and dark-matter lines, the heavy-cell queue warning with ETA, the neighbourhood request's expected-count line.
 9. **Galaxy Map** (Interface): components and wanderers as points beyond the outline; shading unchanged.
 10. **High-velocity clouds and the Magellanic Stream** as placed gas clouds (Core; later).
-11. **Docs** (Quality): `galaxy-disk-density.md`, `galaxy-coordinate-system.md` (reach and outline), `globular-clusters.md` (status), `interstellar-object-rates.md` (populations and factors).
-12. **Tests** (Quality): tiling at the reach, ID round trip at the widest shell, profile and empty-sector determinism, the pre-placed share per population.
+11. **Required contents per nebula kind** (Core; section 5.10; touches MAP.182, whose default stays "do not build" unless Boss asks): hosts made with the nebula (real member stars for classes D, E, G and embedded protostars for P and Q, or the class withheld), Type Ia share and kind rates read from the profile, `nebula_field` gated by the cell's `gas`, Wolf-Rayet class with the anomalies lane.
+12. **Docs** (Quality): `galaxy-disk-density.md`, `galaxy-coordinate-system.md` (reach and outline), `globular-clusters.md` (status), `interstellar-object-rates.md` (populations and factors).
+13. **Tests** (Quality): no emission, reflection or core-collapse remnant in a halo or old cluster cell; a planetary nebula always has its white dwarf; a core-collapse remnant has a compact core at the stated share; every hosted nebula holds its host star; tiling at the reach, ID round trip at the widest shell, profile and empty-sector determinism, the pre-placed share per population.
 
 ## Sources
 
