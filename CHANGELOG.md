@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1232] - 2026-10-15
+
+### Changed
+- **Design note for the system description layer.** `docs/design/system-description.md` describes one typed description of a star system, planet, moon, belt or comet, with HTML, Markdown, wikitext, plain-text and JSON renderers, so Markdown and wikitext are produced only on request. No code changes.
+
 ## [8.0.1231] - 2026-10-15
 
 ### Changed
