@@ -412,6 +412,7 @@ galaxy_block_stats = sa.Table(
     sa.Column('stars', mysql.BIGINT(unsigned=True), nullable=False),
     sa.Column('age_sum', mysql.DOUBLE(), nullable=False),
     sa.Column('luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('ladder_step', mysql.TINYINT(unsigned=True), server_default=sa.text('3'), nullable=False),
     mysql_engine="InnoDB",
 )
 

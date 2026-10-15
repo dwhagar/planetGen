@@ -49,7 +49,7 @@ import tempfile
 import time
 
 from planetgen.web.lib import apiclient, singleflight, tilepack
-from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
+from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles, get_galaxy_window
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
@@ -704,10 +704,12 @@ def fetch_stage(db, at=None):
 def fetch_window(db, at, g=DEFAULT_WINDOW):
     """
     One Galaxy Map data window (MAP.151, `galaxy.window`): `g` cells across
-    around the cell `at`, cut from the stages of the parent blocks it
-    touches. Those stages come from `fetch_stage`, so a warm cache serves
-    the window without a query, and a window shares its files with every
-    other window and stage in the neighbourhood.
+    around the cell `at`. Cells bigger than a sector come from the stored
+    block totals in one query (`queryDb.galaxy_window`, MAP.151b); a window
+    of sectors is cut from the stages of the parent blocks it touches,
+    which come from `fetch_stage`, so a warm cache serves it without a
+    query and it shares its files with every other window and stage in the
+    neighbourhood.
 
     Args:
         db (str): The `?db=` value.
@@ -726,6 +728,10 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
         width = check_width(g)
     except ValueError as exc:
         raise TileRequestError(str(exc))
+    if centre.m > 1:
+        # Cells bigger than a sector: the stored block totals, in one query.
+        stamp = current_stamp(db, cache_dir())["stamp"]
+        return {**get_galaxy_window(db, format_drill_key(centre), width), "stamp": stamp}
     stages = {}
     stamp = None
     for parent in window_parents(window_cells(centre, width)):

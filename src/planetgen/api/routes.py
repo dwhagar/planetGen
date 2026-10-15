@@ -70,6 +70,7 @@ from planetgen.db.query import (
     sectors_made,
     galaxy_locate,
     galaxy_stage,
+    galaxy_window,
     galaxy_tiles,
     list_phenomena,
     phenomena_facets,
@@ -98,6 +99,7 @@ from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
+from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import describe_system, render_system_sections, render_system_text
@@ -1002,6 +1004,20 @@ def galaxy_stage_route():
     """
     try:
         return jsonify(galaxy_stage(get_db(), request.args.get("at") or None))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/window")
+def galaxy_window_route():
+    """
+    A Galaxy Map data window of cells bigger than a sector: `?at=m.ring.wedge.slab`
+    (the middle cell) and `?g=` (cells across), read from the stored block
+    totals in one query -- see `queryDb.galaxy_window`. Called by
+    `/galaxy/window` (`planetgen/web/galaxy_views.py`).
+    """
+    try:
+        return jsonify(galaxy_window(get_db(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW))
     except ValueError as exc:
         raise ApiError(str(exc))
 

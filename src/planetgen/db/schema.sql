@@ -1232,6 +1232,12 @@
 --   All NULL on a facility saved before v89. Design:
 --   docs/design/population-and-politics.md, "Data model" of the facility section.
 --
+-- v90: `galaxy_block_stats.ladder_step` (MAP.151b): the step between the block ladder's
+--   levels (`galaxy.drill.DRILL_STEP`, 3) the row's totals were computed for. The ladder
+--   went from 243/27/3 to 243/81/27/9/3 and the same `m` means another block on each, so
+--   the map reads only rows of its own step. The migration empties the table and fills it
+--   again for the 3-ary ladder.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3368,7 +3374,7 @@ CREATE TABLE IF NOT EXISTS object_timing_samples (
 -- `expected_systems`, `stars`, `age_sum` (each sector's mean age times its stars) and
 -- `luminosity_sol`. A stage's child stats are these over the child blocks
 -- (`query.galaxy_stage` computes the same sums from `sector_stats`; a test holds
--- the two equal). Written by `db/block_stats.py` when sectors are saved or
+-- the two equal; `ladder_step` is the ladder the row was built for). Written by `db/block_stats.py` when sectors are saved or
 -- deleted, and by `planetgen plan --fill-block-stats`; no foreign key, as the
 -- blocks are not rows of their own.
 -- ---------------------------------------------------------------------
@@ -3383,6 +3389,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
     stars             BIGINT UNSIGNED NOT NULL,
     age_sum           DOUBLE NOT NULL,
     luminosity_sol    DOUBLE NOT NULL,
+    ladder_step       TINYINT UNSIGNED NOT NULL DEFAULT 3,
     PRIMARY KEY (m, ring_index, wedge, slab)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

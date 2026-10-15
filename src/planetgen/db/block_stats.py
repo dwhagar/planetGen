@@ -27,7 +27,7 @@ When the ladder gains levels (MAP.151b) a `rebuild` fills them.
 """
 
 from planetgen.db import query
-from planetgen.galaxy.drill import DRILL_LEVELS, drill_chain_of
+from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, drill_chain_of
 
 LEVELS = DRILL_LEVELS[:-1]
 """tuple: The levels stored: every block size above a sector."""
@@ -36,8 +36,9 @@ FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
 
 COLUMNS = ("m", "ring_index", "wedge", "slab", "sector_count", "systems", "expected_systems", "stars", "age_sum",
-           "luminosity_sol")
-"""tuple: The table's columns in the order `rows` writes them."""
+           "luminosity_sol", "ladder_step")
+"""tuple: The table's columns in the order `rows` writes them. Migration 0086 fills the table without the last,
+which did not exist yet and defaults to today's step."""
 
 INSERT = (f"INSERT INTO galaxy_block_stats ({', '.join(COLUMNS)}) VALUES ({', '.join('?' for _ in COLUMNS)})")
 
@@ -51,7 +52,7 @@ def chain_blocks(address):
 def _row(block, sums):
     sectors, systems, expected, stars, age_sum, luminosity = sums
     return (block.m, block.ring, block.wedge, block.slab, int(sectors), int(systems), float(expected), int(stars),
-            float(age_sum), float(luminosity))
+            float(age_sum), float(luminosity), DRILL_STEP)
 
 
 def clear(conn):
