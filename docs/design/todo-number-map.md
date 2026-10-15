@@ -538,7 +538,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | open |
 | DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | open |
 | DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | done, PR #1586 |
-| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | open |
+| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | done, PR #1590 |
 | DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | done, PR #1581 |
 | DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail | none | done, PR #1584 |
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | done, PR #1584 |
