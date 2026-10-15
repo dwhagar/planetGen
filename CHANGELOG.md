@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1221] - 2026-10-15
+
+### Changed
+
+- TEST.151 retired (merged in #1484: `scripts/test.py --resume`).
+
+TODO items resolved: TEST.151 / Added: none
+
 ## [8.0.1220] - 2026-10-15
 
 ### Added
