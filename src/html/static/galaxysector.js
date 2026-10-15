@@ -299,7 +299,7 @@ export function createSectorStage(host) {
     badge.className = "sector-uncharted-badge";
     badge.setAttribute("role", "note");
     const count = data.stars.length + data.clouds.length;
-    badge.textContent = "Uncharted sector " + (data.designation || "") + ": not generated yet, "
+    badge.textContent = "Uncharted sector " + (data.designation || "") + ": not charted yet, "
       + count + (count === 1 ? " object" : " objects") + " placed";
     host.viewport.appendChild(badge);
     return badge;

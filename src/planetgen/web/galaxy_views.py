@@ -217,7 +217,7 @@ def galaxy():
         title=title,
         section="galaxy",
         breadcrumbs=breadcrumbs,
-        description="An interactive 3D map of every sector placed in this generated galaxy.",
+        description="An interactive 3D map of every sector placed in this charted galaxy.",
         **context,
     )
 

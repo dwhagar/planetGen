@@ -664,7 +664,7 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
     assert _crumbs(page)[-1].endswith("(uncharted)"), _crumbs(page)
     info = page.locator("#galaxymap3d-info")
     assert info.locator("h3").inner_text() == "Uncharted sector"
-    assert "Uncharted: not generated yet" in info.inner_text()
+    assert "Uncharted: not charted yet" in info.inner_text()
     assert _query(page) == OPEN_UNCHARTED[1:]
     page.wait_for_timeout(500)
     from planetgen.galaxy.geometry import sector_position_pc
@@ -1227,7 +1227,7 @@ CHOICE_SCAN = """() => {
         for (let i = 2; i < 22; i++) {
             canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: box.left + (i / 24) * box.width,
                 clientY: box.top + (j / 24) * box.height, bubbles: true, pointerType: "mouse"}));
-            if (!tip.hidden) seen.add(tip.textContent.replace(/ \\(nothing generated here to pick\\)$/, ""));
+            if (!tip.hidden) seen.add(tip.textContent.replace(/ \\(nothing charted here to pick\\)$/, ""));
         }
     }
     return Array.from(seen).sort();
@@ -1259,7 +1259,7 @@ def test_galaxy_map_hover_lights_every_choice_while_picking_a_course(page, map_s
         assert len(browsing) > 1 and picking == browsing, (query, len(picking), len(browsing))
     # An empty arc lights but a click there stays put.
     _open_galaxy(page, map_site, "?pick=to&from=system:701")
-    found = _hover_choice(page, r"nothing generated here to pick\)$")
+    found = _hover_choice(page, r"nothing charted here to pick\)$")
     assert found, "no empty arc to hover"
     before = (page.url, _crumbs(page))
     page.mouse.click(found[0], found[1])
@@ -1277,7 +1277,7 @@ def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines >= 0")
     empty = _hover_choice(page, r"(^|[ ,])0 (of .+ )?sectors charted$|uncharted$")
     assert empty, "no choice without generated sectors to hover"
-    assert "nothing generated here to pick" not in empty[2], empty
+    assert "nothing charted here to pick" not in empty[2], empty
     before = (page.url, _crumbs(page))
     page.mouse.click(empty[0], empty[1])
     _settle(page)
@@ -1295,7 +1295,7 @@ def test_galaxy_map_charted_only_works_while_picking_a_course(page, map_site):
     assert only.get_attribute("aria-pressed") == "true"
     only.click()
     assert only.get_attribute("aria-pressed") == "false"
-    found = _hover_choice(page, r"nothing generated here to pick\)$")
+    found = _hover_choice(page, r"nothing charted here to pick\)$")
     assert found, "no empty arc to hover"
     before = (page.url, _crumbs(page))
     page.mouse.click(found[0], found[1])

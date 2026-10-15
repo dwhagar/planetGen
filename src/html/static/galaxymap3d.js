@@ -252,11 +252,11 @@ function showCellInfo(cell) {
     fields.push(["Address", formatAddress(a.ring, a.layer, a.slot)]);
     fields.push(["Designation", sectorDesignation(a.ring, a.layer, a.slot)]);
     if (cell.filled != null) {
-      fields.push(["Generated", cell.filled > 0 ? "Yes" : "Not yet"]);
+      fields.push(["Charted", cell.filled > 0 ? "Yes" : "Not yet"]);
     }
     if (cell.uncharted) {
       // Opened in place with what the scatters left in it (MAP.162).
-      fields.unshift(["Status", "Uncharted: not generated yet, but scattered objects are placed here"]);
+      fields.unshift(["Status", "Uncharted: not charted yet, but scattered objects are placed here"]);
       fields.push(["Stars waiting", formatNumber(cell.uncharted.stars)]);
       fields.push(["Other objects", formatNumber(cell.uncharted.objects)]);
     }
@@ -273,7 +273,7 @@ function showCellInfo(cell) {
     var total = blockSectorCount(cell.ring, cell.seg, cell.slab, cell.m, cell.edgePc, cell.shape);
     fields.push(["Sectors", formatNumber(total)]);
     if (cell.filled != null) {
-      fields.push(["Generated", formatNumber(cell.filled) + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : "")]);
+      fields.push(["Charted", formatNumber(cell.filled) + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : "")]);
     }
   }
   if (cell.density != null) {
@@ -333,7 +333,7 @@ function showBlockInfo(info, edgePc) {
     fields.push(["Sectors", formatNumber(info.total)]);
   }
   if (info.generated != null) {
-    fields.push(["Generated", formatNumber(info.generated)
+    fields.push(["Charted", formatNumber(info.generated)
       + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : "")]);
   }
   var coords = cellCoordinates(b);
