@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1310] - 2026-10-15
+
+### Changed
+- **A test now fails when a relative link or anchor in the Markdown docs does not resolve** (DOC.29), and the testing and CI docs match the workflow (DOC.40). `test_docs_links.py` reads README.md, INSTALL.md and every `.md` under `docs/`; it found and I fixed 13 dead links (the code map of `docs/design/architecture.md` still named `src/stellarObjects/`, two pages linked a `.planetgen` file and a renamed heading). `docs/testing.md` and `docs/ci-runners.md` now describe the five CI test legs and their Redis containers, how to start Redis for a local run, and a full run of about 35 to 50 minutes; README and INSTALL point contributors to `scripts/test.py changed` and `full --check`. `docs/html-interface.md` says the site has no help page yet (DOC.6).
+
 ## [8.0.1309] - 2026-10-15
 
 ### Fixed
