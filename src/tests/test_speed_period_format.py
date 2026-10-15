@@ -4,8 +4,8 @@
 The speed ladder (UX.13) and the time-period ladder (UX.14):
 `planetgen.util.format.format_speed_kms` shows a speed in one of km/h <
 km/s < Mm/s < c, and `format_duration_seconds` / `format_period_years` a
-period in the largest of µs < ms < s < minutes < hours < days < years < ky
-< My < Gy it is at least 1 of. The browser copy (`html/static/unitladder.js`) is checked against the same
+period in the largest of µs < ms < s < minutes < hours < days < years < kyr
+< Myr < Gyr it is at least 1 of. The browser copy (`html/static/unitladder.js`) is checked against the same
 tables when Node is installed.
 """
 
@@ -64,10 +64,10 @@ PERIOD_CASES = [
     (_YEAR, "1 year"),
     (1.88 * _YEAR, "1.88 years"),
     (999 * _YEAR, "999 years"),
-    (1e3 * _YEAR, "1 ky"),
-    (2.36e8 * _YEAR, "236 My"),
-    (13.8e9 * _YEAR, "13.8 Gy"),
-    (1.2e13 * _YEAR, "12,000 Gy"),
+    (1e3 * _YEAR, "1 kyr"),
+    (2.36e8 * _YEAR, "236 Myr"),
+    (13.8e9 * _YEAR, "13.8 Gyr"),
+    (1.2e13 * _YEAR, "12,000 Gyr"),
 ]
 
 
@@ -104,7 +104,7 @@ def test_singular_only_when_exactly_one():
 
 
 def test_galactic_orbit_text_uses_both_ladders():
-    assert format_galactic_orbit(205.7, 0.23626) == "206 km/s (236 My per orbit)"
+    assert format_galactic_orbit(205.7, 0.23626) == "206 km/s (236 Myr per orbit)"
 
 
 def test_year_is_julian():

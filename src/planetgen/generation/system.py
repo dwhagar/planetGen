@@ -1013,7 +1013,7 @@ class StarSystem:
             kept.append(body)
         if len(kept) != len(planets):
             log.debug(f"Removed {len(planets) - len(kept)} bodies ruled out by the star's age or history "
-                      f"(age {star.age:.3g} Gy, engulfed inside {engulfed_au:.3g} AU)")
+                      f"(age {star.age:.3g} Gyr, engulfed inside {engulfed_au:.3g} AU)")
         planets[:] = kept
 
     def _trim_to_orbit_ceiling(self, planets, orbit_ceiling_au):

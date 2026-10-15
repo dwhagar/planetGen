@@ -383,7 +383,7 @@ def test_planet_table_properties():
                     planet_class="J", moon_count=0)
     props = planet.get_table_properties()
     assert set(props) == {"class", "distance", "period", "speed", "radius", "gravity"}
-    assert props["class"] == "J" and props["gravity"].endswith(" g")
+    assert props["class"] == "J" and props["gravity"].endswith(" g)") and " m/s² (" in props["gravity"]
     assert_all_strings(props)
     planet.reflex_offset_y = 1e-6
     assert "pulled by its own moons" in planet.get_table_properties()["moon_wobble"]

@@ -28,7 +28,7 @@ row's detail instead.
 
 from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
-from planetgen.web.lib.fmt import esc, format_distance_km, format_number, format_speed_kms
+from planetgen.web.lib.fmt import esc, format_distance_km, format_gravity_g_short, format_number, format_speed_kms
 from planetgen.web.lib.mdrender import markdown_to_html
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -306,7 +306,7 @@ def _habitability_detail(body):
 
 
 def _gravity_text(gravity_g):
-    return f"{round(gravity_g, 3)} g" if gravity_g is not None else ""
+    return format_gravity_g_short(gravity_g) if gravity_g is not None else ""
 
 
 def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None, admin_rows=None):

@@ -189,7 +189,7 @@ export const COLOR_MODES = {
     text: function (v) { return formatLegend(Math.expm1(v)); },
   },
   age: {
-    label: "Mean age", range: "age", unit: "Gy",
+    label: "Mean age", range: "age", unit: "Gyr",
     value: function (stats) { return stats.mean_age_gy || 0; },
     text: function (v) { return formatLegend(v); },
   },

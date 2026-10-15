@@ -135,7 +135,7 @@ def _uncharted_row(star, can_generate):
         {"text": f"{format_number(star['luminosity_sol'])} L\u2609"},
         {"text": f"{star['star_type']} ({_POPULATION_LABELS.get(star['population'], star['population'])})"},
         {"text": f"{format_number(round(star['temperature_k']))} K"},
-        {"text": f"{star['age_gy']:.2f} Gy"},
+        {"text": f"{star['age_gy']:.2f} Gyr"},
         {"text": f"{star['designation']} (ring {star['ring_index']}, layer {star['layer_index']}, "
                  f"slot {star['ring_slot_index']})",
          "href": page_url("galaxy", sector=star["designation"], open="1")},
