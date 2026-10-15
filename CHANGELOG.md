@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1123] - 2026-10-15
+
+### Changed
+- Every Redis connection (the web pages, the API's queued jobs, the tile locks, the login lockout store and the work queue) now comes from one client module with a connect and read timeout, a retry after a dropped connection, a health check and keepalive, so a hung Redis fails a call instead of hanging the web thread that made it.
+- The Generate page's jobs, the API's queued jobs and the scatter's progress messages travel through Redis as JSON instead of pickle. A run's own task queue still uses pickle until the work queue rebuild. `planetgen.cli.worker` now serves the web queue by default and refuses to mix the two kinds of queue in one worker.
+
 ## [8.0.1122] - 2026-10-15
 
 ### Added
