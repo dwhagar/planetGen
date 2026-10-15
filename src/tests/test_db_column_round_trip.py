@@ -77,6 +77,10 @@ NULL_IN_THIS_GALAXY = {
         "induced_moment_a_m2", "flux_variation", "phi4_water", "tier_water", "phi4_suitability",
         "tier_suitability")},
     **{("nebulae", column): "not generated yet" for column in ("age_myr", "q_total", "hosts")},
+    # v88 (DB.27): the tech level the POP.9 pass draws.
+    **{("species", column): "not generated yet" for column in (
+        "energy_index", "materials_index", "information_index", "medical_index", "propulsion_index",
+        "defense_index", "tech_level", "tech_source")},
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -110,6 +114,10 @@ NEVER_READ = {
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
+    # v88 (DB.27): the tech level the POP.9 pass draws.
+    **{("species", column): "read once POP.9 lands" for column in (
+        "energy_index", "materials_index", "information_index", "medical_index", "propulsion_index",
+        "defense_index", "tech_level", "tech_source")},
     # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
     ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,

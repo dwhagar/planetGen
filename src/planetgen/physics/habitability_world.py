@@ -324,7 +324,7 @@ def harshness(values):
     is a body or a `planets`/`moons` row, read by column name.
     """
     get = values.get if hasattr(values, "get") else (lambda name: getattr(values, name, None))
-    scores = [get(f"phi4_{domain}") for domain in DOMAINS]
+    scores = [get(f"phi4_{STORED_AS[domain]}") for domain in DOMAINS]
     if any(score is None for score in scores):
         return DEFAULT_HARSHNESS
     return round(1.0 - min(scores), 4)

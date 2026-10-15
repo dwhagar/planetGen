@@ -288,5 +288,5 @@ def test_harshness_follows_the_worst_domain_and_defaults_to_the_middle():
     assert hw.harshness({}) == hw.DEFAULT_HARSHNESS == 0.5
     gas_giant = hw.compute(_earth(body_type="g"))
     assert hw.harshness(gas_giant) == 0.5
-    assert hw.harshness(types.SimpleNamespace(phi4_pressure=1.0, phi4_temperature=0.8, phi4_chemistry=1.0,
+    assert hw.harshness(types.SimpleNamespace(phi4_pressure=1.0, phi4_temperature=0.8, phi4_air=1.0,
                                               phi4_radiation=0.9)) == pytest.approx(0.2)
