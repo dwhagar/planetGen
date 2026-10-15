@@ -57,6 +57,7 @@ const {
   sectorAddressAt,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
+const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatLuminositySol, formatMassSolar, LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
@@ -2901,6 +2902,7 @@ function initGalaxyMap3d(canvasEl, data) {
     el.setAttribute("aria-label", legend.label + ": " + legend.lowText + " (dark blue) to " + legend.highText + " (yellow), " + legend.unit);
   }
 
+  var navPad = null;
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
@@ -2948,6 +2950,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       camera.updateMatrixWorld();
       updateScaleBar();
+      if (navPad) navPad.sync();
     },
     fetchStage: function (query) {
       return fetch((data.stagePath || "/galaxy/stage") + query, { headers: { Accept: "application/json" } })
@@ -3047,6 +3050,8 @@ function initGalaxyMap3d(canvasEl, data) {
     },
   });
   rebuildKinds();
+  // MAP.200: the on-map zoom slider and direction star.
+  if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-centre"));
 
   // --- Pointer and keys ------------------------------------------------------
   //

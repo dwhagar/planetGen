@@ -804,6 +804,44 @@ def test_wheel_zoom_and_turning_share_one_centre_and_a_shift_click_chooses_it(pa
     assert _camera(page)["target"] == pytest.approx(moved["target"], abs=1e-6)
 
 
+def test_on_map_zoom_slider_and_direction_star(page, map_site):
+    """MAP.200: a zoom slider and a direction star on the map. The slider and
+    the wheel move together; the arrows move the center (the readout and the
+    cross show where it is), Alt and the arrow keys do too, and the middle
+    button puts the center back at the middle of the region viewed."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(500)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    start = _camera(page)
+    slider = page.locator("#galaxymap3d-zoom-slider")
+    assert slider.is_visible() and page.locator(".starmap-dirstar button").count() == 5
+    value = int(slider.input_value())
+    slider.fill(str(min(1000, value + 300)))
+    zoomed = _camera(page)
+    assert zoomed["zoom"] < start["zoom"], "the slider zooms in"
+    assert zoomed["target"] == pytest.approx(start["target"], abs=1e-6), "zooming keeps the center"
+    page.locator(GALAXY_CANVAS).hover()
+    page.mouse.wheel(0, 200)
+    page.wait_for_timeout(300)
+    assert int(slider.input_value()) < value + 300, "the wheel moves the slider"
+    for name in ("right", "up"):
+        before = _camera(page)
+        page.click(f'.starmap-dir-{name}')
+        moved = _camera(page)
+        assert moved["target"] != before["target"], f"the {name} arrow moves the center"
+        assert abs(moved["tilt"] - before["tilt"]) < 1e-6
+    assert page.locator(".starmap-centre-readout").is_visible()
+    assert "is-moving" in page.locator("#galaxymap3d-centre").get_attribute("class")
+    page.locator(GALAXY_CANVAS).focus()
+    before = _camera(page)
+    page.keyboard.press("Alt+ArrowLeft")
+    assert _camera(page)["target"] != before["target"], "Alt and an arrow move the center"
+    page.click(".starmap-dir-reset")
+    reset = _camera(page)
+    assert reset["target"] == pytest.approx(start["target"], abs=1e-6), "the middle button returns to the region's middle"
+
+
 def test_galaxy_map_back_forward_and_url_state(page, map_site):
     _open_galaxy(page, map_site)
     steps = _walk_down(page, stages=3)

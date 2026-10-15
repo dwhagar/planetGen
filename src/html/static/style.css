@@ -830,6 +830,79 @@ tbody tr:last-child td {
   filter: drop-shadow(0 0 1px var(--bg-subtle));
 }
 
+.starmap-centre.is-moving {
+  opacity: 1;
+  transform: scale(1.5);
+}
+
+/* MAP.200: the zoom slider and the direction star, on the map's lower right. */
+.starmap-navpad {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  padding: 0.3rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  opacity: 0.92;
+  /* Only the controls themselves take the pointer, so the map under the
+     gaps still hovers, picks and zooms. */
+  pointer-events: none;
+}
+
+.starmap-navpad > * {
+  pointer-events: auto;
+}
+
+.starmap-navpad.is-disabled {
+  opacity: 0.4;
+}
+
+.starmap-zoom-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 1.4rem;
+  height: 6.5rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.starmap-dirstar {
+  display: grid;
+  grid-template: ". up ." "left mid right" ". down ." / 1.7rem 1.7rem 1.7rem;
+  grid-auto-rows: 1.7rem;
+  gap: 2px;
+}
+
+.starmap-dir {
+  padding: 0;
+  border: 1px solid var(--border, currentColor);
+  border-radius: var(--radius);
+  background: var(--bg, transparent);
+  color: var(--accent);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.starmap-dir:disabled {
+  cursor: default;
+}
+
+.starmap-centre-readout {
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  transform: translateX(-50%);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
 .starmap-canvas {
   display: block;
   width: 100%;

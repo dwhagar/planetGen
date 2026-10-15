@@ -63,6 +63,7 @@ const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
+const KEY_MOVE = 0.15; // MAP.200: a step of the center by key, a share of the map's width
 const REST_BLOCK_EDGES = 0.1; // MAP.202: the share of the lines between blocks drawn at rest
 const HOVER_SHADE_OPACITY = 0.16; // MAP.198: the shade over the block a click would open
 // A new stage's blocks fade in over the last part of a flight.
@@ -1895,6 +1896,38 @@ export function createStageView(host) {
     applyView();
   }
 
+  // MAP.200: the zoom as a share of the policy's log range, 0 at the
+  // farthest the view goes and 1 at the nearest.
+  function zoomShare() {
+    const policy = zoomPolicyFor(resolved);
+    if (!view || !policy || !(policy.nearest > 0) || policy.farthest <= policy.nearest) return 0;
+    const share = (Math.log(policy.farthest) - Math.log(view.zoom)) / (Math.log(policy.farthest) - Math.log(policy.nearest));
+    return Math.max(0, Math.min(1, share));
+  }
+
+  function setZoomShare(share) {
+    const policy = zoomPolicyFor(resolved);
+    if (!view || animation || !MC.canZoom(policy) || !(policy.nearest > 0)) return;
+    const s = Math.max(0, Math.min(1, share));
+    view.zoom = MC.clampDistance(policy, Math.exp(Math.log(policy.farthest) + s * (Math.log(policy.nearest) - Math.log(policy.farthest))), 1);
+    reframe();
+    applyView();
+  }
+
+  // Moves the center `dx` across and `dy` up by shares of the map's width.
+  function moveCentre(dx, dy) {
+    if (!view || animation || !resolved || !isFree(resolved)) return;
+    const px = canvasEl.clientWidth || 1;
+    drag(-dx * px, dy * px, true);
+  }
+
+  // The center back to the middle of the region viewed, keeping the angle
+  // and the zoom.
+  function resetCentre() {
+    if (!view || animation || !resolved || !view.fit || !isFree(resolved)) return;
+    centreOn(view.fit.target.slice());
+  }
+
   // The wheel zooms within the view's zoom policy (a locked view leaves
   // it to scroll the page). True when it was used.
   function onWheel(event) {
@@ -2114,6 +2147,12 @@ export function createStageView(host) {
     }
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Enter"].indexOf(key) < 0) return;
     event.preventDefault();
+    // Alt and an arrow move the center (MAP.200).
+    if (event.altKey && key !== "Enter") {
+      const steps = { ArrowLeft: [-KEY_MOVE, 0], ArrowRight: [KEY_MOVE, 0], ArrowUp: [0, KEY_MOVE], ArrowDown: [0, -KEY_MOVE] };
+      moveCentre(steps[key][0], steps[key][1]);
+      return;
+    }
     // Shift and an arrow turn the view about the middle of what it shows
     // (MAP.53).
     if (event.shiftKey && key !== "Enter") {
@@ -2543,6 +2582,17 @@ export function createStageView(host) {
     anchorUnder: anchorUnder,
     zoomIn: function () { zoomBy(1 / BUTTON_ZOOM); },
     zoomOut: function () { zoomBy(BUTTON_ZOOM); },
+    // MAP.200: the on-map controls. The zoom as a share (0 farthest, 1
+    // nearest) along the policy's range, on a log scale; a step of the
+    // center in the screen's plane (`dx`, `dy` in shares of the map's
+    // width, +x right, +y up); the center back to the middle of the region
+    // viewed; and where the center is (world parsecs).
+    zoomShare: zoomShare,
+    setZoomShare: setZoomShare,
+    moveCentre: moveCentre,
+    resetCentre: resetCentre,
+    centre: function () { return view ? view.target.slice() : null; },
+    controlsEnabled: function () { return !!(view && !animation && MC.canZoom(zoomPolicyFor(resolved)) && isFree(resolved)); },
     kinds: sectorStage.kinds,
     kindHidden: sectorStage.kindHidden,
     setKindHidden: setKindHidden,
