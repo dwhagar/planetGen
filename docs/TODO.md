@@ -5501,44 +5501,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   cli/generate.py, generation/run_*.py). Done: each package docstring
   lists its modules and every queryDb mention names the real module; no
   behaviour changes.
+  Plan (Quality): files the spherical switch does not touch go first (the
+  queryDb rename and package docstrings); api/routes.py, apiclient.py,
+  store.py and the rest of the switch files follow after it merges.
+  This item stays open until then.
   Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.22 Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  34 to 40 and 51. orbital-updates.md says nothing implements
-  next_update_due (GEN.106 to GEN.108 built it), has a duplicated
-  heading and points to a file that is not in the repo;
-  slow-reads-and-timeouts.md says nothing is built (PERF.68, 69, 70, 74,
-  76, 77, UX.96 and UX.97 are done); login-brute-force-protection.md
-  lacks the 503 Busy page (ADM.53); ops-scheduling-and-rotation.md is
-  behind on OPS.8 (built), OPS.18, ADM.19 and ADM.20 (dropped) and
-  OPS.39 (Windows removed); test-suite-rebuild.md says stage 1 is not
-  built (stages 1 and 2 merged, #1280 and #1323);
-  db-check-and-parity-repair.md is headed research although DB.8 is
-  built; population-and-politics.md says the web pages are not built
-  (POP.5 is done); course-routing.md's checked-at line needs
-  re-verifying. Done: each note says what is built.
-  Prerequisites: none. Related: TEST.139.
-
-- [ ] **DOC.23 Update the nebula, object ID and map-data-layer notes to what merged**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  24 to 28 and 32. nebula-map-visibility.md and
-  nebula-density-vs-reality.md still say nothing is built although DB.24
-  built nebula_field (classes M and N only, no object id until a sector
-  stores the cloud) and GEN.205 built --redo-nebula-field; the
-  nebula_field.py docstring does not mention the table;
-  object-id-options.md still opens research only (decided and built:
-  GEN.170 to 172, GEN.176, DB.20, API.23); object-ids.md says GEN.172,
-  GEN.176 and API.23 follow (all done); galaxy-drilldown-navigation.md
-  lists MAP.56 as planned (done, #408). The top banner of the drilldown
-  note is blocked on MAP.151d. Done: each note says what is built.
-  Prerequisites: none. Related: MAP.151 (done, PR #1539).
 
 - [ ] **DOC.24 Bring Python 3.12, numba and astropy into the research notes and three source comments**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5571,6 +5538,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   note is listed in architecture.md or any index, and three imported
   notes have no inbound link. Done: the flows match the code and
   docs/design/README.md lists every note with its status line.
+  Progress (PR #1598, Quality): the design-notes index at docs/design/README.md
+  is done. The architecture.md flows wait for the spherical switch,
+  because they name the ring, layer and slot modules.
   Prerequisites: none.
 
 - [ ] **DOC.28 Rewrite the code map in docs/design/architecture.md for the planetgen packages**

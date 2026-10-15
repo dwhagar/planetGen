@@ -521,8 +521,8 @@ Parents marked "new parent" had no old number of their own.
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | open |
 | DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | open |
-| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | open |
-| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | open |
+| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
+| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | done, PR #1599 |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
 | DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | done, PR #1594 |
 | DOC.26 | Give every design note a status line and refresh the stale ones | none | done, PR #1596 |
