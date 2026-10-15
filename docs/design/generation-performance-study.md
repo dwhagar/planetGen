@@ -10,7 +10,7 @@ does not repeat them.
 
 Informs: PERF.31, PERF.18, PERF.39, PERF.34, GEN.100, GEN.72, GEN.64, GEN.69, GEN.126
 
-Status: research, 2026-10-09; no generator code was changed. Everything marked "recommend" is a proposal for Boss.
+Status: research, 2026-10-09; the study itself changed no generator code. Its ranked recommendations are built as PERF.42 (#841), PERF.44 (#863), PERF.45 (#863), PERF.43 (#861), PERF.46 (#1186), PERF.49 (#870), PERF.73 (#1209), PERF.81 (#1236) and PERF.87 (#1300). The Python minimum is now 3.12 (OPS.42), not the 3.9 named in the text.
 
 Evidence tags: [C] measured or computed in this research (scripts under
 `/mnt/project-files/research/scripts/genperf/`, outputs under

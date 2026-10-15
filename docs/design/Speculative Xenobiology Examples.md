@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [habitability-index](habitability-index.md).
+
 This report details the notable biological extremes, physiological oddities, and unique evolutionary adaptations of terrestrial lifeforms, significantly expanded to detail the biological outliers of the *Star Trek* universe alongside established *Star Wars* and *Stargate* edge cases. By analyzing these fictional adaptations through the frameworks of speculative biology, xenobiology, and comparative biochemistry, these speculative organisms bridge the gap between science fiction worldbuilding and contemporary astrobiological modeling (Petkowski et al., 2020; Schmidt, 2010). Space-dwelling organisms and void-borne entities have been excluded to focus strictly on species that rely on planetary biospheres.
 
 ### Extreme Environmental Tolerances

@@ -1,5 +1,7 @@
 # Orbital updates, positions and spin
 
+**Status (2026-10-15):** partly built. Done: the per-object clocks `epoch_unix` and `next_update_due` (GEN.106, #802), GEN.107 (#817), GEN.108 (#815) and starting velocities (GEN.121, #735). Open: the umbrella GEN.105, the influence set and collisions (GEN.109, GEN.110) and the galactic potential (GEN.115).
+
 How planetGen will move things: one position object for every body, a
 positional update that only touches what has visibly moved, gravity from
 nearby masses, collisions, spin, and the limits where the math stops

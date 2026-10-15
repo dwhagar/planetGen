@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [anomalies](anomalies.md).
+
 # Sector Baseline and Volume Calibration
 
 According to canonical lore and official reference guides, a standard Federation sector is defined as a volume of space approximately **20 light-years across**. Modeled as a standard cubic spatial grid block, the baseline volume ($V_{\text{sector}}$) of a single sector is:

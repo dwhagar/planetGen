@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [habitability-index](habitability-index.md), [units-and-number-formatting](units-and-number-formatting.md).
+
 Comprehensive Analysis of Planetary Habitability, Extremophilic Adaptation, and Speculative Xenobiology
 =======================================================================================================
 

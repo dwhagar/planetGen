@@ -1,5 +1,7 @@
 # Unique IDs for every object: options, measurements, recommendation
 
+**Status (2026-10-15):** decided and built. Section 0 is Boss's decision (80 bits, 20 hex digits, `BINARY(10)`, the same length for every object); sections 1 to 6 are the options weighed and are superseded wherever section 0 differs. Built: GEN.170 (#1017), GEN.171 and DB.20 (#1055), GEN.172 and GEN.176 (#1075) and API.23 (#1133).
+
 Research only. No code, TODO.md or PR was changed. Boss decides before anything is filed.
 Measured on the build box (4 cores, Python 3.13, MariaDB 10.11.14, InnoDB buffer pool 256 MB); scripts and raw results are in `bench/` beside this file. Code read: `main` at 4113872 (after PERF.49).
 

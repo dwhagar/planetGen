@@ -1,5 +1,7 @@
 # Galaxy Map wire format: what the browser downloads and what could be smaller (MAP.147)
 
+**Status (2026-10-15):** built: MAP.157 (#1112), MAP.158 (#1123) and MAP.159 (#1305); section 0 records what differs from the sketch. Open: leaving parent stars out of child tiles (MAP.195).
+
 Research only, 2026-10-09 (Research Lane 3). No code, TODO.md or PR changes. Boss decides.
 Scripts and raw numbers: `research/map-wire-format/bench/`.
 

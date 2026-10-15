@@ -1,5 +1,7 @@
 # Gravity map: the field of a sector as a heat map
 
+**Status (2026-10-15):** decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the feature of the 9.0 headline.
+
 Boss (2026-10-10 20:57Z): the orbits are worked out from point-mass
 vectors, so show "a gravitational map of a sector, probably using colors
 and calculating it per zone ... the gravitational gradients of the vector

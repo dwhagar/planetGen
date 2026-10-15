@@ -1,5 +1,7 @@
 # Fly-through Galaxy Map: view distance, see-through near field, free camera (MAP.146 rebuilt)
 
+**Status (2026-10-15):** decided; partly built. Done: MAP.148 (#1160), MAP.149 (#1141), MAP.150 (#1382), MAP.153 (#998), MAP.154 (#1303), MAP.155 (#1253) and MAP.188 (#1289). Open: MAP.152. Section 2, "What the map does today", describes the map before MAP.148 and MAP.149.
+
 Research and design, 2026-10-09, from Boss's message of 22:56Z. No code changes. The rewritten MAP.146 text and the proposed split are in sections 7 and 8, for the TODO thread to file.
 
 Boss's goal: one continuous 3D world from the whole galaxy to a star system. Scroll wheel zooms, double-click flies to a clickable thing, the observer can be inside a block or sector and sees its contents without looking around what is in the way, the region being looked at is rendered well and the surroundings are visible but quiet, and only stars an observer could see are drawn.

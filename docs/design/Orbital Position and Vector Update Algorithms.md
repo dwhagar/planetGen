@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [course-routing](course-routing.md), [fill-order-curves-and-core](fill-order-curves-and-core.md), [orbital-solvers-and-integrators](orbital-solvers-and-integrators.md), [orbital-updates](orbital-updates.md).
+
 # Gravitational Vector Algorithm
 
 To determine the spatial resolution ($\Delta r_{\text{sector}}$) and required grid subdivision depth for a 10 light-year cubic sector, use an algorithm that converts your frame's movement threshold into an acceleration limit ($a_{\text{min}}$) and balances it against both **background sector density** and **local mass clumping**.

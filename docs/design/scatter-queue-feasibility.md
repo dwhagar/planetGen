@@ -1,5 +1,7 @@
 # Scatter "sector queue" feasibility study
 
+**Status (2026-10-15):** research; its recommendations are built as PERF.58 (#1108, which replaced PERF.57), PERF.60 (#1106) and PERF.63 (#1174). PERF.61's prototype measured no gain and was not merged; PERF.59 was closed as superseded. Lines saying "not on main" or suggesting items are history. The queue itself is being redone under PERF.86 (open); this note does not cover it.
+
 Question (Boss, 2026-10-10): would a shuffled list of every available sector, popped one object at a time, make scattering faster, and what would it change?
 
 **Short answer.** The literal list is slower, by roughly two orders of magnitude. The idea behind it (decide how many objects there are, then pick where, instead of visiting every ring) is right, and a prototype built on it ran 35 times faster per star pass at default scale with a spatially identical result. It does not need a list, and it does not need one-object-per-sector.
