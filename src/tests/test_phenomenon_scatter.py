@@ -757,6 +757,27 @@ def test_the_scatter_indexes_come_off_while_it_writes_and_go_back_once(mysql_con
         conn.close()
 
 
+def test_the_indexes_are_built_one_at_a_time_and_each_one_is_reported(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        store.drop_phenomenon_scatter_indexes(conn)
+        assert [name for name, _columns in store.missing_phenomenon_scatter_indexes(conn)] == list(
+            store.PHENOMENON_SCATTER_INDEXES)
+        built = []
+        store.add_phenomenon_scatter_indexes(
+            conn, on_index=lambda name: built.append((name, set(store.PHENOMENON_SCATTER_INDEXES) & _index_names(conn))))
+        # After each report that index exists, and the ones still to come do not yet.
+        assert [name for name, _present in built] == list(store.PHENOMENON_SCATTER_INDEXES)
+        for position, (name, present) in enumerate(built):
+            assert present == set(list(store.PHENOMENON_SCATTER_INDEXES)[:position + 1])
+        assert not store.missing_phenomenon_scatter_indexes(conn)
+        again = []
+        store.add_phenomenon_scatter_indexes(conn, on_index=again.append)
+        assert again == []
+    finally:
+        conn.close()
+
+
 def test_a_finished_scatter_leaves_its_indexes_in_place(mysql_config):
     _seed_galaxy(mysql_config)
     run_plan.scatter_phenomena(_plan_args(mysql_config))
