@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1185] - 2026-10-15
+
+### Changed
+
+- DB.27 retired (merged in #1446, schema v88); the DB.26 harshness regression it fixed is noted in the PR.
+
+TODO items resolved: DB.27 / Added: none
+
 ## [8.0.1184] - 2026-10-15
 
 ### Added
