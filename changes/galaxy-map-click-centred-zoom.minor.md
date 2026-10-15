@@ -1,2 +1,0 @@
-### Changed
-- **The Galaxy Map zooms where you click (MAP.150, MAP.151d).** The whole galaxy is now a plain disk of blocks; a click opens a window of nine blocks round the cell under the pointer, one size down (blocks of 243 sectors, 27, 3, then single sectors), and Up zooms back out one step at a time to the galaxy. The arc, slab and segment picks, the slab buttons with their lines and the 3 by 3 by 3 view are gone, and `?win=` (with `&g=` for the width) is the address of every step. Older `at=` and `p=` links open the whole galaxy.
