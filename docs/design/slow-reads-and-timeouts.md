@@ -4,7 +4,7 @@ Boss (2026-10-10 20:50Z): "is there a TODO item to maybe batch or give partial r
 
 Informs: PERF.68 (Galaxy Map tile queries), PERF.69 (Planets, Moons and Phenomena counts), PERF.70 (Systems sort by Sector or Octant), and the new items in section 7. Builds on PERF.19 and PERF.24 (the queue), PERF.34 and PERF.38 (tile cache under a fill), PERF.36 and PERF.64 (candidate-cell guard, stored counts, the busy page).
 
-Status: research, 2026-10-10; nothing here is built. Evidence tags: [S] seen in the repo, [C] measured or computed in this research, [R] recalled and not confirmed (listed at the end).
+Status: mostly built (2026-10-15). Done: the research (PERF.71, #1175), the Galaxy Map tile queries (PERF.68, #1193), stored counts for Planets, Moons and Phenomena (PERF.69, #1206), the Systems sort (PERF.70, #1193, built as a group-by-group read with no stored sector-name column, so section 7 item 3 differs), PERF.74 (#1193), tile time budgets (PERF.76, #1199), capped counts (PERF.77, #1199), the table busy and retry (UX.96, #1267), the search page's panels on their own time limits (UX.97, #1315), the warm worker (PERF.78, #1506) and the query-budget test (TEST.133, #1405). Open: keyset pages for the other tables (PERF.75). Section 1 below is how things stood on 2026-10-10: stored counts now cover Planets, Moons and Phenomena, and `web/tables.py` no longer turns a 504 into an unretried 502. Evidence tags: [S] seen in the repo, [C] measured or computed in this research, [R] recalled and not confirmed (listed at the end).
 
 ## Summary
 

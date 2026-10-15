@@ -4,7 +4,7 @@ How a galaxy database is checked for damage (DB.8), how a damaged sector is rebu
 
 Informs: DB.8, DB.9, DB.10, DB.11 (Alembic parts of DB.7 and NAV.10), DB.13, DB.15
 
-Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
+Status: partly built (2026-10-15). Built: the database check, `planetgen check-db` (DB.8, #893, `db/check.py`), Alembic (DB.11, #751) and the migration progress bar (DB.15, #924). Open: parity repair (DB.9). Dropped: DB.10 (Boss, 2026-10-09 20:42Z). Daily checks "planned by OPS.16" are still planned (OPS.16 is open). Decisions marked "Boss" are his; everything else is a recommendation
 
 **Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The `pyeclib` exclusion ("fails the macOS and Python 3.9 requirement") rests on a floor that no longer exists; the in-tree codec stays chosen, but the reason should be re-checked against 3.12.
 

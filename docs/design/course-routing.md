@@ -15,7 +15,7 @@ The sector grid the queries use and the order sectors are generated in are in
 
 Informs: NAV.9, NAV.10, NAV.11, NAV.12, NAV.34 (done), NAV.38 (done), NAV.36, NAV.39, NAV.41, NAV.42, NAV.43, NAV.44, NAV.45, NAV.47, NAV.48, UX.35 (also NAV.25 and NAV.6, which read NAV.10's corridor query)
 
-Status: section 1 and the NAV.34, NAV.38 and TEST.79 pieces are built (checked against main at 27220d8, 2026-10-09). Everything else is planned and not built. Sections 3 to 9 are research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation.
+Status: mostly built (checked against `todo-number-map.md` on 2026-10-15; the last code check was main at 27220d8, 2026-10-09). Done: NAV.9 (#1139), NAV.10 (#814, the corridor query), NAV.11 (#1099), NAV.12 (#841), NAV.34 and TEST.79 (#427), NAV.38 (#357), NAV.41 (#457), NAV.42 (#1153), NAV.43 and NAV.44 (#804), NAV.47 (#1389), NAV.48 (#1195) and UX.35 (#879). Open: NAV.36, NAV.39, NAV.45, NAV.25 and NAV.6. Sections 3 to 9 are research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation.
 
 Evidence tags: [S] seen in a search result or file, [C] computed or measured in the research (single-thread CPU seconds, the MariaDB server's own CPU and index entries read, because the machine was shared and wall-clock times were unusable), [R] recalled and unconfirmed. The research environment could only read search-result text, not papers or vendor manuals, and its search budget ran out after one query, so every outside-world fact is [R] unless marked.
 
