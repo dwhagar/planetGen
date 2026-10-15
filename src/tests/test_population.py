@@ -13,6 +13,8 @@ from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.population import model as population
+from planetgen.population import tech
+from planetgen.util import draw
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -473,3 +475,96 @@ def test_the_pass_announces_each_step_for_its_bar(mysql_config, galaxy):
         assert len(only) == population.pass_stage_count(True) == 1
     finally:
         conn.close()
+
+
+def test_the_pass_draws_tech_levels_once_and_leaves_hand_edits_alone(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        population.run_pass(conn)
+        rows = conn.execute("SELECT * FROM species ORDER BY id").fetchall()
+        assert rows
+        for row in rows:
+            indices = {domain: row[f"{domain}_index"] for domain in tech.DOMAINS}
+            assert all(0 <= value <= tech.MAX_INDEX for value in indices.values())
+            assert float(row["tech_level"]) == tech.tech_level(indices)
+            assert row["tech_source"] == "generated"
+            # The draw reads the stream of the homeworld, so it can be redone exactly.
+            assert indices == tech.draw_indices(row["civilization_age_years"],
+                                                draw.Stream(f"tech:{row['homeworld_planet_id']}"))
+        before = {row["id"]: row["tech_level"] for row in rows}
+
+        # A second pass draws nothing new and changes nothing.
+        population.run_pass(conn)
+        assert {row["id"]: row["tech_level"] for row in conn.execute("SELECT * FROM species").fetchall()} == before
+
+        first, second = rows[0]["id"], rows[1]["id"]
+        with conn:
+            # A species from before the columns (no indices) is filled; an edited one is not.
+            conn.execute("UPDATE species SET energy_index = NULL, tech_level = NULL, tech_source = NULL "
+                         "WHERE id = ?", (first,))
+            conn.execute("UPDATE species SET energy_index = NULL, tech_level = NULL, tech_source = 'admin' "
+                         "WHERE id = ?", (second,))
+        population.run_pass(conn)
+        filled = conn.execute("SELECT * FROM species WHERE id = ?", (first,)).fetchone()
+        assert filled["energy_index"] is not None and filled["tech_source"] == "generated"
+        assert float(filled["tech_level"]) == float(before[first])
+        untouched = conn.execute("SELECT * FROM species WHERE id = ?", (second,)).fetchone()
+        assert untouched["energy_index"] is None and untouched["tech_level"] is None
+
+        detail = population.species_detail(conn, first)
+        assert detail["tech_band"] == tech.band_name(detail["tech_level"])
+        indices = {domain: detail[f"{domain}_index"] for domain in tech.DOMAINS}
+        assert detail["limiting_domain"] == tech.limiting_domain(indices)
+        assert detail["lopsided"] == tech.is_lopsided(indices)
+        assert population.species_detail(conn, second)["tech_band"] is None
+    finally:
+        conn.close()
+
+
+def test_species_search_by_tech_level_and_index(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        population.run_pass(conn)
+        with conn:
+            ids = [row["id"] for row in conn.execute("SELECT id FROM species ORDER BY id").fetchall()]
+            for level, species_id in zip((1.0, 3.0, 5.0), ids):
+                conn.execute("UPDATE species SET tech_level = ?, energy_index = ? WHERE id = ?",
+                             (level, int(level), species_id))
+        everything = population.list_species(conn, sort="tech")
+        levels = [row["tech_level"] for row in everything if row["tech_level"] is not None]
+        assert levels == sorted(levels)
+        assert [row["tech_level"] for row in population.list_species(conn, sort="tech", descending=True)
+                ][0] == max(levels)
+
+        high = population.list_species(conn, tech_ranges={"tech_level": (2.0, None)})
+        assert high and all(row["tech_level"] >= 2.0 for row in high)
+        assert population.count_species(conn, tech_ranges={"tech_level": (2.0, None)}) == len(high)
+        narrow = population.list_species(conn, tech_ranges={"tech_level": (2.0, 4.0), "energy_index": (3, 3)})
+        assert [row["tech_level"] for row in narrow] == [3.0]
+        assert population.species_facets(conn, tech_ranges={"tech_level": (2.0, None)})["spacefaring"] is not None
+        with pytest.raises(ValueError):
+            population.list_species(conn, tech_ranges={"tech_source": (1, 2)})
+    finally:
+        conn.close()
+
+
+def test_api_species_tech_filters(mysql_config, galaxy, client):
+    conn = store.get_connection(mysql_config)
+    try:
+        population.run_pass(conn)
+        with conn:
+            conn.execute("UPDATE species SET tech_level = 6.0, defense_index = 6 ORDER BY id LIMIT 1")
+            conn.execute("UPDATE species SET tech_level = 1.0, defense_index = 1 ORDER BY id DESC LIMIT 1")
+    finally:
+        conn.close()
+    listing = client.get("/api/species?sort=tech&order=desc").get_json()
+    item = listing["items"][0]
+    assert item["tech_level"] == 6.0 and item["defense_index"] == 6
+    assert item["tech_band"] == tech.band_name(6.0) and item["lopsided"] in (True, False)
+    assert item["limiting_domain"] in tech.DOMAINS[:3]
+    high = client.get("/api/species?tech_min=5").get_json()
+    assert high["total"] >= 1 and all(row["tech_level"] >= 5 for row in high["items"])
+    one = client.get("/api/species?defense_min=6&defense_max=6").get_json()
+    assert one["total"] == 1 and one["items"][0]["defense_index"] == 6
+    assert client.get("/api/species?tech_min=high").status_code == 400
+    assert client.get("/api/species?energy_max=9").status_code == 400

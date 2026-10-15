@@ -32,6 +32,9 @@ SPECIES = {
     "system_name": "Kepler", "life_chemical": "chlorophyll", "life_stage": "technological_civilization",
     "build": "gracile", "climate": "temperate", "size": "medium", "civilization_age_years": 3.4e6,
     "era": "ancient", "spacefaring": True, "polity_id": 2, "polity_name": "Velar Concord",
+    "energy_index": 5, "materials_index": 4, "information_index": 6, "medical_index": 3, "propulsion_index": 5,
+    "defense_index": 2, "tech_level": 4.35, "tech_source": "generated", "tech_band": "Fusion",
+    "limiting_domain": "materials", "lopsided": True,
 }
 POLITY = {
     "id": 2, "name": "Velar Concord", "government": "Concord", "color": "#3366cc", "reach_ly": 80.0,
@@ -181,7 +184,8 @@ def test_population_tables_serve_json(monkeypatch, client, fake):
     data = _install(monkeypatch, ALL)
     body = client.get("/table/species?sort=era&facets=1").get_json()
     assert body["rows"][0][0] == {"text": "Vel<ar>", "href": "/species/3"}
-    assert body["rows"][0][5] == {"text": "Velar Concord", "href": "/polities/2"}
+    assert body["rows"][0][4] == {"text": "4.35 Fusion"}
+    assert body["rows"][0][6] == {"text": "Velar Concord", "href": "/polities/2"}
     assert {o["value"]: o["label"] for o in body["facets"]["spacefaring"]} == {
         "yes": "Spacefaring", "no": "Not spacefaring"}
     body = client.get("/table/polities?government=Concord&era=ancient&facets=1").get_json()
@@ -200,6 +204,10 @@ def test_species_page(monkeypatch, client, fake):
     assert "<h1>Vel&lt;ar&gt;</h1>" in page or "Vel&lt;ar&gt;</h1>" in page
     assert "Technological civilization" in page and "about 3.4 million years" in page
     assert '<a href="/system/5">Kepler</a>' in page and '<a href="/polities/2">Velar Concord</a>' in page
+    # POP.9: the level with its band, the six indices, what limits it and the lopsided flag.
+    assert "4.35 Fusion" in page and "Energy index" in page and "Defense index" in page
+    assert "5 of 7" in page and "2 of 7" in page
+    assert re.search(r"Limited by.*?Materials", page, re.S) and "Lopsided" in page
     assert client.get("/species/4").status_code == 404
 
 

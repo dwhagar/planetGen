@@ -522,7 +522,18 @@ connectivity to that specific schema rather than the default one.
   `spacefaring`, `polity`) with `order=asc|desc`, the repeatable filter
   `era`, and `facets=1` for `facets: {"spacefaring": [{"value": "yes"|"no",
   "count"}], "era": [...]}` (each menu ignores its own filter); `total`
-  counts what passes the filters.
+  counts what passes the filters. Tech (POP.9): each item also has the six
+  indices `energy_index`, `materials_index`, `information_index`,
+  `medical_index`, `propulsion_index` and `defense_index` (whole numbers 0
+  to 7), `tech_level` (0 to 7, two decimals), `tech_source` (`generated` or
+  `admin`) and, derived, `tech_band` (the band's name), `limiting_domain`
+  (the lowest of energy, materials and information) and `lopsided` (the
+  strongest and weakest indices are 3 or more apart); all `null` until the
+  species' tech is drawn (the next population pass). `sort=tech` orders by
+  level, species with none last. `tech_min`/`tech_max` and
+  `<domain>_min`/`<domain>_max` (`energy`, `materials`, `information`,
+  `medical`, `propulsion`, `defense`) keep a range, ends included; a value
+  that is not a number from 0 to 7 is `400`.
 - `GET /api/species/<id>` — one species; `404` if unknown.
 - `GET /api/planets/<id>/species` — the species whose homeworld that
   planet is; `404` when it has none.
