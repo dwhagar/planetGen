@@ -498,6 +498,20 @@ with `clamp()`.
   (filed 05:50Z, split out of API.25, done PR #1527).
   Prerequisites: UX.105, UX.106, UX.108.
 
+- [ ] **UX.110 The phenomena count on the overview page is wrong (bug)**
+  Boss (2026-10-15 06:41Z): "Add a bug to TODO the phenomena count in
+  the overview page is wrong." The front page (UX.55) shows one count
+  per kind, each linking to its list; the phenomena figure comes from
+  `count_phenomena` in `db/query.py` (cached by `countcache`, PERF.69),
+  and the Phenomena page shows its own total. Done: the overview figure
+  equals the number of rows the Phenomena list shows, for the whole
+  galaxy and after every fill, scatter or edit; a test fails when the
+  two differ. Cause not yet found (it may be a stale cache, a missing
+  table in the union or double counting). Owner: Foundations Database
+  (count and cache). Queued behind the Spherical Sector Coordinates stop
+  (Boss, 2026-10-15 06:39Z).
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.

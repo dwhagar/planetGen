@@ -123,6 +123,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.106, UX.108 |  |
+| UX.110 | The phenomena count on the overview page is wrong (bug) |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, UX.106, GEN.218, GEN.219 |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
