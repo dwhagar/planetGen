@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1335] - 2026-10-15
+
+### Changed
+
+- TODO: recorded UX.111 and UX.112 as merged into the spherical switch branch (#1601); both stay open until the switch reaches main.
+
+TODO items resolved: none (UX.111 and UX.112 retire when the switch reaches main) / Added: none
+
 ## [8.0.1334] - 2026-10-15
 
 ### Changed
