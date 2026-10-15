@@ -21,7 +21,11 @@ Edge `e` = 4 pc. All of this is closed form in both directions.
 - **Shell `k` >= 1:** `r` in `[(k - 1/2) e, (k + 1/2) e)`, centreline radius `R = k e`.
 - **Cap:** the part of the shell within colatitude `alpha` of a pole, one cell at each pole. Its rim is cut by `W1 = 6` wedges whose rim gap is exactly `e`, so the rim circumference is `6 e` and the cap's chord radius is `rho = 6 e / (2 pi) = 3.82 pc` (nominal 4 pc is 6.28 wedges, so 6 is the nearest whole number). `alpha = asin(rho / R)`. Volume about 2.9 edge cubes [C].
 - **Bands:** between the caps, `n` bands of equal colatitude step, `n` the odd integer nearest `R (pi - 2 alpha) / e`, so the galactic plane runs through the middle of the equatorial band (band 0, signed bands above and below).
-- **Wedges in a band:** `W(b) = 6 * max(1, round(2 pi R sin(phi_b) / (6 e)))`, where `phi_b` is the band's centre colatitude. A multiple of 6 keeps the six pole meridians as boundaries in every band; extra meridians start inside each of the six 60-degree lunes as the band gets wider. Wedge 0 starts at the +X meridian.
+- **Wedges in a band (Boss, 2026-10-15 06:57Z: fine in the disk window, nested above; equator counts from primes 2 and 3):**
+  - The equator band's count is `6 * 2^a * 3^b`, the one nearest `2 pi R / e`; a run of shells shares it (34 counts between 630 and 24,000 wedges, equator arcs off by up to 9.3%) [C, see [spherical-ladder-meridians.md](spherical-ladder-meridians.md)].
+  - Inside the **populated window** (the bands the outline keeps), `W(b) = 6 * max(1, round(2 pi R sin(phi_b) / (6 e)))`, `phi_b` the band's centre colatitude, never above the equator count. Multiples of 6 keep the six pole meridians as boundaries in every band.
+  - Above the window, toward the cap, counts form a nested chain (each divides the next, 6 at the cap), so no meridian ends there; one non-nested step per shell, at the window edge. That step was not measured; GEN.224 measures it and fixes the exact window edge and chain before building.
+  - Wedge 0 starts at the +X meridian.
 - **Address:** `(shell, band, wedge)`; a cap is band `+/-` its end index with wedge 0. Closed form: shell from `|p|`, band from `acos(z / |p|)`, wedge from `atan2(y, x)`.
 - **Local frame and sampling:** unchanged in meaning (+X radial, +Y toward increasing longitude, +Z galactic north). Sampling inside a cell is separable: cube root for `r`, uniform in `cos(colatitude)`, uniform in longitude; a cap samples a disc.
 
@@ -45,10 +49,10 @@ Four cards are on the thread for Boss; the plan assumes the recommended answer u
 
 | Question | Assumed | Alternatives |
 |---|---|---|
-| Wedge count per band | Multiples of 6 | Any count per band; doubling |
+| Wedge count per band | Decided (Boss 06:57Z): fine in the disk window, nested chain above, equator count `6 * 2^a * 3^b` | Blocks cut on cells: decided no, blocks hold the cells whose centre they hold (Boss 06:58Z), so the ladder item picks a block count per level |
 | Wedges meeting a cap | 6 (cap radius 3.82 pc) | 5 (3.18) or 7 (4.46) |
 | The plane | Middle of the equatorial band (odd bands) | On a band boundary (even bands) |
-| Galaxy Map ladder | Built after coordinates and migration | In parallel |
+| Galaxy Map ladder | Built after coordinates and migration (card still open) | In parallel |
 
 Also open, to settle in the first item: shells 1 to 3 are too small for the cap rule to look right (shell 1's cap arc radius is 3.82 pc on a 4 pc sphere), so they get a hand-checked table; whether the migration's data delete needs a fresh word from Boss when it merges (it is destructive; Boss accepted the same for the v32 and v33 grids).
 
@@ -84,6 +88,7 @@ After item 6 Boss can regenerate a galaxy and look at it before Maps work begins
 ## 7. Risks
 
 - **Heavy polar cells.** A cap near the core holds about 2.5 times today's heaviest cell. If generation time for those cells hurts, the cap wedge count (card 2) or a cap fill cap is the lever.
+- **Window edge.** The middle choice was not measured: arc error above the window, and where the one non-nested step falls, are for item 1 to measure before the module is fixed.
 - **Block nesting.** Item 7 needs a latitude master rule on top of the longitude one. A first try with odd 3^z masters gave band arcs of 0.89 to 1.11 of 4 pc [C]; longitude masters reach to within 4 to 7 degrees of the poles. Not designed.
 - **Wide change set.** Items 1 to 6 touch four lanes' code; the order above keeps the tree buildable by keeping the pure geometry (item 1) first and the delete last.
 - **Silent meaning change.** "Layer" and "ring" must not be reused for the new indexes; the rename in item 4 is what makes a missed spot fail loudly.
