@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1349] - 2026-10-15
+
+**Headline:** The object-timing test no longer fails when the machine is busy.
+
+### Fixed
+- `test_time_spent_in_an_inner_object_is_not_counted_twice` timed real `sleep` calls and failed when a sleep overshot (8.0 ms against a 4 ms limit on a loaded machine). It now drives a fake clock, so the check is exact and never depends on speed (TEST.156).
+
 ## [8.0.1348] - 2026-10-15
 
 **Headline:** Every release note now has to open with a Headline line, so no release goes out without one.
