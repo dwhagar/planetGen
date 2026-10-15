@@ -127,6 +127,8 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 <script>
 (function(){
 const D=JSON.parse(document.getElementById('data').textContent);
+const ISSUES=D.issues||{},ISSUE_URL='https://github.com/dwhagar/planetGen/issues/';
+const issueLinks=a=>(a||[]).map(n=>'<a class="chip" href="'+ISSUE_URL+n+'" target="_blank" rel="noopener" title="'+esc((ISSUES[n]||{}).title||'')+'">#'+n+(ISSUES[n]&&ISSUES[n].state==='closed'?' (closed)':'')+'</a>').join('');
 const items=D.items, all=Object.values(items), CAT=D.categories;
 const PH={'1':'Phase 1','2':'Phase 2','3':'Phase 3','3+':'Phase 3+'};
 const STATUS={open:'open',done:'done',closed:'dropped or merged',other:'other'};
@@ -179,6 +181,7 @@ cats.forEach(c=>{
   list.forEach(it=>{
     let h='<article class="item" id="'+it.id+'" data-id="'+it.id+'"><div class="ihead"><a class="id" href="#'+it.id+'">'+it.id+'</a><h3>'+inline(it.title).replace(/<a class="chip[^>]*>([^<]*)<\/a>/g,'$1')+'</h3><span class="badges"><span class="badge '+it.status+'">'+STATUS[it.status]+'</span>'+(it.bug?'<span class="badge bug">bug</span>':'')+(it.phase?'<span class="badge phase">'+PH[it.phase]+'</span>':'')+'</span></div>';
     const facts=[];
+    if((it.issues||[]).length) facts.push('<span><b>GitHub</b> '+issueLinks(it.issues)+'</span>');
     if(it.thread) facts.push('<span><b>Thread</b> '+esc(it.thread)+'</span>');
     if(it.section) facts.push('<span><b>TODO.md</b> '+esc(it.section)+'</span>');
     if(it.status!=='open'&&it.statusText) facts.push('<span><b>Status</b> '+inline(it.statusText)+'</span>');
@@ -201,7 +204,7 @@ cats.forEach(c=>{
 });
 host.innerHTML=html;
 const hay={};
-all.forEach(it=>{hay[it.id]=(it.id+' '+it.title+' '+it.text+' '+it.note+' '+it.thread+' '+it.statusText+' '+(CAT[it.cat]||'')).toLowerCase()});
+all.forEach(it=>{hay[it.id]=(it.id+' '+it.title+' '+it.text+' '+it.note+' '+it.thread+' '+it.statusText+' '+(CAT[it.cat]||'')+' '+(it.issues||[]).map(n=>'#'+n).join(' ')).toLowerCase()});
 // filters
 const q=document.getElementById('q'),st=document.getElementById('status'),bg=document.getElementById('bugs');
 function apply(){

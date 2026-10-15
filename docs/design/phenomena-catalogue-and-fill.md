@@ -173,13 +173,26 @@ Counts per local sector use a 64 pc^3 cell with 8 stars [S: `interstellar-object
 | Wormholes, cosmic strings, quantum filaments | not observed; strings excluded by pulsar timing [S] |
 | Dark matter nebulae and a Dark Matter Anomaly object | dark matter does not clump on 10 ly scales [R]; the profile carries the background |
 | Quark stars | no candidate [R] |
-| Thorne-Zytkow objects | none confirmed [S] |
+| Thorne-Zytkow objects | none confirmed [S]; Boss's 6:08 PM EDT widening puts them back as a flagged theoretical type (100 in the Galaxy), see 4.8 |
 | Stellar mergers and red novae | transients; 5e-12 per sector per year [C] |
 | Gamma-ray and fast radio bursts | transients with no persistent object |
 | Great Attractor, Bootes void | beyond the galaxy; at most flavour text |
 | Blanets (planets around a supermassive hole) | no confirmed one; no stellar system has a supermassive primary (`exotic-environments...` 2.4) |
 | Kilonovae, compact-object mergers | out of scope (needs a binary-evolution code) |
 | Free-floating asteroid fields | disperse in 1e6 to 1e7 years; rate 0 stands |
+
+### 4.8 Member kinds and system types added by the catalogue of multi-star types
+
+Boss (2026-10-15, 6:08 PM EDT) widened the multi-star plan to every observed and theoretical type of multi-star or star-like-object system. [multi-star-systems.md](multi-star-systems.md) sections 13 to 16 hold that catalogue (about sixty types, each with its observed or theoretical rate, where it occurs, and whether it is drawn at scatter time or at fill). It adds these to the kind list of the registry (GEN.250), with their rates in `SYSTEM_TYPE_RATES` (GEN.268):
+
+| Kind or node | Status | Where it comes from |
+|---|---|---|
+| `stripped-helium` (hot subdwarf, helium star, helium donor) | filed GEN.269 | post-common-envelope pairs, AM CVn donors, Be companions |
+| `thorne-zytkow` | filed GEN.269, flagged `theoretical`, 100 in the Galaxy | a giant with a neutron-star core, single |
+| `wolf-rayet` as a star kind | filed GEN.269 on GEN.243's W state | young massive stars and their companions |
+| `group` node (young non-hierarchical group) | filed GEN.273 | trapezia under their decay age |
+| `compact` node (a tight compact pair promoted to the scatter) | filed GEN.260 | GEN.263 |
+| interaction states on a pair (detached, semi-detached, contact, accreting, post-common-envelope, merger-product) | filed GEN.269 | the Roche classifier |
 
 ## 5. The system rule for every kind
 

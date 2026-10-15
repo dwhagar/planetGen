@@ -1680,6 +1680,34 @@ def test_galaxy_map_turns_past_edge_on_and_under_the_plane_and_still_picks(page,
     assert len(_crumbs(page)) == len(before) + 1
 
 
+BELOW_THE_PLANE = r"latitude -[\d.]+°–(?:-[\d.]+|0\.0)°"
+"""str: A tooltip naming a block that lies wholly under the galactic plane (its latitude range ends at or below 0)."""
+
+
+@pytest.mark.parametrize("tilt_keys", [7, 12, 17])
+def test_galaxy_map_blocks_under_the_plane_light_up_and_open_from_below(page, map_site, tilt_keys):
+    """MAP.204: seen from under the plane (125 to 180 degrees of tilt), a
+    block that lies below it is found by the pointer wherever it is drawn, is
+    outlined and shaded all round below the plane, and a click opens the window
+    on that very block, as easily as one above the plane from above."""
+    _open_galaxy(page, map_site, "?win=243.0.0.0")
+    canvas = page.locator(GALAXY_CANVAS)
+    canvas.focus()
+    for _ in range(18 + tilt_keys):
+        page.keyboard.press("Shift+ArrowDown")
+    assert page.evaluate(CAMERA)["tilt"] > 120, "seen from under the plane"
+    found = _hover_choice(page, BELOW_THE_PLANE)
+    assert found, "no block under the plane can be hovered from below"
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines > 0")
+    hovered = page.evaluate(LINES)["hovered"]
+    assert hovered["zMax"] <= 1e-6, ("the outline rises above the plane", hovered)
+    assert hovered["zMin"] < hovered["zMax"] and 0 < hovered["shade"] <= 0.3, hovered
+    _click_steady(page, BELOW_THE_PLANE)
+    _settle(page)
+    win = parse_qs(_query(page)).get("win", [""])[0]
+    assert re.fullmatch(r"\d+\.\d+\.-\d+\.\d+", win), f"the window is not on a block under the plane: {win!r}"
+
+
 def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
     """MAP.97: the whole galaxy is seen straight down, a window of blocks
     at the isometric slant, going in and coming back out; a manual turn
