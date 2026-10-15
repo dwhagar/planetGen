@@ -509,45 +509,53 @@ class Planet(HoldsOrbitPosition):
             properties["moon_wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own moons"
         return properties
 
-    def _gas_giant_pressure_depth_text(self):
+    def gas_giant_depth(self):
         """
-        Builds short sentences putting the gas giant's already-computed
-        reference-level pressure (`self.atmospheric_pressure`) into physical
-        context: depth relative to the standard 1-atmosphere level from the
-        isothermal barometric law already used to derive that pressure (see
-        planetPhysics.calculate_atmospheric_conditions); the depth and
-        temperature at which rising pressure would turn the atmosphere from
-        gas to liquid metallic hydrogen, from extending
-        `self.surface_temperature` down a dry adiabat (see
-        `constants.ADIABATIC_INDEX_H2_HE` and
-        `HYDROGEN_METALLIZATION_PRESSURE_PA`); and a core-pressure estimate
-        from the analytic n=1 polytrope (Lane-Emden) solution to hydrostatic
-        equilibrium. None of these are stitched into one continuous
-        profile -- the adiabat only holds for the shallow gas layer, and
-        the polytrope only describes the deep interior, with a poorly
-        understood transition in between that neither approximation
-        covers.
+        The numbers behind a gas giant's depth sentences, from its already-computed reference-level pressure
+        (`self.atmospheric_pressure`): the depth relative to the standard 1-atmosphere level from the isothermal
+        barometric law used to derive that pressure (see planetPhysics.calculate_atmospheric_conditions); the
+        depth and temperature at which rising pressure would turn the atmosphere from gas to liquid metallic
+        hydrogen, from extending `self.surface_temperature` down a dry adiabat (see
+        `constants.ADIABATIC_INDEX_H2_HE` and `HYDROGEN_METALLIZATION_PRESSURE_PA`); and a core-pressure
+        estimate from the analytic n=1 polytrope (Lane-Emden) solution to hydrostatic equilibrium. None of
+        these are stitched into one continuous profile -- the adiabat only holds for the shallow gas layer,
+        and the polytrope only describes the deep interior, with a poorly understood transition in between
+        that neither approximation covers.
 
         Returns:
-            list[str]: Descriptive sentences, or an empty list if the
-                       underlying scale height/pressure/temperature aren't
-                       available.
+            dict: `depth_km` (below the 1 atmosphere level; negative above it), `doubling_km` (the depth over
+                which pressure doubles), `transition_depth_km`, `transition_temperature_k` and
+                `core_pressure_pa`; or `None` if the scale height, pressure or temperature aren't available.
         """
         if not self.scale_height or not self.atmospheric_pressure or not self.surface_temperature:
-            return []
+            return None
 
         reference_pressure_pa = 101300  # ~1 standard atmosphere, matching the "atmospheres" conversion above
-        depth_km = self.scale_height * math.log(self.atmospheric_pressure / reference_pressure_pa)
-        doubling_km = self.scale_height * math.log(2)
-
         transition_pressure_pa = constants.HYDROGEN_METALLIZATION_PRESSURE_PA
-        transition_depth_km = self.scale_height * math.log(transition_pressure_pa / self.atmospheric_pressure)
         adiabatic_exponent = (constants.ADIABATIC_INDEX_H2_HE - 1) / constants.ADIABATIC_INDEX_H2_HE
-        transition_temperature_c = self.surface_temperature * (transition_pressure_pa / self.atmospheric_pressure) ** adiabatic_exponent - 273.15
-
         radius_m = self.radius * 1000
-        core_pressure_gpa = (math.pi * constants.G * self.mass ** 2 / (8 * radius_m ** 4)) / 1e9
+        return {
+            "depth_km": self.scale_height * math.log(self.atmospheric_pressure / reference_pressure_pa),
+            "doubling_km": self.scale_height * math.log(2),
+            "transition_depth_km": self.scale_height * math.log(transition_pressure_pa / self.atmospheric_pressure),
+            "transition_temperature_k": self.surface_temperature
+            * (transition_pressure_pa / self.atmospheric_pressure) ** adiabatic_exponent,
+            "core_pressure_pa": math.pi * constants.G * self.mass ** 2 / (8 * radius_m ** 4),
+        }
 
+    def _gas_giant_pressure_depth_text(self):
+        """
+        Short sentences putting the gas giant's reference-level pressure into physical context (see
+        `gas_giant_depth` for what each figure is and where it holds).
+
+        Returns:
+            list[str]: Descriptive sentences, or an empty list if `gas_giant_depth` has nothing.
+        """
+        depth = self.gas_giant_depth()
+        if depth is None:
+            return []
+        depth_km = depth["depth_km"]
+        doubling_km = depth["doubling_km"]
         if depth_km > 0:
             depth_sentence = f"That's about {format_number(depth_km)} km below the 1 atmosphere level, where pressure roughly doubles every {format_number(doubling_km)} km."
         else:
@@ -555,26 +563,36 @@ class Planet(HoldsOrbitPosition):
 
         return [
             depth_sentence,
-            f"Around {format_number(transition_depth_km)} km down, rising pressure would compress the atmosphere into a liquid metallic state near {format_temperature_k(transition_temperature_c + constants.CELSIUS_ZERO_K)}.",
-            f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {format_pressure_pa(core_pressure_gpa * 1e9)}.",
+            f"Around {format_number(depth['transition_depth_km'])} km down, rising pressure would compress the atmosphere into a liquid metallic state near {format_temperature_k(depth['transition_temperature_k'])}.",
+            f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {format_pressure_pa(depth['core_pressure_pa'])}.",
         ]
+
+    def habitability_world(self):
+        """
+        The `habitability.World` of a scored rocky body and the compact-object host it was rated against
+        (`None` for an ordinary star), or `None` for a gas giant or a body saved without scores. A planet
+        of a pulsar, neutron star or black hole is rated as a lethal dose, as its stored score was.
+        """
+        if self.body_type != "t" or getattr(self, "equipment_tier", None) is None:
+            return None
+        values = habitability_world.values_from_body(self)
+        if values.get("surface_temperature_k") is None:
+            return None
+        host = re.match(r"Planet of an? ([a-z ]+):", getattr(self, "hab_note", None) or "")
+        host = host.group(1) if host else None
+        return habitability_world.world_from(values, lethal_host=host), host
 
     def _habitability_paragraphs(self):
         """
         The habitability paragraph of a scored rocky body (UX.91, GEN.208): its
         score, each of the six categories with its colour, why it falls there
         and the gear it asks for, and the gear a human needs overall. Empty for a gas
-        giant or a body saved without scores. A planet of a pulsar, neutron
-        star or black hole is rated as a lethal dose, as its stored score was.
+        giant or a body saved without scores.
         """
-        if self.body_type != "t" or getattr(self, "equipment_tier", None) is None:
+        scored = self.habitability_world()
+        if scored is None:
             return []
-        values = habitability_world.values_from_body(self)
-        if values.get("surface_temperature_k") is None:
-            return []
-        host = re.match(r"Planet of an? ([a-z ]+):", getattr(self, "hab_note", None) or "")
-        host = host.group(1) if host else None
-        world = habitability_world.world_from(values, lethal_host=host)
+        world, host = scored
         bold = (lambda text: f"**{text}**") if self.system_config.MARKDOWN else (lambda text: f"'''{text}'''")
         return habitability_explain.paragraphs(world, bold, compact_host=host)
 
