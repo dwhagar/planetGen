@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1180] - 2026-10-15
+
+### Changed
+
+- MAP.151b: the ladder is 243/81/27/9/3/1 (729 dropped) and its PR carries a data-only migration that refills galaxy_block_stats.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1179] - 2026-10-15
 
 ### Changed
