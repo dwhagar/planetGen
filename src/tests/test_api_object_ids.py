@@ -17,7 +17,6 @@ from planetgen.generation.system import StarSystem
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.web.app import create_app
 from tests.publicids import pid
-from tests.maps_pending import MAPS_PENDING
 
 PRINTED = re.compile(r"^[0-9A-F]+(-[0-9A-F]+){0,2}$")
 
@@ -185,13 +184,13 @@ def test_pages_link_to_objects_by_id_and_never_by_row_number(bodies):
         assert found == [], (path, found[:5])
 
 
-@MAPS_PENDING
 def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_config):
     """The Galaxy Map opens `/sector/<id>/scene` with the ids from the stage payload and the tiles."""
     from planetgen.galaxy.viewport import tiles_intersecting_sphere
-    from tests.test_api import _generated_sectors
+    from tests.test_api import _generated_sectors, _rebuild_block_stats
 
     _generated_sectors(mysql_config, [0.5, 5.0, 40.0])
+    _rebuild_block_stats(mysql_config)
 
     class TestConfig(Config):
         MYSQL_CONFIG = mysql_config
@@ -215,7 +214,7 @@ def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_conf
         child = next((c for c in stage["children"] if c.get("generated")), None)
         if child is None:
             break
-        at = f"{stage['child_m']}.{child['ring']}.{child['wedge']}.{child['slab']}"
+        at = f"{stage['child_m']}.{child['shell']}.{child['band']}.{child['wedge']}"
     assert stage.get("sectors"), "no stage with sectors reached"
     assert all(isinstance(row["id"], str) for row in stage["sectors"])
     assert client.get(f"/sector/{stage['sectors'][0]['id']}/scene").status_code == 200

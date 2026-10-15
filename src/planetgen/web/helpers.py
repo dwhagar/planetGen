@@ -38,7 +38,7 @@ these:
 """
 
 from flask import current_app, g, render_template, request, url_for
-from markupsafe import Markup, escape
+from markupsafe import Markup
 
 from planetgen.web.lib import apiclient
 from planetgen.api.authz import SESSION_COOKIE_NAME
@@ -101,26 +101,6 @@ def trusted_html(html):
     themselves -- they escape every value they interpolate.
     """
     return Markup(html or "")
-
-
-def map_rebuilding_html(heading, map_id=None):
-    """
-    The panel a page shows where its 3D map would be while the map is
-    rebuilt for the spherical sector grid (shells, bands and wedges; UX.111).
-    Maps removes it when the map is back (`docs/design/spherical-sector-coordinates.md`).
-
-    Args:
-        heading (str): The panel's title ("Galaxy Map", "Sector Map").
-        map_id (str, optional): The panel's `id`, for links to `#map`.
-
-    Returns:
-        Markup: The panel.
-    """
-    id_attribute = f' id="{escape(map_id)}"' if map_id else ""
-    return Markup(
-        f'<section class="panel"{id_attribute}><h2>{escape(heading)}</h2>'
-        '<p class="hint">The map is being rebuilt for the new sector grid of shells, bands and wedges. '
-        'Everything else on this page works as before.</p></section>')
 
 
 def pager(page_param, page, total, anchor=None, label="Pages", keep=None):

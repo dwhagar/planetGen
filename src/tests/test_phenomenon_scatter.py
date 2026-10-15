@@ -21,7 +21,6 @@ from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, we
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import run_galaxy, run_plan, run_sector
 from planetgen.physics.units import ly_to_pc
-from tests.maps_pending import MAPS_PENDING
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = build_galaxy_shape(
@@ -676,7 +675,6 @@ def test_a_built_scattered_object_has_the_stored_mass(mysql_config):
         assert entry.phenomenon.mass_solar == mass
 
 
-@MAPS_PENDING
 def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     from planetgen.db import query
     sizes = [query.scattered_point_size(mass) for mass in (1.4, 2.2, 5.0, 20.0, 100.0, 1e5, 1e6, 1e8)]

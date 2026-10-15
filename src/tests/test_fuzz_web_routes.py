@@ -56,7 +56,6 @@ from urllib.parse import quote, urlencode, urlsplit
 import pymysql
 import pytest
 
-from tests.maps_pending import MAPS_PENDING
 from hypothesis import example, given, settings
 from flask.testing import FlaskClient
 from hypothesis import strategies as st
@@ -451,15 +450,6 @@ def _rule_ids(rules):
             for rule in rules]
 
 
-MAPS_PENDING_RULES = {"/api/galaxy/stage", "/api/galaxy/window", "/galaxy/stage"}
-"""set: The Galaxy Map reads Maps rebuilds on shells (MAP.205/206); they raise until then."""
-
-
-def _pending(rules):
-    """`rules` as test parameters, the Galaxy Map's own reads marked pending."""
-    return [pytest.param(rule, marks=MAPS_PENDING) if rule.rule in MAPS_PENDING_RULES else rule for rule in rules]
-
-
 def _unsafe_methods(rule):
     return sorted(rule.methods & csrf.UNSAFE_METHODS)
 
@@ -512,7 +502,7 @@ def test_is_local_redirect_helper():
 # GET routes: hostile query strings
 # ---------------------------------------------------------------------
 
-@pytest.mark.parametrize("rule", _pending(GET_RULES), ids=_rule_ids(GET_RULES))
+@pytest.mark.parametrize("rule", GET_RULES, ids=_rule_ids(GET_RULES))
 @settings(max_examples=scaled(25))
 @given(pairs=query_pairs)
 @example(pairs=[("page", "0"), ("page", "-1"), ("page", "nan"), ("page", "1.5")])
@@ -543,7 +533,7 @@ def test_get_routes_survive_hostile_query(app, fuzz_db, rule, pairs):
     check_response(response, path, sent=[value for pair in pairs for value in pair])
 
 
-@pytest.mark.parametrize("rule", _pending(GET_RULES), ids=_rule_ids(GET_RULES))
+@pytest.mark.parametrize("rule", GET_RULES, ids=_rule_ids(GET_RULES))
 def test_get_routes_do_not_reflect_xss_probes(app, fuzz_db, rule):
     """Every probe in every parameter name at once, so a page that
     echoes any parameter anywhere (a form value, a pager link, an error
@@ -555,7 +545,7 @@ def test_get_routes_do_not_reflect_xss_probes(app, fuzz_db, rule):
         check_response(client.get(path, query_string=urlencode(pairs)), path, sent=[payload])
 
 
-@pytest.mark.parametrize("rule", _pending(PAGE_AND_API_GET_RULES), ids=_rule_ids(PAGE_AND_API_GET_RULES))
+@pytest.mark.parametrize("rule", PAGE_AND_API_GET_RULES, ids=_rule_ids(PAGE_AND_API_GET_RULES))
 @settings(max_examples=scaled(8))
 @given(raw=raw_query)
 @example(raw=b"\x80")  # B11
@@ -575,7 +565,7 @@ _EDGE_VALUES = ["", " ", "0", "-0", "-1", "1", "01", "+1", str(2 ** 31), str(2 *
                 "1.5", "1e3", "nan", "inf", "-inf", "1e309", "abc", "²", "١٢", "\x00", "%", "'", "\\", "a" * 3000]
 
 
-@pytest.mark.parametrize("rule", _pending(PAGE_AND_API_GET_RULES), ids=_rule_ids(PAGE_AND_API_GET_RULES))
+@pytest.mark.parametrize("rule", PAGE_AND_API_GET_RULES, ids=_rule_ids(PAGE_AND_API_GET_RULES))
 def test_get_routes_every_param_at_every_edge(app, fuzz_db, rule):
     path = build_path(rule, real_values(rule, fuzz_db))
     client = app.test_client()

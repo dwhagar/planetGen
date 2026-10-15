@@ -1,17 +1,9 @@
 // html/static/galaxyblocks.js
 //
-// The Galaxy Map's block scene (galaxymap3d.js): for one view, which
-// blocks to draw (galaxyprisms.blocksForView, plus the interior blocks
-// holding generated sectors), their colors and opacities, and their
-// geometry, packed as typed arrays ready for the GPU.
-//
-// This is the slow part of a zoom step, so the page runs it in a Web
-// Worker: loaded as a worker, this module answers "init", "filled" and
-// "build" messages (see the bottom of the file) and hands the arrays back
-// as transferables. The page also imports it directly, to draw the first
-// frame without waiting on the worker and as the fallback where workers
-// can't start. Like galaxyprisms.js it has no three.js import, so it runs
-// under plain node for tests (src/tests/test_galaxyprisms.py).
+// The Galaxy Map's block scene (galaxymap3d.js): for one stage's cells, their
+// colors and opacities, and their geometry, packed as typed arrays ready for
+// the GPU. Like galaxyprisms.js it has no three.js import, so it runs under
+// plain node for tests (src/tests/test_galaxyprisms.py).
 //
 // Colors come in as linear [r, g, b] (the page reads them off
 // THREE.Color, which keeps linear components), and every blend here is
@@ -21,19 +13,8 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 
-// In a worker, messages can arrive while the imports below are still
-// loading; they wait here until the module is ready.
-const IN_WORKER = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
-const waiting = [];
-if (IN_WORKER) {
-  self.onmessage = function (event) {
-    waiting.push(event.data);
-  };
-}
-
 const {
-  blockAddressAt, blockAt, blockSectorCount, blockSizeForScale, blocksForView, boundsDensity, buildPrismGeometry,
-  cellCoordinates,
+  boundsDensity, buildPrismGeometry, cellCoordinates,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { scientificText, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 
@@ -97,21 +78,6 @@ const PRISM_DENSITY_SHARE = 0.45;
 // little off to one side, so tops, walls and sides all read apart.
 const PRISM_LIGHT = normalize([0.35, -0.3, 0.9]);
 const PRISM_AMBIENT = 0.35;
-// Densities already worked out, kept for this many block sizes.
-const DENSITY_CACHE_SIZES = 4;
-// blockSectorCount results kept between builds (at large m it walks every
-// member ring and layer).
-const BLOCK_TOTALS_MAX = 20000;
-
-// Per block in a built part's `cells`: ring, seg, slab, density,
-// meanDensity, filled, total, centroid x, y, z, and the generated sector's
-// own point (its index among the filled points, at one sector per block)
-// -- NaN where there is none.
-export const CELL_STRIDE = 11;
-// Per filled point (setFilled): x, y, z, count, 1 when the point is one
-// generated sector (else 0), and that sector's own relative density
-// (placedRelativeDensity; NaN when unknown).
-export const POINT_STRIDE = 6;
 
 function normalize(v) {
   const length = Math.hypot(v[0], v[1], v[2]);
@@ -362,140 +328,30 @@ export function prismShade(cell, armAmplitude) {
 }
 
 // Builds block scenes for one galaxy. config:
-// - edgePc, galaxyRadius, shape (the density shape, or null);
-// - minPx, budget (galaxyprisms.blocksForView's);
+// - shape (the density shape, or null);
 // - palette: linear [r, g, b] for dim, accent and hot (the density ramp)
 //   and placedLow, placedHigh (a generated sector's own color).
-// Returns {setFilled(points), build(view), buildCells(cells, eye, dim, colorMode, stageRanges), rangesOf(cells), legendOf(mode, ranges)};
+// Returns {buildCells(cells, eye, dim, colorMode, stageRanges), rangesOf(cells), legendOf(mode, ranges)};
 // see each below.
 export function createBlockScene(config) {
-  const edgePc = config.edgePc || 1;
-  const galaxyRadius = config.galaxyRadius;
   const shape = config.shape || null;
   const palette = config.palette;
   const armAmplitude = galaxyArmAmplitude(shape);
-  const densityCaches = new Map();
-  const blockTotals = new Map();
-  let points = new Float64Array(0);
-
-  function densityCacheFor(m) {
-    let cache = densityCaches.get(m);
-    if (cache) {
-      densityCaches.delete(m);
-    } else {
-      cache = new Map();
-    }
-    densityCaches.set(m, cache);
-    while (densityCaches.size > DENSITY_CACHE_SIZES) {
-      densityCaches.delete(densityCaches.keys().next().value);
-    }
-    return cache;
-  }
 
   function prismColor(t) {
     return t < 0.6 ? lerp3(palette.dim, palette.accent, t / 0.6) : lerp3(palette.accent, palette.hot, (t - 0.6) / 0.4);
   }
 
-  // A generated sector's own block: its real density relative to the
-  // local neighborhood's on a "log2(x+1)/3" dim-to-bright curve, through
-  // a warm bronze-to-gold range.
-  function placedColor(relative) {
-    const t = isNaN(relative) ? 0.5 : Math.max(0, Math.min(1, Math.log2(relative + 1) / 3));
-    return lerp3(palette.placedLow, palette.placedHigh, t);
-  }
-
-  // The generated sectors to count into blocks, POINT_STRIDE numbers each
-  // (a sector's center, or a coarser cell's middle with its count).
-  function setFilled(packed) {
-    points = packed || new Float64Array(0);
-  }
-
-  // The blocks for a view (the solid's surface, plus every block in view
-  // holding filled sectors, interior ones included). Each gets `filled`,
-  // and filled blocks also `total`, `centroid` (the mean position of
-  // their filled sectors) and, at one sector per block, `sectorPoint` and
-  // `sectorRelative` (the sector's point index and relative density).
-  function viewBlocks(view) {
-    const options = {
-      pcPerPixel: view.pcPerPixel, sliceZ: view.sliceZ, viewerZ: view.viewerZ,
-      minPx: config.minPx, budget: view.budget || config.budget,
-    };
-    const listed = shape
-      ? blocksForView(view.center, view.viewRadius, edgePc, galaxyRadius, shape, densityCacheFor, options)
-      : { m: blockSizeForScale(view.pcPerPixel, edgePc, config.minPx, galaxyRadius), slice: null, blocks: [] };
-    const m = listed.m;
-    const byKey = new Map();
-    listed.blocks.forEach(function (block) {
-      byKey.set(block.ring + "/" + block.seg + "/" + block.slab, block);
-    });
-    const sums = new Map();
-    for (let p = 0; p < points.length; p += POINT_STRIDE) {
-      const x = points[p];
-      const y = points[p + 1];
-      const z = points[p + 2];
-      const count = points[p + 3];
-      const a = blockAddressAt(x, y, z, m, edgePc);
-      if (listed.slice !== null && a.slab > listed.slice) {
-        continue;
-      }
-      const key = a.ring + "/" + a.seg + "/" + a.slab;
-      let sum = sums.get(key);
-      if (!sum) {
-        sum = { address: a, count: 0, x: 0, y: 0, z: 0, sector: -1 };
-        sums.set(key, sum);
-      }
-      sum.count += count;
-      sum.x += x * count;
-      sum.y += y * count;
-      sum.z += z * count;
-      if (points[p + 4]) {
-        sum.sector = p / POINT_STRIDE;
-      }
-    }
-    const center = view.center;
-    const reach = view.viewRadius + m * edgePc;
-    sums.forEach(function (sum, key) {
-      let block = byKey.get(key);
-      if (!block) {
-        const a = sum.address;
-        block = blockAt(a.ring, a.seg, a.slab, m, edgePc, shape, shape ? densityCacheFor(m) : null);
-        const mid = cellCoordinates(block).cartesian;
-        if (Math.hypot(mid[0] - center[0], mid[1] - center[1], mid[2] - center[2]) > reach) {
-          return;
-        }
-        listed.blocks.push(block);
-      }
-      block.filled = sum.count;
-      const totalKey = m + "/" + key;
-      let total = blockTotals.get(totalKey);
-      if (total === undefined) {
-        if (blockTotals.size > BLOCK_TOTALS_MAX) {
-          blockTotals.clear();
-        }
-        total = blockSectorCount(block.ring, block.seg, block.slab, m, edgePc, shape);
-        blockTotals.set(totalKey, total);
-      }
-      block.total = Math.max(sum.count, total);
-      block.centroid = [sum.x / sum.count, sum.y / sum.count, sum.z / sum.count];
-      if (m === 1 && sum.sector >= 0) {
-        block.sectorPoint = sum.sector;
-        block.sectorRelative = points[sum.sector * POINT_STRIDE + 5];
-      }
-    });
-    return listed;
-  }
-
-  // One mesh's worth of blocks, packed: positions, centers (Float32),
+  // One mesh's worth of cells, packed: positions, centers (Float32),
   // colors (Uint16, normalized: dark linear colors need more than 8 bits),
-  // uvs, alphas and fills (Uint8, normalized), indices, each vertex's
-  // block (owners, for picking), and per-block records (CELL_STRIDE).
-  // Normals only light the colors here, so they aren't kept. Opaque blocks
-  // leave out the faces they share (galaxyprisms.buildPrismGeometry).
+  // uvs, alphas and fills (Uint8, normalized), indices, and each vertex's
+  // cell (owners, for picking). Normals only light the colors here, so
+  // they aren't kept.
   let ranges = statsRanges([]);
   let colorBy = "default";
 
-  function pack(cells, opaque) {
-    const built = buildPrismGeometry(cells, { skipShared: opaque });
+  function pack(cells) {
+    const built = buildPrismGeometry(cells);
     const count = built.owners.length;
     const colors = new Uint16Array(count * 3);
     const centers = new Float32Array(count * 3);
@@ -507,26 +363,12 @@ export function createBlockScene(config) {
     const colorOf = [];
     const alphaOf = [];
     const fillOf = [];
-    const records = new Float64Array(cells.length * CELL_STRIDE);
-    cells.forEach(function (cell, n) {
+    cells.forEach(function (cell) {
       middles.push(cellCoordinates(cell).cartesian);
-      const placed = cell.sectorPoint != null;
       const ramp = function () { return prismColor(shape ? prismShade(cell, armAmplitude) : 0.5); };
-      colorOf.push("stats" in cell ? statsColor(cell, ramp(), ranges, colorBy) : placed ? placedColor(cell.sectorRelative) : ramp());
+      colorOf.push(statsColor(cell, ramp(), ranges, colorBy));
       alphaOf.push(Math.round(cell.opacity * 255));
       fillOf.push(Math.round(blockFillStep(cell) * 255));
-      const o = n * CELL_STRIDE;
-      records[o] = cell.ring;
-      records[o + 1] = cell.seg;
-      records[o + 2] = cell.slab;
-      records[o + 3] = cell.density == null ? NaN : cell.density;
-      records[o + 4] = cell.meanDensity == null ? NaN : cell.meanDensity;
-      records[o + 5] = cell.filled || 0;
-      records[o + 6] = cell.total || 0;
-      records[o + 7] = cell.centroid ? cell.centroid[0] : NaN;
-      records[o + 8] = cell.centroid ? cell.centroid[1] : NaN;
-      records[o + 9] = cell.centroid ? cell.centroid[2] : NaN;
-      records[o + 10] = placed ? cell.sectorPoint : NaN;
     });
     for (let v = 0; v < count; v++) {
       const owner = built.owners[v];
@@ -547,46 +389,20 @@ export function createBlockScene(config) {
     }
     return {
       positions: built.positions, centers: centers, colors: colors, uvs: uvs, alphas: alphas, fills: fills,
-      indices: built.indices, owners: built.owners, cells: records, vertexCount: count,
+      indices: built.indices, owners: built.owners, vertexCount: count,
     };
   }
 
-  // Builds one view. view:
-  // - center ([x, y, z]), viewRadius: the ball to list;
-  // - pcPerPixel, sliceZ (null for no slice), viewerZ, budget (optional,
-  //   overriding config.budget): as galaxyprisms.blocksForView takes them;
-  // - eye ([x, y, z]): the camera, to sort translucent blocks back to
-  //   front from.
-  // Returns {m, solid, glass}: blocks whose every sector is generated
-  // (opaque), and the rest (translucent, sorted far to near), each packed.
-  function build(view) {
-    const listed = viewBlocks(view);
-    const solid = [];
-    const glass = [];
-    listed.blocks.forEach(function (cell) {
-      cell.opacity = blockOpacity(cell);
-      (cell.opacity >= 1 ? solid : glass).push(cell);
-    });
-    const eye = view.eye || view.center;
-    glass.forEach(function (cell) {
-      const mid = cellCoordinates(cell).cartesian;
-      cell.eyeDistance = Math.hypot(mid[0] - eye[0], mid[1] - eye[1], mid[2] - eye[2]);
-    });
-    glass.sort(function (p, q) { return q.eyeDistance - p.eyeDistance; });
-    return { m: listed.m, solid: pack(solid, true), glass: pack(glass, false) };
-  }
-
-  // Packs an explicit list of blocks the same way (the drill-down's
-  // stages, which pick their own blocks): each cell has ring, seg, slab
-  // and bounds r0..z1, and optionally filled and total. `stageRanges` (optional, from `rangesOf`) ranks the cells against a wider set than `cells`, so every choice of a stage is colored on one scale; `colorMode` (MAP.131, a key of COLOR_MODES) colors the filled cells by one statistic instead; the result's `legend` says what the colors mean. A cell with a
-  // `stats` key (the stage API's {systems, expected_systems, stars,
-  // mean_age_gy, luminosity_sol}, or null) is colored and made
-  // translucent by its sectors' stats (MAP.128/129: statsColor,
-  // statsOpacity, from what they hold; statsColor, ranked against the other cells) instead of lifted
-  // toward solid by its filled share. Density comes from the shape. `dim` (optional) is a test: cells it accepts are drawn
-  // at a fifth of their opacity (the "Charted only" toggle). Returns
-  // {solid, glass} as build does, plus `cells`: [solid cells, glass
-  // cells], in the order each part's `owners` index them.
+  // Packs an explicit list of cells (the drill-down's stages, which pick their own blocks): each has
+  // its bounds r0..t1 (galaxyprisms.drillBlockBounds) and optionally filled and total. `stageRanges` (optional,
+  // from `rangesOf`) ranks the cells against a wider set than `cells`, so every choice of a stage is colored on one
+  // scale; `colorMode` (MAP.131, a key of COLOR_MODES) colors the filled cells by one statistic instead; the
+  // result's `legend` says what the colors mean. A cell's `stats` (the stage API's {systems, expected_systems,
+  // stars, mean_age_gy, luminosity_sol}, or null) colors and makes it translucent by what its sectors hold
+  // (MAP.128/129: statsColor, statsOpacity). Density comes from the shape. `dim` (optional) is a test: cells it
+  // accepts are drawn at a fifth of their opacity (the "Charted only" toggle). Returns {solid, glass}: cells
+  // opaque enough to write depth and the rest (translucent, sorted far to near from `eye`), each packed, plus
+  // `cells`: [solid cells, glass cells], in the order each part's `owners` index them.
   function buildCells(cells, eye, dim, colorMode, stageRanges) {
     const solid = [];
     const glass = [];
@@ -598,7 +414,7 @@ export function createBlockScene(config) {
         cell.density = sampled.density;
         cell.meanDensity = sampled.mean;
       }
-      cell.opacity = "stats" in cell ? statsOpacity(cell) : blockOpacity(cell);
+      cell.opacity = statsOpacity(cell);
       if (dim && dim(cell)) {
         cell.opacity *= 0.2;
       }
@@ -610,52 +426,8 @@ export function createBlockScene(config) {
       cell.eyeDistance = Math.hypot(mid[0] - eye[0], mid[1] - eye[1], mid[2] - eye[2]);
     });
     glass.sort(function (p, q) { return q.eyeDistance - p.eyeDistance; });
-    return { solid: pack(solid, true), glass: pack(glass, false), cells: [solid, glass], legend: legendFor(colorBy, ranges) };
+    return { solid: pack(solid), glass: pack(glass), cells: [solid, glass], legend: legendFor(colorBy, ranges) };
   }
 
-  return { setFilled: setFilled, build: build, buildCells: buildCells, rangesOf: statsRanges, legendOf: legendFor };
-}
-
-// Every typed array in a built scene, to hand over without copying.
-export function transferablesOf(result) {
-  const buffers = [];
-  [result.solid, result.glass].forEach(function (part) {
-    ["positions", "centers", "colors", "uvs", "alphas", "fills", "indices", "owners", "cells"].forEach(function (name) {
-      buffers.push(part[name].buffer);
-    });
-  });
-  return buffers;
-}
-
-// --- Worker ------------------------------------------------------------------
-//
-// Messages, answered in order:
-// - {type: "init", config}: createBlockScene(config);
-// - {type: "filled", points}: setFilled(points) (a POINT_STRIDE
-//   Float64Array);
-// - {type: "build", id, view}: replies {type: "built", id, result}, or
-//   {type: "failed", id, message}.
-
-if (IN_WORKER) {
-  let scene = null;
-  const handle = function (message) {
-    if (message.type === "init") {
-      scene = createBlockScene(message.config);
-    } else if (message.type === "filled") {
-      scene.setFilled(message.points);
-    } else if (message.type === "build") {
-      let result;
-      try {
-        result = scene.build(message.view);
-      } catch (err) {
-        self.postMessage({ type: "failed", id: message.id, message: String(err && err.message || err) });
-        return;
-      }
-      self.postMessage({ type: "built", id: message.id, result: result }, transferablesOf(result));
-    }
-  };
-  self.onmessage = function (event) {
-    handle(event.data);
-  };
-  waiting.splice(0).forEach(handle);
+  return { buildCells: buildCells, rangesOf: statsRanges, legendOf: legendFor };
 }

@@ -240,6 +240,9 @@ def fake(monkeypatch):
     data = FakeData()
     for name in _FAKED:
         monkeypatch.setattr(apiclient, name, getattr(data, name))
+    # The map's first frame of galaxy tiles (the sector page embeds the Galaxy Map's engine).
+    monkeypatch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
+        "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
     return data
 
 
@@ -268,6 +271,12 @@ def _csrf(app, client):
         return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
+def _page_scene(html):
+    """The map's scene data a sector page embeds (`#galaxymap3d-data`)."""
+    match = re.search(r'<script type="application/json" id="galaxymap3d-data">(.*?)</script>', html, re.S)
+    return json.loads(match.group(1))
+
+
 def _scene(client, path):
     """The sector's scene JSON (`/sector/<id>/scene`, what the map draws) for a
     sector page's `path`, query and all."""
@@ -290,8 +299,11 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     assert '<a href="/sectors">Sectors</a>' in crumbs and '<span aria-current="page">Fake Sector</span>' in crumbs
     assert "Edge 3.07 pc (10 ly)" in html and "2 systems" in html and "1 phenomenon" in html
     assert 'href="/galaxy?quadrant=' in html
-    # UX.111: the Galaxy Map locked to this sector is rebuilt for shells, bands and wedges (Maps); a notice stands in.
-    assert "galaxymap3d" not in html and 'id="map"' in html and "being rebuilt" in html
+    assert re.search(r'<script type="module" src="/static/galaxymap3d.js\?v=[^"]+"></script>', html)
+    # The map is the Galaxy Map locked to this sector (MAP.68).
+    assert 'id="galaxymap3d-canvas"' in html and "galaxymap3d-crumbs" not in html
+    assert json.loads(re.search(r'id="galaxymap3d-data">(.*?)</script>', html, re.S).group(1))["pinned"] == {
+        "shell": 5, "band": 1, "wedge": 20}
     # Contents: nearest first, systems and phenomena, plain links.
     contents = html[html.index('id="sector-contents"'):]
     assert contents.index("Other") < contents.index("Alpha") < contents.index("Veil")

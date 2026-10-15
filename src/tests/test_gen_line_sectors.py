@@ -4,9 +4,8 @@ straight segment passes through: along an axis, diagonally, through the core,
 over a pole, out into the halo, in a face and through an edge, against dense
 sampling, and each consecutive pair of a walk against the cells' neighbors.
 
-The browser twin of the old cylinder walk (`galaxyprisms.sectorsAlongSegment`)
-is rebuilt with the Galaxy Map ladder (MAP.205, MAP.206), which brings its
-comparison test back.
+The browser twin of the old cylinder walk went with the cylinder grid
+(MAP.206).
 """
 
 import math

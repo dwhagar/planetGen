@@ -23,7 +23,7 @@ Two tiers of content, matching the sprite kinds
   predicts would qualify (see `galaxyDensity.predicted_star_count`, the
   same >= 1 threshold `planetgen`'s `ensure_sector_generated`/
   `_BatchDensity` already gate real generation on), enumerated exactly
-  via `galaxyGeometry.enumerate_sectors_within_radius` -- `planned_slots_in_view`.
+  via `galaxySpherical.enumerate_sectors_within_radius` -- `planned_slots_in_view`.
   Deliberately capped to a small view radius (`PLANNED_RADIUS_CAP_PC`):
   see that function's own docstring for why an unbounded radius here
   would be catastrophic.
@@ -31,7 +31,7 @@ Predicted density itself is no longer served from here: the map's prisms
 evaluate `galaxyDensity.relative_density` in the browser
 (`static/galaxyprisms.js`).
 
-Pure and side-effect-free, like `galaxyGeometry.py`/`galaxyDensity.py` --
+Pure and side-effect-free, like `galaxySpherical.py`/`galaxyDensity.py` --
 no database or I/O; `planetgen.db.query` owns combining this with the database's
 own placed-sector rows.
 """
@@ -40,7 +40,7 @@ import heapq
 import math
 
 from planetgen.galaxy.density import predicted_star_count, relative_density
-from planetgen.galaxy.geometry import enumerate_sectors_within_radius, provisional_sector_designation
+from planetgen.galaxy.spherical import enumerate_sectors_within_radius, provisional_sector_designation
 
 PLANNED_RADIUS_CAP_PC = 40.0
 """float: The largest view radius `planned_slots_in_view` will actually
@@ -51,7 +51,7 @@ billions. Beyond this radius the map shows predicted density only (its
 prisms, computed in the browser) -- exact addresses only become worth enumerating once the
 view has actually narrowed down to something close to a "handful to a
 few dozen real sectors" neighborhood, the scale this primitive was always
-designed for (see `galaxyGeometry`'s own module docstring).
+designed for (see `galaxySpherical`'s own module docstring).
 
 Was 200 pc, which with 11.5 ly sectors meant enumerating ~770 thousand
 slots (and, before only the closest `PLANNED_MAX_RESULTS` were kept
@@ -96,7 +96,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
     docstring's own tier breakdown), each carrying its real
     `(shell_index, band_index, wedge_index)` address and a copyable
     provisional designation, ready to feed straight into `planetgen
-    galaxy --ring I --layer J --slot K`.
+    galaxy --shell I --band J --wedge K`.
 
     Args:
         center_pc (tuple): `(x, y, z)`, galaxy-frame parsecs -- the

@@ -31,7 +31,6 @@ from planetgen.web import csrf  # noqa: E402
 from planetgen.web.helpers import page_url  # noqa: E402
 
 
-from tests.maps_pending import MAPS_PENDING  # noqa: E402
 
 DB = "planetgen_galaxy_test"
 STAMP = "00000000000000aa"
@@ -94,7 +93,7 @@ class FakeData:
     def get_galaxy_stage(self, db, at=None):
         self.dbs.add(db)
         self.stage_calls.append(at)
-        return {"at": at, "child_m": 243 if at is None else 27, "children": [], "sectors": None}
+        return {"at": at, "child_m": 243 if at is None else 27, "children": [], "sectors": None, "edge_pc": 3.526}
 
     def get_galaxy_window(self, db, at, g):
         self.dbs.add(db)
@@ -141,7 +140,6 @@ def _scene(html):
 
 # --- /galaxy ------------------------------------------------------------------------
 
-@MAPS_PENDING
 def test_galaxy_page_names_the_maps_modules_up_front(client, fake):
     """MAP.161: every module the map script imports is a modulepreload hint at the very URL the
     script's own import() uses, so the browser fetches the tree in parallel and each file once."""
@@ -155,7 +153,6 @@ def test_galaxy_page_names_the_maps_modules_up_front(client, fake):
     assert html.index('rel="modulepreload"') < html.index(script)
 
 
-@MAPS_PENDING
 def test_galaxy_page_renders_map_and_quadrant_summary(client, fake, app):
     resp = client.get("/galaxy")
     html = resp.get_data(as_text=True)
@@ -178,7 +175,6 @@ def test_galaxy_page_renders_map_and_quadrant_summary(client, fake, app):
     assert not re.search(r'/galaxy[^"\s]*db=', html)
 
 
-@MAPS_PENDING
 def test_galaxy_scene_data_points_at_new_urls(client, fake, app):
     scene = _scene(client.get("/galaxy").get_data(as_text=True))
     assert scene["fetchPath"] == "/galaxy/tiles"
@@ -197,7 +193,6 @@ def test_galaxy_scene_data_points_at_new_urls(client, fake, app):
     assert scene["generate"] is None
 
 
-@MAPS_PENDING
 def test_galaxy_scene_data_gives_an_admin_the_generate_target(client, fake, monkeypatch):
     monkeypatch.setattr(apiclient, "auth_me", lambda cookie_header: {"username": "admin"})
     client.set_cookie(SESSION_COOKIE_NAME, "token-value")
@@ -207,7 +202,6 @@ def test_galaxy_scene_data_gives_an_admin_the_generate_target(client, fake, monk
     assert target["csrfToken"]
 
 
-@MAPS_PENDING
 def test_galaxy_first_view_is_written_to_the_disk_cache(client, fake):
     client.get("/galaxy")
     assert len(fake.tile_calls) == 1
@@ -217,7 +211,6 @@ def test_galaxy_first_view_is_written_to_the_disk_cache(client, fake):
     assert len(fake.tile_calls) == 1  # second view served from disk
 
 
-@MAPS_PENDING
 def test_galaxy_without_shape_shows_hint(client, fake):
     fake.shape = None
     html = client.get("/galaxy").get_data(as_text=True)
@@ -351,16 +344,16 @@ def test_tiles_endpoint_api_failure_is_json(client, fake):
 # --- /galaxy/stage -----------------------------------------------------------------------
 
 def test_stage_endpoint_serves_and_caches(client, fake):
-    first = client.get("/galaxy/stage?at=243.7.14.0")
+    first = client.get("/galaxy/stage?at=243.2.1.0")
     assert first.status_code == 200
     assert first.headers["Cache-Control"] == "no-store"
-    assert first.get_json()["at"] == "243.7.14.0"
+    assert first.get_json()["at"] == "243.2.1.0"
     assert first.get_json()["stamp"] == STAMP
     galaxy = client.get("/galaxy/stage").get_json()
     assert galaxy["child_m"] == 243
-    client.get("/galaxy/stage?at=243.7.14.0")
+    client.get("/galaxy/stage?at=243.2.1.0")
     client.get("/galaxy/stage")
-    assert fake.stage_calls == ["243.7.14.0", None]
+    assert fake.stage_calls == ["243.2.1.0", None]
     assert fake.dbs == {DB}
 
 
@@ -384,17 +377,16 @@ def test_window_endpoint_reads_big_cells_from_the_block_totals(client, fake):
     assert top["g"] == 9 and fake.window_calls[1:] == [("243.2.1.0", 9)] and fake.stage_calls == []
 
 
-@MAPS_PENDING
 def test_window_endpoint_builds_a_window_of_sectors_from_the_parent_stages(client, fake):
-    first = client.get("/galaxy/window?at=1.4.7.0&g=5")
+    first = client.get("/galaxy/window?at=1.4.1.0&g=5")
     assert first.status_code == 200
     window = first.get_json()
-    assert window["at"] == "1.4.7.0" and window["g"] == 5 and window["child_m"] == 1
-    assert window["stamp"] == STAMP and [4, 7, 0] in window["cells"] and window["children"] == []
-    assert fake.stage_calls and all(call.startswith("3.") for call in fake.stage_calls)
+    assert window["at"] == "1.4.1.0" and window["g"] == 5 and window["child_m"] == 1
+    assert window["stamp"] == STAMP and [4, 1, 0] in window["cells"] and window["children"] == []
+    assert fake.stage_calls and all(call is None or call.startswith("3.") for call in fake.stage_calls)
     assert fake.window_calls == []
     calls = list(fake.stage_calls)
-    client.get("/galaxy/window?at=1.4.7.0&g=5")
+    client.get("/galaxy/window?at=1.4.1.0&g=5")
     assert fake.stage_calls == calls  # the stages are cached
 
 
@@ -406,7 +398,6 @@ def test_window_endpoint_rejects_bad_keys_and_widths(client, fake):
     assert fake.stage_calls == [] and fake.window_calls == []
 
 
-@MAPS_PENDING
 def test_galaxy_page_offers_territories_once_polities_exist(client, fake):
     html = client.get("/galaxy").get_data(as_text=True)
     assert 'data-action="territories"' in html
@@ -414,7 +405,6 @@ def test_galaxy_page_offers_territories_once_polities_exist(client, fake):
 
 
 @pytest.mark.parametrize("failure", [None, apiclient.ApiError("down")])
-@MAPS_PENDING
 def test_galaxy_page_hides_territories_without_population(client, fake, monkeypatch, failure):
     """No polities generated (or the count can't be read): no button."""
     if failure is None:
@@ -429,7 +419,6 @@ def test_galaxy_page_hides_territories_without_population(client, fake, monkeypa
     assert _scene(html)["territoryPath"] is None
 
 
-@MAPS_PENDING
 def test_galaxy_pick_mode_banner_and_sector_links(client, fake):
     """NAV's "Pick on Galaxy Map" (design doc section 9): a banner whose
     Cancel keeps the other endpoint, and sector links that carry the
@@ -450,7 +439,6 @@ def test_galaxy_pick_mode_banner_and_sector_links(client, fake):
         assert attribute in menu
 
 
-@MAPS_PENDING
 def test_galaxy_pick_mode_for_a_start_without_a_destination(client, fake):
     html = client.get("/galaxy?pick=from").get_data(as_text=True)
     assert "Choosing a start" in html
@@ -460,7 +448,6 @@ def test_galaxy_pick_mode_for_a_start_without_a_destination(client, fake):
 
 
 @pytest.mark.parametrize("query", ["", "?pick=sideways", "?pick=to&from=bogus"])
-@MAPS_PENDING
 def test_galaxy_without_a_valid_pick_has_no_banner(client, fake, query):
     html = client.get("/galaxy" + query).get_data(as_text=True)
     assert "pick-banner" not in html
@@ -505,7 +492,6 @@ def test_territories_endpoint_reports_an_api_failure(client, fake, monkeypatch):
 
 # --- The NAV course overlay --------------------------------------------------------------
 
-@MAPS_PENDING
 def test_galaxy_page_draws_a_course(client, fake, monkeypatch):
     """`?course=<from>,<to>` embeds the course `nav_page.galaxy_course`
     works out, and says what it is showing."""
@@ -525,7 +511,6 @@ def test_galaxy_page_draws_a_course(client, fake, monkeypatch):
     assert 'href="/nav?from=system:1&amp;to=system:2"' in html
 
 
-@MAPS_PENDING
 def test_galaxy_page_shows_the_course_legend_and_readout(client, fake, monkeypatch):
     """NAV.20: the page names both line styles, the course's numbers and the stops as links."""
     from planetgen.web import nav_page
@@ -549,14 +534,12 @@ def test_galaxy_page_shows_the_course_legend_and_readout(client, fake, monkeypat
     assert "Direct line" not in client.get("/galaxy?course=system:1,system:2").get_data(as_text=True)
 
 
-@MAPS_PENDING
 def test_galaxy_page_without_a_course(client, fake):
     assert _scene(client.get("/galaxy").get_data(as_text=True))["course"] is None
     # A malformed value asks nothing and draws nothing.
     assert _scene(client.get("/galaxy?course=system:1").get_data(as_text=True))["course"] is None
 
 
-@MAPS_PENDING
 def test_galaxy_page_rings_the_sectors_a_job_made(client, fake, monkeypatch):
     """ADM.31: `?made=<since>,<until>` embeds the sectors a run made and says how many."""
     asked = []
@@ -703,7 +686,6 @@ def _place_sector(mysql_config, name, address=(5, 1, 20)):
         conn.close()
 
 
-@MAPS_PENDING
 def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     sector_id = _place_sector(mysql_config, "Real <Placed>")
     resp = db_client.get("/galaxy")
@@ -731,7 +713,7 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     assert any(names for _root, _dirs, names in os.walk(tmp_path / "tiles"))
 
 
-# --- /galaxy/uncharted/<ring>/<layer>/<slot>/scene (MAP.162) -----------------------------
+# --- /galaxy/uncharted/<shell>/<band>/<wedge>/scene (MAP.162) -----------------------------
 
 def _uncharted_cell(**overrides):
     cell = {"shell_index": 3, "band_index": 0, "wedge_index": 1, "designation": "ABC", "center_pc": [100.0, 50.0, 0.0],
@@ -744,19 +726,18 @@ def _uncharted_cell(**overrides):
     return cell
 
 
-@MAPS_PENDING
 def test_the_galaxy_page_gives_the_map_the_uncharted_scene_url(client, fake, app):
     scene = _scene(client.get("/galaxy").get_data(as_text=True))
     with app.test_request_context("/"):
-        assert scene["unchartedSceneUrl"].replace("{ring}", "3").replace("{layer}", "-2").replace("{slot}", "7") == url_for(
-            "web.galaxy_uncharted_scene", ring=3, layer=-2, slot=7)
+        assert scene["unchartedSceneUrl"].replace("{shell}", "3").replace("{band}", "-2").replace("{wedge}", "7") == url_for(
+            "web.galaxy_uncharted_scene", shell=3, band=-2, wedge=7)
 
 
 def test_the_uncharted_scene_endpoint_serves_the_cells_objects_marked_uncharted(client, fake, monkeypatch):
     calls = []
 
-    def cell(db, ring, layer, slot):
-        calls.append((db, ring, layer, slot))
+    def cell(db, shell, band, wedge):
+        calls.append((db, shell, band, wedge))
         return _uncharted_cell()
 
     monkeypatch.setattr(apiclient, "get_uncharted_sector", cell)
@@ -818,9 +799,3 @@ def test_a_page_that_waited_on_a_locked_row_answers_503_and_asks_again(client, f
     response = client.get("/galaxy")
     assert response.status_code == 503 and response.headers["Retry-After"] == "10"
     assert '<meta http-equiv="refresh" content="10">' in response.get_data(as_text=True)
-
-
-def test_the_galaxy_page_says_the_map_is_being_rebuilt(client, fake):
-    """UX.111: until Maps rebuilds the 3D map, the page shows a notice where it was, and the quadrant table stays."""
-    html = client.get("/galaxy").get_data(as_text=True)
-    assert "being rebuilt" in html and "galaxymap3d" not in html

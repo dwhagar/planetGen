@@ -3280,6 +3280,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss's report 2026-10-15 07:44Z.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
+- [ ] **GEN.230 Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug)**
+  Found by Quality's grid fuzz tests (branch claude/test158, not merged
+  yet). `DESIGNATION_BAND_BITS` in `src/planetgen/galaxy/spherical.py`
+  is 12, so the band field holds -2048 to 2047, but a shell's top band
+  (the polar cap) is about 1.57 times the shell number. From shell 1304
+  outward every cap and high-latitude band is out of range, and the
+  default Milky Way reaches shell 3764 with bands up to about plus or
+  minus 5,900. For those cells `provisional_sector_designation` and
+  `describe_sector_cell` raise ValueError. Sectors in the disk plane are
+  unaffected, so the bug is latent: it shows in the halo and over the
+  poles and in `/api/galaxy/cell` lookups there. Done: the band field is
+  wide enough for the deepest shell the galaxy can reach (14 bits), the
+  birth-field layout is decided and documented (shell 12 + band 14 +
+  wedge 15 is 41 bits, one more than the 40-bit birth field, so the
+  layout needs a decision, and it may change the object ID design), the
+  designation round-trips for every cell of the default galaxy, and
+  `test_designation_rejects_bands_outside_its_bit_field` in
+  `src/tests/test_fuzz_galaxy_grid.py` is updated by whoever fixes it.
+  Owner: Core (2026-10-15). A layout change reaches stored designations,
+  so it is Core's migration and is decided before more sectors are
+  created in the halo. Bug.
+  Prerequisites: none. Related: GEN.229.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3636,38 +3659,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.101 No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug)**
-  Boss (2026-10-15 05:30Z): "Why is there no update going on for the
-  phenomena indexes? There has to be something we can track, during a
-  phase with no updates the whole task bar should also still have an
-  estimated time remaining based on previous statistics or how long the
-  run has taken per task so far." Today the phase "Building the
-  phenomena indexes" (run_plan.py, step phenomena-index) is one pass
-  over the whole phenomenon_scatter table and says outright that there
-  is no progress until it is done. Fix: build the indexes so something
-  is countable (one index at a time, or chunks), so the step reports
-  progress; and when any phase reports nothing, the whole task bar still
-  shows an estimated time remaining from earlier runs' stage timings, or
-  from the time per task so far in this run. The same fallback must be
-  part of PERF.96's ETA function (see its acceptance), so it survives
-  the move to the Redis run record. Owner: Database,
-  together with PERF.96 (Boss retired the bug lanes, 2026-10-15
-  05:39Z).
-  Prerequisites: none. Related: PERF.96 (done, PR #1553), PERF.33 (done, PR #1553).
-
 - [ ] **PERF.102 The migration progress display shows no estimated time remaining on either bar (bug)**
   Boss (2026-10-15 15:54 EDT), on his test server: "migration ETA
   doesn't work". During a migration run the progress bars and the
   elapsed time show, but neither bar shows an estimated time remaining.
-  Owner: Core (2026-10-15), grouped with PERF.101, which has the same
+  Owner: Core (2026-10-15), grouped with PERF.101 (done, PR #1620), which had the same
   symptom for the phenomena index build. Done: the migration progress
   display (`planetgen.cli.migrate`, run from update.sh) shows an estimated time
   remaining on both bars from the first step that reports progress, and
   a step with no progress updates says so instead of showing nothing; a
   test covers the estimate for a step that reports progress and a step
-  that does not. Shares the progress and ETA code with PERF.101: fix
-  them together or in order. Bug.
-  Prerequisites: none. Related: PERF.101.
+  that does not. Reuses the progress and ETA code PERF.101 fixed. Bug.
+  Prerequisites: none. Related: PERF.101 (done, PR #1620).
 
 ## DB: Database and schema
 
@@ -5134,8 +5137,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the three map-ui design docs. Open the Boss-facing decisions these
   touch as they are made.
   Docs sweep (2026-10-09): Docs sweep (2026-10-14): the cli.md items are
-  covered by DOC.36 (done, PR #1616), the database-schema.md ones by DOC.33 and DOC.32,
-  the html-interface.md ones by DOC.31 and the system-file format ones
+  covered by DOC.36 (done, PR #1616), the database-schema.md ones by DOC.33 and DOC.32 (done, PR #1625),
+  the html-interface.md ones by DOC.31 (done, PR #1625) and the system-file format ones
   by DOC.30; the docstring ones by DOC.21. This item stays only for what
   none of those cover (docs/deployment/macos.md 'Monthly orbit update'
   wording); retire it when the others are done. Note the bright-star
@@ -5366,90 +5369,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the switch.
   Prerequisites: none. Related: PERF.88.
 
-- [ ] **DOC.27 Update the architecture.md flows and add a design-notes index at docs/design/README.md**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  4, 7 and 9. Flow 3 still says localStorage and JSON tiles, but the map
-  uses IndexedDB and packed binary tiles (MAP.158, MAP.159); no design
-  note is listed in architecture.md or any index, and three imported
-  notes have no inbound link. Done: the flows match the code and
-  docs/design/README.md lists every note with its status line.
-  Progress (PR #1598, Quality): the design-notes index at docs/design/README.md
-  is done. The architecture.md flows wait for the spherical switch,
-  because they name the ring, layer and slot modules.
-  Prerequisites: none.
-
-- [ ] **DOC.28 Rewrite the code map in docs/design/architecture.md for the planetgen packages**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  1 to 3, 5, 6 and 8. The whole src/stellarObjects map (lines 124 to
-  253) and the Flow 1 names describe modules that no longer exist (the
-  folder holds only pycache) with 11 dead links; it still says astropy
-  is read for constants (dropped, GEN.211), CI runs Python 3.9 and 3.12
-  (it runs 3.12 and 3.13) and the Planned restructuring is still
-  planned; more than 130 planetgen modules are not mentioned. Done: one
-  line per real module, no dead link, and docs/design/architecture.html
-  (the architecture artifact) is rebuilt from it.
-  Prerequisites: none.
-
-- [ ] **DOC.31 Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  29 to 38, 40 and 42. Numberformat.js row is stale (the rule is 7 or
-  more whole digits with no decimals, 5 or more with decimals, UX.36);
-  mdconvert.py should be mdrender.py and api/app.py should be
-  web/app.py; the / and /systems rows describe pages UX.55 redesigned;
-  routes are missing (/nearby, /nav/chart, /table/name,
-  /galaxy/uncharted, /galaxy/nebula, the job stream and log routes,
-  several admin routes); the header section list lacks Nearby and
-  Species; search parameters omit equipment, moon_equipment, phenomenon,
-  phenomenon_class and phenomena_page; the 503 Busy and 504 pages are
-  not mentioned; config.md line 164 and api/limiter.py line 99 omit
-  /galaxy/window from the galaxy_tiles scope; the doc says DBUtils is
-  needed. Two PRs if it grows: routes, then the rest. Done: every route
-  in the web app is in the table. Covers the html-interface.md part of
-  DOC.4.
-  Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.32 Update database-schema.md: control schema, missing tables and columns, old module names**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  20 to 25. The control schema section says 13 tables at v9; the code
-  has 18 at v14 (version_key_history, work_job_args and
-  generation_stage_runs are undocumented). No section exists for
-  phenomenon_scatter, nebula_shape_balls, generation_run_arguments,
-  id_blocks, id_counters or sector_system_counts; generation_runs still
-  lists an arguments column that moved in v63;
-  system_configs.prevalence_* and sector_stats.bright_mass_sol are
-  missing; old module names remain (doubleStar.py, planetData.py,
-  systemData.py and others). Done: every table and column in
-  db/models.py is described and a test or script compares the doc with
-  the models.
-  Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.33 Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  18, 19 and 26 to 28. Versioning still says v52 and describes
-  _migrate_vN_to_vN+1 functions that no longer exist (databases below
-  v61 raise SchemaTooOldError); the Planned changes table lists mostly
-  built items (DB.7, GEN.69, GEN.70, GEN.85 to GEN.89, OPS.13 and
-  others). Done: a short Versioning section points to
-  db/migrations/versions and the old-schema fixtures, and Planned
-  changes lists only what is still open. Covers the database-schema.md
-  part of DOC.4.
-  Prerequisites: none. Related: DOC.4.
-
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -5461,15 +5380,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
   Prerequisites: UX.105, GEN.218, GEN.219.
 
-- [ ] **DOC.46 Docs for the spherical sector grid**
-  `galaxy-coordinate-system.md` rewritten, the cylinder design archived,
-  README, INSTALL and the docs sweep updated. Owner: documentation,
-  after the reads item. Source: item 10 of section 6 of the plan. Boss
-  decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
-  pole make a wedge (vert), shell (radius), and band (horizontal),
-  together they identify a single 3D segment of the sphere". TOP
-  PRIORITY in Phase 1, ahead of every lane queue.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+- [ ] **DOC.47 Rebuild docs/design/architecture.html from the new architecture.md**
+  Found by Quality after DOC.27 and DOC.28 (PR #1628) rewrote the code
+  map and flows in docs/architecture.md for the shell grid. The
+  illustrated snapshot `docs/design/architecture.html` is still dated
+  2026-10-07 and the README links it, so it shows the cylinder grid and
+  the old code map. Done: the page is rebuilt from the new
+  architecture.md (same layout, dated the day it is rebuilt), names
+  shells, bands and wedges instead of rings, layers and slots, and the
+  README link and every `architecture.html` reference in the docs still
+  point at it. Owner: Quality (2026-10-15), after the Core and Maps
+  changes settle, so the snapshot is not stale on the day it is made.
+  Not a bug.
+  Prerequisites: none. Related: DOC.27, DOC.28 (done, PR #1628).
 
 ## VIEW: The view from a planet
 

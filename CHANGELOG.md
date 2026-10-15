@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1366] - 2026-10-15
+
+**Headline:** The plan files the bug that sector designations cannot name bands beyond 2047.
+
+### Changed
+- Filed GEN.230 (Core, bug): the 12-bit band field in sector designations and object-ID birth fields fails for the polar caps and high-latitude bands from shell 1304 outward.
+
+TODO items resolved: none / Added: GEN.230
+
+## [8.0.1365] - 2026-10-15
+
+**Headline:** The plan retires six more documentation items and files the rebuild of the architecture snapshot page.
+
+### Changed
+- Retired DOC.31, DOC.32 and DOC.33 (done, PR #1625), DOC.46 (done, PR #1627) and DOC.27 and DOC.28 (done, PR #1628).
+- Filed DOC.47 (Quality): rebuild `docs/design/architecture.html` from the new architecture.md.
+
+TODO items resolved: DOC.31, DOC.32, DOC.33, DOC.46, DOC.27, DOC.28 / Added: DOC.47
+
+## [8.0.1364] - 2026-10-15
+
+**Headline:** The plan retires PERF.101, the missing progress and time remaining while the phenomena indexes are built.
+
+### Changed
+- Retired PERF.101 (done, PR #1620); PERF.102 now follows it as the same progress and ETA fix for the migration bars.
+
+TODO items resolved: PERF.101 / Added: none
+
 ## [8.0.1363] - 2026-10-15
 
 **Headline:** The architecture document describes the code as it is now, module by module.
