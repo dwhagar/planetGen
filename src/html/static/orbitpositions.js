@@ -9,6 +9,10 @@
 // Barker orbits, a close pair either side of the barycenter by the other's
 // mass fraction. tests/test_js_unit.py checks the two copies against each other.
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
+
 const AU_KM = 149597870.7;
 const TWO_PI = 2 * Math.PI;
 const MU_AU3_YR2_PER_SOLAR_MASS = 4 * Math.PI * Math.PI;
@@ -188,11 +192,11 @@ export function cometOrbitFields(orbit) {
   const fields = [];
   if (orbit.type === "elliptical") {
     const period = k.period_years;
-    fields.push(["Orbit", "Bound, returns every " + (period >= 1000 ? Math.round(period).toLocaleString("en-US") : period.toPrecision(3)) + " years"]);
+    fields.push(["Orbit", "Bound, returns every " + formatPeriodYears(period)]);
   } else {
     fields.push(["Orbit", "Unbound: passes the star once and does not return"]);
   }
-  fields.push(["Perihelion", (k.perihelion_distance_km / AU_KM).toPrecision(3) + " AU"]);
+  fields.push(["Perihelion", formatDistanceKm(k.perihelion_distance_km)]);
   fields.push(["Eccentricity", k.eccentricity.toFixed(orbit.type === "elliptical" ? 3 : 4)]);
   return fields;
 }
