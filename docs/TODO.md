@@ -3241,22 +3241,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stop (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **GEN.228 Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug)**
-  Boss, 2026-10-15 07:44Z: binary star systems must be stable. Check the
-  Hill sphere of not only the two stars but of the farther orbit on
-  each, so the orbital paths of a wide binary never intersect. Boss has
-  seen two systems in his last generated galaxy whose wide-binary paths
-  overlap significantly and would eventually cause planetary collisions
-  and chaos, and does not want to deal with that. Done: generating a
-  binary rejects or moves any layout where the outermost stable orbit of
-  either star (limited by its Hill sphere in the pair) reaches the other
-  star's orbit region or planet paths; a test generates many wide
-  binaries and finds none whose orbital paths overlap. Follow-up check,
-  in this item: do the already generated wide binaries need a repair or
-  re-roll pass? Report how many break the rule; the repair itself needs
-  Boss's word. Owner: Generate lane, queued after the sector remapping
-  (the spherical switch, PR #1607, has merged).
-  Prerequisites: none.
+- [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
+  GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
+  check-db --deep --wide-binaries`, which counts the existing unstable
+  ones. Boss (2026-10-15 07:44Z) saw two in his last galaxy whose
+  orbital paths overlap and would end in planetary collisions. Run the
+  count and report how many break the rule; the repair or re-roll itself
+  needs Boss's word before anything is changed. Owner: Core. Source:
+  Boss's report 2026-10-15 07:44Z.
+  Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
