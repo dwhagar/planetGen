@@ -5138,7 +5138,7 @@ clears each one.
   resume flag starts a new log; a log for another build is kept for a
   day, then removed. Done when the log and the build id exist with tests
   (the id changes when any of those inputs change and not otherwise).
-  Prerequisites: TEST.133. Related: TEST.148, TEST.139.
+  Prerequisite: TEST.133. Related: TEST.148, TEST.139.
 
 - [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
   Option A of TEST.148. `scripts/test.py <command> --resume` computes
@@ -5153,7 +5153,7 @@ clears each one.
   so: a PR that used one says which build and run it continued. Done
   when a run killed in either phase resumes and finishes with the same
   verdict a full run gives, with tests for the skip list.
-  Prerequisites: TEST.150. Related: TEST.148, TEST.139.
+  Prerequisite: TEST.150. Related: TEST.148, TEST.139.
 
 - [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
   Option A of TEST.148. A killed run can leave keys on the shared Redis:
@@ -5166,7 +5166,7 @@ clears each one.
   the labelling rule (a resumed run says so in its last line and in the
   PR). Done when a killed run leaves nothing that changes a resumed
   run's result and the guide matches.
-  Prerequisites: TEST.151. Related: TEST.148, TEST.139.
+  Prerequisite: TEST.151. Related: TEST.148, TEST.139.
 
 ## USR: User accounts
 
@@ -5522,27 +5522,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   edits his Redis config. One Redis instance; no password while it binds
   loopback (it does today), an ACL user documented for later.
   Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
-
-- [ ] **OPS.49 update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug)**
-  Boss, 2026-10-14 21:36Z: after the OPS.47 fix, update.sh runs steps 1
-  to 4 on the rebuilt venv (cryptography 50.0.2, pymysql 1.2.3,
-  SQLAlchemy 2.1.3, alembic 1.20.0, math check passed) and then fails at
-  step 5, Migrating the configured MySQL database, with: error:
-  'NoneType' object has no attribute 'is_auth_switch_request'. That text
-  comes from pymysql's login handshake, so the cause is probably the
-  auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
-  version, not the schema. Reproduce it against MySQL 8 and the lock
-  file, check the locked versions against ones known to work with that
-  plugin, fix the cause by adapting to the current library, and make the update
-  print a clear error naming the login problem instead of the bare
-  exception.
-  Cause found by Bugfixes lane 1 (2026-10-14 22:41Z, reproduced on a real
-  MySQL 8.0): pymysql 1.2.1 to 1.2.3 return nothing from the caching_sha2
-  full login on a connection without TLS. Decided (Boss, 2026-10-14
-  22:46Z): no pin below 1.2.1; keep the current pymysql and adapt our
-  connection code to it, and make every database login failure name the
-  server and account.
-  Prerequisites: none.
 
 ## DOC: Documentation
 
