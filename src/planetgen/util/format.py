@@ -155,12 +155,14 @@ def pick_rung(ladder, value):
     return rung
 
 
-def format_quantity(ladder, value):
+def format_quantity(ladder, value, companions=True):
     """
     The site's one unit formatter (UX.23): `value`, in the ladder's base
     unit, in the most meaningful unit on `ladder` (`planetgen.util.ladders`),
     to three significant figures in `format_number`'s style. A rung that
-    carries an aside adds one more familiar unit in parentheses.
+    carries an aside adds one more familiar unit in parentheses, and the
+    ladder's companion units (°C and °F beside K, atm and psi beside Pa)
+    follow in their own parentheses unless `companions` is false.
     `static/unitladder.js` mirrors it; tests/test_unit_ladders.py checks the
     two against one table.
 
@@ -180,7 +182,26 @@ def format_quantity(ladder, value):
     text = _in_rung(rung, value)
     if rung.with_aside:
         text += f" ({_in_rung(ladder.rung(_aside_symbol(ladder, value)), value)})"
+    if companions:
+        shown = [f"{_companion_number(companion, value)} {companion.symbol}"
+                 for companion in ladder.companions if _companion_applies(companion, value)]
+        if shown:
+            text += f" ({', '.join(shown)})"
     return text
+
+
+def _companion_applies(companion, value):
+    """True when a companion unit is shown beside `value`: its size is in the companion's range."""
+    size = abs(value)
+    if companion.min_size is not None and size < companion.min_size:
+        return False
+    return companion.max_size is None or size < companion.max_size
+
+
+def _companion_number(companion, value):
+    """`value` in a companion unit, without the symbol."""
+    number = (value - companion.offset) / companion.factor
+    return _whole_or_tenths(number) if companion.whole else _three_figures_or_tiny(number)
 
 
 def _aside_symbol(ladder, value):
@@ -296,30 +317,25 @@ def _whole_or_tenths(value):
     return "0" if text in ("-0", "+0") else text
 
 
-def format_temperature_k(kelvin):
+def format_temperature_k(kelvin, companions=True):
     """
     A surface temperature in kelvin with Celsius and Fahrenheit alongside
     (Boss, 2026-10-01: "temperatures should be reported in K, C, and F for
     surface conditions"). Kelvin to three significant figures in
-    `format_distance_m`'s number style; °C and °F to whole degrees, or one
-    decimal when under 10 in size. Star effective temperatures stay in K
-    alone and don't use this.
+    `format_distance_m`'s number style (mK, µK and nK under 1 K); °C and °F
+    to whole degrees, or one decimal when under 10 in size. A star's
+    temperature, or any that is not a surface condition, stays in K alone:
+    pass `companions=False`.
 
     Args:
         kelvin (float): The temperature, in K.
+        companions (bool, optional): Show °C and °F too. Defaults to True.
 
     Returns:
         str: e.g. "288 K (15 °C, 59 °F)", "737 K (464 °C, 867 °F)". `None`
              gives an en dash.
     """
-    if kelvin is None:
-        return "–"
-    kelvin = float(kelvin)
-    if not math.isfinite(kelvin):
-        return f"{kelvin:g} K"
-    celsius = kelvin - physical_constants.CELSIUS_ZERO_K
-    fahrenheit = celsius * 9 / 5 + 32
-    return f"{_three_figures(kelvin)} K ({_whole_or_tenths(celsius)} °C, {_whole_or_tenths(fahrenheit)} °F)"
+    return format_quantity(ladders.TEMPERATURE, kelvin, companions)
 
 
 def _three_figures_or_tiny(value):
@@ -330,50 +346,59 @@ def _three_figures_or_tiny(value):
     return _three_figures(value)
 
 
-# The pressure ladder, smallest first: (label, pascals). A pressure is
-# shown in the largest unit it is at least 1 of.
-PRESSURE_LADDER = (
-    ("Pa", 1.0),
-    ("kPa", 1e3),
-    ("MPa", 1e6),
-    ("GPa", 1e9),
-)
-
-
-def format_pressure_pa(pascals):
+def format_pressure_pa(pascals, companions=True):
     """
-    A pressure with a metric primary on the Pa < kPa < MPa < GPa ladder and
-    customary atm and psi alongside, all to three significant figures
-    (Boss, 2026-10-01: "Atmospheric pressure and surface conditions should
-    show customary units as well as a secondary to help contextualize the
-    metric values given").
+    A pressure with a metric primary on the nPa to TPa ladder and customary
+    atm and psi alongside, all to three significant figures (Boss,
+    2026-10-01: "Atmospheric pressure and surface conditions should show
+    customary units as well as a secondary to help contextualize the metric
+    values given"); bar joins them from 10 atm to 10,000 atm and mbar from 1 Pa
+    to 0.01 atm.
 
     Args:
         pascals (float): The pressure, in Pa (the schema's
             `atmospheric_pressure_pa`).
+        companions (bool, optional): Show atm, psi and the rest too.
+            Defaults to True.
 
     Returns:
         str: e.g. "101 kPa (1 atm, 14.7 psi)", "9.2 MPa (90.8 atm,
-             1,334 psi)". `None` gives an en dash.
+             1,334 psi, 92 bar)". `None` gives an en dash.
     """
-    if pascals is None:
-        return "–"
-    pascals = float(pascals)
-    if not math.isfinite(pascals):
-        return f"{pascals:g} Pa"
-    size = abs(pascals)
-    label, unit_pa = PRESSURE_LADDER[0]
-    for candidate_label, candidate_pa in PRESSURE_LADDER:
-        if size >= candidate_pa * (1 - 1e-12):
-            label, unit_pa = candidate_label, candidate_pa
-    atm = _three_figures_or_tiny(pascals / physical_constants.STANDARD_ATMOSPHERE_PA)
-    psi = _three_figures_or_tiny(pascals / physical_constants.PSI_PA)
-    return f"{_three_figures(pascals / unit_pa)} {label} ({atm} atm, {psi} psi)"
+    return format_quantity(ladders.PRESSURE, pascals, companions)
 
 
 def format_pressure_atm(atm):
     """`format_pressure_pa` for a value in standard atmospheres."""
     return format_pressure_pa(None if atm is None else atm * physical_constants.STANDARD_ATMOSPHERE_PA)
+
+
+def format_gravity_g(gravity_g):
+    """
+    A surface gravity in m/s² with standard gravity beside it, "3.71 m/s²
+    (0.378 g)", for property grids and generator text; a bare "g" would
+    collide with the gram, so it never stands alone there. A list row uses
+    `format_gravity_g_short`.
+
+    Args:
+        gravity_g (float): The gravity, in multiples of standard gravity
+            (the schema's `gravity_g`).
+
+    Returns:
+        str: `None` gives an en dash.
+    """
+    return format_quantity(ladders.GRAVITY, None if gravity_g is None else gravity_g * physical_constants.EARTH_GRAVITY)
+
+
+def format_gravity_g_short(gravity_g):
+    """`gravity_g` as "0.378 g" alone, for a list row's chip (UX.22: rows and
+    chips show the primary unit; the m/s² is in the detail panel)."""
+    if gravity_g is None:
+        return "–"
+    gravity_g = float(gravity_g)
+    if not math.isfinite(gravity_g):
+        return "–" if math.isnan(gravity_g) else f"{gravity_g:g} g"
+    return f"{_three_figures_or_tiny(gravity_g)} g"
 
 
 def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):

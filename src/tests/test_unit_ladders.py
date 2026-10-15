@@ -91,7 +91,11 @@ def _astropy_factor(symbol):
     named = {"km": u.km, "AU": u.au, "mpc": u.mpc, "cpc": 0.01 * u.pc, "ly": u.lyr, "pc": u.pc, "kpc": u.kpc,
              "Mpc": u.Mpc, "Gpc": u.Gpc, "km/h": u.km / u.hr, "km/s": u.km / u.s, "Mm/s": u.Mm / u.s,
              "c": const.c, "µs": u.us, "ms": u.ms, "s": u.s, "minutes": u.min, "hours": u.hr, "days": u.day,
-             "years": u.year, "kyr": u.kyr, "Myr": u.Myr, "Gyr": u.Gyr}
+             "years": u.year, "kyr": u.kyr, "Myr": u.Myr, "Gyr": u.Gyr,
+             "nK": 1e-9 * u.K, "µK": u.uK, "mK": u.mK, "K": u.K,
+             "nPa": 1e-9 * u.Pa, "µPa": u.uPa, "mPa": u.mPa, "Pa": u.Pa, "kPa": u.kPa, "MPa": u.MPa, "GPa": u.GPa,
+             "TPa": 1e12 * u.Pa, "m/s²": u.m / u.s ** 2, "bar": u.bar, "mbar": u.mbar,
+             "g": const.g0}
     quantity = named.get(symbol)
     if quantity is None:
         return None
@@ -106,6 +110,27 @@ def test_every_factor_agrees_with_astropy(ladder):
         expected = _astropy_factor(rung.symbol)
         assert expected is not None, f"add {rung.symbol} to the astropy table in this test"
         assert rung.factor == pytest.approx(expected, rel=1e-12), rung.symbol
+    # No atm (astropy has none), psi (its imperial.psi is rounded, 1.4e-8 off), °C or °F (affine).
+    for companion in ladder.companions:
+        expected = _astropy_factor(companion.symbol)
+        if expected is not None:
+            assert companion.factor == pytest.approx(expected, rel=1e-12), companion.symbol
+
+
+def test_the_temperature_companions_agree_with_astropys_scales():
+    u = pytest.importorskip("astropy.units")
+    for kelvin in (0.0, 100.0, 273.15, 288.0, 5778.0):
+        celsius, fahrenheit = ladders.TEMPERATURE.companions
+        assert (kelvin - celsius.offset) / celsius.factor == pytest.approx(
+            (kelvin * u.K).to(u.deg_C, u.temperature()).value, abs=1e-9)
+        assert (kelvin - fahrenheit.offset) / fahrenheit.factor == pytest.approx(
+            (kelvin * u.K).to(u.imperial.deg_F, u.temperature()).value, abs=1e-9)
+
+
+def test_atm_and_psi_are_the_exact_definitions():
+    atm, psi = ladders.PRESSURE.companions[:2]
+    assert atm.factor == 101_325
+    assert psi.factor == pytest.approx(4.4482216152605 / 0.0254 ** 2, rel=1e-15)  # lbf (exact, in N) per square inch
 
 
 @pytest.mark.parametrize("ladder", ladders.LADDERS, ids=lambda ladder: ladder.quantity)

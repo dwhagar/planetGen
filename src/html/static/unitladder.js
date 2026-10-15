@@ -25,6 +25,36 @@ export const AU_M = factorOf(LADDERS.length, "AU");
 export const LIGHTYEAR_M = factorOf(LADDERS.length, "ly");
 export const PARSEC_M = factorOf(LADDERS.length, "pc");
 export const SECONDS_PER_YEAR = factorOf(LADDERS.time, "years");
+const companionOf = (ladder, symbol) => ladder.companions.find((companion) => companion.symbol === symbol).factor;
+export const STANDARD_ATMOSPHERE_PA = companionOf(LADDERS.pressure, "atm");
+export const STANDARD_GRAVITY = companionOf(LADDERS.gravity, "g");
+
+// Three significant figures, or scientific notation under TINY_NUMBER, where a
+// unit would otherwise run to a row of zeros (planetgen/util/format.py
+// `_three_figures_or_tiny`).
+function threeFiguresOrTiny(number) {
+  return number !== 0 && Math.abs(number) < TINY_NUMBER ? scientificText(number) : threeFigures(number);
+}
+
+// `number` to whole units, or one decimal when under 10 in size ("15",
+// "5.9", "0"): `_whole_or_tenths`.
+function wholeOrTenths(number) {
+  let text = formatNumber(number, Math.abs(number) < 10 ? 1 : 0);
+  if (text.endsWith(".0")) {
+    text = text.slice(0, -2);
+  }
+  return text === "-0" || text === "+0" ? "0" : text;
+}
+
+// True when a companion unit is shown beside `value`: its size is in the
+// companion's range (`_companion_applies`).
+function companionApplies(companion, value) {
+  const size = Math.abs(value);
+  if (companion.min_size !== null && size < companion.min_size) {
+    return false;
+  }
+  return companion.max_size === null || size < companion.max_size;
+}
 
 // `value` (in the rung's base unit) in the rung's unit: three significant
 // figures, or a whole number from the rung's `whole_from`, or scientific
@@ -35,7 +65,7 @@ function inRung(rung, value, spoken) {
   if (rung.whole_from !== null && Math.abs(value) >= rung.whole_from) {
     return formatNumber(number) + " " + (spoken ? rung.name : rung.symbol);
   }
-  const text = number !== 0 && Math.abs(number) < TINY_NUMBER ? scientificText(number) : threeFigures(number);
+  const text = threeFiguresOrTiny(number);
   if (spoken) {
     return text + " " + rung.name;
   }
@@ -60,8 +90,9 @@ export function pickRung(ladder, value) {
 
 // `value` (in `ladder`'s base unit) as text; an en dash for null and NaN.
 // `spoken` spells the units out ("1.5 astronomical units"), for
-// `aria-valuetext` and the like.
-export function formatQuantity(ladder, value, spoken = false) {
+// `aria-valuetext` and the like; `companions: false` leaves out the units
+// beside the primary one (°C and °F beside K).
+export function formatQuantity(ladder, value, { spoken = false, companions = true } = {}) {
   if (value == null || isNaN(value)) {
     return "–";
   }
@@ -75,6 +106,15 @@ export function formatQuantity(ladder, value, spoken = false) {
     const [, symbol] = ladder.asides.find(([start]) => size >= start);
     text += " (" + inRung(ladder.rungs.find((candidate) => candidate.symbol === symbol), value, spoken) + ")";
   }
+  if (companions) {
+    const shown = ladder.companions.filter((companion) => companionApplies(companion, value)).map((companion) => {
+      const number = (value - companion.offset) / companion.factor;
+      return (companion.whole ? wholeOrTenths(number) : threeFiguresOrTiny(number)) + " " + (spoken ? companion.name : companion.symbol);
+    });
+    if (shown.length) {
+      text += " (" + shown.join(", ") + ")";
+    }
+  }
   return text;
 }
 
@@ -87,7 +127,7 @@ const scaled = (value, factor) => (value == null ? value : value * factor);
 
 export const formatDistanceM = (meters) => formatQuantity(LADDERS.length, meters);
 export const formatDistanceKm = (km) => formatDistanceM(scaled(km, KM_M));
-export const formatDistanceKmSpoken = (km) => formatQuantity(LADDERS.length, scaled(km, KM_M), true);
+export const formatDistanceKmSpoken = (km) => formatQuantity(LADDERS.length, scaled(km, KM_M), { spoken: true });
 export const formatDistanceAu = (au) => formatDistanceM(scaled(au, AU_M));
 export const formatDistanceLy = (ly) => formatDistanceM(scaled(ly, LIGHTYEAR_M));
 export const formatDistancePc = (pc) => formatDistanceM(scaled(pc, PARSEC_M));
@@ -97,3 +137,12 @@ export const formatSpeedKms = (kms) => formatSpeedMs(scaled(kms, KM_M));
 
 export const formatDurationSeconds = (seconds) => formatQuantity(LADDERS.time, seconds);
 export const formatPeriodYears = (years) => formatDurationSeconds(scaled(years, SECONDS_PER_YEAR));
+
+// A surface temperature with °C and °F beside it, or in K alone.
+export const formatTemperatureK = (kelvin, companions = true) => formatQuantity(LADDERS.temperature, kelvin, { companions });
+
+export const formatPressurePa = (pascals) => formatQuantity(LADDERS.pressure, pascals);
+export const formatPressureAtm = (atm) => formatPressurePa(scaled(atm, STANDARD_ATMOSPHERE_PA));
+
+// "3.71 m/s² (0.378 g)" for a gravity in multiples of standard gravity.
+export const formatGravityG = (g) => formatQuantity(LADDERS.gravity, scaled(g, STANDARD_GRAVITY));

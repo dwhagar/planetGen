@@ -44,6 +44,7 @@ def render():
             f"  {_json(ladder.quantity)}: {{\n"
             f"    \"base\": {_json(ladder.base)}, \"nonfinite\": {_json(ladder.nonfinite)}, \"zero\": {_json(ladder.zero)},\n"
             f"    \"asides\": {_json([list(aside) for aside in ladder.asides])},\n"
+            f"    \"companions\": {_json([dataclasses.asdict(companion) for companion in ladder.companions])},\n"
             f"    \"rungs\": [\n{rungs},\n    ],\n"
             f"  }},\n")
     return (
