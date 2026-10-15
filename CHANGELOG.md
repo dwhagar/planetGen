@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1279] - 2026-10-15
+
+### Changed
+- The TODO list says GEN.224 and GEN.225 must tile all space (every point has exactly one address, inside or outside the outline) and DB.32 must leave no object without a sector, per Boss's no-undefined-space requirement.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1278] - 2026-10-15
 
 ### Changed
