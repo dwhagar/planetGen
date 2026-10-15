@@ -4751,6 +4751,13 @@ clears each one.
   Progress (2026-10-15): PR #1546 sped up two slow Galaxy Map browser tests
   (203 s to 13 s and 164 s to 29 s; changed gate PASS in 19 min 20 s); the
   rest of stage 4 and stage 5 remain.
+  Progress (2026-10-15, Quality, PR #1572): the browser phase runs in 19 min
+  12 s on an idle 4-core machine, the unfilled-sector test went from 109 s
+  to 21 s, and a 2-minute default Playwright wait is set for every browser
+  context (tests/browser_waits.py); the map-help dialog load flake is
+  fixed; the 5-clean-run proof for TEST.126, TEST.138 and TEST.144
+  continues. Known red: test_redis_health fails once in the widened
+  changed run and passes alone.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
   Status (2026-10-09): Stage 2 merged (Test Suite Rebuild thread,
@@ -4889,16 +4896,6 @@ clears each one.
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
-- [ ] **TEST.157 A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug)**
-  Generate saw
-  tests/test_web_system_phen.py::test_system_detail_names_the_containing_nebula
-  fail once in a full run and in 1 of 16 solo reruns (found while
-  merging POP.12, PR #1554), so it is flaky on its own, not only under
-  load. Find the cause (likely a random system or nebula placement that
-  sometimes does not contain the system) and make the test
-  deterministic, then add it to the rebuild's flake list. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Prerequisites: none.
 
 ## USR: User accounts
 
