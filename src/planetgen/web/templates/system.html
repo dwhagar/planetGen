@@ -72,6 +72,37 @@
     'target': row.target, 'actions': body_actions, 'dialog_only': True}) %}
 {%- endfor %}
 {%- endif %}
+{#- POP.10: the affiliation and the five ratings, shared by the placement form and a facility's edit form. `values`
+    holds what to show (the submitted form, or the facility's own); `owner` is the system's polity. #}
+{%- macro affiliation_and_ratings(values, owner, own_polity, default_to_owner) %}
+      {%- set chosen = values.affiliation if values.affiliation is defined else ('polity:' ~ owner.polity_id if (default_to_owner and owner) else '') %}
+      <label class="search-field">Affiliation
+        <select name="affiliation">
+          <option value="">Independent</option>
+          {%- if owner %}
+          <option value="polity:{{ owner.polity_id }}"{% if chosen == 'polity:' ~ owner.polity_id %} selected{% endif %}>{{ owner.polity_name }} (owns this system)</option>
+          {%- endif %}
+          {%- if own_polity and (not owner or own_polity.id != owner.polity_id) %}
+          <option value="polity:{{ own_polity.id }}"{% if chosen == 'polity:' ~ own_polity.id %} selected{% endif %}>{{ own_polity.name }}</option>
+          {%- endif %}
+        </select>
+      </label>
+      <label class="search-field">Or another affiliation (free text)
+        <input type="text" name="affiliation_name" maxlength="255" value="{{ values.affiliation_name or '' }}">
+      </label>
+      {%- for dimension, label in facility_dimensions.items() %}
+      <label class="search-field">{{ label }}
+        <select name="rating_{{ dimension }}">
+          {%- for value, text in facility_ratings %}
+          <option value="{{ value }}"{% if value == (values['rating_' ~ dimension] or '') %} selected{% endif %}>{{ text }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      {%- endfor %}
+      <label class="search-field">Ratings note (optional)
+        <input type="text" name="ratings_note" maxlength="4000" value="{{ values.ratings_note or '' }}">
+      </label>
+{%- endmacro %}
 {%- if admin %}
 {%- set form = facility_form %}
 {%- set place_form %}
@@ -110,12 +141,53 @@
         </select>
       </label>
       <label class="search-field">Kind
-        <select name="kind">
+        <select name="kind" data-facility-kind>
           {%- for value, label in facility_kinds %}
           <option value="{{ value }}"{% if value == form.fields.kind %} selected{% endif %}>{{ label }}</option>
           {%- endfor %}
         </select>
       </label>
+      {%- if facility_context.types %}
+      <label class="search-field">Type (optional)
+        <select name="type_id" data-facility-type>
+          <option value="">No type</option>
+          {%- for type in facility_context.types %}
+          <option value="{{ type.id }}" data-kind="{{ type.kind }}"{% if form.fields.type_id == type.id|string %} selected{% endif %}>{{ type.name }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      {%- for type in facility_context.types %}
+      <fieldset class="search-field facility-type-fields" data-facility-type-fields="{{ type.id }}"{% if form.fields.type_id != type.id|string %} hidden{% endif %}>
+        <legend>{{ type.name }} details</legend>
+        {%- for field in type.fields %}
+        <label class="search-field">{{ field.label }}{% if field.unit %} ({{ field.unit }}){% endif %}{% if field.required %} (required){% endif %}
+          {%- set current = form.fields.get('field_' ~ field.key) %}
+          {%- if field.datatype == 'choice' %}
+          <select name="field_{{ field.key }}">
+            <option value=""{% if field.default_text %} hidden{% endif %}>Not set</option>
+            {%- for option in field.choices %}
+            <option{% if option == (current if current is not none else field.default_text) %} selected{% endif %}>{{ option }}</option>
+            {%- endfor %}
+          </select>
+          {%- elif field.datatype == 'bool' %}
+          <select name="field_{{ field.key }}">
+            <option value="">Not set</option>
+            <option value="yes"{% if (current or field.default_text) in ('yes', 'true') %} selected{% endif %}>Yes</option>
+            <option value="no"{% if (current or field.default_text) in ('no', 'false') %} selected{% endif %}>No</option>
+          </select>
+          {%- elif field.datatype in ('int', 'decimal') %}
+          <input type="number" name="field_{{ field.key }}" step="{{ '1' if field.datatype == 'int' else 'any' }}"
+            {%- if field.min_value is not none %} min="{{ field.min_value | int if field.datatype == 'int' else field.min_value }}"{% endif %}{% if field.max_value is not none %} max="{{ field.max_value | int if field.datatype == 'int' else field.max_value }}"{% endif %}
+            value="{{ current if current is not none else (field.default_text or '') }}">
+          {%- else %}
+          <input type="text" name="field_{{ field.key }}" maxlength="255" value="{{ current if current is not none else (field.default_text or '') }}">
+          {%- endif %}
+        </label>
+        {%- endfor %}
+      </fieldset>
+      {%- endfor %}
+      {%- endif %}
+      {{ affiliation_and_ratings(form.fields, facility_context.owner, none, true) }}
       <div class="search-field facility-orbit" data-facility-orbit{% if placement != 'orbital' %} hidden{% endif %}>
         <label for="facility-orbit-step">Orbit distance (log scale, from just above the host's surface to the edge of its sphere of influence)</label>
         <input type="range" id="facility-orbit-step" name="orbit_step" min="0" max="{{ facility_orbit_steps }}" step="1"
@@ -136,6 +208,24 @@
     'open': facility_form.errors or facility_form.preview}] %}
 {%- set _ = groups.append({'id': 'facility', 'actions': facility_actions}) %}
 {%- if facilities %}
+{%- set edit_actions = [] %}
+{%- for row in facilities %}
+{%- set edit_form %}
+  <form method="post" action="{{ page_url('system', system_id=system.id) }}#facilities" class="search-form facility-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="facility_id" value="{{ row.id }}">
+    <div class="search-fields">
+      {{ affiliation_and_ratings(row.edit, facility_context.owner, row.polity, false) }}
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn" name="facility_action" value="edit">Save changes</button>
+      <button type="submit" class="btn" name="facility_action" value="suggest">Suggest the unset ratings</button>
+    </div>
+  </form>
+{%- endset %}
+{%- set _ = edit_actions.append({'key': 'edit-' ~ row.id, 'label': row.name, 'title': 'Affiliation and ratings of ' ~ row.name, 'form': edit_form}) %}
+{%- endfor %}
+{%- set _ = groups.append({'id': 'facility-edit', 'label': 'Edit a facility', 'actions': edit_actions}) %}
 {%- set remove_actions = [] %}
 {%- for row in facilities %}
 {%- set _ = remove_actions.append({'key': 'remove-' ~ row.id, 'label': row.name, 'title': 'Remove ' ~ row.name,
@@ -218,17 +308,20 @@
   {%- endif %}
   {%- if facilities %}
   <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Host</th><th scope="col">Placement</th><th scope="col">Orbital distance</th><th scope="col">Orbital period</th><th scope="col">Orbital speed</th></tr></thead>
+    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Type</th><th scope="col">Affiliation</th><th scope="col">Host</th><th scope="col">Placement</th><th scope="col">Orbital distance</th><th scope="col">Orbital period</th><th scope="col">Orbital speed</th><th scope="col">Ratings</th></tr></thead>
     <tbody>
       {%- for row in facilities %}
       <tr>
         <td>{{ row.name }}</td>
         <td>{{ row.kind }}</td>
+        <td>{% if row.type %}{{ row.type }}{% if row.fields %}<br><span class="hint">{{ row.fields }}</span>{% endif %}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.affiliation %}{{ row.affiliation }}{% else %}&ndash;{% endif %}</td>
         <td>{{ row.host }}</td>
         <td>{{ row.placement }}</td>
         <td>{% if row.distance %}{{ row.distance }}{% else %}&ndash;{% endif %}</td>
         <td>{% if row.period %}{{ row.period }}{% else %}&ndash;{% endif %}</td>
         <td>{% if row.speed %}{{ row.speed }}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.chips %}{{ row.chips }}{% else %}&ndash;{% endif %}</td>
       </tr>
       {%- endfor %}
     </tbody>

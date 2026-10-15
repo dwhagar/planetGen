@@ -1203,6 +1203,46 @@ def create_facility(cookie_header, db, body):
     return result["id"]
 
 
+def get_facility_types(db, active_only=True):
+    """`GET /api/facility-types`'s `items` (POP.10): every type with its `fields`, the active ones only unless
+    `active_only` is off."""
+    _require_db(db)
+    return _request("/facility-types", {"db": db, "active": "1" if active_only else None})["items"]
+
+
+def facility_type_write(method, cookie_header, db, path, body=None):
+    """
+    One admin write to `/api/facility-types<path>` (POP.10): `POST` a type (`path` empty), `PATCH` or `DELETE` one
+    (`/<id>`), `POST` a field (`/<id>/fields`), `PATCH` or `DELETE` one (`/<id>/fields/<field_id>`) or `POST
+    /examples`. Returns the parsed answer. A rule the API refuses is an `ApiError` with its status.
+    """
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        method, f"/facility-types{path}?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
+    )
+    return result
+
+
+def update_facility(cookie_header, db, facility_id, body):
+    """`PATCH /api/facilities/<id>` with `body` (any of `name`, `description`, `type_id`, `affiliation_polity_id`,
+    `affiliation_name`, `ratings`, `ratings_note`, `fields`). Returns the facility. A refusal is an `ApiError`
+    with its status; a missing facility a `NotFoundError`."""
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        "PATCH", f"/facilities/{facility_id}?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
+    )
+    return result
+
+
+def suggest_facility_ratings(cookie_header, db, facility_id):
+    """`POST /api/facilities/<id>/suggest-ratings`: fills the ratings nobody set. Returns the dimensions filled."""
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        "POST", f"/facilities/{facility_id}/suggest-ratings?{_build_query({'db': db})}", cookie_header=cookie_header,
+    )
+    return result["filled"]
+
+
 def delete_facility(cookie_header, db, facility_id):
     """`DELETE /api/facilities/<id>`. `NotFoundError` if it is already
     gone."""

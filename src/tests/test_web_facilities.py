@@ -86,6 +86,11 @@ def _facility(facility_id, name, kind, placement, host_type, host_id, host_name,
         "host_id": host_id, "host_name": host_name, "star_system_id": 5, "description": None,
         "orbit_distance_km": distance_km, "orbit_period_years": None, "orbital_speed_kms": None,
         "orbit_phase_deg": None, "center_x_pc": None, "center_y_pc": None, "center_z_pc": None,
+        "type_id": None, "type_name": None, "type_icon": None, "affiliation_polity_id": None,
+        "affiliation_name": None, "fields": {},
+        "ratings": {name: None for name in ("crime", "housing", "resources", "maintenance", "health")},
+        "rating_words": {name: None for name in ("crime", "housing", "resources", "maintenance", "health")},
+        "overall": None, "ratings_source": None, "ratings_note": None, "ratings_set_at": None,
     }
     if distance_km is not None:
         row.update(orbit_period_years=0.0027, orbital_speed_kms=3.07, orbit_phase_deg=45.0)
@@ -113,7 +118,24 @@ class FakeData:
         self.admin = None
         self.orbit_error = None
         self.create_error = None
+        self.types = []
+        self.owner = None
+        self.suggested = ["crime"]
         self.calls = []
+
+    def get_facility_types(self, db, active_only=True):
+        return self.types
+
+    def get_system_owner(self, db, system_id):
+        return self.owner
+
+    def update_facility(self, cookie_header, db, facility_id, body):
+        self.calls.append(("update", db, facility_id, body))
+        return {}
+
+    def suggest_facility_ratings(self, cookie_header, db, facility_id):
+        self.calls.append(("suggest", db, facility_id))
+        return self.suggested
 
     def get_system(self, db, system_id):
         if int(system_id) != 5:
@@ -150,7 +172,8 @@ class FakeData:
 
 
 _FAKED = ("get_system", "get_system_sections", "get_system_facilities", "get_wiki_config", "auth_me",
-          "get_facility_orbit", "create_facility", "delete_facility")
+          "get_facility_orbit", "create_facility", "delete_facility", "get_facility_types", "get_system_owner",
+          "update_facility", "suggest_facility_ratings")
 
 
 @pytest.fixture
@@ -220,6 +243,36 @@ def test_system_page_lists_facilities(client, fake):
     assert "1 facility" in terra_row and "New Hope" in terra_row and "High" not in terra_row
     assert '<ul class="facility-list" aria-label="Facilities">' in html
     assert ("get_system_facilities", DB, "5") in fake.calls
+
+
+def test_the_panel_shows_type_affiliation_and_ratings_worst_first(client, fake):
+    fake.facilities = [
+        _facility(1, "Calm", "outpost", "orbital", "star", 1, "Sol", distance_km=1e8, overall="green",
+                  ratings={"crime": "green", "housing": "green", "resources": None, "maintenance": None,
+                           "health": "green"},
+                  rating_words={"crime": "Low", "housing": "Ample", "resources": None, "maintenance": None,
+                                "health": "Healthy"}),
+        _facility(2, "Plain", "outpost", "orbital", "star", 1, "Sol", distance_km=2e8),
+        _facility(3, "Troubled", "colony", "terrestrial", "planet", 10, "Terra", type_id=4, type_name="Farm <world>",
+                  type_icon="tree", affiliation_name="Free Traders", fields={"hectares": 40.5, "irrigated": True},
+                  overall="red",
+                  ratings={"crime": "yellow", "housing": "red", "resources": None, "maintenance": None,
+                           "health": "green"},
+                  rating_words={"crime": "Elevated", "housing": "Overcrowded", "resources": None,
+                                "maintenance": None, "health": "Healthy"}),
+    ]
+    panel = _panel(client.get("/system/5").get_data(as_text=True))
+    assert panel.index("Troubled") < panel.index("Calm") < panel.index("Plain")        # worst first, unassessed last
+    assert "Farm &lt;world&gt;" in panel and "<world>" not in panel
+    assert '<sl-icon name="tree"' in panel and "Free Traders" in panel
+    assert "hectares: 40.5, irrigated: yes" in panel
+    # Each chip carries a shape, its dimension's name and its word, and a label that does not need colour.
+    assert 'aria-label="Housing: Red, overcrowded"' in panel and "x-octagon-fill" in panel
+    assert 'aria-label="Crime: Yellow, elevated"' in panel and "exclamation-triangle-fill" in panel
+    assert 'aria-label="Health: Green, healthy"' in panel and "check-circle-fill" in panel
+    troubled = panel[panel.index("Troubled"):panel.index("Calm")]
+    assert troubled.index("Overcrowded") < troubled.index("Elevated") < troubled.index("Healthy")   # worst chip first
+    assert "Resources" not in troubled                                          # unassessed ones are left out
 
 
 def test_system_page_without_facilities_shows_no_panel(client, fake):
@@ -582,3 +635,106 @@ def test_real_sector_page_lists_stand_alone_facilities(db_app, mysql_config):
     assert "Facility (Station)" in row
     assert "Stand-alone station, parked in open space" in row
     assert "3.00 ly" in row or "3 ly" in row, row
+
+
+# --- Type, affiliation and ratings (POP.10) --------------------------------------------
+
+def _types():
+    return [
+        {"id": 4, "name": "Research outpost", "kind": "outpost", "icon": "flask", "active": True, "fields": [
+            {"id": 1, "key": "staff", "label": "Staff", "datatype": "int", "unit": None, "required": True,
+             "min_value": 1, "max_value": 100, "choices": None, "default_text": "12"},
+            {"id": 2, "key": "focus", "label": "Focus", "datatype": "choice", "unit": None, "required": False,
+             "min_value": None, "max_value": None, "choices": ["Survey", "Relay"], "default_text": None},
+            {"id": 3, "key": "armed", "label": "Armed", "datatype": "bool", "unit": None, "required": False,
+             "min_value": None, "max_value": None, "choices": None, "default_text": None},
+            {"id": 5, "key": "output", "label": "Output", "datatype": "decimal", "unit": "TW", "required": False,
+             "min_value": None, "max_value": None, "choices": None, "default_text": None},
+        ]},
+        {"id": 6, "name": "Farm", "kind": "colony", "icon": None, "active": True, "fields": []},
+    ]
+
+
+def test_the_form_offers_types_with_their_fields_affiliation_and_ratings(client, fake):
+    fake.types = _types()
+    fake.owner = {"polity_id": 3, "polity_name": "Velarix Concord", "color": "#3366cc", "distance_ly": 2.0}
+    _as_admin(client, fake)
+    dialog = _panel(client.get("/system/5").get_data(as_text=True))
+    assert '<option value="4" data-kind="outpost">Research outpost</option>' in dialog
+    assert '<option value="6" data-kind="colony">Farm</option>' in dialog
+    assert 'data-facility-type-fields="4" hidden' in dialog and 'data-facility-type-fields="6" hidden' in dialog
+    assert 'name="field_staff"' in dialog and 'min="1"' in dialog and 'value="12"' in dialog   # the default
+    assert '<option>Survey</option>' in dialog and 'name="field_armed"' in dialog and "Output (TW)" in dialog
+    assert '<option value="polity:3" selected>Velarix Concord (owns this system)</option>' in dialog   # the default
+    for dimension in ("crime", "housing", "resources", "maintenance", "health"):
+        assert f'name="rating_{dimension}"' in dialog
+    assert '<option value="red">Red</option>' in dialog
+
+
+def test_save_sends_the_type_fields_affiliation_and_ratings(app, client, fake):
+    fake.types = _types()
+    _as_admin(client, fake)
+    response = _post(app, client, **_STAR_OUTPOST, facility_action="save", type_id="4", field_staff="9",
+                     field_focus="Relay", field_armed="no", field_output="1.5", affiliation="polity:3",
+                     rating_crime="red", rating_health="green", ratings_note="Survey 2200")
+    assert response.status_code == 303 and "facility=added" in response.headers["Location"]
+    [(_, _, body)] = [call for call in fake.calls if call[0] == "create"]
+    assert body["type_id"] == 4
+    assert body["fields"] == {"staff": 9, "focus": "Relay", "armed": False, "output": 1.5}
+    assert body["affiliation_polity_id"] == 3 and "affiliation_name" not in body
+    assert body["ratings"] == {"crime": "red", "health": "green"} and body["ratings_note"] == "Survey 2200"
+
+
+def test_free_text_affiliation_wins_and_an_untyped_save_sends_no_fields(app, client, fake):
+    fake.types = _types()
+    _as_admin(client, fake)
+    _post(app, client, **_STAR_OUTPOST, facility_action="save", affiliation="polity:3",
+          affiliation_name="Free Traders", field_staff="9")
+    [(_, _, body)] = [call for call in fake.calls if call[0] == "create"]
+    assert body["affiliation_name"] == "Free Traders" and "affiliation_polity_id" not in body
+    assert "type_id" not in body and "fields" not in body and "ratings" not in body
+
+
+@pytest.mark.parametrize("form, message", [
+    ({"type_id": "99"}, "Choose one of the listed facility types."),
+    ({"type_id": "4", "field_staff": "many"}, "Staff must be a whole number."),
+    ({"type_id": "4", "field_output": "lots"}, "Output must be a number."),
+    ({"type_id": "4", "field_armed": "maybe"}, "Armed must be yes or no."),
+    ({"rating_crime": "amber"}, "A rating is Green, Yellow or Red."),
+])
+def test_a_bad_type_field_or_rating_is_reported_before_the_api_is_asked(app, client, fake, form, message):
+    fake.types = _types()
+    _as_admin(client, fake)
+    response = _post(app, client, **_STAR_OUTPOST, facility_action="save", **form)
+    assert response.status_code == 200 and message in response.get_data(as_text=True)
+    assert not [call for call in fake.calls if call[0] == "create"]
+
+
+def test_a_facility_can_be_edited_and_have_its_ratings_suggested(app, client, fake):
+    fake.facilities[0].update(affiliation_polity_id=3, affiliation_name="Velarix Concord", overall="red",
+                              ratings={"crime": "red", "housing": None, "resources": None, "maintenance": None,
+                                       "health": None},
+                              rating_words={"crime": "High", "housing": None, "resources": None,
+                                            "maintenance": None, "health": None})
+    fake.owner = {"polity_id": 3, "polity_name": "Velarix Concord", "color": "#3366cc", "distance_ly": 2.0}
+    _as_admin(client, fake)
+    html = client.get("/system/5").get_data(as_text=True)
+    dialog = re.search(r'<sl-dialog id="admin-facility-edit-edit-1".*?</sl-dialog>', html, re.S).group(0)
+    assert '<option value="red" selected>Red</option>' in dialog         # its own crime rating
+    assert '<option value="polity:3" selected>Velarix Concord (owns this system)</option>' in dialog
+
+    response = _post(app, client, facility_action="edit", facility_id="1", affiliation="", affiliation_name="Nobody",
+                     rating_crime="green", rating_health="", ratings_note="")
+    assert response.status_code == 303 and "facility=edited" in response.headers["Location"]
+    [(_, _, facility_id, body)] = [call for call in fake.calls if call[0] == "update"]
+    assert facility_id == "1" and body["affiliation_name"] == "Nobody" and body["affiliation_polity_id"] is None
+    assert body["ratings"] == {"crime": "green", "housing": None, "resources": None, "maintenance": None,
+                               "health": None} and body["ratings_note"] is None
+
+    response = _post(app, client, facility_action="suggest", facility_id="1")
+    assert response.status_code == 303 and "facility=suggested" in response.headers["Location"]
+    fake.suggested = []
+    assert "facility=nothing" in _post(app, client, facility_action="suggest", facility_id="1").headers["Location"]
+    assert "not in this system" in _post(app, client, facility_action="edit",
+                                         facility_id="77").get_data(as_text=True)
+    assert [call[0] for call in fake.calls].count("update") == 1            # the unknown facility changed nothing
