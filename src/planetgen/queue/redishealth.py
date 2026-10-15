@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 import redis
 import rq
 
-from planetgen.queue import api_jobs, redisclient, redisqueue
+from planetgen.queue import redisclient, redisqueue, workers
 
 TIMEOUT_SECONDS = 1.0
 """float: How long the health check waits for Redis."""
@@ -41,7 +41,7 @@ def _live_workers(connection):
             import socket
             here = socket.gethostname()
         pid = getattr(worker, "pid", None)
-        if worker.hostname and worker.hostname != here or not isinstance(pid, int) or api_jobs._process_exists(pid):
+        if worker.hostname and worker.hostname != here or not isinstance(pid, int) or workers.process_exists(pid):
             alive += 1
     return alive
 

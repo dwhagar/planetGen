@@ -106,7 +106,7 @@ def test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs(redis_serve
         assert len(victims) == 1
         os.kill(victims[0].pid, signal.SIGKILL)
         deadline = time.monotonic() + 10
-        while workers._process_exists(victims[0].pid) and time.monotonic() < deadline:
+        while workers.process_exists(victims[0].pid) and time.monotonic() < deadline:
             time.sleep(0.05)
         second = api_jobs.submit(math.pow, 2, 5)                 # counts only live workers: starts a replacement
         assert _finished(second)["result"] == 32.0
