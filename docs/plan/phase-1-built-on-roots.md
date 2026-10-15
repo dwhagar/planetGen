@@ -123,6 +123,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.220 | "Habitable" means the index | UX.104, GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
 | GEN.221 | Short plain prose for the fixed text | UX.104 |  |
+| GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) |  |  |
+| PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
 | DB.31 | Store structure, not prose, for life and flavour | UX.104 |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
