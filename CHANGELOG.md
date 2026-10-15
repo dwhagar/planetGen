@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1247] - 2026-10-15
+
+### Fixed
+- **The Galaxy Map's wheel zoom moved the view's center toward the pointer, so zooming and turning used different centers.**
+  Both now go about one center, marked by a small cross in the middle of the
+  map. Shift-click or right-click a spot to make it the new center (the view
+  flies there, keeping its angle and zoom); C and Shift/right-drag still work.
+
 ## [8.0.1246] - 2026-10-15
 
 ### Changed
