@@ -25,6 +25,8 @@ Sources
 - `docs/plan/notes.md`: "Decisions for Boss".
 - `docs/design/todo-number-map.md`: the status of every ID ever issued
   (its "Reverse lookup" table).
+- `docs/plan/issue-groups.md`: the GitHub issues (goal groups of items and the
+  issues Boss opened) and the items each one covers; every page links them.
 
 Usage
 =====
@@ -193,11 +195,33 @@ def status_bucket(status: str) -> str:
     return "other"
 
 
+ISSUE_URL = "https://github.com/dwhagar/planetGen/issues/"
+ISSUE_ROW_RE = re.compile(r"^\|\s*\[#(\d+)\]\([^)]*\)\s*\|\s*(open|closed)\s*\|([^|]*)\|([^|]*)\|\s*$")
+
+
+def parse_issue_groups(text: str) -> tuple[dict[str, list[int]], dict[int, dict]]:
+    """The issue table: item -> issue numbers, and issue number -> title and state."""
+    by_item: dict[str, list[int]] = {}
+    issues: dict[int, dict] = {}
+    for line in text.splitlines():
+        m = ISSUE_ROW_RE.match(line)
+        if not m:
+            continue
+        n = int(m.group(1))
+        issues[n] = {"title": m.group(3).strip(), "state": m.group(2)}
+        for item_id in re.findall(r"[A-Z]+\.\d+", m.group(4)):
+            if n not in by_item.setdefault(item_id, []):
+                by_item[item_id].append(n)
+    return by_item, issues
+
+
 def build_data(root: Path) -> dict:
     todo = parse_todo((root / "docs" / "TODO.md").read_text(encoding="utf-8"))
     phases, rows = parse_phases(root / "docs" / "plan")
     decisions = parse_decisions((root / "docs" / "plan" / "notes.md").read_text(encoding="utf-8"))
     numbers = parse_number_map((root / "docs" / "design" / "todo-number-map.md").read_text(encoding="utf-8"))
+    groups_file = root / "docs" / "plan" / "issue-groups.md"
+    item_issues, issues = parse_issue_groups(groups_file.read_text(encoding="utf-8") if groups_file.exists() else "")
 
     items: dict[str, dict] = {}
     for item_id in sorted(set(todo) | set(numbers), key=id_key):
@@ -220,6 +244,7 @@ def build_data(root: Path) -> dict:
             "section": t["section"] if t else "",
             "design": [{"label": a, "href": b} for a, b in (t["design"] if t else [])],
             "deps": deps, "unblocks": [], "children": [],
+            "issues": item_issues.get(item_id, []),
             "headline": t["headline"][0] if t and t["headline"] else "",
         }
     for it in items.values():
@@ -235,16 +260,17 @@ def build_data(root: Path) -> dict:
         "id": i, "title": items[i]["title"], "phase": items[i]["phase"], "was": "",
         "bug": items[i]["bug"], "thread": items[i]["thread"], "deps": items[i]["deps"],
         "unblocks": items[i]["unblocks"], "note": items[i]["note"], "text": items[i]["text"],
-        "headline": items[i]["headline"],
+        "headline": items[i]["headline"], "issues": items[i]["issues"],
     } for i in open_ids}
     headlines = build_headlines(items, todo)
     summary = (f"{len(open_ids)} open items, {sum(items[i]['bug'] for i in open_ids)} bugs; "
                f"{len(items)} IDs issued in all")
     return {
         "plan": {"items": plan_items, "phases": phases, "decisions": decisions, "generated": summary,
-                 "headlines": headlines},
+                 "headlines": headlines, "issues": {str(k): v for k, v in issues.items()}},
         "reference": {"items": items, "phases": [{"key": p["key"], "title": p["title"]} for p in phases],
-                      "categories": CATEGORIES, "summary": summary, "headlines": headlines},
+                      "categories": CATEGORIES, "summary": summary, "headlines": headlines,
+                      "issues": {str(k): v for k, v in issues.items()}},
     }
 
 

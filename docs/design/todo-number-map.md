@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.167 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.52 |
+| DOC | DOC.53 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -556,6 +556,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | open |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
+| DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1333,7 +1334,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | done, PR #707 |
 | UX.22 | Meaningful units for every measurement | none | done, PR #1504 |
-| UX.23 | A shared unit-ladder module | none | open |
+| UX.23 | A shared unit-ladder module | none | done (shipped as src/planetgen/util/ladders.py; its entry left TODO.md earlier) |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | done, PR #558 |
