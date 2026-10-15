@@ -60,7 +60,7 @@ def wanted(connection, mysql_host=None):
     return work.worker_count(mysql_host=mysql_host)
 
 
-def _process_exists(pid):
+def process_exists(pid):
     """Whether a process with this id is running here (a process of another user counts as running)."""
     try:
         os.kill(pid, 0)
@@ -89,7 +89,7 @@ def live_workers(queue):
     alive = []
     for worker in rq.Worker.all(queue=queue):
         pid = getattr(worker, "pid", None)
-        if worker.hostname and worker.hostname != here or not isinstance(pid, int) or _process_exists(pid):
+        if worker.hostname and worker.hostname != here or not isinstance(pid, int) or process_exists(pid):
             alive.append(worker)
         else:
             queue.connection.srem(worker_registration.WORKERS_BY_QUEUE_KEY % queue.name, worker.key)
