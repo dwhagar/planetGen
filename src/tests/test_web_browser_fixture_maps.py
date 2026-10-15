@@ -417,6 +417,21 @@ HOVER_SCAN = """([wanted, steps]) => {
 }"""
 
 
+NAMED_SPOTS = """([spots, names]) => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    const found = [];
+    for (const [x, y] of spots) {
+        if (document.elementFromPoint(x, y) !== canvas) continue;  // a real pointer there would not be on the map
+        canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
+        const text = tip.hidden ? "" : tip.textContent;
+        if (names.some((name) => text.startsWith(name))) found.push([x, y, text]);
+    }
+    return found;
+}"""
+"""str: Of the screen points given, those where a hover names one of the given systems: [x, y, tooltip]."""
+
+
 HOVER_RETRIES = 20
 
 
@@ -699,15 +714,13 @@ def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     page.wait_for_timeout(500)
     info = page.locator("#galaxymap3d-info")
-    tip = page.locator("#galaxymap3d-tooltip")
     headings = set()
     # Only dots whose tooltip names a system are clicked: a click on the
     # opened cell's outline, among the brightest spots, would open another sector.
-    for x, y in _bright_spots(page, GALAXY_CANVAS, limit=400):
+    # The 400 spots are tried with pointer events sent from the page (a real pointer move to each cost
+    # 0.8 s under load, 340 s in all, TEST.139 stage 4); the few that name a system are then clicked for real.
+    for x, y, text in page.evaluate(NAMED_SPOTS, [_bright_spots(page, GALAXY_CANVAS, limit=400), sorted(SYSTEM_NAMES)]):
         page.mouse.move(x, y)
-        text = tip.inner_text() if tip.is_visible() else ""
-        if not any(text.startswith(name) for name in SYSTEM_NAMES):
-            continue
         page.mouse.click(x, y)
         page.wait_for_timeout(100)
         if info.locator("h3").count():
