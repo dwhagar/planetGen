@@ -110,7 +110,9 @@ item's prerequisites are in its own phase or an earlier one. Each phase
 file gives the goal, the build threads with their order and
 prerequisites, and the open questions;
 [plan/notes.md](plan/notes.md) keeps the research notes, the files
-several items share and the judgment calls. This file keeps each
+several items share and the judgment calls. The whole-sphere work (GEN.233 onwards, the phenomena
+catalogue and the fill) has its own plan,
+[plan/intergalactic-space-plan.md](plan/intergalactic-space-plan.md). This file keeps each
 item's full text. A new item goes into a phase's table in the same PR
 that files it.
 
