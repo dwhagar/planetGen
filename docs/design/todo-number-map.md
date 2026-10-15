@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.113 |
-| MAP | MAP.207 |
+| UX | UX.114 |
+| MAP | MAP.208 |
 | NAV | NAV.60 |
-| GEN | GEN.233 |
+| GEN | GEN.240 |
 | PERF | PERF.103 |
 | DB | DB.33 |
 | API | API.27 |
@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.159 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.48 |
+| DOC | DOC.49 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -548,6 +548,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.45 | Reference docs follow the description layer | none | open |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
+| DOC.48 | Docs: the halo and the reach in the density and coordinate-system notes | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -780,6 +781,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | none | open |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | open |
 | GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | open |
+| GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | none | open |
+| GEN.234 | A measured stellar halo replaces the flat density floor | none | open |
+| GEN.235 | A sector that expects fewer than one system is drawn on visit, and an empty one stores nothing | none | open |
+| GEN.236 | Halo rules for each kind of object: multipliers, zero for what needs gas, and the planet cull by metallicity | none | open |
+| GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | none | open |
+| GEN.238 | Hypervelocity stars reach out to the grid, and kicked neutron stars and black holes follow a radial law | none | open |
+| GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -986,6 +994,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | open |
 | MAP.205 | Galaxy Map block ladder for shells | none | done, PR #1612 |
 | MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
+| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1367,6 +1376,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | open |
 | UX.111 | Reads, API and web wording on shells | none | done, PR #1607 |
 | UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |
+| UX.113 | The page of an empty or sparse sector computes what is there from its address | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

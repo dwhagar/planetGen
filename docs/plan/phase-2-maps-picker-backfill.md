@@ -73,7 +73,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
+| UX.113 | The page of an empty or sparse sector computes what is there from its address | GEN.235 | Intergalactic research, Boss 2026-10-15. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
+| DOC.48 | Docs: the halo and the reach in the density and coordinate-system notes | GEN.233, GEN.234 | Intergalactic research, Boss 2026-10-15. Quality. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
 
@@ -142,6 +144,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential |  | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
+| GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | GEN.237 | Intergalactic research, Boss 2026-10-15. Core, later. |
+| GEN.238 | Hypervelocity stars reach out to the grid, and kicked neutron stars and black holes follow a radial law | GEN.233, GEN.232 | Intergalactic research, Boss 2026-10-15. Core. |
+| GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.234, GEN.159, GEN.160 | Intergalactic research, Boss 2026-10-15. Core. |
+| GEN.236 | Halo rules for each kind of object: multipliers, zero for what needs gas, and the planet cull by metallicity | GEN.234, GEN.158, GEN.162 | Intergalactic research, Boss 2026-10-15. Core. |
+| GEN.235 | A sector that expects fewer than one system is drawn on visit, and an empty one stores nothing | GEN.233, GEN.234 | Intergalactic research, Boss 2026-10-15. Core. |
+| GEN.234 | A measured stellar halo replaces the flat density floor |  | Intergalactic research, Boss 2026-10-15. Core. |
+| GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | GEN.230 | Intergalactic research, Boss 2026-10-15. Core. |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115 |  |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
@@ -164,6 +173,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
+| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.237, GEN.238 | Intergalactic research, Boss 2026-10-15. Interface. |
 | POP.13 | A species editor: create and edit species and their environment limits |  |  |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
