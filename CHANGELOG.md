@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1275] - 2026-10-15
+
+### Changed
+- Plan note: wedge counts per band decided (fine in the disk window, nested chain above, equator count from primes 2 and 3); ladder blocks hold the cells whose centre they hold.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1274] - 2026-10-15
 
 ### Added
