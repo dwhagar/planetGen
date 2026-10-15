@@ -92,23 +92,41 @@ def test_only_due_planets_and_moons_move_and_count(mysql_config):
             assert row["next_update_due"] == pytest.approx(
                 tick.start_unix + update_interval_s(speed_ms, "system"), rel=1e-12)
 
-        # A year later every planet has moved its threshold: moved by the
-        # whole time since its epoch, and its clock moves on.
+        # A year later every planet and moon that has moved its threshold since its epoch is due: moved by the
+        # whole time since its epoch, and its clock moves on. A body slow enough that its threshold takes longer
+        # than a year (a small moon far from its planet: a period of 50 years at 770,000 km is 2.7 m/s, so 100,000 km
+        # takes 37 years) is neither moved nor counted. The system is random, so there can be such a moon (TEST.149).
         year = store.orbit_clock(conn, 1.0)
+        since_epoch_s = year.end_unix - tick.start_unix
+
+        def due(old, scale):
+            return update_interval_s(store_speed_ms(old), scale) <= since_epoch_s
+
         counts = store.advance_orbital_phases(conn, year)
-        assert counts["planets"] == len(before)
-        assert counts["moons"] == len(moons_before)
+        assert counts["planets"] == sum(due(old, "system") for old in before.values())
+        assert counts["moons"] == sum(due(old, "planetary") for old in moons_before.values())
+        assert counts["planets"] > 0 and counts["moons"] > 0
         for row in conn.execute("SELECT * FROM planets").fetchall():
             old = before[row["id"]]
-            years = (year.end_unix - tick.start_unix) / pc.SECONDS_PER_YEAR
+            if not due(old, "system"):
+                assert row["orbital_phase_deg"] == old["orbital_phase_deg"]
+                assert row["epoch_unix"] == pytest.approx(tick.start_unix)
+                continue
+            years = since_epoch_s / pc.SECONDS_PER_YEAR
             expected = (old["orbital_phase_deg"] + 360.0 * years / old["period_years"]) % 360.0
             assert row["orbital_phase_deg"] == pytest.approx(expected, abs=1e-6)
             assert row["epoch_unix"] == pytest.approx(year.end_unix)
             assert row["next_update_due"] == pytest.approx(
                 year.end_unix + update_interval_s(store_speed_ms(old), "system"), rel=1e-12)
         for row in conn.execute("SELECT * FROM moons").fetchall():
+            old = moons_before[row["id"]]
+            if not due(old, "planetary"):
+                assert row["orbital_phase_deg"] == old["orbital_phase_deg"]
+                assert row["epoch_unix"] == pytest.approx(tick.start_unix)
+                continue
+            assert row["epoch_unix"] == pytest.approx(year.end_unix)
             assert row["next_update_due"] == pytest.approx(
-                year.end_unix + update_interval_s(store_speed_ms(moons_before[row["id"]]), "planetary"), rel=1e-12)
+                year.end_unix + update_interval_s(store_speed_ms(old), "planetary"), rel=1e-12)
     finally:
         conn.close()
 
