@@ -128,7 +128,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
 | DB.31 | Store structure, not prose, for life and flavour | UX.104 |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
-| MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) |  |  |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) |  |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
