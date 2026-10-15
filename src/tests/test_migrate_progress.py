@@ -4,6 +4,8 @@
 asking whether to migrate or delete the data). Needs a MySQL test server
 like every other database-backed test (see `conftest.py`).
 """
+import pytest
+
 from planetgen.db import alembic_runner, store
 from tests.db_schema_support import migrations_with_probes
 
@@ -110,3 +112,21 @@ def test_on_a_terminal_the_cli_draws_the_steps_and_the_batches(monkeypatch):
     assert migrate._migrate_with_progress(None) == 71
     assert calls == [("open", 1, "migrate"), ("stage", "Migrating v70 -> v71 (step 1 of 1)"),
                      ("detail", "rows", 2, 4), ("close", None)]
+
+
+def test_one_batch_bar_runs_across_changing_labels_and_moves_the_step_bar(monkeypatch):
+    """PERF.102: a step that names each phase of its batch keeps one bar (a new bar per label never finished a
+    unit, so it never had a rate), and the step bar moves by the share of the step done."""
+    from planetgen.cli import stage_progress
+
+    with stage_progress.StageProgress(1, disable=True, kind="migrate") as stage:
+        stage.stage("Migrating v90 -> v91 (step 1 of 1)")
+        stage.detail("Converting to shells: reading", 0, 12)
+        first = stage.detail_bar
+        stage.detail("Converting to shells: placing systems", 3, 12)
+        assert stage.detail_bar is first and first.done == 3
+        assert stage.bar.done == pytest.approx(3 / 12)
+        stage.detail("Converting to shells: writing", 6, 12)
+        assert stage.detail_bar is first and stage.bar.done == pytest.approx(0.5)
+        stage.detail("another batch", 1, 5)          # a different total starts a new bar
+        assert stage.detail_bar is not first

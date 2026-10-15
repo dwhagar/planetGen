@@ -28,8 +28,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.205 | Galaxy Map block ladder for shells |  |  |
-| MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
 | TEST.158 | The math check tests the spherical shell, band and wedge grid |  |  |
 
@@ -126,9 +124,10 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.220 | "Habitable" means the index | GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
 | GEN.221 | Short plain prose for the fixed text |  |  |
-| PERF.102 | The migration progress display shows no estimated time remaining on either bar (bug) |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) |  |  |
+| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) |  | Maps hand-off 2026-10-15. Core. |
+| GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | PERF.99 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |

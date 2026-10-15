@@ -2,6 +2,218 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1388] - 2026-10-15
+
+**Headline:** The multi-star items are on the TODO list, and the lane queues for the intergalactic space plan are computed.
+
+### Changed
+- GEN.260 to GEN.267 (scatter member tables, the member-tree generator, companions in the scatter passes, compact-pair promotion, the fill building from stored members, nightly motion of a system, compact-binary orbit rules, the star cap), UX.114, TEST.162 and DOC.50 are filed as stage M of the intergalactic space plan; GEN.129, GEN.130, GEN.223, GEN.240 and GEN.251 are reworded for companions at scatter time and planets at sector fill.
+- The plan gains stage M and a section with the lane queues, the critical path and the handoff points (the full queues are in the lane briefs).
+
+TODO items resolved: none / Added: GEN.260, GEN.261, GEN.262, GEN.263, GEN.264, GEN.265, GEN.266, GEN.267, UX.114, TEST.162, DOC.50
+
+## [8.0.1387] - 2026-10-15
+
+**Headline:** A new design note says how many multi-star and compact-object systems exist, their limits and odds, and how a scatter row stores its companions as a tree.
+
+### Changed
+- Added `docs/design/multi-star-systems.md`: the census and theoretical limits of multi-star and compact-object systems, the companion odds for each placed object (stars, black holes, neutron stars, white dwarfs), the stored tree for a scatter row, the generator and its cost, motion, fill reuse, and eleven proposed TODO items. No code changed.
+
+TODO items resolved: none / Added: none (the proposed items are in the note's section 11)
+
+## [8.0.1386] - 2026-10-15
+
+**Headline:** The intergalactic space plan is written down as one plan document.
+
+### Changed
+- docs/plan/intergalactic-space-plan.md holds the goal, the decided rules, the stages from the spherical grid to the whole sphere, the reserved slots for the multi-star research and the region query, every item with its owner, prerequisites and what it unlocks, the defaults awaiting Boss, tests and docs, and the later group; the execution plan, TODO.md and the plan notes point at it.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1385] - 2026-10-15
+
+**Headline:** Stellar companions of stars and remnants are made at scatter time; planets and moons stay at sector fill.
+
+### Changed
+- GEN.130, GEN.240, GEN.251 and TEST.160 record Boss's 2026-10-15 refinement: the stellar companions of stars, former stars, protostars, neutron stars and black holes (including neutron star and black hole pairs) are generated when the object is scattered, while planets and moons come only at sector fill; "all types represented" means audited frequency, not forced.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1384] - 2026-10-15
+
+**Headline:** The phenomena catalogue is on the TODO list: a registry, fill stages with a system pass, and the later kinds.
+
+### Changed
+- GEN.250 (registry) and GEN.251 (fill stages and the system pass) are filed in the whole-sphere group; GEN.130 is rescoped to compact-remnant systems at sector fill; TEST.160, TEST.161 and DOC.49 cover the audit, the stage tests and the docs pointers.
+- GEN.114 is split into GEN.254 (superbubble field), GEN.255 (jets), GEN.256 (radiation hazard score) and GEN.257 (Fermi bubbles); GEN.252 (brown dwarfs), GEN.253 (white-dwarf pollution), GEN.258 (protostars in giant molecular clouds) and GEN.259 (intermediate-mass black hole count, a question for Boss) are filed as later items.
+
+TODO items resolved: GEN.114 (split into GEN.254-GEN.257) / Added: GEN.250, GEN.251, GEN.252, GEN.253, GEN.254, GEN.255, GEN.256, GEN.257, GEN.258, GEN.259, TEST.160, TEST.161, DOC.49
+
+## [8.0.1383] - 2026-10-15
+
+**Headline:** A new design note lists every phenomenon kind with its observed rate, system odds, required contents, profile gate and fill rule, and proposes a registry, a system pass and a representation audit.
+
+### Changed
+- Added `docs/design/phenomena-catalogue-and-fill.md`: the master catalogue of 57 kinds, the system rule for each, the fill stages with their own streams, one registry, the representation audit and nine proposed TODO items. No code changed.
+
+TODO items resolved: none / Added: none (the proposed items are in the note's section 8)
+
+## [8.0.1382] - 2026-10-15
+
+**Headline:** Scatters carry no systems; planets and moons come only when a sector is filled.
+
+### Changed
+- GEN.129, GEN.130, GEN.240, GEN.241, GEN.242 and GEN.243 record Boss's 2026-10-15 rules: scatters and backscatters get no systems, planets or moons; nebulae need stars and phenomena, not planets; a sector fill represents every object kind and builds the systems that phenomena can have at real-world probabilities.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1381] - 2026-10-15
+
+**Headline:** The Wolf-Rayet and protostar system rules and the later phenomenon types are on the TODO list.
+
+### Changed
+- GEN.242 and GEN.243 now say how protostars and Wolf-Rayet stars get ordinary star systems (no planets, a protostar disk, companions at the surveyed fractions); GEN.129 and GEN.130 point at the black hole and neutron star question (Boss, 2026-10-15).
+- GEN.244 to GEN.249 file the later phenomenon types from the design note (young clusters, debris disks, luminous blue variables, accreting white dwarf binaries, tidal streams, star attributes) as a group that nothing else waits on.
+
+TODO items resolved: none / Added: GEN.244, GEN.245, GEN.246, GEN.247, GEN.248, GEN.249
+
+## [8.0.1380] - 2026-10-15
+
+**Headline:** The whole-sphere design note now states that the nebula, Wolf-Rayet and protostar steps are filed (GEN.241 to GEN.243) and marks the other phenomenon types as a plan-later list.
+
+### Changed
+- Corrected the build-order note and labelled the further phenomenon types as plan-later in `docs/design/intergalactic-and-halo-contents.md`. No code changed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1379] - 2026-10-15
+
+**Headline:** The whole-sphere design note now says what systems Wolf-Rayet stars and protostars get, compared with black holes and neutron stars, and lists the phenomenon types still missing.
+
+### Changed
+- Extended `docs/design/intergalactic-and-halo-contents.md` (section 5.12): what black holes and neutron stars get today with file and line, the known multiplicity of Wolf-Rayet stars and protostars, one rule for each (ordinary systems: no planets, belts allowed, companions from the normal binary code, a disk descriptor for protostars), the build-order note, and a table of further phenomenon types. No code changed.
+
+TODO items resolved: none / Added: none (the build plan is in the note's section 9)
+
+## [8.0.1378] - 2026-10-15
+
+**Headline:** The spherical-region database query now waits for its research and never blocks the grid or the whole-sphere work.
+
+### Changed
+- The Core group for the spherical-region database query is marked as waiting on its research note (Boss, 5:32 PM EDT); it is skipped if the research is not ready when the spherical layout is.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1377] - 2026-10-15
+
+**Headline:** The plan now finishes the spherical grid first, then the whole sphere with real stars for every nebula and Wolf-Rayet stars.
+
+### Changed
+- Core's order is rebuilt: A the spherical grid (GEN.232, then GEN.230 and GEN.223 in one migration, then GEN.233), B the whole sphere (GEN.234 to GEN.243 and the globular cluster items GEN.158 to GEN.164), C the spherical-region database query.
+- GEN.242 (pre-main-sequence state) and GEN.243 (Wolf-Rayet stars and ring nebula class X) are filed; GEN.241 now covers every nebula's required stars, with MAP.182 folded in and retired; DOC.48 and TEST.159 follow steps 14 and 15.
+- The early alpha rule: the database schema is not a constraint on any item (TODO.md rule and notes on GEN.223, GEN.230, GEN.233, GEN.235, GEN.237); the scatter from the origin keeps the banded layered approach (GEN.240).
+
+TODO items resolved: MAP.182 (folded into GEN.241) / Added: GEN.242, GEN.243
+
+## [8.0.1376] - 2026-10-15
+
+**Headline:** The whole-sphere design note now says every nebula gets its required stars as real systems, and adds Wolf-Rayet stars and ring nebulae.
+
+### Changed
+- Extended `docs/design/intergalactic-and-halo-contents.md`: real hosts, cluster members and protostars for each nebula kind with their cost and default, why Wolf-Rayet stars and nebulae were never built, a Wolf-Rayet design that reproduces the Milky Way count, and build-plan steps 11 to 15. No code changed.
+
+TODO items resolved: none / Added: none (the build plan is in the note's section 9)
+
+## [8.0.1375] - 2026-10-15
+
+**Headline:** The plan now follows the 13-step whole-sphere build train, with one item per step and the globular clusters inside it.
+
+### Changed
+- Four items filed: GEN.240 (the three scatters over the whole sphere), GEN.241 (required objects per nebula kind), API.27 (profile lookup for any address) and TEST.159 (whole-sphere tests).
+- GEN.233 to GEN.239, UX.113, MAP.207 and DOC.48 are rewritten to the train's steps; GEN.235 is now the sector profile (an asked sector is always generated and saved, an uncharted one never stored) and GEN.236 the kind factors.
+- GEN.158 to GEN.164 (metallicity and globular clusters) carry their step numbers. MAP.182 stays do not build.
+
+TODO items resolved: none / Added: GEN.240, GEN.241, API.27, TEST.159
+
+## [8.0.1374] - 2026-10-15
+
+**Headline:** The whole-sphere design note now carries the one-rule-set sector profile, the scatter yields over the sphere and the build plan, with globular clusters.
+
+### Changed
+- Extended `docs/design/intergalactic-and-halo-contents.md`: the sector profile (parameters per cell), how the bright-star, mass and phenomena scatters fill the whole sphere, globular clusters and satellites as components in the same build, and a 12-step build plan. No code changed.
+
+TODO items resolved: none / Added: none (the build plan is in the note's section 9)
+
+## [8.0.1373] - 2026-10-15
+
+**Headline:** The plan now shows the migration time-left bars as done.
+
+### Changed
+- PERF.102 is retired (the migration progress display shows a time remaining, PR #1626).
+
+TODO items resolved: PERF.102 / Added: none
+
+## [8.0.1372] - 2026-10-15
+
+**Headline:** The migration's progress bars now show a time remaining.
+
+### Changed
+- The migration's two progress bars show a time remaining (PERF.102). A step that names each phase of its batch (the spherical conversion, `Converting to shells: ...`) used to open a new inner bar for every name, so no bar ever finished a unit and neither had a rate; the inner bar now stays across names (it starts over only when its total changes or its count goes backwards). The step bar moves by the share of the step done, so a run with one long step (one migration pending) has a rate on the top bar too (`stage_progress.StageProgress.detail`).
+
+TODO items resolved: PERF.102 / Added: none
+
+## [8.0.1371] - 2026-10-15
+
+**Headline:** The plan now carries the work to fill the whole sphere out to 262 kpc with a stellar halo, satellites and wanderers.
+
+### Changed
+- Ten items filed from the intergalactic research note (approved by Boss): GEN.233 (grid reach), GEN.234 (stellar halo replaces the density floor), GEN.235 (sparse sector visit), GEN.236 (halo rules per kind), GEN.237 (satellite and cluster components), GEN.238 (hypervelocity and kicked stars), GEN.239 (high-velocity clouds, later), UX.113 (page of an empty sector), MAP.207 (Galaxy Map points beyond the outline) and DOC.48 (docs).
+- GEN.230 now records the decided 96-bit layout.
+- The execution plan gets a Core group for the halo items and the Interface and Quality items beside them.
+
+TODO items resolved: none / Added: GEN.233, GEN.234, GEN.235, GEN.236, GEN.237, GEN.238, GEN.239, UX.113, MAP.207, DOC.48
+
+## [8.0.1370] - 2026-10-15
+
+**Headline:** A design note on filling the whole spherical grid: the stellar halo, satellites and intergalactic space.
+
+### Changed
+- Added `docs/design/intergalactic-and-halo-contents.md`: what is known to exist off the disk and out to 262 kpc, how the generator treats that space today, and a proposal for giving every cell contents without storing the empty ones. No code changed.
+
+TODO items resolved: none / Added: none (proposals are in the note's section 9)
+
+## [8.0.1369] - 2026-10-15
+
+**Headline:** The reference docs describe the Galaxy Map as it now is, on shells, bands and wedges.
+
+### Changed
+- `docs/api.md`, `docs/cli.md`, `docs/html-interface.md`, `docs/database-schema.md`, `docs/design/architecture.md` and `docs/design/galaxy-coordinate-system.md` no longer say the Galaxy Map is being rebuilt: the stage and window routes, the tile answer (`sector_count`, not `filled`), the changes route's stage keys, the v92 `galaxy_block_stats` table, the map scripts and the end of the sector-switch maintenance are described as built (MAP.205, MAP.206).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1368] - 2026-10-15
+
+**Headline:** The plan now shows the Galaxy Map on shells as done and the Interface lane taking over the map, page and wording items.
+
+### Changed
+- MAP.205 and MAP.206 are retired (the Galaxy Map on shells, bands and wedges, PR #1612).
+- GEN.231 (generate a whole block on the new ladder) and GEN.232 (cap the sector-path integration for fast bodies, a bug) are filed, owned by Core.
+- The execution plan gets an Interface (2026-10-15) section with the map, page and wording items of Maps, UX and Wording, and marks those lanes retired.
+
+TODO items resolved: MAP.205, MAP.206 / Added: GEN.231, GEN.232
+
+## [8.0.1367] - 2026-10-15
+
+**Headline:** The Galaxy Map is drawn on the new shell, band and wedge grid, with the same drill-down from the galaxy to a sector.
+
+### Changed
+- The Galaxy Map is drawn on the shell, band and wedge grid: the block ladder (243, 81, 27, 9 and 3 shells deep, then sectors) nests wholly inside each block of the next size up, the whole galaxy is the level-243 blocks seen from above, and a window is the blocks inside a ball round its centre (MAP.205, MAP.206). The cylinder drawing (rings, layers, slabs and quarter stages) is gone.
+- The map's data follows: the stored block totals (`galaxy_block_stats`, schema 92) are keyed by shell, band and wedge, the stage and window routes answer in them, and the tile cut covers the galaxy's ball. Stage links are `?win=m.shell.band.wedge`; the address bar reads `shell/band/wedge`, `shell N band N wedge N`, points, designations and names.
+- `blockGenerateButtons` is removed with the cylinder drill-down.
+- The Galaxy Map page and the sector page's map are drawn again, the "map is being rebuilt" notices are gone, and `planetgen.cli.warm_map` ends the sector-grid switch's maintenance mode (`maintenance.SECTOR_SWITCH`) once the opening view is built, so the site reopens when the new map works. An admin's own maintenance stays.
+
+TODO items resolved: MAP.205, MAP.206 / Added: none
+
 ## [8.0.1366] - 2026-10-15
 
 **Headline:** The plan files the bug that sector designations cannot name bands beyond 2047.

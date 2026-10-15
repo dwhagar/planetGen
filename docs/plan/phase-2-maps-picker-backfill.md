@@ -73,7 +73,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
+| UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | GEN.235, API.27 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
+| UX.114 | Scatter-row pages list the stored members and the map shows a system mass | GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
+| DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
+| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.260, GEN.262, GEN.264, GEN.266 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
+| DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | GEN.250, GEN.251, GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 9. Quality. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
 
@@ -142,6 +147,42 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential |  | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
+| GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | GEN.235, GEN.158, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Step 13. Core. |
+| GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 11. Core. |
+| GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.235, GEN.236, GEN.242, GEN.251 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
+| API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
+| GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.232, GEN.234, GEN.235, GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
+| GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
+| GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) |  | Phenomena catalogue, Boss 2026-10-15. Question for Boss. Core. |
+| GEN.258 | Protostars embedded in giant molecular clouds | GEN.241, GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 8, later. Core. |
+| GEN.257 | A Fermi-bubble overlay on the Galaxy Map | GEN.233 | Phenomena catalogue, Boss 2026-10-15. Step 7d, later. Interface. |
+| GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | GEN.243, GEN.153 | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
+| GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 7b, later. Core and Interface. |
+| GEN.254 | Superbubble field beside the nebula field (the Local Bubble cavity) | GEN.235 | Phenomena catalogue, Boss 2026-10-15. Step 7a, later. Core. |
+| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
+| GEN.252 | Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert | GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 5, later. Core. |
+| GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.248 | Tidal streams as placed components of the halo (later) | GEN.237, GEN.234 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | GEN.129, GEN.130 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.246 | Luminous blue variables and hypergiants (later) | GEN.243 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.245 | Debris disks around A and F stars (later) | GEN.242 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.244 | Young open clusters and OB associations as components (later) | GEN.237, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | GEN.233, GEN.232, GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
+| GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.235, GEN.159, GEN.160 | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
+| GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | GEN.235, GEN.158 | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |
+| GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | GEN.233, GEN.234 | Whole-sphere build train, Boss 2026-10-15. Step 2. Core. |
+| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | GEN.233 | Whole-sphere build train, Boss 2026-10-15. Step 3. Core. |
+| GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | GEN.250, GEN.235 | Phenomena catalogue, Boss 2026-10-15. Step 2. Core. |
+| GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
+| GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 7. Core. |
+| GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | GEN.223, GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 6. Core. |
+| GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.260, GEN.261, GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
+| GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | GEN.262 | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
+| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | GEN.260, GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 3. Core. |
+| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to seven members | GEN.250 | Multi-star systems at scatter time, Boss 2026-10-15. Step 2. Core. |
+| GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | GEN.223 | Multi-star systems at scatter time, Boss 2026-10-15. Step 1. Core. |
+| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test |  | Phenomena catalogue, Boss 2026-10-15. Step 1. Core. |
+| GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | GEN.230, GEN.223 | Whole-sphere build train, Boss 2026-10-15. Step 1. Core. |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115 |  |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
@@ -154,16 +195,20 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.115, GEN.109 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
+| TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.233, GEN.235, GEN.236, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
+| TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.262, GEN.264 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
+| TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
+| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.250, GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | GEN.198 | Research. |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
-| MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists |  | Phase 2. Optional, default do not build. |
 | MAP.181 | Dust colour for the dark nebula family on both themes |  | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | MAP.176 | Phase 2. Foundations lane 2. |
 | MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
+| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.237, GEN.238 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
 | POP.13 | A species editor: create and edit species and their environment limits |  |  |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
@@ -242,8 +287,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
-| GEN.129 | Multi-star systems of up to seven stars |  | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
-| GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center |  | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
+| GEN.129 | Multi-star systems of up to seven stars | GEN.261 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
+| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.251, GEN.266 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
