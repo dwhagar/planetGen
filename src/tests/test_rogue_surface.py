@@ -138,7 +138,7 @@ def test_phenomenon_page_rows():
     assert fields["Surface Pressure"] == "300 mPa (a trace)"
     assert fields["Ice Thickness"] == "13.4 km"
     assert fields["Liquid Ocean Depth"] == "120 km"
-    assert fields["Internal Heat Flow"] == "0.087 W/m²"
+    assert fields["Internal Heat Flow"] == "87 mW/m²"
     assert fields["Geologically Active"] == "Yes"
 
 

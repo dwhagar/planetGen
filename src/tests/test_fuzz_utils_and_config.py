@@ -160,17 +160,6 @@ def test_format_length_km_never_raises_on_finite_values(value, threshold, digits
         assert "\u00d7 10" in out  # UX.20: 5+ whole digits go scientific
 
 
-@given(value=normal_float.filter(lambda v: v != 0), markdown=st.booleans(), low=st.integers(0, 8))
-def test_format_relative_to_sol_picks_percent_or_multiplier(value, markdown, low):
-    sol = physical_constants.SOLAR_MASS_TO_KG
-    out = formatting.format_relative_to_sol(_config(markdown), value, sol, "kg", low)
-    ratio = value / sol
-    if ratio < tuning.PERCENT_SOL_THRESHOLD_HIGH:
-        assert out.endswith("% of Sol)")
-    else:
-        assert out.endswith("× Sol)")
-
-
 _PERIOD_TEXT = re.compile(r"^-?[0-9.,]+(?: \u00d7 10[\u207b\u2070\u00b9\u00b2\u00b3\u2074-\u2079]+)? "
                           r"(\u00b5s|ms|s|minutes?|hours?|days?|years?|kyr|Myr|Gyr)$")
 

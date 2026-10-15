@@ -271,5 +271,44 @@ MASS = Ladder(
     ),
 )
 
-LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY, MASS)
+# Luminosity and power (UX.22): watts with the SI prefixes, then solar
+# luminosities from a millionth of the Sun's (3.8e20 W), where a star's
+# "1.00 L☉" reads better than "383 EW". Below one watt (Hawking luminosities)
+# scientific text, by the tiny-number rule.
+POWER = Ladder(
+    quantity="power",
+    base="W",
+    nonfinite="W",
+    zero="W",
+    rungs=(
+        Rung("W", 1.0, "watts", start=0.0),
+        Rung("kW", 1e3, "kilowatts"),
+        Rung("MW", 1e6, "megawatts"),
+        Rung("GW", 1e9, "gigawatts"),
+        Rung("TW", 1e12, "terawatts"),
+        Rung("PW", 1e15, "petawatts"),
+        Rung("EW", 1e18, "exawatts"),
+        Rung("L☉", physical_constants.SOLAR_LUMINOSITY, "solar luminosities",
+             start=1e-6 * physical_constants.SOLAR_LUMINOSITY),
+    ),
+)
+
+# Heat flow and flux (UX.22): W/m² with SI prefixes, so Earth's 0.087 W/m²
+# reads "87 mW/m²" as in the literature.
+FLUX = Ladder(
+    quantity="flux",
+    base="W/m²",
+    nonfinite="W/m²",
+    zero="W/m²",
+    rungs=(
+        Rung("nW/m²", 1e-9, "nanowatts per square meter", start=0.0),
+        Rung("µW/m²", 1e-6, "microwatts per square meter"),
+        Rung("mW/m²", 1e-3, "milliwatts per square meter"),
+        Rung("W/m²", 1.0, "watts per square meter"),
+        Rung("kW/m²", 1e3, "kilowatts per square meter"),
+        Rung("MW/m²", 1e6, "megawatts per square meter"),
+    ),
+)
+
+LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY, MASS, POWER, FLUX)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""

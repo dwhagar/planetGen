@@ -29,7 +29,7 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.util.format import format_body_radius_km, format_number, format_speed_kms
+from planetgen.util.format import format_body_radius_km, format_flux_w_m2, format_number, format_speed_kms
 from planetgen.util.random import sample_power_law
 
 
@@ -375,7 +375,7 @@ class RoguePlanet(LazySaladName):
         temp = self.surface_temperature_k
         sentences = [
             f"It is about {format_number(self.age_gy, ',.1f')} billion years old. With no star to warm it, its only heat is its own: "
-            f"{format_number(self.internal_heat_flux_w_m2, ',.3g')} W/m\u00b2 leaking from its interior, so it glows at an effective "
+            f"{format_flux_w_m2(self.internal_heat_flux_w_m2)} leaking from its interior, so it glows at an effective "
             f"temperature of {format_number(self.effective_temperature_k)} K."
         ]
         if regime in ("gas-giant", "brown-dwarf"):

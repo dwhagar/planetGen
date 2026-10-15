@@ -22,7 +22,7 @@ from flask import abort, jsonify, redirect, request
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
-    format_duration_seconds, format_gravity_g, format_mass_kg, format_mass_solar, format_number, format_period_years, format_pressure_pa, format_speed_kms,
+    format_duration_seconds, format_gravity_g, format_flux_w_m2, format_mass_kg, format_mass_solar, format_number, format_power_w, format_period_years, format_pressure_pa, format_speed_kms,
     format_temperature_k, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_nearest,
     nearest_systems_html,
@@ -605,7 +605,7 @@ FIELD_SPECS = {
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
         ("has_accretion_disk", "Accretion Disk", _bool_text),
         ("temperature_k", "Hawking Temperature", lambda v: format_temperature_k(v, companions=False)),
-        ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
+        ("luminosity_w", "Luminosity", format_power_w),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
@@ -617,7 +617,7 @@ FIELD_SPECS = {
         ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
         ("pulsar_type", "Pulsar Type", _title_case),
         ("surface_temperature_k", "Surface Temperature", lambda v: format_temperature_k(v, companions=False)),
-        ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
+        ("luminosity_w", "Luminosity", format_power_w),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
@@ -645,7 +645,7 @@ FIELD_SPECS = {
         # Surface conditions (schema v48, rogueSurface): no star, so only
         # its own heat. A giant's temperature and pressure are at 1 bar.
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
-        ("internal_heat_flux_w_m2", "Internal Heat Flow", lambda v: f"{format_number(v, ',.3g')} W/m\u00b2"),
+        ("internal_heat_flux_w_m2", "Internal Heat Flow", format_flux_w_m2),
         ("effective_temperature_k", "Effective Temperature", lambda v: format_temperature_k(v, companions=False)),
         ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),
         ("surface_temperature_k", "Surface Temperature", format_temperature_k),
@@ -666,7 +666,7 @@ FIELD_SPECS = {
     "quasar": [
         ("black_hole_mass_solar", "Black Hole Mass", format_mass_solar),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
-        ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
+        ("luminosity_w", "Luminosity", format_power_w),
         ("eddington_ratio", "Eddington Ratio", lambda v: f"{v:.0%}"),
         ("accretion_rate_solar_per_year", "Accretion Rate", lambda v: f"{format_number(v, ',.2f')} solar masses/year"),
         ("broad_line_region_light_days", "Broad-Line Region Radius", _light_days),
