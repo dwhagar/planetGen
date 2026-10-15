@@ -113,7 +113,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
 
@@ -226,10 +226,9 @@ with `clamp()`.
   so `generate.py` and the CLI must write the same lock and publish
   progress.
   Plan change (2026-10-15): the banner and its public endpoint are built on
-  the Redis run record and ETA function of PERF.96, never on the MySQL job
+  the Redis run record and ETA function of PERF.96 (done, PR #1553), never on the MySQL job
   tree that PERF.100 deletes; PERF.99 only repoints the Generate page,
-  Queue page and job log. Foundations UX starts it when PERF.96 has merged.
-  Prerequisite: PERF.96.
+  Queue page and job log. PERF.96 has merged, so it is unblocked (held until Boss releases the lanes).
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
   Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
@@ -1359,8 +1358,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `drill.py`, `region.py`, `window.py`, the block stats table and its
   migration. Boss's answer (2026-10-15 06:58Z): a block holds the cells
   whose centre it holds, not cells cut on block edges, so the note
-  picks a block count per level; the equator count is 6 * 2^a * 3^b
-  (primes 2 and 3) so the counts nest. The ladder-timing question (after
+  picks a block count per level; every band of every shell has 6 * m
+  wedges, m using only the primes 2, 3, 5 and 7 and nearest the 4 pc arc
+  (Boss, 07:17Z), so the ladder note works from that rule: counts
+  nest in most steps, not all. The ladder-timing question (after
   the coordinates, or in parallel) is still open with Boss. Replaces the
   cylinder 243/81/27/9/3 ladder (MAP.151, done, PR #1539). Owner: Foundations Maps,
   after item 6. Source: item 7 of section 6 of the plan. Boss decided
@@ -3282,6 +3283,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
 
 - [ ] **GEN.225 Outline and bounds on shells**
+  Follow-up to GEN.224 (merged, PR #1549), done in the same PR: swap the
+  wedge-count rule in `planetgen/galaxy/spherical.py` for Boss's single
+  rule (07:17Z): every band of every shell has 6 * m wedges, m using
+  only the primes 2, 3, 5 and 7 and nearest the 4 pc arc, caps stay at
+  6, no window or outline dependence, wedge 0 starts at the +X meridian;
+  the thread decides whether the shell 1 to 3 hand table is still needed
+  and removes it if the rule alone covers those shells.
   `skeleton.py` builds the outline as a band range per shell (and the
   column view); `GalaxyBounds.contains` and `random_address` use it.
   The outline only limits what may be generated: it never decides which
@@ -3430,72 +3438,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whole run in Redis.
   Prerequisite: PERF.29.
 
-- [ ] **PERF.33 Progress bars and ETAs from measured performance**
-  Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
-  be calculated from this performance metric averaged with the actual
-  performance at the time" and "if it is expected to take longer than 15
-  seconds to complete, it gets a progress bar for that sub-task from the
-  main task. This includes generating stars inside a layer, star systems
-  in a sector, etc." Done: every job's expected time is its recorded
-  rate (PERF.32) averaged with the live rate; a sub-task expected to
-  take over 15 seconds gets its own bar under the main one; the Queue
-  page ETA (ADM.39) and the banner of UX.3 use the same estimate.
-  Research (2026-10-09, performance-eta-queue-and-caching.md): replace
-  "recorded rate averaged with the live rate" by the estimator in design
-  doc section 2.3: a ratio of two decayed sums weighted by each unit's
-  predicted cost (the PERF.3 density sum), blended with the recorded
-  rate by weight n/(n+15) on the live side, tau = max(60 s, 20 x mean
-  task seconds / workers). Simulated error about 12% against about 50%
-  for the present count-based EWMA, worst case 26% against 181%. Done
-  also: a multi-step job adds each not-yet-started step's PERF.3
-  estimate (`work._roll_up` adds nothing for such steps today and drops
-  them from the parent's sum); the web shows a range or "estimating",
-  never `-:--:--`; one pure function serves the terminal bar, the Queue
-  page, the banner and DB.15.
-  Left over (2026-10-09): left over from UX.83 (PR #895, Bugfixes lane
-  1): the phenomenon scatter, the neighbour-linking steps and the
-  population pass now draw their own bars; a bar inside one sector's
-  save (the slowest sub-step in a dense sector) is now PERF.50.
-  Prerequisite: PERF.32. Related: PERF.51, UX.84, PERF.50, DB.15.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-  Built with PERF.32 (PR #905): the control schema is v12; the
-  recorded kinds are sector, scatter and phenomena; the `sums` and
-  `rate_cost_per_s` columns from the research sketch were not added and
-  belong to this estimator; the `bench:` prefix is reserved for PERF.31's
-  rows.
-  Partly built (PR #910, Bugfixes lane 1): one `blended_rate`,
-  `time_constant` and `eta_range` in `queue/progress_rate.py` (the
-  recorded rate of PERF.32 blended with the live rate, weight n/(n+15),
-  held back for 5 units or 20 s, tau = max(60, 20 x mean task seconds /
-  workers), a stall hold); the sector and bright-star bars start from
-  the recorded rate; the Generate and Queue pages show a range or
-  "estimating", never dashes; the Queue page ETA blends the recorded
-  task seconds. Remaining in this item: (1) a multi-step job adds each
-  not-yet-started step's estimate, which needs the estimate stored on
-  the step node when the job is planned; (2) the UX.3 banner reads the
-  same `blended_rate`; (3) the phenomenon scatter bar has no recorded
-  rate to start from (its recorded units are placed phenomena, the
-  bar's are weights), so it needs a recorded rate in the bar's own
-  units, or it keeps the live rate. The migration bar (DB.15) stays its
-  own item.
-  Bugfixes lane 1 (2026-10-09): Part 1 built (2026-10-10, Bugfixes lane
-  1, PR #1021): a multi-step job adds each not-yet-started step's
-  estimate to its ETA. Still open: the scatter-bar recorded rate (GEN.187
-  has landed) and the UX.3 banner reading the same estimator (the banner is
-  not built yet, so nothing to read from).
-  Bugfixes lane 1 (2026-10-09): Audit gaps (Bugfixes lane 1, 2026-10-10,
-  PR #1091 built the Generate page whole-job bar from stage times by
-  settings; answers Boss 08:36Z question on whether every ETA uses
-  stored stats): not yet fixed: (1) scatter and other step bars start
-  from the pool rate by kind and workers only, not matched on the mass
-  or luminosity floor (the stored stage seconds by settings should seed
-  the rate and decide whether a sub-bar is drawn); (2) the backfill step
-  has an unknown count at start; (3) the command-line whole-job bar (built
-  with PERF.55, PR #1131); (4) job-page tree estimates are by
-  step label, not by settings. Folded here; (3) is done.
-  Redis plan (2026-10-14): Folded into PERF.96 (Boss adopted the Redis
-  plan, 2026-10-14 21:08Z); it is built there.
-
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
   untouched sectors with an interval or chunk ledger once GEN.42's
@@ -3610,7 +3552,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48 (done, PR #1395), ADM.54 (done, PR #1401).
   Decided (Boss, 2026-10-14 21:08Z): Option A of
   the Redis review, every default approved. Build steps filed as PERF.95
-  (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
+  (queue spine), PERF.96 (run record and ETA library, done, PR #1553), PERF.97 (mass
   scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
   cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
   when they are; it follows the dead-worker bug PERF.93 (done) and the client
@@ -3650,32 +3592,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.2 and 5.11 step 2.
-  planetgen:run:<id> hash, per-stage counter hashes, the done sets, the
-  events stream (XADD with MAXLEN about 100,000) and the cost-weighted
-  ETA as a pure function of the counters, built as a library with a fake
-  clock and tests; no UI yet. Folds in PERF.33 (progress bars and ETAs
-  from measured performance). Done when: the library passes its tests
-  for the barrier, counters, stream and ETA and PERF.33's acceptance is
-  met by it.
-  Also (Boss, 2026-10-15 05:30Z): when a phase reports no updates, the
-  whole task bar still shows an estimated time remaining, from earlier
-  runs' stage timings or the time per task so far in this run; the ETA
-  function must carry this fallback (the interim fix is the bug item
-  PERF.101).
-  Prerequisite: PERF.95 (done, PR #1506). Related: PERF.86, PERF.33.
-
 - [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -3697,7 +3613,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
   gives the same galaxy for the same seed at any worker count and the
   old path still runs the other stages.
-  Prerequisite: PERF.96. Related: PERF.86.
+  Prerequisite: none (PERF.96 done, PR #1553). Related: PERF.86.
 
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -3785,7 +3701,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the move to the Redis run record. Owner: Foundations Database,
   together with PERF.96 (Boss retired the bug lanes, 2026-10-15
   05:39Z).
-  Prerequisites: none. Related: PERF.96, PERF.33.
+  Prerequisites: none. Related: PERF.96 (done, PR #1553), PERF.33 (done, PR #1553).
 
 ## DB: Database and schema
 
@@ -3917,17 +3833,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   from systemd or cron), and the check is the one place every
   migration goes through.
   Dependency: how the active jobs are read depends on the work queue
-  steps. Until PERF.96 (run record and counters in Redis) merges, the
-  check reads the old job tables; PERF.96 supplies the library call that
-  lists active runs, and PERF.99 supplies the cancel through the stop
+  steps. PERF.96 (run record and counters in Redis, done, PR #1553)
+  supplies the library call that lists active runs, which the check
+  uses; and PERF.99 supplies the cancel through the stop
   command, after which the check uses them. PERF.100 (which deletes the
   old work tables with a migration) must pass through this check too.
   Owner: Foundations Database, after DB.28 (done, PR #1476) and before PERF.100.
-  Prerequisites: none. Related: PERF.95 (done, PR #1506), PERF.96, PERF.99, PERF.100,
+  Prerequisites: none. Related: PERF.95 (done, PR #1506), PERF.96 (done, PR #1553), PERF.99, PERF.100,
   OPS.48, DB.18, DB.27 (done, PR #1446), DB.28 (done, PR #1476).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
-  Needed by POP.12 (Foundations Generation), same rule as DB.27 and
+  Needed by POP.12 (done, PR #1554; Foundations Generation), same rule as DB.27 and
   DB.28: only Foundations Database adds migrations. Add the columns or
   the table that hold each species' own environment limits, one value
   per row of `LIMIT_ROWS` in `planetgen/physics/protection_limits.py`
@@ -3936,9 +3852,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   docs/design/habitability-index.md section 9 ("a later per-species
   limit replaces a row in this table and nothing else"). Done: the
   migration (next after DB.29's if that lands first) with its old-schema
-  fixture and tests, merged so POP.12 can be built on it. Owner:
+  fixture and tests, merged so the species limits of POP.12 (done, PR #1554) can be stored. Owner:
   Foundations Database, after DB.29.
-  Prerequisite: DB.29. Related: POP.12, POP.13, DB.27.
+  Prerequisite: DB.29. Related: POP.12 (done, PR #1554), POP.13, DB.27.
 
 - [ ] **DB.31 Store structure, not prose, for life and flavour**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -3957,10 +3873,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Switch (2026-10-15): DB.32, GEN.227 and UX.111 must land as one switch,
   because the schema rename breaks the store, queries, generation and the
   Galaxy Map code at once; the Galaxy Map's state in between is a question
-  with Boss. GEN.224 (PR #1549) is merged; its wedge-count rule will be
-  rewritten: Boss wants one uniform rule for every band of every shell
-  (caps excepted), no window or nested-chain special case, prime limit
-  pending his answer.
+  with Boss. GEN.224 (PR #1549) is merged; its wedge-count rule is replaced by
+  the one Boss decided at 07:17Z (see GEN.225).
   A new Alembic revision renames `ring_index`, `layer_index` and
   `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` in
   the seven address-keyed tables, and adds the old-schema fixture. It
@@ -4989,6 +4903,17 @@ clears each one.
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **TEST.157 A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug)**
+  Foundations Generation saw
+  tests/test_web_system_phen.py::test_system_detail_names_the_containing_nebula
+  fail once in a full run and in 1 of 16 solo reruns (found while
+  merging POP.12, PR #1554), so it is flaky on its own, not only under
+  load. Find the cause (likely a random system or nebula placement that
+  sometimes does not contain the system) and make the test
+  deterministic, then add it to the rebuild's flake list. Owner: Test
+  Suite Rebuild thread.
+  Prerequisites: none.
 
 ## USR: User accounts
 
@@ -6155,35 +6080,6 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
   Prerequisite: USR.10. Related: POP.7 (done, PR #1461), POP.10 (done, PRs #1517 and #1524), USR.10.
 
-- [ ] **POP.12 List every species that could live in a given environment, and give every species its environment limits**
-  Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
-  one to list all races that would be able to inhabit that environment.
-  That means all species must also have that information. Add another
-  TODO item for species editor." Today a species row carries its build,
-  climate, size, life chemical, life stage and tech fields, but no
-  environment limits, and the habitability score describes only the
-  human visitor (`LIMIT_ROWS` in
-  `planetgen/physics/protection_limits.py`). Done: (1) every species
-  stores its own limits for the same rows, generated from its life
-  chemical, build, climate and size when the species is made and
-  backfilled for the species that exist; (2) a function scores any
-  planet or moon against a species' limits through the six habitability
-  domains (GEN.207); (3) the planet and moon page has a "Species that
-  could live here" list, with each species' rating per domain, and the
-  API has an endpoint that lists the species able to live in a planet or
-  moon, and the other way round (the environments a species could live
-  in, by sector or system); (4) the species page shows its own limits.
-  Open question for Boss (default: "able to inhabit" means no Red domain
-  without equipment, with a second list of species that could live there
-  with equipment at their own tech level, so one list is unaided and one
-  is equipped). Open question for Boss (default: homeworld-only species
-  get limits from their homeworld's conditions, so every species passes
-  its own homeworld). Rebuild nothing in the human score: a per-species
-  limit replaces a row of the table and nothing else.
-  Prerequisites: DB.30, POP.9 (done, PR #1461). Related: POP.13, POP.9, POP.7, GEN.207,
-  GEN.208, DB.30, API.15.
-  Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
 - [ ] **POP.13 A species editor: create and edit species and their environment limits**
   Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
   one to list all races that would be able to inhabit that environment.
@@ -6201,7 +6097,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   for the page, Foundations Generation for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
-  Prerequisite: POP.12. Related: POP.10 (done, PRs #1517 and #1524), POP.9, ADM.9.
+  Prerequisite: none (POP.12 done, PR #1554). Related: POP.10 (done, PRs #1517 and #1524), POP.9, ADM.9.
 
 - [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
   Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
@@ -6225,4 +6121,4 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   is only acceptable with equipment counts as outside the limits unless
   the placement says it is a habitat or vessel (default: only unaided
   survival counts for a planet or moon surface).
-  Prerequisite: POP.12. Related: POP.12, POP.13, POP.11, POP.10 (done, PRs #1517 and #1524).
+  Prerequisite: none (POP.12 done, PR #1554). Related: POP.13, POP.11, POP.10 (done, PRs #1517 and #1524).

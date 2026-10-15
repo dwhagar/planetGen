@@ -91,8 +91,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.12 | List every species that could live in a given environment, and give every species its environment limits | DB.30, POP.9 |  |
-| POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | POP.12 |  |
+| POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data |  |  |
 | DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
 | DB.30 | One migration for the per-species environment limits | DB.29 |  |
 
@@ -248,6 +247,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.152 |  |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules |  |  |
+| TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) |  | Flaky under load. Bugfixes lane 1. |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
@@ -265,10 +265,8 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | PERF.99 | PERF.86 step 6 |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98 | PERF.86 step 5 |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.97 | PERF.86 step 4 |
-| PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | PERF.96 | PERF.86 step 3 |
-| PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library |  | PERF.86 step 2 |
+| PERF.97 | Work queue step 3: the mass scatter end to end on the new queue |  | PERF.86 step 3 |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
-| PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
 
 ## Open questions for Boss
 
