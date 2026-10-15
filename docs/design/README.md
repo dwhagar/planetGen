@@ -29,6 +29,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [spherical-sector-coordinates.md](spherical-sector-coordinates.md) | The plan for spherical shells, bands and wedges | plan (in progress) |
 | [spherical-shell-sectors.md](spherical-shell-sectors.md) | What spherical-shell sectors would mean (the question behind the plan) | research |
 | [spherical-ladder-meridians.md](spherical-ladder-meridians.md) | Meridians for the spherical block ladder | research |
+| [spherical-block-ladder.md](spherical-block-ladder.md) | The Galaxy Map's block ladder (243/81/27/9/3) and windows on shells | built (MAP.205, MAP.206) |
 | [galaxy-disk-density.md](galaxy-disk-density.md) | The galaxy density model | built |
 | [fill-order-curves-and-core.md](fill-order-curves-and-core.md) | Fill order, region selection and the galactic core | research |
 | [sampling-backfill-and-resume.md](sampling-backfill-and-resume.md) | Sampling, backfill, void filling, resumable runs and directives | research (resume on hold, PERF.86) |

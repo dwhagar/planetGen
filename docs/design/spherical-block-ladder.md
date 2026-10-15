@@ -1,6 +1,6 @@
 # Spherical sectors: the Galaxy Map's block ladder
 
-Status: design and prototype, 2026-10-15 (MAP.205). Built on branch, not merged: it merges after the coordinate switch (DB.32, GEN.227, UX.111). Replaces the cylinder ladder of [drilldown-region-sizes.md](drilldown-region-sizes.md) (MAP.151, 243/81/27/9/3 with ring, wedge and slab). The grid it sits on is [spherical-sector-coordinates.md](spherical-sector-coordinates.md) (`galaxy/spherical.py`); the meridian study that fed it is [spherical-ladder-meridians.md](spherical-ladder-meridians.md).
+Status: built, 2026-10-15 (MAP.205, MAP.206), after the coordinate switch (DB.32, GEN.227, UX.111). Replaces the cylinder ladder of [drilldown-region-sizes.md](drilldown-region-sizes.md) (MAP.151, 243/81/27/9/3 with ring, wedge and slab). The grid it sits on is [spherical-sector-coordinates.md](spherical-sector-coordinates.md) (`galaxy/spherical.py`); the meridian study that fed it is [spherical-ladder-meridians.md](spherical-ladder-meridians.md).
 
 Evidence tags: [C] computed by the code in `galaxy/drill.py` over the real grid, [B] Boss's words, [S] read in the repository.
 
