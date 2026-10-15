@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1339] - 2026-10-15
+
+### Fixed
+
+- A system at the galactic center keeps a Hill sphere (worked out at least 1.5 pc out), so a batch fill of shell 0 makes systems with planets again (a distance of zero gave every star a zero-size Hill sphere).
+
 ## [8.0.1338] - 2026-10-15
 
 ### Changed
