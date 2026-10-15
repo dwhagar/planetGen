@@ -24,12 +24,12 @@ that packet, and the login loop that 1.2.1 added then calls
 (PR #1275, 2026-09-18) after 1.2.3 and has not released it. `connect` hands
 pymysql's own handler through its documented `auth_plugin_map` so the loop
 takes the packet or the end of the exchange (`None`) from it: the login is
-still pymysql's, with the same checks, and a release that returns the
-packet works unchanged. Drop `_CachingSha2Login` once the pinned pymysql
-carries the fix.
-
-Errors that already say what is wrong (the server is down, an unknown
-database, a lock timeout) pass through unchanged.
+still pymysql's, with the same checks. The hook stays in place after the fix
+is released (Boss, 2026-10-15): pymysql calls the handler in place of its own
+built-in call to the same step, so the step still runs exactly once, and a
+release that returns the packet passes it on unchanged. The requirement
+`pymysql>=1.2.3` takes either. tests/test_db_login_server.py logs in to a
+fake MySQL 8 server with both versions of the step.
 """
 
 import pymysql
