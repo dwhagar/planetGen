@@ -69,7 +69,10 @@ setup(
         # planetgen.db.query, planetgen.cli.migrate, the html/ CGI browser) needs these,
         # not just the Flask API, so they're core requirements rather
         # than the 'api' extra below.
-        'pymysql>=1.1.1',
+        # 1.2.3 is the release the lock resolves to; planetgen/db/login.py
+        # works around its missing `return` in the caching_sha2_password
+        # login without TLS (OPS.49).
+        'pymysql>=1.2.3',
         # What pymysql needs to log in to MySQL 8's default accounts
         # (caching_sha2_password, sha256_password); without it the first
         # connection fails with "'cryptography' package is required".

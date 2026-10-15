@@ -33,7 +33,7 @@ import uuid
 
 import pymysql
 
-from planetgen.db import store
+from planetgen.db import login, store
 
 DEFAULT_SEED = "0000000000000000000000000000BEEF"
 DEFAULT_SECTORS = 2
@@ -76,7 +76,7 @@ def _workers(text):
 
 
 def _admin(config):
-    return pymysql.connect(host=config.host, port=config.port, user=config.user, password=config.password,
+    return login.connect(host=config.host, port=config.port, user=config.user, password=config.password,
                            autocommit=True)
 
 
@@ -120,7 +120,7 @@ def _make_control_schema(config, control):
 
 
 def _stages(config, control, database):
-    conn = pymysql.connect(host=config.host, port=config.port, user=config.user, password=config.password,
+    conn = login.connect(host=config.host, port=config.port, user=config.user, password=config.password,
                            database=control, autocommit=True, cursorclass=pymysql.cursors.DictCursor)
     try:
         with conn.cursor() as cur:

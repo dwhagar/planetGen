@@ -90,7 +90,7 @@ SERVER_LOCK="$SCRIPT_DIR/requirements-server.lock"
 # (scikit-image -> skimage).
 REQUIREMENTS=(
     "nltk>=3.9.1"
-    "pymysql>=1.1.1"
+    "pymysql>=1.2.3"
     "cryptography>=42.0.0"
     "werkzeug>=3.0.0"
     "rich>=13.7.0"
