@@ -3158,7 +3158,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   modelled. Done: the induced field is computed for ocean moons and
   stored beside the intrinsic field, with a test on a known case (a
   Europa-like moon of a gas giant).
-  Prerequisites: none (GEN.88 merged, PR #963). Related: GEN.86.
+  Prerequisites: DB.26 (the induced_moment_a_m2 column), GEN.88 merged (PR #963). Related: GEN.86.
 
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
   Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
@@ -3731,7 +3731,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
   and approved every default in it on 2026-10-14 21:08Z (see the
   Decided line below). Filed from the same review, independent of the
-  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48 (done, PR #1395), ADM.54.
+  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48 (done, PR #1395), ADM.54 (done, PR #1401).
   Decided (Boss, 2026-10-14 21:08Z): Option A of
   the Redis review, every default approved. Build steps filed as PERF.95
   (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
@@ -4016,18 +4016,19 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations Generation, 2026-10-15, relayed by the coordinator:
   Foundations Generation may not add migrations, so it needs this one
   from Foundations Database. One Alembic migration on planets and moons:
-  add flux_variation (for GEN.148), rename phi4_chemistry and
+  add flux_variation (for GEN.148), add induced_moment_a_m2 after
+  dipole_class (for GEN.178, the induced field of an ocean moon), rename phi4_chemistry and
   tier_chemistry to phi4_air and tier_air, and add phi4_water,
   tier_water, phi4_suitability and tier_suitability (for GEN.207, which
   splits chemistry into air and water and adds the Suitability
   dimension). The exact column types and defaults come from the spec the
   coordinator sent to Foundations Database. It blocks GEN.207
-  (Foundations Generation's first item) and the flux_variation part of
-  GEN.148, so it goes first in the Foundations Database queue, ahead of
+  (Foundations Generation's first item), the flux_variation part of
+  GEN.148 and GEN.178, so it goes first in the Foundations Database queue, ahead of
   ADM.54 and the Redis rebuild (generation corrections come first; Boss,
   2026-10-10 22:19Z). No old-column compatibility shim (Boss,
   2026-10-07).
-  Prerequisites: none. Related: GEN.207, GEN.148.
+  Prerequisites: none. Related: GEN.207, GEN.148, GEN.178.
 
 ## API: The JSON API
 

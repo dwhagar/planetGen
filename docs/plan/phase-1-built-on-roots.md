@@ -72,7 +72,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | DB.26 | Research follow-up to GEN.84 (built). |
-| GEN.178 | Magnetic fields: the induced field of an ocean moon |  | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
+| GEN.178 | Magnetic fields: the induced field of an ocean moon | DB.26 | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor |  | Left over from GEN.86 (PR #908). |
 
 ### Tech levels and facilities
@@ -252,7 +252,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | PERF.96 | PERF.86 step 3 |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | PERF.95 | PERF.86 step 2 |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count |  | PERF.86 step 1 |
-| DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings |  |  |
+| DB.26 | One migration for the habitability columns: flux variation, the induced moment and the air, water and suitability ratings |  |  |
 | OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix |  |  |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
