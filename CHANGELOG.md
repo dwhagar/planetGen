@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1277] - 2026-10-15
+
+### Changed
+- Plan note: the spherical grid must cover all space; the outline only limits generation, never which sectors exist.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1276] - 2026-10-15
 
 ### Changed
