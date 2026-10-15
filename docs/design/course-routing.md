@@ -418,6 +418,13 @@ scans those small tables.
 
 ## 7. Stops in unknown space (NAV.47)
 
+*Built* in `db/stones.py` and `query.nav_between`. What differs from the plan below: the cells read are the jump's
+crossed cells plus one or two rings of neighbours (not a cylinder), the corridor is clipped to the
+nearest 5,000 stones, the kind lookup needs no side table (the corridor is read through the address
+index, so `phenomenon_scatter_special` was not added), a hypervelocity star's position comes from
+`straight_line.scatter_position_mpc` at the orbit epoch (the row's `epoch_unix` already exists), and the
+chain replaces a jump only when it is within 1.5 times its length.
+
 Candidates are `bright_stars` (address index; absolute `position_*_mpc`;
 `star_system_id` set once the sector is filled) and `phenomenon_scatter`
 (address index only; `kind`, absolute position, `velocity_*_kms` for

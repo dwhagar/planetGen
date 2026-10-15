@@ -71,6 +71,7 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
 )
+from planetgen.db import stones as nav_stones
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
@@ -1010,6 +1011,30 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         half_width = min(half_width * 2.0, NAV_CORRIDOR_MAX_LY)
 
 
+def _with_stones(conn, path, positions, distance_ly):
+    """
+    NAV.47: `path` with every hop through unknown space broken up by the stepping stones
+    `stones.chain_for_jump` finds for it. Each stone's position is added to `positions`.
+
+    Returns:
+        tuple: `(path, distance_ly, {key: stone})`; the arguments' own values when nothing changed.
+    """
+    cells = unknown_cells(conn, [positions[node] for node in path])
+    if not any(cells):
+        return path, distance_ly, {}
+    new_path, found = [path[0]], {}
+    for (a, b), crossed in zip(zip(path, path[1:]), cells):
+        if crossed:
+            for key, stone in nav_stones.chain_for_jump(conn, positions[a], positions[b], crossed):
+                positions[key] = stone["position_ly"]
+                found[key] = stone
+                new_path.append(key)
+        new_path.append(b)
+    if not found:
+        return path, distance_ly, {}
+    return new_path, sum(math.dist(positions[a], positions[b]) for a, b in zip(new_path, new_path[1:])), found
+
+
 def _route_places(conn, path):
     """
     NAV.42: where each stop of a route sits in its sector. `{node: {"sector_id", "sector_position_ly"}}`, the
@@ -1071,7 +1096,7 @@ def _bypass_route(conn, origin_position, destination_position, from_key, to_key,
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                  from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0,
-                 chart=False):
+                 chart=False, stones=True):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -1118,6 +1143,12 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             uncharted `unknown_cells`, and a route with such a hop gets a
             `bypass` entry (`_bypass_route`: whether a route through known
             space exists). `nav_chart_plan` asks for these.
+        stones (bool): NAV.47: a hop through unknown space is broken up by stops
+            at scattered stars, black holes, neutron stars, quasars and
+            hypervelocity stars in the uncharted cells when a chain of them
+            exists (`stones.chain_for_jump`); each such stop's `stop_places`
+            entry names its `kind` and `name`. `nav_chart_plan` turns this off,
+            since it asks which cells lie on the direct jump.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -1219,6 +1250,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             search_ends = (search_from, search_to)
         if found is not None:
             path, distance_ly = found
+            stops_found = {}
+            if stones and galaxy_frame is not None:
+                path, distance_ly, stops_found = _with_stones(conn, path, positions, distance_ly)
             route_positions = {node_id: positions[node_id] for node_id in path}
             hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
@@ -1231,7 +1265,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             if galaxy_frame is not None:
                 cells = unknown_cells(conn, [galaxy_frame[node_id] for node_id in path])
                 for hop, hop_cells in zip(hops, cells):
-                    hop["unknown_space"] = bool(hop_cells)
+                    # A hop to or from a stop in unknown space (NAV.47) is in it whatever cells it crosses.
+                    hop["unknown_space"] = bool(hop_cells) or nav_stones.is_stone(hop["from"]) \
+                        or nav_stones.is_stone(hop["to"])
                     if chart:
                         hop["unknown_cells"] = hop_cells
                 if chart and any(cells):
@@ -1239,17 +1275,22 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 if sector_offset is not None:
                     route_positions = {node_id: tuple(c - o for c, o in zip(position, sector_offset))
                                        for node_id, position in route_positions.items()}
+            stays = max(len(hops) - 1 - len(stops_found), 0)  # not at a stop in unknown space (NAV.47)
             route = {
                 "path": path,
                 "distance_ly": distance_ly,
                 "positions": route_positions,
-                "stop_places": [{"node": node_id, **places[node_id]} for node_id in path],
+                "stop_places": [
+                    {"node": node_id, **places[node_id],
+                     **({"kind": stops_found[node_id]["kind"], "name": nav_stones.describe(stops_found[node_id])}
+                        if node_id in stops_found else {})}
+                    for node_id in path],
                 "hops": hops,
                 "longest_hop_ly": max((hop["distance_ly"] for hop in hops), default=0.0),
                 "stops": max(len(hops) - 1, 0),
                 "stay_minutes": stay_minutes,
-                "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes),
-                "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes),
+                "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
+                "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
             }
             if bypass is not None:
                 route["bypass"] = bypass
@@ -1354,7 +1395,7 @@ def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACEN
     from_kind, from_id, from_type = origin["anchor"]
     to_kind, to_id, to_type = destination["anchor"]
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type, chart=True)
+                         from_type=from_type, to_type=to_type, chart=True, stones=False)
     route = result["route"]
     hops = [hop for hop in (route["hops"] if route else []) if hop.get("unknown_space")]
     bounds = get_galaxy_bounds(conn)

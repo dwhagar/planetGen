@@ -862,7 +862,8 @@ bare number), a body in one (`star:7`, `planet:40`, `moon:41`, `belt:5`,
 reference or nonexistent id is a `404`. A phenomenon endpoint's own
 `route.path`/`route.positions` id is a `"phenomenon:<type>:<id>"` string (a
 plain int id for a system) -- only `route.path[0]`/`route.path[-1]` can ever
-be a phenomenon; every intermediate hop is always a system.
+be a phenomenon; every intermediate hop is a system or a stop in unknown
+space (below).
 
 **Hops and unknown space (NAV.12).** There is no hop limit: a route always
 finds the nearest star it can, across sector boundaries, and a pair in one
@@ -872,6 +873,20 @@ sector may route through the sectors next door when the sector is galaxy-placed
 is the longest. `unknown_space` is true when the hop's straight line crosses a
 sector that has not been generated (`galaxyGeometry.sectors_along_segment`,
 NAV.38). A route in a sector with no galaxy placement has the flag false.
+
+**Stops in unknown space (NAV.47).** A route goes from system to system; only
+where a hop crosses unknown space does it look for other stops, in the
+uncharted cells beside the jump: scattered bright stars, black holes, neutron
+stars, quasars and hypervelocity stars (not planetary nebulae or supernova
+remnants), counting only rows nothing has been generated for yet. A chain of
+them replaces the jump when it is no longer than the jump times 1.5
+(`tuning.NAV_UNKNOWN_JUMP_PENALTY`); otherwise the single jump stays. Such a
+stop's id in `route.path`, `route.positions` and `route.hops` is a
+`"stone:<kind>:<row>"` string, its `route.stop_places` entry also has `kind`
+(`bright-star`, `black-hole`, `neutron-star`, `quasar` or `hypervelocity-star`)
+and `name`, every hop to or from one has `unknown_space` true, and a stay
+(`stay`) is not spent at it. A hypervelocity star is where it is at the
+database's orbit epoch. `GET /api/nav/chart` still reckons the direct jump.
 
 **Courses along the route (NAV.42).** Each `route.hops` entry also has the
 course from its stop to the next: `bearing_deg`, `mark_deg`, `elevation_deg`

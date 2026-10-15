@@ -3033,6 +3033,26 @@ NAV_CHART_CONFIRM_SECTORS = 5000
 """int: Charting the sectors of a course (NAV.48) asks for an explicit confirmation past this many sectors
 (Boss, 2026-10-10); the PERF.3 disk refusal applies on top."""
 
+NAV_STONE_KINDS = ("black-hole", "neutron-star", "quasar", "hypervelocity-star")
+"""tuple: The kinds of scattered phenomenon a jump through unknown space may stop at (NAV.47, Boss,
+2026-10-03), beside the scattered bright stars. Planetary nebulae and supernova remnants are not stops
+(default decided 2026-10-10)."""
+
+NAV_STONE_CORRIDOR_MIN_PC = 8.0
+NAV_STONE_CORRIDOR_FRACTION = 0.1
+"""float: The stops of a jump through unknown space are read from the cells within this half-width of
+the straight jump: the larger of `NAV_STONE_CORRIDOR_MIN_PC` and this fraction of its length."""
+
+NAV_STONE_MAX_CELLS = 3000
+"""int: Most uncharted cells read for the stops of one jump (the corridor is narrowed to fit)."""
+
+NAV_STONE_MAX_STONES = 5000
+"""int: Most candidate stops one jump considers (the nearest to the straight jump are kept)."""
+
+NAV_UNKNOWN_JUMP_PENALTY = 0.5
+"""float: A chain of stops replaces a jump through unknown space only when it is no longer than the
+jump times one plus this (the direct jump is kept in reserve at that cost)."""
+
 
 # --- Facilities (schema v42) ---
 
