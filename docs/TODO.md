@@ -2676,6 +2676,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design note (section 5.12) points at this item for the rules: the same
   fractions let a Wolf-Rayet star's companions (GEN.243) and the
   remnants' companions (GEN.130) be drawn as trees.
+  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
+  no systems, planets or moons, so bright stars, massive stars, neutron
+  stars, black holes and the other scattered objects are bare rows;
+  planets and moons are made only when a sector is being filled with
+  everything; a sector fill must represent every kind of object, and
+  when a fill meets a phenomenon that can have a system (or makes one
+  that can) it generates that system if the real-world probabilities
+  give it one; nebulae need stars and phenomena, not planets. For this
+  item: multi-star systems around a scattered object appear at sector
+  fill only.
 
 - [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -2733,6 +2743,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dormant black hole with a Gaia-type companion), so a scattered remnant
   can be promoted to a system. Nothing in the whole-sphere train waits
   on it.
+  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
+  no systems, planets or moons, so bright stars, massive stars, neutron
+  stars, black holes and the other scattered objects are bare rows;
+  planets and moons are made only when a sector is being filled with
+  everything; a sector fill must represent every kind of object, and
+  when a fill meets a phenomenon that can have a system (or makes one
+  that can) it generates that system if the real-world probabilities
+  give it one; nebulae need stars and phenomena, not planets. For this
+  item: the company a black hole or neutron star keeps (companions,
+  disk, planets) is decided when its sector fills, at the real-world
+  fractions, and a fill that already holds such a phenomenon builds its
+  system if it draws one; a scattered row never carries one, so
+  promoting a remnant at scatter time (the earlier default) no longer
+  applies. Boss has ordered the phenomena catalogue and fill rules
+  (docs/design/phenomena-catalogue-and-fill.md, in research); items
+  follow from it.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
@@ -3594,6 +3620,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constraint. Redesign tables, columns and layouts as the work needs,
   with one migration or a fresh galaxy; nothing is kept for the sake of
   production data.
+  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
+  no systems, planets or moons, so bright stars, massive stars, neutron
+  stars, black holes and the other scattered objects are bare rows;
+  planets and moons are made only when a sector is being filled with
+  everything; a sector fill must represent every kind of object, and
+  when a fill meets a phenomenon that can have a system (or makes one
+  that can) it generates that system if the real-world probabilities
+  give it one; nebulae need stars and phenomena, not planets. For this
+  item: the three scatters write bare rows and never build a system; the
+  system is built when the sector fills.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
@@ -3649,6 +3685,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   saved.
   Prerequisites: GEN.235, GEN.236, GEN.242. Related: MAP.172, GEN.150,
   GEN.202, GEN.99.
+  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
+  no systems, planets or moons, so bright stars, massive stars, neutron
+  stars, black holes and the other scattered objects are bare rows;
+  planets and moons are made only when a sector is being filled with
+  everything; a sector fill must represent every kind of object, and
+  when a fill meets a phenomenon that can have a system (or makes one
+  that can) it generates that system if the real-world probabilities
+  give it one; nebulae need stars and phenomena, not planets. For this
+  item: the stars and phenomena a nebula needs are real objects made
+  with it; they get planets and moons only when the nebula's sector is
+  being filled, never in a scatter.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.242 A pre-main-sequence state for young stars, so protostars can exist as real stars**
@@ -3678,6 +3725,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Class I, higher than the field's 0.26 to 0.45. Done also means: a
   protostar's system shows its disk and its companions, and holds no
   planets.
+  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
+  no systems, planets or moons, so bright stars, massive stars, neutron
+  stars, black holes and the other scattered objects are bare rows;
+  planets and moons are made only when a sector is being filled with
+  everything; a sector fill must represent every kind of object, and
+  when a fill meets a phenomenon that can have a system (or makes one
+  that can) it generates that system if the real-world probabilities
+  give it one; nebulae need stars and phenomena, not planets. For this
+  item: a protostar's disk, companions and belts come when its sector
+  fills; the scattered row carries none.
   Prerequisites: GEN.235. Related: GEN.241, UX.108.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3728,6 +3785,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   there are possible and engulfment removes the inner ones. Done also
   means: a W star's system carries its companions at those fractions and
   no planets.
+  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
+  no systems, planets or moons, so bright stars, massive stars, neutron
+  stars, black holes and the other scattered objects are bare rows;
+  planets and moons are made only when a sector is being filled with
+  everything; a sector fill must represent every kind of object, and
+  when a fill meets a phenomenon that can have a system (or makes one
+  that can) it generates that system if the real-world probabilities
+  give it one; nebulae need stars and phenomena, not planets. For this
+  item: a Wolf-Rayet star's companions and belts come when its sector
+  fills; the pre-placed or scattered row carries none.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.244 Young open clusters and OB associations as components (later)**
