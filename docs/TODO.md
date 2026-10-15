@@ -5450,23 +5450,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   part of DOC.4.
   Prerequisites: none. Related: DOC.4.
 
-- [ ] **DOC.34 Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  10 to 14 and 17. The Not done yet section lists NAV.12, NAV.11,
-  ADM.21, SEC.30 and API.9 although they are built (API.15 is genuinely
-  open); missing are /api/galaxy/uncharted, /api/admin/galaxy-settings
-  (and by name), /api/admin/generation-stats/reset and the
-  phenomena_offset search paging; /galaxy/window is a web route, not an
-  API route; examples still use row-number references such as planet:12
-  that API v2 and v3 refuse; the Errors section lacks 504 QUERY_TIMEOUT
-  and 503 BUSY. Done: each route in src/planetgen/api is in the doc and
-  each example runs; checked against
-  docs/design/api-design-standards.md.
-  Prerequisites: none.
-
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code

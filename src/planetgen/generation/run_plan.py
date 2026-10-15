@@ -1401,12 +1401,16 @@ def scatter_phenomena(args):
                 with steps.Step("Writing the special phenomena", "phenomena-insert", max(len(special), 1), args=args,
                                 progress=progress):
                     store.insert_phenomenon_scatter(conn, special)
-                log.normal("Building the phenomena indexes: one pass over the whole table, no progress until it is "
-                           "done; a full galaxy takes a while.")
-                with steps.Step("Building the phenomena indexes", "phenomena-index",
-                                max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
-                                progress=progress):
-                    store.add_phenomenon_scatter_indexes(conn)
+                # One index at a time, each worth the table's rows, so the bar moves after every index and its
+                # time left comes from the rows per second earlier runs recorded (PERF.101).
+                rows = max(store.estimated_rows(conn, "phenomenon_scatter"), 1)
+                pending = store.missing_phenomenon_scatter_indexes(conn)
+                log.normal(f"Building the phenomena indexes: {len(pending)} indexes over about {rows:,} rows, one "
+                           f"at a time; a full galaxy takes a while.")
+                with steps.Step("Building the phenomena indexes", "phenomena-index", rows * max(len(pending), 1),
+                                args=args, progress=progress) as bar:
+                    store.add_phenomenon_scatter_indexes(
+                        conn, on_index=lambda name: (bar.advance(rows), log.normal(f"Built index {name}.")))
                 with steps.Step("Stamping the hypervelocity stars' epoch", "phenomena-stamp",
                                 max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
                                 progress=progress):

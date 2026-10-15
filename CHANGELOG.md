@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1358] - 2026-10-15
+
+**Headline:** Building the phenomena indexes now shows a progress bar with a time remaining.
+
+### Changed
+- Building the phenomena indexes after a plan run reports progress (PERF.101): the indexes are built one statement at a time, each worth the table's rows, so the bar moves after every index and its time left comes from the rows per second earlier runs recorded (`store.add_phenomenon_scatter_indexes(conn, on_index)`, `missing_phenomenon_scatter_indexes`). A phase that reports nothing already showed the earlier runs' time (PERF.96's `runeta`); this phase now has real counts as well.
+
+TODO items resolved: PERF.101 / Added: none
+
+## [8.0.1357] - 2026-10-15
+
+**Headline:** The plan retires DOC.34, the docs/api.md update.
+
+### Changed
+- Retired DOC.34 (done, PR #1623): docs/api.md follows the shell, band and wedge addresses and the current routes.
+
+TODO items resolved: DOC.34 / Added: none
+
+## [8.0.1356] - 2026-10-15
+
+**Headline:** The API reference now matches the routes the spherical switch left.
+
+### Changed
+- `docs/api.md` names sectors by shell, band and wedge everywhere, lists the routes it was missing (`/galaxy/made`, `/galaxy/uncharted`, the admin generation-stats reset and galaxy-settings routes), documents the `503 BUSY` and `504 QUERY_TIMEOUT` answers and `phenomena_offset`, and says which Galaxy Map routes are waiting for the new map.
+
 ## [8.0.1355] - 2026-10-15
 
 **Headline:** The plan now has the nightly orbital update move every object in the galaxy, each stored as a point in space in its own columns.
