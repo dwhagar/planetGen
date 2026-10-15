@@ -61,9 +61,10 @@ recommendation. Informs: GEN.83 to GEN.92.
 
 ## 2. The scores (settled, GEN.84)
 
-Boss chose the structure on 2026-10-07 (17:11Z): PHI-4's four domains and
+Boss chose the structure on 2026-10-07 (17:11Z): PHI-4's domains and
 colour tiers for display, with the Xenobiology doc's three scores as the
-numbers behind them. `planetgen/physics/habitability.py` is the reference
+numbers behind them. GEN.207 (2026-10-15) made the four domains six: Chemistry
+split into Air and Water, and a long-term Suitability was added. `planetgen/physics/habitability.py` is the reference
 maths: every constant below is named there with its source, and GEN.89
 stores what it computes for every planet and moon.
 
@@ -71,8 +72,12 @@ stores what it computes for every planet and moon.
 bands; a variable scores 1 in Blue, falls linearly to 0.75 at the Green
 edge, 0.4 at the Yellow edge and 0 at the outer Red edge (in log10 for
 pressures and doses). A domain scores its worst variable, and its tier is
-Blue at 1, Green from 0.75, Yellow from 0.4, Red below. PHI-4 is the
-geometric mean of the four domains (0 if any is 0, the doc's hard gates).
+Blue at 1, Green from 0.75, Yellow from 0.4, Red below. The six domains are
+Pressure, Temperature, Air Chemistry (is the air breathable: oxygen, CO2, CO,
+H2S, SO2), Water Chemistry (is the water drinkable: pH, water activity,
+chaotropicity; a world with no liquid water scores 0, Red), Radiation and
+Suitability. PHI-4 (still stored as `phi4`) is their geometric mean held under
+the colour gates below.
 
 | Variable | Blue | Green | Yellow | Red |
 |---|---|---|---|---|
@@ -82,7 +87,7 @@ geometric mean of the four domains (0 if any is 0, the doc's hard gates).
 | Inspired O2, F(P - 6.3) kPa | 8 to 50 | under 8 (a mask works) | 50 to 160 | over 160 |
 | CO2, kPa | under 0.93 | to 2.0 | to 5.0 | over 5.0 |
 | CO, H2S, SO2 | under the chronic limit | | to ten times the acute limit | beyond |
-| Water pH | 6 to 8.5 | 5 to 9.5 | 1 to 11.5 | beyond |
+| Water pH (Water) | 6 to 8.5 | 5 to 9.5 | 1 to 11.5 | beyond |
 | Water activity | 0.90 or more | 0.75 or more | 0.605 or more | below |
 | Chaotropicity, kJ/kg | to 73.8 | | | over 73.8 |
 | Dose, Sv/yr | under 0.02 | to 0.1 | to 1 | over 1 (0 at 1000) |
@@ -104,10 +109,54 @@ needed) and Red beyond, which closes the gap the PHI-4 doc left between
 and where `M_rad` starts charging for shielding. The Eigen threshold of 10
 Gy/yr belongs to `L_rad` (microbes), not to a person's tiers.
 
+**The gates (GEN.207; Boss, 2026-10-11 and 2026-10-14).** Importance, most
+first: Radiation, Temperature, Pressure, Air, Water, Suitability. The colour
+gates come first, then the geometric mean inside them
+(`habitability.overall_score`):
+
+- Radiation and Temperature cap the overall colour at their own: Yellow caps
+  at Yellow, Red at Red.
+- Pressure: Red makes the overall Red and Yellow caps it at Yellow, unless a
+  full suit is needed anyway (Temperature, Radiation or Air Red), when it
+  changes nothing about the overall (it is still listed among the reasons for
+  the suit).
+- Air in Yellow or Red caps the overall at Yellow; Red air alone cannot make
+  it Red. Water likewise.
+- Suitability Red drops the overall to Yellow, never to Red.
+- Blue overall needs all six Blue.
+
+The ones that cannot make the overall Red (Air, Water, Suitability, and
+Pressure when a suit is needed anyway) enter the mean no lower than 0.4 (the
+Yellow edge), so a dead one does not pull the mean to 0.
+
+**Suitability (GEN.207)** is long-term survival on the surface: the lowest of
+three rungs, water within reach, food and shelter, each read off
+Exoplanetary Habitability.md Table 2, then held under a ceiling the other
+five set (`habitability.suitability_ceiling`): Red if Radiation, Temperature,
+Pressure or Water is Red (a world with no liquid water has Red Water and so
+Red Suitability); Yellow if any of the five is Yellow or Air is Red; Green only
+if the five are Green or Blue; Blue only if all five are Blue.
+
+| Rung | Blue (1) | Green (0.9) | Yellow | Red |
+|---|---|---|---|---|
+| Water within reach | liquid at the surface and Blue Water | liquid at the surface | ice, or an ocean under ice (0.6) | water in minerals (0.25), vapour only (0.2), none (0) |
+| Food (native life) | a full biosphere of forests and animals (1) | the first plants and animals (0.85) | microbial mats and plankton (0.5) | none (0.2); life only in an ocean under ice counts as none |
+| Shelter | the surface dose is Blue | Green | Yellow (caves or burial) | Red (deep lava tubes or buried habitats) |
+
+The food stage is the latest milestone of the planet's evolutionary timeline
+(abiogenesis to complex cells are microbial, multicellularity is the first
+plants and animals, a technological civilization is a full biosphere), or
+microbial for life with no timeline (a moon, a world outside the habitable
+zone) and none when no life chemistry was drawn. The numbers are planetGen's,
+one per tier, to be tuned with sample worlds. Life is drawn after the score, so
+generation scores again once it is known (`habitability_world.rescore`).
+
 **Equipment**: ideal (called "shirtsleeve" until Boss renamed it, 2026-10-10 08:08Z); breathing mask (low O2 or pressure below Blue);
 mask with scrubber (a gas above its chronic limit); sealed suit (pressure
 below Green, or any domain Red); full life support with radiation
-hardening (Radiation Red).
+hardening (Radiation Red). The kit is about the air, the cold or heat and the
+radiation; Water Chemistry and Suitability are about drinking and eating and do
+not change it.
 
 **PHI_bio (microbial life)** = the Liebig blend of L_solv, L_chem, L_ener
 and L_rad: `L_min^0.65 · (L_solv · L_chem · L_ener · L_rad)^(0.35/4)` (GEN.148;
@@ -168,18 +217,22 @@ inventory, 2.3 umol/L phosphate, 80 W/m^2, liquid water at aw 1 and chi
 0, relative humidity 0.5, liquid water for a base. Doses are computed
 unless given.
 
-| World | Inputs | P / T / C / R | PHI-4 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
+| World | Inputs | P / T / Air / Water / R / Suit | PHI-4 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
 |---|---|---|---|---|---|---|---|
-| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7 | Blue / Blue / Blue / Blue | 1.00 | 0.97 | 0.97 | 1.00 | shirtsleeve |
-| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2 | Green / Yellow / Red / Blue | 0 | 0.97 | 0 | 0.48 | sealed suit |
-| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2 | Yellow / Yellow / Green / Blue | 0.74 | 0.97 | 0 | 0.02 | sealed suit |
-| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5 | Blue / Blue / Red / Blue | 0.59 | 0.97 | 0 | 1.00 | sealed suit |
-| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Green | 0 | 0.53 | 0 | 0.47 | sealed suit |
-| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice | Red / Red / Red / Yellow | 0 | 0.01 | 0 | 0.46 | sealed suit |
-| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour | Blue / Green / Yellow / Blue | 0.83 | 0.64 | 0.64 | 0.80 | shirtsleeve |
-| Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Red | 0 | 0.40 | 0 | 0.28 | full life support |
+| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7, a full biosphere | Blue x6 | 1.00 | 0.97 | 0.97 | 1.00 | ideal |
+| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.69 | 0.97 | 0 | 0.48 | sealed suit |
+| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.73 | 0.97 | 0 | 0.02 | sealed suit |
+| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5, no life | Blue / Blue / Red / Blue / Blue / Red | 0.74 | 0.97 | 0 | 1.00 | sealed suit |
+| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Blue / Green / Red | 0 | 0.53 | 0 | 0.47 | sealed suit |
+| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0.3999 | 0.01 | 0 | 0.46 | sealed suit |
+| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour, first plants | Blue / Green / Blue / Yellow / Blue / Red | 0.7499 | 0.64 | 0.64 | 0.80 | ideal |
+| Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Green / Red / Red | 0 | 0.40 | 0 | 0.28 | full life support |
 
-Recomputed for GEN.148 (the Liebig blend, the 20 mSv/yr Blue edge): the
+Recomputed for GEN.207 (six domains and the gates): the Water column is the old
+Chemistry's water inputs, the Air column its gas inputs, and Suitability is new;
+Red air or Red Suitability alone now gives a Yellow overall instead of 0 (the dense CO2 world
+0 to 0.69, the photochemical CO world 0.59 to 0.74); the Mars-analog brine
+has Red Pressure and Temperature (0.3999, the top of Red). Recomputed for GEN.148 (the Liebig blend, the 20 mSv/yr Blue edge): the
 ice-sealed ocean's surface dose of 0.05 Sv/yr is now Green (it was Blue);
 PHI_bio rose where one likelihood was short (the Europan ocean 0.27 to 0.40,
 the dune world 0.54 to 0.64, the ice-sealed ocean 0.41 to 0.53) and

@@ -2,7 +2,7 @@
 
 """
 The text of the habitability levels page (`/classes/habitability`, UX.90):
-the five equipment levels, the four PHI-4 domains with their Blue, Green,
+the five equipment levels, the six PHI-4 domains with their Blue, Green,
 Yellow and Red thresholds, the compact-host rule and the chips a planet row
 shows. The equipment labels come from `planetgen.physics.habitability_world`;
 the thresholds repeat `docs/design/habitability-index.md` section 2 and
@@ -43,15 +43,26 @@ DOMAINS = (
         ("Wet-bulb temperature (heat and humidity together)", "under 31 C",
          "under 31 C", "31 C or more (a body can no longer shed heat)"),
     ]),
-    ("Chemistry", [
+    ("Air", [
         ("Carbon dioxide", "under 0.93 kPa", "up to 2.0 kPa", "up to 5.0 kPa"),
         ("Carbon monoxide, hydrogen sulfide, sulfur dioxide", "under the long-term limit", "",
          "up to ten times the short-term limit"),
+    ]),
+    ("Water", [
+        ("Liquid water to drink", "present", "present", "present (none at all is Red)"),
         ("Water acidity (pH)", "6 to 8.5", "5 to 9.5", "1 to 11.5"),
         ("Water activity (how freely water is available)", "0.90 or more", "0.75 or more", "0.605 or more"),
     ]),
     ("Radiation", [
         ("Dose per year", "under 0.02 Sv", "up to 0.1 Sv", "up to 1 Sv"),
+    ]),
+    ("Suitability", [
+        ("Water within reach (the lowest of the three rungs scores)", "fresh liquid water",
+         "rivers, lakes and rain", "ice or an ocean under ice"),
+        ("Food", "forests and animals", "algae, mosses and the first land plants",
+         "microbial mats and plankton only"),
+        ("Shelter", "the surface dose is Blue", "the surface dose is Green",
+         "the surface dose is Yellow (caves or burial)"),
     ]),
 )
 """tuple: `(domain, [(variable, blue, green, yellow)])`: beyond the Yellow
@@ -61,11 +72,15 @@ SCORE_RULE = (
     "Each variable scores 1 in Blue and falls to 0.75 at the edge of Green, 0.4 at the edge of Yellow and 0 "
     "at the outer edge of Red. A domain takes the score of its worst variable: Blue at 1, Green from 0.75, "
     "Yellow from 0.4, Red below. The PHI-4 score on a "
-    "planet's tooltip is the geometric mean of the four domains, so one domain at 0 makes the whole score 0."
+    "planet's tooltip is the geometric mean of the six domains, held under the colour gates: Radiation and "
+    "Temperature cap it at their own colour, Pressure in Yellow or Red caps it there (unless a full suit is "
+    "needed anyway), Air, Water or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "
+    "Suitability, the long-term domain, is the lowest of water, food and shelter, and is never better than "
+    "the colour the other five allow."
 )
 
 EQUIPMENT_RULE = (
-    "The equipment level comes from the worst domain: radiation in the Red band needs full life support; "
+    "The equipment level comes from the worst of pressure, temperature, air and radiation: radiation in the Red band needs full life support; "
     "pressure below Green, or any domain in the Red band, needs a sealed suit; a gas above its long-term limit "
     "needs a mask with a scrubber; low oxygen or a pressure below Blue needs a mask; anything else is ideal."
 )

@@ -23,6 +23,7 @@ import re
 
 from planetgen.generation.evolution import get_evolutionary_timeline
 from planetgen import tuning
+from planetgen.physics import habitability_world
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.star import get_star_evolutionary_profile, get_star_spectral_class
@@ -252,6 +253,7 @@ def apply_life_data(planet):
     if planet.zone == 'e' and not planet.is_moon and planet.life_chemical:
         planet.evolutionary_data = get_evolutionary_timeline(
             planet.star, planet.planet_class, max_stage="photosynthesis" if ceiling == "microbial" else None)
+    habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
 
 
 def decide_flavor_text(planet):

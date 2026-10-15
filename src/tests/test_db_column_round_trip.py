@@ -72,10 +72,9 @@ NULL_IN_THIS_GALAXY = {
     ("sectors", "wiki_url"): "never published", ("star_systems", "wikijs_url"): "never published",
     ("star_systems", "mediawiki_url"): "never published",
     ("system_configs", "age"): "only with --age",
-    # v87 (DB.26): the columns the Generation lane fills (GEN.148, GEN.150, GEN.178, GEN.207) once it lands.
+    # v87 (DB.26): the columns the Generation lane fills (GEN.148, GEN.150, GEN.178, GEN.207) once it lands (GEN.207's are written now).
     **{(table, column): "not generated yet" for table in ("planets", "moons") for column in (
-        "induced_moment_a_m2", "flux_variation", "phi4_water", "tier_water", "phi4_suitability",
-        "tier_suitability")},
+        "induced_moment_a_m2", "flux_variation")},
     **{("nebulae", column): "not generated yet" for column in ("age_myr", "q_total", "hosts")},
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,

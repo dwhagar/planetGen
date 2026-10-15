@@ -19,10 +19,11 @@ def _bold(text):
 
 
 def _earth():
-    return hab.World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21, "CO2": 0.0004}, gravity_ms2=9.8)
+    return hab.World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21, "CO2": 0.0004}, gravity_ms2=9.8,
+                     life_stage="biosphere")
 
 
-def test_an_earth_like_world_explains_four_blue_factors_with_their_values():
+def test_an_earth_like_world_explains_six_factors_with_their_values():
     text = "\n\n".join(explain.paragraphs(_earth(), _bold))
     assert "**PHI-4 habitability** is 1.00" in text and "no equipment (conditions are ideal)" in text
     assert "**Pressure: Blue** (1.00). The air pressure is 101 kPa, inside the Blue band (50 to 250 kPa)." in text
@@ -33,11 +34,11 @@ def test_an_earth_like_world_explains_four_blue_factors_with_their_values():
 
 def test_a_factor_names_the_input_that_sets_its_colour_and_where_it_sits():
     world = hab.World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21, "CO2": 0.03}, gravity_ms2=9.8)
-    chemistry = next(f for f in explain.factors(world) if f["domain"] == "Chemistry")
-    assert chemistry["tier"] == "Yellow" and chemistry["limiting"]["label"] == "carbon dioxide"
-    assert "outside the Green band (up to 2 kPa), inside the Yellow band (up to 5 kPa)" in chemistry["limiting"]["phrase"]
+    air = next(f for f in explain.factors(world) if f["domain"] == "Air")
+    assert air["tier"] == "Yellow" and air["limiting"]["label"] == "carbon dioxide"
+    assert "outside the Green band (up to 2 kPa), inside the Yellow band (up to 5 kPa)" in air["limiting"]["phrase"]
     text = "\n\n".join(explain.paragraphs(world, _bold))
-    assert "a mask with a scrubber" in text and "**Chemistry: Yellow**" in text
+    assert "a mask with a scrubber" in text and "**Air: Yellow**" in text
 
 
 def test_a_planet_of_a_compact_host_says_its_dose_is_rated_lethal():
@@ -86,7 +87,7 @@ def _system_text(markdown):
 def test_a_generated_planet_or_moon_description_carries_the_explanation():
     text = _system_text(True)
     assert text.count("**PHI-4 habitability** is") >= 1
-    for domain in ("Pressure", "Temperature", "Chemistry", "Radiation"):
+    for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"**{domain}: " in text
 
 
