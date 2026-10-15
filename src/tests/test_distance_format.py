@@ -5,7 +5,7 @@ The distance ladder (UX.6): `planetgen.util.format.
 format_distance_m` picks the largest of km < AU < mpc < cpc < ly < pc <
 kpc < Mpc < Gpc the value is at least 1 of, parsec values carry a ly/AU/km
 parenthetical, and body radii are always km in scientific notation. The
-browser copy (`html/static/distance.js`) is checked against the same table
+browser copy (`html/static/unitladder.js`) is checked against the same table
 when Node is installed.
 """
 

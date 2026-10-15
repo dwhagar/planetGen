@@ -38,9 +38,10 @@ const fmt = {};
 async function load(placement, step) {
   installDom("http://localhost/system/4");
   if (!fmt.distance) {
-    fmt.distance = (await import(new URL("distance.js", STATIC_URL).href)).formatDistanceKm;
-    fmt.period = (await import(new URL("period.js", STATIC_URL).href)).formatDurationSeconds;
-    fmt.speed = (await import(new URL("speed.js", STATIC_URL).href)).formatSpeedKms;
+    const ladder = await import(new URL("unitladder.js", STATIC_URL).href);
+    fmt.distance = ladder.formatDistanceKm;
+    fmt.period = ladder.formatDurationSeconds;
+    fmt.speed = ladder.formatSpeedKms;
   }
   const el = form(placement, step);
   await importPage("facilityform.js");
