@@ -127,7 +127,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.220 | "Habitable" means the index | GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
 | GEN.221 | Short plain prose for the fixed text |  |  |
-| PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) |  |  |
 | PERF.102 | The migration progress display shows no estimated time remaining on either bar (bug) |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
