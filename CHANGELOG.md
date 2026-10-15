@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1272] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the region data layer and 3-ary block ladder (MAP.151, parts a to d) as open work; it merged in #1539 with migration 0090 (schema v90). The per-tile origins of MAP.152 stay retired as met by MAP.102.
+
+TODO items resolved: MAP.151 / Added: none
+
 ## [8.0.1271] - 2026-10-15
 
 ### Changed
