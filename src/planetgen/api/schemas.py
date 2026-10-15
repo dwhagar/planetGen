@@ -309,6 +309,71 @@ class FacilityCreate(Body):
         return value
 
 
+class FacilityFieldCreate(Body):
+    """One field of a facility type: `POST /api/facility-types/<id>/fields` and each entry of `fields` on a new
+    type. The rules a value must keep (key shape, option lists, ranges) are `population.facility_types`'."""
+
+    key: StrictStr
+    label: StrictStr
+    datatype: StrictStr
+    unit: Optional[StrictStr] = None
+    required: StrictBool = False
+    min_value: Optional[Number] = None
+    max_value: Optional[Number] = None
+    choices: Optional[list[StrictStr]] = None
+    default_text: Optional[StrictStr] = None
+    sort_order: StrictInt = 0
+
+
+class FacilityFieldUpdate(Body):
+    """`PATCH /api/facility-types/<id>/fields/<field_id>`: the key never changes."""
+
+    label: Optional[StrictStr] = None
+    datatype: Optional[StrictStr] = None
+    unit: Optional[StrictStr] = None
+    required: Optional[StrictBool] = None
+    min_value: Optional[Number] = None
+    max_value: Optional[Number] = None
+    choices: Optional[list[StrictStr]] = None
+    default_text: Optional[StrictStr] = None
+    sort_order: Optional[StrictInt] = None
+
+    @model_validator(mode="after")
+    def _something(self):
+        if not self.model_fields_set:
+            raise ValueError("send at least one field to change")
+        return self
+
+
+class FacilityTypeCreate(Body):
+    """`POST /api/facility-types`."""
+
+    name: StrictStr
+    kind: StrictStr
+    icon: Optional[StrictStr] = None
+    description: Optional[StrictStr] = None
+    sort_order: StrictInt = 0
+    active: StrictBool = True
+    fields: list[FacilityFieldCreate] = Field(default_factory=list)
+
+
+class FacilityTypeUpdate(Body):
+    """`PATCH /api/facility-types/<id>`."""
+
+    name: Optional[StrictStr] = None
+    kind: Optional[StrictStr] = None
+    icon: Optional[StrictStr] = None
+    description: Optional[StrictStr] = None
+    sort_order: Optional[StrictInt] = None
+    active: Optional[StrictBool] = None
+
+    @model_validator(mode="after")
+    def _something(self):
+        if not self.model_fields_set:
+            raise ValueError("send at least one field to change")
+        return self
+
+
 class WikiUpload(Body):
     """`POST /api/{systems,sectors}/<id>/wiki`."""
 

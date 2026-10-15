@@ -1,0 +1,2 @@
+### Added
+- **Facility types and typed fields.** An admin can define facility types (a name, a kind, an icon, a description) with up to 24 typed fields each (whole number, decimal, text, yes/no or one of a list), through `GET/POST /api/facility-types`, `PATCH/DELETE /api/facility-types/<id>` and the matching `/fields` routes. Anyone can read them. A type facilities use keeps its kind and can only be retired, and a field with stored values cannot change under them. Facilities taking a type, ratings and the form follow (POP.10).

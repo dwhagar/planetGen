@@ -730,6 +730,20 @@ editable by the admin. A MySQL CHECK cannot use a column that is in an
 `ON DELETE SET NULL` FK [R], so this is validated in code like
 `_db.add_facility` does for hosts.
 
+### As built (POP.10, part 1: types and fields)
+
+`population/facility_types.py` holds the rules (create, change and delete
+types and fields; `parse_value` checks one value against a field) and
+`api/facility_types.py` the `/api/facility-types` routes, documented in
+`docs/api.md`. Rules beyond the sketch: a type that facilities use keeps its
+kind and cannot be deleted (retire it with `active`); a field with stored
+values cannot be deleted, change datatype, drop an option in use or narrow
+its range past a stored value; a required field added to a type in use
+needs a `default_text`, which every facility of the type takes. The icon
+allowlist is `population/facility_icons.py`. Facilities taking a type,
+affiliation, ratings and field values, the rating suggestion and the web
+form follow in later parts.
+
 ### API and UI sketch
 
 `/api/facility-types` (admin CRUD, public read). `POST /api/facilities`

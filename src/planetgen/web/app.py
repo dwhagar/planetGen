@@ -25,6 +25,7 @@ from planetgen.api.edits import bp as edits_bp
 from planetgen.api import ids, naming
 from planetgen.api.limiter import limiter
 from planetgen.api.population import bp as population_bp
+from planetgen.api.facility_types import bp as facility_types_bp
 from planetgen.api.routes import bp, close_db
 from planetgen.api.version import API_VERSION, API_VERSION_HEADER
 from planetgen.api.workqueue import bp as workqueue_bp
@@ -61,6 +62,7 @@ def create_app(config_object=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(population_bp)
+    app.register_blueprint(facility_types_bp)
     app.register_blueprint(edits_bp)
     app.register_blueprint(workqueue_bp)
     web.init_app(app, limiter=limiter)

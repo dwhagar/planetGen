@@ -1297,6 +1297,39 @@ moon's do (a close binary's pair is orbited as one); a gas giant takes
 orbital facilities only. A facility reads back with every column of its
 `facilities` row plus `host_id` and `host_name`.
 
+### Facility types
+
+A facility type refines a kind ("Agricultural colony" is a `colony`) and
+carries up to 24 typed fields an admin defines. Anyone may read them; an
+admin writes (scope `admin`, current credentials).
+
+- `GET /api/facility-types[?kind=][&active=1]` returns `{"items", "icons"}`:
+  every type in sort order with its `fields` and how many `facilities` use
+  it, and the icon names a type may take. `active=1` leaves out retired
+  types. `GET /api/facility-types/<id>` returns one type.
+- `POST /api/facility-types` takes `name` (unique) and `kind` (required),
+  `icon`, `description`, `sort_order`, `active` and `fields` (a list of
+  field definitions). It returns `{"id"}` with a `201`.
+- `PATCH /api/facility-types/<id>` changes any of `name`, `kind`, `icon`,
+  `description`, `sort_order`, `active` and returns the type. `DELETE`
+  removes it. A type that facilities use keeps its kind and is not deleted
+  (`409`); set `active` false to retire it.
+- `POST /api/facility-types/<id>/fields` takes `key` (a lowercase letter,
+  then up to 31 lowercase letters, digits or underscores; never changes),
+  `label` and `datatype` (`int`, `decimal`, `text`, `bool` or `choice`),
+  plus `unit`, `required`, `min_value` and `max_value` (numbers only),
+  `choices` (a `choice`'s 2 to 32 distinct options), `default_text` (the
+  value as text, checked like any value) and `sort_order`. It returns
+  `{"id"}`. `PATCH` and `DELETE /api/facility-types/<id>/fields/<field_id>`
+  change a definition and remove a field.
+
+Values already stored stay valid: a field some facility holds a value for
+cannot be deleted, change datatype, drop an option in use or narrow its
+range past a stored value (`409`). A required field added to a type that
+facilities already use needs a `default_text`, which every one of them takes.
+A name or key that is already taken is a `409`; anything else wrong is a `400`
+naming the problem.
+
 ### Wiki publishing — request body
 
 `POST /api/systems/<id>/wiki` and `POST /api/sectors/<id>/wiki` share the
