@@ -504,7 +504,7 @@ with `clamp()`.
   for each category where the planet falls and why, with no extra
   information (GEN.208). Owner: Bugfixes lane 2 (interface), after the
   generation items.
-  Prerequisites: none. Related: UX.30, UX.32, UX.101, GEN.208.
+  Prerequisites: none. Related: UX.30, UX.32, UX.101, GEN.208 (done, PR #1433).
 
 - [ ] **UX.101 PHI-6 symbols in the planet and moon lists, coloured by rating**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
@@ -3344,44 +3344,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a test shows it. Owner: Foundations lane 1.
   Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
-- [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
-  GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
-  (Boss, 2026-10-11 01:35Z and 02:41Z): the text at the end should be a
-  paragraph saying, for each category, where the planet falls and why,
-  with no extra information; the chemistry line must be aware of the
-  rest of the score (when the temperature is Red the visitor needs a
-  thermal environment suit, so the air is moot, and the wording should
-  say that while one factor is green or blue another makes it
-  impossible). Boss wants more nuance about the protective equipment
-  needed and why: different suits rated for low radiation with high
-  temperature, or high radiation with low temperature, and so on. Boss
-  attached two research notes, now in the repository
-  ([Environmental.Extremes.and.Protection.Research.md](design/Environmental.Extremes.and.Protection.Research.md)
-  and [Thermal.Respiratory.Protection.Research.md](design/Thermal.Respiratory.Protection.Research.md),
-  added 2026-10-14). Their gear ladder (ambient pressure of 70 kPa or
-  more: masks and modular gear; 20 to 70 kPa: counterpressure or
-  Level A style suits; under 20 kPa: a full pressurised suit; above
-  0.4 MPa: intermediate, above 5 MPa: rigid diving armour; cold: modular
-  down to minus 20 C, insulated suit to minus 40 C, an active-heated
-  sealed suit below; heat: modular to wet bulb 30 C, cooled suit to 45 C,
-  an actively cooled sealed suit above; oxygen under 19.5 kPa needs
-  supplied air; skin-permeating chemicals and perchlorate dust above
-  0.1 mg per cubic metre need a sealed barrier suit; solar-storm doses
-  above 0.5 to 1 Sv need a shelter, not a suit) supply the reasons and
-  wording. They differ from the built equipment table in
-  habitability-index.md (masks from 50 kPa, 14.3 kPa for the full suit,
-  cold limit minus 50 C, wet bulb 31 and 35 C). Decided (Boss, 2026-10-14 13:58Z): where the notes and the built
-  table differ, use the more permissive value (the one that lets a person
-  go with lighter gear or a wider range), because the limits will be
-  widened later anyway: the canon has races that live in conditions
-  humans cannot. The lane lists each pair it chose from in its merge
-  note, and keeps every limit in one table so a later per-species limit
-  can replace it. Done: the description names the suit or mask
-  classes the planet needs and why, in one short paragraph per planet,
-  with tests over a sample of planets. Owner: Foundations lane 2, with
-  GEN.207 (done, PR #1429).
-  Prerequisite: GEN.207 (done, PR #1429). Related: GEN.207, UX.100.
 
 - [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
   GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
