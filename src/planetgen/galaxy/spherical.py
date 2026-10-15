@@ -886,7 +886,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
             cos_delta = (radius * radius + reach * reach - radius_pc * radius_pc) / (2 * radius * reach)
         if cos_delta > 1.0 + 1e-9:
             continue
-        delta = math.pi if cos_delta <= -1.0 else math.acos(max(-1.0, cos_delta))
+        delta = math.pi if cos_delta <= -1.0 else math.acos(min(1.0, cos_delta))
         low, high = band_range(shell)
         layout = shell_layout(shell)
         # Bands whose centre colatitude can lie within `delta` of the center's, padded by one band.
@@ -913,7 +913,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
                     cos_width = (cos_delta - math.cos(colat_b) * math.cos(colat_c)) / denominator
                     if cos_width > 1.0 + 1e-6:
                         continue
-                    width = math.pi if cos_width <= -1.0 else math.acos(max(-1.0, cos_width))
+                    width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, cos_width))
                     wedges = _wedges_near_longitude(n, lon_c, width + 1e-6)
             for wedge in wedges:
                 x, y, zz = sector_position_pc(shell, band, wedge, edge_pc)
