@@ -28,7 +28,7 @@ subhead (badges or actions under the <h1>). -#}
 {%- endif -%}
 {%- endmacro -%}
 {#- The tab row on every admin page (UX.72): the hub and the pages under it. -#}
-{%- set admin_tabs = [('admin', 'admin', 'Overview'), ('generate', 'admin_generate', 'Generate'), ('admin_queue', 'admin_queue', 'Queue'), ('admin_stats', 'admin_stats', 'Stats')] -%}
+{%- set admin_tabs = [('admin', 'admin', 'Overview'), ('generate', 'admin_generate', 'Generate'), ('admin_queue', 'admin_queue', 'Queue'), ('admin_stats', 'admin_stats', 'Stats'), ('admin_facility_types', 'admin_facility_types', 'Facility types')] -%}
 {%- macro gear_link(name, text, current, href=None) -%}
 <li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
 {%- endmacro -%}
@@ -121,7 +121,7 @@ subhead (badges or actions under the <h1>). -#}
   {%- block heading %}
   <h1 class="page-title">{{ title }}</h1>
   {%- endblock %}
-  {%- if section in ['admin', 'admin_generate', 'admin_queue', 'admin_stats'] %}
+  {%- if section in ['admin', 'admin_generate', 'admin_queue', 'admin_stats', 'admin_facility_types'] %}
   <nav class="admin-tabs" aria-label="Admin pages">
     <ul>
       {%- for page, name, text in admin_tabs %}

@@ -63,7 +63,7 @@ function companionApplies(companion, value) {
 // notation under TINY_NUMBER of the unit (UX.81); the singular form when the
 // number is exactly 1. `spoken` writes the unit's name, for screen readers.
 function inRung(rung, value, spoken) {
-  const number = value / rung.factor;
+  const number = (value - rung.offset) / rung.factor;
   if (rung.whole_from !== null && Math.abs(value) >= rung.whole_from) {
     return formatNumber(number) + " " + (spoken ? rung.name : rung.symbol);
   }
@@ -90,17 +90,45 @@ export function pickRung(ladder, value) {
   return picked;
 }
 
+// The ladder as it reads under a unit preference ("auto", "metric" or
+// "customary", UX.78): the mirror of planetgen/util/ladders.py `for_system`.
+const systemLadders = new Map();
+export function forSystem(ladder, system = "auto") {
+  const key = ladder.base + "|" + system;
+  if (!systemLadders.has(key)) {
+    const rungs = ladder.rungs.filter((rung) => rung.systems.includes(system));
+    const symbols = new Set(rungs.map((rung) => rung.symbol));
+    let asides = ladder.asides.filter(([, symbol]) => symbols.has(symbol));
+    if (!rungs.some((rung) => rung.with_aside)) {
+      asides = [];
+    }
+    if (asides.length && asides[asides.length - 1][0] !== 0) {
+      asides = asides.slice(0, -1).concat([[0, asides[asides.length - 1][1]]]);
+    }
+    systemLadders.set(key, {
+      ...ladder,
+      rungs,
+      asides,
+      zero: symbols.has(ladder.zero) ? ladder.zero : null,
+      companions: ladder.companions.filter((companion) => companion.systems.includes(system)),
+    });
+  }
+  return systemLadders.get(key);
+}
+
 // `value` (in `ladder`'s base unit) as text; an en dash for null and NaN.
 // `spoken` spells the units out ("1.5 astronomical units"), for
 // `aria-valuetext` and the like; `companions: false` leaves out the units
-// beside the primary one (°C and °F beside K).
-export function formatQuantity(ladder, value, { spoken = false, companions = true } = {}) {
+// beside the primary one (°C and °F beside K); `system` is the reader's unit
+// preference.
+export function formatQuantity(ladder, value, { spoken = false, companions = true, system = "auto" } = {}) {
   if (value == null || isNaN(value)) {
     return "–";
   }
   if (!isFinite(value)) {
     return (value > 0 ? "inf " : "-inf ") + ladder.nonfinite;
   }
+  ladder = forSystem(ladder, system);
   const rung = pickRung(ladder, value);
   let text = inRung(rung, value, spoken);
   if (rung.with_aside) {

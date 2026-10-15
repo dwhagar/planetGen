@@ -75,7 +75,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings |  |  |
 | POP.12 | List every species that could live in a given environment, and give every species its environment limits | DB.30, POP.9 |  |
 | POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | POP.12 |  |
 | DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
@@ -113,22 +112,19 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) |  |  |
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) |  |  |
-| MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.23 |  |
-| API.25 | A structured description endpoint, and Markdown and wikitext on request only |  |  |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request |  |  |
 | GEN.218 | One habitability describer, in the short wording |  |  |
 | GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
 | GEN.220 | "Habitable" means the index | GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
 | GEN.221 | Short plain prose for the fixed text |  |  |
-| GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) |  |  |
 | PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.106, UX.108 |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
-| DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
+| DOC.45 | Reference docs follow the description layer | UX.105, UX.106, GEN.218, GEN.219 |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
@@ -202,7 +198,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming |  |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -338,6 +338,10 @@ with `clamp()`.
   `sl-dropdown`. UX.42 (done, PR #1466) was wording only; do not fold units into it.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: the
   three presets, per browser).
+  Progress (2026-10-15): part 1 merged in PR #1523 (the shared unit
+  ladders in Python and the browser know Automatic, Metric only and
+  Customary, parity-tested). Part 2 (the header menu and the page
+  spans) remains; the item retires with it.
   Prerequisite: UX.23.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
@@ -484,14 +488,14 @@ with `clamp()`.
   text. Build them into the same document model as UX.104 so one set of
   renderers (text, HTML tables, Markdown, wikitext) covers everything
   the program describes. Foundations Wording (filed 05:50Z, split out of
-  API.25, which was too big for one PR).
+  API.25 (done, PR #1527), which was too big for one PR).
   Prerequisites: UX.104 (done, PR #1509).
 
 - [ ] **UX.109 Remove the old per-class description text**
   Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
   __str__ text, db/render.py render_system_sections, the /sections
   endpoint and mdrender, once nothing reads them. Foundations Wording
-  (filed 05:50Z, split out of API.25).
+  (filed 05:50Z, split out of API.25, done PR #1527).
   Prerequisites: UX.105, UX.106, UX.108.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1001,7 +1005,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tiles are picked by distance from the camera, the per-level brightness
   floors are gone and stars fade by distance. The client part (scale
   cross-fades, per-tile origins) is next, so this item stays open. The
-  star-drawing items MAP.198 to MAP.203 (Bug 1's MAP.203, Bug 2's
+  star-drawing items MAP.198 to MAP.203 (MAP.203 done, PR #1519; Bug 2's
   MAP.199 (done, PR #1513) and MAP.200) are unblocked from the server side; they still
   start from main and check the client part's branch before touching
   the shared camera and star code.
@@ -1409,21 +1413,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with MAP.152 (Foundations Maps). GitHub issue
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
   Prerequisite: MAP.199 (done, PR #1513). Related: MAP.198 (done, PR #1470), MAP.152, MAP.146.
-
-- [ ] **MAP.203 Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug)**
-  Boss, 2026-10-15 02:15Z, with three screenshots: when viewing a
-  sector, the stars and such look too big compared to what the user just
-  saw on the Galaxy Map. The sector view should look more like the
-  Galaxy Map, and the sector map is changed at the same time to match.
-  Done: star and object sizes in the sector view follow the Galaxy Map's
-  look at the hand-off (no jump in apparent size), the sector map
-  matches, on both themes, with a browser test. Owner: Bugfixes lane 1
-  (Bug 1), right after OPS.50 (done, PR #1425). It touches the shared star drawing
-  (galaxymap3d.js, starfade.js, sectorscene.js and the star shader) that
-  Foundations Maps changes in MAP.152 (server part merges about 02:55Z,
-  client part next), so start from main after that merge. GitHub issue
-  [#1420](https://github.com/dwhagar/planetGen/issues/1420).
-  Prerequisites: none. Related: MAP.152, MAP.198 (done, PR #1470), MAP.146.
 
 - [ ] **MAP.204 Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug)**
   Boss (2026-10-15 05:33Z): "BUG: Attempting to select a region under
@@ -3316,18 +3305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
 
-- [ ] **GEN.222 Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug)**
-  Boss (2026-10-15 05:30Z): "BUG: Output, when generation text is
-  output, nebulae should show text showing the kinds of nebulae in each
-  slab and the layers included in each slab." When a generation run
-  prints its text output, the nebula part should say, for each slab,
-  which kinds of nebulae were made there and which layers the slab
-  holds. Found: the output prints nebulae without that per-slab
-  breakdown. Done when a run's text output lists, per slab, the nebula
-  kinds and the layers included. Owner: Foundations Generation (Boss
-  retired the bug lanes, 2026-10-15 05:39Z), next after its current item.
-  Prerequisites: none.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -4274,17 +4251,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   compatibility data.
   Prerequisite: GEN.199. Related: MAP.167.
 
-- [ ] **API.25 A structured description endpoint, and Markdown and wikitext on request only**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. GET /api/systems/<id>/description returns the document
-  model as JSON; /text?format=markdown|wikitext stays and is rendered
-  from the model; the page's Wikitext and Markdown buttons and the wiki
-  upload work unchanged from the user's side. Removes
-  SystemConfig.MARKDOWN and its global flipping (db/render.py _format,
-  render_star_system). The run-config markdown column goes with the
-  storage item. Updates docs/api.md in the same PR.
-
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -4941,22 +4907,9 @@ clears each one.
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
   automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
-  TEST.151 (done, PR #1484) and TEST.152, owner the Test Suite Rebuild thread (TEST.133
+  TEST.151 (done, PR #1484) and TEST.152 (done, PR #1520), owner the Test Suite Rebuild thread (TEST.133
   done, #1405).
   Prerequisites: none. Related: TEST.139.
-
-- [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
-  Option A of TEST.148. A killed run can leave keys on the shared Redis:
-  a resume (and a normal start) clears the keys that carry a test
-  database's name prefix and the rate-limit keys before the first test.
-  The dependency record (.pytest-deps.json) merges what a resumed run
-  records into the existing one, so `full --check` after a resume still
-  refreshes it, and its MISSED check says it covers only the tests that
-  ran now. docs/testing.md documents the resume flag, the build id and
-  the labelling rule (a resumed run says so in its last line and in the
-  PR). Done when a killed run leaves nothing that changes a resumed
-  run's result and the guide matches.
-  Prerequisite: TEST.151 (done, PR #1484). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.155 Wording and index agree: property test**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -5942,7 +5895,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   design/habitability-index.md (PHI-6 naming) and testing.md. Each build
   item updates the page it changes in its own PR; this is what is left,
   part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
-  Prerequisites: UX.105, API.25, UX.106, GEN.218, GEN.219.
+  Prerequisites: UX.105, UX.106, GEN.218, GEN.219.
 
 ## VIEW: The view from a planet
 
@@ -6113,36 +6066,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
 #184.
 
-- [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
-  Boss (2026-10-03 05:38Z): "Add facility types that are programable and
-  can be selected from a dropdown when adding facilities.  Facility data
-  should include affiliation and a place to store data like a
-  Green/Yellow/Red system for saying the facilities crime, housing,
-  resources, maintenance, and health." Today facilities
-  (`facilities.py`, ADM.9) have no type list. Done: admins define
-  facility types (name, icon, fields) and pick one from a dropdown when
-  placing a facility; each facility stores an affiliation and
-  Green/Yellow/Red ratings for crime, housing, resources, maintenance
-  and health.
-  Research (2026-10-09, population-and-politics.md): may split into (a)
-  types and typed fields with admin CRUD and API, (b) an affiliation FK
-  plus name snapshot, (c) five ratings, the chip component and the icon
-  allowlist, (d) optional "suggest ratings". The rating chip shows an
-  icon and the word, not colour alone (palette in the design doc). The
-  icon allowlist and vendoring (60 to 100 Bootstrap Icons, MIT licence
-  file kept) is a small separate task under UX.43 or UX.49. Decided
-  (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken): facility
-  types refine the five
-  existing kinds rather than replace them; ship the mechanism plus one
-  example type.
-  Progress (2026-10-15): the API part merged in PR #1517 (facility
-  types and typed fields, affiliation, the five ratings, PATCH, list and
-  suggest routes, no migration). The web part (system page chips,
-  placement and edit forms, admin Facility types page) remains; the
-  item retires with it.
-  Prerequisite: DB.28 (the migration; done, PR #1476).
-  Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
-
 - [ ] **POP.11 Scatter space vessels and stations for the races in their territories**
   GitHub issue [#1226](https://github.com/dwhagar/planetGen/issues/1226)
   (Boss, 2026-10-12 23:27Z): "Also part of population and tech, have the
@@ -6153,7 +6076,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   level allows vessels and which stations is set from the tech-level
   design (docs/design/Technological Assessment.md and the "Tech levels"
   section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
-  Prerequisite: USR.10. Related: POP.7 (done, PR #1461), POP.10, USR.10.
+  Prerequisite: USR.10. Related: POP.7 (done, PR #1461), POP.10 (done, PRs #1517 and #1524), USR.10.
 
 - [ ] **POP.12 List every species that could live in a given environment, and give every species its environment limits**
   Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
@@ -6197,11 +6120,11 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   homeworld that exists, a unique name) and refreshes the "could live
   here" lists; an admin-made species is marked as such and survives a
   reseed like other admin edits. Same shape as the facility type editor
-  (POP.10) and the same admin patterns (ADM.9). Owner: Foundations UX
+  (POP.10, done) and the same admin patterns (ADM.9). Owner: Foundations UX
   for the page, Foundations Generation for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
-  Prerequisite: POP.12. Related: POP.10, POP.9, ADM.9.
+  Prerequisite: POP.12. Related: POP.10 (done, PRs #1517 and #1524), POP.9, ADM.9.
 
 - [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
   Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
@@ -6225,4 +6148,4 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   is only acceptable with equipment counts as outside the limits unless
   the placement says it is a habitat or vessel (default: only unaided
   survival counts for a planet or moon surface).
-  Prerequisite: POP.12. Related: POP.12, POP.13, POP.11, POP.10.
+  Prerequisite: POP.12. Related: POP.12, POP.13, POP.11, POP.10 (done, PRs #1517 and #1524).

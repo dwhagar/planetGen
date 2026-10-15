@@ -2,6 +2,87 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1264] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the nebula kinds and layers per slab in the generation text (GEN.222) as open work; it merged in #1529.
+
+TODO items resolved: GEN.222 / Added: none
+
+## [8.0.1263] - 2026-10-15
+
+### Changed
+- The nebula field step of a plan run now prints a line for each slab it draws, saying how many clouds it holds, which sector layers they reach and the kinds of nebula by class (GEN.222).
+
+## [8.0.1262] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the structured description endpoint and text renderers (API.25) as open work; it merged in #1527.
+
+TODO items resolved: API.25 / Added: none
+
+## [8.0.1261] - 2026-10-15
+
+### Added
+
+- `GET /api/systems/<id>/description` returns a system's description as structured data (sections, fact and rating tables, compositions, prose, and every number as a typed quantity), built from the database rows on each request.
+- A system can be written as plain text as well as Markdown or wikitext (`/api/systems/<id>/text?format=text|markdown|wikitext`). Markdown and wikitext keep the headings and the wiki's data templates; the habitability rating is a table, and amounts are written by the same unit ladders as the pages.
+
+### Changed
+
+- The text, Markdown and wikitext of a system, its wiki upload and the `--markdown` output of `planetgen system` come from that description instead of each class writing its own text. Some wording is shorter or reordered (a star's age now reads "13.8 Gyr").
+
+## [8.0.1260] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list facility types with affiliation and ratings (POP.10) as open work; the API part merged in #1517 and the web part in #1524.
+
+TODO items resolved: POP.10 / Added: none
+
+## [8.0.1259] - 2026-10-15
+
+### Changed
+- The TODO list records that part 1 of the unit preference (UX.78) merged in #1523; the header menu and page spans remain.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1258] - 2026-10-15
+
+### Added
+- **Facility types on the web.** The system page's Facilities table now shows each facility's type (with its icon), affiliation and Green, Yellow or Red ratings for crime, housing, resources, maintenance and health, worst first; each rating is a shape, the dimension's name and a word, so colour is never the only signal. An admin picks a type, fills its fields, sets an affiliation (the system's owner by default) and ratings when placing a facility, can edit a facility's affiliation and ratings, and can have the unset ratings suggested (POP.10).
+- **Admin Facility types page.** `/admin/facility-types` lets an admin add, change, take out of use and delete facility types and their fields, and add an example type. The 64 icons a type may use are vendored Bootstrap Icons with their MIT licence (POP.10).
+
+## [8.0.1257] - 2026-10-15
+
+### Added
+
+- The unit ladders now know three unit systems: Automatic (the existing choice), Metric only and Customary (feet, miles, pounds, mph, psi, °F). Nothing offers the choice on a page yet; the header menu follows in the next change.
+
+## [8.0.1256] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the test Redis cleanup after runs (TEST.152) as open work; it merged in #1520.
+
+TODO items resolved: TEST.152 / Added: none
+
+## [8.0.1255] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the sector view star size match (MAP.203) as open work; it merged in #1519, and Bugfixes lane 1 is empty and retired.
+
+TODO items resolved: MAP.203 / Added: none
+
+## [8.0.1254] - 2026-10-15
+
+### Added
+- **`scripts/test.py` clears what earlier runs left on the test Redis** (TEST.152). Job, result and registry keys of test queues never expire, so the test server gained a few hundred keys a run (4,065 had piled up). Every run, a resumed one too, now removes the keys a test makes (by name, only on `PLANETGEN_TEST_REDIS_URL`, not the rate-limit keys) before it starts, and does nothing while a worker's heartbeat is under 90 s old. A resumed run's `--check` output says it covers only the tests that ran now.
+
+## [8.0.1253] - 2026-10-15
+
+### Fixed
+
+- The Sector Map's stars, black holes and other points of light are now drawn the same size as on the Galaxy Map (and no longer grow as the view closes in), so a sector looks like the map you just left (MAP.203, #1420).
+
 ## [8.0.1252] - 2026-10-15
 
 ### Changed

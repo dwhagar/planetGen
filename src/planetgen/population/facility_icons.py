@@ -10,12 +10,12 @@ may pick from and the only names a type may store.
 """
 
 ICON_NAMES = (
-    "activity", "award", "bank", "book", "box-seam", "bricks", "broadcast", "building", "buildings", "bullseye",
-    "cart", "cash-stack", "check-circle-fill", "cloud", "compass", "cpu", "crosshair", "dash-circle-fill",
-    "diagram-3", "droplet", "exclamation-triangle-fill", "flag-fill", "flask", "flower1", "fuel-pump", "gear",
-    "gem", "geo-alt", "globe", "globe2", "hammer", "hdd-network", "heart-pulse", "hexagon", "hospital",
-    "house-door", "leaf", "lightbulb", "lightning-charge", "moon", "moon-stars", "mortarboard", "people-fill",
-    "pin-map", "radioactive", "rocket", "rocket-takeoff", "satellite", "shield", "shield-check",
+    "activity", "award", "bank", "book", "box-seam", "bricks", "broadcast", "broadcast-pin", "building",
+    "buildings", "bullseye", "cart", "cash-stack", "check-circle-fill", "cloud", "compass", "cpu", "crosshair",
+    "dash-circle-fill", "diagram-3", "droplet", "exclamation-triangle-fill", "flag-fill", "flask", "flower1",
+    "fuel-pump", "gear", "gem", "geo-alt", "globe", "globe2", "hammer", "hdd-network", "heart-pulse", "hexagon",
+    "hospital", "house-door", "leaf", "lightbulb", "lightning-charge", "moon", "moon-stars", "mortarboard",
+    "people-fill", "pin-map", "radioactive", "rocket", "rocket-takeoff", "shield", "shield-check",
     "shield-exclamation", "shop", "star", "star-fill", "stars", "sun", "thermometer-half", "tools", "tree",
     "trophy", "truck", "wifi", "wrench-adjustable", "x-octagon-fill",
 )

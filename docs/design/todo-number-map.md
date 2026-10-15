@@ -467,7 +467,7 @@ Parents marked "new parent" had no old number of their own.
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | done, PR #1119 |
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | done, PR #1133 |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | none | open |
-| API.25 | A structured description endpoint, and Markdown and wikitext on request only | none | open |
+| API.25 | A structured description endpoint, and Markdown and wikitext on request only | none | done, PR #1527 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -765,7 +765,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.219 | The habitability levels page and tooltips are generated from the limits | none | open |
 | GEN.220 | "Habitable" means the index | none | open |
 | GEN.221 | Short plain prose for the fixed text | none | open |
-| GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) | none | open |
+| GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) | none | done, PR #1529 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -968,7 +968,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | none | open |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) | none | done, PR #1494 |
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) | none | done, PR #1490 |
-| MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) | none | open |
+| MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) | none | done, PR #1519 |
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
@@ -1189,7 +1189,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.7 | Tech levels for technological species | none | done, PR #1461 |
 | POP.8 | A tech-level design from the six domain indices | none | done, PR #1422 |
 | POP.9 | A tech level generated for every technological species | none | done, PR #1461 |
-| POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | open |
+| POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | done, PR #1524 |
 | POP.11 | Scatter space vessels and stations for the races in their territories | none | open |
 | POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | open |
 | POP.13 | A species editor: create and edit species and their environment limits | none | open |
@@ -1595,7 +1595,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.149 | Two physics tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.150 | Test run progress log and build id for resuming a run | none | done, PR #1431 |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | done, PR #1484 |
-| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
+| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | done, PR #1520 |
 | TEST.153 | A single hung test can stall a whole run (bug) | none | done, PR #1451 |
 | TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | done, PR #1486 |
 | TEST.155 | Wording and index agree: property test | none | open |

@@ -761,6 +761,18 @@ changed; the facility is marked `generated` only when no rating was set by
 hand. One example type, "Research outpost", installs with
 `POST /api/facility-types/examples`.
 
+**Part 4** (the web): the system page's Facilities table gains Type, Affiliation and
+Ratings columns, worst rating first (`web/lib/facility_display.py`); a rating
+chip is the dimension's glyph and name, one of three status shapes (circle with
+a check, triangle, octagon with a cross) and the word, with an `aria-label`, on
+the Okabe-Ito fills with black text (`.rating` in `style.css`). The placement
+form takes a type (filtered to the chosen kind, its fields shown for the chosen
+type), an affiliation (the system's owner by default, or free text) and the
+five ratings; each facility has an edit form for affiliation and ratings and a
+"Suggest the unset ratings" button. `/admin/facility-types`
+(`web/facility_type_pages.py`) manages types and fields. The 64 icons a type may
+use are vendored Bootstrap Icons 1.13.1 (MIT licence file kept beside them).
+
 ### API and UI sketch
 
 `/api/facility-types` (admin CRUD, public read). `POST /api/facilities`

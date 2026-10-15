@@ -275,3 +275,15 @@ def test_parse_value_refuses_what_does_not(field, raw):
     with pytest.raises(types.FacilityTypeError) as caught:
         types.parse_value(field, raw)
     assert caught.value.status == 400 and "'n'" in str(caught.value)
+
+
+def test_every_allowed_icon_is_a_vendored_file_and_the_licence_is_kept():
+    import pathlib
+    folder = pathlib.Path(__file__).resolve().parents[1] / "html" / "static" / "vendor" / "shoelace" / "assets" / "icons"
+    assert len(set(ICON_NAMES)) == len(ICON_NAMES)
+    assert [name for name in ICON_NAMES if not (folder / f"{name}.svg").is_file()] == []
+    assert "MIT License" in (folder / "LICENSE-bootstrap-icons.txt").read_text(encoding="utf-8")
+    # The chips of a rating use these three shapes and five glyphs too.
+    from planetgen.web.lib import facility_display
+    for icon in (*facility_display.COLOR_ICONS.values(), *facility_display.DIMENSION_ICONS.values()):
+        assert icon in ICON_NAMES
