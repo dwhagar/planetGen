@@ -61,8 +61,8 @@ def _sector_system(system_id, name, distance, x=1.0):
 def _sector_detail(sector_id=5, name="Fake Sector", systems=None, placed=True, wiki_url=None):
     return {
         "id": sector_id, "name": name, "edge_mpc": 3066.0, "edge_ly": 10.0,
-        "ring_index": 5 if placed else None, "layer_index": 1 if placed else None,
-        "ring_slot_index": 20 if placed else None,
+        "shell_index": 5 if placed else None, "band_index": 1 if placed else None,
+        "wedge_index": 20 if placed else None,
         "placed": placed,
         "center_x_pc": 500.0 if placed else None, "center_y_pc": 200.0 if placed else None,
         "center_z_pc": 10.0 if placed else None,
@@ -75,7 +75,7 @@ def _sector_detail(sector_id=5, name="Fake Sector", systems=None, placed=True, w
             "distance_ly": 4.0, "offset_x_ly": 1.0, "offset_y_ly": 0.0, "offset_z_ly": 0.0,
         }],
         "neighbors": [{
-            "direction_pc": (1.0, 0.0, 0.0), "ring_index": 5, "layer_index": 1, "ring_slot_index": 21,
+            "direction_pc": (1.0, 0.0, 0.0), "shell_index": 5, "band_index": 1, "wedge_index": 21,
             "designation": "ABC", "exists": True, "sector_id": 6, "sector_name": "Next Door",
         }],
     }
@@ -120,9 +120,9 @@ class FakeData:
         self.calls.append(("get_galaxy_shape", db))
         return None
 
-    def get_bright_stars_in_cell(self, db, ring_index, layer_index, ring_slot_index):
-        self.calls.append(("get_bright_stars_in_cell", ring_index, layer_index, ring_slot_index))
-        return self.bright_stars.get((ring_index, layer_index, ring_slot_index), [])
+    def get_bright_stars_in_cell(self, db, shell_index, band_index, wedge_index):
+        self.calls.append(("get_bright_stars_in_cell", shell_index, band_index, wedge_index))
+        return self.bright_stars.get((shell_index, band_index, wedge_index), [])
 
     def get_sector_facilities(self, db, sector_id):
         self.calls.append(("get_sector_facilities", db, sector_id))
@@ -922,7 +922,8 @@ def test_real_sector_page_unknown_id_is_404(db_client, mysql_config):
 
 
 def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_client, mysql_config):
-    from planetgen.galaxy.geometry import galactic_radius_pc, sector_position_pc
+    from planetgen.galaxy.frame import galactic_radius_pc
+    from planetgen.galaxy.spherical import sector_position_pc
 
     edge_pc = 3.526
     address = (5, 1, 20)
@@ -933,7 +934,7 @@ def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_c
             sector_id = store.insert_sector(conn, SpaceSector(name="Placed Sector"), galaxy_position={
                 "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
                 "galactic_radius_pc": galactic_radius_pc(position),
-                "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+                "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
             })
     finally:
         conn.close()
@@ -1076,7 +1077,7 @@ def test_bad_pick_mode_is_ignored(client, fake, query):
 
 def test_unfilled_neighbor_lists_its_waiting_bright_stars(client, fake):
     fake.sectors[5]["neighbors"].append({
-        "direction_pc": (0.0, 1.0, 0.0), "ring_index": 5, "layer_index": 1, "ring_slot_index": 22,
+        "direction_pc": (0.0, 1.0, 0.0), "shell_index": 5, "band_index": 1, "wedge_index": 22,
         "designation": "ABD", "exists": False,
     })
     fake.bright_stars[(5, 1, 22)] = [
@@ -1095,7 +1096,7 @@ def test_unfilled_neighbor_lists_its_waiting_bright_stars(client, fake):
 
 def test_bright_stars_fail_open(client, fake, monkeypatch):
     fake.sectors[5]["neighbors"].append({
-        "direction_pc": (0.0, 1.0, 0.0), "ring_index": 5, "layer_index": 1, "ring_slot_index": 22,
+        "direction_pc": (0.0, 1.0, 0.0), "shell_index": 5, "band_index": 1, "wedge_index": 22,
         "designation": "ABD", "exists": False,
     })
 
@@ -1142,7 +1143,7 @@ def test_nav_bad_preset_destination_is_404(client, fake):
 
 
 def test_sector_page_shows_it_on_the_galaxy_map(client, fake):
-    from planetgen.galaxy.geometry import provisional_sector_designation
+    from planetgen.galaxy.spherical import provisional_sector_designation
 
     html = client.get("/sector/5").get_data(as_text=True)
     designation = provisional_sector_designation(5, 1, 20)
@@ -1152,7 +1153,7 @@ def test_sector_page_shows_it_on_the_galaxy_map(client, fake):
 
 
 def test_galaxy_map_redirects(client, fake):
-    from planetgen.galaxy.geometry import provisional_sector_designation
+    from planetgen.galaxy.spherical import provisional_sector_designation
 
     designation = provisional_sector_designation(5, 1, 20)
     resp = client.get("/sector/5/galaxy")
@@ -1174,7 +1175,7 @@ def _bookmark_button(html):
 
 
 def test_sector_page_has_a_bookmark_button(client, fake):
-    from planetgen.galaxy.geometry import provisional_sector_designation
+    from planetgen.galaxy.spherical import provisional_sector_designation
 
     html = client.get("/sector/5").get_data(as_text=True)
     assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)

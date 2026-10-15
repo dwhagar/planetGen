@@ -142,7 +142,7 @@ def _add_bright_stars(config, count=300):
     (`bright_stars`), as a scatter would write them."""
     import math
 
-    from planetgen.galaxy.geometry import sector_address_at
+    from planetgen.galaxy.spherical import sector_address_at
 
     rng = random.Random(5)
     conn = store.get_connection(config)
@@ -219,7 +219,7 @@ def site_db(_mysql_server_available):
             run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
             _add_bright_stars(config)
             with forced_system_config(PLANETS=True):
-                run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
+                run_cli("galaxy", ["--shell", "0", "--band", "0", "--wedge", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
             run_cli("system", ["--quiet"] + target)
             for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
@@ -318,9 +318,9 @@ def sample_job_tree(admin_token, site_db):
     work queue and a task under it."""
     from planetgen.queue import work as workQueue
 
-    with workQueue.job_node("galaxy", "planetgen galaxy --ring 1", site_db,
-                            argv=["galaxy", "--ring", "1"]) as root:
-        with workQueue.WorkQueue("Sectors (ring 1)", workers=1) as queue:
+    with workQueue.job_node("galaxy", "planetgen galaxy --shells=1", site_db,
+                            argv=["galaxy", "--shells=1"]) as root:
+        with workQueue.WorkQueue("Sectors (shell 1)", workers=1) as queue:
             queue.submit("sector", "1,0,0", int, "7")
     return root.id
 

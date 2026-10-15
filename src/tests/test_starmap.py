@@ -194,7 +194,8 @@ def test_map_scene_data_outline_is_a_cell_when_placed_and_a_cube_otherwise():
     assert scene_unplaced["outline"]["kind"] == "cube"
     assert scene_placed["outline"]["kind"] == "cell"
     # 12 edges, each a line of 3D points, for either shape: the cube's are
-    # straight, and the cell's 4 slot-angle edges are sampled arcs.
+    # straight, and the cell's 4 radial edges are straight while its 8 edges
+    # along a parallel or a meridian are sampled arcs.
     for scene in (scene_unplaced, scene_placed):
         assert len(scene["outline"]["edges"]) == 12
         for edge in scene["outline"]["edges"]:
@@ -202,29 +203,30 @@ def test_map_scene_data_outline_is_a_cell_when_placed_and_a_cube_otherwise():
             assert all(len(point) == 3 for point in edge)
     assert all(len(edge) == 2 for edge in scene_unplaced["outline"]["edges"])
     lengths = sorted(len(edge) for edge in scene_placed["outline"]["edges"])
-    assert lengths[:8] == [2] * 8
-    assert all(n > 2 for n in lengths[8:])
+    assert lengths[:4] == [2] * 4
+    assert all(n > 2 for n in lengths[4:])
 
 
-def test_cell_outline_arcs_follow_the_ring_radius():
+def test_cell_outline_arcs_follow_the_shell_radius():
     from planetgen.web.maps import starmap
-    from planetgen.galaxy.geometry import ring_bounds_pc, sector_position_pc
+    from planetgen.galaxy.spherical import shell_bounds_pc, sector_position_pc
     from planetgen.physics.units import mpc_to_pc
 
     address, edge_mpc, half_edge = (3, 0, 7), 4000.0, 2000.0
     edges = starmap._cell_arc_edges_px(address, edge_mpc, half_edge)
     edge_pc = mpc_to_pc(edge_mpc)
     center = sector_position_pc(*address, edge_pc)
-    radii = ring_bounds_pc(3, edge_pc)
+    radii = shell_bounds_pc(3, edge_pc)
     scale = starmap._SCENE_HALF_PX / half_edge
     for i, (a, b) in enumerate(starmap._EDGE_PAIRS):
-        if a ^ b != 1:
+        if a ^ b == 4:
             continue
-        # Every sample of an arc edge lies on the inner or outer ring radius.
-        for x, y, _z in edges[i]:
+        # Every sample of a longitude or colatitude arc lies on the inner or outer shell radius.
+        for x, y, z in edges[i]:
             gx = center[0] + mpc_to_pc(x / scale)
             gy = center[1] + mpc_to_pc(-y / scale)
-            assert min(abs(math.hypot(gx, gy) - r) for r in radii) < 1e-6
+            gz = center[2] + mpc_to_pc(z / scale)
+            assert min(abs(math.sqrt(gx * gx + gy * gy + gz * gz) - r) for r in radii) < 1e-6
 
 
 def test_map_scene_data_compass_present_only_when_placed():
@@ -383,7 +385,7 @@ def test_map_scene_data_neutron_star_with_no_descriptor_falls_back_to_plain_labe
 def _neighbor(address=(6, -2, 9), direction_pc=(1.0, 0.0, 0.0), exists=False, sector_id=None,
               sector_name=None, designation="600000063"):
     return {
-        "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+        "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
         "direction_pc": list(direction_pc),
         "exists": exists, "sector_id": sector_id, "sector_name": sector_name, "designation": designation,
     }
@@ -573,7 +575,7 @@ def test_the_toggle_highlight_follows_aria_pressed_in_the_stylesheet():
 def _uncharted_contents():
     star = {"id": 1, "x": 101.0, "y": 52.0, "z": 3.0, "luminosity_sol": 9000.0, "temperature_k": 22000.0,
             "radius_sol": 6.0, "star_type": "B2V", "population": "young", "yerkes_class": "V",
-            "ring_index": 3, "layer_index": 0, "ring_slot_index": 1, "system_id": None}
+            "shell_index": 3, "band_index": 0, "wedge_index": 1, "system_id": None}
     rows = [
         {"id": 10, "kind": "black-hole", "subtype": "stellar", "type": "black_hole", "x": 99.0, "y": 50.0, "z": 0.0},
         {"id": 11, "kind": "neutron-star", "subtype": None, "type": "neutron_star", "x": 100.5, "y": 50.0, "z": 1.0},

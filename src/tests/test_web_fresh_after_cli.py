@@ -49,6 +49,7 @@ from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen import tuning
 from tests.publicids import pid
+from planetgen.galaxy import spherical
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from planetgen.physics.units import ly_to_pc  # noqa: E402
 from tests.publicids import pid, pids
@@ -56,8 +57,8 @@ from tests.tile_support import tile_payload
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
-# The same small toy galaxy test_galaxy_gen.py plans: ring 0 holds three
-# slots, all deep inside it, so `galaxy --ring 0` is quick.
+# The same small toy galaxy test_galaxy_gen.py plans: shell 0 is one core
+# sector, deep inside it, so `galaxy --shells=0` is quick.
 _SHAPE = build_galaxy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
@@ -163,9 +164,10 @@ def _generate(mysql_config, *argv):
 
 
 def _plan_galaxy(mysql_config):
-    store.save_galaxy_shape(_SHAPE, edge_pc=EDGE_PC, outer_ring_index=999,
+    store.save_galaxy_shape(_SHAPE, edge_pc=EDGE_PC, outer_shell_index=999,
                           expected_system_count_at_density_1=1.0, config=mysql_config)
-    store.replace_galaxy_layers([(layer, 999) for layer in range(5, -6, -1)], config=mysql_config)
+    store.replace_galaxy_shells([(shell, min(5, spherical.band_range(shell)[1])) for shell in range(1000)],
+                                config=mysql_config)
 
 
 def _rows(mysql_config, sql):
@@ -192,7 +194,7 @@ def _placed_count(html):
 
 def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     _plan_galaxy(mysql_config)
-    _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1", "--backfill-from", "none")
+    _generate(mysql_config, "galaxy", "--shells=0", "--limit", "1", "--num-systems", "1", "--backfill-from", "none")
     [first] = _sectors(mysql_config)
 
     tiles_url = f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
@@ -204,7 +206,7 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     assert tile_payload(site.get(tiles_url))["cached"] == 1
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == [pid("sector", first["id"], mysql_config)]
 
-    _generate(mysql_config, "galaxy", "--ring", "0", "--num-systems", "1", "--backfill-from", "none")
+    _generate(mysql_config, "galaxy", "--shells=0", "--num-systems", "1", "--backfill-from", "none")
     sectors = _sectors(mysql_config)
     assert len(sectors) == 3
     all_ids = sorted(pid("sector", row["id"], mysql_config) for row in sectors)
@@ -237,7 +239,7 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     (MAP.68), cached like a page, so a sector the CLI generated shows
     once the stamp is checked again."""
     _plan_galaxy(mysql_config)
-    _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1")
+    _generate(mysql_config, "galaxy", "--shells=0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
     scene_url = f"/sector/{pid('sector', first['id'])}/scene"
     assert escape(first["name"]) in site.html(f"/sector/{pid('sector', first['id'])}")
@@ -247,7 +249,7 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
 
     assert linked() == set()
 
-    _generate(mysql_config, "galaxy", "--ring", "0", "--num-systems", "1")
+    _generate(mysql_config, "galaxy", "--shells=0", "--num-systems", "1")
     others = [row for row in _sectors(mysql_config) if row["id"] != first["id"]]
     assert len(others) == 2
     assert linked() == set(), "still the cached answer"
@@ -257,7 +259,7 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
 
 def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config):
     _plan_galaxy(mysql_config)
-    _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1")
+    _generate(mysql_config, "galaxy", "--shells=0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
     old_systems = {row["name"] for row in _rows(mysql_config, "SELECT name FROM star_systems")}
     sectors_before = site.html("/sectors")
@@ -288,7 +290,7 @@ def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_confi
     before it did, the sector page stayed stale until the page cache's age
     limit, and a cached tile never showed the new cloud at all."""
     _plan_galaxy(mysql_config)
-    _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1")
+    _generate(mysql_config, "galaxy", "--shells=0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
     page_url = f"/sector/{pid('sector', first['id'])}"
     tiles_url = f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"

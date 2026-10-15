@@ -45,7 +45,7 @@ def _placed(i, x=100.0, y=50.0, name=None, radius=None):
     return {
         "id": i, "name": name or f"Placed {i:03d}", "x": x, "y": y, "z": 0.0,
         "galactic_radius_pc": radius if radius is not None else 1000.0 + i,
-        "ring_index": 10 + i, "layer_index": 0, "ring_slot_index": 0, "system_count": i % 4,
+        "shell_index": 10 + i, "band_index": 0, "wedge_index": 0, "system_count": i % 4,
     }
 
 
@@ -54,7 +54,7 @@ class FakeData:
 
     def __init__(self):
         self.sectors = [_placed(1), _placed(2, x=-100.0), _placed(3, x=-100.0, y=-50.0)]
-        self.shape = {"edge_pc": 3.526, "outer_ring_index": 400}
+        self.shape = {"edge_pc": 3.526, "outer_shell_index": 400}
         self.dbs = set()
         self.tile_calls = []
         self.fail_tiles = None
@@ -543,8 +543,8 @@ def test_galaxy_page_rings_the_sectors_a_job_made(client, fake, monkeypatch):
     """ADM.31: `?made=<since>,<until>` embeds the sectors a run made and says how many."""
     asked = []
     made = {"total": 3, "items": [
-        {"id": n, "name": f"S{n}", "x": 10.0 * n, "y": 0.0, "z": 0.0, "ring_index": 5 + n, "layer_index": 0,
-         "ring_slot_index": n} for n in (1, 2)]}
+        {"id": n, "name": f"S{n}", "x": 10.0 * n, "y": 0.0, "z": 0.0, "shell_index": 5 + n, "band_index": 0,
+         "wedge_index": n} for n in (1, 2)]}
     monkeypatch.setattr(apiclient, "get_galaxy_made", lambda db, since, until=None: asked.append((since, until)) or made)
     html = client.get("/galaxy?made=100,200").get_data(as_text=True)
     assert asked == [(100.0, 200.0)]
@@ -669,7 +669,8 @@ def db_client(mysql_config, tmp_path, monkeypatch):
 
 
 def _place_sector(mysql_config, name, address=(5, 1, 20)):
-    from planetgen.galaxy.geometry import galactic_radius_pc, sector_position_pc
+    from planetgen.galaxy.frame import galactic_radius_pc
+    from planetgen.galaxy.spherical import sector_position_pc
 
     position = sector_position_pc(*address, 3.526)
     conn = _db.get_connection(mysql_config)
@@ -678,7 +679,7 @@ def _place_sector(mysql_config, name, address=(5, 1, 20)):
             return _db.insert_sector(conn, SpaceSector(name=name), galaxy_position={
                 "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
                 "galactic_radius_pc": galactic_radius_pc(position),
-                "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+                "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
             })
     finally:
         conn.close()
@@ -714,7 +715,7 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
 # --- /galaxy/uncharted/<ring>/<layer>/<slot>/scene (MAP.162) -----------------------------
 
 def _uncharted_cell(**overrides):
-    cell = {"ring_index": 3, "layer_index": 0, "ring_slot_index": 1, "designation": "ABC", "center_pc": [100.0, 50.0, 0.0],
+    cell = {"shell_index": 3, "band_index": 0, "wedge_index": 1, "designation": "ABC", "center_pc": [100.0, 50.0, 0.0],
             "edge_pc": 4.0, "sector_id": None,
             "stars": [{"id": 1, "x": 101.0, "y": 50.0, "z": 0.0, "luminosity_sol": 900.0, "temperature_k": 20000.0,
                        "radius_sol": 5.0, "star_type": "B"}],
@@ -761,7 +762,7 @@ def test_the_uncharted_scene_endpoint_reports_a_bad_cell_and_an_api_failure(clie
     assert client.get("/galaxy/uncharted/3/0/1/scene").status_code == 404
 
     def off_the_grid(*args):
-        raise apiclient.ApiError("ring_slot_index 3 out of range", status_code=400)
+        raise apiclient.ApiError("wedge_index 3 out of range", status_code=400)
 
     monkeypatch.setattr(apiclient, "get_uncharted_sector", off_the_grid)
     assert client.get("/galaxy/uncharted/0/0/3/scene").status_code == 404

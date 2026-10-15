@@ -3,7 +3,7 @@ Tests for `html/static/generatebuttons.js`, the admin Generate buttons
 shared by the Sector Map and the Galaxy Map, run under node (skipped
 where node isn't installed): its light-year to parsec conversion must
 match the Python one, and its "up to about N sectors" estimate must bound
-a real count of the sector slots a neighborhood reaches.
+a real count of the sectors a neighborhood reaches.
 """
 
 import json
@@ -115,3 +115,15 @@ def test_block_buttons_leave_out_what_the_offer_leaves_out():
                "forms(G.blockGenerateButtons(TARGET, {block: '3.1.2.0', layer: null, wholeBlock: true})).map((f) => f.label),"
                "forms(G.blockGenerateButtons(TARGET, {block: '3.1.2.0', layer: 1, wholeBlock: false})).map((f) => f.label)]));")
     assert out == [["Generate this block"], ["Generate this layer"]]
+
+
+def test_sector_buttons_post_the_generate_pages_address_and_shell_modes():
+    out = _run(_FAKE_DOM + "console.log(JSON.stringify(forms(G.generateButtons(TARGET, 40, -1, 7, 13.046))));")
+    base = {"csrf_token": "tok", "action": "galaxy"}
+    address = {"address_shell": "40", "address_band": "-1", "address_wedge": "7"}
+    assert [(f["label"], f["fields"]) for f in out] == [
+        ("Generate this sector", {**base, "mode": "address", **address}),
+        ("Generate neighborhood", {**base, "mode": "address", **address, "address_radius_pc": "11.957"}),
+        ("Generate the entire shell (not recommended)",
+         {**base, "mode": "shell", "shell_index": "40", "whole_shell": "1"}),
+    ]

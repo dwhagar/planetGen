@@ -119,8 +119,8 @@ _ROGUE = {"type": "rogue_planet", "descriptor": "jupiter", "class": "J", "radius
           "offset_x_ly": 0.1, "offset_y_ly": 0.0, "offset_z_ly": 0.0,
           "nearest": [{"id": 3001, "name": "Star 001", "distance_ly": 0.5}]}
 SECTOR = {
-    "id": 5, "name": "Fixture Sector", "edge_mpc": 3066.0, "edge_ly": 10.0, "ring_index": 5, "layer_index": 1,
-    "ring_slot_index": 20, "placed": True, "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
+    "id": 5, "name": "Fixture Sector", "edge_mpc": 3066.0, "edge_ly": 10.0, "shell_index": 5, "band_index": 1,
+    "wedge_index": 20, "placed": True, "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
     "wiki_url": None, "systems": [_contents_system(i) for i in range(130)],
     "phenomena": [
         {**_ROGUE, "id": 21, "name": "Drifter", "distance_ly": 0.1},
