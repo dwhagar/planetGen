@@ -656,7 +656,7 @@ class Star(LazySaladName):
         """
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
-        galactic_center_dist_m = galactic_center_dist_ly * constants.LY_TO_M
+        galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, constants.MILKY_WAY_MASS)
         return hill_radius_m / constants.AU_TO_M
 

@@ -59,6 +59,7 @@ SOLAR_MASS_TO_KG = 1.988409870698051e+30  # Solar mass to kilograms conversion f
 SOLAR_LUMINOSITY = 3.828e+26  # Solar luminosity in Watts
 MILKY_WAY_MASS = 1.15e12 * SOLAR_MASS_TO_KG  # Mass of the Milky Way in kg
 GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
+MIN_TIDAL_DISTANCE_LY = 4.89  # 1.5 pc, a point's mean distance in the 2 pc core ball: the nearest to the center a system's Hill sphere is worked out at (at 0 it would be 0, leaving no room for a planet)
 EARTH_MASS_TO_KG = 5.972167867791379e+24  # Earth mass to kilograms conversion factor
 MOON_MASS_KG = 7.342e+22  # The Moon's mass, kg: project-nominal (the IAU defines no lunar mass), for the mass ladder's lunar rung
 JUPITER_MASS_TO_KG = 1.8981245973360505e+27  # Jupiter mass to kilograms conversion factor
