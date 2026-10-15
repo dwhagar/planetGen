@@ -390,3 +390,7 @@ Most of these notes are the research pass Boss asked for on 2026-10-09 (08:43Z):
 ## Not yet checked in live use
 
 - **PERF.34 (PR #811)**: the fix (tile cache wiped every minute during a fill when more than 1,000 sectors or new bright stars forced a full rebuild; now a `busy` answer plus keeping the cache for up to 10 minutes) was found by reading the code path and has not been load-tested. Boss's next real fill is the check; reopen issue #638 if the site is still slow.
+
+## Migration rule for Foundations Maps (Boss, 2026-10-15 03:16Z)
+
+Foundations Database is the lane that adds migrations. Foundations Maps may build the database changes it needs (for example the MAP.151b block-stats refill) if it tells Foundations Database beforehand. Foundations Database then says whether it has that work in progress; if it does, Maps holds off and does something else. Foundations Generation and Foundations UX still add no migrations.
