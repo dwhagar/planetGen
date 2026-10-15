@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.148 |
+| TEST | TEST.149 |
 | USR | USR.12 |
 | OPS | OPS.50 |
 | DOC | DOC.45 |
@@ -1553,6 +1553,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | done, PR #1367 |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | done, PR #1367 |
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | open |
+| TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

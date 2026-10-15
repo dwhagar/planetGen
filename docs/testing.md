@@ -215,6 +215,18 @@ daily CI run on main backstops both. A PR description says which one it used.
 `scripts/test.py full --check` is also how the selection is proved: it
 should never print a `MISSED:` line, and if it does, tell the test-suite thread.
 
+### Time limit and knowing a run is done
+
+Start every test run with a timeout of at least 90 minutes (Boss,
+2026-10-15), so a slow machine or a full run never hits the 30 minute
+default and dies half way. A run that finishes early is fine; the limit only
+has to be long enough. Know a run is done from its own completion: the
+notice the run sends when it exits, or its final summary line (`scripts/test.py`
+prints one). Do not poll with `pgrep`, `ps` or `sleep` loops; a process that
+looks gone may only be between phases. Resuming a stopped run from where it
+left off, when the build is the same, is being investigated (see TEST.148 in
+the TODO).
+
 ## Setting up a cloud session
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK

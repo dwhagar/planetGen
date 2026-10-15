@@ -5103,6 +5103,23 @@ clears each one.
   Test Suite Rebuild thread, not a lane.
   Prerequisites: none. Related: TEST.126, TEST.139.
 
+- [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
+  Boss (2026-10-15 00:09Z): wants to be able to restart a test run where
+  it left off so long as the build is the same, so a run that is stopped
+  or times out does not start over (a full run is about 49 minutes).
+  Boss also set the standing rule that every test run starts with a
+  timeout of at least 90 minutes and is known to be done by its own
+  completion notice or final summary line, not by polling (now in
+  docs/testing.md). Done when the Test Suite Rebuild thread reports the
+  options (for example a record of passed tests keyed by the git commit
+  and a hash of the working tree, a resume flag in scripts/test.py that
+  skips them, and what must invalidate a resume: any changed file,
+  database or Redis state, the Python or library versions) with a
+  recommendation, and Boss picks one; the build is then filed as its own
+  items. Options are pending until the thread reports. Owner: the Test
+  Suite Rebuild thread, part of TEST.139, not a lane.
+  Prerequisites: none. Related: TEST.139.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
