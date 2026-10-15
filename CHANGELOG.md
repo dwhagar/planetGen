@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1302] - 2026-10-15
+
+### Changed
+- **Browser tests wait longer before giving up, and four slow or flaky ones are fixed** (TEST.126, TEST.138, TEST.139 stage 4, TEST.157). Every browser context the tests make now has a 2-minute default wait instead of Playwright's 30 s, so a Galaxy Map test on a busy machine no longer fails with a timeout that passes alone (a wait still returns as soon as its condition holds). `test_the_map_help_is_a_menu_item_that_opens_a_dialog` now waits for the dialog element to be upgraded before it clicks (it failed once at 39 s under load and passed alone). `test_galaxy_map_an_unfilled_sector_stays_outlined_once_selected` asked "is there an uncharted sector here" with 20 full-map scans when the answer was no (109 s idle); it settles the map and scans once (21 s). `test_system_detail_names_the_containing_nebula` put its nebula at a point one parsec from the system, which the random nebula shape sometimes did not contain (failed in 1 of 16 solo runs, and in several of 300 loop runs before; 300 of 300 now pass).
+
 ## [8.0.1301] - 2026-10-15
 
 ### Changed
