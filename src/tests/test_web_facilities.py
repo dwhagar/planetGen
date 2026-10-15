@@ -86,6 +86,11 @@ def _facility(facility_id, name, kind, placement, host_type, host_id, host_name,
         "host_id": host_id, "host_name": host_name, "star_system_id": 5, "description": None,
         "orbit_distance_km": distance_km, "orbit_period_years": None, "orbital_speed_kms": None,
         "orbit_phase_deg": None, "center_x_pc": None, "center_y_pc": None, "center_z_pc": None,
+        "type_id": None, "type_name": None, "type_icon": None, "affiliation_polity_id": None,
+        "affiliation_name": None, "fields": {},
+        "ratings": {name: None for name in ("crime", "housing", "resources", "maintenance", "health")},
+        "rating_words": {name: None for name in ("crime", "housing", "resources", "maintenance", "health")},
+        "overall": None, "ratings_source": None, "ratings_note": None, "ratings_set_at": None,
     }
     if distance_km is not None:
         row.update(orbit_period_years=0.0027, orbital_speed_kms=3.07, orbit_phase_deg=45.0)
@@ -220,6 +225,36 @@ def test_system_page_lists_facilities(client, fake):
     assert "1 facility" in terra_row and "New Hope" in terra_row and "High" not in terra_row
     assert '<ul class="facility-list" aria-label="Facilities">' in html
     assert ("get_system_facilities", DB, "5") in fake.calls
+
+
+def test_the_panel_shows_type_affiliation_and_ratings_worst_first(client, fake):
+    fake.facilities = [
+        _facility(1, "Calm", "outpost", "orbital", "star", 1, "Sol", distance_km=1e8, overall="green",
+                  ratings={"crime": "green", "housing": "green", "resources": None, "maintenance": None,
+                           "health": "green"},
+                  rating_words={"crime": "Low", "housing": "Ample", "resources": None, "maintenance": None,
+                                "health": "Healthy"}),
+        _facility(2, "Plain", "outpost", "orbital", "star", 1, "Sol", distance_km=2e8),
+        _facility(3, "Troubled", "colony", "terrestrial", "planet", 10, "Terra", type_id=4, type_name="Farm <world>",
+                  type_icon="tree", affiliation_name="Free Traders", fields={"hectares": 40.5, "irrigated": True},
+                  overall="red",
+                  ratings={"crime": "yellow", "housing": "red", "resources": None, "maintenance": None,
+                           "health": "green"},
+                  rating_words={"crime": "Elevated", "housing": "Overcrowded", "resources": None,
+                                "maintenance": None, "health": "Healthy"}),
+    ]
+    panel = _panel(client.get("/system/5").get_data(as_text=True))
+    assert panel.index("Troubled") < panel.index("Calm") < panel.index("Plain")        # worst first, unassessed last
+    assert "Farm &lt;world&gt;" in panel and "<world>" not in panel
+    assert '<sl-icon name="tree"' in panel and "Free Traders" in panel
+    assert "hectares: 40.5, irrigated: yes" in panel
+    # Each chip carries a shape, its dimension's name and its word, and a label that does not need colour.
+    assert 'aria-label="Housing: Red, overcrowded"' in panel and "x-octagon-fill" in panel
+    assert 'aria-label="Crime: Yellow, elevated"' in panel and "exclamation-triangle-fill" in panel
+    assert 'aria-label="Health: Green, healthy"' in panel and "check-circle-fill" in panel
+    troubled = panel[panel.index("Troubled"):panel.index("Calm")]
+    assert troubled.index("Overcrowded") < troubled.index("Elevated") < troubled.index("Healthy")   # worst chip first
+    assert "Resources" not in troubled                                          # unassessed ones are left out
 
 
 def test_system_page_without_facilities_shows_no_panel(client, fake):

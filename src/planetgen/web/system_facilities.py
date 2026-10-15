@@ -36,7 +36,7 @@ import re
 
 from flask import abort, redirect, request
 
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.fmt import format_distance_km, format_speed_kms
 from planetgen.web.lib.systempage import facility_kind_label, facility_row
 from planetgen.web.lib.tabledisplay import format_period
@@ -73,6 +73,8 @@ MESSAGES = {
 nothing from the query string reaches the page as text."""
 
 _BODY_TYPES = {"t": "terrestrial", "g": "gas giant"}
+
+_WORST = ("green", "yellow", "red")
 
 
 def _api_message(exc):
@@ -155,15 +157,21 @@ def _host_label(facility):
 
 
 def facility_rows(facilities):
-    """The Facilities table's rows: `id`, `name`, `kind`, `host`,
+    """The Facilities table's rows, the worst-rated first (POP.10): `id`, `name`, `kind`, `host`,
     `placement`, `distance`, `period`, `speed` (the HTML ones already
-    escaped by `systempage.facility_row`, marked trusted here)."""
+    escaped by `systempage.facility_row`, marked trusted here), and the type
+    (`type`, with its icon), `affiliation`, the rating `chips` and the field
+    values as `fields`."""
     rows = []
-    for facility in facilities:
+    for facility in sorted(facilities, key=lambda f: -_WORST.index(f["overall"]) if f.get("overall") else 1):
         row = {key: (trusted_html(value) if value is not None else None)
                for key, value in facility_row(facility).items()}
         row["id"] = facility["id"]
         row["host"] = _host_label(facility)
+        row["type"] = trusted_html(facility_display.type_html(facility))
+        row["affiliation"] = facility_display.affiliation_text(facility)
+        row["chips"] = trusted_html(facility_display.rating_chips(facility))
+        row["fields"] = facility_display.fields_text(facility)
         rows.append(row)
     return rows
 

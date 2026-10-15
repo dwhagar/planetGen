@@ -218,17 +218,20 @@
   {%- endif %}
   {%- if facilities %}
   <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Host</th><th scope="col">Placement</th><th scope="col">Orbital distance</th><th scope="col">Orbital period</th><th scope="col">Orbital speed</th></tr></thead>
+    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Type</th><th scope="col">Affiliation</th><th scope="col">Host</th><th scope="col">Placement</th><th scope="col">Orbital distance</th><th scope="col">Orbital period</th><th scope="col">Orbital speed</th><th scope="col">Ratings</th></tr></thead>
     <tbody>
       {%- for row in facilities %}
       <tr>
         <td>{{ row.name }}</td>
         <td>{{ row.kind }}</td>
+        <td>{% if row.type %}{{ row.type }}{% if row.fields %}<br><span class="hint">{{ row.fields }}</span>{% endif %}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.affiliation %}{{ row.affiliation }}{% else %}&ndash;{% endif %}</td>
         <td>{{ row.host }}</td>
         <td>{{ row.placement }}</td>
         <td>{% if row.distance %}{{ row.distance }}{% else %}&ndash;{% endif %}</td>
         <td>{% if row.period %}{{ row.period }}{% else %}&ndash;{% endif %}</td>
         <td>{% if row.speed %}{{ row.speed }}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.chips %}{{ row.chips }}{% else %}&ndash;{% endif %}</td>
       </tr>
       {%- endfor %}
     </tbody>
