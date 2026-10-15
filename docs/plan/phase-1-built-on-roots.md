@@ -218,7 +218,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits |  |  |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages |  |  |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md |  |  |
-| DOC.26 | Give every design note a status line and refresh the stale ones |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged |  |  |
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state |  |  |

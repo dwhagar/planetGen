@@ -5561,23 +5561,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the switch.
   Prerequisites: none. Related: PERF.88.
 
-- [ ] **DOC.26 Give every design note a status line and refresh the stale ones**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, the
-  status list and findings 13, 16, 17, 29 to 31, 33 and 50. Sixteen
-  written notes lack a status (decided, built, partly built, superseded)
-  and the 22 imported research files carry no header at all (they need a
-  one-line banner: imported research, not edited);
-  scatter-queue-feasibility.md, generation-performance-study.md,
-  math-and-library-efficiency.md, galaxy-map-wire-format.md,
-  fly-through-view-distance.md, drilldown-region-sizes.md,
-  gravity-map.md and population-and-politics.md open with research only
-  or not built although parts are built. Done: each note says what is
-  built and what is not, with the PR.
-  Prerequisites: none.
-
 - [ ] **DOC.27 Update the architecture.md flows and add a design-notes index at docs/design/README.md**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
