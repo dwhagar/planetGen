@@ -1080,7 +1080,7 @@ def test_system_options_match_generate_py():
     assert args.habitable_world is True and args.comets is False and args.planets is None
     assert args.name == "-Odd Name" and args.star_type == "G2V" and args.age == "old"
     assert args.num_orbits == 4 and args.flavor_chance_system == 0.5 and args.flavor_chance_planet == 1.0
-    assert args.max_planet_flavor and args.markdown and args.output == "x"
+    assert args.max_planet_flavor and args.format == "markdown" and args.output == "x"
 
 
 @pytest.mark.parametrize("form, message", [
