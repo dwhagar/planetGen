@@ -321,7 +321,12 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
+    workers = None
     try:
+        try:
+            workers = apiclient.admin_work_workers(cookie_header)
+        except apiclient.ApiError:
+            workers = None                      # Redis down: the page says so elsewhere; the rest still loads
         body = apiclient.admin_work(cookie_header, limit=1, offset=0)
         if body["available"]:
             jobs_table = tables.render(JOBS_TABLE, request.path, anchor="jobs")
@@ -332,7 +337,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation jobs on this server, and the controls to pause, resume, cancel or retry them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), jobs_table=jobs_table,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), jobs_table=jobs_table, workers=workers,
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
 
@@ -452,6 +457,16 @@ def admin_queue_action():
             cleared = apiclient.admin_work_clear_finished(cookie_header)
             message = f"Cleared {cleared} finished {'job' if cleared == 1 else 'jobs'}." if cleared \
                 else "There were no finished jobs to clear."
+        elif action in ("workers-set", "workers-ludicrous"):
+            try:
+                count = int(request.form.get("count") or "") if action == "workers-set" else None
+            except ValueError:
+                count = 0
+            if action == "workers-set" and count < 1:
+                error = "The worker count is a whole number of at least 1."
+            else:
+                state = apiclient.admin_work_workers(cookie_header, count=count, ludicrous=action == "workers-ludicrous")
+                message = f"The bulk queue now asks for {state['wanted']} {'worker' if state['wanted'] == 1 else 'workers'}."
         elif action == "clear-lease":
             holder = apiclient.admin_work_clear_lease(cookie_header)
             message = f"Cleared the lease held by {holder}." if holder else "The lease wasn't stale."
