@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1290] - 2026-10-15
+
+### Changed
+
+- TODO.md and plan pages: lanes renamed Database, Generate, UX and Maps; MAP.205 and MAP.206 are built in parallel on a branch and merged after the DB.32, GEN.227 and UX.111 switch (Boss released Maps, 07:31Z).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1289] - 2026-10-15
 
 ### Changed
