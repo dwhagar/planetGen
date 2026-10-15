@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1369] - 2026-10-15
+
+**Headline:** The reference docs describe the Galaxy Map as it now is, on shells, bands and wedges.
+
+### Changed
+- `docs/api.md`, `docs/cli.md`, `docs/html-interface.md`, `docs/database-schema.md`, `docs/design/architecture.md` and `docs/design/galaxy-coordinate-system.md` no longer say the Galaxy Map is being rebuilt: the stage and window routes, the tile answer (`sector_count`, not `filled`), the changes route's stage keys, the v92 `galaxy_block_stats` table, the map scripts and the end of the sector-switch maintenance are described as built (MAP.205, MAP.206).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1368] - 2026-10-15
 
 **Headline:** The plan now shows the Galaxy Map on shells as done and the Interface lane taking over the map, page and wording items.
