@@ -4037,11 +4037,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   none, they proceed as before. With any, they list them and stop until
   either `--yes` was passed, or the user types an explicit confirmation
   that all active jobs may be cancelled; only then are the jobs
-  cancelled, and then the install or upgrade starts. Without `--yes` and
-  without a terminal to ask on, they change nothing and exit non-zero.
+  cancelled, and then the install or upgrade starts. Boss, 02:59Z: "the
+  update script needs to know if it's being run either from systemd or
+  cron, and if it has, assume no unless --yes is passed. Or say 30
+  seconds of waiting for input and it assumes no and cancels the
+  update." So update.sh detects a run from systemd or cron (no person
+  at the keyboard) and then assumes "no": it changes nothing and exits
+  non-zero unless `--yes` was passed. When it does prompt, 30 seconds
+  without an answer count as "no": it changes nothing and exits
+  non-zero. Without `--yes` and without a terminal to ask on, it does
+  the same.
   update.sh still never edits the user's Redis configuration (OPS.48).
   A test covers each path (no jobs, jobs and `--yes`, jobs and a typed
-  confirmation, jobs and no answer), and the check is the one place every
+  confirmation, jobs and no answer within 30 seconds, jobs and a run
+  from systemd or cron), and the check is the one place every
   migration goes through.
   Dependency: how the active jobs are read depends on the work queue
   steps. Until PERF.96 (run record and counters in Redis) merges, the
