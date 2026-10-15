@@ -500,6 +500,9 @@ with `clamp()`.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
+  Progress: merged into the switch branch claude/spherical-switch with
+  UX.112 (PR #1601, 13:46Z). The item retires when the final switch PR
+  reaches main. Docs wording UX left behind is under DOC.46.
   Prerequisites: DB.32, GEN.227.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
@@ -516,6 +519,8 @@ with `clamp()`.
   on. The mode is stored where the web workers and the queue both see
   it. Used by the spherical switch: MAP.205 and MAP.206 clear it when the new map lands. Owner: UX lane, in progress as part of the
   spherical switch (PR into claude/spherical-switch).
+  Progress: merged into claude/spherical-switch with UX.111 (PR #1601,
+  13:46Z); the item retires when the final switch PR reaches main.
   Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
