@@ -338,6 +338,10 @@ with `clamp()`.
   `sl-dropdown`. UX.42 (done, PR #1466) was wording only; do not fold units into it.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: the
   three presets, per browser).
+  Progress (2026-10-15): part 1 merged in PR #1523 (the shared unit
+  ladders in Python and the browser know Automatic, Metric only and
+  Customary, parity-tested). Part 2 (the header menu and the page
+  spans) remains; the item retires with it.
   Prerequisite: UX.23.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
