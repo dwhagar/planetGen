@@ -51,7 +51,7 @@ DOMAINS = (
         ("Water activity (how freely water is available)", "0.90 or more", "0.75 or more", "0.605 or more"),
     ]),
     ("Radiation", [
-        ("Dose per year", "under 0.05 Sv", "up to 0.1 Sv", "up to 10 Sv"),
+        ("Dose per year", "under 0.02 Sv", "up to 0.1 Sv", "up to 1 Sv"),
     ]),
 )
 """tuple: `(domain, [(variable, blue, green, yellow)])`: beyond the Yellow

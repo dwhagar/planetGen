@@ -266,7 +266,7 @@ def test_the_search_finds_bodies_by_the_kit_they_need(db_client, mysql_config): 
 
 def test_the_page_chip_names_the_kit_and_takes_the_worst_domains_colour():
     from planetgen.web.lib import systempage
-    scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=5000.0))
+    scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=500.0))
     chip = systempage._habitability_chip(scored)
     assert "flag-tier-2" in chip and "Mask and scrubber" in chip and "PHI-4" in chip
     assert systempage._habitability_chip({"equipment_tier": None}) == ""
@@ -278,3 +278,15 @@ def test_a_molten_or_deep_frozen_world_scores_without_overflowing():
         scored = hw.compute(_earth(surface_temperature_k=kelvin, hydrosphere="dry", p_h2o_kpa=0.0))
         assert scored["tier_temperature"] == 3
         assert 0.0 <= scored["phi_tech"] <= 1.0
+
+
+def test_harshness_follows_the_worst_domain_and_defaults_to_the_middle():
+    assert hw.harshness(hw.compute(_earth())) == 0.0
+    cold = hw.compute(_earth(surface_temperature_k=60.0, hydrosphere="dry", p_h2o_kpa=0.0))
+    assert hw.harshness(cold) == pytest.approx(1.0 - cold["phi4_temperature"])
+    assert hw.harshness(cold) > 0.6  # a Red domain
+    assert hw.harshness({}) == hw.DEFAULT_HARSHNESS == 0.5
+    gas_giant = hw.compute(_earth(body_type="g"))
+    assert hw.harshness(gas_giant) == 0.5
+    assert hw.harshness(types.SimpleNamespace(phi4_pressure=1.0, phi4_temperature=0.8, phi4_chemistry=1.0,
+                                              phi4_radiation=0.9)) == pytest.approx(0.2)

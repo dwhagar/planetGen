@@ -7,6 +7,8 @@ docs/design/habitability-index.md section 2 reproduce, and the bands and
 derived constants hold.
 """
 
+import math
+
 import pytest
 
 from planetgen.physics import habitability as hab
@@ -16,27 +18,27 @@ from planetgen.physics.habitability import World, scores
 EARTH = World(101.3, 15, {"N2": 0.78, "O2": 0.21, "CO2": 0.0004}, ph=8.1, relative_humidity=0.7)
 
 EXAMPLES = {
-    "Earth": (EARTH, ("Blue", "Blue", "Blue", "Blue"), 1.0, 0.958, 0.957, 1.0, "ideal"),
+    "Earth": (EARTH, ("Blue", "Blue", "Blue", "Blue"), 1.0, 0.969, 0.968, 1.0, "ideal"),
     "Dense CO2": (World(300, 40, {"CO2": 0.95, "N2": 0.05}, ph=6.5, relative_humidity=0.8, energy_flux_w_m2=40),
-                  ("Green", "Yellow", "Red", "Blue"), 0.0, 0.958, 0.0, 0.479, "sealed suit"),
+                  ("Green", "Yellow", "Red", "Blue"), 0.0, 0.969, 0.0, 0.479, "sealed suit"),
     "Hycean": (World(2000, 60, {"H2": 0.9, "He": 0.1}, ph=7, relative_humidity=0.99, energy_flux_w_m2=20),
-               ("Yellow", "Yellow", "Green", "Blue"), 0.7364, 0.958, 0.0, 0.022, "sealed suit"),
+               ("Yellow", "Yellow", "Green", "Blue"), 0.7364, 0.969, 0.0, 0.022, "sealed suit"),
     "Photochemical CO": (World(100, 10, {"N2": 0.9, "CO2": 0.05, "CO": 0.05}, ph=7.5),
-                         ("Blue", "Blue", "Red", "Blue"), 0.5891, 0.958, 0.0, 1.0, "sealed suit"),
+                         ("Blue", "Blue", "Red", "Blue"), 0.5891, 0.969, 0.0, 1.0, "sealed suit"),
     "Ice-sealed ocean": (World(1e-6, -170, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, surface_dose_sv_yr=0.05,
                                habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05),
-                         ("Red", "Red", "Green", "Blue"), 0.0, 0.41, 0.0, 0.468, "sealed suit"),
+                         ("Red", "Red", "Green", "Green"), 0.0, 0.533, 0.0, 0.468, "sealed suit"),
     "Mars-analog brine": (World(0.6, -60, {"CO2": 0.95, "N2": 0.03}, gravity_ms2=3.71, water_activity=0.5,
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Red", "Yellow"), 0.0, 0.0, 0.0, 0.458, "sealed suit"),
+                          ("Red", "Red", "Red", "Yellow"), 0.0, 0.006, 0.0, 0.458, "sealed suit"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapour", inventories={"C": 0.5, "N": 0.5, "H": 0.05}),
-                   ("Blue", "Green", "Yellow", "Blue"), 0.8289, 0.54, 0.539, 0.795, "ideal"),
+                   ("Blue", "Green", "Yellow", "Blue"), 0.8289, 0.638, 0.637, 0.795, "ideal"),
     "Europan ocean": (World(1e-9, -160, {}, gravity_ms2=1.31, ph=9, energy_flux_w_m2=1e-4, surface_dose_sv_yr=2000,
                             habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05),
-                      ("Red", "Red", "Green", "Red"), 0.0, 0.274, 0.0, 0.276,
+                      ("Red", "Red", "Green", "Red"), 0.0, 0.395, 0.0, 0.276,
                       "full life support with radiation hardening"),
 }
 
@@ -85,3 +87,39 @@ def test_no_solvent_means_no_microbial_life():
     dry = World(101.3, 15, {"N2": 0.79, "O2": 0.21}, solvent=None)
     assert hab.phi_bio(dry) == 0.0
     assert hab.phi_cpx(dry) == 0.0
+
+
+def test_dose_tiers_are_blue_to_20_msv_green_to_100_msv_yellow_to_1_sv():
+    """GEN.148: Boss's defaults (2026-10-10), with no gap between 100 mSv/yr and the Red edge."""
+    def colour(sv):
+        return hab.tier(hab.radiation_score(World(101.3, 15, {"O2": 0.21}, surface_dose_sv_yr=sv)))
+    assert [colour(sv) for sv in (0.002, 0.02, 0.03, 0.1, 0.236, 0.52, 0.99, 1.1, 50.0)] == [
+        "Blue", "Blue", "Green", "Green", "Yellow", "Yellow", "Yellow", "Red", "Red"]
+    assert hab.band_score(1000.0, hab.DOSE_BAND, log=True) == 0.0
+    assert hab.SINGLE_YEAR_DOSE_SV == 0.05
+
+
+def test_l_rad_reads_absorbed_dose_in_gy_not_effective_dose_in_sv():
+    """Mars's surface is 0.236 Sv/yr in 0.077 Gy/yr, 130 times under the 10 Gy/yr line (B8)."""
+    mars = World(0.6, -60, {"CO2": 0.95}, gravity_ms2=3.71, surface_dose_sv_yr=0.236)
+    assert mars.habitat_dose_gy_yr == pytest.approx(0.077, abs=1e-3)
+    assert hab.l_rad(mars) == 1.0
+    # 31 Sv/yr is 10 Gy/yr: the threshold is in Gy, and a dose in Sv reaches it 3 times later.
+    edge = World(0.6, -60, {}, surface_dose_sv_yr=10.0 * hab.SV_PER_GY)
+    assert hab.l_rad(edge) == 1.0
+    assert hab.l_rad(World(0.6, -60, {}, surface_dose_sv_yr=(10.0 + 100.0) * hab.SV_PER_GY)) == pytest.approx(
+        math.exp(-0.5), abs=1e-6)
+
+
+def test_phi_bio_is_the_liebig_blend_of_the_four_likelihoods():
+    world = World(101.3, 15, {"O2": 0.21}, water_activity=0.64, ph=8.1)
+    terms = [hab.l_solv(world), hab.l_chem(world), hab.l_ener(world), hab.l_rad(world)]
+    geometric = math.prod(terms) ** 0.25
+    assert min(terms) < 0.9 * geometric  # one weak term
+    expected = min(terms) ** 0.65 * math.prod(terms) ** (0.35 / 4)
+    assert hab.phi_bio(world) == pytest.approx(expected)
+    assert math.prod(terms) < hab.phi_bio(world) < geometric  # kinder than the product, stricter than the mean
+    # A term at 0 is a gate; with one term short and the rest at 1 the exponents add to 0.65 + 0.35 / 4.
+    assert hab.phi_bio(World(101.3, 15, {}, solvent=None)) == 0.0
+    one_short = World(101.3, 15, {"O2": 0.21}, energy_flux_w_m2=hab.ENERGY_FLUX_REF_W_M2)
+    assert hab.phi_bio(one_short) == pytest.approx(hab.l_chem(one_short) ** (0.65 + 0.35 / 4))

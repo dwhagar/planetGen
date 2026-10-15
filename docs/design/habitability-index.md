@@ -85,7 +85,7 @@ geometric mean of the four domains (0 if any is 0, the doc's hard gates).
 | Water pH | 6 to 8.5 | 5 to 9.5 | 1 to 11.5 | beyond |
 | Water activity | 0.90 or more | 0.75 or more | 0.605 or more | below |
 | Chaotropicity, kJ/kg | to 73.8 | | | over 73.8 |
-| Dose, Sv/yr | under 0.05 | to 0.1 | to 10 | over 10 (0 at 1000) |
+| Dose, Sv/yr | under 0.02 | to 0.1 | to 1 | over 1 (0 at 1000) |
 
 Where the numbers come from: 6.3 kPa is the Armstrong limit; 14.3 kPa is
 the least pressure at which a pure-oxygen mask still gives the 8 kPa of
@@ -96,16 +96,23 @@ Atmospheric Toxicity table's chronic and acute values, and a filtering
 respirator (NIOSH APF 10) makes Yellow out to ten times the acute limit;
 CO2 can't be filtered, so its Yellow ends at the acute 5 kPa (scrubbers);
 0.605 and 73.8 kJ/kg are the water-activity and chaotropicity limits for
-cell division; 50 mSv/yr is the occupational limit and 10 Sv/yr the
-Eigen threshold.
+cell division; the dose bands are ICRP's (GEN.148, Boss's defaults of
+2026-10-10): Blue to the 20 mSv/yr five-year average, Green to 100 mSv/yr,
+Yellow to 1 Sv/yr (the threshold of radiation sickness; shelter or shielding
+needed) and Red beyond, which closes the gap the PHI-4 doc left between
+100 mSv/yr and 10 Gy/yr. 50 mSv in any one year is ICRP's single-year limit
+and where `M_rad` starts charging for shielding. The Eigen threshold of 10
+Gy/yr belongs to `L_rad` (microbes), not to a person's tiers.
 
 **Equipment**: ideal (called "shirtsleeve" until Boss renamed it, 2026-10-10 08:08Z); breathing mask (low O2 or pressure below Blue);
 mask with scrubber (a gas above its chronic limit); sealed suit (pressure
 below Green, or any domain Red); full life support with radiation
 hardening (Radiation Red).
 
-**PHI_bio (microbial life)** = L_solv · L_chem · L_ener · L_rad, a product
-(see 3.1).
+**PHI_bio (microbial life)** = the Liebig blend of L_solv, L_chem, L_ener
+and L_rad: `L_min^0.65 · (L_solv · L_chem · L_ener · L_rad)^(0.35/4)` (GEN.148;
+section 7.1 has the measurements against the Master doc's table; section 3
+item 1 records the product it replaced).
 
 - L_solv = solvent factor · f(aw) · exp(-0.5 ((chi - 73.8) / 10)^2) past
   73.8 kJ/kg; f(aw) = 1 / (1 + exp(-50 (aw - 0.605))). Solvent factor:
@@ -114,8 +121,22 @@ hardening (Radiation Red).
   0.1 umol/L).
 - L_ener = log10(Phi / 1e-6) / log10(10 / 1e-6), clamped to [0, 1], Phi
   the best energy flux in W/m^2 (light, chemistry or radiolysis).
-- L_rad = exp(-0.5 ((D - 10) / 100)^2) above 10 Gy/yr, D the dose where
-  the solvent is (under the ice for an ice-sealed ocean).
+- L_rad = exp(-0.5 ((D - 10) / 100)^2) above 10 Gy/yr, D the absorbed dose
+  where the solvent is (under the ice for an ice-sealed ocean). D is in
+  **Gy/yr**; the person's bands are in **Sv/yr**, and the two are different
+  quantities (Mars: 0.077 Gy/yr, 0.236 Sv/yr, so about 3.06 Sv per Gy for a
+  cosmic-ray dose; `habitability.SV_PER_GY`). The maths keeps them as two
+  numbers by hand because astropy 6.0.1 has no `Gy` or `Sv` unit (and astropy
+  is no longer a runtime dependency).
+
+**Microbial dose tolerance** (D10, the dose for a 90 percent kill; for any
+biology table and for `LETHAL_HABITAT_DOSE_GY_YR`): E. coli about 0.3 kGy,
+bacterial spores 2.1 kGy, *Deinococcus radiodurans* 5 to 10 kGy (10.4 kGy on
+average; use 5 to 10), a tardigrade's LD50 1.1 to 6.2 kGy
+([activity-magnetism-radiation-hydrosphere.md](activity-magnetism-radiation-hydrosphere.md) 4.6).
+`L_rad`'s 10 Gy/yr is Eigen's threshold for the origin of replicating
+molecules, a thousand times under these. A compact object's planet is rated
+at the Deinococcus figure, 10 kGy/yr, so it keeps no life.
 
 **PHI_cpx (animal life)** = PHI_bio · exp(-(pCO / 0.01)^2) · exp(-(pCO2 /
 2.0)^2) · f(pO2), with f = 1 for ambient O2 from 8 to 50 kPa and a half
@@ -131,7 +152,7 @@ four factors (one hard factor can be partly bought off):
   makes a base impossible).
 - M_isru by the water a base can draw on: liquid 1.0, ice 0.8, hydrated
   minerals or perchlorate brine 0.6, vapour only 0.4, none 0.1.
-- M_rad = (0.05 / D)^0.2 above 50 mSv/yr.
+- M_rad = (0.05 / D)^0.2 above 50 mSv/yr, the single-year limit.
 
 **Surface dose**, until GEN.87 adds stellar particles and magnetic
 fields: D = 0.45 exp(-X / 22) + 0.05 exp(-X / 200) Sv/yr from cosmic rays,
@@ -149,22 +170,31 @@ unless given.
 
 | World | Inputs | P / T / C / R | PHI-4 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
 |---|---|---|---|---|---|---|---|
-| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7 | Blue / Blue / Blue / Blue | 1.00 | 0.96 | 0.96 | 1.00 | shirtsleeve |
-| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2 | Green / Yellow / Red / Blue | 0 | 0.96 | 0 | 0.48 | sealed suit |
-| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2 | Yellow / Yellow / Green / Blue | 0.74 | 0.96 | 0 | 0.02 | sealed suit |
-| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5 | Blue / Blue / Red / Blue | 0.59 | 0.96 | 0 | 1.00 | sealed suit |
-| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Blue | 0 | 0.41 | 0 | 0.47 | sealed suit |
-| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice | Red / Red / Red / Yellow | 0 | 0.00 | 0 | 0.46 | sealed suit |
-| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour | Blue / Green / Yellow / Blue | 0.83 | 0.54 | 0.54 | 0.80 | shirtsleeve |
-| Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Red | 0 | 0.27 | 0 | 0.28 | full life support |
+| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7 | Blue / Blue / Blue / Blue | 1.00 | 0.97 | 0.97 | 1.00 | shirtsleeve |
+| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2 | Green / Yellow / Red / Blue | 0 | 0.97 | 0 | 0.48 | sealed suit |
+| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2 | Yellow / Yellow / Green / Blue | 0.74 | 0.97 | 0 | 0.02 | sealed suit |
+| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5 | Blue / Blue / Red / Blue | 0.59 | 0.97 | 0 | 1.00 | sealed suit |
+| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Green | 0 | 0.53 | 0 | 0.47 | sealed suit |
+| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice | Red / Red / Red / Yellow | 0 | 0.01 | 0 | 0.46 | sealed suit |
+| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour | Blue / Green / Yellow / Blue | 0.83 | 0.64 | 0.64 | 0.80 | shirtsleeve |
+| Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Red | 0 | 0.40 | 0 | 0.28 | full life support |
+
+Recomputed for GEN.148 (the Liebig blend, the 20 mSv/yr Blue edge): the
+ice-sealed ocean's surface dose of 0.05 Sv/yr is now Green (it was Blue);
+PHI_bio rose where one likelihood was short (the Europan ocean 0.27 to 0.40,
+the dune world 0.54 to 0.64, the ice-sealed ocean 0.41 to 0.53) and
+Earth 0.96 to 0.97. The Master doc's own stated values for the same
+archetypes are in 7.1; a test (`test_habitability.py`) pins this table.
 
 ## 3. How the documents' problems were settled
 
-1. PHI_bio is the product of its four likelihoods, not their geometric
-   mean: each is a requirement, and the mean forgave a missing solvent
-   (the doc's dune world computed to 0.34 against its stated 0.05).
-   Phi_tech keeps the doc's geometric mean, since equipment can make up
-   for one hard factor in part.
+1. PHI_bio was first built as the product of its four likelihoods, not
+   their geometric mean: each is a requirement, and the mean forgave a
+   missing solvent (the doc's dune world computed to 0.34 against its stated
+   0.05). GEN.148 replaced the product with the Liebig blend (7.1), which
+   keeps that gate (a term at 0 gives 0) and lands within 0.1 of the Master
+   doc's stated value for every archetype. Phi_tech keeps the doc's
+   geometric mean, since equipment can make up for one hard factor in part.
 2. The undefined constants are fixed above: k_w 50, X_ref a quarter of
    Earth's inventory, K_P 0.1 umol/L (the doc's 1.0 scored Earth's ocean
    0.70), L_ener log-scaled from 1e-6 to 10 W/m^2 (no single Phi_ref in
@@ -172,8 +202,9 @@ unless given.
    lookup in place of alpha and E_specific, M_rad's exponent 0.2 in place
    of lambda, solvent factors 1 / 0.2 / 0.1 / 0, and the surface dose
    formula.
-3. L_rad keeps 10 Gy/yr; Mars's 0.25 Sv/yr then scores 1, not the table's
-   0.65. Mars is held back by its solvent and chemistry instead.
+3. L_rad keeps 10 Gy/yr, read in Gy (not Sv); Mars's 0.077 Gy/yr (0.236
+   Sv/yr) then scores 1, not the table's 0.65. Mars is held back by its
+   solvent and chemistry instead.
 4. One threshold each: CO chronic 0.005 kPa, acute 0.1, and T_metazoa's
    0.01 scale; CO2 chronic 0.93, Green 2.0, acute 5.0; the mask band is
    14.3 to 400 kPa (Green), with 6.3 to 14.3 kPa needing a counterpressure
@@ -278,7 +309,8 @@ GEN.89 is calibrated; nothing here is built.
 
 ### 7.1 A Liebig blend for PHI_bio, measured against the Master doc's table
 
-Section 3 item 1 settles on the product of the four likelihoods. Re-evaluating
+Section 3 item 1 first settled on the product of the four likelihoods (GEN.84);
+GEN.148 built this blend in its place (`LIEBIG_MIN_WEIGHT` 0.65). Re-evaluating
 the Master doc's own worked table (it gives four `L` values and `PHI_bio` per
 archetype) [C] shows another rule fits the stated values better:
 `PHI = L_min^0.65 * (L_solv L_chem L_ener L_rad)^(0.35/4)`.
@@ -304,8 +336,8 @@ weakly so. The blend lands within 0.1 of every row, so the table was plausibly
 made with a Liebig-like rule. The product built in section 2 is stricter (it
 scores the Master doc's Europan ocean 0.27 against a stated 0.68). The two are
 not a like-for-like test, because this table uses the Master doc's own `L`
-values and section 2 fixed different constants; the blend is the option if the
-product proves too harsh for ocean worlds.
+values and section 2 fixed different constants. The blend is built; the
+product it replaced scored ocean worlds too harshly.
 
 ### 7.2 Alveolar oxygen behind the mask band
 
