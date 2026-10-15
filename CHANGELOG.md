@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1381] - 2026-10-15
+
+**Headline:** The Wolf-Rayet and protostar system rules and the later phenomenon types are on the TODO list.
+
+### Changed
+- GEN.242 and GEN.243 now say how protostars and Wolf-Rayet stars get ordinary star systems (no planets, a protostar disk, companions at the surveyed fractions); GEN.129 and GEN.130 point at the black hole and neutron star question (Boss, 2026-10-15).
+- GEN.244 to GEN.249 file the later phenomenon types from the design note (young clusters, debris disks, luminous blue variables, accreting white dwarf binaries, tidal streams, star attributes) as a group that nothing else waits on.
+
+TODO items resolved: none / Added: GEN.244, GEN.245, GEN.246, GEN.247, GEN.248, GEN.249
+
 ## [8.0.1380] - 2026-10-15
 
 **Headline:** The whole-sphere design note now states that the nebula, Wolf-Rayet and protostar steps are filed (GEN.241 to GEN.243) and marks the other phenomenon types as a plan-later list.
