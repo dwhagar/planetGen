@@ -4,7 +4,7 @@
 Galaxy-Wide Density Skeleton: Per-Shell Extents
 ==================================================
 
-Finds, for a given `galaxyDensity.GalaxyShape`, the one structural fact
+Finds, for a given `galaxy.density.GalaxyShape`, the one structural fact
 worth precomputing about the whole galaxy: which cells of the spherical
 sector grid (`galaxy/spherical.py`) can hold any content, and how far out
 each shell reaches. A sector's own position, density and outline are
@@ -21,7 +21,7 @@ threshold is the edge.
 
 **Why one band range per shell is enough.** A sector center's
 `relative_density` is `bulge(x, y, z) + thin(R, z) * arm_factor(R, theta)
-+ thick(R, z)` (`galaxyDensity._raw_density`). At a fixed height `z` and
++ thick(R, z)` (`galaxy.density._raw_density`). At a fixed height `z` and
 cylindrical radius `R`, the bar bulge is largest along its long axis and
 `arm_factor` is at most `arm_level * (1 + arm_amplitude)`, so
 `bound_relative_density_at` (each term at its own maximum) is an upper
@@ -37,7 +37,7 @@ cheap `relative_density` call, made only when the sector is actually
 visited. A band is never left partly in: the outline decides whole bands
 and the exact check decides sectors.
 
-Pure and side-effect-free, like `spherical.py`/`galaxyDensity.py`.
+Pure and side-effect-free, like `spherical.py`/`galaxy/density.py`.
 """
 
 import bisect
@@ -65,7 +65,7 @@ def expected_system_count_at_density_1(edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY):
 
 
 def _bound_raw_density_at(shape, r_cyl, z):
-    """The maximum over `theta` of `galaxyDensity._raw_density` at
+    """The maximum over `theta` of `galaxy.density._raw_density` at
     cylindrical radius `r_cyl` and height `z` (unnormalized), or a hair
     above it: each term at its own maximum (the bar along its long axis,
     the thin disk on an arm crest)."""
@@ -133,7 +133,7 @@ def build_shell_extents(shape, edge_pc, threshold_rho, max_shell=DEFAULT_MAX_SHE
     whole default galaxy is a few tens of thousands of calls.
 
     Args:
-        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+        shape (galaxy.density.GalaxyShape): The galaxy's shape parameters.
         edge_pc (float): The sector edge length (shell depth), parsecs.
         threshold_rho (float): The `relative_density` a sector center must
             reach (`1 / expected_system_count_at_density_1(...)`).

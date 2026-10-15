@@ -71,7 +71,7 @@ def generate_galactic_orbit_fields(galactic_center_dist_ly=None, galactic_orbita
     """
     Generates the four `galactic_orbital_*` fields every gravitationally-
     bound-to-the-galaxy body this generator tracks needs: a `Star`
-    (`Star.__init__`), a compact remnant (`compactRemnant.CompactRemnant.
+    (`Star.__init__`), a compact remnant (`phenomena.compact_remnant.CompactRemnant.
     _finish_init`), and every standalone exotic phenomenon (`nebulaData.
     Nebula`, `supernovaRemnantData.SupernovaRemnant`, `roguePlanetData.
     RoguePlanet`/`InterstellarComet`, `asteroidFieldData.AsteroidField`) --
@@ -108,8 +108,8 @@ def format_galactic_orbit(speed_kms, period_gy):
     """
     Formats a `(galactic_orbital_speed_kms, galactic_orbital_period_gy)`
     pair as the display string every "Galactic Orbit" table row uses (e.g.
-    `Star.get_table_properties`, `doubleStar.BinaryStarProxy.
-    get_table_properties`, `compactRemnant.BlackHole`/`NeutronStar`, and
+    `Star.get_table_properties`, `binary.BinaryStarProxy.
+    get_table_properties`, `phenomena.compact_remnant.BlackHole`/`NeutronStar`, and
     every standalone exotic phenomenon) -- extracted so all of them render
     it identically instead of re-deriving the same f-string.
 

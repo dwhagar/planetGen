@@ -270,7 +270,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None):
 
     `min_luminosity_sol` draws a giant's or supergiant's luminosity (the
     only random ones) from the part of its range at or above that value;
-    `stellarPopulation.sample_bright_stars` uses it once it has picked a
+    `star_population.sample_bright_stars` uses it once it has picked a
     mass and age that can reach it.
 
     Returns:

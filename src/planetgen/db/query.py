@@ -3,7 +3,7 @@
 """
 Read queries over the planetGen database (src/planetgen/db/schema.sql).
 
-A thin read-only front end over the tables `sectorGen.py`/`systemGen.py`
+A thin read-only front end over the tables `generation/run_sector.py`/`generation/run_system.py`
 populate, for questions like "every G-type system," "everything within 50
 light-years of a given system," and "what sectors exist" -- see
 docs/TODO.md's Phase 3 ("A way to list/query what's already stored").
@@ -1700,7 +1700,7 @@ def colonized_body_ids(conn, system_id):
 def containing_cloud(conn, row):
     """
     The nebula or supernova remnant a row sits inside (schema v39), from
-    its `inside_nebula_id`/`inside_remnant_id`: `_db.surrounding_cloud`.
+    its `inside_nebula_id`/`inside_remnant_id`: `store.surrounding_cloud`.
 
     Args:
         conn (Connection): An open connection.
@@ -3076,7 +3076,7 @@ def _with_life_fields(body, stages, colonized=()):
 NEAREST_NEIGHBOR_COUNT = 3
 """int: How many nearest same-sector systems `system_detail` lists -- the
 same count the stored `location` string was generated with
-(`_db._location_for_entry`)."""
+(`store._location_for_entry`)."""
 
 
 def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT):
@@ -3084,7 +3084,7 @@ def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT)
     The `count` systems in `system`'s own sector nearest to it, computed
     from their current rows rather than parsed back out of the stored
     `location` string. That string is written at generation time, before
-    each neighbor's name has been made unique (`_db.insert_star_system`'s
+    each neighbor's name has been made unique (`store.insert_star_system`'s
     `reserve_system_name` can still add a suffix afterwards) and never
     updated when a system is renamed, so the names it lists often no
     longer match any row and can't be linked.
@@ -3193,7 +3193,7 @@ def galaxy_density_shape(conn):
     """
     The galaxy's stored density-skeleton shape (the singleton
     `galaxy_shape` row `planetgen plan` writes -- see
-    `planetgen.galaxy.density.GalaxyShape` and `_db.get_galaxy_shape`),
+    `planetgen.galaxy.density.GalaxyShape` and `store.get_galaxy_shape`),
     serialized to a plain JSON-able dict. This is the real
     exponential-disk-plus-bulge-plus-spiral-arm model already used to gate
     and weight actual sector generation (`planetgen`'s `_BatchDensity`);
@@ -3207,7 +3207,7 @@ def galaxy_density_shape(conn):
 
     Returns:
         dict or None: Every `GalaxyShape` field and
-            `galaxyDensity.model_terms` entry, plus `edge_pc`,
+            `galaxy.density.model_terms` entry, plus `edge_pc`,
             `outer_shell_index`, `expected_system_count_at_density_1` and
             `half_height_pc` (how far above and below the plane the
             layers reach; left out before the layers are stored).
@@ -4157,14 +4157,14 @@ def galaxy_tiles(conn, tile_keys):
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
         tile_keys (list[str]): `"level/ix/iy/iz"` keys (see
-            `galaxyViewport.parse_tile_key`), at most
+            `galaxy.viewport.parse_tile_key`), at most
             `MAX_TILES_PER_REQUEST`.
 
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
             "filled": {...}, "clouds": [...], "stars": [...],
             "generated": [...], "points": [...]}}`, see `galaxy_sectors_in_box`,
-            `galaxyViewport.planned_slots_in_tile`, `galaxy_filled_in_box`,
+            `galaxy.viewport.planned_slots_in_tile`, `galaxy_filled_in_box`,
             `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
             `galaxy_generated_stars_in_box` (its floor from
             `GALAXY_TILE_STAR_BUDGET`, a finest tile up to
@@ -4534,7 +4534,7 @@ def galaxy_content_state(conn):
       sector (higher id) from a deleted one (a new epoch).
     - `sector_modified`: the newest `sectors.modified_at` (v27). A
       sector's own edit (a rename, say) bumps it, and so does deleting one
-      of its systems (`_db.touch_sector`).
+      of its systems (`store.touch_sector`).
     - `bright_max_id`: the highest `bright_stars` id; it grows while a
       backfill runs, so it is kept out of `base` and `galaxy_changes`
       reports it as `busy` rather than `full` (PERF.34).
@@ -4600,7 +4600,7 @@ def galaxy_changes(conn, since=None):
     Uses v27's `sectors.modified_at` (see `galaxy_content_state`): each
     sector edited since `since`, each new sector, and each sector that
     gained a system is "changed", and so is the one tile per level that
-    holds its center (`galaxyViewport.tile_keys_containing`). A sector
+    holds its center (`galaxy.viewport.tile_keys_containing`). A sector
     never moves once placed, so its center is where it was before too.
 
     Deletions leave no row behind, so a deleted sector can't be located;
@@ -4706,10 +4706,10 @@ _SEARCH_PHENOMENON_CLASS_COLUMNS = {
 `phenomenon_class` tag is `"<type>:<class>"`, e.g. `"nebula:D"`, since an
 asteroid field's letters overlap a nebula's."""
 
-# starData.py's own Yerkes-class-to-descriptive-label mapping (Star.__init__),
+# generation/star.py's own Yerkes-class-to-descriptive-label mapping (Star.__init__),
 # duplicated here (not imported) since it's a plain literal there, not an
 # importable constant. "D" is an alternate white-dwarf code seen elsewhere
-# in starData.py alongside "VII".
+# in generation/star.py alongside "VII".
 _SEARCH_YERKES_LABELS = {
     "0": "Hypergiant",
     "IA": "Supergiant",

@@ -73,7 +73,7 @@ class _ReportingProgress(Progress):
         super().stop()
 
     detail_task = None
-    """A second bar under `main_task` (PERF.4's slow-layer bar), written
+    """A second bar under `main_task` (PERF.4's slow-shell bar), written
     to the progress file as its `detail`."""
 
     def add_task(self, description, *args, prior=None, tau=None, **kwargs):
@@ -184,7 +184,7 @@ def _generation_progress(disable=False):
     generated so far. Deliberately not used by `run_sector`'s own
     `--num-sectors` loop: that command's own run is normally short enough
     (and its sector count small enough) that a bar added more visual noise
-    than it was worth, whereas a `galaxy` run (a whole ring, a
+    than it was worth, whereas a `galaxy` run (a whole shell, a
     neighborhood, or a random start's default 12 pc one) can mean
     thousands of sectors and legitimately benefit from a progress display.
     There also used to be a second, nested bar for "systems in the current
@@ -198,7 +198,7 @@ def _generation_progress(disable=False):
     for as long as it runs (`TimeElapsedColumn`/`_DecayingRemainingColumn`)
     -- the estimate comes from a decaying average of units finished per
     second (`progress_rate.DecayingRate`, a 60 s time constant), counted
-    in the bar's own unit (sectors, or layers of bright stars), so it
+    in the bar's own unit (sectors, or runs of shells of bright stars), so it
     stays steady while several workers report at once.
 
     Callers use this as a context manager (`with _generation_progress() as

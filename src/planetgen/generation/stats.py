@@ -69,8 +69,8 @@ the database); rounded up."""
 DEFAULT_BYTES_PER_SYSTEM = 48 * 1024
 """int: Database bytes per star system before the galaxy has any.
 Measured 2026-10-07 (PERF.26) on MariaDB 10.11 as the growth of every
-table across a fill: 52 KB each in a sparse ring (550 systems), 48 KB
-in a mid-disk ring (2,288), 37 KB in a dense inner ring (3,120), 44 KB
+table across a fill: 52 KB each in a sparse part of the galaxy (550 systems), 48 KB
+in a mid-disk part (2,288), 37 KB in a dense inner part (3,120), 44 KB
 in the test suite's small fill. Moons are about 40%, then planets,
 `nearest_systems` and rogue planets. The old 70 KB (2026-10-01) counted
 the whole database, galaxy-wide tables and empty ones included."""
@@ -90,9 +90,9 @@ FLUSH_SECONDS = 30
 """int: How often a run writes its new averages back while it runs."""
 
 KINDS = ("sector", "scatter-mass", "scatter-bright", "phenomena", "phenomena-write")
-"""tuple: What a bucket times: a sector's fill, (PERF.9) a layer of the
-massive-star pass or of the bright-star pass of the scatter, each by the layer's mean
-density (PERF.54), (PERF.32) a layer of the phenomenon scatter, or the part of that layer
+"""tuple: What a bucket times: a sector's fill, (PERF.9) a run of shells of the
+massive-star pass or of the bright-star pass of the scatter, each by its mean
+density (PERF.54), (PERF.32) a run of shells of the phenomenon scatter, or the part of that run
 that was writing its rows (the rest is drawing them). A benchmark's kinds start with
 `BENCH_PREFIX`."""
 
@@ -250,7 +250,7 @@ class GenerationStats:
     # -- recording --------------------------------------------------------
 
     def record(self, kind, density, seconds, systems=0, stars=0, workers=1):
-        """Adds one finished task (a sector filled, a scatter layer) to
+        """Adds one finished task (a sector filled, a run of scatter shells) to
         its density's bucket for the run's `workers`, writing back every
         `FLUSH_SECONDS`."""
         if seconds is None or not math.isfinite(seconds) or seconds < 0:
@@ -405,7 +405,7 @@ class GenerationStats:
         """
         PERF.33: the units a second the whole pool of `workers` got through
         for `kind` (a unit is what `record` counted as `systems`: a system,
-        or a star of a scatter layer), averaged over densities; `None` with
+        or a star of a run of scatter shells), averaged over densities; `None` with
         nothing recorded.
         """
         seconds = self._mean_for_workers(kind, workers, "seconds_per_system")

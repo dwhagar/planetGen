@@ -2,8 +2,8 @@
 
 """
 An admin's edits to a stored star system, made on the `StarSystem` object
-`_db.load_star_system` returns and then written back with
-`editStore.save_system_edits` (TODO ADM.1):
+`store.load_star_system` returns and then written back with
+`db.edits.save_system_edits` (TODO ADM.1):
 
 - ADM.8: regenerate or remove one planet, moon or asteroid belt.
 - ADM.6: change a planet's or moon's class, to a recommended one (fits

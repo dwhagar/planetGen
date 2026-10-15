@@ -112,7 +112,7 @@ Usage:
     Every flag defaults to the same $PLANETGEN_MYSQL_* environment
     variable every other entry point in this project reads (see
     `planetgen.db.store.MySQLConfig`). Needs a read-write database
-    account (like `sectorGen.py`/`systemGen.py`, not `planetgen.db.query`'s
+    account (like `generation/run_sector.py`/`generation/run_system.py`, not `planetgen.db.query`'s
     read-only one) -- this script mutates rows.
 """
 

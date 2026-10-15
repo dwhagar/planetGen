@@ -15,7 +15,7 @@ changed between releases. So a `Stream` keeps a `random.Random` for its
 is ours and stays put.
 
 Draws come from the stream bound to the running unit of work: a sector
-fill, a scatter layer, a backfill block (`planetgen.galaxy.seed.seeded`
+fill, a run of scatter shells, a backfill block (`planetgen.galaxy.seed.seeded`
 binds one from the unit's seed with `bound`). The module-level functions
 (`draw.uniform(...)`, `draw.choice(...)`) read that stream, so generators
 need no extra argument, and the binding is per thread (a `ContextVar`),

@@ -36,7 +36,7 @@ debug log also gets:
     the result, and the source line that asked for it -- so a roll like
     `if draw.random() < FLAVOR_CHANCE_PLANET:` shows both the number
     drawn and the probability it was compared against;
-  - every SQL statement `_db.Connection` runs, with its timing;
+  - every SQL statement `store.Connection` runs, with its timing;
   - uncaught exceptions (`sys.excepthook`/`threading.excepthook`),
     Python warnings, and anything other libraries log (Flask, urllib3, ...).
 

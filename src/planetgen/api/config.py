@@ -6,7 +6,7 @@ Configuration for the planetGen API.
 `MYSQL_CONFIG` is a `planetgen.db.store.MySQLConfig`, itself built from
 the same `PLANETGEN_MYSQL_*` environment variables (or `config.json`'s
 `mysql` section -- see `planetgen.util.settings` and `docs/config.md`)
-every other entry point in this project (`sectorGen.py`, `systemGen.py`,
+every other entry point in this project (`generation/run_sector.py`, `generation/run_system.py`,
 `planetgen.db.query`) reads, so a WSGI deployment (see `wsgi.py`) points this API
 at a specific database without editing code, set via the vhost's `SetEnv`
 directives, the `gunicorn` service's environment file, or a single shared

@@ -27,7 +27,7 @@ def version_banner(prog_name):
 
     Args:
         prog_name (str): The name of the CLI script to display (e.g.
-                         "systemGen.py").
+                         "generation/run_system.py").
 
     Returns:
         str: The formatted, multi-line version banner.

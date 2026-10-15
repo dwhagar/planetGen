@@ -40,7 +40,7 @@ MEGAPARSEC_M = PARSEC_M * 1e6
 GIGAPARSEC_M = PARSEC_M * 1e9
 AU_TO_KM = AU_M / KM_M  # Astronomical Unit to kilometers conversion factor
 G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
-SPEED_OF_LIGHT_M_S = 299_792_458  # Speed of light in a vacuum, m/s, exact (the SI definition; LIGHTYEAR_M uses the same c) -- used for Schwarzschild radius (compactRemnant.BlackHole)
+SPEED_OF_LIGHT_M_S = 299_792_458  # Speed of light in a vacuum, m/s, exact (the SI definition; LIGHTYEAR_M uses the same c) -- used for Schwarzschild radius (phenomena.compact_remnant.BlackHole)
 CELSIUS_ZERO_K = 273.15  # 0 °C in K (format.format_temperature_k)
 STANDARD_ATMOSPHERE_PA = 101_325.0  # 1 atm, exact, Pa (format.format_pressure_pa)
 FOOT_M = 0.3048  # The international foot, m (exact; the Customary unit preference)
@@ -50,7 +50,7 @@ PSI_PA = 6_894.757293168361  # 1 lbf/in², Pa (format.format_pressure_pa)
 SPEED_OF_LIGHT_KMS = SPEED_OF_LIGHT_M_S / KM_M  # Exact (the SI definition), km/s -- the speed ladder's c (format.format_speed_kms, static/unitladder.js)
 R = 8.31446261815324  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.380649e-23  # Boltzmann constant in J/K
-REDUCED_PLANCK = 1.0545718176461565e-34  # hbar, J*s -- Hawking radiation (compactRemnant)
+REDUCED_PLANCK = 1.0545718176461565e-34  # hbar, J*s -- Hawking radiation (phenomena.compact_remnant)
 STEFAN_BOLTZMANN_CONSTANT = 5.6703744191844314e-08  # Stefan-Boltzmann constant in W/m²/K⁴
 COSMIC_BACKGROUND_TEMPERATURE_K = 2.725  # Cosmic microwave background, K -- the floor for any body's surface temperature
 
@@ -111,7 +111,7 @@ ISM_PRESSURE = 2.5e-13  # Pressure of the local interstellar medium in Pascals (
 # Inside a nebula or supernova remnant the cloud's own pressure replaces
 # ISM_PRESSURE at the heliopause: its ram pressure (rho * v^2, with the
 # star moving through the cloud) plus its thermal pressure (n k T). See
-# starData.compressed_heliosphere_radius.
+# star.compressed_heliosphere_radius.
 HYDROGEN_ATOM_MASS_KG = 1.67353286206015e-27  # Mass of a hydrogen atom in kg
 ISM_MASS_PER_HYDROGEN = 1.4  # Gas mass per hydrogen atom, in hydrogen masses (helium adds ~40%)
 STAR_CLOUD_RELATIVE_SPEED_MS = 26.0 * 1000  # A star's typical speed through its surrounding gas, m/s (the Sun's through the local cloud)
@@ -184,7 +184,7 @@ GIANT_JOVIAN_MASS_RADIUS = (317.8, 11.21, -0.04)
 GIANT_RADIUS_SCATTER = {"neptunian": 0.10, "jovian": 0.07}
 
 # n=1 polytrope (Lane-Emden) central-pressure formula for gas giants, used
-# by planetData's flavor text as a genuinely-derived interior estimate
+# by planet's flavor text as a genuinely-derived interior estimate
 # rather than a curve-fit.
 #
 # A polytrope assumes P = K*rho^Gamma; for Gamma=2 (polytropic index n=1),
@@ -197,7 +197,7 @@ GIANT_RADIUS_SCATTER = {"neptunian": 0.10, "jovian": 0.07}
 #
 #     P_core = pi * G * M^2 / (8 * R^4)
 #
-# (planetData.py computes this directly rather than exposing it as a named
+# (generation/planet.py computes this directly rather than exposing it as a named
 # constant here, since it needs per-planet M and R). This is exactly
 # pi^2/3 (~3.29x) higher than the cruder uniform-density-sphere estimate
 # (P_c = 3*G*M^2/(8*pi*R^4)), because a real self-gravitating body's density
@@ -216,14 +216,14 @@ GIANT_RADIUS_SCATTER = {"neptunian": 0.10, "jovian": 0.07}
 # Saumon-Chabrier-van Horn) and a two-point boundary-value integration of
 # hydrostatic equilibrium, well beyond flavor-text scope. (For reference,
 # real estimates of Jupiter's actual core pressure run close to 4,000 GPa.)
-# See planetData.py's gas giant text generation for the fuller caveats.
+# See generation/planet.py's gas giant text generation for the fuller caveats.
 
 # Adiabatic index (ratio of specific heats, Cp/Cv) for a hydrogen/helium
 # atmosphere in the molecular (non-dissociated, non-metallic) regime, used
 # only to extend the already-computed surface_temperature (the same
 # equilibrium-temperature calculation used for every planet, terrestrial or
-# gas giant; see planetPhysics.calculate_atmospheric_conditions) into a
-# convective-adiabat temperature-with-depth estimate for planetData's gas
+# gas giant; see physics.planets.calculate_atmospheric_conditions) into a
+# convective-adiabat temperature-with-depth estimate for planet's gas
 # giant flavor text: T(P) = T_ref * (P/P_ref)^((gamma-1)/gamma). Real gas
 # giant atmospheres measure Gamma1 ~= 1.4-1.44 in this molecular regime;
 # 1.4 (the textbook diatomic-ideal-gas value) is used as a representative
@@ -388,7 +388,7 @@ float: The real molar density of CO2 (kg/mol), used as a reference point in
 atmospheric greenhouse-effect calculations.
 """
 
-# --- Orbital motion (planetPhysics.generate_orbital_motion_properties) ---
+# --- Orbital motion (physics.planets.generate_orbital_motion_properties) ---
 # Real solar-system planets sit close to the ecliptic (Mercury, the most
 # tilted, is ~7 degrees) -- 10 degrees gives a little headroom without
 # implying a genuinely different orbital-plane population. Moons range much
@@ -415,7 +415,7 @@ ROTATION_PERIOD_RANGE_HOURS = {
 # Tidal-locking (despinning) timescale, per the standard simplified
 # formula (Murray & Dermott, "Solar System Dynamics"; the uniform-sphere
 # moment of inertia I = (2/5) m R^2 folds Q/k2 into a single 2Q/(15*k2)
-# factor -- see planetPhysics._tidal_locking_timescale_seconds):
+# factor -- see physics.planets._tidal_locking_timescale_seconds):
 #
 #   t_lock = (2*Q / (15*k2)) * (omega0 * a^6 * m_moon) / (G * M_primary^2 * R_moon^3)
 #
@@ -437,7 +437,7 @@ MOON_TIDAL_DISSIPATION_Q = 100.0
 MOON_TIDAL_LOVE_NUMBER_K2 = 0.03
 
 # --- S-type (wide) binary stability (orbits.holman_wiegert_critical_semimajor_axis,
-# orbits.mutual_hill_radius_au, systemData.StarSystem) ---
+# orbits.mutual_hill_radius_au, system.StarSystem) ---
 
 # Holman & Wiegert (1999), AJ 117:621, "Long-Term Stability of Planets in
 # Binary Systems" -- their numerically-fit S-type critical semi-major axis
@@ -452,7 +452,7 @@ HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 # planets sharing one central mass, a mutual separation of at least
 # 2*sqrt(3) (~3.464) mutual Hill radii guarantees Hill stability (no close
 # encounters ever occur). Used by
-# systemData.StarSystem._validate_cross_star_clearance as a physically-
+# system.StarSystem._validate_cross_star_clearance as a physically-
 # motivated extension of this criterion across two planets that orbit
 # *different* stars of a wide binary rather than one shared star -- see
 # that method's docstring and orbits.mutual_hill_radius_au for the caveat.

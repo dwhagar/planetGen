@@ -15,7 +15,7 @@ Three kinds of function live here:
   `trim_to_orbit_ceiling`, `cross_star_clearance`, and the distance
   helpers they use) is the orbit-spacing pass generation has always run.
   `StarSystem.validate_system`, `_trim_to_orbit_ceiling` and
-  `_validate_cross_star_clearance` (`systemData.py`) now call these, with
+  `_validate_cross_star_clearance` (`generation/system.py`) now call these, with
   the same results.
 - **Stabilizing** (`stabilize_lunar_system`, `stabilize_star_system`) is
   for a system someone edited after generation (an admin's class or star
@@ -305,7 +305,7 @@ def reconcile_moved_planet(planet, keep_class=False):
     # generate_orbital_motion_properties). Recomputed unconditionally
     # here rather than only in the specific branches that changed
     # something, the same "cheap, always recompute from current state"
-    # treatment _db.advance_orbital_phases gives this same value.
+    # treatment store.advance_orbital_phases gives this same value.
     refresh_planet_reflex(planet, force=reclassified)
 
     return reclassified

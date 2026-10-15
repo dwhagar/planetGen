@@ -472,7 +472,7 @@ def star_type_classes(star_type):
     A stored star type ("G2V Yellow Main Sequence Star", "B0IA", "O5VII",
     "M3D") -> `(spectral letter, luminosity class code)`, with "D" read
     as "VII" (both are white dwarfs). Parsed like a forced
-    `SystemConfig.STAR_TYPE` (`starData.STAR_TYPE_PATTERN`), so a
+    `SystemConfig.STAR_TYPE` (`star.STAR_TYPE_PATTERN`), so a
     subclass digit is required. `None` for anything else.
     """
     words = (star_type or "").split()

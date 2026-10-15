@@ -223,7 +223,7 @@ def build_skeleton(args):
     parameters, calibration constant, edge length and outer shell -- one
     singleton row) and `galaxy_shell` (the galaxy's outline: one row per
     shell, from the core out, holding the highest band that shell reaches --
-    see `galaxySkeleton.build_shell_extents`). Together they are the bounds
+    see `galaxy.skeleton.build_shell_extents`). Together they are the bounds
     every generation path checks first. The edge is always the standard
     `program_constants.DEFAULT_SECTOR_EDGE_PC`.
 

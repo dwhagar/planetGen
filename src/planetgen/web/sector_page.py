@@ -69,7 +69,7 @@ PHENOMENON_TYPE_LABELS = {
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
     "quasar": "Quasar",
 }
-"""dict: Display labels for `queryDb.phenomena_near_sector`'s `type`
+"""dict: Display labels for `db.query.phenomena_near_sector`'s `type`
 values (the same ones the phenomena list uses)."""
 
 _WIKI_BACKENDS = (("wikijs", "Wiki.js"), ("mediawiki", "MediaWiki"))
@@ -118,7 +118,7 @@ def _map_system(row):
 
 def debris_html(count):
     """The sector's estimated interstellar comets and planetesimals
-    (`queryDb.interstellar_debris_count`, a computed figure, not rows) as
+    (`db.query.interstellar_debris_count`, a computed figure, not rows) as
     "About 7.00 × 10¹³ ...", or `None` for an empty sector."""
     if not count or count < 1:
         return None

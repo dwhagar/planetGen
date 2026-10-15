@@ -86,7 +86,7 @@ def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
     inside a star's stability ceiling (see `StarSystem._orbit_ceiling_au`)
     -- mirroring the same `distance + min_orbit_distance` idiom already
     used to space successive planets around one star (see
-    `planetPhysics.py`'s `min_orbit_distance`, `5 * hill_radius`). Without
+    `physics/planets.py`'s `min_orbit_distance`, `5 * hill_radius`). Without
     this, a candidate's *center* could sit just inside a tight,
     companion-driven S-type limit while its own Hill sphere still reached
     past it.
@@ -180,7 +180,7 @@ class StarSystem:
         system, overriding the default random name generation.
 
         Every `Planet` (and moon) is generated without life data — see
-        `planetPhysics`'s module docstring. Once all planets/moons exist,
+        `physics.planets`'s module docstring. Once all planets/moons exist,
         orbits are validated, and the star's age has been finalized via
         `Star.adjust_age_for_planets`, this constructor makes one pass over
         every planet and moon and applies `planetLife.apply_life_data` and
@@ -199,10 +199,10 @@ class StarSystem:
                 star's Hill-sphere calculation on the fixed
                 `constants.GALACTIC_CENTER_DISTANCE_LY` constant --
                 the correct behavior for a system with no galaxy placement
-                (e.g. `sectorGen.py`'s own standalone CLI).
+                (e.g. `generation/run_sector.py`'s own standalone CLI).
             compact_remnant (BlackHole or NeutronStar, optional): A
                 pre-built compact stellar remnant (see
-                `compactRemnant.py`'s module docstring) to anchor this
+                `generation/phenomena/compact_remnant.py`'s module docstring) to anchor this
                 system in place of generating a normal `Star`. `None` (the
                 default) generates an ordinary `Star` as usual. When given,
                 the binary-generation step below is skipped entirely --
@@ -215,7 +215,7 @@ class StarSystem:
                 `stellarEvolution.star_params` dict to build the primary
                 from with `Star.from_params`, rolling nothing about it: a
                 pre-placed bright star, or a star drawn for its position's
-                stellar population (`stellarPopulation`). Everything else
+                stellar population (`star_population`). Everything else
                 (companion, planets, moons, belts, comets) is generated as
                 usual around it.
         """
@@ -248,7 +248,7 @@ class StarSystem:
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
         self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
         # The nebula or supernova remnant around the system, set only by
-        # `_db.load_star_system` (containment is worked out after saving).
+        # `store.load_star_system` (containment is worked out after saving).
         self.surrounding_cloud = None
         self.stars = [self.primary_star] # Keep track of individual stars
 
@@ -467,7 +467,7 @@ class StarSystem:
         else:
             log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
 
-        # All planets and moons are generated without life data (see planetPhysics's
+        # All planets and moons are generated without life data (see physics.planets's
         # module docstring). Apply it now, in one pass over the finished system, so
         # evolutionary timelines are computed against the star's final, planet-adjusted
         # age rather than its provisional pre-adjustment one. Flavor text is decided
@@ -487,7 +487,7 @@ class StarSystem:
 
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
-        # see bodyNames.py.
+        # see names/bodies.py.
         self._name = self.star.name
         self.star_words = None
         if self.binary_type == "wide":
@@ -505,7 +505,7 @@ class StarSystem:
     def name(self):
         """The system's own name. A single star (or a close pair's proxy)
         carries it, so it's read from `star`; a wide pair's `star` is its
-        primary, whose name adds its own word (see `bodyNames.py`), so
+        primary, whose name adds its own word (see `names/bodies.py`), so
         that system keeps its name separately."""
         if self.binary_type == "wide" and getattr(self, "_name", None):
             return self._name
@@ -528,11 +528,11 @@ class StarSystem:
     def assign_names(self, name=None):
         """
         Names every star, planet and moon in this system from the system
-        name (see `bodyNames.py`'s module docstring for the scheme).
+        name (see `names/bodies.py`'s module docstring for the scheme).
 
         Args:
             name (str, optional): A new system name to adopt first --
-                `_db.insert_star_system` passes the name uniqueness
+                `store.insert_star_system` passes the name uniqueness
                 reservation settled on, which may carry a decoration the
                 generated name didn't.
         """
@@ -630,7 +630,7 @@ class StarSystem:
         (`self.planets`/`self.secondary_planets`) -- excludes
         `AsteroidBelt` entries (`body_type == 'a'`), which carry no mass
         anywhere in this codebase (see `AsteroidBelt`'s own class
-        docstring), the same exclusion `_db.advance_orbital_phases`'s own
+        docstring), the same exclusion `store.advance_orbital_phases`'s own
         `planets`-table `UPDATE`s get for free (asteroid belts are stored
         in their own separate table).
 
@@ -1168,7 +1168,7 @@ class StarSystem:
         `stars`/`primary_star` (resolvable from `star`/`secondary_star`
         alone -- see `from_dict`).
 
-        Note: a system anchored by a `compactRemnant.BlackHole`/
+        Note: a system anchored by a `phenomena.compact_remnant.BlackHole`/
         `NeutronStar` (see `StarSystem.__init__`'s `compact_remnant`
         parameter) serializes its `star` dict with that subclass's own
         extra fields intact, but `from_dict` has no `star_kind`
@@ -1321,7 +1321,7 @@ class StarSystem:
         system.runaway_speed_kms = data.get("runaway_speed_kms")
         direction = data.get("runaway_direction")
         system.runaway_direction = tuple(direction) if direction is not None else None
-        # Absent from an export written before bodyNames.py -- the star's
+        # Absent from an export written before names/bodies.py -- the star's
         # own name was the system name then.
         system._name = data.get("name") or star.name
         star_words = data.get("star_words")
@@ -1432,7 +1432,7 @@ class StarSystem:
             return outer * draw.uniform(1.05, 3.0)
 
         # No zone supports this class; leave the distance as-is and let
-        # planetPhysics raise its usual, clearer validation error.
+        # physics.planets raise its usual, clearer validation error.
         return estimated_distance
 
     def _distance_within_zone_with_margin(self, inner, outer, planets=None):
@@ -1446,7 +1446,7 @@ class StarSystem:
         an explicit slot request via `calculate_distance_for_class`) could
         otherwise get pushed across that boundary later, when
         `validate_system` enforces minimum separation from a neighboring
-        asteroid belt -- which `planetPhysics.reconcile_zone_and_class`
+        asteroid belt -- which `physics.planets.reconcile_zone_and_class`
         would then have to reclassify away from the very class this draw
         was placing it as. Reserving this margin up front avoids that in
         the common case; margin is capped at a quarter of the zone's own
@@ -1916,7 +1916,7 @@ class StarSystem:
         was never valid in (e.g. an "Earth-like" Class M shoved out past
         the habitable zone into the cold zone), which would otherwise
         report a class the corrected position no longer supports at all.
-        `planetPhysics.reconcile_zone_and_class` re-derives the zone from
+        `physics.planets.reconcile_zone_and_class` re-derives the zone from
         the new `distance` and, only if the existing class no longer fits
         there, regenerates the class and everything derived from it
         (radius/mass/density/atmosphere/period/gravity/orbital motion) --
@@ -1925,7 +1925,7 @@ class StarSystem:
         ones.
 
         Every moon is reconciled the same way: a moon's own zone is always
-        its parent's (see `planetPhysics.generate_moons`' `zone_override`),
+        its parent's (see `physics.planets.generate_moons`' `zone_override`),
         and its climate depends on the parent's distance (its
         `distance_override`), so a moon whose parent just got reclassified
         needs the identical treatment even though the moon's own orbit

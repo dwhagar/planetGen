@@ -258,8 +258,8 @@ def _stored_version(conn, table):
 class MySQLConfig:
     """
     MySQL connection parameters, read from environment variables --
-    mirrors every other entry point in this project (`sectorGen.py`,
-    `systemGen.py`, `planetgen.db.query`, `planetgen/api/config.py`) reading its own
+    mirrors every other entry point in this project (`generation/run_sector.py`,
+    `generation/run_system.py`, `planetgen.db.query`, `planetgen/api/config.py`) reading its own
     `PLANETGEN_*` variable rather than hardcoding a value, so a deployment
     points every tool at the same server via its process environment
     (e.g. the Apache vhost's `SetEnv`, or a `systemd`/`gunicorn` unit's
@@ -321,8 +321,8 @@ def add_mysql_connection_args(parser):
     """
     Adds the `--mysql-host`/`--mysql-port`/`--mysql-user`/
     `--mysql-password`/`--mysql-database` optional overrides to `parser`,
-    shared by every CLI entry point in this project (`sectorGen.py`,
-    `systemGen.py`, `galaxyGen.py`, `planetgen.db.query`, `planetgen.cli.migrate`) instead
+    shared by every CLI entry point in this project (`generation/run_sector.py`,
+    `generation/run_system.py`, `generation/run_galaxy.py`, `planetgen.db.query`, `planetgen.cli.migrate`) instead
     of each one re-declaring the same five arguments -- pair with
     `mysql_config_from_args` to turn the parsed result into a
     `MySQLConfig`.
@@ -1275,7 +1275,7 @@ def escape_like(value):
     """
     Escapes `\\`, `%` and `_` in `value` so it matches only itself inside
     a SQL `LIKE` pattern -- paired with `ESCAPE '\\\\'` in the query (the
-    same convention as `queryDb._search_like_pattern`). Without it a
+    same convention as `db.query._search_like_pattern`). Without it a
     prefix like `planetgen_` would also match `planetgenX...`, and a `%`
     would match anything.
     """
@@ -1588,7 +1588,7 @@ def open_write(config=None):
     """
     Opens a connection for a write-capable caller against an already-
     existing content database (`ensure_schema=False` -- same reasoning as
-    `queryDb.open_readonly`: if the account passed in (see
+    `db.query.open_readonly`: if the account passed in (see
     `docs/deployment/README.md`'s "MySQL accounts") lacks `CREATE`/`ALTER`
     grants, attempting `_ensure_schema`'s DDL here would fail every
     connection instead of just skipping a step a full-access account has
@@ -1641,7 +1641,7 @@ def get_control_connection(config=None, ensure_schema=False, lock_wait_s=None):
             (DDL) on this connection -- `False` by default (the normal
             runtime case: the Flask API's account may have no `CREATE`
             grant, same reasoning as `open_write` above).
-            `adminAuth.bootstrap_control_schema` passes `True`, using a
+            `admin.auth.bootstrap_control_schema` passes `True`, using a
             full-access account (the same one `planetgen.cli.migrate` already
             uses), to create/update the control schema once per deploy.
         lock_wait_s (float, optional): How many seconds a statement on this
@@ -1878,15 +1878,15 @@ def insert_system_config(conn, config: SystemConfig) -> int:
 # level's own INSERT (it doesn't know the new row's id yet, but may need
 # to rename an existing row via a plain UPDATE); "confirm" runs *after*,
 # now that the id is known, to upsert that level's registry row. Stars,
-# planets and moons are named from their system (bodyNames.py, v34), so
-# they need no registry of their own. See nameUniqueness.py's own module
+# planets and moons are named from their system (names/bodies.py, v34), so
+# they need no registry of their own. See names/uniqueness.py's own module
 # docstring for the full sector > system hierarchy.
 # ---------------------------------------------------------------------------
 
 def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix):
     """
     Renames every star, planet and moon in one system whose name carries
-    `old_prefix` (`bodyNames.rename_prefix`), so derived names such as
+    `old_prefix` (`names.bodies.rename_prefix`), so derived names such as
     `Voranthis II` follow their system or star. Names set by hand that
     don't carry the prefix are left alone.
     """
@@ -2025,7 +2025,7 @@ def name_in_use(conn, name, exclude=None):
     uniquely named phenomenon (`NAMED_PHENOMENON_TABLES`) -- is
     already called exactly `name`, the check a rename runs before it goes
     ahead. Planets and moons are left out (Boss, 2026-09-30): their names
-    come from their star's (`bodyNames.py`), so they're unique whenever
+    come from their star's (`names/bodies.py`), so they're unique whenever
     it is, and a body renamed by hand may share another body's name.
     Each table's `name` column is indexed, so this is one index lookup
     per table.
@@ -2103,7 +2103,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
     """
     Sector name-uniqueness reservation, run just after the sector's own
     INSERT (with its candidate name) in the same transaction -- resolves a
-    sector-vs-sector collision (`nameUniqueness.resolve_greek_roman_collision`),
+    sector-vs-sector collision (`names.uniqueness.resolve_greek_roman_collision`),
     then a cross-level collision against an existing system's base name
     (renaming *that* system instead of this sector's own name -- see
     `_rename_existing_system_for_diminutive`). Draws an entirely fresh
@@ -2164,7 +2164,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
 
 def _regenerate_star_name():
     """A fresh star-name candidate, for `reserve_system_names`'
-    exhaustion fallback -- same generator `starData.Star` itself uses."""
+    exhaustion fallback -- same generator `star.Star` itself uses."""
     return generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
 
@@ -2324,7 +2324,7 @@ def reserve_system_names(conn, candidate_names):
     collision against an existing sector's base name (a diminutive prefix
     on *this* name, per `resolve_diminutive` -- never the sector). Planet
     and moon names are never searched: they're derived from the system
-    name (`bodyNames.py`), so they're unique whenever it is. A name whose
+    name (`names/bodies.py`), so they're unique whenever it is. A name whose
     decorations are exhausted is drawn again (`_regenerate_star_name`)
     and goes round once more.
 
@@ -2815,7 +2815,7 @@ def body_row_values(body):
     A planet's or moon's generated-content column values, in
     `_BODY_COLUMNS` order (plus `_PLANET_ONLY_COLUMNS` for a planet), with
     every unit conversion `load_star_system` inverts: what
-    `insert_planet`/`insert_moon` write and `editStore` updates in place.
+    `insert_planet`/`insert_moon` write and `db.edits` updates in place.
     """
     min_orbit_distance_km = (
         body.min_orbit_distance * physical_constants.AU_TO_KM
@@ -3001,7 +3001,7 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
 
     Modeled directly on `insert_asteroid_belt` above -- a `Comet` has no
     `orbital_index` (it isn't part of the planets/belts orbital-slot
-    ordering; see `systemData.StarSystem._generate_comets`'s docstring),
+    ordering; see `system.StarSystem._generate_comets`'s docstring),
     so this only needs `star_system_id`/`star_id`, not a position within
     another list.
 
@@ -3079,7 +3079,7 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
             anchored one belongs to its own `StarSystem`, not directly to
             a sector.
         sector_id (int, optional): The sector this standalone black hole
-            was generated as part of (`sectorGen.generate_sector_phenomena`)
+            was generated as part of (`run_sector.generate_sector_phenomena`)
             or placed near (`phenomenonGen.py --sector-id`). `None` (the
             default) leaves it unplaced -- `placement` must also be `None`
             in that case.
@@ -3297,7 +3297,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
         conn (Connection): An open, schema-initialized connection.
         remnant (SupernovaRemnant): The remnant to persist.
         sector_id (int, optional): The sector this remnant was generated
-            as part of (`sectorGen.generate_sector_phenomena`) or placed
+            as part of (`run_sector.generate_sector_phenomena`) or placed
             near (`phenomenonGen.py --sector-id`). `None` for one never
             generated as part of any sector.
         placement (dict, optional): As in `insert_black_hole` -- the
@@ -3657,7 +3657,7 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             `DEFAULT_MYSQL_CONFIG`.
         sector_id (int, optional): The sector to associate this phenomenon
             with (`phenomenonGen.py --sector-id`, or `insert_sector`'s own
-            call for a `sectorGen.generate_sector_phenomena`-generated
+            call for a `run_sector.generate_sector_phenomena`-generated
             one). This also places the phenomenon in the galaxy near this
             already-placed sector via `compute_phenomenon_placement` (every
             type has placement columns since v28). `None` (the default)
@@ -3696,7 +3696,7 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             if sector_id is not None:
                 refresh_containment(conn, [sector_id])
                 refresh_nearest_systems(conn, [sector_id])
-                # The galaxy's content stamp (`queryDb.galaxy_content_state`)
+                # The galaxy's content stamp (`db.query.galaxy_content_state`)
                 # only sees sectors and systems; without this, a phenomenon
                 # added from the command line never reaches a cached tile
                 # or page (TEST.42).
@@ -3797,7 +3797,7 @@ def _mutual_orbit_fields_from_wide_binary(pair):
     The same 16 `star_systems.binary_mutual_*`/`binary_primary_position_*`/
     `binary_secondary_position_*`/`binary_secondary_mass_fraction` columns
     as `_mutual_orbit_fields_from_proxy`, from a 'wide' pair's
-    `wideBinary.WideBinaryPair` instead -- these columns are reused
+    `wide_binary.WideBinaryPair` instead -- these columns are reused
     unchanged across both binary configurations (see `schema.sql`'s "v15"
     header note): a wide pair's own (circular-approximation) mutual orbit
     fits the exact same shape a close pair's already occupies.
@@ -3932,7 +3932,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     `schema.sql`'s "v29" header note.
 
     `star_system.name` is reserved via `reserve_system_name` (v24,
-    `nameUniqueness.py`), so every other system and sector anywhere in
+    `names/uniqueness.py`), so every other system and sector anywhere in
     the database stays distinct from this one, then every star, planet and
     moon is named from the final name (`StarSystem.assign_names`, v34).
     See that function's own docstring for the full mechanism.
@@ -3967,7 +3967,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     config_id = insert_system_config(conn, system_config)
 
     # binary_type (None | "close" | "wide") is the authoritative
-    # discriminator (see systemData.StarSystem.__init__); is_binary is kept
+    # discriminator (see system.StarSystem.__init__); is_binary is kept
     # for the schema's own pre-existing column and now means "this system
     # has two stars", true for either configuration. proxy_like gates
     # exactly the columns that only ever describe a merged BinaryStarProxy
@@ -4022,7 +4022,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     velocity_kms = _system_velocity_kms(conn, star_system, sector_id,
                                         None if position is None else tuple(ly_to_pc(c) for c in position))
 
-    # Name-uniqueness (v24, nameUniqueness.py) -- the stars, planets and
+    # Name-uniqueness (v24, names/uniqueness.py) -- the stars, planets and
     # moons are renamed from the final name in place, so the caller's
     # object matches what's stored.
     check_system_name_length(star_system.name)
@@ -4085,7 +4085,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     else:
         primary_star_id = insert_star(conn, star_system.star, star_system_id, "single")
         secondary_star_id = None
-        # v16: a StarSystem anchored by a compact remnant (compactRemnant.py,
+        # v16: a StarSystem anchored by a compact remnant (generation/phenomena/compact_remnant.py,
         # phenomenonGen.py --anchor-system) -- insert_star above already
         # wrote the stars row (BlackHole/NeutronStar's Star-compatible
         # attribute surface, with yerkes_class set to the literal 'BH'/'NS'
@@ -6271,7 +6271,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     """
     Inserts a full `SpaceSector` -- the `sectors` row, every system it
     contains (with its placement), and every exotic phenomenon it contains
-    (`sector.phenomena`, see `sectorGen.generate_sector_phenomena`) -- into
+    (`sector.phenomena`, see `run_sector.generate_sector_phenomena`) -- into
     the database. A phenomenon's own sector-relative `(x, y, z)` position
     (in light-years, from `SpaceSector.add_phenomenon`) is converted to an
     absolute galaxy-frame center via `_galaxy_placement_from_sector_offset`
@@ -6285,7 +6285,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
         galaxy_position (dict, optional): This sector's galaxy-frame
             placement (see `schema.sql`'s "v4"/"v6/v7" header notes), or
             `None` (the default) for a sector never placed in a galaxy --
-            `sectorGen.py`'s own standalone CLI keeps producing these.
+            `generation/run_sector.py`'s own standalone CLI keeps producing these.
             When given, must have keys `center_x_pc`, `center_y_pc`,
             `center_z_pc`, `galactic_radius_pc` (all required together --
             the schema's CHECK constraint enforces that), and optionally
@@ -6369,7 +6369,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
         )
     sector_id = cur.lastrowid
 
-    # Name-uniqueness (v24, nameUniqueness.py) -- reserved right after the
+    # Name-uniqueness (v24, names/uniqueness.py) -- reserved right after the
     # INSERT (the registry row points at it), mutating sector.name in
     # place, so every print/rendering call site that reads it afterward
     # (including this same sector's own systems, added below) sees the
@@ -6734,7 +6734,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
 def get_sector_galaxy_position(conn, sector_id):
     """
     Reads back a sector's stored galaxy-frame placement (see `schema.sql`'s
-    "v4" header note) -- used by `galaxyGen.py`'s local-neighborhood mode
+    "v4" header note) -- used by `generation/run_galaxy.py`'s local-neighborhood mode
     to look up an existing sector's own center before enumerating its
     neighbors (`spherical.enumerate_sectors_within_radius`).
 
@@ -6796,7 +6796,7 @@ def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
         galaxy_position (dict or None): The owning sector's own galaxy-frame
             placement (`center_x_pc`/`center_y_pc`/`center_z_pc`), or `None`
             if that sector itself was never placed in the galaxy
-            (`sectorGen.py`'s own standalone CLI).
+            (`generation/run_sector.py`'s own standalone CLI).
         offset_ly (tuple): The phenomenon's `(x, y, z)` position in
             light-years, relative to the sector's own center, along that
             sector's own local cube axes.
@@ -6831,7 +6831,7 @@ def compute_phenomenon_placement(conn, sector_id):
     back to a `+/- edge_pc / 2` cube around its center) -- so the
     phenomenon's center always falls inside that sector, regardless of the phenomenon's own `radius_ly` (which may be
     far larger than the sector itself, and is free to spill into
-    neighboring sectors -- see `queryDb.phenomena_near_sector`, which finds
+    neighboring sectors -- see `db.query.phenomena_near_sector`, which finds
     those by real distance, not by this row's `sector_id`).
 
     Args:
@@ -6843,13 +6843,13 @@ def compute_phenomenon_placement(conn, sector_id):
 
     Raises:
         ValueError: If `sector_id` doesn't exist, or exists but has never
-            been placed in the galaxy itself (`galaxyGen.py`) -- there is
+            been placed in the galaxy itself (`generation/run_galaxy.py`) -- there is
             no galaxy-frame position to jitter around in that case.
     """
     position = get_sector_galaxy_position(conn, sector_id)
     if position is None:
         raise ValueError(
-            f"sector {sector_id} has no galaxy placement of its own -- see galaxyGen.py"
+            f"sector {sector_id} has no galaxy placement of its own -- see generation/run_galaxy.py"
         )
     edge_row = conn.execute("SELECT edge_mpc FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     edge_pc = mpc_to_pc(edge_row["edge_mpc"])
@@ -6926,7 +6926,7 @@ GalaxySkeletonInfo = namedtuple(
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
-note). `shape` is a `galaxyDensity.GalaxyShape`; the other fields are
+note). `shape` is a `galaxy.density.GalaxyShape`; the other fields are
 `galaxy_shape`'s own remaining columns, `galaxy_seed` (v51, GEN.39) the
 16-byte seed or `None` for a galaxy planned before it."""
 
@@ -6940,13 +6940,13 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
     skeleton (re)build).
 
     Args:
-        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+        shape (galaxy.density.GalaxyShape): The galaxy's shape parameters.
         edge_pc (float): The sector edge length this skeleton was built
                          at, parsecs.
         outer_shell_index (int): The last shell with any qualifying
             content (`planetgen plan`'s own discovered galaxy edge).
         expected_system_count_at_density_1 (float): See
-            `galaxySkeleton.expected_system_count_at_density_1`.
+            `galaxy.skeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
         galaxy_seed (bytes, optional): The galaxy's 16-byte seed (GEN.39).
@@ -7148,7 +7148,7 @@ def replace_galaxy_shells(shell_extents, config=None, conn=None):
 
     Args:
         shell_extents (iterable): `(shell_index, high_band_index)` pairs
-            (`galaxySkeleton.build_shell_extents`), any order.
+            (`galaxy.skeleton.build_shell_extents`), any order.
         config (MySQLConfig, optional): Connection parameters. Defaults
             to `DEFAULT_MYSQL_CONFIG`. Ignored when `conn` is given.
         conn (Connection, optional): Write through this connection, inside
@@ -7178,7 +7178,7 @@ def replace_galaxy_shells(shell_extents, config=None, conn=None):
 
 def get_galaxy_bounds(conn):
     """
-    The galaxy's stored outline as a `galaxySkeleton.GalaxyBounds`, the
+    The galaxy's stored outline as a `galaxy.skeleton.GalaxyBounds`, the
     object every generation path checks an address against before
     generating anything there.
 
@@ -7464,8 +7464,8 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, config=Non
     """
     Opens the database and persists a single, standalone `StarSystem` (no
     sector -- `sector_id`/`position` are left `None`) in one transaction.
-    The single-system counterpart to `save_sector`, for `systemGen.py`
-    (which, unlike `sectorGen.py`, generates one system with no natural
+    The single-system counterpart to `save_sector`, for `generation/run_system.py`
+    (which, unlike `generation/run_sector.py`, generates one system with no natural
     sector placement of its own). Retried like `save_sector` on a
     deadlock or lock wait timeout (several one-off systems saved at once).
 
@@ -7792,7 +7792,7 @@ def _load_single_star(conn, star_system_id, system_config):
     Loads the `stars` row for a single (non-binary) system and reconstructs
     the correct Python class from it: a `BlackHole`/`NeutronStar` when a
     matching `black_holes`/`neutron_stars` satellite row exists for it
-    (`phenomenonGen.py --anchor-system`, see `compactRemnant.py`'s module
+    (`phenomenonGen.py --anchor-system`, see `generation/phenomena/compact_remnant.py`'s module
     docstring), or a plain `Star` otherwise.
 
     Without this dispatch, `Star.from_dict` alone would silently reconstruct
@@ -8073,7 +8073,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     Each reconstructed star/planet/moon/belt/comet also carries `db_id`,
     its own row's `id`, so a caller rendering per-body text
     (`systemRender.render_system_sections`) can match it back to the
-    rows `queryDb.system_detail` returns.
+    rows `db.query.system_detail` returns.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -8132,7 +8132,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     # single star, or a close pair's proxy, shares it -- a close pair's
     # proxy already takes it (`_binary_proxy_row_to_dict`). A wide pair's
     # `star` is its primary, which keeps its own `stars.name` (see
-    # bodyNames.py).
+    # names/bodies.py).
     if binary_configuration != "wide":
         star.name = row["name"]
 
