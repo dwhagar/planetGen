@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1229] - 2026-10-15
+
+### Changed
+
+- GEN.217 retired (merged in #1492: `plan --fill-habitability`).
+
+TODO items resolved: GEN.217 / Added: none
+
 ## [8.0.1228] - 2026-10-15
 
 ### Added
