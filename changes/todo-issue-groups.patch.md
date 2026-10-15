@@ -7,4 +7,4 @@
 - DOC.52 filed: a docs index page that links every HTML page under docs/ with a description.
 - The headline panel on the three generated pages now renders (it ran before its data existed).
 
-TODO items resolved: none / Added: DOC.52
+TODO items resolved: GEN.232, MAP.204 / Added: DOC.52

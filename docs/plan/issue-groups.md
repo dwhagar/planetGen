@@ -41,7 +41,7 @@ Rules:
 | [#1667](https://github.com/dwhagar/planetGen/issues/1667) | open | Multi-star systems and the scatter member tree (stage M) | GEN.260, GEN.261, GEN.262, GEN.263, GEN.264, GEN.265, GEN.266, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, GEN.130, TEST.162, TEST.164, DOC.50, UX.114 |
 | [#1666](https://github.com/dwhagar/planetGen/issues/1666) | open | Phenomena registry, fill stages and the remaining star types | GEN.250, GEN.251, GEN.252, GEN.253, GEN.247, GEN.249, GEN.258, GEN.259, DOC.49 |
 | [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.233, GEN.234, GEN.235, GEN.236, GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
-| [#1657](https://github.com/dwhagar/planetGen/issues/1657) | open | GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for min | GEN.232 |
+| [#1657](https://github.com/dwhagar/planetGen/issues/1657) | closed | GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for min | GEN.232 |
 | [#1656](https://github.com/dwhagar/planetGen/issues/1656) | open | TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel r | TEST.111 |
 | [#1655](https://github.com/dwhagar/planetGen/issues/1655) | open | TEST.138 test_open_map_menus_hold_no_overlap fails under load: [web.galaxy-1280] once, [web.sector-6 | TEST.138 |
 | [#1654](https://github.com/dwhagar/planetGen/issues/1654) | open | TEST.163 test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count i | TEST.163 |
@@ -49,7 +49,7 @@ Rules:
 | [#1565](https://github.com/dwhagar/planetGen/issues/1565) | open | Wide binary star systems must be stable: far orbits and Hill spheres must not overlap | GEN.228, GEN.229 |
 | [#1537](https://github.com/dwhagar/planetGen/issues/1537) | open | Orbital update skips the galaxy position move of systems with no placed sector (GEN.223) | GEN.223, GEN.230, PERF.103 |
 | [#1532](https://github.com/dwhagar/planetGen/issues/1532) | open | Overview page: the phenomena count is wrong (UX.110) | UX.110 |
-| [#1503](https://github.com/dwhagar/planetGen/issues/1503) | open | Galaxy Map: regions under the galactic plane are hard to highlight and select (MAP.204) | MAP.204 |
+| [#1503](https://github.com/dwhagar/planetGen/issues/1503) | closed | Galaxy Map: regions under the galactic plane are hard to highlight and select (MAP.204) | MAP.204 |
 | [#1500](https://github.com/dwhagar/planetGen/issues/1500) | closed | Generation output: nebula kinds and layers per slab; no progress for the phenomena indexes | GEN.222, PERF.101 |
 | [#1464](https://github.com/dwhagar/planetGen/issues/1464) | open | List the species that could live in an environment; species environment limits and a species editor | POP.12, POP.13, DB.30, POP.14 |
 | [#1454](https://github.com/dwhagar/planetGen/issues/1454) | closed | Habitability text: PHI-6 name, Air at zero pressure, wording of every line | GEN.214, GEN.215, GEN.216, GEN.217 |

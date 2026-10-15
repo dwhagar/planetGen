@@ -117,8 +117,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.152 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it |  | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
-| MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) |  |  |
-| UX.105 | The system page builds every body's detail from the document model as HTML tables | |  |
+| UX.105 | The system page builds every body's detail from the document model as HTML tables |  |  |
 | GEN.218 | One habitability describer, in the short wording |  |  |
 | GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
 | GEN.220 | "Habitable" means the index | GEN.218 |  |
@@ -126,9 +125,8 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.221 | Short plain prose for the fixed text |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) |  |  |
-| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) |  | Maps hand-off 2026-10-15. Core. |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | PERF.99 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
-| UX.107 | Units in the description go through the ladders | |  |
+| UX.107 | Units in the description go through the ladders |  |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |
 | UX.110 | The phenomena count on the overview page is wrong (bug) |  |  |
