@@ -294,6 +294,14 @@ with `clamp()`.
   table and algorithm for distance, speed and time, in Python and the
   browser. Next steps follow in the migration order (UX.81 kyr/Myr/Gyr
   and AU from 1,000,000 km, then UX.22 temperature, pressure, gravity).
+  Progress (2026-10-15, PR #1450, Foundations UX): steps 0 to 3 done:
+  distance, speed, time, temperature, pressure and gravity run through
+  the shared ladders. Remaining: mass (step 4), luminosity, power and
+  flux, density, number density, magnetic field and angles, the leftover
+  `toFixed` calls in `galaxymap3d.js` and `galaxystageview.js`
+  (coordinates, angles, luminosity; folded in from UX.81 as steps 5 to
+  7), and the JavaScript lint test that bans direct `toFixed` for unit
+  values.
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -459,6 +467,13 @@ with `clamp()`.
   `galaxystageview.js` through the ladders.
   Prerequisites: none.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
+  Progress (2026-10-15, PR #1450, Foundations UX): done: the kyr, Myr
+  and Gyr symbols, AU from 1,000,000 km, scientific text for tiny
+  values, `aria-valuetext` with the unit name, and the `systemview3d.js`
+  and `galaxysystem.js` routing. Left over: the direct `toFixed` calls
+  in `galaxymap3d.js` and `galaxystageview.js` (coordinates, angles,
+  luminosity), now steps 5 to 7 of UX.22. UX.81 retires when UX.22
+  finishes those.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
@@ -5115,6 +5130,8 @@ clears each one.
   system is not seeded so the assumption breaks. Make the test pick its
   host from the data (or seed the system) so it passes every time.
   Owner: Test Suite Rebuild. Done when 20 reruns in a row pass.
+  Seen again by Foundations UX in its UX.81 and UX.22 gate (2026-10-15):
+  the same test, so two lanes now hit it.
   Prerequisites: none. Related: TEST.147, TEST.149, TEST.126.
 
 ## USR: User accounts
