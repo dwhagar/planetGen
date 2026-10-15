@@ -2762,6 +2762,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a scattered one never has one before the fill. The white-dwarf and
   planetary-nebula-star rows belong to the fill-stages item. Owner: Core
   (2026-10-15).
+  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
+  scatters still carry no planets or moons, but the stellar companions
+  of stars and star-like objects (stars, former stars, protostars,
+  neutron stars, black holes), including neutron star pairs, black hole
+  and neutron star pairs, black hole pairs and stars with neutron star
+  or black hole companions, are generated at scatter time, because such
+  systems matter for gravity; planets and moons still come only at
+  sector fill. Multi-star research is under way (docs to follow; the
+  coordinator relays its items). For this item: the companions of
+  neutron stars and black holes (white dwarf, main-sequence or giant
+  companions, neutron star and black hole partners) are decided when the
+  object is scattered, at the observed fractions; pulsar planets stay at
+  sector fill.
   Prerequisites: GEN.251.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
@@ -3632,6 +3645,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phenomena, not planets. For this item: the three scatters write bare
   rows and never build a system; the system is built when the sector
   fills.
+  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
+  scatters still carry no planets or moons, but the stellar companions
+  of stars and star-like objects (stars, former stars, protostars,
+  neutron stars, black holes), including neutron star pairs, black hole
+  and neutron star pairs, black hole pairs and stars with neutron star
+  or black hole companions, are generated at scatter time, because such
+  systems matter for gravity; planets and moons still come only at
+  sector fill. Multi-star research is under way (docs to follow; the
+  coordinator relays its items). For this item: each scatter row carries
+  its stellar companions (their masses and orbit), but never planets or
+  moons; the band groups and the object-first sampler must place the
+  companions with the primary so a pair is one gravitational source.
   Prerequisites: GEN.232, GEN.234, GEN.235, GEN.237. Related: GEN.238,
   GEN.223.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
@@ -3920,6 +3945,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nebulae need stars and phenomena, not planets; planets and moons only
   when a sector is filled with everything; a fill represents every kind
   and builds the systems phenomena can have at real-world odds.
+  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
+  scatters still carry no planets or moons, but the stellar companions
+  of stars and star-like objects (stars, former stars, protostars,
+  neutron stars, black holes), including neutron star pairs, black hole
+  and neutron star pairs, black hole pairs and stars with neutron star
+  or black hole companions, are generated at scatter time, because such
+  systems matter for gravity; planets and moons still come only at
+  sector fill. Multi-star research is under way (docs to follow; the
+  coordinator relays its items). For this item: the system pass splits
+  in two. The companion roll (the stellar part of every system model)
+  moves to the scatter stage, drawn from the row's own seed so the
+  answer is fixed whenever the sector fills; the fill-time pass builds
+  only the planets, belts, moons and disks around the objects already
+  there. Expect the stage list of the catalogue (section 3) to change
+  accordingly.
   Prerequisites: GEN.250, GEN.235. Related: GEN.130, GEN.241, GEN.240.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -5487,6 +5527,11 @@ clears each one.
   planets and moons only when a sector is filled with everything; a fill
   represents every kind and builds the systems phenomena can have at
   real-world odds.
+  Decided (Boss, 2026-10-15 5:51 PM EDT): "all types represented" means
+  audited frequency, not forced: accurate probabilities and no forced
+  representation in a sector, except a kind that landed there in a
+  scatter before generation. The open question is closed; the audit
+  compares counts to expectation and never forces a kind in.
   Prerequisites: GEN.250, GEN.251. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
