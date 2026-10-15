@@ -612,7 +612,10 @@ forced credential change. They back the admin stats page
 - `GET /api/admin/stats` — health and statistics for one database:
   `api` (version, Python version, process uptime, load average, memory),
   `mysql` (server version, uptime, connected threads; `null` fields when
-  `SHOW GLOBAL STATUS` isn't allowed), and `database` (`reachable`,
+  `SHOW GLOBAL STATUS` isn't allowed), `redis` (whether the queue's Redis `answering` at its `url`, without any
+  password, and, when it does, `version`, `uptime_seconds`, `aof_enabled`, `maxmemory_policy`,
+  `used_memory_bytes`, `maxmemory_bytes`, `last_save_ok`, `last_save_seconds_ago` and the live `workers`; `error`
+  says why when it does not), and `database` (`reachable`,
   `schema_version`/`schema_expected`/`schema_current`, `size_bytes`,
   exact `counts` for `sectors`/`star_systems`, `sector_stats` (PERF.11:
   `measured` and `backfilled` sector counts, and `ratio`, the decaying

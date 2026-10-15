@@ -82,6 +82,16 @@ def _api_process_info():
     }
 
 
+def _redis_health():
+    """Redis's health for the stats page (`redishealth.redis_info`, ADM.54); never raises."""
+    from planetgen.queue import redishealth
+
+    try:
+        return redishealth.redis_info()
+    except Exception as exc:  # noqa: BLE001 -- the page still shows without it
+        return {"url": None, "answering": False, "error": str(exc) or type(exc).__name__}
+
+
 def _database_disk(conn, config):
     """The drive holding the database's data directory (never the boot drive, unless the data is there),
     for the stats page: `{"measured", "path", "mount", "total_bytes", "free_bytes", "source", "note"}`."""
@@ -107,13 +117,16 @@ def stats():
     newest/last-modified row times, and how many names the uniqueness
     rules had to decorate (the list itself is `/api/admin/duplicate-names`).
 
+    `redis` is Redis's health (`queue.redishealth.redis_info`, ADM.54).
+
     A database that can't be reached still returns 200 with
     `database.reachable: false`, so the admin page can show what's wrong
     instead of an error page.
     """
     started = time.perf_counter()
     db_name = _resolve_requested_db_config().database
-    body = {"api": _api_process_info(), "mysql": None, "database": {"name": db_name, "reachable": False}}
+    body = {"api": _api_process_info(), "mysql": None, "database": {"name": db_name, "reachable": False},
+            "redis": _redis_health()}
 
     try:
         conn = get_db()
