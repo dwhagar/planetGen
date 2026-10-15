@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1385] - 2026-10-15
+
+**Headline:** Stellar companions of stars and remnants are made at scatter time; planets and moons stay at sector fill.
+
+### Changed
+- GEN.130, GEN.240, GEN.251 and TEST.160 record Boss's 2026-10-15 refinement: the stellar companions of stars, former stars, protostars, neutron stars and black holes (including neutron star and black hole pairs) are generated when the object is scattered, while planets and moons come only at sector fill; "all types represented" means audited frequency, not forced.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1384] - 2026-10-15
 
 **Headline:** The phenomena catalogue is on the TODO list: a registry, fill stages with a system pass, and the later kinds.
