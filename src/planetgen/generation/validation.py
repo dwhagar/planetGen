@@ -24,6 +24,7 @@ Three kinds of function live here:
   was removed and what is still wrong.
 """
 
+import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
@@ -54,6 +55,8 @@ def _label(body):
         return name
     if getattr(body, "body_type", None) == 'a':
         return f"asteroid belt at {body.distance:.4g} AU"
+    if hasattr(body, "perihelion_distance_au"):
+        return f"comet with perihelion at {body.perihelion_distance_au:.4g} AU"
     return f"body at {body.distance:.4g} AU"
 
 
@@ -458,6 +461,43 @@ def trim_to_orbit_ceiling(planets, ceiling_au):
     return removed
 
 
+def comet_apoapsis_au(comet):
+    """How far from its star a comet's orbit reaches, in AU: its
+    farthest point, `q * (1 + e) / (1 - e)`; infinite for a parabolic
+    comet, which leaves the star for good."""
+    if comet.orbit_type != "elliptical":
+        return math.inf
+    return comet.perihelion_distance_au * (1 + comet.eccentricity) / (1 - comet.eccentricity)
+
+
+def comet_fits_ceiling(comet, ceiling_au):
+    """True if `comet`'s whole orbit stays inside `ceiling_au`."""
+    return comet_apoapsis_au(comet) <= ceiling_au * (1 + RELATIVE_TOLERANCE)
+
+
+def trim_comets_to_orbit_ceiling(comets, ceiling_au):
+    """
+    Removes from `comets`, in place, every comet whose orbit leaves
+    `ceiling_au`: past a wide binary's star's stable limit
+    (`orbit_ceiling_au`) a comet is on the way to the companion star,
+    where its path would cross the companion's planets (GEN.228).
+
+    Returns:
+        list: The removed comets.
+    """
+    removed = [comet for comet in comets if not comet_fits_ceiling(comet, ceiling_au)]
+    comets[:] = [comet for comet in comets if comet_fits_ceiling(comet, ceiling_au)]
+    return removed
+
+
+def comet_lists(system):
+    """`(star, comets)` for each star whose comets must stay inside its
+    stable limit: both stars of a wide binary, none otherwise."""
+    if getattr(system, "binary_type", None) != "wide":
+        return []
+    return [(system.primary_star, system.comets), (system.secondary_star, system.secondary_comets)]
+
+
 def _cross_star_threshold_au(system, outer_p, outer_s):
     """The worst-case gap two wide-binary stars' outermost bodies must
     keep: Gladman's mutual Hill criterion for two planets, else the
@@ -476,8 +516,8 @@ def cross_star_clearance(system):
     For an S-type (wide) binary, prunes the outermost body from whichever
     star's list gravitationally encroaches on the other star's own
     outermost body, until the worst-case gap between them (the two pointed
-    straight at each other along the binary axis, `a_bin - edge_p -
-    edge_s`) clears Gladman's mutual Hill criterion (or, with a belt
+    straight at each other with the stars at their closest approach,
+    `periapsis - edge_p - edge_s`) clears Gladman's mutual Hill criterion (or, with a belt
     involved, `MIN_ASTEROID_BELT_SEPARATION`). The star whose outermost
     body has the least room to its own `a_crit_au` loses it. See
     `StarSystem._validate_cross_star_clearance` for the full reasoning.
@@ -490,11 +530,11 @@ def cross_star_clearance(system):
     if system.binary_type != "wide" or not system.planets or not system.secondary_planets:
         return removed
 
-    a_bin = system.wide_binary.separation_au
+    closest_au = system.wide_binary.periapsis_au
     while system.planets and system.secondary_planets:
         outer_p = max(system.planets, key=edge_au)
         outer_s = max(system.secondary_planets, key=edge_au)
-        worst_case_gap_au = a_bin - edge_au(outer_p) - edge_au(outer_s)
+        worst_case_gap_au = closest_au - edge_au(outer_p) - edge_au(outer_s)
         if worst_case_gap_au >= _cross_star_threshold_au(system, outer_p, outer_s):
             break
         primary_room = system.primary_star.a_crit_au - edge_au(outer_p)
@@ -643,10 +683,16 @@ def check_star_system(system):
                                                       f"({ceiling:.4g} AU)"))
             if body.body_type != 'a':
                 problems.extend(check_lunar_system(body))
+    for star, comets in comet_lists(system):
+        ceiling = orbit_ceiling_au(star)
+        for comet in comets:
+            if not comet_fits_ceiling(comet, ceiling):
+                problems.append(Problem(_label(comet), f"its orbit reaches beyond the farthest stable orbit "
+                                                       f"({ceiling:.4g} AU)"))
     if getattr(system, "binary_type", None) == "wide" and system.planets and system.secondary_planets:
         outer_p = max(system.planets, key=edge_au)
         outer_s = max(system.secondary_planets, key=edge_au)
-        gap = system.wide_binary.separation_au - edge_au(outer_p) - edge_au(outer_s)
+        gap = system.wide_binary.periapsis_au - edge_au(outer_p) - edge_au(outer_s)
         needed = _cross_star_threshold_au(system, outer_p, outer_s)
         if _below(gap, needed):
             problems.append(Problem(_label(outer_p), f"it and {_label(outer_s)} come too close to each other "
@@ -763,6 +809,8 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
             removed.extend(trim_to_orbit_ceiling(planets, orbit_ceiling_au(star)))
     if allow_removal:
         removed.extend(cross_star_clearance(system))
+        for star, comets in comet_lists(system):
+            removed.extend(trim_comets_to_orbit_ceiling(comets, orbit_ceiling_au(star)))
     refresh_star_reflex(system)
 
     moved, reclassified = [], []

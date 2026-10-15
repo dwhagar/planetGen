@@ -94,3 +94,26 @@ def test_estimate_only_needs_deep(saved, monkeypatch):
     monkeypatch.setattr("sys.argv", _argv(saved, "--estimate-only"))
     with pytest.raises(SystemExit):
         generate.main()
+
+
+def test_the_wide_binaries_scope_counts_only_wide_binaries(saved):
+    def count(scope):
+        conn = store.get_connection(saved, ensure_schema=False)
+        try:
+            return check.deep_estimate(conn, saved, scope).systems
+        finally:
+            conn.close()
+
+    everything = count(check.Scope())
+    assert everything >= 1
+    assert count(check.Scope(wide_binaries=True)) == 0
+    _sql(saved, "UPDATE star_systems SET binary_configuration = 'wide' WHERE id = (SELECT m FROM "
+                "(SELECT MIN(id) AS m FROM star_systems) AS x)")
+    assert count(check.Scope(wide_binaries=True)) == 1
+    assert count(check.Scope()) == everything
+
+
+def test_wide_binaries_needs_deep(saved, monkeypatch):
+    monkeypatch.setattr("sys.argv", _argv(saved, "--wide-binaries"))
+    with pytest.raises(SystemExit):
+        generate.main()

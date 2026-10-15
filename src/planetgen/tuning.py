@@ -2497,6 +2497,12 @@ PREVALENCE_DRAW_SHARES = {
 # catalog).
 SYSTEM_COMET_COUNT_RANGE = (1, 3)
 
+# A star of a wide binary keeps every comet inside its stable limit
+# (a_crit_au), or the comet's orbit would cross the companion's (GEN.228).
+# Each comet is re-rolled this many times to find an orbit that fits, then
+# dropped: close wide pairs leave little room, so most comets there don't.
+COMET_CEILING_ATTEMPTS = 25
+
 # --- Asteroid Fields (asteroidFieldData.AsteroidField) ---
 
 # Radius range for a standalone asteroid field drifting in open
