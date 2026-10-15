@@ -53,7 +53,7 @@ The plan assumes the recommended answer for any row not marked Decided.
 | Object IDs in the conversion | Decided (Boss 07:32Z): renumber; every object gets a new ID from its new sector in the DB.32 conversion, positions unchanged | Keep the old IDs (not adopted) |
 | Equal-volume bands | Decided (Boss 07:22Z): not adopted; the wedge rule stays primes up to 7 | Bands of equal volume (not adopted) |
 
-Settled in the first item (GEN.224): shells 1 to 3 are too small for the cap rule to look right (shell 1's cap arc radius is 3.82 pc on a 4 pc sphere), so they are a hand-checked table in `spherical.py` (`SMALL_SHELL_TABLE`): shell 1 has caps cut at 37.5 degrees and one band of 12 wedges (cell volumes 0.9 to 1.4 edge cubes, against 4.8 for the caps and 0.67 for the cells under the rule), shells 2 and 3 keep the rule's own result. Still open: whether the migration's data delete needs a fresh word from Boss when it merges (it is destructive; Boss accepted the same for the v32 and v33 grids).
+Settled in the first item (GEN.224): shells 1 to 3 are too small for the cap rule to look right (shell 1's cap arc radius is 3.82 pc on a 4 pc sphere), so they are a hand-checked table in `spherical.py` (`SMALL_SHELL_TABLE`): shell 1 has caps cut at 37.5 degrees and one band of 12 wedges (cell volumes 0.9 to 1.4 edge cubes, against 4.8 for the caps and 0.67 for the cells under the rule), shells 2 and 3 keep the rule's own result. Decided (Boss, 07:56Z): the migration merges on a green gate without a fresh word from Boss, unless a question has no reasonable default.
 
 ## 4. What is already built that this replaces
 
@@ -63,7 +63,7 @@ TODO items that assume the cylinder and need rewording, holding or retiring (the
 
 ## 5. How the work should run
 
-Switch structure (2026-10-15): DB.32, GEN.227 and UX.111 are PRs into a shared integration branch `claude/spherical-switch`, owned by the Spherical Sector Coordinates thread; one final PR goes to main after Boss's word. MAP.205 and MAP.206 are built in parallel on their own branch and merge after that.
+Switch structure (2026-10-15): DB.32, GEN.227 and UX.111 are PRs into a shared integration branch `claude/spherical-switch`, owned by the Spherical Sector Coordinates thread; one final PR goes to main and the lane merges it on a green gate, without waiting for Boss's word unless a question has no reasonable default (Boss, 07:56Z). MAP.205 and MAP.206 are built in parallel on their own branch and merge after that.
 
 
 One dedicated thread, "Spherical Sector Coordinates", owns the grid (items 1 to 6). It is the only migration lane while this runs, so the Database lane's DB.2x items queue behind it unless they touch other tables. Maps, Generation and UX lanes stay stopped until their items below are open. The Test Suite thread owns the TEST items. Each item merges on a green `scripts/test.py changed`; the full suite runs when item 6 finishes.
