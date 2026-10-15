@@ -536,20 +536,6 @@ with `clamp()`.
   a Phase 2 item for the interface builders.
   Prerequisites: none. Related: PERF.66.
 
-- [ ] **UX.104 Build the document model for stars, pairs, planets, moons, belts, comets and the overview**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Pure functions (package name provisional,
-  planetgen/describe/) from a loaded or freshly generated system to the
-  document model; no format flag, no Markdown, no HTML in it. Facts
-  tables carry typed quantities (kind, SI value, ladder name, or plain
-  text). The planet and moon model includes the habitability rating rows
-  by calling the existing protection and habitability functions
-  unchanged (the wording is replaced in the describer item). Tests
-  compare field coverage against the old tables so nothing is dropped. A
-  quantity not yet on a unit ladder is carried as a plain number with
-  its unit and converted when UX.22/UX.23 land.
-
 - [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -569,7 +555,7 @@ with `clamp()`.
   04:21Z): markdown is no longer the web default for any planet or
   system text; the richer tables replace it, and markdown and wikitext
   are generated on the fly only when the user asks.
-  Prerequisites: UX.104, UX.23. Related: UX.30 (absorbed into this
+  Prerequisite: UX.23. Related: UX.30 (absorbed into this
   item), UX.32, UX.101.
 
 - [ ] **UX.106 CLI output as plain text by default, Markdown and wikitext on request**
@@ -580,7 +566,6 @@ with `clamp()`.
   decided default, stands unless Boss says otherwise). The one-line
   lists in cli/query.py go through the unit ladders. Updates docs/cli.md
   in the same PR.
-  Prerequisite: UX.104.
 
 - [ ] **UX.107 Units in the description go through the ladders**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -3392,7 +3377,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one gas-name table, PHI-6 everywhere, dead code deleted
   (habitability_explain.factors and helpers unless a row sentence needs
   them). Keeps GEN.148's temperature behaviour.
-  Prerequisites: UX.104, GEN.214 (done, PR #1472).
+  Prerequisites: GEN.214 (done, PR #1472).
 
 - [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -3415,7 +3400,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages label the flag "Habitable class". Touches Foundations UX
   (UX.32 chip decision, UX.101 symbols): coordinate before editing
   systempage.py.
-  Prerequisites: UX.104, GEN.218. Related: UX.32, UX.101.
+  Prerequisite: GEN.218. Related: UX.32, UX.101.
 
 - [ ] **GEN.221 Short plain prose for the fixed text**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -3429,7 +3414,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class descriptions that claim life or water (tuning.PLANET_CLASSES,
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
-  Prerequisite: UX.104.
 
 - [ ] **GEN.222 Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug)**
   Boss (2026-10-15 05:30Z): "BUG: Output, when generation text is
@@ -4075,7 +4059,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration and agrees its timing; Foundations Wording writes
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
-  Prerequisite: UX.104.
 
 ## API: The JSON API
 
@@ -4400,7 +4383,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   SystemConfig.MARKDOWN and its global flipping (db/render.py _format,
   render_star_system). The run-config markdown column goes with the
   storage item. Updates docs/api.md in the same PR.
-  Prerequisite: UX.104.
 
 ## ADM: Admin tools
 

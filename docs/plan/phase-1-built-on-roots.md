@@ -115,19 +115,18 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) |  |  |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
-| UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview |  |  |
-| UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.104, UX.23 |  |
-| API.25 | A structured description endpoint, and Markdown and wikitext on request only | UX.104 |  |
-| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | UX.104 |  |
-| GEN.218 | One habitability describer, in the short wording | UX.104 |  |
+| UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.23 |  |
+| API.25 | A structured description endpoint, and Markdown and wikitext on request only |  |  |
+| UX.106 | CLI output as plain text by default, Markdown and wikitext on request |  |  |
+| GEN.218 | One habitability describer, in the short wording |  |  |
 | GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
-| GEN.220 | "Habitable" means the index | UX.104, GEN.218 |  |
+| GEN.220 | "Habitable" means the index | GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
-| GEN.221 | Short plain prose for the fixed text | UX.104 |  |
+| GEN.221 | Short plain prose for the fixed text |  |  |
 | GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) |  |  |
 | PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
-| DB.31 | Store structure, not prose, for life and flavour | UX.104 |  |
+| DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
