@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1242] - 2026-10-15
+
+### Added
+
+- `planetgen.describe.describe(system)` builds one structured description of a star system (sections, facts, ratings, prose and typed quantities, all plain JSON) from a generated or database-loaded system. Nothing shows it yet; the web page, the API and the command line move to it in the following changes.
+- `protection.rating()` gives a rocky body's six habitability categories as data; `protection.paragraph()` is built from it, so the words are unchanged.
+
 ## [8.0.1241] - 2026-10-15
 
 ### Changed
