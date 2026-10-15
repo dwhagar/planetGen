@@ -11,7 +11,7 @@ Every unit of work gets its own seed from it:
 
     unit seed = SHA-256(galaxy seed || "kind:" address)
 
-for example `sector:12/3/0`. The whole 256-bit digest seeds the unit's
+for example `sector:12/3/0` (a sector's address is shell/band/wedge). The whole 256-bit digest seeds the unit's
 own draw stream (`seeded`, see `planetgen.util.draw`), so a sector's numbers depend
 only on the galaxy seed and its address, never on the order sectors run
 in or how many workers run them. The version isn't mixed in: a release
@@ -64,7 +64,7 @@ def format_seed(seed):
 
 def address_text(address):
     """A unit's address as its seed text spells it: a tuple's parts
-    joined by `/` (`(12, 3, 0)` -> `12/3/0`), anything else as `str`."""
+    joined by `/` (`(12, 3, 0)` -> `12/3/0`, shell 12, band 3, wedge 0), anything else as `str`."""
     if isinstance(address, (tuple, list)):
         return "/".join(str(part) for part in address)
     return str(address)

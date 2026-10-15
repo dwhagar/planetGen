@@ -55,14 +55,14 @@ def test_the_ids_of_one_sector_sort_together():
 
 
 @pytest.mark.parametrize("kwargs", [
-    dict(ring=4096, layer=0, slot=0, serial_kind=0, serial=0, body=0),
-    dict(ring=0, layer=2048, slot=0, serial_kind=0, serial=0, body=0),
-    dict(ring=0, layer=-2049, slot=0, serial_kind=0, serial=0, body=0),
-    dict(ring=0, layer=0, slot=65536, serial_kind=0, serial=0, body=0),
-    dict(ring=0, layer=0, slot=0, serial_kind=0, serial=1 << 26, body=0),
-    dict(ring=0, layer=0, slot=0, serial_kind=0, serial=0, body=4096),
-    dict(ring=-1, layer=0, slot=0, serial_kind=0, serial=0, body=0),
-    dict(ring=0, layer=0, slot=0, serial_kind=3, serial=0, body=0),
+    dict(shell=4096, band=0, wedge=0, serial_kind=0, serial=0, body=0),
+    dict(shell=0, band=2048, wedge=0, serial_kind=0, serial=0, body=0),
+    dict(shell=0, band=-2049, wedge=0, serial_kind=0, serial=0, body=0),
+    dict(shell=0, band=0, wedge=65536, serial_kind=0, serial=0, body=0),
+    dict(shell=0, band=0, wedge=0, serial_kind=0, serial=1 << 26, body=0),
+    dict(shell=0, band=0, wedge=0, serial_kind=0, serial=0, body=4096),
+    dict(shell=-1, band=0, wedge=0, serial_kind=0, serial=0, body=0),
+    dict(shell=0, band=0, wedge=0, serial_kind=3, serial=0, body=0),
 ])
 def test_a_field_that_does_not_fit_is_refused(kwargs):
     with pytest.raises(ValueError):
@@ -87,14 +87,15 @@ def test_a_serial_kind_that_is_not_known_is_refused_on_unpack():
 
 
 def test_the_milky_way_fits_the_default_layout():
-    # 3,763 rings, 2,041 layers, 23,040 slots in the outer ring (docs/design/object-id-options.md).
-    assert oid.fit_layout(3762, -1020, 1020, 23040) == oid.DEFAULT_LAYOUT
+    # 3,765 shells, bands -1602..1602 (the polar shells), 23,650 wedges in the outer shell's equatorial band
+    # (docs/design/spherical-sector-coordinates.md).
+    assert oid.fit_layout(3764, -1602, 1602, 23650) == oid.DEFAULT_LAYOUT
 
 
 @pytest.mark.parametrize("bounds,total", [
-    ((4096, -10, 10, 100), 96),       # one ring too many
-    ((100, -2050, 2050, 100), 96),    # layers past 11 bits either side
-    ((100, -10, 10, 70000), 96),      # a ring with more than 65,536 slots
+    ((4096, -10, 10, 100), 96),       # one shell too many
+    ((100, -2050, 2050, 100), 96),    # bands past 11 bits either side
+    ((100, -10, 10, 70000), 96),      # a band with more than 65,536 wedges
     ((10 ** 5, -5000, 5000, 10 ** 6), 96),
     ((10 ** 6, -5000, 5000, 10 ** 7), 128),
     ((2 ** 30, -(2 ** 18), 2 ** 18, 2 ** 24), 128),
@@ -102,8 +103,8 @@ def test_the_milky_way_fits_the_default_layout():
 def test_a_galaxy_that_does_not_fit_gets_a_longer_id(bounds, total):
     layout = oid.fit_layout(*bounds)
     assert layout.total_bits == total and layout.total_bits % 8 == 0 and layout.sector_bits % 4 == 0
-    max_ring, min_layer, max_layer, max_slots = bounds
-    for fields in [(max_ring, min_layer, max_slots - 1), (0, max_layer, 0)]:
+    max_shell, min_band, max_band, max_wedges = bounds
+    for fields in [(max_shell, min_band, max_wedges - 1), (0, max_band, 0)]:
         value = oid.pack(*fields, oid.SERIAL_GENERATED, 7, 3, layout=layout)
         assert tuple(oid.unpack(value, layout))[:3] == fields
         assert len(oid.to_bytes(value, layout)) == total // 8

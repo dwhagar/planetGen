@@ -48,6 +48,7 @@ from collections import namedtuple
 
 from planetgen import tuning
 from planetgen.galaxy.density import _vertical, bulge_bound, model_terms
+from planetgen.galaxy import object_uid, spherical
 from planetgen.galaxy.geometry import layer_center_z_pc, ring_radius_pc, ring_sector_count
 from planetgen.galaxy.sector import SpaceSector
 
@@ -279,3 +280,196 @@ class GalaxyBounds:
         pick -= start
         ring_index = bisect.bisect_right(self._cumulative, pick) - 1
         return ring_index, layer_index, pick - self._cumulative[ring_index]
+
+
+# ---------------------------------------------------------------------------
+# The outline on spherical shells (`galaxy/spherical.py`)
+# ---------------------------------------------------------------------------
+
+DEFAULT_MAX_SHELL = 100000
+"""int: Hard cap on how far out the shells are walked, so a pathological
+shape with no real outward decay can't scan forever (the default Milky Way
+ends at shell 3,764)."""
+
+
+def _band_qualifies(shape, edge_pc, shell, band, threshold_rho):
+    plane, z = spherical.band_center_pc(shell, band, edge_pc)
+    return bound_relative_density_at(shape, plane, z) >= threshold_rho
+
+
+def _highest_qualifying_band(shape, edge_pc, shell, threshold_rho):
+    """
+    The highest `|band|` of shell `shell` with a cell that can qualify.
+    Walking north from the equatorial band the bound only falls, until the
+    last step toward the pole, where the thin-disk exponent flattens and the
+    density rises again; so the pole cap is checked first (if it qualifies the
+    outline reaches the axis and the whole shell is in), and otherwise the
+    qualifying bands are one run from the equator, found by bisection.
+    Assumes the equatorial band qualifies.
+    """
+    top = spherical.band_range(shell)[1]
+    if _band_qualifies(shape, edge_pc, shell, top, threshold_rho):
+        return top
+    low, high = 0, top - 1      # `low` qualifies; `high` is the last band that might
+    while low < high:
+        middle = (low + high + 1) // 2
+        if _band_qualifies(shape, edge_pc, shell, middle, threshold_rho):
+            low = middle
+        else:
+            high = middle - 1
+    return low
+
+
+def build_shell_extents(shape, edge_pc, threshold_rho, max_shell=DEFAULT_MAX_SHELL):
+    """
+    The galaxy's outline on the spherical grid: every shell from the core
+    out to the last one whose equatorial band can qualify, each with the
+    highest band it reaches. A shell's qualifying bands are one run around
+    the plane, so `-high_band .. high_band` (both caps in when `high_band` is
+    the shell's top band) holds every cell that can qualify. Like the
+    cylinder's outline it is a safe superset: the bound takes the best
+    longitude, so a wedge inside may still fall short, and that exact check is
+    made when the wedge is visited.
+
+    The cost is a bisection per shell (about 14 bound evaluations), so the
+    whole default galaxy is a few tens of thousands of calls.
+
+    Args:
+        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+        edge_pc (float): The sector edge length (shell depth), parsecs.
+        threshold_rho (float): The `relative_density` a sector center must
+            reach (`1 / expected_system_count_at_density_1(...)`).
+        max_shell (int): Stop walking outward past this shell.
+
+    Returns:
+        tuple: `(extents, outer_shell_index, edge_confirmed)` -- `extents` is
+            a list of `(shell_index, high_band)`, the core first (empty if
+            even the core can't qualify); `outer_shell_index` the last shell
+            (`-1` if none); `edge_confirmed` is `False` when `max_shell` cut
+            the walk short.
+    """
+    if not _band_qualifies(shape, edge_pc, 0, 0, threshold_rho):
+        return [], -1, True
+    extents = [(0, 0)]
+    shell = 0
+    while shell < max_shell and _band_qualifies(shape, edge_pc, shell + 1, 0, threshold_rho):
+        shell += 1
+        extents.append((shell, _highest_qualifying_band(shape, edge_pc, shell, threshold_rho)))
+    return extents, shell, shell < max_shell
+
+
+def shell_candidate_counts(extents):
+    """
+    The cells each shell of an outline holds, for storing beside it: shell
+    `k`'s bands `-high_band .. high_band`, every wedge.
+
+    Args:
+        extents (iterable): `(shell_index, high_band)` pairs, as
+            `build_shell_extents` returns them.
+
+    Returns:
+        list[tuple]: `(shell_index, high_band, cell_count)`, same order.
+    """
+    return [(shell, high, spherical.cells_in_band_range(shell, high)) for shell, high in extents]
+
+
+def shell_candidate_sector_count(extents):
+    """Total candidate sectors in a set of shell extents: every wedge of
+    every band each shell reaches (an upper bound on qualifying sectors)."""
+    return sum(count for _shell, _high, count in shell_candidate_counts(extents))
+
+
+def outline_object_id_layout(extents):
+    """
+    The object-ID layout (`object_uid.Layout`) an outline needs: the
+    default 80 bits when its shells, bands and widest band's wedges fit the
+    12/12/16-bit birth-sector field (the default galaxy does), else the field
+    widened. The plan step calls this, so a galaxy whose addresses cannot be
+    written down is refused before anything is stored.
+
+    Args:
+        extents (iterable): `(shell_index, high_band)` pairs, as
+            `build_shell_extents` returns them (a count may follow).
+
+    Returns:
+        object_uid.Layout: The layout.
+
+    Raises:
+        ValueError: If even 128 bits do not hold the outline's addresses.
+    """
+    rows = list(extents)
+    if not rows:
+        return object_uid.DEFAULT_LAYOUT
+    max_shell = max(row[0] for row in rows)
+    max_band = max(row[1] for row in rows)
+    max_wedges = max(spherical.wedge_count(row[0], 0) for row in rows)
+    return object_uid.fit_layout(max_shell, -max_band, max_band, max_wedges)
+
+
+class ShellBounds:
+    """
+    The galaxy's stored outline on spherical shells, for checking an address
+    *before* anything is generated there: every `planetgen galaxy` path and
+    visit-time generation go through `contains`.
+
+    Attributes:
+        edge_pc (float): The sector edge the outline was built at.
+        high_band (dict): `{shell_index: highest band reached}`; the shell
+            holds bands `-high .. high`.
+        outer_shell_index (int): The outermost shell; `-1` when nothing holds
+            content.
+    """
+
+    def __init__(self, shell_extents, edge_pc):
+        """`shell_extents` is `(shell_index, high_band)` pairs, or
+        `(shell_index, high_band, cell_count)` triples when the count is
+        stored (it saves counting every band of every shell again)."""
+        self.edge_pc = edge_pc
+        self.high_band = {}
+        self._cells = {}
+        for row in shell_extents:
+            self.high_band[row[0]] = row[1]
+            self._cells[row[0]] = row[2] if len(row) > 2 else spherical.cells_in_band_range(row[0], row[1])
+        self.outer_shell_index = max(self.high_band) if self.high_band else -1
+        # Cells in shells 0 .. k-1, for k = 0 .. outer + 1.
+        self._cumulative = [0]
+        for shell in range(self.outer_shell_index + 1):
+            self._cumulative.append(self._cumulative[-1] + self._cells.get(shell, 0))
+
+    def __bool__(self):
+        return bool(self.high_band)
+
+    def contains(self, shell, band):
+        """Whether cell `(shell, band, any wedge)` lies inside the galaxy's
+        outline."""
+        high = self.high_band.get(shell)
+        return high is not None and abs(band) <= high
+
+    def describe_miss(self, shell, band):
+        """A one-line reason `contains` said no, for error messages."""
+        high = self.high_band.get(shell)
+        if high is None:
+            return f"shell {shell} is outside the galaxy (shells run from 0 to {self.outer_shell_index})"
+        return f"band {band} is outside the galaxy (shell {shell} reaches bands -{high} to {high})"
+
+    def cell_count(self):
+        """How many sectors (every wedge of every band of every shell) lie
+        inside the outline."""
+        return self._cumulative[-1]
+
+    def random_address(self, rng, max_shell=None):
+        """
+        A random `(shell, band, wedge)` inside the outline, every sector
+        equally likely (so uniform by volume), optionally only from shells
+        `0 .. max_shell`.
+
+        Returns:
+            tuple or None: `None` when nothing lies inside.
+        """
+        top = self.outer_shell_index if max_shell is None else min(self.outer_shell_index, max_shell)
+        if top < 0:
+            return None
+        total = self._cumulative[top + 1]
+        pick = rng.randrange(total)
+        shell = bisect.bisect_right(self._cumulative, pick) - 1
+        return spherical.nth_cell_in_band_range(shell, self.high_band[shell], pick - self._cumulative[shell])
