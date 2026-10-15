@@ -301,6 +301,34 @@ WEIGHT_ANGLE_BINS = 8
 """int: Angle bins per sampled band in `shell_weight`."""
 
 
+def sampled_band_expectations(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions,
+                              band_samples=WEIGHT_BAND_SAMPLES, angle_bins=WEIGHT_ANGLE_BINS):
+    """
+    The expected bright stars of a shell on `band_samples` evenly spaced bands with `angle_bins` bins each:
+    `[(band, plane_radius_pc, z_pc, expected)]`, each `expected` scaled up by the bands it stands for, so they
+    add up to the shell's.
+    """
+    bands = 2 * high_band + 1
+    if high_band < 0 or sum(fractions.values()) <= 0.0:
+        return []
+    count = min(bands, band_samples)
+    step = bands / count
+    out = []
+    for k in range(count):
+        band = -high_band + min(int((k + 0.5) * step), bands - 1)
+        wedges = wedge_count(shell_index, band)
+        bins = min(wedges, angle_bins)
+        plane, z = band_center_pc(shell_index, band, edge_pc)
+        points = [(plane * math.cos(theta), plane * math.sin(theta))
+                  for theta in ((j + 0.5) * 2 * math.pi / bins for j in range(bins))]
+        band_expected = 0.0
+        for densities in _densities_at(points, z, shape):
+            band_expected += sum(densities[population] * fractions[population] for population in POPULATIONS)
+        out.append((band, plane, z, expected_at_density_1 * wedges * volume_ratio(shell_index, band, edge_pc) / bins
+                    * band_expected * step))
+    return out
+
+
 def shell_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions,
                          band_samples=WEIGHT_BAND_SAMPLES, angle_bins=WEIGHT_ANGLE_BINS):
     """
@@ -312,27 +340,8 @@ def shell_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_den
     Args:
         fractions (dict): `band_fractions`.
     """
-    bands = 2 * high_band + 1
-    if high_band < 0:
-        return 0.0
-    count = min(bands, band_samples)
-    step = bands / count
-    if sum(fractions.values()) <= 0.0:
-        return 0.0
-    expected = 0.0
-    for k in range(count):
-        band = -high_band + min(int((k + 0.5) * step), bands - 1)
-        wedges = wedge_count(shell_index, band)
-        bins = min(wedges, angle_bins)
-        plane, z = band_center_pc(shell_index, band, edge_pc)
-        points = [(plane * math.cos(theta), plane * math.sin(theta))
-                  for theta in ((j + 0.5) * 2 * math.pi / bins for j in range(bins))]
-        band_expected = 0.0
-        for densities in _densities_at(points, z, shape):
-            band_expected += sum(densities[population] * fractions[population] for population in POPULATIONS)
-        expected += (expected_at_density_1 * wedges * volume_ratio(shell_index, band, edge_pc) / bins
-                     * band_expected * step)
-    return expected
+    return sum(item[3] for item in sampled_band_expectations(
+        shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, band_samples, angle_bins))
 
 
 def shell_weight(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions):
