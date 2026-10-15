@@ -62,14 +62,21 @@ class StageProgress:
 
     def detail(self, label, done, total):
         """Shows `done` of `total` items of the current step under the step
-        bar (the signature the store's `on_progress` hooks call)."""
+        bar (the signature the store's `on_progress` hooks call). The bar
+        stays while the label changes, as a step that names each phase of its
+        batch does, so its rate builds up over the whole step; it starts over
+        when the total changes or the count goes backwards. The step bar
+        moves by the share of the step done, so a run of one long step still
+        has a rate, and a time left, on both bars (PERF.102)."""
+        total = max(total, 1)
         text = f"  {label}"
-        if self.detail_bar is None or self.detail_label != label:
+        if self.detail_bar is None or self.detail_bar.total != total or done < self.detail_bar.done:
             self._clear_detail()
-            self.detail_bar = steps.Step(text, f"{self.kind}:{label}", max(total, 1), args=self.args,
+            self.detail_bar = steps.Step(text, f"{self.kind}:{label}", total, args=self.args,
                                          stats=self.stats, progress=self.progress).__enter__()
-            self.detail_label = label
-        self.detail_bar.update(completed=done, total=max(total, 1), description=text)
+        self.detail_label = label
+        self.detail_bar.update(completed=done, total=total, description=text)
+        self.bar.update(completed=max(self.done - 1, 0) + min(done / total, 1.0))
 
     def _clear_detail(self):
         if self.detail_bar is not None:
