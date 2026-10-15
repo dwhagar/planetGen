@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1362] - 2026-10-15
+
+**Headline:** The sector grid is documented as the shells, bands and wedges it now is.
+
+### Changed
+- `docs/design/galaxy-coordinate-system.md` is rewritten for the spherical grid (the core ball, shells, bands, wedges and polar caps, the wedge rule, designations, seeds, the outline and the migration), the cylinder design moves to `docs/design/archive/`, and the README, the design index, the plan and the object ID notes say shell, band and wedge instead of ring, layer and slot.
+
 ## [8.0.1361] - 2026-10-15
 
 **Headline:** The web interface guide now lists every page and route the site has.
