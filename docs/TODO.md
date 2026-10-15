@@ -4113,18 +4113,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.28 One migration for the facility type tables and the new facility columns**
-  Needed by POP.10 (Foundations Generation), same rule as DB.27: only
-  Foundations Database adds migrations. Add `facility_types`,
-  `facility_type_fields` and `facility_field_values`, and the new
-  columns on `facilities` (type, affiliation, the five Green/Yellow/Red
-  ratings and the rating source), as laid out under "Data model" in the
-  facility section of docs/design/population-and-politics.md. Done: the
-  migration (next after DB.27's) with its old-schema fixture and tests,
-  merged so POP.10 can be built on it. Owner: Foundations Database,
-  right after DB.27.
-  Prerequisite: DB.27 (done, PR #1446). Related: POP.10, DB.27 (done, PR #1446).
-
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
   Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
   to a new version, if there are active jobs, ask the user to cancel the
@@ -4159,9 +4147,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   lists active runs, and PERF.99 supplies the cancel through the stop
   command, after which the check uses them. PERF.100 (which deletes the
   old work tables with a migration) must pass through this check too.
-  Owner: Foundations Database, after DB.28 and before PERF.100.
+  Owner: Foundations Database, after DB.28 (done, PR #1476) and before PERF.100.
   Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
-  OPS.48, DB.18, DB.27 (done, PR #1446), DB.28.
+  OPS.48, DB.18, DB.27 (done, PR #1446), DB.28 (done, PR #1476).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
   Needed by POP.12 (Foundations Generation), same rule as DB.27 and
@@ -6430,7 +6418,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   types refine the five
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
-  Prerequisite: DB.28 (the migration).
+  Prerequisite: DB.28 (the migration; done, PR #1476).
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.11 Scatter space vessels and stations for the races in their territories**
