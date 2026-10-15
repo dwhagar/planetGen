@@ -77,6 +77,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings |  |  |
 | POP.12 | List every species that could live in a given environment, and give every species its environment limits | DB.30, POP.9 |  |
+| DB.28 | One migration for the facility type tables and the new facility columns |  |  |
+| DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
 | DB.30 | One migration for the per-species environment limits | DB.29 |  |
 
 ### Nebula planets

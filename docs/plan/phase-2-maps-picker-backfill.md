@@ -246,8 +246,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.129 | Multi-star systems of up to seven stars |  | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center |  | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
-| DB.28 | One migration for the facility type tables and the new facility columns |  |  |
-| DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
