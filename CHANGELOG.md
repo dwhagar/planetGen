@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1212] - 2026-10-15
+
+### Added
+- Schema v89: facility types, their typed fields and values (`facility_types`, `facility_type_fields`, `facility_field_values`), and on `facilities` a type, an affiliation, five Green/Yellow/Red ratings and how they were set, ready for the facility work.
+
 ## [8.0.1211] - 2026-10-15
 
 ### Added
