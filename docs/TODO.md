@@ -3399,33 +3399,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.216 Habitability text is too wordy and the Suitability sentence is oddly worded (bug)**
-  Boss (2026-10-15 03:46Z): "Bug, Sustainability text is very oddly
-  worded: **Suitability: Red** (0.20). The food is none, what native
-  life a person could eat from. Also considered: the water within reach,
-  ice, or an ocean under ice (Yellow); the shelter, 742 mSv a year
-  (Yellow). Should say something like: **Suitability: Red** (0.20).
-  There is no food or water readily available, but there is shelter
-  available." and "Bug, All text is to wordy. Example cleanup: **PHI-4
-  habitability** is 0.00, and a visitor needs a sealed suit. /
-  **Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure
-  suit is needed. / **Temperature: Red** (0.00). The air temperature is
-  -227 C, so an environment suit is needed. / **Air: Red** (0.0). There
-  is no atmosphere (0.0 kPa). / **Water: Red** (0.00). There is no
-  liquid water to support life. / **Radiation: Yellow** (0.45). The
-  radiation dose is a mean of 742 mSv a year, inside the Yellow band (up
-  to 1 Sv a year). / **Suitability: Red** (0.20). There is no atmosphere
-  (0.0 kPa), no food or water. Shelter is potentially available." Use
-  these lines as the spec for every line of the description (index line,
-  Pressure, Temperature, Air, Water, Radiation, Suitability): short
-  sentences, the number and the consequence, no list of what else was
-  considered. The index is named PHI-6 in the text (the first line of
-  Boss's example says PHI-4 only because it is the old text). Same code
-  as the two items before it; do it after them. Done when every rating
-  line reads like the examples and tests pin the wording. Rebase on
-  main; Foundations Generation avoids the description text meanwhile.
-  Prerequisite: GEN.215 (done, PR #1478). Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
-
 - [ ] **GEN.217 Refresh the stored habitability numbers on existing planets and moons**
   The habitability paragraph is recomputed on every request, but the
   stored numbers (flux_variation, phi4, the six phi4_* and tier_*
@@ -3441,21 +3414,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Foundations Generation (no new Boss message). Expect visible changes:
   stored moon scores differ from a re-score of their own stored
   conditions, so the fill will change some chips, making them agree with
-  the description.
-  Prerequisite: GEN.216. Related: GEN.214 (done, PR #1472), GEN.215 (done, PR #1478),
-  GEN.216.
+  the description. Also fixes a generation bug found in testing: a
+  lifeless moon kept its first habitability score from before its
+  temperature settled, so about a third of moons had a chip that
+  disagreed with the description (no separate item).
+  Prerequisite: GEN.216 (done, PR #1482). Related: GEN.214 (done, PR #1472),
+  GEN.215 (done, PR #1478), GEN.216 (done, PR #1482).
 
 - [ ] **GEN.218 One habitability describer, in the short wording**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
   for this item. Fold physics/protection.paragraph and
   physics/habitability_explain into one module that returns the rating
-  rows (domain, colour, score, sentence) in Boss's wording from GEN.216
+  rows (domain, colour, score, sentence) in Boss's wording from GEN.216 (done, PR #1482)
   (his example lines are the spec): one number formatter on the ladders,
   one gas-name table, PHI-6 everywhere, dead code deleted
   (habitability_explain.factors and helpers unless a row sentence needs
   them). Keeps GEN.148's temperature behaviour.
-  Prerequisites: UX.104, GEN.216, GEN.214 (done, PR #1472).
+  Prerequisites: UX.104, GEN.214 (done, PR #1472).
 
 - [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
