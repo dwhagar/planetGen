@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1264] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the nebula kinds and layers per slab in the generation text (GEN.222) as open work; it merged in #1529.
+
+TODO items resolved: GEN.222 / Added: none
+
 ## [8.0.1263] - 2026-10-15
 
 ### Changed
