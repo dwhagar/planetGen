@@ -74,6 +74,7 @@ def fixtures():
         "designations": designations,
         "orbitPositions": orbit_positions(),
         "tilePack": tile_pack(),
+        "tileCut": tile_cut(),
         "galaxyControls": {
             "public": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view)),
             "admin": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view, generate={"url": "/x"})),
@@ -124,6 +125,32 @@ def tile_pack():
     header, tiles = tilepack.unpack_response(body)
     return {"body": base64.b64encode(body).decode("ascii"), "header": header, "tiles": tiles,
             "sizes": {key: len(raw) for key, raw in parts}}
+
+
+def tile_cut():
+    """MAP.152: the distance cut and the tiles to fetch for a few cameras, which
+    `static/galaxytilecut.js` must reproduce key for key."""
+    from planetgen.galaxy.viewport import (
+        DISTANCE_CUT_EDGES, DISTANCE_CUT_FADE_BAND, TILE_MAX_LEVEL, TILE_ROOT_EDGE_PC,
+        distance_cut_tiles, fetch_cut_tiles,
+    )
+
+    bounds = ((-12600.0, -12600.0, -960.0), (12600.0, 12600.0, 960.0))
+    cases = []
+    for camera, look in (
+        ((34000.0, -20000.0, 28000.0), (0.0, 0.0, 0.0)),
+        ((8000.0, 0.0, 0.0), (8000.0, 0.0, -100.0)),
+        ((8012.0, 21.0, 9.0), (8000.0, 4.0, 4.0)),
+        ((0.0, 0.0, 0.0), (1.0, 1.0, 0.0)),
+        ((-5000.0, 3000.0, 700.0), (-5100.0, 3000.0, 700.0)),
+    ):
+        cases.append({
+            "camera": camera, "look": look, "bounds": bounds,
+            "cut": distance_cut_tiles(camera, look, bounds),
+            "fetch": fetch_cut_tiles(camera, look, bounds),
+        })
+    return {"edges": DISTANCE_CUT_EDGES, "band": DISTANCE_CUT_FADE_BAND, "root": TILE_ROOT_EDGE_PC,
+            "finestLevel": TILE_MAX_LEVEL - 1, "cases": cases}
 
 
 def star_light():

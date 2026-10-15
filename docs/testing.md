@@ -197,6 +197,17 @@ as before).
 minutes cuts it), with its output and start time written to a file, and read the last line of that file rather than
 looking for processes.
 
+### The progress log and the build id
+
+Every `scripts/test.py` run works out the id of its build (printed on the first line: `build 1a2b3c4d5e6f7a8b`) and
+keeps `.test-progress/<id>.jsonl`: a header with the parts the id is made of, then one line for every test that
+finished (node id, outcome, seconds, worker), written as the test finishes, so a killed run loses only the tests that
+were running. This is the record a later `--resume` reads (TEST.151); nothing uses it yet. The id changes when the
+git tree, an uncommitted or untracked file (git-ignored files do not count), an installed package, the Python,
+MySQL or Redis version, the command and its pytest arguments, the commit `changed` compares with, a `PLANETGEN_*`
+or `PYTEST_*` variable or the UTC date changes, and not otherwise. A new run of the same build starts its log
+again; logs older than a day are removed.
+
 ### Only the tests a change touches, `scripts/test.py changed`
 
 `scripts/test.py full` also records, for every test that passed, which

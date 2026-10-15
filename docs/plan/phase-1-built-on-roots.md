@@ -62,7 +62,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.24 | Generate the galactic core on layer 0 |  | Bulk core fill runs on the parallel path; new mode on generate.html. |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) |  | Research: optional. |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs |  |  |
-| GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | DB.26 | Research: sub-item of GEN.99. |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
@@ -71,8 +70,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | DB.26 | Research follow-up to GEN.84 (built). |
-| GEN.178 | Magnetic fields: the induced field of an ocean moon | DB.26 | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
+| GEN.148 | Habitability index follow-ups from the research (GEN.84 built) |  | Research follow-up to GEN.84 (built). |
+| GEN.178 | Magnetic fields: the induced field of an ocean moon |  | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
 
 ### Tech levels and facilities
 
@@ -196,8 +195,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| TEST.150 | Test run progress log and build id for resuming a run |  |  |
-| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | TEST.150 |  |
+| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build |  |  |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | TEST.151 |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
@@ -255,8 +253,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | PERF.96 | PERF.86 step 3 |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | PERF.95 | PERF.86 step 2 |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count |  | PERF.86 step 1 |
-| DB.26 | One migration for the habitability columns: flux variation, the induced moment, the nebula age, photon rate and hosts, and the air, water and suitability ratings |  |  |
-| OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix |  |  |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |

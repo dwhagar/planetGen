@@ -202,9 +202,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line |  |  |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall |  |  |
-| GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | GEN.207 |  |
-| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | DB.26 |  |
-| UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | GEN.207, UX.100 |  |
+| UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | UX.100 |  |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes |  |  |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |
 | MAP.192 | See the objects whose positions changed in the last orbital update |  |  |
@@ -247,6 +245,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.129 | Multi-star systems of up to seven stars |  | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center |  | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
+| DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source |  |  |
+| DB.28 | One migration for the facility type tables and the new facility columns | DB.27 |  |
+| DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |

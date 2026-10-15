@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.60 |
 | GEN | GEN.214 |
 | PERF | PERF.101 |
-| DB | DB.27 |
+| DB | DB.30 |
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
@@ -492,7 +492,10 @@ Parents marked "new parent" had no old number of their own.
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | done, PR #1365 |
 | DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | done, PR #1317 |
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | done, PR #1376 |
-| DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings | none | open |
+| DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings | none | done, PR #1423 |
+| DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | open |
+| DB.28 | One migration for the facility type tables and the new facility columns | none | open |
+| DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -686,7 +689,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | done, PR #865 |
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | open |
 | GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K | none | open |
-| GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | none | open |
+| GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | none | done, PR #1442 |
 | GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) | none | open |
 | GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) | none | done, PR #1239 |
 | GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | open |
@@ -743,8 +746,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | done, PR #1325 |
 | GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | done, PR #1278 |
-| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
-| GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
+| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | done, PR #1429 |
+| GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | done, PR #1433 |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall | none | open |
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process | none | done, PR #1310 |
@@ -1061,7 +1064,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.47 | update.sh stops at the database migrate step in the venv: cryptography is missing from the requirements (bug) | none | done, PR #1346 |
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) | none | done, PR #1395 |
 | OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) | none | done, PR #1387 |
-| OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix | none | open |
+| OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix | none | done, PR #1425 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1565,7 +1568,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
 | TEST.149 | Two physics tests fail under load and pass alone (bug) | none | done, PR #1405 |
-| TEST.150 | Test run progress log and build id for resuming a run | none | open |
+| TEST.150 | Test run progress log and build id for resuming a run | none | done, PR #1431 |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
 | TEST.153 | A single hung test can stall a whole run (bug) | none | open |

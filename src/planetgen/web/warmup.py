@@ -20,7 +20,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.tilecache import fetch_stage, fetch_tiles
-from planetgen.web.maps.galaxymap3d import initial_tile_request, view_radius_bounds
+from planetgen.web.maps.galaxymap3d import initial_tile_request, tile_bounds_pc, view_radius_bounds
 
 
 def opening_request(galaxy_shape):
@@ -35,7 +35,7 @@ def opening_request(galaxy_shape):
     """
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
-    return initial_tile_request(max_radius)
+    return initial_tile_request(max_radius, (0.0, 0.0, 0.0), tile_bounds_pc(edge_pc, galaxy_shape))
 
 
 def warm_opening_view(db):

@@ -67,16 +67,16 @@ NULL_IN_THIS_GALAXY = {
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
     **{("interstellar_comets", column): CHANCE for column in SECTOR_PLACEMENT},
+    # Only a lit class (C to G) has host stars (GEN.150), and the seeded galaxy's few nebulae may all be dark.
+    **{("nebulae", column): CHANCE for column in ("age_myr", "q_total", "hosts")},
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
     ("sectors", "wiki_url"): "never published", ("star_systems", "wikijs_url"): "never published",
     ("star_systems", "mediawiki_url"): "never published",
     ("system_configs", "age"): "only with --age",
-    # v87 (DB.26): the columns the Generation lane fills (GEN.148, GEN.150, GEN.178, GEN.207) once it lands.
+    # v87 (DB.26): the columns the Generation lane fills (GEN.148, GEN.150, GEN.178, GEN.207) once it lands (GEN.207's are written now).
     **{(table, column): "not generated yet" for table in ("planets", "moons") for column in (
-        "induced_moment_a_m2", "flux_variation", "phi4_water", "tier_water", "phi4_suitability",
-        "tier_suitability")},
-    **{("nebulae", column): "not generated yet" for column in ("age_myr", "q_total", "hosts")},
+        "induced_moment_a_m2", "flux_variation")},
     # v88 (DB.27): the tech level the POP.9 pass draws.
     **{("species", column): "not generated yet" for column in (
         "energy_index", "materials_index", "information_index", "medical_index", "propulsion_index",

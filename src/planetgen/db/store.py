@@ -3230,16 +3230,17 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         """
         INSERT INTO nebulae (
             sector_id, name, nebula_class, nebula_type, radius_ly, composition, formation_cause,
-            dominant_species, density_cm3, temperature_k, extinction_av,
+            dominant_species, density_cm3, temperature_k, extinction_av, age_myr, q_total, hosts,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, nebula.name, nebula.nebula_class, nebula.nebula_type, nebula.radius_ly,
             nebula.composition, nebula.formation_cause,
             nebula.dominant_species, nebula.density_cm3, nebula.temperature_k, nebula.extinction_av,
+            nebula.age_myr, nebula.q_total, nebula.hosts,
             nebula.galactic_orbital_speed_kms, nebula.galactic_orbital_period_gy,
             nebula.galactic_orbital_phase_deg, nebula.galactic_min_update_interval_years,
             placement.get("center_x_pc"), placement.get("center_y_pc"),
@@ -4358,6 +4359,16 @@ def refresh_system_dose(conn, system_id):
         _refresh_cloud_doses(conn, [(system_id, row["inside_nebula_id"], row["inside_remnant_id"])])
 
 
+def _stored_life_stage(conn, table, row):
+    """The `habitability.LIFE_STAGES` stage of a stored planet or moon `row` (`planets` or `moons`), read
+    from its life chemistry and evolutionary paragraphs (`habitability_world.life_stage`), for a re-score."""
+    prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
+    paragraphs = [r["paragraph"] for r in conn.execute(
+        f"SELECT paragraph FROM {prefix}_evolutionary_paragraphs WHERE {id_column} = ? ORDER BY position",
+        (row["id"],)).fetchall()]
+    return habitability_world.life_stage(row["life_chemical"], paragraphs)
+
+
 def _refresh_cloud_doses(conn, system_changes):
     """
     GEN.87: re-derives the cosmic-ray multiplier (`dose_helio_mult`) and the
@@ -4399,7 +4410,8 @@ def _refresh_cloud_doses(conn, system_changes):
                 if not compact and row["energy_flux_w_m2"] is not None:
                     # GEN.89: the dose is one of the score's inputs. (A compact host's planet is
                     # rated at a lethal dose whatever the cosmic rays do.)
-                    scores = habitability_world.compute({**dict(row), "surface_dose_msv_yr": total})
+                    scores = habitability_world.compute({**dict(row), "surface_dose_msv_yr": total,
+                                                         "life_stage": _stored_life_stage(conn, table, row)})
                     scored = tuple(scores[name] for name in habitability_world.SCORE_FIELDS)
                 rows.append((row["id"], multiplier, total, *scored))
             if rows:

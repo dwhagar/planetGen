@@ -2,6 +2,146 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1181] - 2026-10-15
+
+### Changed
+
+- Plan notes and MAP.151b: Foundations Maps may build the database changes it needs after telling Foundations Database first.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1180] - 2026-10-15
+
+### Changed
+
+- MAP.151b: the ladder is 243/81/27/9/3/1 (729 dropped) and its PR carries a data-only migration that refills galaxy_block_stats.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1179] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the nebula host-star item (GEN.150) as done.
+
+## [8.0.1178] - 2026-10-15
+
+### Changed
+
+- **Nebula sizes from their stars (GEN.150).** An emission, cluster or reflection nebula (classes C to G) now has an age, a list of host stars and, when it is ionized, a photon rate, and its radius and density follow from them (a Stromgren sphere grown as the front expands for the nebula's age) instead of being drawn on their own. A star hosts a nebula only while its birth cloud lasts: the star's age must be under the class limit (1 Myr for C, 10 for D, 20 for E, 50 for F, 5 for G), so old O stars light nothing. The odds are now 0.25 for O and B0 to B2 stars, 0.05 for B3 to B9 and 0.01 for A, and B0 to B2 stars no longer make D nebulae. D and E add a cluster drawn from the IMF. Nebulae stored before this release keep their sizes.
+
+## [8.0.1177] - 2026-10-15
+
+### Changed
+
+- The TODO list records the plan change for the map hand-offs (MAP.152): per-tile origins are already met, and the hand-offs wait for the Galaxy Map selection fixes.
+
+## [8.0.1176] - 2026-10-15
+
+### Changed
+
+- The TODO list notes the server part of the fly-through map hand-off (MAP.152) as done.
+
+## [8.0.1175] - 2026-10-15
+
+### Changed
+- **The Galaxy Map fetches tiles by distance from the camera (MAP.152).** Near space comes in small tiles and far space in big ones, inside the cone you are looking along, instead of one tile size for the whole view, so a star field stays sharp close in and light far out. Stars fade in and out as the camera crosses from one tile size to the next, with no pop. The brightness floors by tile size are gone, and the per-tile star budgets were refit so a view still holds under 70,000 stars.
+
+## [8.0.1174] - 2026-10-15
+
+### Changed
+
+- The update.sh gate item (DB.29) now also covers runs from systemd or cron and a 30-second silence at the prompt, both of which mean no.
+
+## [8.0.1173] - 2026-10-15
+
+### Changed
+
+- The database item DB.29 now covers update.sh as well: it refuses to start while jobs are active unless --yes is passed or the user confirms cancelling them.
+
+## [8.0.1172] - 2026-10-15
+
+### Added
+
+- A database item is filed: a migration refuses to start while jobs are active and asks the user to cancel them first.
+
+## [8.0.1171] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the habitability description paragraph (GEN.208) as done.
+
+## [8.0.1170] - 2026-10-15
+
+### Changed
+
+- **One paragraph says where a body falls and what it needs (GEN.208).** The habitability description of a planet or moon is now one paragraph: the overall value and colour, then each of the six categories (Pressure, Temperature, Air, Water, Radiation, Suitability) with its colour, the reason and the gear it asks for, and last the kit a visitor needs overall. A category that a sealed suit makes moot says so, and a category that makes the surface impossible while the others are fine is named.
+- **Every limit is in one table (GEN.208).** The pressure, oxygen, temperature, wet-bulb and dose limits of the habitability bands and the protective gear are rows of one table that both read, so the score, the gear and the description agree. Where the earlier table and the research notes differed, the more permissive value is used: mask minimum 14.3 kPa (not 20), no-gear minimum 50 kPa (not 70), hyperbaric suit to 10,000 kPa (not 5,000), inspired oxygen minimum 8 kPa (not 19.5), insulated suit to -50 C (not -40), wet bulb 31 C (not 30). A heat-shielded suit above 140 C is new.
+
+## [8.0.1169] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the test run progress log (TEST.150) as done.
+
+## [8.0.1168] - 2026-10-15
+
+### Added
+- **A progress log and a build id for every test run** (TEST.150, the first step of resuming a run). `scripts/test.py` prints the id of the build it is running and keeps `.test-progress/<id>.jsonl`, a line for every test that finished, written as it finishes. The id covers the code, uncommitted files, installed packages, Python, MySQL and Redis versions, the command and the day. Nothing reads the log yet; `--resume` is next.
+
+### Fixed
+- **Two map browser tests wait for what they check instead of a fixed pause** (TEST.126 group). The Color by test now waits for the legend to be visible after the reload, and the IndexedDB tiles test waits (up to 20 s) for the tiles to be stored; both failed once under load and passed alone.
+
+## [8.0.1167] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the habitability domain split (GEN.207) as done.
+
+## [8.0.1166] - 2026-10-15
+
+### Changed
+
+- **Six habitability domains and Suitability (GEN.207).** The habitability colours now run over six domains: Pressure, Temperature, Air (is the air breathable), Water (is the water drinkable; a world with no liquid water is Red), Radiation and a new long-term Suitability, the lowest of water within reach, native food and shelter from radiation. The overall score is the geometric mean held under colour gates: Radiation and Temperature cap it at their own colour, Pressure in Yellow or Red caps it there unless a full suit is needed anyway, Air, Water or a Red Suitability cap it at Yellow (never lower on their own), and Blue needs all six Blue. A Red Suitability is forced when Radiation, Temperature, Pressure or Water is Red. Planet and moon rows, the Habitability levels page and the description show all six; the equipment still comes from pressure, temperature, air and radiation. Scores stored before this release change when a planet is regenerated.
+
+## [8.0.1165] - 2026-10-15
+
+### Changed
+
+- The TODO list records the first step of the shared unit ladder (UX.23) and Boss's approved in-universe word list (UX.42).
+
+## [8.0.1164] - 2026-10-15
+
+### Changed
+
+- Distances, speeds and times now share one table of units (`planetgen/util/ladders.py`) and one algorithm in Python and in the browser, so later units (mass, temperature, pressure and the rest) add a table, not a new formatter. The browser's three ladder files are replaced by `unitladder.js` and a generated `unitladders.js`. The text is the same as before except two cases that disagreed between the two languages: a half-way kilometer count ("9,999.5 km") now rounds away from zero in both, and a missing or NaN value is an en dash in the browser too.
+
+## [8.0.1163] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the habitability migration (DB.26) and the pymysql login workaround (OPS.50) as done, and adds the two migrations the tech-level and facility items need (DB.27, DB.28).
+
+## [8.0.1162] - 2026-10-15
+
+### Changed
+
+The MySQL 8 login hook (`planetgen/db/login.py`) stays in place when PyMySQL releases its fix and is tested against both the current pymysql step and a fixed one on a fake MySQL 8 server without TLS, so the login works on either release (OPS.49 follow-up).
+
+## [8.0.1161] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the tech-level design (POP.8) as done.
+
+## [8.0.1160] - 2026-10-15
+
+### Added
+- Schema v87: `planets` and `moons` gain `induced_moment_a_m2`, `flux_variation`, `phi4_water`, `tier_water`, `phi4_suitability` and `tier_suitability`, and `nebulae` gains `age_myr`, `q_total` and `hosts`, ready for the Generation work.
+
+### Changed
+- `phi4_chemistry` and `tier_chemistry` are now `phi4_air` and `tier_air`. Planets and moons generated before this update show them again after they are regenerated.
+
 ## [8.0.1159] - 2026-10-15
 
 ### Added

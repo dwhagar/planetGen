@@ -42,6 +42,8 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS_FILE = os.path.join(ROOT, ".test-runs.json")
 FAILURES_FILE = os.path.join(ROOT, ".test-failures.jsonl")
+PROGRESS_DIR = os.path.join(ROOT, ".test-progress")
+KEEP_PROGRESS_SECONDS = 24 * 3600
 AREAS = ("web", "api", "db", "generation", "physics", "names", "wiki", "ops", "other")
 
 
@@ -123,6 +125,36 @@ def describe_counts(counts):
     return ", ".join(f"{counts[word]} {word}" for word in order if counts.get(word)) or "no tests ran"
 
 
+def start_progress_log(command_key, extra, base, directory=None, now=None):
+    """Starts the progress log of this run (TEST.150): works out the build id, empties the log of that id if an
+    earlier run left one, writes its header line, removes logs older than a day, and returns (id, path, parts).
+    `src/tests/progress_log.py` appends a line for every test that finishes."""
+    sys.path.insert(0, os.path.join(ROOT, "src"))
+    try:
+        from tests import buildid
+    finally:
+        sys.path.pop(0)
+    directory = directory or PROGRESS_DIR
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    parts = buildid.build_parts(ROOT, command_key, extra, base, now=now)
+    identifier = buildid.build_id(parts)
+    os.makedirs(directory, exist_ok=True)
+    cutoff = time.time() - KEEP_PROGRESS_SECONDS
+    for name in os.listdir(directory):
+        old = os.path.join(directory, name)
+        try:
+            if name.endswith(".jsonl") and os.path.getmtime(old) < cutoff:
+                os.remove(old)
+        except OSError:
+            pass
+    path = os.path.join(directory, identifier + ".jsonl")
+    header = {"kind": "header", "build": identifier, "command": command_key, "parts": parts,
+              "started": now.strftime("%Y-%m-%dT%H:%M:%SZ")}
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(header) + "\n")
+    return identifier, path, parts
+
+
 def load_runs():
     try:
         with open(RUNS_FILE, encoding="utf-8") as f:
@@ -169,7 +201,7 @@ def rerun_failures(environment):
     verdicts = {}
     for nodeid, record in failed.items():
         command = [sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "-q", "-x", nodeid]
-        result = subprocess.run(command, cwd=ROOT, env=dict(environment, PLANETGEN_FAILURE_LOG=os.devnull),
+        result = subprocess.run(command, cwd=ROOT, env=dict(environment, PLANETGEN_FAILURE_LOG=os.devnull, PLANETGEN_PROGRESS_LOG=""),
                                 capture_output=True, text=True)
         verdicts[nodeid] = "passes alone" if result.returncode == 0 else "FAILS ALONE"
     print("--- verdicts (full reports in .test-failures.jsonl)")
@@ -213,8 +245,10 @@ def main(argv=None):
     key = args.command + (" " + " ".join(args.areas) if args.areas else "")
     previous = load_runs().get(key)
     started = time.time()
+    identifier, progress_path, _ = start_progress_log(key, extra, args.base)
     print(f"scripts/test.py {key}: started {datetime.datetime.now(datetime.timezone.utc):%H:%M}Z"
-          + (f", last time {minutes(previous['seconds'])}" if previous else ", no earlier run recorded"), flush=True)
+          + (f", last time {minutes(previous['seconds'])}" if previous else ", no earlier run recorded")
+          + f", build {identifier}", flush=True)
 
     status = 0
     totals = {}
@@ -222,7 +256,7 @@ def main(argv=None):
         os.remove(FAILURES_FILE)
     except OSError:
         pass
-    environment = dict(os.environ, PLANETGEN_FAILURE_LOG=FAILURES_FILE)
+    environment = dict(os.environ, PLANETGEN_FAILURE_LOG=FAILURES_FILE, PLANETGEN_PROGRESS_LOG=progress_path)
     if args.command == "budget":
         environment["PLANETGEN_BUDGET"] = "1"
     phase = "before the first phase"

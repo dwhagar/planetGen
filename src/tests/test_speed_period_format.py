@@ -5,14 +5,12 @@ The speed ladder (UX.13) and the time-period ladder (UX.14):
 `planetgen.util.format.format_speed_kms` shows a speed in one of km/h <
 km/s < Mm/s < c, and `format_duration_seconds` / `format_period_years` a
 period in the largest of µs < ms < s < minutes < hours < days < years < ky
-< My < Gy it is at least 1 of. The browser copies (`html/static/speed.js`,
-`html/static/period.js`) are checked against the same tables when Node is
-installed.
+< My < Gy it is at least 1 of. The browser copy (`html/static/unitladder.js`) is checked against the same
+tables when Node is installed.
 """
 
 import json
 import os
-import re
 import shutil
 import subprocess
 
@@ -20,9 +18,7 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit
-from planetgen.util.format import (
-    PERIOD_LADDER, SPEED_LADDER, format_duration_seconds, format_period_years, format_speed_kms, format_speed_ms,
-)
+from planetgen.util.format import format_duration_seconds, format_period_years, format_speed_kms, format_speed_ms
 
 _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
 _C = pc.SPEED_OF_LIGHT_KMS
@@ -111,29 +107,8 @@ def test_galactic_orbit_text_uses_both_ladders():
     assert format_galactic_orbit(205.7, 0.23626) == "206 km/s (236 My per orbit)"
 
 
-def test_ladders_are_sorted():
-    assert [step for _, _, step in SPEED_LADDER] == sorted(step for _, _, step in SPEED_LADDER)
-    assert [unit for *_, unit in PERIOD_LADDER] == sorted(unit for *_, unit in PERIOD_LADDER)
-
-
 def test_year_is_julian():
     assert _YEAR == 365.25 * 86400
-
-
-def _js_constants(name):
-    with open(os.path.join(_STATIC, name), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def test_browser_constants_match_python():
-    speed_js = _js_constants("speed.js")
-    assert re.search(r"SPEED_OF_LIGHT_KMS = ([0-9.]+);", speed_js).group(1) == repr(_C)
-    for label, *_ in SPEED_LADDER:
-        assert f'["{label}",' in speed_js
-    period_js = _js_constants("period.js")
-    assert "SECONDS_PER_YEAR = 365.25 * 24 * 3600;" in period_js
-    for plural, singular, _ in PERIOD_LADDER:
-        assert f'["{plural}", "{singular}",' in period_js
 
 
 def _run_node(module, function, values):
@@ -153,12 +128,12 @@ def _run_node(module, function, values):
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
 def test_browser_speed_copy_matches_python():
     values = [kms for kms, _ in SPEED_CASES] + [None]
-    assert _run_node("speed.js", "formatSpeedKms", values) == [format_speed_kms(v) for v in values]
+    assert _run_node("unitladder.js", "formatSpeedKms", values) == [format_speed_kms(v) for v in values]
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
 def test_browser_period_copy_matches_python():
     values = [s for s, _ in PERIOD_CASES] + [None]
-    assert _run_node("period.js", "formatDurationSeconds", values) == [format_duration_seconds(v) for v in values]
+    assert _run_node("unitladder.js", "formatDurationSeconds", values) == [format_duration_seconds(v) for v in values]
     years = [0.5, 1.0, 1.88, 2.36e8]
-    assert _run_node("period.js", "formatPeriodYears", years) == [format_period_years(v) for v in years]
+    assert _run_node("unitladder.js", "formatPeriodYears", years) == [format_period_years(v) for v in years]

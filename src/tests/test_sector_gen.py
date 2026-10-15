@@ -154,11 +154,27 @@ def test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing(monkeypatch):
         sector.add_system(system, system_config=cfg)
     hot = sector.entries[0]
     assert run_sector._spectral_code(hot.star_system.stars[0]) == "O5V"
+    for entry in sector.entries:
+        entry.star_system.stars[0].age = 0.004  # 4 Myr, still in its cloud
 
     entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
     assert len(entries) == 1
     assert entries[0].position == hot.position
-    assert entries[0].phenomenon.nebula_class in ("C", "D", "E")
+    nebula = entries[0].phenomenon
+    assert nebula.nebula_class in ("C", "D", "E")
+    assert nebula.age_myr == pytest.approx(4.0)
+    assert nebula.hosts.startswith("O5V x1")
+
+
+def test_a_star_past_the_nebula_class_age_lights_no_cloud(monkeypatch):
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", lambda mean: 0)
+    monkeypatch.setattr(run_sector.program_constants, "NEBULA_HOST_RULES", (("O", 0, 9, ("C", "D", "E"), 1.0),))
+    sector = SpaceSector("Old Hosts Sector")
+    system, cfg = _make_cheap_system("O5V")
+    cfg.BINARY_SYSTEM = False
+    sector.add_system(system, system_config=cfg)
+    sector.entries[0].star_system.stars[0].age = 0.05  # 50 Myr: C, D and E are all over
+    assert run_sector.add_star_hosted_nebulae(sector, SimpleNamespace(markdown=False)) == []
 
 
 def test_brown_dwarfs_are_rogue_planet_rows(monkeypatch):

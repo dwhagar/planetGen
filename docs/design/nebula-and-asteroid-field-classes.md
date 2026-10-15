@@ -423,6 +423,17 @@ The two formulas agree: the Sedov radius at `t_PDS` for n = 1 is 14.0 pc [C]. Ru
 
 How long an object looks like its class, which sets the host age limit in the next section [R unless marked]: C 0.1 to 1 Myr; D 3 to 10 Myr (bounded by the O stars' lifetimes); E 5 to 20 Myr; F 1 to 30 Myr (up to 50 for a late host); G 1 to 5 Myr; H up to about 5,000 yr at 25 km/s [C]; J, K, L to about 30,000 yr [S, population simulation]; M 10 to 30 Myr, destroyed by its own stars; N a few to 10 Myr; P 1 to 3 Myr; Q 0.1 to 1 Myr; R to W up to 1e5 yr.
 
+### As built (GEN.150)
+
+`physics/hii.py` holds the two tables above and the cluster draw. A nebula of class C to G now gets an age, a host list and, for C, D, E and G, a photon rate, and its radius and density follow from them instead of being drawn on their own:
+
+1. **Hosting.** `add_star_hosted_nebulae` lets a main-sequence star hold a nebula only while the cloud it was born in is still there: the rule chance (`NEBULA_HOST_RULES`, 0.25 for O0 to O9 and B0 to B2, 0.05 for B3 to B9, 0.01 for A) is that chance, and the star's age (Myr) must be under the class's limit (`NEBULA_CLASS_MAX_AGE_MYR`: C 1, D 10, E 20, F 50, G 5), so an old O star lights nothing. B0 to B2 stars host C and G, not D (a lone early-B star cannot supply a D's 1e48 photons), and G left the B3 to B9 rule.
+2. **Age.** The nebula's age is its host star's, in Myr. A nebula made without a host star (the scatter) draws an age up to its class limit.
+3. **Hosts.** C, G and F are the seed star alone (the star it surrounds, or one drawn from the IMF in `NEBULA_SEED_MASS_RANGE_SOL` for that class). D and E add a cluster, drawn log-uniform over `NEBULA_CLUSTER_MASS_RANGE_SOL` (D 300 to 1e4 Msun, E 1e4 to 1e5), whose ionizing stars (5.5 Msun and up, Poisson with the IMF's mean, 0.01785 per Msun) are drawn from the Kroupa IMF and dropped when the generator's main-sequence law (`t = 10 Gy M^-2.5`) has ended them by the nebula's age. The list is kept as counts by type, hottest first (`"O5V x1, B0V x16"`).
+4. **Size.** `Q` is the sum of the hosts' photon rates; with the class's drawn density as the birth density, `hii.region` gives the radius (Stromgren sphere grown as a D-type front for the age) and the thinned density behind it, each clamped to the class's ranges. Check: Q = 1e49, n = 100, 3 Myr gives 54 ly (the 16 pc above). A class F nebula has hosts and an age but no photon rate.
+
+The generator's mass law ends the most massive stars earlier than real ones live (a 25 Msun star at 3 Myr, against about 6), so an old D or E cluster here holds fewer O stars than a real one; it is the same law every generated star uses, so the nebula and its star agree. The stored fields (`age_myr`, `q_total`, `hosts`) wait on a schema column.
+
 ## Required stars per class (GEN.99)
 
 750 Lsun is a B5/B6 main-sequence star of 6.6 Msun and about 90 Myr lifetime [C, L = M^3.5, t = 1e10 yr M^-2.5]. "Compatible" means the required star is at or above 750 Lsun, so the backfill can draw it.

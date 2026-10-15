@@ -12,6 +12,7 @@ or not. `test_web_browser_maps.py` covers the same maps against a
 generated database.
 """
 
+import time
 import io
 import math
 import re
@@ -972,7 +973,11 @@ def _click_galaxy_stars(page, count=5):
     freshly settled view; the info panel's heading after each click."""
     headings = []
     for _ in range(count):
-        spots = _bright_spots(page, GALAXY_CANVAS, limit=1, white=True)
+        # A black hole, neutron star or quasar does take the click (MAP.80):
+        # leave the stars beside one alone.
+        points = _point_colored_spots(page, GALAXY_CANVAS)
+        spots = [spot for spot in _bright_spots(page, GALAXY_CANVAS, limit=30, white=True)
+                 if all(abs(spot[0] - x) + abs(spot[1] - y) > 24 for x, y in points)]
         assert spots, "no stars drawn to click"
         page.mouse.click(*spots[0])
         page.wait_for_timeout(500)
@@ -1498,11 +1503,11 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     page.wait_for_timeout(2500)
     requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
                 for url in urls]
-    # The sector window's view is level 11 (nine sectors across); the finest
-    # tiles (12) around the sector are asked for first.
+    # The finest tiles (12) around the sector are asked for first, and only
+    # then (the rest of the view is the distance cut, which stops at 11).
     assert requests[0][0] == 12, requests
     assert any(11 in levels for levels in requests), requests
-    assert not any(10 in levels for levels in requests), requests
+    assert not any(12 in levels for levels in requests[1:]), requests
 
 
 def _point_colored_spots(page, selector, limit=80):
@@ -1539,6 +1544,13 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     its phenomenon page."""
     _open_galaxy(page, map_site, "?win=27.27.0.0&g=3")
     page.wait_for_timeout(1000)
+    # One step in, so the glow of the bright stars around them (every star of
+    # a tile comes in together, MAP.152) leaves the dark blue neutron star clear.
+    page.locator(GALAXY_CANVAS).hover()
+    page.mouse.wheel(0, -400)
+    page.wait_for_timeout(600)
+    _settle(page)
+    page.wait_for_timeout(1500)
     names = {point["name"]: point for point in POINT_FIELD}
     found = {}
     url = page.url
@@ -1969,6 +1981,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     assert page.input_value("#galaxymap3d-color-by") == "stars"
+    legend.wait_for(state="visible", timeout=15000)  # drawn once the tiles are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()
     page.select_option("#galaxymap3d-color-by", "default")
@@ -2132,6 +2145,10 @@ def test_galaxy_map_keeps_its_tiles_in_indexeddb_for_a_revisit(page, map_site):
     page.wait_for_timeout(2500)
     asked = {key for _at, keys in first for key in keys}
     assert asked, "the first visit fetched tiles"
+    # The tiles are written to IndexedDB after they arrive; under load the fixed wait above is not always enough (TEST.126).
+    deadline = time.monotonic() + 20
+    while page.evaluate(STORED_TILES) < len(asked) and time.monotonic() < deadline:
+        page.wait_for_timeout(250)
     assert page.evaluate(STORED_TILES) >= len(asked)
     assert not page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('planetgen:tile:') && !k.endsWith('@stamp'))"), \
         "no tile is kept in localStorage any more"
@@ -2147,13 +2164,27 @@ def test_galaxy_map_keeps_its_tiles_in_indexeddb_for_a_revisit(page, map_site):
 def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_site):
     """MAP.158: after the view's own tiles are in and the camera has been still
     a moment, the tiles one zoom step IN are fetched; nothing for the way out."""
+    from planetgen.galaxy.viewport import fetch_cut_tiles
+    from planetgen.web.maps.galaxymap3d import tile_bounds_pc
+    from tests.map_site_support import EDGE_PC, galaxy_shape
+
     requests = _tile_requests(page)
     _open_galaxy(page, map_site, "?sector=100000001")
     page.wait_for_timeout(3500)
-    view = next(keys for _at, keys in requests if any(key.startswith("11/") for key in keys))
-    levels = {int(key.split("/")[0]) for _at, keys in requests for key in keys}
-    assert 10 not in levels, f"no zoom-out prefetch (the view is level 11): {sorted(levels)}"
-    assert view
+    near = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyNearField()")
+    target, camera = near["target"], near["camera"]
+    bounds = tile_bounds_pc(EDGE_PC, galaxy_shape())
+
+    def cut_at(scale):
+        eye = [target[i] + (camera[i] - target[i]) * scale for i in range(3)]
+        return set(fetch_cut_tiles(eye, target, bounds))
+
+    asked = {key for _at, keys in requests for key in keys if not key.startswith("12/")}
+    here, in_one, out_one = cut_at(1.0), cut_at(1.0 / 3.0), cut_at(3.0)
+    way_out = out_one - here - in_one
+    assert way_out, "the way out needs tiles of its own for this test to mean anything"
+    assert not asked & way_out, f"no zoom-out prefetch: {sorted(asked & way_out)}"
+    assert asked <= here | in_one, sorted(asked - (here | in_one))
 
 
 def test_galaxy_map_does_not_prefetch_on_a_data_saving_connection(page, map_site):

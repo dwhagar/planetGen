@@ -132,10 +132,11 @@ def test_a_surviving_cloud_keeps_its_object_id(monkeypatch):
     assert under_the_cut == without_the_cut
 
 
-@pytest.mark.parametrize("letter,expected", [("O", 0.25), ("B", 0.1)])
+@pytest.mark.parametrize("letter,expected", [("O", 0.25), ("B", 0.25)])
 def test_an_o_or_early_b_star_hosts_a_nebula_at_its_rule_chance(monkeypatch, letter, expected):
     class Star:
         type = f"{letter}1V"
+        age = 0.0005  # Gy: young enough for every class
 
     class Entry:
         def __init__(self):
@@ -153,7 +154,7 @@ def test_an_o_or_early_b_star_hosts_a_nebula_at_its_rule_chance(monkeypatch, let
             self.added += 1
             return nebula
 
-    monkeypatch.setattr(run_sector, "Nebula", lambda config, nebula_class=None: types.SimpleNamespace(name="n"))
+    monkeypatch.setattr(run_sector, "Nebula", lambda config, nebula_class=None, host=None, age_myr=None: types.SimpleNamespace(name="n"))
     monkeypatch.setattr(run_sector, "choose_weighted_class", lambda classes, label: classes[0])
     draw.set_run_seed(204)
     sector = Sector(4000)
