@@ -23,13 +23,14 @@ tile fetches as the camera moves) never passes through this module at
 all.
 
 One solid of blocks shows everything (`static/galaxyprisms.js`): each
-block is a power-of-3 cube of whole sectors, sized to the view and shaded
-by the galaxy's predicted density, which the browser computes itself from
-the shape parameters the panel embeds as `densityShape`. Unfilled space is
-translucent; a block grows more solid with its share of generated
-("filled") sectors, counted from each tile's `filled` summary
-(`queryDb.galaxy_filled_in_box`), and is fully solid once every sector in
-it is generated. At one sector per block a filled sector takes its real
+block is a cell of the block ladder (`docs/design/spherical-block-ladder.md`,
+`planetgen.galaxy.drill`): a part of 243, 81, 27, 9 or 3 shells of whole
+sectors, sized to the stage and shaded by the galaxy's predicted density,
+which the browser computes itself from the shape parameters the panel
+embeds as `densityShape`. Unfilled space is translucent; a block grows
+more solid with its share of generated ("filled") sectors, counted from
+the stored block totals (`galaxy_block_stats`), and is fully solid once
+every sector in it is generated. At one sector per block a filled sector takes its real
 stellar density's color (`system_count / edge_ly ** 3`, relative to
 `physical_constants.LOCAL_STELLAR_DENSITY_LY3`, see
 `render_galaxy_map3d_panel`'s `referenceDensityPerLy3`) and links to its
@@ -90,7 +91,7 @@ from planetgen.galaxy.viewport import (
 )
 from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
 from planetgen.tuning import GALAXY_RADIUS_PC
-from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.physics.units import pc_to_ly
 
 CLICK_ZOOM_FACTOR_MIN = 1.15
 """float: The click-to-zoom multiplicative step size once the camera is
@@ -114,17 +115,6 @@ MAX_VIEW_RADIUS_MARGIN = 1.05
 this factor for the zoomed-all-the-way-out ceiling -- a hair of headroom
 so the outermost real content isn't sitting exactly on the view's own
 edge."""
-
-BLOCK_MIN_PX = 4
-"""int: The smallest a mega-block is allowed to be on screen, CSS pixels
-across at the view's focus (passed to `static/galaxymap3d.js` as
-`blockMinPx`). `galaxyprisms.blockSizeForScale` picks the smallest power
-of 3 sectors a side that is at least this wide, so one block always covers
-at least a pixel's worth of sectors."""
-
-BLOCK_BUDGET = 60000
-"""int: The most blocks one view draws (`blockBudget`). A view whose
-surface blocks would overflow it uses blocks three times bigger."""
 
 CAMERA_FOV_DEG = 50.0
 """float: The map camera's vertical field of view, degrees (passed to
@@ -158,8 +148,9 @@ def view_radius_bounds(edge_pc, galaxy_shape):
 def galaxy_extent_pc(edge_pc, galaxy_shape):
     """
     The galaxy's own outer edge, parsecs, padded by
-    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_shell_index`,
-    or `GALAXY_RADIUS_PC` when no skeleton has been built yet. The camera
+    `MAX_VIEW_RADIUS_MARGIN`: the outside of its stored skeleton's
+    outermost shell (`outer_shell_index`), or `GALAXY_RADIUS_PC` when no
+    skeleton has been built yet. The camera
     target is kept inside this radius (`galaxyRadiusPc`), and
     `view_radius_bounds` backs the camera off far enough to fit it.
 
@@ -177,10 +168,10 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
 def galaxy_edge_pc(edge_pc, galaxy_shape):
     """
     The galaxy's own outer edge, parsecs, unpadded: the outside of its
-    stored skeleton's outermost ring (`outer_shell_index`), or
-    `GALAXY_RADIUS_PC` when no skeleton has been built yet. Every ring is
-    a full circle, so this is the edge at every bearing; the wedge lines
-    stop here (`galaxyEdgePc`, MAP.43).
+    stored skeleton's outermost shell (`outer_shell_index`, a shell spans
+    `[(k - 1/2) * edge, (k + 1/2) * edge)`), or `GALAXY_RADIUS_PC` when no
+    skeleton has been built yet. A shell is a ball's skin, so this is the
+    edge in every direction.
 
     Args:
         edge_pc (float): The sector edge length, parsecs.
@@ -191,7 +182,7 @@ def galaxy_edge_pc(edge_pc, galaxy_shape):
         float: The outer radius, parsecs.
     """
     if galaxy_shape and galaxy_shape.get("outer_shell_index") is not None:
-        return (galaxy_shape["outer_shell_index"] + 1) * edge_pc
+        return (galaxy_shape["outer_shell_index"] + 0.5) * edge_pc
     return GALAXY_RADIUS_PC
 
 
@@ -219,27 +210,18 @@ INITIAL_TILE_LIMIT = 64
 ones); the map fetches the rest of the cut as it opens, so a page render
 never waits on hundreds of tiles."""
 
-TILE_BOUNDS_FALLBACK_HEIGHT_FRACTION = 0.1
-"""float: Without stored layers, the tile bounds reach this share of the
-galaxy's radius above and below the plane."""
 
 
 def tile_bounds_pc(edge_pc, galaxy_shape):
     """
     The box the distance cut of tiles covers (MAP.152): the galaxy's
-    extent each way in the plane, and its layers' reach above and below it
-    (`half_height_pc`, a sector edge more, rounded up to a multiple of 64
-    pc so Python and the page agree), or a tenth of the radius without
-    stored layers.
+    extent each way, a ball of its outer radius (`galaxy_extent_pc`).
 
     Returns:
         tuple: `((x_lo, y_lo, z_lo), (x_hi, y_hi, z_hi))`, parsecs.
     """
     radius = galaxy_extent_pc(edge_pc, galaxy_shape)
-    height = (galaxy_shape or {}).get("half_height_pc")
-    height = (height + edge_pc) if height is not None else radius * TILE_BOUNDS_FALLBACK_HEIGHT_FRACTION
-    height = math.ceil(height / 64.0) * 64.0
-    return (-radius, -radius, -height), (radius, radius, height)
+    return (-radius, -radius, -radius), (radius, radius, radius)
 
 
 def camera_position_pc(orbit_radius_pc, center_pc):
@@ -304,7 +286,7 @@ def _density_shape(galaxy_shape):
     `sector_min_density`: the relative density a sector needs to expect
     one star (`1 / expected_system_count_at_density_1`), the same
     threshold the generator's skeleton uses, so the prisms outline exactly
-    the galaxy's layers. Left out if the shape doesn't carry it."""
+    the galaxy's shells. Left out if the shape doesn't carry it."""
     if not galaxy_shape or any(galaxy_shape.get(field) is None for field in DENSITY_SHAPE_FIELDS + MODEL_TERM_FIELDS):
         return None
     shape = {field: galaxy_shape[field] for field in DENSITY_SHAPE_FIELDS + MODEL_TERM_FIELDS}
@@ -385,7 +367,7 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
 ADDRESS_BLOCK = """<form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
   <label for="galaxymap3d-address-input">Go to</label>
   <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
-         placeholder="Designation, ring/layer/slot, x, y, z pc, or a name">
+         placeholder="Designation, shell/band/wedge, x, y, z pc, or a name">
   <button type="submit" class="starmap-btn">Go</button>
 </form>
 <div class="galaxy-address-matches" id="galaxymap3d-matches" hidden></div>
@@ -452,8 +434,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
-    seen from above and driven by the drill-down's picks: quarter,
-    layer, arc, ..., sector -- no free camera, MAP.17),
+    seen from above and driven by the drill-down's picks: block of 243
+    shells, ..., sector),
     plus a `<script type="application/json">` block carrying the
     zoom-range numbers (`view_radius_bounds`), the tile settings the
     client needs to pick tiles the same way `initial_tile_request` does,
@@ -514,7 +496,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             map draws a nebula from once it is big enough on screen
             (`static/nebulamesh.js`, MAP.103).
         uncharted_scene_url (str, optional): The scene endpoint of a sector
-            nothing was generated in (`/galaxy/uncharted/{ring}/{layer}/{slot}/scene`),
+            nothing was generated in (`/galaxy/uncharted/{shell}/{band}/{wedge}/scene`),
             which the map opens in place with an "Uncharted" mark when it
             holds scattered objects (MAP.162); without it such a cell is
             only selected.
@@ -532,7 +514,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             the "Start Here" and "End Here" buttons (NAV.29), which with
             one end chosen open it; without it the panel shows none.
         pinned (dict or None): A sector page's map (MAP.68): the one
-            sector it is locked to, `{"ring", "layer", "slot", "center_pc"}`
+            sector it is locked to, `{"shell", "band", "wedge", "center_pc"}`
             (`center_pc`: its centre in the galaxy frame). The panel then
             opens that sector in place, with no steps, breadcrumb, address
             or history of its own (the page has its own title, bookmark
@@ -543,7 +525,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             frame parsecs), `sector` and `navUrl`. `None` draws none.
         made (dict or None): The sectors a generate job made (ADM.31):
             `total`, `points` (their centres, parsecs) and `sectors`
-            (`[ring, layer, slot]`), up to a cap. The map rings them and
+            (`[shell, band, wedge]`), up to a cap. The map rings them and
             opens on the smallest stage holding them. `None` shows none.
 
     Returns:
@@ -583,20 +565,17 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         # evaluates planetgen.galaxy.density.relative_density from
         # these itself to shade the density prisms.
         "densityShape": _density_shape(galaxy_shape),
-        "blockMinPx": BLOCK_MIN_PX,
-        "blockBudget": BLOCK_BUDGET,
         "edgePc": edge_pc,
         "edgeLy": edge_ly,
         "fovDeg": CAMERA_FOV_DEG,
         "galaxyRadiusPc": galaxy_extent_pc(edge_pc, galaxy_shape),
-        "galaxyEdgePc": galaxy_edge_pc(edge_pc, galaxy_shape),
         "minViewRadiusPc": min_radius,
         "maxViewRadiusPc": max_radius,
         "clickZoomFactorMin": CLICK_ZOOM_FACTOR_MIN,
         "clickZoomFactorMax": CLICK_ZOOM_FACTOR_MAX,
         "initialCenter": list(pinned["center_pc"]) if pinned else [0.0, 0.0, 0.0],
         "initialRadiusPc": min(max_radius, max(min_radius, 6 * edge_pc)) if pinned else max_radius,
-        "pinned": {k: pinned[k] for k in ("ring", "layer", "slot")} if pinned else None,
+        "pinned": {k: pinned[k] for k in ("shell", "band", "wedge")} if pinned else None,
         # The first frame's tiles, without the tile cache's own count of how
         # many it had cached: the page is cached and compared as text, and
         # that count differs between two loads of the same page.

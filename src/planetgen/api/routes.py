@@ -70,6 +70,7 @@ from planetgen.db.query import (
     sectors_made,
     galaxy_locate,
     galaxy_stage,
+    galaxy_edge_pc,
     galaxy_window,
     galaxy_tiles,
     list_phenomena,
@@ -995,7 +996,7 @@ def galaxy_locate_route():
 @bp.route("/galaxy/stage")
 def galaxy_stage_route():
     """
-    One Galaxy Map drill-down stage: `?at=m.ring.wedge.slab` (a block key,
+    One Galaxy Map drill-down stage: `?at=m.shell.band.wedge` (a block key,
     `planetgen.galaxy.drill`), or no `at` for the galaxy. Returns how
     many generated sectors each child block holds, and at a level-3 block
     the generated sectors themselves -- see `queryDb.galaxy_stage`.
@@ -1011,13 +1012,15 @@ def galaxy_stage_route():
 @bp.route("/galaxy/window")
 def galaxy_window_route():
     """
-    A Galaxy Map data window of cells bigger than a sector: `?at=m.ring.wedge.slab`
+    A Galaxy Map data window of cells bigger than a sector: `?at=m.shell.band.wedge`
     (the middle cell) and `?g=` (cells across), read from the stored block
     totals in one query -- see `queryDb.galaxy_window`. Called by
     `/galaxy/window` (`planetgen/web/galaxy_views.py`).
     """
     try:
-        return jsonify(galaxy_window(get_db(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW))
+        conn = get_db()
+        return jsonify(galaxy_window(conn, request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW,
+                                     galaxy_edge_pc(conn)))
     except ValueError as exc:
         raise ApiError(str(exc))
 

@@ -24,20 +24,23 @@ from flask import Response, jsonify, redirect, request, url_for
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
+from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
 from planetgen.web.maps.starmap import uncharted_scene_data
+from planetgen.web.warmup import opening_request
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
-from planetgen.physics.units import pc_to_ly
+from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.web.lib import tilepack
 from planetgen.galaxy.window import DEFAULT_WINDOW
-from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles_wire, fetch_window
+from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire, fetch_window
 
 from planetgen.api.limiter import page_limit
 
 from planetgen.admin import maintenance
 
 from . import bp, tables
-from .helpers import crumb, current_admin, db_name, generate_target, map_rebuilding_html, page_url, render_page
+from .helpers import crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
 
 _ID_PLACEHOLDER = 987654321987
 """int: Stands in for a sector id while building the map's sector-link
@@ -132,7 +135,7 @@ def _quadrant_load(state, limit, offset, want_facets):
     return in_memory(
         members, state, limit, offset, want_facets,
         {"name": lambda s, descending: s["name"].casefold(),
-         "zone": lambda s, descending: s["ring_index"],
+         "zone": lambda s, descending: s["shell_index"],
          "radius": lambda s, descending: s["galactic_radius_pc"],
          "systems": lambda s, descending: s["system_count"] or 0},
         {"zone": _zone_label}, _quadrant_cells)
@@ -178,10 +181,31 @@ def galaxy():
     quadrant = _parse_quadrant(request.args.get("quadrant"))
 
     sectors = apiclient.get_galaxy_sectors(db)
-    # UX.111: the 3D map is rebuilt for the shell grid (Maps); a notice stands in for it.
-    map_html = map_rebuilding_html("Galaxy Map")
+    galaxy_shape = apiclient.get_galaxy_shape(db)
+    edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    initial_view = fetch_tiles(db, opening_request(galaxy_shape))
+    course = _course_from_args()
+    made = _made_from_args()
+    pick = _pick_from_args()
+    map_html = render_galaxy_map3d_panel(
+        db, galaxy_shape, edge_pc, initial_view,
+        fetch_path=url_for("web.galaxy_tiles"),
+        stage_path=url_for("web.galaxy_stage"),
+        window_path=url_for("web.galaxy_window"),
+        locate_path=url_for("web.galaxy_locate"),
+        territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
+        course=course,
+        made=made,
+        sector_url=sector_url_template(),
+        generate=generate_target(current_admin()),
+        pick=pick,
+        phenomenon_url=phenomenon_url_template(),
+        system_url=system_url_template(),
+        nav_url=page_url("nav"),
+        uncharted_scene_url=uncharted_scene_url_template(),
+    )
 
-    context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": map_html}
+    context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}
     if quadrant:
         context["sector_table"] = tables.render(QUADRANT_TABLE, request.path, anchor="galaxy-table",
                                                 keep=("quadrant",), quadrant=quadrant)
@@ -251,7 +275,7 @@ def _made_from_args():
     return {
         "total": made["total"],
         "points": [{"x": i["x"], "y": i["y"], "z": i["z"]} for i in made["items"]],
-        "sectors": [[i["ring_index"], i["layer_index"], i["ring_slot_index"]] for i in made["items"]],
+        "sectors": [[i["shell_index"], i["band_index"], i["wedge_index"]] for i in made["items"]],
     }
 
 
@@ -296,7 +320,7 @@ galaxy_tiles.json_only = True  # not a page: tests/test_web_a11y.py skips it
 @page_limit("galaxy_tiles")
 def galaxy_stage():
     """
-    JSON for the map's drill-down: `?at=<m.ring.wedge.slab>` (or none, for
+    JSON for the map's drill-down: `?at=<m.shell.band.wedge>` (or none, for
     the galaxy). Returns `tilecache.fetch_stage`'s payload; a malformed
     key is a 400, an API failure a 502, both as `{"error": ...}` JSON.
     """
@@ -321,8 +345,8 @@ galaxy_stage.json_only = True  # not a page: tests/test_web_a11y.py skips it
 @page_limit("galaxy_tiles")
 def galaxy_window():
     """
-    JSON for the map's data window (MAP.151): `?at=<m.ring.wedge.slab>` the
-    middle cell (any level, a sector as `1.ring.slot.layer`) and `?g=` the
+    JSON for the map's data window (MAP.151): `?at=<m.shell.band.wedge>` the
+    middle cell (any level, a sector as `1.shell.band.wedge`) and `?g=` the
     cells across (3 to 11, odd; 9 by default). Returns
     `tilecache.fetch_window`'s payload; a malformed key or width is a 400, an
     API failure a 502, both as `{"error": ...}` JSON.

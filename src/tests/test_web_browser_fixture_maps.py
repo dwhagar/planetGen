@@ -23,7 +23,13 @@ import pytest
 sync_api = pytest.importorskip("playwright.sync_api")
 Image = pytest.importorskip("PIL.Image")
 
-from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, map_site  # noqa: E402,F401 -- fixture
+from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
+from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, map_site  # noqa: E402,F401 -- fixture
+
+PRIME_CODE = provisional_sector_designation(1, 0, 1)
+"""The designation of the fixture's Fixture Prime (shell 1, band 0, wedge 1)."""
+UNCHARTED_CODE = provisional_sector_designation(*UNCHARTED_CELL)
+"""The designation of the fixture's uncharted cell."""
 
 VIEWPORT = {"width": 800, "height": 600}
 """dict: The default window. Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s
@@ -458,8 +464,8 @@ def _charted_spot(page):
     every size of window (a block of 243 sectors is too big to find them by
     scanning: the window it opens is round the point clicked)."""
     from planetgen.galaxy.spherical import sector_position_pc
-    ring, layer, slot = next((r, l, s) for _id, r, l, s, name in SECTORS if name == "Fixture Prime")
-    x, y, z = sector_position_pc(ring, layer, slot, 4.0)
+    shell, band, wedge = next((sh, b, w) for _id, sh, b, w, name in SECTORS if name == "Fixture Prime")
+    x, y, z = sector_position_pc(shell, band, wedge, 4.0)
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     # What the pointer meets is the first block of its ray, the top face of the
     # cell under the sector in a slanted view: aim a little under the top of
@@ -477,7 +483,46 @@ def _charted_spot(page):
             if re.search(GENERATED_CHOICE, text):
                 return found[0], found[1], text
         page.wait_for_timeout(250)
-    return None
+    return _charted_by_key(page)
+
+
+class _KeySpot(tuple):
+    """A choice taken with the keyboard: `(x, y, text)` of the map's middle and the tooltip, standing for a
+    choice the pointer cannot reach."""
+
+
+CYCLE_TO = """([wanted, limit]) => {
+    const canvas = document.querySelector('#galaxymap3d-canvas');
+    const tip = document.querySelector('#galaxymap3d-tooltip');
+    const pattern = new RegExp(wanted);
+    canvas.focus();
+    for (let n = 0; n < limit; n++) {
+        canvas.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true, cancelable: true}));
+        const text = tip.hidden ? '' : tip.textContent;
+        if (pattern.test(text)) return text;
+    }
+    return null;
+}"""
+
+
+def _charted_by_key(page):
+    """The charted choice when no ray of the pointer reaches it: the blocks are shells, bands and wedges that
+    tile the space round the sector, so a charted one inside a window is behind others. The keyboard walks
+    the window's choices in turn, hidden ones too; the choice is left selected for `_take`."""
+    text = page.evaluate(CYCLE_TO, [GENERATED_CHOICE, 2000])
+    if not text:
+        return None
+    box = page.locator(SECTOR_CANVAS).bounding_box()
+    return _KeySpot((box["x"] + box["width"] / 2, box["y"] + box["height"] / 2, text))
+
+
+def _take(page, found):
+    """Clicks the choice `found` names, or presses Enter on one the keyboard chose."""
+    if isinstance(found, _KeySpot):
+        page.focus(SECTOR_CANVAS)
+        page.keyboard.press("Enter")
+    else:
+        page.mouse.click(found[0], found[1])
 
 
 def _screen_of(page, point):
@@ -537,11 +582,11 @@ def _click_choice(page, wanted=None):
     before = (page.url, _crumbs(page))
     if re.match(r"Sector .*, charted$", text):
         # A generated sector opens in the map itself (MAP.66).
-        page.mouse.click(x, y)
+        _take(page, found)
         page.wait_for_function("() => location.search.includes('open=1')", timeout=15000)
         _settle(page)
         return text
-    page.mouse.click(x, y)
+    _take(page, found)
     _settle(page)
     assert (page.url, _crumbs(page)) != before, f"clicking {text!r} did nothing"
     return text
@@ -559,10 +604,10 @@ def _label_of(tooltip):
 
 GENERATED_CHOICE = r"(^|, )([1-9][\d,.]*\S* (of .+ )?sectors )?charted$"
 """A tooltip for a choice holding a generated sector (the fixture's
-sectors, all near the core)."""
+sectors, near the core)."""
 
 
-def _walk_down(page, stages=16):
+def _walk_down(page, stages=24):
     """Clicks generated choices down from the galaxy, up to `stages`
     clicks or until one opens a generated sector in place (the last
     entry then, its crumbs); returns the stages seen, [(query, crumbs)]."""
@@ -594,11 +639,11 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
     steps = _walk_down(page)
     query, crumbs = steps[-1]
-    assert re.fullmatch(r"sector=[0-9A-F]+&open=1", query), f"never opened a sector: {steps[-2:]}"
+    assert re.fullmatch(r"(win=1\.\d+\.-?\d+\.\d+&)?sector=[0-9A-F]+&open=1", query), f"never opened a sector: {steps[-2:]}"
     assert _on_galaxy(page) and crumbs[-1].startswith("Sector "), crumbs
     sizes = []
     for query, _crumbs_seen in steps[1:-1]:
-        match = re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query)
+        match = re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.-?\d+\.\d+", query)
         assert match, query
         sizes.append(int(match.group(1)))
     # A block of 243 opens the window of its 81-blocks, and so on down.
@@ -609,16 +654,16 @@ def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
     """MAP.151: a window stage (?win=) shows `g` cells around a cell; a click
     opens the window one size down, centred on the cell clicked, and Up comes
     back out, the breadcrumb following."""
-    _open_galaxy(page, map_site, "?win=243.0.1.0")
-    assert _query(page) == "win=243.0.1.0"
-    assert _crumbs(page) == ["Galaxy", "Block 0·1 (243)"], _crumbs(page)
+    _open_galaxy(page, map_site, "?win=243.0.0.0")
+    assert _query(page) == "win=243.0.0.0"
+    assert _crumbs(page) == ["Galaxy", "Block 0·0·0 (243)"], _crumbs(page)
     _click_choice(page)
-    assert re.fullmatch(r"win=81\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert re.fullmatch(r"win=81\.\d+\.-?\d+\.\d+", _query(page)), _query(page)
     assert len(_crumbs(page)) == 3 and _crumbs(page)[-1].endswith("(81)"), _crumbs(page)
     page.locator(GALAXY_CANVAS).focus()
     page.keyboard.press("Escape")
     _settle(page)
-    assert re.fullmatch(r"win=243\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert re.fullmatch(r"win=243\.\d+\.-?\d+\.\d+", _query(page)), _query(page)
     assert len(_crumbs(page)) == 2
     page.keyboard.press("Escape")
     _settle(page)
@@ -627,16 +672,16 @@ def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
 
 def test_galaxy_map_window_stage_reaches_a_sector_and_opens_it(page, map_site):
     _open_galaxy(page, map_site, "?win=3.0.0.0")
-    assert _crumbs(page)[-1] == "Block 0·0 (3)"
+    assert _crumbs(page)[-1] == "Block 0·0·0 (3)"
     _click_choice(page, GENERATED_CHOICE)
-    assert re.fullmatch(r"win=1\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert re.fullmatch(r"win=1\.\d+\.-?\d+\.\d+", _query(page)), _query(page)
     assert _crumbs(page)[-1].startswith("Sector ") and _crumbs(page)[-1].endswith("(1)")
     _click_choice(page, r"^Sector .*, charted$")
     assert "open=1" in _query(page) and "sector=" in _query(page), _query(page)
 
 
-OPEN_PRIME = "?sector=100000001&open=1"
-"""The fixture's Fixture Prime (ring 0, layer 0, slot 1) opened in place."""
+OPEN_PRIME = f"?sector={PRIME_CODE}&open=1"
+"""The fixture's Fixture Prime (shell 1, band 0, wedge 1) opened in place."""
 
 
 def test_galaxy_map_opens_a_sector_in_place(page, map_site):
@@ -671,7 +716,7 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     assert _on_galaxy(page) and _query(page) == OPEN_PRIME[1:]
     page.click('#galaxymap3d-controls [data-action="up"]')
     _settle(page)
-    assert _query(page) == "sector=100000001", _query(page)
+    assert _query(page) == f"sector={PRIME_CODE}", _query(page)
     page.go_back()
     _settle(page)
     assert _query(page) == OPEN_PRIME[1:]
@@ -682,8 +727,8 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     assert any(_bright_spots(page, GALAXY_CANVAS)), "the reloaded sector draws its stars"
 
 
-OPEN_UNCHARTED = "?sector=100000000&open=1"
-"""The fixture's ungenerated ring 0, layer 0, slot 0, where the scatters left objects, opened in place."""
+OPEN_UNCHARTED = f"?sector={UNCHARTED_CODE}&open=1"
+"""The fixture's ungenerated shell 1, band 0, wedge 0, where the scatters left objects, opened in place."""
 
 
 @pytest.mark.viewport(1280, 900)
@@ -702,7 +747,7 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
     assert _query(page) == OPEN_UNCHARTED[1:]
     page.wait_for_timeout(500)
     from planetgen.galaxy.spherical import sector_position_pc
-    cx, cy, cz = sector_position_pc(0, 0, 0, 4.0)
+    cx, cy, cz = sector_position_pc(*UNCHARTED_CELL, 4.0)
     picked = None
     # Its bright star, black hole and nebula, each by where it sits.
     for point in ((cx + 0.5, cy + 0.4, cz), (cx - 0.6, cy, cz + 0.3), (cx, cy - 0.7, cz - 0.2)):
@@ -720,7 +765,7 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
     assert info.locator("button", has_text="Start Here").count() == 0
     page.click('#galaxymap3d-controls [data-action="up"]')
     _settle(page)
-    assert _query(page) == "sector=100000000", _query(page)
+    assert _query(page) == f"sector={UNCHARTED_CODE}", _query(page)
     assert page.locator(".sector-uncharted-badge").count() == 0
     assert not _crumbs(page)[-1].endswith("(uncharted)")
 
@@ -1109,7 +1154,7 @@ def test_galaxy_map_stars_never_take_the_click(page, map_site):
     # is about picking, so it draws them all.
     page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarZoomFade(false)")
     first = _click_galaxy_stars(page, count=1)
-    assert re.fullmatch(r"win=1\.\d+\.\d+\.-?\d+", _query(page)), f"the click on a star picked {first}: {_query(page)}"
+    assert re.fullmatch(r"win=1\.\d+\.-?\d+\.\d+", _query(page)), f"the click on a star picked {first}: {_query(page)}"
     later = _click_galaxy_stars(page, count=3)
     assert "Bright star" not in first + later, first + later
 
@@ -1153,7 +1198,7 @@ SEED_BOOKMARKS = """(entries) => {
 PICK_BOOKMARKS = [
     {"name": "Saved view", "kind": "stage", "value": "/galaxy?win=27.27.0.0", "created": 1},
     {"name": "Middling Sun", "kind": "system", "value": "system:702", "url": "/system/702", "created": 2},
-    {"name": "Fixture Second", "kind": "sector", "value": "0·0·2", "url": "/sector/8", "sectorId": 8, "created": 3},
+    {"name": "Fixture Second", "kind": "sector", "value": "8·0·3", "url": "/sector/8", "sectorId": 8, "created": 3},
 ]
 
 
@@ -1427,7 +1472,7 @@ def _framed(frame, least=0.75):
     return fill
 
 
-@pytest.mark.parametrize("query", ["", "?win=243.0.1.0", "?win=27.27.0.0"])
+@pytest.mark.parametrize("query", ["", "?win=243.0.0.0", "?win=27.27.0.0"])
 def test_galaxy_map_frames_the_whole_stage_at_any_size_and_turn(page, map_site, query):
     """MAP.53 and MAP.78: every stage (the galaxy, a window of blocks, a window of smaller ones) is
     framed whole on the map, fitted to the map's own size, so a bigger
@@ -1555,7 +1600,7 @@ def test_galaxy_map_outlines_the_whole_block_a_click_would_open_and_shades_it(pa
         found = _hover_choice(page, GENERATED_CHOICE)
         if not found:
             break
-        page.mouse.click(found[0], found[1])
+        _take(page, found)
         _settle(page)
         if not _on_galaxy(page):
             break
@@ -1588,7 +1633,7 @@ def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(pa
     """MAP.107: a click on the map while the stage just picked is still
     loading its data (the breadcrumb has moved, the drawing has not) picks
     from what is drawn; it used to add that pick to the new stage, which
-    has no such choice ("There is no layer x here")."""
+    has no such choice ("There is no cell x here")."""
     def slow(route):
         page.wait_for_timeout(1200)
         route.continue_()
@@ -1599,8 +1644,8 @@ def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(pa
         found = _hover_choice(page, GENERATED_CHOICE)
         if not found:
             break
-        page.mouse.click(found[0], found[1])
-        page.mouse.click(found[0], found[1])
+        _take(page, found)
+        _take(page, found)
         page.wait_for_timeout(2500)
         _settle(page)
         if not _on_galaxy(page):
@@ -1616,7 +1661,7 @@ def test_galaxy_map_turns_past_edge_on_and_under_the_plane_and_still_picks(page,
     """MAP.96: the view turns any way by any amount: past 80 degrees,
     through edge-on and under the plane, and hovering and picking a block
     still work there."""
-    _open_galaxy(page, map_site, "?win=243.0.1.0")
+    _open_galaxy(page, map_site, "?win=243.0.0.0")
     canvas = page.locator(GALAXY_CANVAS)
     canvas.focus()
     tilts = []
@@ -1676,7 +1721,7 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     page.on("request", lambda request: urls.append(request.url) if "/galaxy/tiles" in request.url else None)
     # Straight to the sector: a visit to its page first would leave the
     # tiles in the browser's cache.
-    _open_galaxy(page, map_site, "?sector=100000001")
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
     page.wait_for_timeout(2500)
     requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
                 for url in urls]
@@ -2075,7 +2120,7 @@ def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
     the sector, and Back, Forward and a reload keep the system."""
     _open_system_in_place(page, map_site)
     system_id = next(i for i, n, *_rest in SYSTEMS if n == "Middling Sun")
-    assert _query(page) == f"sector=100000001&open=1&system={system_id}"
+    assert _query(page) == f"sector={PRIME_CODE}&open=1&system={system_id}"
     state = _galaxy_system(page)
     assert state["id"] == system_id and state["mode"] == "compressed"
     assert {"star:1", "star:2", "planet:1", "planet:2", "moon:1", "comet:1", "comet:2"} <= set(state["refs"])
@@ -2153,7 +2198,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     """MAP.131: the Menu's Color by recolours the blocks by one statistic,
     shows what the colours mean, keeps the choice in the address and goes
     back to the default."""
-    _open_galaxy(page, map_site, "?sector=100000001")
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
     legend = page.locator("#galaxymap3d-legend")
     assert legend.is_hidden()
     page.locator("#galaxymap3d-menu > summary").click()
@@ -2328,7 +2373,7 @@ def test_galaxy_map_keeps_its_tiles_in_indexeddb_for_a_revisit(page, map_site):
     """MAP.158: the tiles fetched on a visit are stored in IndexedDB (not
     localStorage), so a reload finds them and asks the server for none of them."""
     first = _tile_requests(page)
-    _open_galaxy(page, map_site, "?sector=100000001")
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
     page.wait_for_timeout(2500)
     asked = {key for _at, keys in first for key in keys}
     assert asked, "the first visit fetched tiles"
@@ -2356,7 +2401,7 @@ def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_sit
     from tests.map_site_support import EDGE_PC, galaxy_shape
 
     requests = _tile_requests(page)
-    _open_galaxy(page, map_site, "?sector=100000001")
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
     page.wait_for_timeout(3500)
     near = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyNearField()")
     target, camera = near["target"], near["camera"]

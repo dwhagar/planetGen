@@ -13,7 +13,7 @@ import random
 import pytest
 
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
-from planetgen.galaxy.geometry import enumerate_sectors_within_radius
+from planetgen.galaxy.spherical import enumerate_sectors_within_radius
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.galaxy.viewport import (
     PLANNED_RADIUS_CAP_PC,
@@ -30,9 +30,6 @@ from planetgen.galaxy.viewport import (
     planned_slots_in_view,
     qualifying_threshold_star_count,
 )
-from tests.maps_pending import MAPS_PENDING
-
-pytestmark = MAPS_PENDING
 
 EDGE_LY = 11.5
 EDGE_PC = 3.526
@@ -58,14 +55,14 @@ def test_qualifying_threshold_is_one_star():
 
 def test_unfiltered_without_shape_includes_every_enumerated_slot():
     expected = {
-        (ring_index, layer_index, ring_slot_index)
-        for ring_index, layer_index, ring_slot_index, *_ in enumerate_sectors_within_radius(CENTER, RADIUS_PC, EDGE_PC)
+        (shell_index, band_index, wedge_index)
+        for shell_index, band_index, wedge_index, *_ in enumerate_sectors_within_radius(CENTER, RADIUS_PC, EDGE_PC)
     }
     results = planned_slots_in_view(
         CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(),
     )
-    got = {(entry["ring_index"], entry["layer_index"], entry["ring_slot_index"]) for entry in results}
+    got = {(entry["shell_index"], entry["band_index"], entry["wedge_index"]) for entry in results}
     assert got == expected
     assert all(entry["predicted_star_count"] is None and entry["relative_density"] is None for entry in results)
 
@@ -88,13 +85,13 @@ def test_excluded_addresses_are_skipped():
         expected_system_count_at_density_1=None, exclude_addresses=set(),
     )
     assert len(baseline) >= 2
-    excluded = {(baseline[0]["ring_index"], baseline[0]["layer_index"], baseline[0]["ring_slot_index"])}
+    excluded = {(baseline[0]["shell_index"], baseline[0]["band_index"], baseline[0]["wedge_index"])}
 
     results = planned_slots_in_view(
         CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=excluded,
     )
-    got = {(entry["ring_index"], entry["layer_index"], entry["ring_slot_index"]) for entry in results}
+    got = {(entry["shell_index"], entry["band_index"], entry["wedge_index"]) for entry in results}
     assert got.isdisjoint(excluded)
     assert len(results) == len(baseline) - 1
 
@@ -135,8 +132,8 @@ def test_radius_is_clamped_to_the_planned_radius_cap():
         CENTER, huge_radius, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(), cap=100000,
     )
-    got_clamped = {(e["ring_index"], e["layer_index"], e["ring_slot_index"]) for e in clamped}
-    got_unclamped_request = {(e["ring_index"], e["layer_index"], e["ring_slot_index"]) for e in unclamped_request}
+    got_clamped = {(e["shell_index"], e["band_index"], e["wedge_index"]) for e in clamped}
+    got_unclamped_request = {(e["shell_index"], e["band_index"], e["wedge_index"]) for e in unclamped_request}
     assert got_clamped == got_unclamped_request
 
 
@@ -225,7 +222,7 @@ def test_planned_slots_partition_into_tiles():
     for key in tiles_intersecting_sphere(TILE_MAX_LEVEL, center, radius):
         level, ix, iy, iz = parse_tile_key(key)
         by_tile.extend(
-            (entry["ring_index"], entry["layer_index"], entry["ring_slot_index"])
+            (entry["shell_index"], entry["band_index"], entry["wedge_index"])
             for entry in planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set())
         )
     assert len(by_tile) == len(set(by_tile))
@@ -238,7 +235,7 @@ def test_planned_slots_in_tile_respects_shape_and_exclusions():
     level, ix, iy, iz = parse_tile_key(key)
     unfiltered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set())
     assert unfiltered and all(entry["predicted_star_count"] is None for entry in unfiltered)
-    excluded = {(unfiltered[0]["ring_index"], unfiltered[0]["layer_index"], unfiltered[0]["ring_slot_index"])}
+    excluded = {(unfiltered[0]["shell_index"], unfiltered[0]["band_index"], unfiltered[0]["wedge_index"])}
     remaining = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, excluded)
     assert len(remaining) == len(unfiltered) - 1
     filtered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, SHAPE, E, set())
@@ -246,21 +243,22 @@ def test_planned_slots_in_tile_respects_shape_and_exclusions():
 
 
 def test_planned_slots_in_tile_stay_inside_the_galaxy_outline():
-    # MAP.118: a slot outside the stored outline (a layer above the top,
-    # or a ring past a layer's edge) is never offered as planned, since
+    # MAP.118: a slot outside the stored outline (a shell past the last, or
+    # a band beyond a shell's highest) is never offered as planned, since
     # generation refuses it.
+    from planetgen.galaxy import spherical
     from planetgen.galaxy.skeleton import GalaxyBounds
 
     key = tiles_intersecting_sphere(TILE_MAX_LEVEL, (0.0, 0.0, 0.0), 0.0)[0]
     level, ix, iy, iz = parse_tile_key(key)
     unfiltered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set())
-    layers = sorted({entry["layer_index"] for entry in unfiltered})
-    assert len(layers) > 1
-    bounds = GalaxyBounds([(layer, 0) for layer in layers[:-1]], EDGE_PC)
+    shells = sorted({entry["shell_index"] for entry in unfiltered})
+    assert len(shells) > 2
+    bounds = GalaxyBounds([(shell, min(1, spherical.band_range(shell)[1])) for shell in shells[:-1]], EDGE_PC)
     inside = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set(), bounds)
-    assert inside
-    assert all(bounds.contains(e["ring_index"], e["layer_index"]) for e in inside)
-    assert all(e["layer_index"] != layers[-1] and e["ring_index"] == 0 for e in inside)
+    assert inside and len(inside) < len(unfiltered)
+    assert all(bounds.contains(e["shell_index"], e["band_index"]) for e in inside)
+    assert all(e["shell_index"] != shells[-1] and abs(e["band_index"]) <= 1 for e in inside)
     # An empty outline (none built yet) filters nothing.
     assert planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set(), GalaxyBounds([], EDGE_PC)) \
         == unfiltered

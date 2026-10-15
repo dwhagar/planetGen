@@ -1,157 +1,108 @@
-"""MAP.151: the Galaxy Map's data window -- cells of one level cut from the parent stages."""
+"""MAP.151, MAP.205: the Galaxy Map's data window on the shell grid -- the cells of one level whose centre lies in a
+ball, found in closed form, and the window cut from the parent stages."""
 import math
 
 import pytest
 
-from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key
+from planetgen.galaxy import spherical
+from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_band_count, drill_parent, drill_wedge_count
 from planetgen.galaxy.window import (
-    DEFAULT_WINDOW, WINDOW_WIDTHS, check_width, crop_stages, parse_window_key, window_cells, window_parents,
+    DEFAULT_WINDOW, WINDOW_WIDTHS, cell_position_pc, cells_in_ball, check_width, crop_stages, parse_window_key,
+    window_cells, window_parents,
 )
-from tests.maps_pending import MAPS_PENDING
 
-pytestmark = MAPS_PENDING
-
-CENTRES = [
-    DrillBlock(243, 0, 0, 0), DrillBlock(243, 7, 14, 0), DrillBlock(81, 3, 5, 1), DrillBlock(27, 0, 0, 0),
-    DrillBlock(27, 40, 11, -3), DrillBlock(9, 20, 30, 2), DrillBlock(3, 5, 2, 1), DrillBlock(3, 300, 100, -2), DrillBlock(1, 0, 1, 0), DrillBlock(1, 25, 40, 2),
-]
+EDGE = 4.0
 
 
-def _centre_of(cell):
-    m = cell.m
-    theta = (cell.wedge + 0.5) * 2 * math.pi / drill_wedge_count(m, cell.ring)
-    radius = (cell.ring + 0.5) * m
-    return radius * math.cos(theta), radius * math.sin(theta), cell.slab * m
-
-
-def _brute(centre, g):
-    """Every cell of the level whose centre is within g/2 cells across and (g-1)/2 slabs of the centre's."""
-    m = centre.m
-    cx, cy, _ = _centre_of(centre)
-    half = g * m / 2.0
-    found = set()
-    top_ring = int(math.hypot(cx, cy) / m + g + 2)
-    for ring in range(0, top_ring + 1):
-        for wedge in range(drill_wedge_count(m, ring)):
-            cell = DrillBlock(m, ring, wedge, centre.slab)
-            x, y, _z = _centre_of(cell)
-            if math.hypot(x - cx, y - cy) <= half + 1e-9:
-                for slab in range(centre.slab - (g - 1) // 2, centre.slab + (g - 1) // 2 + 1):
-                    found.add(DrillBlock(m, ring, wedge, slab))
+def _brute_force(m, centre, reach, shells):
+    """Every cell of level `m` in `shells` (sector shells for m=1, block shells otherwise) whose centre lies within
+    `reach` of `centre`, by walking them all."""
+    found = []
+    for shell in shells:
+        if m == 1:
+            cells = [DrillBlock(1, *c) for c in spherical.shell_cells(shell)]
+        else:
+            rows = drill_band_count(m, shell)
+            cells = [DrillBlock(m, shell, b, w) for b in range(rows // 2, -(rows // 2) - 1, -1)
+                     for w in range(drill_wedge_count(m, shell, b))]
+        for cell in cells:
+            if math.dist(cell_position_pc(cell, EDGE), centre) <= reach + 1e-9:
+                found.append(cell)
     return found
 
 
-@pytest.mark.parametrize("centre", CENTRES)
-@pytest.mark.parametrize("g", WINDOW_WIDTHS)
-def test_a_window_is_the_cells_within_reach_of_the_middle_one(centre, g):
-    cells = window_cells(centre, g)
-    assert len(cells) == len(set(cells))
-    assert set(cells) == _brute(centre, g)
-    assert centre in cells
-    assert all(isinstance(c, DrillBlock) and c.m == centre.m for c in cells)
+@pytest.mark.parametrize("m, shell, band, wedge, g", [
+    (1, 12, 0, 3, 9),     # sectors on the plane
+    (1, 12, 4, 20, 5),    # sectors off the plane
+    (1, 9, 6, 0, 7),      # near a pole: the caps are in reach
+    (1, 3, 0, 0, 9),      # the core's neighbourhood
+    (3, 20, 2, 5, 9),
+    (3, 4, 0, 0, 11),     # block shell 1, around the origin's blocks
+    (9, 8, -2, 2, 9),
+    (27, 3, 1, 0, 7),
+])
+def test_the_closed_form_ball_equals_a_walk_of_every_cell(m, shell, band, wedge, g):
+    centre = DrillBlock(m, shell, band, wedge)
+    reach = g * m * EDGE / 2
+    point = cell_position_pc(centre, EDGE)
+    radius = math.sqrt(sum(v * v for v in point))
+    unit = 1 if m == 1 else m
+    shells = range(max(0, int((radius - reach) / EDGE / unit) - 2), int((radius + reach) / EDGE / unit) + 4)
+    expected = _brute_force(m, point, reach, shells)
+    got = cells_in_ball(m, point, reach, EDGE)
+    assert sorted(got) == sorted(expected)
+    assert got == sorted(got, key=lambda c: (c.shell, -c.band, c.wedge)), "in shell, band and wedge order"
 
 
-def test_a_window_is_about_g_cubed_away_from_the_axis():
-    cells = window_cells(DrillBlock(27, 40, 11, 0), 9)
-    assert 0.7 * 729 <= len(cells) <= 1.05 * 729
-    assert {c.slab for c in cells} == set(range(-4, 5))
+@pytest.mark.parametrize("m", DRILL_LEVELS)
+def test_a_window_holds_its_centre_and_is_about_a_ball_of_cells(m):
+    shell = 40 if m < 243 else 3
+    if m == 1:
+        centre = DrillBlock(1, shell, 5, 7)
+    else:
+        centre = DrillBlock(m, shell, 3, 2)
+        assert 0 <= centre.wedge < drill_wedge_count(m, centre.shell, centre.band)
+    cells = window_cells(centre, EDGE, DEFAULT_WINDOW)
+    assert centre in cells and len(set(cells)) == len(cells)
+    # A ball of radius g/2 cells holds about (4/3) pi (g/2)^3 = 382 cells of unit volume.
+    assert 200 <= len(cells) <= 700, len(cells)
 
 
-def test_a_window_over_the_axis_wraps_through_every_wedge():
-    cells = window_cells(DrillBlock(27, 0, 0, 0), 5)
-    assert {c.ring for c in cells} >= {0, 1, 2}
-    assert all(0 <= c.wedge < drill_wedge_count(27, c.ring) for c in cells)
+def test_the_window_is_centred_on_the_centre_cell():
+    centre = DrillBlock(27, 20, 10, 3)
+    cells = window_cells(centre, EDGE, 9)
+    mean = [sum(c) / len(cells) for c in zip(*(cell_position_pc(c, EDGE) for c in cells))]
+    assert math.dist(mean, cell_position_pc(centre, EDGE)) < 0.5 * 27 * EDGE
 
 
-def test_a_window_touches_few_parents():
-    for centre in CENTRES:
-        parents = window_parents(window_cells(centre, 9))
-        # Nine cells across touch up to four parents an axis on the 3-ary ladder (MAP.151b): at most 64, fewer
-        # at a ring's ends. Cells bigger than a sector no longer read their parents at all (`query.galaxy_window`).
-        assert 1 <= len(parents) <= 64
-        if centre.m == 243:
-            assert parents == [None]
-        else:
-            assert None not in parents and all(p.m == centre.m * 3 for p in parents)
-
-
-def test_keys_and_widths_are_checked():
-    assert parse_window_key("27.3.5.-2") == DrillBlock(27, 3, 5, -2)
-    assert parse_window_key("1.4.7.0") == DrillBlock(1, 4, 7, 0)
-    for bad in ("", None, "27.3.5", "729.0.0.0", "27.3.999.0", "27.-1.0.0", "a.b.c.d"):
-        with pytest.raises(ValueError):
-            parse_window_key(bad)
-    assert check_width("7") == 7 and check_width(DEFAULT_WINDOW) == DEFAULT_WINDOW
-    for bad in (4, 13, "x", None, 0):
+def test_widths_and_keys_are_checked():
+    assert WINDOW_WIDTHS == (3, 5, 7, 9, 11) and DEFAULT_WINDOW == 9
+    assert check_width("5") == 5
+    for bad in (4, 13, "x", None):
         with pytest.raises(ValueError):
             check_width(bad)
+    assert parse_window_key("81.12.-3.40") == DrillBlock(81, 12, -3, 40)
+    assert parse_window_key("1.12.2.7") == DrillBlock(1, 12, 2, 7)
+    for bad in ("", "81.12.-3", "729.0.0.0", "81.-1.0.0", "81.12.999.0", "1.12.99.0", "1.12.0.9999"):
+        with pytest.raises(ValueError):
+            parse_window_key(bad)
 
 
-def _stage_of(parent, sectors):
-    """A stage like `queryDb.galaxy_stage`'s, worked out from `sectors` (ring, layer, slot)."""
-    level = 0 if parent is None else DRILL_LEVELS.index(parent.m) + 1
-    children = {}
-    for ring, layer, slot in sectors:
-        chain = drill_chain_of(ring, layer, slot)
-        if parent is not None and chain[level - 1] != parent:
-            continue
-        children.setdefault(chain[level], []).append((ring, layer, slot))
-    cells = [{"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": len(v), "stats": {}}
-             for b, v in children.items()]
-    sector_rows = None
-    if DRILL_LEVELS[level] == 1:
-        sector_rows = [{"ring": r, "layer": ly, "slot": sl, "id": 100 * r + sl, "name": f"S{r}-{sl}"} for v in children.values()
-                       for r, ly, sl in v]
-    return {"child_m": DRILL_LEVELS[level], "children": cells, "sectors": sector_rows}
-
-
-SECTORS = [(0, 0, 1), (0, 0, 2), (1, 0, 3), (2, 1, 5), (5, 0, 20), (30, -1, 100), (30, 0, 101), (60, 2, 3), (200, 0, 40)]
-
-
-@pytest.mark.parametrize("centre", [DrillBlock(243, 0, 0, 0), DrillBlock(81, 0, 0, 0), DrillBlock(27, 0, 0, 0),
-                                    DrillBlock(27, 1, 0, 0), DrillBlock(9, 2, 1, 0), DrillBlock(3, 0, 0, 0),
-                                    DrillBlock(3, 5, 4, 0), DrillBlock(1, 0, 1, 0)])
-def test_cropped_stages_equal_a_direct_count_of_the_window(centre):
-    g = 7
-    cells = window_cells(centre, g)
-    stages = {(format_drill_key(p) if p else "galaxy"): _stage_of(p, SECTORS) for p in window_parents(cells)}
-    window = crop_stages(centre, g, stages)
-    want = {}
-    for ring, layer, slot in SECTORS:
-        cell = drill_chain_of(ring, layer, slot)[DRILL_LEVELS.index(centre.m)]
-        if cell in set(cells):
-            want[(cell.ring, cell.wedge, cell.slab)] = want.get((cell.ring, cell.wedge, cell.slab), 0) + 1
-    assert {(c["ring"], c["wedge"], c["slab"]): c["generated"] for c in window["children"]} == want
-    assert window["cells"] == [[c.ring, c.wedge, c.slab] for c in cells]
-    assert window["at"] == format_drill_key(centre) and window["g"] == g and window["child_m"] == centre.m
-    keys = [(c["slab"], c["ring"], c["wedge"]) for c in window["children"]]
-    assert keys == sorted(keys)
-    if centre.m == 1:
-        assert {(s["ring"], s["layer"], s["slot"]) for s in window["sectors"]} == {
-            (r, ly, sl) for r, ly, sl in SECTORS if DrillBlock(1, r, sl, ly) in set(cells)}
-    else:
-        assert window["sectors"] is None
-
-
-# --- The page's copy agrees --------------------------------------------------
-
-def test_the_page_lists_the_same_window_cells():
-    from tests.test_galaxydrill import NODE, _run
-    if NODE is None:
-        pytest.skip("node is not installed")
-    centres = CENTRES + [DrillBlock(243, 15, 3, 1), DrillBlock(27, 120, 300, 5), DrillBlock(3, 1000, 1500, -4),
-                         DrillBlock(1, 1500, 200, 0), DrillBlock(243, 0, 1, 0), DrillBlock(1, 1, 2, 0)]
-    got = _run(f"""
-const centres = {[list(c) for c in centres]!r};
-const out = [];
-for (const [m, ring, wedge, slab] of centres) {{
-  for (const g of {list(WINDOW_WIDTHS)!r}) {{
-    out.push(P.windowCells({{m, ring, wedge, slab}}, g).map(b => [b.m, b.ring, b.wedge, b.slab]));
-  }}
-}}
-out.push(P.windowCells({{m: 27, ring: 40, wedge: 11, slab: 0}}).length, P.DEFAULT_WINDOW);
-console.log(JSON.stringify(out));
-""")
-    want = [[list(c) for c in window_cells(centre, g)] for centre in centres for g in WINDOW_WIDTHS]
-    assert got[:-2] == want
-    assert got[-2:] == [len(window_cells(DrillBlock(27, 40, 11, 0))), DEFAULT_WINDOW]
+def test_a_window_of_sectors_is_cut_from_the_stages_of_its_level_three_parents():
+    centre = DrillBlock(1, 30, 3, 11)
+    cells = window_cells(centre, EDGE, 5)
+    parents = window_parents(cells)
+    assert None not in parents and all(p.m == 3 for p in parents)
+    assert len(parents) == len(set(parents))
+    stages = {}
+    for parent in parents:
+        stages[f"{parent.m}.{parent.shell}.{parent.band}.{parent.wedge}"] = {
+            "children": [],
+            "sectors": [{"shell": s.shell, "band": s.band, "wedge": s.wedge, "name": "x"} for c, in [(0,)]
+                        for s in cells if drill_parent(s) == parent],
+        }
+    window = crop_stages(centre, 5, stages, EDGE)
+    assert window["at"] == "1.30.3.11" and window["child_m"] == 1 and window["g"] == 5
+    assert len(window["cells"]) == len(cells)
+    assert {(s["shell"], s["band"], s["wedge"]) for s in window["sectors"]} == {(c.shell, c.band, c.wedge) for c in cells}
+    assert window["sectors"] == sorted(window["sectors"], key=lambda s: (s["shell"], -s["band"], s["wedge"]))

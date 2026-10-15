@@ -39,7 +39,6 @@ from planetgen.db import edits as db_edits
 from planetgen.db import query
 
 from tests.publicids import pid, pids
-from tests.maps_pending import MAPS_PENDING
 
 TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
 
@@ -813,7 +812,6 @@ def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, address=None):
     return _db.save_sector(sector, config=mysql_config, galaxy_position=position)
 
 
-@MAPS_PENDING
 def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     """`GET /api/galaxy/tiles` puts each placed sector in exactly the tile
     whose half-open box holds its center, and lists planned slots only
@@ -837,55 +835,33 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     # the level-0 tile is far too big to list slots at all.
     assert tiles[near]["planned"]
     assert tiles[whole]["planned"] == []
-    # Neither sector has a grid address, so neither is in a filled summary.
-    assert tiles[near]["filled"] == {"g": 1, "cells": []}
-    assert tiles[whole]["filled"]["cells"] == []
+    # Neither sector has a grid address, so neither is counted.
+    assert tiles[near]["sector_count"] == 0 and tiles[whole]["sector_count"] == 0
     assert tiles[near]["clouds"] == [] and tiles[whole]["clouds"] == []
     assert "density" not in body
     assert body["has_shape"] is False
 
 
-@MAPS_PENDING
-def test_galaxy_filled_in_box_counts_every_placed_sector(mysql_config):
-    """A tile's filled summary lists each addressed sector at g = 1 and
-    past `max_cells` groups them into cells three sectors a side, with the
-    cell's wedge by center angle -- nothing is sampled away."""
-    from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
+def test_galaxy_sector_count_in_box_counts_every_addressed_sector(mysql_config):
+    """A tile's sector count is every addressed sector whose center is in the half-open box -- nothing is
+    sampled away, and a sector with no grid address is not counted."""
+    from planetgen.galaxy.spherical import sector_position_pc
 
     addresses = [(0, 0, 0), (1, 0, 4), (2, 1, 0), (7, -1, 30), (7, 0, 30)]
-    ids = []
     for n, address in enumerate(addresses):
-        center = sector_position_pc(*address, 4.0)
-        ids.append(_place_sector(mysql_config, f"Cell {n}", center, address=address))
+        _place_sector(mysql_config, f"Cell {n}", sector_position_pc(*address, 4.0), address=address)
     _place_sector(mysql_config, "No Address", (1.0, 1.0, 1.0))
-    lo, hi = (-100.0, -100.0, -100.0), (100.0, 100.0, 100.0)
     conn = _db.get_connection(mysql_config)
     try:
-        exact = query.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0)
-        grouped = query.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0, max_cells=4)
-        coarse = query.galaxy_filled_in_box(conn, lo, hi, 3 * 4.0 * query.GALAXY_TILE_FILLED_SCALE, 4.0)
+        everything = query.galaxy_sector_count_in_box(conn, (-100.0, -100.0, -100.0), (100.0, 100.0, 100.0))
+        none = query.galaxy_sector_count_in_box(conn, (500.0, 500.0, 500.0), (600.0, 600.0, 600.0))
+        centre = sector_position_pc(7, -1, 30, 4.0)
+        inclusive = query.galaxy_sector_count_in_box(conn, centre, tuple(c + 1.0 for c in centre))
+        exclusive = query.galaxy_sector_count_in_box(conn, tuple(c - 1.0 for c in centre), centre)
     finally:
         conn.close()
-    assert exact["g"] == 1
-    assert [cell[:5] for cell in exact["cells"]] == [
-        [ring, layer, slot, sector_id, 1] for (ring, layer, slot), sector_id in zip(addresses, ids)
-    ]
-    assert exact["cells"][0][5] == "Cell 0"
-    assert ring_sector_count(7) > 30
-
-    def expected_cells(g):
-        cells = {}
-        for ring, layer, slot in addresses:
-            cell_ring = ring // g
-            wedges = max(3, round(2 * math.pi * (cell_ring + 0.5)))
-            angle = (slot + 0.5) / ring_sector_count(ring)
-            key = (cell_ring, (layer + (g - 1) // 2) // g, int(angle * wedges))
-            cells[key] = cells.get(key, 0) + 1
-        return cells
-
-    for summary in (grouped, coarse):
-        assert summary["g"] == 3
-        assert {tuple(cell[:3]): cell[3] for cell in summary["cells"]} == expected_cells(3)
+    assert everything == len(addresses) and none == 0
+    assert inclusive == 1 and exclusive == 0, "the lower corner is in the box, the upper is not"
 
 
 def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
@@ -929,15 +905,14 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
 def _bright_row(position_pc, luminosity_sol, edge_pc):
     from planetgen.galaxy.spherical import sector_address_at
 
-    ring, layer, slot = sector_address_at(position_pc, edge_pc)
-    return (ring, layer, slot, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
+    shell, band, wedge = sector_address_at(position_pc, edge_pc)
+    return (shell, band, wedge, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
             15000.0, luminosity_sol * SOLAR_LUMINOSITY_W, 0.05, 0.1, 8.0, None, 1)
 
 
 @pytest.mark.parametrize("outline, ranges_per_ring", [(False, False), (True, False), (True, True)])
-@MAPS_PENDING
 def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, monkeypatch, outline, ranges_per_ring):
-    """Every box -- small (exact address ranges, or one range per ring),
+    """Every box -- small (exact address ranges, or one range per shell),
     wrapped past +X, around the axis, or most of the galaxy (the
     luminosity index) -- lists exactly the most luminous stars inside it."""
     import random
@@ -952,9 +927,10 @@ def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, m
         r, theta = 180.0 * math.sqrt(rng.random()), rng.uniform(0, 2 * math.pi)
         stars.append(((r * math.cos(theta), r * math.sin(theta), rng.uniform(-20.0, 20.0)), rng.uniform(500, 5e5)))
     if outline:
-        outer = int(200 / edge) + 1
-        _db.replace_galaxy_shells([(k, min(7, spherical.band_range(k)[1])) for k in range(outer + 1)],
-                                  config=mysql_config)
+        from planetgen.galaxy import spherical
+
+        _db.replace_galaxy_shells(
+            [(k, spherical.band_range(k)[1]) for k in range(0, int(200 / edge) + 2)], config=mysql_config)
     conn = _db.get_connection(mysql_config)
     try:
         _db.insert_bright_stars(conn, (_bright_row(p, lum, edge) for p, lum in stars))
@@ -984,7 +960,6 @@ def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, m
     assert top["temperature_k"] == 15000.0 and top["yerkes_class"] == "III" and top["system_id"] is None
 
 
-@MAPS_PENDING
 def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(mysql_config, monkeypatch):
     """A box over the row budget (MAP.47) is answered from the galaxy-wide
     sample: exactly the box's brightest when the sample holds `limit` of
@@ -1025,7 +1000,6 @@ def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(
         conn.close()
 
 
-@MAPS_PENDING
 def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
@@ -1163,7 +1137,6 @@ def test_a_views_star_payload_has_a_stated_cap():
     assert worst > query.GALAXY_VIEW_MAX_STARS * 0.7, "tighten the stated figure"
 
 
-@MAPS_PENDING
 def test_a_cut_view_of_the_fixture_galaxy_comes_back_in_time_and_inside_the_cap(client, mysql_config):
     import time
 
@@ -1220,7 +1193,6 @@ def test_generated_stars_per_sector_allowance_leaves_room_for_a_sparse_sector(my
         conn.close()
 
 
-@MAPS_PENDING
 def test_galaxy_tile_counts_follow_the_level_budget_for_dense_and_sparse_sectors(client, mysql_config, monkeypatch):
     """MAP.116: a tile lists at most its level's budget; the dense sector
     gives its brightest, the sparse one still shows."""
@@ -1243,17 +1215,15 @@ def test_galaxy_tile_counts_follow_the_level_budget_for_dense_and_sparse_sectors
     assert len(lums(finest)) == 7
 
 
-@MAPS_PENDING
 def test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields(client, mysql_config):
     """MAP.115: those live on the Sector Map only."""
     _generated_sectors(mysql_config, [1.0])
     key = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
     tile = client.get(f"/api/galaxy/tiles?tiles={key}").get_json()["tiles"][key]
-    assert set(tile) == {"placed", "planned", "filled", "clouds", "stars", "generated", "points"}
+    assert set(tile) == {"placed", "planned", "sector_count", "clouds", "stars", "generated", "points"}
     assert {p["type"] for p in tile["points"]} <= {"black_hole", "neutron_star", "quasar"}
 
 
-@MAPS_PENDING
 def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
     """The finest tile lists every generated star, a coarser one its budget's brightest (MAP.152: no
     brightness floor, so a sparse tile lists all it has), and a galaxy-sized one none (the bright stars
@@ -1267,7 +1237,6 @@ def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
     assert tiles["0/0/0/0"]["generated"] == []
 
 
-@MAPS_PENDING
 def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client, mysql_config, monkeypatch):
     """MAP.80: a finest tile lists every generated star up to its own,
     larger cap; tiles from `POINT_PHENOMENON_MIN_LEVEL` in list the black
@@ -1318,27 +1287,30 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     assert tiles[coarse]["points"] == []
 
 
-@MAPS_PENDING
 def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_their_sector_is_filled(
         client, mysql_config):
     """MAP.164: a scatter row not yet built into a sector comes back as a point with its class's size, the
     biggest classes at every level (so the largest show from the whole galaxy) and the rest from sector zoom."""
+    from planetgen.galaxy.spherical import sector_address_at
+
     positions = {"supermassive": (0, 0, 0), "intermediate": (40_000, 30_000, 0), "stellar": (50_000, 20_000, 0),
                  None: (60_000, 10_000, 0)}
+
+    def address(x, y, z):
+        return sector_address_at((x / 1000.0, y / 1000.0, z / 1000.0), 4.0)
+
+    insert = ("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
+              " position_x_mpc, position_y_mpc, position_z_mpc, seed{built}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?{now})")
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
             for subtype, (x, y, z) in positions.items():
                 kind = "neutron-star" if subtype is None else "black-hole"
-                conn.execute("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
-                             " position_x_mpc, position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, ?, ?, ?, ?, ?, 1)",
-                             (kind, subtype, x, y, z))
-            conn.execute("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
-                         " position_x_mpc, position_y_mpc, position_z_mpc, seed, built_at)"
-                         " VALUES (0, 0, 0, 'black-hole', 'stellar', 1, 1, 1, 2, NOW())")
-            conn.execute("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
-                         " position_x_mpc, position_y_mpc, position_z_mpc, seed, built_at)"
-                         " VALUES (0, 0, 0, 'quasar', NULL, 2, 2, 2, 3, NOW())")
+                conn.execute(insert.format(built="", now=""), (*address(x, y, z), kind, subtype, x, y, z, 1))
+            conn.execute(insert.format(built=", built_at", now=", NOW()"),
+                         (*address(1, 1, 1), "black-hole", "stellar", 1, 1, 1, 2))
+            conn.execute(insert.format(built=", built_at", now=", NOW()"),
+                         (*address(2, 2, 2), "quasar", None, 2, 2, 2, 3))
     finally:
         conn.close()
 
@@ -1358,7 +1330,6 @@ def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_th
     assert coarse_points["supermassive"]["name"].endswith("(uncharted)")
 
 
-@MAPS_PENDING
 def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
@@ -1410,30 +1381,30 @@ def test_galaxy_bright_stars_in_one_cell(client, mysql_config):
     assert client.get("/api/galaxy/bright-stars?shell=3").status_code == 400
 
 
-@MAPS_PENDING
 def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_config):
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;
     `galaxy_changes` names the stages a new sector makes stale."""
-    from planetgen.galaxy.drill import drill_block_sectors, drill_chain_of, format_drill_key
+    from planetgen.db import block_stats
+    from planetgen.galaxy.drill import block_addresses, drill_chain_of, format_drill_key
     from planetgen.galaxy.spherical import sector_position_pc
 
-    home = (1705, -20, 3225)
+    home = (1705, 120, 8000)
     chain = drill_chain_of(*home)
     level3 = chain[4]
-    # Two more sectors in the same level-3 block, one on another layer.
-    others = [s for s in drill_block_sectors(level3, -20) if (s.ring, s.slab, s.wedge) != home][:1]
-    others += drill_block_sectors(level3, -21)[:1]
-    addresses = [home] + [(s.ring, s.slab, s.wedge) for s in others] + [(0, 0, 0)]
+    # Two more sectors in the same level-3 block.
+    others = [a for a in block_addresses(level3) if a != home][:2]
+    addresses = [home] + others + [(0, 0, 0)]
     before = query.galaxy_changes(_db.get_connection(mysql_config))["state"]
     ids = [_place_sector(mysql_config, f"Stage {n}", sector_position_pc(*a, 4.0), address=a) for n, a in enumerate(addresses)]
+    _rebuild_block_stats(mysql_config)
 
     galaxy = client.get("/api/galaxy/stage").get_json()
     assert galaxy["at"] is None and galaxy["child_m"] == 243
-    top = {(c["ring"], c["wedge"], c["slab"]): c["generated"] for c in galaxy["children"]}
-    assert top[(chain[0].ring, chain[0].wedge, chain[0].slab)] == 3
+    top = {(c["shell"], c["band"], c["wedge"]): c["generated"] for c in galaxy["children"]}
+    assert top[(chain[0].shell, chain[0].band, chain[0].wedge)] == 3
     core = drill_chain_of(0, 0, 0)[0]
-    assert top[(core.ring, core.wedge, core.slab)] == 1
+    assert top[(core.shell, core.band, core.wedge)] == 1
 
     def counted(children):
         return [{k: v for k, v in child.items() if k != "stats"} for child in children]
@@ -1442,19 +1413,19 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
         stage = client.get(f"/api/galaxy/stage?at={format_drill_key(parent)}").get_json()
         assert stage["child_m"] == child.m
         assert counted(stage["children"]) == [
-            {"ring": child.ring, "wedge": child.wedge, "slab": child.slab, "generated": 3}]
+            {"shell": child.shell, "band": child.band, "wedge": child.wedge, "generated": 3}]
 
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(level3)}").get_json()
     assert stage["child_m"] == 1
-    assert sorted((s["ring"], s["layer"], s["slot"]) for s in stage["sectors"]) == sorted(addresses[:3])
+    assert sorted((s["shell"], s["band"], s["wedge"]) for s in stage["sectors"]) == sorted(addresses[:3])
     assert {s["id"] for s in stage["sectors"]} == set(pids("sector", ids[:3]))
     assert all(s["system_count"] == 1 for s in stage["sectors"])
     assert len(stage["children"]) == 3 and all(c["generated"] == 1 for c in stage["children"])
 
     # A block next door holds none of them.
-    empty = client.get(f"/api/galaxy/stage?at=3.{level3.ring}.{level3.wedge + 1}.{level3.slab}").get_json()
+    empty = client.get(f"/api/galaxy/stage?at=3.{level3.shell}.{level3.band}.{level3.wedge + 1}").get_json()
     assert empty["children"] == [] and empty["sectors"] == []
-    for bad in ("729.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
+    for bad in ("729.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0", "3.5.0"):
         assert client.get(f"/api/galaxy/stage?at={bad}").status_code == 400
 
     changes = query.galaxy_changes(_db.get_connection(mysql_config), before)
@@ -1463,19 +1434,31 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
         format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:5]}
 
 
-@MAPS_PENDING
+def _rebuild_block_stats(mysql_config):
+    """The stored block totals a stage reads, rebuilt from the sectors placed so far (a `galaxy` run keeps them as
+    it saves)."""
+    from planetgen.db import block_stats
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            block_stats.rebuild(conn)
+    finally:
+        conn.close()
+
+
 def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     """DB.14: each stage child, and each sector at a level-3 block, carries
     `stats` from `sector_stats`: the systems, expected systems and stars
     its generated sectors hold, the mean star age (each sector's mean
     weighted by its stars) and the summed luminosity."""
-    from planetgen.galaxy.drill import drill_block_sectors, drill_chain_of, format_drill_key
+    from planetgen.galaxy.drill import block_addresses, drill_chain_of, format_drill_key
     from planetgen.galaxy.spherical import sector_position_pc
 
-    home = (1705, -20, 3225)
+    home = (1705, 120, 8000)
     chain = drill_chain_of(*home)
-    others = [s for s in drill_block_sectors(chain[4], -20) if (s.ring, s.slab, s.wedge) != home][:2]
-    addresses = [home] + [(s.ring, s.slab, s.wedge) for s in others]
+    others = [a for a in block_addresses(chain[4]) if a != home][:2]
+    addresses = [home] + others
     for n, address in enumerate(addresses):
         _place_sector(mysql_config, f"Look {n}", sector_position_pc(*address, 4.0), address=address)
     # (systems, expected, stars, mean age Gy, summed luminosity); the last has no stars.
@@ -1493,6 +1476,7 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
                 )
     finally:
         conn.close()
+    _rebuild_block_stats(mysql_config)
 
     total = {"systems": 6, "expected_systems": pytest.approx(9.5), "stars": 8,
              "mean_age_gy": pytest.approx((6 * 2.0 + 2 * 8.0) / 8), "luminosity_sol": pytest.approx(10.5)}
@@ -1501,12 +1485,12 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     assert child["generated"] == 3
     assert child["stats"] == total
     galaxy = client.get("/api/galaxy/stage").get_json()
-    [top] = [c for c in galaxy["children"] if (c["ring"], c["wedge"], c["slab"]) == (chain[0].ring, chain[0].wedge,
-                                                                                     chain[0].slab)]
+    [top] = [c for c in galaxy["children"] if (c["shell"], c["band"], c["wedge"]) == (chain[0].shell, chain[0].band,
+                                                                                     chain[0].wedge)]
     assert top["stats"] == child["stats"]
 
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[4])}").get_json()
-    by_address = {(s["ring"], s["layer"], s["slot"]): s["stats"] for s in stage["sectors"]}
+    by_address = {(s["shell"], s["band"], s["wedge"]): s["stats"] for s in stage["sectors"]}
     assert by_address[home] == {"systems": 4, "expected_systems": 3.0, "stars": 6, "mean_age_gy": 2.0,
                                 "luminosity_sol": 10.0}
     assert by_address[addresses[2]] == {"systems": 0, "expected_systems": 1.5, "stars": 0, "mean_age_gy": None,
@@ -2628,7 +2612,6 @@ def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
     assert client.get("/api/nebulae/999999/shape").status_code == 404
 
 
-@MAPS_PENDING
 def test_nebula_surroundings_endpoint_lists_the_bright_stars_round_it(client, mysql_config):
     """MAP.105: `/api/nebulae/<id>/surroundings` lists the brightest stars
     near the nebula, positions relative to its centre; a nebula never

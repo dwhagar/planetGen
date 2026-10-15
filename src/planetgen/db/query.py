@@ -56,8 +56,6 @@ from planetgen.galaxy.spherical import (
     provisional_sector_designation, sector_cell_vertices_pc, sector_position_pc,
 )
 
-ON_SHELLS = "rebuilt on shells with the new Galaxy Map (the cylinder's block ladder and outline are gone)"
-"""str: Why a Galaxy Map query of the cylinder's block ladder raises until Maps rebuilds it."""
 from planetgen.galaxy import keepout
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import object_uid
@@ -69,6 +67,11 @@ from planetgen.galaxy.viewport import (
     planned_slots_in_tile,
     tile_bounds_pc,
     tile_keys_containing,
+)
+from planetgen.galaxy.window import check_width, parse_window_key, window_cells
+from planetgen.galaxy.drill import (
+    DRILL_STEP, DRILL_TOP, DrillBlock, drill_block_sectors, drill_chain_of, drill_children, format_drill_key,
+    parse_drill_key,
 )
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
@@ -3342,18 +3345,6 @@ generated 100 ly sphere as a core-facing bowl, cut off flat where the cap
 ran out. A fully generated tile can hold thousands of sectors, so this
 isn't only a far-zoomed-out case."""
 
-GALAXY_TILE_FILLED_SCALE = 2048
-"""int: A tile's filled-sector summary (`galaxy_filled_in_box`) groups
-sectors into cells at most `tile edge / GALAXY_TILE_FILLED_SCALE` across.
-The map fetches tiles one to two view radii across (1.6 orbit radii) and
-never draws blocks narrower than 4 pixels, so on any screen up to about
-2,000 pixels tall a cell is never bigger than the blocks the map draws
-with that tile, and nests inside them."""
-
-GALAXY_TILE_MAX_FILLED_CELLS = 5000
-"""int: Most cells one tile's filled summary lists. Past this the cells
-grow three times bigger until they fit."""
-
 GALAXY_TILE_MAX_CLOUDS = 200
 """int: Most nebulae and supernova remnants one tile lists
 (`galaxy_clouds_in_box`), the largest first. A tile wide enough to hold
@@ -3442,12 +3433,26 @@ def _placed_sector_entry(r, system_count):
     }
 
 
-def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_TILE_MAX_FILLED_CELLS):
-    """Every placed sector whose center lies in the half-open box `[lo, hi)`, counted into cells the Galaxy Map sums into its blocks (`static/galaxymap3d.js`): unlike a tile's `placed` list, nothing is left 
-
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
+def galaxy_sector_count_in_box(conn, lo, hi):
     """
-    raise NotImplementedError(ON_SHELLS)
+    How many placed sectors have their center in the half-open box
+    `[lo, hi)`: unlike a tile's `placed` list, nothing is left out, so the
+    generated-star budget a tile shares out (`generated_star_budget`) goes
+    by every sector the tile holds.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+
+    Returns:
+        int: The count.
+    """
+    return int(conn.execute(
+        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? "
+        "AND center_y_pc < ? AND center_z_pc >= ? AND center_z_pc < ? AND shell_index IS NOT NULL",
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]),
+    ).fetchone()["n"])
 
 
 _CLOUD_TABLES = (
@@ -3550,8 +3555,9 @@ the tile's cap there. Before this a zoomed-out request could run past
 the web app's 30 s API timeout and the stars vanished (MAP.47)."""
 
 BRIGHT_STAR_MAX_EXACT_RANGES = 2000
-"""int: Most `(ring, layer)` index ranges one tile's bright-star query
-lists before it reads each ring's layers in one range instead."""
+"""int: Most `(shell, band)` index ranges one tile's bright-star query
+lists (each with its wedges) before it reads each shell's bands in one range
+instead."""
 
 
 def _box_angle_intervals(lo, hi):
@@ -3578,8 +3584,81 @@ def _box_angle_intervals(lo, hi):
     return [(start, 2 * math.pi), (0.0, end - 2 * math.pi)]
 
 
+def _band_wedge_ranges(shell, band, intervals):
+    """`intervals`' wedges of one band, as inclusive `(first, last)` pairs
+    (rounded outward, so every wedge a longitude touches is in)."""
+    n = spherical.wedge_count(shell, band)
+    if n == 1:
+        return [(0, 0)]
+    ranges = []
+    for start, end in intervals:
+        first = max(0, int(math.floor(start * n / (2 * math.pi))))
+        last = min(n - 1, int(math.floor(end * n / (2 * math.pi))))
+        ranges.append((first, last))
+    return ranges
 
 
+def _box_colatitude_range(lo, hi):
+    """`(north, south)` colatitudes, radians from galactic north, the box
+    `[lo, hi)` spans: the extremes sit at the corners of the box's
+    `(distance from the axis, z)` rectangle."""
+    near = math.hypot(min(max(0.0, lo[0]), hi[0]), min(max(0.0, lo[1]), hi[1]))
+    far = math.hypot(max(abs(lo[0]), abs(hi[0])), max(abs(lo[1]), abs(hi[1])))
+    angles = [math.atan2(rho, z) for rho in (near, far) for z in (lo[2], hi[2])]
+    return min(angles), max(angles)
+
+
+def _bright_star_bands(conn, lo, hi, edge_pc):
+    """
+    `([(shell, band_min, band_max), ...], share)`: the shells the box
+    `[lo, hi)` reaches, each with the bands it reaches there (the box's
+    colatitudes at that shell's radii), cut to the stored outline
+    (`galaxy_shell`) when there is one -- no bright star sits outside it --
+    and the share of the outline's sectors those bands hold (about; it
+    counts every wedge of a band, the longitudes are cut elsewhere), `None`
+    without an outline.
+    """
+    corner_far = math.sqrt(max(abs(lo[0]), abs(hi[0])) ** 2 + max(abs(lo[1]), abs(hi[1])) ** 2
+                           + max(abs(lo[2]), abs(hi[2])) ** 2)
+    near = math.sqrt(sum(min(max(0.0, lo[a]), hi[a]) ** 2 for a in range(3)))
+    shell_lo = spherical.shell_index_at(near, edge_pc)
+    shell_hi = spherical.shell_index_at(corner_far, edge_pc)
+    theta_north, theta_south = _box_colatitude_range(lo, hi)
+    extents = {
+        row["shell_index"]: (row["high_band_index"], row["cell_count"])
+        for row in conn.execute(
+            "SELECT shell_index, high_band_index, cell_count FROM galaxy_shell WHERE shell_index BETWEEN ? AND ?",
+            (shell_lo, shell_hi),
+        ).fetchall()
+    }
+    has_outline = bool(extents) or conn.execute("SELECT 1 FROM galaxy_shell LIMIT 1").fetchone() is not None
+    total_cells = int(conn.execute("SELECT COALESCE(SUM(cell_count), 0) AS n FROM galaxy_shell").fetchone()["n"])
+    bands, cells = [], 0.0
+    for shell in range(shell_lo, shell_hi + 1):
+        if has_outline and shell not in extents:
+            continue
+        if shell == 0:
+            bands.append((0, 0, 0))
+            cells += 1
+            continue
+        inner, outer = spherical.shell_bounds_pc(shell, edge_pc)
+        cos_north = 1.0 if hi[2] > 0 and inner <= 0 else (min(1.0, hi[2] / inner) if hi[2] > 0 else hi[2] / outer)
+        cos_south = -1.0 if lo[2] < 0 and inner <= 0 else (max(-1.0, lo[2] / inner) if lo[2] < 0 else lo[2] / outer)
+        north = max(theta_north, math.acos(cos_north)) - 1e-9
+        south = min(theta_south, math.acos(cos_south)) + 1e-9
+        if north > south:
+            continue
+        low = spherical.band_at(shell, south)
+        high = spherical.band_at(shell, north)
+        if has_outline:
+            reach = extents[shell][0]
+            low, high = max(low, -reach), min(high, reach)
+            if low > high:
+                continue
+        bands.append((shell, low, high))
+        if has_outline:
+            cells += extents[shell][1] * (math.cos(north) - math.cos(south)) / 2
+    return bands, (min(1.0, cells / total_cells) if has_outline and total_cells else None)
 
 
 def bright_star_scatter_status(conn):
@@ -3827,11 +3906,133 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
 
 def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=False,
                                brightest=None):
-    """The pre-placed bright stars (`bright_stars`) in the box `[lo, hi)` with the highest map key (`BRIGHT_STAR_POPULATION_WEIGHT`), at most `limit` -- the stars the Galaxy Map draws before (and after) thei
-
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
     """
-    raise NotImplementedError(ON_SHELLS)
+    The pre-placed bright stars (`bright_stars`) in the box `[lo, hi)` with
+    the highest map key (`BRIGHT_STAR_POPULATION_WEIGHT`), at most `limit` --
+    the stars the Galaxy Map draws before (and after) their sectors are
+    filled. The key is the same for every box, so the list of a box inside a
+    bigger one holds all of the bigger one's stars inside it whenever its
+    `limit` is no smaller (MAP.154).
+
+    `bright_stars` is indexed by address and by luminosity, not by
+    position, so the box is turned into address ranges: one per ring and
+    layer it reaches (each with the ring's slots in its longitudes) for a
+    small box, one per ring when that would be too many ranges. A box
+    holding a good share of the galaxy instead walks the luminosity index
+    from the top, which finds `limit` stars inside it quickly; the choice
+    is by the estimated rows each way reads.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        edge_pc (float): The sector edge, parsecs.
+        limit (int or None): See `GALAXY_TILE_BRIGHT_BUDGET`; `None` is the coarsest level's.
+        unfilled_only (bool): Only the stars whose sector hasn't been
+            filled yet (`system_id` is `None`) -- what a page listing the
+            stars still waiting in a box shows.
+        brightest (callable or None): Returns the galaxy-wide sample
+            (`galaxy_brightest_stars`). When given and the box would read
+            more than `GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET` rows either way,
+            the answer is the sample's stars inside the box instead: the
+            same stars whenever the sample holds `limit` of them there,
+            else only those.
+
+    Returns:
+        list[dict]: Highest key first (ties by descending id): `id`, `x`/`y`/`z` (parsecs),
+            `luminosity_sol`, `temperature_k`, `radius_sol`, `star_type`,
+            `yerkes_class`, `shell_index`, `band_index`,
+            `wedge_index` and `system_id` (the star's system once its
+            sector is filled, else `None`).
+    """
+    if limit is None:
+        limit = GALAXY_TILE_BRIGHT_BUDGET[0]
+    total = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM bright_stars").fetchone()["n"])
+    if not total:
+        return []
+    bands, cell_share = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    box = (
+        "position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ? "
+        "AND position_z_mpc >= ? AND position_z_mpc < ?"
+    )
+    if unfilled_only:
+        box += " AND star_system_id IS NULL"
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+
+    # Rows read each way, assuming stars spread evenly over the sectors: the
+    # address path reads the box's longitudes of the bands it reaches, the
+    # luminosity path about `limit / share of the galaxy`.
+    intervals = _box_angle_intervals(lo, hi)
+    angle_share = min(1.0, sum(end - start for start, end in intervals) / (2 * math.pi))
+    outer = int(conn.execute("SELECT COALESCE(MAX(shell_index), 0) AS r FROM galaxy_shell").fetchone()["r"]) or bands[-1][0]
+    disk = math.pi * ((outer + 1) * edge_pc) ** 2
+    box_share = min(1.0, (hi[0] - lo[0]) * (hi[1] - lo[1]) / disk)
+    # The address index is (shell, band, wedge), so only the box's own
+    # longitudes of each band are read.
+    by_address = (1.0 if cell_share is None else cell_share) * angle_share * total
+    by_luminosity = limit / max(box_share, 1e-12)
+
+    if brightest is not None and min(by_address, by_luminosity) > GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET:
+        found = []
+        for star in brightest():
+            if unfilled_only and star["system_id"] is not None:
+                continue
+            # The stored positions are whole micro-parsecs; test them as
+            # the query does.
+            if all(math.ceil(lo[a] * MPC_PER_PC) <= round(star[k] * MPC_PER_PC) < math.ceil(hi[a] * MPC_PER_PC)
+                   for a, k in enumerate(("x", "y", "z"))):
+                found.append(star)
+        return _top_by_key(found, limit)
+
+    columns = ("id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km, "
+               "star_type, population, yerkes_class, shell_index, band_index, wedge_index, star_system_id")
+    # Both keys descending, so the luminosity path walks its index
+    # backwards and stops at `limit`: with `id` ascending MariaDB and MySQL
+    # sort every star in the box first, millions in a zoomed-out tile.
+    order = "luminosity_w DESC, id DESC"
+    if by_luminosity < by_address:
+        # One walk per population and height down (population, off_plane,
+        # luminosity), each stopping at `limit`: a single walk down the
+        # luminosity index would meet only young stars (the weights of
+        # `BRIGHT_STAR_POPULATION_WEIGHT` apply once they are merged).
+        selects, params = [], []
+        for population in BRIGHT_STAR_POPULATIONS:
+            for off_plane in (0, 1):
+                selects.append(
+                    f"(SELECT {columns} FROM bright_stars FORCE INDEX (idx_bright_stars_population) "
+                    f"WHERE population = ? AND off_plane = ? AND {box} ORDER BY {order} LIMIT ?)")
+                params += [population, off_plane] + box_params + [int(limit)]
+        rows = conn.execute(" UNION ALL ".join(selects), params).fetchall()
+        return _top_by_key([_bright_star_entry(row) for row in rows], limit)
+    clauses, params = [], []
+    exact = sum(t - b + 1 for _s, b, t in bands) <= BRIGHT_STAR_MAX_EXACT_RANGES
+    for shell, bottom, top in bands:
+        if exact:
+            for band in range(bottom, top + 1):
+                wedges = _band_wedge_ranges(shell, band, intervals)
+                wedge_test = " OR ".join("wedge_index BETWEEN ? AND ?" for _ in wedges)
+                clauses.append(f"(shell_index = ? AND band_index = ? AND ({wedge_test}))")
+                params += [shell, band] + [v for pair in wedges for v in pair]
+        else:
+            clauses.append("(shell_index = ? AND band_index BETWEEN ? AND ?)")
+            params += [shell, bottom, top]
+    # The address path reads the box's stars once and keeps the `limit`
+    # most luminous of each population, then the `limit` of highest key.
+    rows = conn.execute(
+        f"""
+        SELECT * FROM (
+            SELECT {columns},
+                   ROW_NUMBER() OVER (PARTITION BY population ORDER BY {order}) AS rank_in_population
+            FROM bright_stars FORCE INDEX (idx_bright_stars_address)
+            WHERE ({" OR ".join(clauses)}) AND {box}
+        ) ranked
+        WHERE rank_in_population <= ?
+        """,
+        params + box_params + [int(limit)],
+    ).fetchall()
+    return _top_by_key([_bright_star_entry(row) for row in rows], limit)
 
 
 GALAXY_TILE_MAX_DETAIL_STARS = 1200
@@ -3950,7 +4151,7 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         min_luminosity_sol (float): The faintest star listed.
         sector_count (int): How many generated (grid-placed) sectors the
-            box holds, as its `galaxy_filled_in_box` summary counts them.
+            box holds, as `galaxy_sector_count_in_box` counts them.
         limit (int): See `GALAXY_TILE_STAR_BUDGET`.
         per_sector (int or None): Most stars one sector contributes, its
             brightest (`generated_star_budget`); `None` is no limit.
@@ -4121,15 +4322,52 @@ GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 
 
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
-    """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as poi
-
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
-    """
-    raise NotImplementedError(ON_SHELLS)
+    """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as poi"""
+    classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
+    bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    if len(bands) > 64:
+        where_address = "shell_index BETWEEN ? AND ?"
+        address_params = [bands[0][0], bands[-1][0]]
+    else:
+        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
+        address_params = [v for band in bands for v in band]
+    kinds = " OR ".join("(kind = ? AND subtype <=> ?)" for _ in classes)
+    kind_params = [v for cls in classes for v in cls[:2]]
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    rows = conn.execute(
+        f"""
+        SELECT id, kind, subtype, built_at, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc
+        FROM phenomenon_scatter
+        WHERE {"" if coarse else "built_at IS NULL AND "}{where_address} AND ({kinds})
+          AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
+          AND position_z_mpc >= ? AND position_z_mpc < ?
+        ORDER BY (kind = 'quasar') DESC, (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, mass_solar DESC, id
+        LIMIT ?
+        """,
+        (*address_params, *kind_params, *box_params, int(limit)),
+    ).fetchall()
+    share = {(kind, subtype): (map_type, size) for kind, subtype, map_type, size in classes}
+    points = []
+    for row in rows:
+        map_type, size = share[(row["kind"], row["subtype"])]
+        if row["mass_solar"] is not None:
+            size = scattered_point_size(row["mass_solar"])
+        label = {"black_hole": "Black hole", "quasar": "Quasar"}.get(map_type, "Neutron star")
+        points.append({
+            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)" if row["built_at"] is None else label,
+            "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
+            "mass_solar": None if row["mass_solar"] is None else float("%.4g" % row["mass_solar"]),
+            "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
+            "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
+        })
+    points.sort(key=lambda point: (-point["size"], point["id"]))
+    return points[:limit]
 
 
 TILE_PIECE_SECONDS = 3.0
-"""float: The statement time limit of each piece of a Galaxy Map tile (PERF.76): placed sectors, filled cells,
+"""float: The statement time limit of each piece of a Galaxy Map tile (PERF.76): placed sectors, sector count,
 clouds, bright stars, generated stars, points and scattered points. A piece that runs past it is left out of
 the tile, which is served marked `incomplete`."""
 
@@ -4162,9 +4400,9 @@ def galaxy_tiles(conn, tile_keys):
 
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
-            "filled": {...}, "clouds": [...], "stars": [...],
+            "sector_count": n, "clouds": [...], "stars": [...],
             "generated": [...], "points": [...]}}`, see `galaxy_sectors_in_box`,
-            `galaxyViewport.planned_slots_in_tile`, `galaxy_filled_in_box`,
+            `galaxyViewport.planned_slots_in_tile`, `galaxy_sector_count_in_box`,
             `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
             `galaxy_generated_stars_in_box` (its floor from
             `GALAXY_TILE_STAR_BUDGET`, a finest tile up to
@@ -4216,8 +4454,7 @@ def galaxy_tiles(conn, tile_keys):
         planned = planned_slots_in_tile(
             level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses, bounds,
         )
-        filled = piece("filled", lambda: galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc),
-                       {"g": 1, "cells": []})
+        sector_count = piece("sector_count", lambda: galaxy_sector_count_in_box(conn, lo, hi), 0)
         clouds = piece("clouds", lambda: galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins), [])
         bright_limit = (GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS if level >= TILE_MAX_LEVEL
                         else GALAXY_TILE_BRIGHT_BUDGET[level])
@@ -4226,7 +4463,6 @@ def galaxy_tiles(conn, tile_keys):
         limit, per_sector = generated_star_budget(level, 0)
         generated = []
         if limit:
-            sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
             limit, per_sector = generated_star_budget(level, sector_count)
             generated = piece("generated", lambda: galaxy_generated_stars_in_box(
                 conn, lo, hi, 0.0, sector_count, limit=limit, per_sector=per_sector), [])
@@ -4241,7 +4477,7 @@ def galaxy_tiles(conn, tile_keys):
             GALAXY_TILE_MAX_SCATTERED_POINTS if coarse_scatter else GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS),
             coarse_scatter), [])
         tiles[key] = {
-            "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
+            "placed": placed, "planned": planned, "sector_count": sector_count, "clouds": clouds, "stars": stars,
             "generated": generated, "points": points,
         }
         if incomplete:
@@ -4250,40 +4486,215 @@ def galaxy_tiles(conn, tile_keys):
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 
 
+def galaxy_edge_pc(conn):
+    """The galaxy's sector edge in parsecs: the stored skeleton's, else the default."""
+    skeleton = get_galaxy_shape(conn)
+    return skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
 
 
 def galaxy_stage(conn, at=None):
-    """One drill-down stage's generated counts (the Galaxy Map drill-down, docs/design/galaxy-drilldown-navigation.md section 7): how many generated sectors each child block of `at` holds. Totals (allowed se
-
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
     """
-    raise NotImplementedError(ON_SHELLS)
+    One drill-down stage's generated counts (the Galaxy Map drill-down,
+    docs/design/spherical-block-ladder.md section 4): how many generated
+    sectors each child block of `at` holds. Totals (allowed sectors) are the
+    page's own math, so only generated counts come from here, and children
+    with none are left out.
+
+    Without `at`, the galaxy: every level-243 block holding a generated
+    sector. A block above level 3 reads its children from the stored block
+    totals (`galaxy_block_stats`). A level-3 `at` has sectors for children,
+    read from `sectors` and `sector_stats` by their addresses, and `sectors`
+    lists each generated one.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        at (str or None): A block key, `m.shell.band.wedge` (see
+            `galaxyDrill.parse_drill_key`), or `None` for the galaxy.
+
+    Returns:
+        dict: `at` (the canonical key, or `None`), `edge_pc` (the sector edge,
+            parsecs, which a window of sectors needs to find its cells), `child_m`, `children`
+            (`[{shell, band, wedge, generated, stats}]`, at `child_m = 1` a
+            sector's own address), and `sectors` (`[{shell, band, wedge, id,
+            name, system_count, stats}]` at `child_m = 1`, else `None`).
+            `stats` is what the generated sectors hold, from `sector_stats`
+            (DB.14, `_stage_stats`): `{systems, expected_systems, stars,
+            mean_age_gy, luminosity_sol}`.
+
+    Raises:
+        ValueError: On a malformed or impossible `at`.
+    """
+    edge_pc = galaxy_edge_pc(conn)
+    if at is None or at == "":
+        rows = _block_rows(conn, DRILL_TOP)
+        counts = {}
+        for r in rows:
+            _add_stage_sums(counts, DrillBlock(DRILL_TOP, int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])), r)
+        return {"at": None, "child_m": DRILL_TOP, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
+
+    block = parse_drill_key(at)
+    child_m = block.m // DRILL_STEP
+    children = [c for _shell, group in drill_children(block) for c in group]
+
+    if child_m == 1:
+        if not children:
+            return {"at": format_drill_key(block), "child_m": 1, "children": [], "sectors": [], "edge_pc": edge_pc}
+        where, params = _sectors_where(children)
+        rows = conn.execute(
+            f"SELECT * FROM ({_stage_sectors_with_stats(where, 'id, name, ')}) placed "
+            f"ORDER BY shell_index, band_index DESC, wedge_index",
+            params,
+        ).fetchall()
+        system_counts = {}
+        if rows:
+            ids = [r["id"] for r in rows]
+            placeholders = ", ".join("?" for _ in ids)
+            system_counts = {
+                c["sector_id"]: int(c["n"]) for c in conn.execute(
+                    f"SELECT sector_id, COUNT(*) AS n FROM star_systems WHERE sector_id IN ({placeholders}) "
+                    f"GROUP BY sector_id",
+                    ids,
+                ).fetchall()
+            }
+        sectors = [{
+            "shell": r["shell_index"], "band": r["band_index"], "wedge": r["wedge_index"],
+            "id": r["id"], "name": r["name"], "system_count": system_counts.get(r["id"], 0),
+            "stats": _stage_stats(_sector_sums(r)),
+        } for r in rows]
+        counts = {}
+        for r in rows:
+            _add_stage_sums(counts, DrillBlock(1, r["shell_index"], r["band_index"], r["wedge_index"]), {
+                "n": 1, "systems": r["actual_systems"], "expected": r["expected_systems"], "stars": r["actual_stars"],
+                "age_sum": (r["mean_age_gy"] or 0.0) * (r["actual_stars"] or 0), "luminosity": r["total_luminosity_sol"],
+            })
+        return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors, "edge_pc": edge_pc}
+
+    counts = {}
+    for r in _block_rows(conn, child_m, [(c.shell, c.band, c.wedge) for c in children]):
+        _add_stage_sums(counts, DrillBlock(child_m, int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])), r)
+    return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
 
 
+def _sectors_where(sectors):
+    """The `WHERE` on `sectors`' own columns (and its parameters) for an explicit list of sector addresses, one
+    clause per run of wedges of a (shell, band): a level-3 block holds a few dozen sectors, a handful of runs."""
+    runs = {}
+    for sector in sorted(sectors):
+        runs.setdefault((sector.shell, sector.band), []).append(sector.wedge)
+    clauses, params = [], []
+    for (shell, band), wedges in runs.items():
+        start = previous = wedges[0]
+        for wedge in wedges[1:] + [None]:
+            if wedge is not None and wedge == previous + 1:
+                previous = wedge
+                continue
+            clauses.append("(shell_index = ? AND band_index = ? AND wedge_index BETWEEN ? AND ?)")
+            params += [shell, band, start, previous]
+            if wedge is not None:
+                start = previous = wedge
+    return " OR ".join(clauses), params
+
+
+_BLOCK_STATS_COLUMNS = (
+    "shell_index, band_index, wedge_index, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
+    " luminosity_sol AS luminosity"
+)
+
+
+def _block_rows(conn, m, cells=None):
+    """The stored `galaxy_block_stats` rows of level `m`: every one, or just those of `cells`, a list of `(shell,
+    band, wedge)`."""
+    if cells is None:
+        return conn.execute(f"SELECT {_BLOCK_STATS_COLUMNS} FROM galaxy_block_stats WHERE m = ?", [m]).fetchall()
+    cells = list(cells)
+    if not cells:
+        return []
+    return conn.execute(
+        f"SELECT {_BLOCK_STATS_COLUMNS} FROM galaxy_block_stats WHERE m = ? AND (shell_index, band_index, wedge_index) IN ("
+        + ", ".join("(?, ?, ?)" for _ in cells) + ")",
+        [m] + [value for cell in cells for value in cell]).fetchall()
 
 
 def galaxy_block_sums(conn, block):
-    """The sums of the generated sectors inside one block (DB.25): `[sectors, systems, expected systems, stars, stars times mean age, luminosity]` (`_add_stage_sums`' order), or `None` for a block with no ge
-
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
     """
-    raise NotImplementedError(ON_SHELLS)
+    The sums of the generated sectors inside one block (DB.25): `[sectors, systems, expected systems, stars, stars
+    times mean age, luminosity]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. A
+    level-3 block adds up its sectors from `sectors` and `sector_stats`; a bigger one adds up the stored rows of its
+    children, so a refresh climbs the ladder one level at a time and never reads a block's sectors in one go.
+    """
+    counts = {}
+    if block.m == DRILL_STEP:
+        sectors = drill_block_sectors(block)
+        if not sectors:
+            return None
+        where, params = _sectors_where(sectors)
+        row = conn.execute(f"SELECT {_STAGE_LOOK_SUMS} FROM ({_stage_sectors_with_stats(where)}) placed", params).fetchone()
+        if not row or not row["n"]:
+            return None
+        _add_stage_sums(counts, block, row)
+        return counts[block]
+    child_m = block.m // DRILL_STEP
+    children = [c for _shell, group in drill_children(block) for c in group]
+    for r in _block_rows(conn, child_m, [(c.shell, c.band, c.wedge) for c in children]):
+        _add_stage_sums(counts, block, r)
+    return counts.get(block)
 
 
 def galaxy_block_stats(conn, m, cells):
     """The stored aggregates (DB.25, `galaxy_block_stats`) of the cells of one ladder level a map window shows, in one statement.
 
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        m (int): The level, one of `drill.DRILL_LEVELS` above 1.
+        cells (iterable): `(shell, band, wedge)` of each cell wanted.
+
+    Returns:
+        dict: `(shell, band, wedge)` -> `{"generated", "stats"}` (`_stage_stats`) for each cell holding a generated
+            sector; the others are left out, as `galaxy_stage` leaves them out.
     """
-    raise NotImplementedError(ON_SHELLS)
+    found = {}
+    for r in _block_rows(conn, m, cells):
+        counts = {}
+        _add_stage_sums(counts, None, r)
+        found[(int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"]))] = {
+            "generated": counts[None][0], "stats": _stage_stats(counts[None])}
+    return found
 
 
-def galaxy_window(conn, at, g):
-    """A Galaxy Map data window of cells bigger than a sector (MAP.151b, `galaxy.window`): `g` cells across around the cell `at`, read in one statement from the stored block totals (`galaxy_block_stats`), wh
-
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
+def galaxy_window(conn, at, g, edge_pc):
     """
-    raise NotImplementedError(ON_SHELLS)
+    A Galaxy Map data window of cells bigger than a sector (MAP.151b,
+    `galaxy.window`): `g` cells across around the cell `at`, read in one
+    statement from the stored block totals (`galaxy_block_stats`).
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        at (str): A cell key `m.shell.band.wedge` of a level above a sector.
+        g (int): Cells across, one of `window.WINDOW_WIDTHS`.
+        edge_pc (float): The sector edge in parsecs.
+
+    Returns:
+        dict: The shape `window.crop_stages` makes: `at`, `g`, `child_m`,
+            `cells`, `children` (the cells that hold a generated sector, as
+            `galaxy_stage` lists them) and `sectors` (`None`).
+
+    Raises:
+        ValueError: On a malformed key or width, or a sector cell (a window
+            of sectors lists names and comes from the parents' stages).
+    """
+    centre = parse_window_key(at)
+    if centre.m == 1:
+        raise ValueError("a window of sectors is read from the stages of its parents")
+    width = check_width(g)
+    cells = window_cells(centre, edge_pc, width)
+    found = galaxy_block_stats(conn, centre.m, [(c.shell, c.band, c.wedge) for c in cells])
+    children = [{"shell": shell, "band": band, "wedge": wedge, **value}
+                for (shell, band, wedge), value in found.items()]
+    children.sort(key=lambda c: (c["shell"], -c["band"], c["wedge"]))
+    return {
+        "at": format_drill_key(centre), "g": width, "child_m": centre.m,
+        "cells": [[c.shell, c.band, c.wedge] for c in cells], "children": children, "sectors": None,
+    }
 
 
 def _sector_sums(row):
@@ -4344,6 +4755,13 @@ def _stage_stats(sums):
     }
 
 
+def _stage_children(counts):
+    """`galaxy_stage`'s `children` list from `{DrillBlock: sums}`
+    (`_add_stage_sums`)."""
+    return [
+        {"shell": b.shell, "band": b.band, "wedge": b.wedge, "generated": sums[0], "stats": _stage_stats(sums)}
+        for b, sums in sorted(counts.items(), key=lambda item: (item[0].shell, -item[0].band, item[0].wedge))
+    ]
 
 
 GALAXY_LOCATE_LIMIT = 8
@@ -4369,7 +4787,7 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
     drill-down's section 9.3): picking a match flies to that sector, and a
     planet or moon links through `/object/<ref>` (NAV.9). Exact names come
     first, then names that start with `term`, then the rest, by name.
-    Sectors without an address (placed before the cylindrical grid) and
+    Sectors without an address (placed before the grid) and
     systems outside a sector are left out.
 
     Args:
@@ -4462,11 +4880,9 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
 
 
 def galaxy_stage_keys(shell, band, wedge):
-    """The stage keys a change to sector `(shell, band, wedge)` makes stale: `"galaxy"` and its blocks above level 1.
-
-    Rebuilt on shells with MAP.205 and MAP.206 (DB.32 dropped the cylinder's block ladder and outline).
-    """
-    raise NotImplementedError(ON_SHELLS)
+    """The stage keys a change to sector `(shell, band, wedge)` makes stale:
+    `"galaxy"` and its blocks above level 1."""
+    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)[:-1]]
 
 
 GALAXY_CHANGES_MAX_SECTORS = 1000

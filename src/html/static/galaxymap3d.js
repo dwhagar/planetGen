@@ -53,8 +53,8 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  blockSectorCount, blockSectorRanges, blockSlotRange, cellCoordinates, cellVertices, drillBlockBounds, drillSlotRange,
-  sectorAddressAt,
+  cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillWedgeCount, isFullTurn, sectorAddressAt,
+  sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
@@ -79,7 +79,7 @@ const {
   cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
-const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const {
   NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
 } = await import(`./nebulamesh.js${VERSION_QUERY}`);
@@ -212,7 +212,7 @@ function showPlacedInfo(entry) {
       ["Systems", entry.system_count != null ? entry.system_count : 0],
       ["Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null],
       ["Distance from core", entry.galactic_radius_pc != null ? Math.round(entry.galactic_radius_pc) + " pc" : null],
-      ["Address", entry.ring_index != null ? formatAddress(entry.ring_index, entry.layer_index, entry.ring_slot_index) : null],
+      ["Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.band_index, entry.wedge_index) : null],
       ["Designation", entry.designation],
     ],
     bookmark: sectorBookmark(entry),
@@ -228,66 +228,51 @@ function formatShare(share) {
   return (100 * share).toFixed(share < 0.1 ? 1 : 0) + "%";
 }
 
-function formatDeg(rad) {
-  return ((rad * 180) / Math.PI).toFixed(3) + "°";
+export { sectorDesignation };
+
+// Degrees counterclockwise from +X, 0 to 360 (the longitude a cell's side is at).
+function longitudeDeg(rad) {
+  return (((rad * 180) / Math.PI) % 360 + 360) % 360;
 }
 
-// provisional_sector_designation's hex code: ring << 33 | (layer + 4096)
-// << 20 | slot (BigInt, since it runs past 32 bits).
-export function sectorDesignation(ring, layer, slot) {
-  var packed = (BigInt(ring) << 33n) | (BigInt(layer + 4096) << 20n) | BigInt(slot);
-  return packed.toString(16).toUpperCase();
+// The fields every cell's panel gives for its place: where its middle is, how far from the core, and the
+// ranges its edges span (radii, latitudes north of the plane, longitudes).
+function placeFields(b) {
+  var coords = cellCoordinates(b);
+  var c = coords.cartesian;
+  var fields = [];
+  fields.push(["Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]);
+  fields.push(["Distance from core", formatDistancePc(coords.spherical[0])]);
+  fields.push(["Shell depth", formatDistancePc(b.r1 - b.r0)]);
+  fields.push(["Latitude", (90 - (b.c1 * 180) / Math.PI).toFixed(2) + "° to " + (90 - (b.c0 * 180) / Math.PI).toFixed(2) + "°"]);
+  fields.push(["Longitude", isFullTurn(b) ? "all the way round"
+    : longitudeDeg(b.t0).toFixed(2) + "° to " + (longitudeDeg(b.t1) || 360).toFixed(2) + "°"]);
+  return fields;
 }
 
-// One block's info: a single sector (m == 1) or a block of sectors.
-// `cell` is {m, bounds, address} for a sector or {m, bounds, ring, seg,
-// slab, density, edgePc, shape} for a block, plus `filled` (generated
-// sectors in it) when it came from the drawn blocks. A generated sector's
-// own panel is showPlacedInfo.
+// A sector cell's info (a single sector). `cell` is {m: 1, bounds, address:
+// {shell, band, wedge}}, plus `filled` (generated sectors in it) when it
+// came from the drawn blocks. A generated sector's own panel is
+// showPlacedInfo.
 function showCellInfo(cell) {
   var b = cell.bounds;
-  var single = cell.m === 1;
+  var a = cell.address;
   var fields = [];
-  if (single) {
-    var a = cell.address;
-    fields.push(["Address", formatAddress(a.ring, a.layer, a.slot)]);
-    fields.push(["Designation", sectorDesignation(a.ring, a.layer, a.slot)]);
-    if (cell.filled != null) {
-      fields.push(["Charted", cell.filled > 0 ? "Yes" : "Not yet"]);
-    }
-    if (cell.uncharted) {
-      // Opened in place with what the scatters left in it (MAP.162).
-      fields.unshift(["Status", "Uncharted: not charted yet, but scattered objects are placed here"]);
-      fields.push(["Stars waiting", formatNumber(cell.uncharted.stars)]);
-      fields.push(["Other objects", formatNumber(cell.uncharted.objects)]);
-    }
-  } else {
-    var ranges = blockSectorRanges(cell.ring, cell.slab, cell.m);
-    fields.push(["Rings", ranges.ringFirst + "–" + ranges.ringLast]);
-    fields.push(["Layers", ranges.layerFirst + "–" + ranges.layerLast]);
-    // Slot numbers restart in every ring, so give the innermost and
-    // outermost member rings' ranges.
-    [ranges.ringFirst, ranges.ringLast].forEach(function (ring) {
-      var slots = blockSlotRange(cell.ring, cell.seg, cell.m, ring);
-      fields.push(["Slots in ring " + ring, slots.first + "–" + slots.last]);
-    });
-    var total = blockSectorCount(cell.ring, cell.seg, cell.slab, cell.m, cell.edgePc, cell.shape);
-    fields.push(["Sectors", formatNumber(total)]);
-    if (cell.filled != null) {
-      fields.push(["Charted", formatNumber(cell.filled) + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : "")]);
-    }
+  fields.push(["Address", formatAddress(a.shell, a.band, a.wedge)]);
+  fields.push(["Designation", sectorDesignation(a.shell, a.band, a.wedge)]);
+  if (cell.filled != null) {
+    fields.push(["Charted", cell.filled > 0 ? "Yes" : "Not yet"]);
+  }
+  if (cell.uncharted) {
+    // Opened in place with what the scatters left in it (MAP.162).
+    fields.unshift(["Status", "Uncharted: not charted yet, but scattered objects are placed here"]);
+    fields.push(["Stars waiting", formatNumber(cell.uncharted.stars)]);
+    fields.push(["Other objects", formatNumber(cell.uncharted.objects)]);
   }
   if (cell.density != null) {
     fields.push(["Predicted density", cell.density.toFixed(2) + "× local average"]);
   }
-  var coords = cellCoordinates(b);
-  var c = coords.cartesian;
-  fields.push(["Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]);
-  fields.push(["Cylindrical R, θ, z", coords.cylindrical[0].toFixed(1) + " pc, " + formatDeg(coords.cylindrical[1]) + ", " + coords.cylindrical[2].toFixed(1) + " pc"]);
-  fields.push(["Spherical r, θ, φ", coords.spherical[0].toFixed(1) + " pc, " + formatDeg(coords.spherical[1]) + ", " + formatDeg(coords.spherical[2])]);
-  fields.push(["Radial width", formatDistancePc(b.r1 - b.r0)]);
-  fields.push(["Height", formatDistancePc(b.z1 - b.z0)]);
-  fields.push(["Mean arc length", formatDistancePc(((b.r0 + b.r1) / 2) * (b.t1 - b.t0))]);
+  fields = fields.concat(placeFields(b));
 
   var corners = document.createElement("details");
   var summary = document.createElement("summary");
@@ -305,31 +290,27 @@ function showCellInfo(cell) {
   // A sector that isn't generated yet: for a logged-in admin
   // (sceneData.generate, set by planetgen/web/maps/galaxymap3d.py only then), the same
   // Generate buttons the Sector Map gives a neighbor.
-  var generate = single && !(cell.filled > 0) && sceneData.generate
-    ? generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot, sceneData.edgeLy)
+  var generate = !(cell.filled > 0) && sceneData.generate
+    ? generateButtons(sceneData.generate, a.shell, a.band, a.wedge, sceneData.edgeLy)
     : null;
   showInfo({
-    title: single ? (cell.uncharted ? "Uncharted sector" : "Sector cell") : "Sector block (" + cell.m + " sectors a side)",
-    fields: fields, after: [corners], generate: generate,
+    title: cell.uncharted ? "Uncharted sector" : "Sector cell",
+    fields: fields, after: isFullTurn(b) ? [] : [corners], generate: generate,
   });
 }
 
-// A drill-down block's info (galaxystageview.js): its rings, layers and
-// slots, how many sectors it can hold and how many are generated, where
-// it is, and (`enter`) a button that flies into it; `info.generate`
-// (stages 7-8, admins only) adds the block's Generate buttons.
-// `info.hint` goes under it.
+// A drill-down block's info (galaxystageview.js): the shells it spans, its
+// row of the shell and its wedge in that row, how many sectors it can hold
+// and how many are generated, where it is, and (`enter`) a button that
+// flies into it. `info.hint` goes under it.
 function showBlockInfo(info, edgePc) {
   var block = info.block;
   var b = drillBlockBounds(block, edgePc);
-  var half = (block.m - 1) / 2;
-  var ringFirst = block.ring * block.m;
-  var ringLast = ringFirst + block.m - 1;
-  var fields = [["Rings", ringFirst + "–" + ringLast], ["Layers", (block.slab * block.m - half) + "–" + (block.slab * block.m + half)]];
-  [ringFirst, ringLast].forEach(function (ring) {
-    var slots = drillSlotRange(block, ring);
-    fields.push(["Slots in ring " + ring, slots.first + "–" + slots.last]);
-  });
+  var first = block.shell * block.m;
+  var fields = [["Shells", first + "–" + (first + block.m - 1)]];
+  var rows = drillBandCount(block.m, block.shell);
+  fields.push(["Row", block.band + " of " + rows + " in its shell (north +)"]);
+  fields.push(["Wedge", block.wedge + " of " + drillWedgeCount(block.m, block.shell, block.band) + " in its row"]);
   if (info.total != null) {
     fields.push(["Sectors", formatNumber(info.total)]);
   }
@@ -337,15 +318,11 @@ function showBlockInfo(info, edgePc) {
     fields.push(["Charted", formatNumber(info.generated)
       + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : "")]);
   }
-  var coords = cellCoordinates(b);
-  fields.push(["Center x, y, z", coords.cartesian.map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]);
-  fields.push(["Distance from core", formatDistancePc((b.r0 + b.r1) / 2)]);
+  fields = fields.concat(placeFields(b));
   showInfo({
-    title: "Block " + block.ring + "·" + block.wedge + " (" + block.m + " sectors a side)",
+    title: "Block " + block.shell + "·" + block.band + "·" + block.wedge + " (" + block.m + " sectors a side)",
     fields: fields,
     buttons: info.enter ? [{ label: "Fly into this block →", onClick: info.enter }] : [],
-    // Stages 7-8 for an admin: generate the block, or the layer shown.
-    generate: info.generate && sceneData.generate ? blockGenerateButtons(sceneData.generate, info.generate) : null,
     hint: info.hint,
   });
 }
@@ -622,11 +599,11 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   applyCamera();
 
-  // The part of the galaxy the drill-down shows ({r0, r1, a0, a1, z0,
-  // z1}: radii and heights in pc, bearings in radians, and optionally
-  // `cells`, the bounds {r0, r1, t0, t1, z0, z1} of the blocks in view),
-  // or null for the whole galaxy. Zoomed in, only that part shows (Boss,
-  // 2026-10-01): the stars and clouds are kept to its blocks (MAP.44).
+  // The part of the galaxy the drill-down shows ({cells}: the bounds {r0,
+  // r1, c0, c1, t0, t1} of the blocks in view, radii in pc, colatitudes
+  // and longitudes in radians), or null for the whole galaxy. Zoomed in,
+  // only that part shows (Boss, 2026-10-01): the stars and clouds are kept
+  // to its blocks (MAP.44).
   // There are no wedge lines: the galaxy shows its stars and spiral
   // structure with no grid drawn over it (MAP.85).
   var wedgeClip = null;
@@ -653,29 +630,30 @@ function initGalaxyMap3d(canvasEl, data) {
     return (((angle - a0) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
   }
 
-  // Whether a point is inside the wedge shown (always, for the whole
-  // galaxy): inside one of its blocks, or its bounds when it lists none.
+  // Whether a point is inside the part shown (always, for the whole
+  // galaxy): inside one of its blocks.
   function inWedgeClip(x, y, z) {
     var c = wedgeClip;
     if (!c && !hiddenCell) {
       return true;
     }
-    var r = Math.hypot(x, y);
+    var plane = Math.hypot(x, y);
+    var r = Math.hypot(plane, z);
+    var colat = Math.atan2(plane, z);
     var angle = Math.atan2(y, x);
-    var inside = function (b, t0, t1) {
-      return r >= b.r0 && r <= b.r1 && bearingFrom(angle, t0) <= t1 - t0
-        && (b.z0 == null || z >= b.z0) && (b.z1 == null || z <= b.z1);
+    var inside = function (b) {
+      if (r < b.r0 || r > b.r1 || colat < b.c0 || colat > b.c1) {
+        return false;
+      }
+      return isFullTurn(b) || plane === 0 || bearingFrom(angle, b.t0) <= b.t1 - b.t0;
     };
-    if (hiddenCell && inside(hiddenCell, hiddenCell.t0, hiddenCell.t1)) {
+    if (hiddenCell && inside(hiddenCell)) {
       return false;
     }
     if (!c) {
       return true;
     }
-    if (c.cells) {
-      return c.cells.some(function (b) { return inside(b, b.t0, b.t1); });
-    }
-    return inside(c, c.a0, c.a1);
+    return c.cells.some(inside);
   }
 
   // --- The block solid -------------------------------------------------------
@@ -840,7 +818,7 @@ function initGalaxyMap3d(canvasEl, data) {
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var blockSceneConfig = {
-    edgePc: edgePc, galaxyRadius: GALAXY_RADIUS, shape: galaxyShape, minPx: data.blockMinPx, budget: data.blockBudget,
+    shape: galaxyShape,
     palette: {
       dim: PRISM_DIM.toArray(), accent: PRISM_ACCENT.toArray(), hot: PRISM_HOT.toArray(),
       placedLow: new THREE.Color(PLACED_LOW_DENSITY_COLOR).toArray(),
@@ -2638,7 +2616,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     if (!courseSectors.length) {
       courseSectors = madeFit.map(function (sector) {
-        return { ring: sector[0], layer: sector[1], slot: sector[2] };
+        return { shell: sector[0], band: sector[1], wedge: sector[2] };
       });
     }
   }
@@ -2979,8 +2957,8 @@ function initGalaxyMap3d(canvasEl, data) {
     restingHint: restingHint,
     setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
-    // A sector page's map is locked to its sector (MAP.68): {ring, layer,
-    // slot}; another sector's click goes to that sector's page.
+    // A sector page's map is locked to its sector (MAP.68): {shell, band,
+    // wedge}; another sector's click goes to that sector's page.
     pinned: data.pinned || null,
     openSectorPage: function (id) { if (sceneData.sectorUrl) location.assign(sectorUrl(id)); },
     // The sector page's scene JSON (planetgen/web/sector_page.py).
@@ -3006,8 +2984,8 @@ function initGalaxyMap3d(canvasEl, data) {
     } : null,
     // The scene of a cell nothing was generated in (MAP.162), from its address.
     fetchUnchartedScene: sceneData.unchartedSceneUrl ? function (at) {
-      var path = String(sceneData.unchartedSceneUrl).replace("{ring}", encodeURIComponent(at.ring))
-        .replace("{layer}", encodeURIComponent(at.layer)).replace("{slot}", encodeURIComponent(at.slot));
+      var path = String(sceneData.unchartedSceneUrl).replace("{shell}", encodeURIComponent(at.shell))
+        .replace("{band}", encodeURIComponent(at.band)).replace("{wedge}", encodeURIComponent(at.wedge));
       return fetch(path, { headers: { Accept: "application/json" } })
         .then(function (response) {
           if (!response.ok) {

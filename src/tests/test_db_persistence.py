@@ -34,7 +34,6 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.physics.orbits import orbital_position_au
-from tests.maps_pending import MAPS_PENDING
 
 
 
@@ -1558,8 +1557,8 @@ def test_phenomena_store_their_octant_and_nearest_systems(mysql_config):
 
 
 
-def _bright_row(ring=3, layer=0, slot=1, luminosity_sol=800.0):
-    return (ring, layer, slot, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
+def _bright_row(shell=3, band=0, wedge=0, luminosity_sol=800.0):
+    return (shell, band, wedge, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
             luminosity_sol * 3.828e26,
             0.02, 0.03, 7.0, 0.03, 42)
 
@@ -1577,18 +1576,18 @@ def test_bright_stars_store_and_clear(mysql_config):
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
             assert store.bright_star_scatter_settings(conn) is None
             written = store.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
-                                                     _bright_row(slot=2)], batch_size=2)
+                                                     _bright_row(wedge=1)], batch_size=2)
             store.record_bright_star_scatter(conn, 500.0, 7)
         assert written == 3
         assert store.bright_star_scatter_settings(conn) == (500.0, 7)
-        found = store.bright_stars_for_sector(conn, 3, 0, 1)
+        found = store.bright_stars_for_sector(conn, 3, 0, 0)
         assert len(found) == 2 and found[0]["luminosity_w"] > found[1]["luminosity_w"]
 
         system, cfg = _named_system("Beaconholm")
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
             store.mark_bright_star_filled(conn, found[0]["id"], system_id)
-        assert len(store.bright_stars_for_sector(conn, 3, 0, 1)) == 1
+        assert len(store.bright_stars_for_sector(conn, 3, 0, 0)) == 1
 
         store.clear_bright_stars(conn)
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
@@ -1597,7 +1596,6 @@ def test_bright_stars_store_and_clear(mysql_config):
         conn.close()
 
 
-@MAPS_PENDING
 def test_bright_star_web_queries(mysql_config):
     """The Stats page's placed/filled counts, the sector page's per-cell and
     per-box listings (unfilled only by default) and the Generate page's
@@ -1611,7 +1609,7 @@ def test_bright_star_web_queries(mysql_config):
         status = queryDb.bright_star_scatter_status(conn)
         assert status["scattered"] is False and status["min_luminosity_sol"] is None and status["seed"] is None
         assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0
-        assert queryDb.bright_stars_in_sector(conn, 3, 0, 1) == []
+        assert queryDb.bright_stars_in_sector(conn, 3, 0, 0) == []
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
@@ -1619,9 +1617,9 @@ def test_bright_star_web_queries(mysql_config):
                          " expected_system_count_at_density_1, outer_shell_index)"
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
             store.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
-                                           _bright_row(slot=2)], batch_size=2)
+                                           _bright_row(wedge=1)], batch_size=2)
             store.record_bright_star_scatter(conn, 100.0, 9)
-        listed = queryDb.bright_stars_in_sector(conn, 3, 0, 1)
+        listed = queryDb.bright_stars_in_sector(conn, 3, 0, 0)
         assert [s["luminosity_sol"] for s in listed] == pytest.approx([800.0, 600.0], rel=1e-2)
         assert listed[0]["x"] == pytest.approx(12.0) and listed[0]["yerkes_class"] == "V"
         assert listed[0]["system_id"] is None
@@ -1631,8 +1629,8 @@ def test_bright_star_web_queries(mysql_config):
             system_id = store.insert_star_system(conn, system, cfg)
             store.mark_bright_star_filled(conn, listed[0]["id"], system_id)
         assert stats.bright_star_counts(conn) == {"placed": 3, "filled": 1, "unfilled": 2}
-        assert [s["id"] for s in queryDb.bright_stars_in_sector(conn, 3, 0, 1)] == [listed[1]["id"]]
-        every = queryDb.bright_stars_in_sector(conn, 3, 0, 1, unfilled_only=False)
+        assert [s["id"] for s in queryDb.bright_stars_in_sector(conn, 3, 0, 0)] == [listed[1]["id"]]
+        every = queryDb.bright_stars_in_sector(conn, 3, 0, 0, unfilled_only=False)
         assert [(s["id"], s["system_id"]) for s in every] == [(listed[0]["id"], system_id), (listed[1]["id"], None)]
 
         lo, hi = (11.0, 2.0, -1.0), (13.0, 4.0, 1.0)
@@ -1649,7 +1647,7 @@ def test_bright_star_web_queries(mysql_config):
         # span still counts exactly.
         store.clear_bright_stars(conn)
         with conn:
-            store.insert_bright_stars(conn, [_bright_row(slot=s) for s in range(5)])
+            store.insert_bright_stars(conn, [_bright_row(wedge=s) for s in range(5)])
         assert stats.bright_star_counts(conn) == {"placed": 5, "filled": 0, "unfilled": 5}
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 5
     finally:
@@ -1657,10 +1655,11 @@ def test_bright_star_web_queries(mysql_config):
 
 
 def _bright_row_at(z_pc, luminosity_sol, slot=1):
-    """A bright star `z_pc` above the plane, addressed as the scatter would."""
-    from planetgen.db.query import band_index_at, ring_index_at
+    """A bright star `z_pc` above the plane, addressed as the scatter would (`slot` only tells stars apart)."""
+    from planetgen.galaxy.spherical import sector_address_at
 
-    return (ring_index_at(12.37, 4.0), band_index_at(z_pc, 4.0), slot, 12000, 3000, int(z_pc * 1000), "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
+    shell, band, wedge = sector_address_at((12.0, 3.0, z_pc), 4.0)
+    return (shell, band, wedge, 12000, 3000, int(z_pc * 1000), "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
             luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)
 
 
@@ -1694,7 +1693,6 @@ def _weighted_top(stars, limit):
     return [s["id"] for s in sorted(stars, key=lambda s: (-s["luminosity_sol"] * weight[s["population"]], -s["id"]))][:limit]
 
 
-@MAPS_PENDING
 def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_config):
     """MAP.154: one key for every box -- an old giant that is 400 times fainter than a young star
     ranks beside it -- in a tile that reads its own addresses, one that walks the luminosity index
@@ -1727,7 +1725,6 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
         conn.close()
 
 
-@MAPS_PENDING
 def test_a_child_tile_lists_every_star_of_its_parent_inside_it(mysql_config):
     """MAP.154: the bright lists are nested -- walking down a chain of boxes, each box lists all
     the stars of the one around it that lie inside it (the budget never falls)."""
