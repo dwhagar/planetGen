@@ -1267,7 +1267,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.39 | Markdown rendered by the markdown library | none | done, PR #759 |
 | UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
 | UX.41 | Tables on TanStack Table and TanStack Virtual | none | done, PR #606 |
-| UX.42 | In-universe wording across the interface | none | open |
+| UX.42 | In-universe wording across the interface | none | done, PR #1466 |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | none | open |
 | UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) | none | done, PR #457 |
 | UX.45 | Bookmark management | none | open |
