@@ -5103,7 +5103,7 @@ clears each one.
   skips them, and what must invalidate a resume: any changed file,
   database or Redis state, the Python or library versions) with a
   recommendation, and Boss picks one; the build is then filed as its own
-  items. Options are pending until the thread reports. Owner: the Test
+  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: the Test
   Suite Rebuild thread, part of TEST.139, not a lane.
   Prerequisites: none. Related: TEST.139.
 
