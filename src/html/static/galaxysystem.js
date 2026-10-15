@@ -30,7 +30,7 @@ const { buildSystemScene } = await import(`./systemview3d.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED, MODE_TRUE, UNIT_KM } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { createOrbitClock } = await import(`./orbitclock.js${VERSION_QUERY}`);
 const { relativeAt } = await import(`./orbitpositions.js${VERSION_QUERY}`);
-const { formatDistanceM } = await import(`./distance.js${VERSION_QUERY}`);
+const { formatDistanceM } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 const KM_PER_PC = 3.0856775814913673e13;
 const AU_KM = 149597870.7;

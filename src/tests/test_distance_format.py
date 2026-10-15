@@ -5,7 +5,7 @@ The distance ladder (UX.6): `planetgen.util.format.
 format_distance_m` picks the largest of km < AU < mpc < cpc < ly < pc <
 kpc < Mpc < Gpc the value is at least 1 of, parsec values carry a ly/AU/km
 parenthetical, and body radii are always km in scientific notation. The
-browser copy (`html/static/distance.js`) is checked against the same table
+browser copy (`html/static/unitladder.js`) is checked against the same table
 when Node is installed.
 """
 
@@ -18,8 +18,10 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
+from planetgen.util import ladders
+from planetgen.util.format import _aside_symbol
 from planetgen.util.format import (
-    DISTANCE_PAREN_MIN_LY, distance_parenthetical, format_body_radius_km, format_distance_au, format_distance_km, format_distance_ly, format_distance_m, format_distance_pc,
+    format_body_radius_km, format_distance_au, format_distance_km, format_distance_ly, format_distance_m, format_distance_pc,
 )
 
 _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
@@ -60,13 +62,13 @@ def test_parsec_parenthetical_switches_from_ly_to_au_at_a_hundredth_ly():
     just_under = pc.LIGHTYEAR_M * 0.0099
     assert format_distance_m(just_over) == "3.1 mpc (0.0101 ly)"
     assert format_distance_m(just_under) == "3.04 mpc (626 AU)"
-    assert format_distance_m(pc.LIGHTYEAR_M * DISTANCE_PAREN_MIN_LY).endswith("(0.01 ly)")
+    assert format_distance_m(pc.LIGHTYEAR_M * 0.01).endswith("(0.01 ly)")
 
 
 def test_parenthetical_switches_from_au_to_km_at_a_hundredth_au():
     # No parsec value is this small, so the rule is checked on its own.
-    assert distance_parenthetical(pc.AU_M * 0.01) == "0.01 AU"
-    assert distance_parenthetical(pc.AU_M * 0.0099) == "1.48 × 10⁶ km"
+    assert _aside_symbol(ladders.LENGTH, pc.AU_M * 0.01) == "AU"
+    assert _aside_symbol(ladders.LENGTH, pc.AU_M * 0.0099) == "km"
 
 
 def test_unit_wrappers_agree():
@@ -100,7 +102,7 @@ def test_browser_copy_matches_python():
         "const values = JSON.parse(process.argv[2]);"
         "console.log(JSON.stringify(values.map(v => m.formatDistanceM(v))));"
     )
-    module_url = "file://" + os.path.abspath(os.path.join(_STATIC, "distance.js"))
+    module_url = "file://" + os.path.abspath(os.path.join(_STATIC, "unitladder.js"))
     out = subprocess.run(
         ["node", "--input-type=module", "-e", script, module_url, json.dumps(meters)],
         check=True, capture_output=True, text=True,

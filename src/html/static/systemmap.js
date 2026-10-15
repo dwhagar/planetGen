@@ -35,7 +35,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
-const { formatDistanceKm: formatLadderKm } = await import(`./distance.js${VERSION_QUERY}`);
+const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { appendNavActions } = await import(`./systemnav.js${VERSION_QUERY}`);
 
@@ -639,7 +639,7 @@ function layoutLabels(sceneEl) {
 // pulley), not a literal spline curve fit, but the real minimum distance
 // a route that has to clear the body would need to cover.
 
-// Distances go through the shared ladder (static/distance.js).
+// Distances go through the shared ladder (static/unitladder.js).
 function formatDistanceKm(km) {
   if (km == null || !isFinite(km)) {
     return "unknown";

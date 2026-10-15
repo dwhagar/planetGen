@@ -58,7 +58,7 @@ const {
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
-const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
+const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
@@ -3194,7 +3194,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // The readout's label: "<sectors> · <distance>", the distance on the
-  // shared ladder (static/distance.js), which adds ly in parentheses to
+  // shared ladder (static/unitladder.js), which adds ly in parentheses to
   // parsec values.
   function scaleLabel(pc) {
     var sectors = pc / edgePc;

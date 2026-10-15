@@ -29,7 +29,7 @@ AREA_RULES = (
     ("api", r"api|ratelimit|login|password|two_factor|admin_auth|corridor|route_edge|activity"),
     ("web", r"web|fuzz_web|page|systempage|systemmap|starmap|galaxymap|galaxydrill|galaxyprisms|galaxystages|"
             r"galaxy_urls|galaxy_viewport|navmap|nav_|tile|datatable|generatebuttons|icons|mdrender|js_unit|"
-            r"class_pages|console|pagination|number_format|speed_period|distance_format|fmt_|local_time|"
+            r"class_pages|console|pagination|number_format|speed_period|distance_format|unit_ladders|fmt_|local_time|"
             r"connectionnote|system_render|system_scene|warmup|eta_|progress_|navigation|render_edges|text_rendering"),
     ("physics", r"astropy|atmosphere|climate|comet|disk|evolution|galactic|habitability|heliopause|heliosphere|"
                 r"hydrosphere|kepler|light|luminosity|orbit|planet|quasar|radiation|remnant|spin|state_vectors|"

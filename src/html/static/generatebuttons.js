@@ -8,7 +8,7 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 
-const { LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
+const { LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 // The neighborhood dialog's radius in light years: the default (about

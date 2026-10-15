@@ -16,7 +16,7 @@
 // drag gate has nothing to protect here -- it's simply inert.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { formatDistanceAu } = await import(`./distance.js${VERSION_QUERY}`);
+const { formatDistanceAu } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 (function () {
   "use strict";
