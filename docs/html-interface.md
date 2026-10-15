@@ -38,12 +38,12 @@ The sweep of the existing wording is done (PR #1049).
 
 ## Habitability chips
 
-Each rocky planet's and moon's description also carries the full PHI-4 explanation (UX.91, `physics/habitability_explain.py`): the score and equipment, then one paragraph per colour factor with its colour, this world's input values and the input that sets it.
+Each rocky planet's and moon's description also carries the full PHI-6 explanation (UX.91, `physics/habitability_explain.py`): the score and equipment, then one paragraph per colour factor with its colour, this world's input values and the input that sets it.
 
 Planet and moon rows carry habitability chips (GEN.89, design in
 `docs/design/habitability-index.md`): an equipment label (Ideal, formerly Shirtsleeve;
 Mask, Mask and scrubber, Sealed suit, Full life support), a colour chip
-that comes from the six PHI-4 domains (pressure, temperature, air, water,
+that comes from the six PHI-6 domains (pressure, temperature, air, water,
 radiation, suitability; Blue, Green, Yellow, Red) under the gates of GEN.207, and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
 and black holes follow a host rule. The Equipment search has a facet for

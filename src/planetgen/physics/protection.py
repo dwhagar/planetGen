@@ -173,7 +173,7 @@ def paragraph(world, bold, compact_host=None):
     """
     scores = habitability.phi4(world)
     needs = requirements(world)
-    parts = [f"{bold('Habitability')} is {scores['PHI-4']:.2f} ({tier(scores['PHI-4'])})."]
+    parts = [f"{bold('PHI-6 habitability')} is {scores['PHI-4']:.2f} ({tier(scores['PHI-4'])})."]
     covering = [name for name in ("Pressure", "Temperature", "Radiation") if SUIT_RANK[needs[name][0]] >= SUIT_RANK["suit"]]
     for name in habitability.DOMAINS:
         colour = scores[name][1]
