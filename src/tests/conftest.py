@@ -51,6 +51,11 @@ os.environ["PYTHONPATH"] = os.pathsep.join(
 # PLANETGEN_LOG_DIR at their own tmp_path and call activitylog.reset().
 os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-test-logs-"))
 
+# Maintenance mode's state file (UX.112) stays out of the real /var/lib/planetGen, and the autouse fixture
+# `_site_open` below removes it before every test, since a test that migrates an old database turns it on.
+os.environ["PLANETGEN_MAINTENANCE_FILE"] = os.path.join(tempfile.mkdtemp(prefix="planetgen-test-maintenance-"),
+                                                        "maintenance.json")
+
 # Generation runs one sector at a time, in-process, unless a test asks for
 # workers itself (tests/test_work_queue.py) or the run sets
 # PLANETGEN_WORKERS: CI's worker legs (TEST.74) run the `generation` tests
@@ -531,3 +536,12 @@ def key_prefix(redis_server):
     client = redis.Redis.from_url(redis_server)
     for key in client.scan_iter(match=f"{prefix}:*"):
         client.delete(key)
+
+
+@pytest.fixture(autouse=True)
+def _site_open():
+    """Every test starts with maintenance mode off (UX.112)."""
+    try:
+        os.unlink(os.environ["PLANETGEN_MAINTENANCE_FILE"])
+    except FileNotFoundError:
+        pass

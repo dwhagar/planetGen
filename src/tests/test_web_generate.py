@@ -48,18 +48,18 @@ def jobs_root(tmp_path, monkeypatch):
 class FakeSite:
     def __init__(self):
         self.admin = {"username": "boss", "must_change_credentials": False}
-        self.shape = {"outer_ring_index": 4100, "edge_pc": 3.5}
+        self.shape = {"outer_shell_index": 4100, "edge_pc": 3.5}
         self.sector_total = 7
         self.version_warning = None
-        self.layers = None
+        self.shells = None
         self.bright = {"scattered": True, "min_luminosity_sol": 500.0, "seed": 42,
                        "default_min_luminosity_sol": 500.0}
 
     def get_bright_star_status(self, db):
         return self.bright
 
-    def get_layer_specs(self, db):
-        return self.layers
+    def get_shell_specs(self, db):
+        return self.shells
 
     def get_version_warning(self, db):
         return self.version_warning
@@ -79,7 +79,7 @@ class FakeSite:
 def site(monkeypatch, jobs_root):
     fake = FakeSite()
     for name in ("auth_me", "get_galaxy_shape", "get_sectors", "get_bright_star_status",
-                 "get_version_warning", "get_layer_specs"):
+                 "get_version_warning", "get_shell_specs"):
         monkeypatch.setattr(apiclient, name, getattr(fake, name))
     return fake
 
@@ -207,19 +207,19 @@ def test_less_common_settings_sit_in_customize_tabs(site, client):
     assert 'name="bright_min_luminosity"' in new_galaxy and 'name="prevalence_comets"' in new_galaxy
 
 
-def test_page_shows_the_galaxy_layer_specs(site, client):
-    # ADM.28: no plan, no panel; with one, the count, height, extent and charted sectors.
-    assert "Galaxy layers" not in client.get("/admin/generate").get_data(as_text=True)
-    site.layers = {"count": 3, "lowest": -1, "highest": 1, "height_pc": 4.0, "thickness_pc": 12.0,
-                   "radius_pc": 9000.0, "charted": 5, "sampled": False,
-                   "rows": [{"layer": 1, "bottom_pc": 2.0, "top_pc": 6.0, "radius_pc": 8000.0, "charted": 2},
-                            {"layer": 0, "bottom_pc": -2.0, "top_pc": 2.0, "radius_pc": 9000.0, "charted": 3},
-                            {"layer": -1, "bottom_pc": -6.0, "top_pc": -2.0, "radius_pc": 8000.0, "charted": 0}]}
+def test_page_shows_the_galaxy_shell_specs(site, client):
+    # ADM.28: no plan, no panel; with one, the count, depth, extent and generated sectors.
+    assert "Galaxy shells" not in client.get("/admin/generate").get_data(as_text=True)
+    site.shells = {"count": 3, "outermost": 2, "depth_pc": 4.0, "radius_pc": 9000.0, "cells": 40, "charted": 5,
+                   "sampled": False,
+                   "rows": [{"shell": 2, "inner_pc": 6.0, "outer_pc": 9000.0, "bands": 7, "cells": 30, "charted": 2},
+                            {"shell": 1, "inner_pc": 2.0, "outer_pc": 6.0, "bands": 3, "cells": 9, "charted": 3},
+                            {"shell": 0, "inner_pc": 0.0, "outer_pc": 2.0, "bands": 1, "cells": 1, "charted": 0}]}
     html = client.get("/admin/generate").get_data(as_text=True)
-    assert "Galaxy layers" in html and "4.0 pc per layer" in html and "9,000 pc" in html
-    assert "5 sectors generated" in html and "Every layer, highest first." in html
-    site.layers["sampled"] = True
-    assert "An even sample of the layers" in client.get("/admin/generate").get_data(as_text=True)
+    assert "Galaxy shells" in html and "4.0 pc per shell" in html and "9,000 pc" in html
+    assert "5 generated" in html and "Every shell, outermost first." in html
+    site.shells["sampled"] = True
+    assert "An even sample of the shells" in client.get("/admin/generate").get_data(as_text=True)
 
 
 def test_page_renders_summary_and_forms(site, client):
@@ -228,7 +228,7 @@ def test_page_renders_summary_and_forms(site, client):
     assert resp.status_code == 200
     assert resp.headers["Cache-Control"] == "no-store"
     assert f"Database {DB}" in html
-    assert "Planned, edge at ring 4,100" in html
+    assert "Planned, edge at shell 4,100" in html
     assert "7 sectors" in html
     for action in ("new_galaxy", "galaxy", "plan", "redo_scatters", "reset"):
         assert f'name="action" value="{action}"' in html
@@ -299,44 +299,38 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
 
 @pytest.mark.parametrize("form, argv", [
     ({"mode": "random"}, []),
-    ({"mode": "random", "radius_pc": "50", "max_ring": "30", "min_start_density": "1.5"},
-     ["--radius-pc", "50.0", "--max-ring", "30", "--min-start-density", "1.5"]),
-    ({"mode": "ring", "ring": "12"}, ["--ring", "12", "--layer", "0"]),
-    ({"mode": "ring", "ring": "12", "layer": "-2", "limit": "5", "whole_ring": "1"},
-     ["--ring", "12", "--layer", "-2", "--limit", "5"]),
-    ({"mode": "ring", "ring": "4000", "whole_ring": "1"}, ["--ring", "4000", "--layer", "0", "--yes"]),
+    ({"mode": "random", "radius_pc": "50", "max_shell": "30", "min_start_density": "1.5"},
+     ["--radius-pc", "50.0", "--max-shell", "30", "--min-start-density", "1.5"]),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "20"},
      ["--center-sector", "9", "--radius-pc", "20.0"]),
     ({"mode": "center", "center_by": "sector", "center_sector": "9", "center_radius_pc": "20"},
      ["--center-sector", "9", "--radius-pc", "20.0"]),
-    ({"mode": "center", "center_by": "address", "center_ring": "40", "center_layer": "-1", "center_slot": "7",
+    ({"mode": "center", "center_by": "address", "center_shell": "40", "center_band": "-1", "center_wedge": "7",
       "center_radius_pc": "12"},
-     ["--ring", "40", "--layer", "-1", "--slot", "7", "--radius-pc", "12.0"]),
-    ({"mode": "center", "center_by": "address", "center_ring": "40", "center_slot": "7", "center_radius_pc": "12"},
-     ["--ring", "40", "--layer", "0", "--slot", "7", "--radius-pc", "12.0"]),
-    # FakeSite's plan has a 3.5 pc edge: x = 10 is ring 2, z = 4 rounds to layer 1.
+     ["--shell", "40", "--band", "-1", "--wedge", "7", "--radius-pc", "12.0"]),
+    ({"mode": "center", "center_by": "address", "center_shell": "40", "center_wedge": "7", "center_radius_pc": "12"},
+     ["--shell", "40", "--band", "0", "--wedge", "7", "--radius-pc", "12.0"]),
+    # x = 10, z = 4 is in shell 3 one band up; x = -10 is on the other side of the plane, wedge 9 of 18.
     ({"mode": "center", "center_by": "position", "center_x_pc": "10", "center_y_pc": "0", "center_z_pc": "4",
       "center_radius_pc": "20"},
-     ["--ring", "2", "--layer", "1", "--slot", "0", "--radius-pc", "20.0"]),
+     ["--shell", "3", "--band", "1", "--wedge", "0", "--radius-pc", "20.0"]),
     ({"mode": "center", "center_by": "position", "center_x_pc": "-10", "center_y_pc": "0", "center_radius_pc": "20"},
-     ["--ring", "2", "--layer", "0", "--slot", "7", "--radius-pc", "20.0"]),
-    ({"mode": "slot", "slot_ring": "3", "slot_layer": "1", "slot": "17"},
-     ["--ring", "3", "--layer", "1", "--slot", "17"]),
-    ({"mode": "slot", "slot_ring": "3", "slot": "17", "slot_radius_pc": "12"},
-     ["--ring", "3", "--layer", "0", "--slot", "17", "--radius-pc", "12.0"]),
-    ({"mode": "column", "column_ring": "5", "column_slot": "2"}, ["--ring", "5", "--slot", "2", "--column"]),
-    ({"mode": "shell", "shell_ring": "5"}, ["--ring", "5", "--shell"]),
-    ({"mode": "shell", "shell_ring": "5", "shell_limit": "40", "whole_shell": "1"},
-     ["--ring", "5", "--shell", "--limit", "40"]),
-    ({"mode": "shell", "shell_ring": "5", "whole_shell": "1"}, ["--ring", "5", "--shell", "--yes"]),
-    ({"mode": "slot", "slot_ring": "3", "slot": "17", "slot_radius_ly": "100"},
-     ["--ring", "3", "--layer", "0", "--slot", "17", "--radius-pc", "30.7"]),
-    ({"mode": "slot", "slot_ring": "3", "slot": "17", "slot_radius_ly": "652"},
-     ["--ring", "3", "--layer", "0", "--slot", "17", "--radius-pc", "199.9"]),
-    ({"mode": "block", "block": " 3.40.7.0 "}, ["--block", "3.40.7.0"]),
-    ({"mode": "block", "block": "3.40.7.0", "block_layer": "-1"}, ["--block", "3.40.7.0", "--block-layer", "-1"]),
-    ({"mode": "block", "block": "27.4.1.0", "block_limit": "50"}, ["--block", "27.4.1.0", "--limit", "50"]),
-    ({"mode": "block", "block": "27.4.1.0", "whole_block": "1"}, ["--block", "27.4.1.0", "--yes"]),
+     ["--shell", "3", "--band", "0", "--wedge", "9", "--radius-pc", "20.0"]),
+    ({"mode": "address", "address_shell": "3", "address_band": "1", "address_wedge": "17"},
+     ["--shell", "3", "--band", "1", "--wedge", "17"]),
+    ({"mode": "address", "address_shell": "3", "address_wedge": "17", "address_radius_pc": "12"},
+     ["--shell", "3", "--band", "0", "--wedge", "17", "--radius-pc", "12.0"]),
+    ({"mode": "shell", "shell_index": "5"}, ["--shell", "5"]),
+    ({"mode": "shell", "shell_index": "5", "shell_band": "-2"}, ["--shell", "5", "--band", "-2"]),
+    ({"mode": "shell", "shell_index": "5", "shell_limit": "40", "whole_shell": "1"}, ["--shell", "5", "--limit", "40"]),
+    ({"mode": "shell", "shell_index": "5", "whole_shell": "1"}, ["--shell", "5", "--yes"]),
+    ({"mode": "address", "address_shell": "3", "address_wedge": "17", "address_radius_ly": "100"},
+     ["--shell", "3", "--band", "0", "--wedge", "17", "--radius-pc", "30.7"]),
+    ({"mode": "address", "address_shell": "3", "address_wedge": "17", "address_radius_ly": "652"},
+     ["--shell", "3", "--band", "0", "--wedge", "17", "--radius-pc", "199.9"]),
+    ({"mode": "span", "span_shells": "10:20", "span_bands": "-2:2"}, ["--shells=10:20", "--bands=-2:2"]),
+    ({"mode": "span", "span_shells": "7", "span_bands": "0", "span_wedges": "4:9", "span_limit": "3"},
+     ["--shells=7", "--bands=0", "--wedges=4:9", "--limit", "3"]),
 ])
 def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", estimate_ok="1", **form)
@@ -346,38 +340,39 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
 
 
 @pytest.mark.parametrize("form, message", [
-    ({"mode": "ring"}, "Ring is required."),
-    ({"mode": "ring", "ring": "-1"}, "Ring must be at least 0."),
+    ({"mode": "shell"}, "Shell is required."),
+    ({"mode": "shell", "shell_index": "-1"}, "Shell must be at least 0."),
     ({"mode": "center", "center_sector": "9"}, "Radius (pc) is required."),
-    ({"mode": "slot", "slot_ring": "x", "slot": "1"}, "Ring must be a whole number."),
+    ({"mode": "address", "address_shell": "x", "address_wedge": "1"}, "Shell must be a whole number."),
     ({"mode": "random", "radius_pc": "nan"}, "Radius (pc) must be a finite number."),
     ({"mode": "bogus"}, "Choose what to generate."),
+    ({"mode": "ring", "ring": "3"}, "Choose what to generate."),
+    ({"mode": "block", "block": "3.40.7.0"}, "Choose what to generate."),
     ({"mode": "random", "radius_pc": "200.5"}, "Radius (pc) must be at most 200."),
-    ({"mode": "random", "max_ring": "9" * 25}, "Highest ring must be at most 100000."),
-    ({"mode": "ring", "ring": "100001"}, "Ring must be at most 100000."),
-    ({"mode": "ring", "ring": "3", "limit": "1e30"}, "Limit must be a whole number."),
-    ({"mode": "ring", "ring": "3", "limit": "9999999"}, "Limit must be at most"),
+    ({"mode": "random", "max_shell": "9" * 25}, "Highest shell must be at most 100000."),
+    ({"mode": "shell", "shell_index": "100001"}, "Shell must be at most 100000."),
+    ({"mode": "shell", "shell_index": "3", "shell_limit": "1e30"}, "Limit must be a whole number."),
+    ({"mode": "shell", "shell_index": "3", "shell_limit": str(generate_page.MAX_GENERATE_LIMIT + 1)}, "Limit must be at most"),
+    ({"mode": "shell", "shell_index": "3", "shell_band": "x"}, "Band must be a whole number."),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "1e9"}, "Radius (pc) must be at most 200."),
-    ({"mode": "center", "center_by": "address", "center_slot": "1", "center_radius_pc": "5"}, "Ring is required."),
+    ({"mode": "center", "center_by": "address", "center_wedge": "1", "center_radius_pc": "5"}, "Shell is required."),
     ({"mode": "center", "center_by": "position", "center_x_pc": "1", "center_radius_pc": "5"}, "y (pc) is required."),
     ({"mode": "center", "center_by": "position", "center_x_pc": "1e12", "center_y_pc": "0", "center_radius_pc": "5"},
      "That position is outside the galaxy grid."),
     ({"mode": "center", "center_by": "position", "center_x_pc": "inf", "center_y_pc": "0", "center_radius_pc": "5"},
      "x (pc) must be a finite number."),
     ({"mode": "center", "center_by": "bogus", "center_radius_pc": "5"}, "Choose how to name the center sector."),
-    ({"mode": "slot", "slot_ring": "100001", "slot": "0"}, "Ring must be at most 100000."),
-    ({"mode": "slot", "slot_ring": "1", "slot": "0", "slot_radius_pc": "500"}, "Radius (pc) must be at most 200."),
-    ({"mode": "column", "column_ring": "1"}, "Slot is required."),
-    ({"mode": "shell"}, "Ring is required."),
-    ({"mode": "shell", "shell_ring": "2", "shell_limit": "9999999"}, "Limit must be at most"),
-    ({"mode": "slot", "slot_ring": "1", "slot": "0", "slot_radius_ly": "12"},
+    ({"mode": "address", "address_shell": "100001", "address_wedge": "0"}, "Shell must be at most 100000."),
+    ({"mode": "address", "address_shell": "1", "address_wedge": "0", "address_radius_pc": "500"},
+     "Radius (pc) must be at most 200."),
+    ({"mode": "address", "address_shell": "1"}, "Wedge is required."),
+    ({"mode": "address", "address_shell": "1", "address_wedge": "0", "address_radius_ly": "12"},
      "Neighborhood radius (ly) must be at least 13."),
-    ({"mode": "slot", "slot_ring": "1", "slot": "0", "slot_radius_ly": "653"},
+    ({"mode": "address", "address_shell": "1", "address_wedge": "0", "address_radius_ly": "653"},
      "Neighborhood radius (ly) must be at most 652."),
-    ({"mode": "block"}, "Block is required."),
-    ({"mode": "block", "block": "3.40"}, "Block must be a Galaxy Map block key"),
-    ({"mode": "block", "block": "1.4.2.0"}, "Block must be a Galaxy Map block key"),
-    ({"mode": "block", "block": "3.40.7.0", "block_layer": "x"}, "Layer must be a whole number."),
+    ({"mode": "span"}, "Give at least one range: shells, bands or wedges."),
+    ({"mode": "span", "span_shells": "3:1"}, "runs backwards"),
+    ({"mode": "span", "span_wedges": "1:2"}, "a wedge arc needs exactly one shell and one band"),
 ])
 def test_galaxy_job_rejects_bad_values(site, client, no_spawn, form, message):
     resp = _post(client, action="galaxy", **form)
@@ -389,7 +384,7 @@ def test_galaxy_job_rejects_bad_values(site, client, no_spawn, form, message):
 _ESTIMATE = {"sectors": 9, "systems": 120, "stars": 156, "bytes": 8_400_000, "seconds": 75.0, "workers": 2,
              "measured": True, "refused": False, "refusal": None,
              "disk": {"path": "/var/lib/mysql/", "total_bytes": 10 ** 12, "free_bytes": 4 * 10 ** 11},
-             "summary": "About 8.4 MB and 1 m 15 s for 9 sectors.", "what": "block 3.40.7.0"}
+             "summary": "About 8.4 MB and 1 m 15 s for 9 sectors.", "what": "shell 40"}
 
 
 def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn, monkeypatch):
@@ -397,15 +392,15 @@ def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn,
     Generate button that re-sends the form confirmed."""
     asked = []
     monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: asked.append(argv) or dict(_ESTIMATE))
-    resp = _post(client, action="galaxy", mode="block", block="3.40.7.0")
+    resp = _post(client, action="galaxy", mode="shell", shell_index="40")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200 and no_spawn == []
-    assert _argv({"argv": asked[0]}) == ["galaxy", "--block", "3.40.7.0"]
+    assert _argv({"argv": asked[0]}) == ["galaxy", "--shell", "40"]
     assert "About 8.4 MB" in html and "1 m 15 s" in html and "400 GB free of 1.0 TB" in html
     form = html[html.index('id="estimate"'):]
     form = form[:form.index("</section>")]
     assert 'name="estimate_ok" value="1"' in form
-    assert 'name="mode" value="block"' in form and 'name="block" value="3.40.7.0"' in form
+    assert 'name="mode" value="shell"' in form and 'name="shell_index" value="40"' in form
     assert 'name="action" value="galaxy"' in form
 
 
@@ -414,13 +409,13 @@ def test_a_refused_galaxy_job_offers_generate_anyway(site, client, no_spawn, mon
     admin can generate it anyway."""
     refused = dict(_ESTIMATE, refused=True, refusal="Refused: it would leave 2 GB free.")
     monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: refused)
-    html = _post(client, action="galaxy", mode="block", block="3.40.7.0").get_data(as_text=True)
+    html = _post(client, action="galaxy", mode="shell", shell_index="40").get_data(as_text=True)
     assert "Refused: it would leave 2 GB free." in html
     form = html[html.index('id="estimate"'):]
     form = form[:form.index("</section>")]
     assert 'name="estimate_ok" value="1"' in form and 'name="generate_anyway" value="1"' in form
     assert "Generate anyway" in form and "activity log" in form
-    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block", block="3.40.7.0")
+    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="shell", shell_index="40")
     assert resp.status_code == 409 and resp.get_json()["error"] == "Refused: it would leave 2 GB free."
     assert resp.get_json()["generate_anyway_field"] == "generate_anyway"
     assert no_spawn == []
@@ -429,7 +424,7 @@ def test_a_refused_galaxy_job_offers_generate_anyway(site, client, no_spawn, mon
 def test_generate_anyway_starts_the_job_and_logs_it(site, client, no_spawn, monkeypatch):
     events = []
     monkeypatch.setattr(generate_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
-    resp = _post(client, action="galaxy", mode="block", block="3.40.7.0", estimate_ok="1", generate_anyway="1")
+    resp = _post(client, action="galaxy", mode="shell", shell_index="40", estimate_ok="1", generate_anyway="1")
     assert resp.status_code == 303 and len(no_spawn) == 1
     assert "--strict" not in no_spawn[0]["steps"][-1]["argv"]   # the CLI warns and goes ahead
     names = [args[1] for args, _kwargs in events]
@@ -440,17 +435,17 @@ def test_generate_anyway_starts_the_job_and_logs_it(site, client, no_spawn, monk
 def test_a_plain_confirm_is_not_logged_as_an_override(site, client, no_spawn, monkeypatch):
     events = []
     monkeypatch.setattr(generate_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
-    assert _post(client, action="galaxy", mode="block", block="3.40.7.0", estimate_ok="1").status_code == 303
+    assert _post(client, action="galaxy", mode="shell", shell_index="40", estimate_ok="1").status_code == 303
     assert [args[1] for args, _kwargs in events] == ["job.start"]
 
 
 def test_an_estimate_that_fails_is_shown_as_an_error(site, client, no_spawn, monkeypatch):
     def failing(argv, env):
-        raise generate_page.FormError("Nothing was generated: Ring 900 holds 5000 sector slots")
+        raise generate_page.FormError("Nothing was generated: Shell 900 holds 5000 sectors")
 
     monkeypatch.setattr(generate_page, "run_estimate", failing)
-    resp = _post(client, action="galaxy", mode="ring", ring="900")
-    assert resp.status_code == 400 and "Ring 900 holds 5000 sector slots" in resp.get_data(as_text=True)
+    resp = _post(client, action="galaxy", mode="shell", shell_index="900")
+    assert resp.status_code == 400 and "Shell 900 holds 5000 sectors" in resp.get_data(as_text=True)
     assert no_spawn == []
 
 
@@ -460,8 +455,8 @@ def test_run_estimate_reads_the_estimate_line(tmp_path):
                       "print('ESTIMATE ' + json.dumps({'sectors': 3, 'args': sys.argv[1:]}))\n")
     result = generate_page.run_estimate([sys.executable, str(script), "galaxy"], {})
     assert result == {"sectors": 3, "args": ["galaxy", "--estimate-only"]}
-    script.write_text("import sys\nprint('Ring 9 is too big', file=sys.stderr)\nsys.exit(1)\n")
-    with pytest.raises(generate_page.FormError, match="Ring 9 is too big"):
+    script.write_text("import sys\nprint('Shell 9 is too big', file=sys.stderr)\nsys.exit(1)\n")
+    with pytest.raises(generate_page.FormError, match="Shell 9 is too big"):
         generate_page.run_estimate([sys.executable, str(script)], {})
 
 
@@ -469,13 +464,13 @@ def test_map_buttons_get_json(site, client, no_spawn, monkeypatch):
     """The Galaxy Map posts with `Accept: application/json` and reads the
     job's links back instead of following a redirect."""
     monkeypatch.setattr(jobs, "start_job", lambda *args, **kwargs: "job123")
-    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block",
-                 block="3.40.7.0", block_layer="0", estimate_ok="1")
+    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="shell",
+                 shell_index="40", shell_band="0", estimate_ok="1")
     assert resp.status_code == 202
     assert resp.get_json() == {"job": "job123", "url": "/admin/generate/jobs/job123",
                                "status_url": "/admin/generate/status?job=job123"}
-    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block")
-    assert resp.status_code == 400 and resp.get_json() == {"error": "Block is required."}
+    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="shell")
+    assert resp.status_code == 400 and resp.get_json() == {"error": "Shell is required."}
 
 
 def test_center_position_without_a_plan_uses_the_standard_edge(site, client, no_spawn):
@@ -484,7 +479,7 @@ def test_center_position_without_a_plan_uses_the_standard_edge(site, client, no_
                  center_x_pc="10", center_y_pc="0", center_radius_pc="20")
     assert resp.status_code == 303
     (job,) = no_spawn
-    assert _argv(job["steps"][-1])[:7] == ["galaxy", "--ring", "2", "--layer", "0", "--slot", "0"]
+    assert _argv(job["steps"][-1])[:7] == ["galaxy", "--shell", "3", "--band", "0", "--wedge", "0"]
 
 
 def _fold(html, section):
@@ -512,7 +507,7 @@ def test_sections_fold_with_only_current_job_open(site, client):
     ("galaxy", "generate-sectors"), ("plan", "plan"), ("bright_band", "bright-band"), ("reset", "reset"),
 ])
 def test_a_form_shown_again_keeps_its_section_open(site, client, no_spawn, action, section):
-    resp = _post(client, action=action, mode="ring", arm_density="50", down_to="", confirm="wrong")
+    resp = _post(client, action=action, mode="shell", arm_density="50", down_to="", confirm="wrong")
     assert resp.status_code == 400
     attrs = _fold(resp.get_data(as_text=True), section)
     assert " open" in attrs and "data-fold-keep" in attrs
@@ -522,7 +517,7 @@ def test_around_a_sector_offers_every_way_to_name_the_center(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     for by in ("sector", "address", "position"):
         assert f'name="center_by" value="{by}"' in html
-    for name in ("center_sector", "center_ring", "center_layer", "center_slot", "center_x_pc", "center_y_pc",
+    for name in ("center_sector", "center_shell", "center_band", "center_wedge", "center_x_pc", "center_y_pc",
                  "center_z_pc", "center_radius_pc"):
         assert f'name="{name}"' in html
     assert 'data-locate-url="/galaxy/locate"' in html
@@ -534,14 +529,14 @@ def test_sector_list_pages_filled_sectors(site, client, monkeypatch):
 
     def get_sectors(db, limit=None, offset=None):
         asked.append((limit, offset))
-        return {"items": [{"id": 7, "name": "Aldra", "system_count": 12, "ring_index": 40, "layer_index": 0,
-                           "ring_slot_index": 3}], "total": 51, "limit": limit, "offset": offset}
+        return {"items": [{"id": 7, "name": "Aldra", "system_count": 12, "shell_index": 40, "band_index": 0,
+                           "wedge_index": 3}], "total": 51, "limit": limit, "offset": offset}
 
     monkeypatch.setattr(apiclient, "get_sectors", get_sectors)
     resp = client.get("/admin/generate/sectors?page=2")
     assert resp.status_code == 200 and resp.headers["Cache-Control"] == "no-store"
-    assert resp.get_json() == {"items": [{"id": 7, "name": "Aldra", "systems": 12, "ring": 40, "layer": 0,
-                                          "slot": 3}], "total": 51, "page": 2, "pages": 2}
+    assert resp.get_json() == {"items": [{"id": 7, "name": "Aldra", "systems": 12, "shell": 40, "band": 0,
+                                          "wedge": 3}], "total": 51, "page": 2, "pages": 2}
     assert asked == [(50, 50)]
     assert client.get("/admin/generate/sectors?page=x").get_json()["page"] == 1
 
@@ -676,10 +671,10 @@ def test_page_offers_the_scatter_threshold(site, client):
     assert generate_page.BACKFILL_TEXT in html
 
 
-def test_backfill_text_follows_the_rings():
+def test_backfill_text_follows_the_steps():
     assert generate_page.BACKFILL_TEXT == (
-        "down to 1 solar mass in the ring of sectors around the generated ones, 2 in the second, "
-        "5 in the third and 8 in the fourth ring")
+        "down to 1 solar mass in the first step out from the generated sectors, 2 in the second, "
+        "5 in the third and 8 in the fourth step")
 
 
 def test_scatter_uses_the_threshold_field(site, client, no_spawn):
@@ -1186,11 +1181,11 @@ def test_largest_allowed_values_pass_the_page_and_generate_py(site, no_spawn, mo
     limits = generationLimits
     forms = [
         {"mode": "random", "radius_pc": str(limits.MAX_GENERATE_RADIUS_PC),
-         "max_ring": str(limits.MAX_GENERATE_RING)},
-        {"mode": "ring", "ring": str(limits.MAX_GENERATE_RING), "limit": str(limits.MAX_GENERATE_LIMIT)},
+         "max_shell": str(limits.MAX_GENERATE_SHELL)},
+        {"mode": "shell", "shell_index": str(limits.MAX_GENERATE_SHELL), "shell_limit": str(limits.MAX_GENERATE_LIMIT)},
         {"mode": "center", "center_sector": "9", "center_radius_pc": str(limits.MAX_GENERATE_RADIUS_PC)},
-        {"mode": "slot", "slot_ring": "3", "slot": "1", "slot_radius_ly": str(generate_page.MAX_GENERATE_RADIUS_LY)},
-        {"mode": "block", "block": "243.0.0.0", "block_limit": str(limits.MAX_GENERATE_LIMIT)},
+        {"mode": "address", "address_shell": "3", "address_wedge": "1", "address_radius_ly": str(generate_page.MAX_GENERATE_RADIUS_LY)},
+        {"mode": "span", "span_shells": "0:3", "span_limit": str(limits.MAX_GENERATE_LIMIT)},
     ]
     for form in forms:
         argv, _description = generate_page.galaxy_argv(form)
@@ -1202,9 +1197,9 @@ def test_largest_allowed_values_pass_the_page_and_generate_py(site, no_spawn, mo
 
 @pytest.mark.parametrize("argv", [
     ["galaxy", "--radius-pc", "200.1"],
-    ["galaxy", "--max-ring", "100001"],
-    ["galaxy", "--ring", "100001", "--limit", "1"],
-    ["galaxy", "--ring", "3", "--limit", str(generationLimits.MAX_GENERATE_LIMIT + 1)],
+    ["galaxy", "--max-shell", "100001"],
+    ["galaxy", "--shell", "100001", "--band", "0", "--wedge", "0", "--limit", "1"],
+    ["galaxy", "--shell", "3", "--limit", str(generationLimits.MAX_GENERATE_LIMIT + 1)],
     ["galaxy", "--center-sector", "9", "--radius-pc", "1e9"],
     ["system", "--num-orbits", str(generationLimits.MAX_NUM_ORBITS + 1)],
     ["phenomenon", "--anchor-system", "--num-orbits", "9" * 25],
@@ -1227,7 +1222,7 @@ def test_generate_py_rejects_bad_orbits_in_a_system_file(value, tmp_path, monkey
 
 def test_page_inputs_carry_the_bounds(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
-    assert f'max="{generationLimits.MAX_GENERATE_RING}"' in html
+    assert f'max="{generationLimits.MAX_GENERATE_SHELL}"' in html
     assert f'max="{generationLimits.MAX_GENERATE_LIMIT}"' in html
     html = client.get("/admin/generate/system").get_data(as_text=True)
     assert f'max="{generationLimits.MAX_NUM_ORBITS}"' in html
@@ -1289,12 +1284,12 @@ def test_a_job_runs_on_its_own_queue_and_leaves_none_behind(jobs_root, redis_ser
 
 
 def test_the_generate_form_reports_every_bad_field_at_once():
-    form = {"confirm": "db", "radius_pc": "abc", "max_ring": "-3", "min_start_density": "0"}
+    form = {"confirm": "db", "radius_pc": "abc", "max_shell": "-3", "min_start_density": "0"}
     with pytest.raises(generate_page.FormError) as caught:
         generate_page.build_job("new_galaxy", form, "db")
     message = str(caught.value)
     assert "Radius (pc) must be a number." in message
-    assert "Highest ring must be at least 0." in message
+    assert "Highest shell must be at least 0." in message
     assert "Minimum start density must be at least 0.001." in message
 
 

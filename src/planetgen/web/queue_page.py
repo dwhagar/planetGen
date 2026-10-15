@@ -55,7 +55,7 @@ STATUS_LABELS = {
 }
 
 SECTOR_KEY_RE = re.compile(r"^(-?\d+),(-?\d+),(-?\d+)$")
-"""re.Pattern: A sector task's key, `ring,layer,slot`."""
+"""re.Pattern: A sector task's key, `shell,band,wedge`."""
 
 ACTION_TEXT = {
     "pause": ("Pause", "Its running tasks finish, then it waits in standby without holding up other jobs, "
@@ -212,8 +212,8 @@ def _task_retry_argv(task):
     match = SECTOR_KEY_RE.match(task.get("task_key") or "")
     if task.get("kind") != "sector" or not match:
         return None
-    ring, layer, slot = match.groups()
-    return ["galaxy", "--ring", ring, "--layer", layer, "--slot", slot]
+    shell, band, wedge = match.groups()
+    return ["galaxy", "--shell", shell, "--band", band, "--wedge", wedge]
 
 
 def _retry_plan(root, node=None):

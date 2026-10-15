@@ -78,7 +78,7 @@ export function infoSpec(entry, data, navPick) {
 }
 
 function neighborSpec(entry, data) {
-  var fields = [["Address", formatAddress(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex)],
+  var fields = [["Address", formatAddress(entry.shellIndex, entry.bandIndex, entry.wedgeIndex)],
     ["Designation", entry.designation]];
   if (entry.brightStarCount) {
     // Bright stars the plan pre-placed here, waiting for the fill.
@@ -93,7 +93,7 @@ function neighborSpec(entry, data) {
     };
     spec.links = [{ href: entry.href, label: "View sector →" }];
   } else if (data && data.generate) {
-    spec.generate = generateButtons(data.generate, entry.ringIndex, entry.layerIndex, entry.ringSlotIndex, data.edgeLy);
+    spec.generate = generateButtons(data.generate, entry.shellIndex, entry.bandIndex, entry.wedgeIndex, data.edgeLy);
   }
   return spec;
 }

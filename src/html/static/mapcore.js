@@ -59,8 +59,8 @@ export function addField(dl, label, value) {
 }
 
 // A sector's grid address as the info panels show it.
-export function formatAddress(ringIndex, layerIndex, slotIndex) {
-  return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
+export function formatAddress(shellIndex, bandIndex, wedgeIndex) {
+  return "shell " + shellIndex + " band " + bandIndex + " wedge " + wedgeIndex;
 }
 
 // A thin ring in `color` (the selection highlight, a marked rogue

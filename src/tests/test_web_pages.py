@@ -610,7 +610,7 @@ def test_table_route_serves_the_sectors_and_systems_tables(client, fake):
 def _uncharted_star(i):
     return {"id": 50 + i, "star_type": "B2V", "yerkes_class": "V", "population": "young", "mass_solar": 9.0,
             "radius_solar": 5.0, "temperature_k": 22000.0, "luminosity_sol": 6000.0 - i, "age_gy": 0.02,
-            "ring_index": 3, "layer_index": 0, "ring_slot_index": 1, "designation": "6000100001",
+            "shell_index": 3, "band_index": 0, "wedge_index": 1, "designation": "6000100001",
             "x": 12.0, "y": 3.0, "z": 0.5, "local_x": 0.4, "local_y": -0.2, "local_z": 0.1, "galactic_radius_pc": 12.4}
 
 
@@ -628,7 +628,7 @@ def test_the_uncharted_filter_lists_every_scattered_star_with_where_it_is(client
     html = client.get("/systems?uncharted=1").get_data(as_text=True)
     assert ("uncharted", "luminosity", True) in fake.asked, "brightest first"
     assert "Uncharted B2V star 50" in html and "6,000" in html and "B2V (Young disk)" in html
-    assert "6000100001 (ring 3, layer 0, slot 1)" in html
+    assert "6000100001 (shell 3, band 0, wedge 1)" in html
     assert "/galaxy?sector=6000100001&amp;open=1" in html
     assert "12.00, 3.00, 0.50 pc" in html and "0.40, -0.20, 0.10 pc" in html
     assert "generating the whole sector" in html or "recommended" in html

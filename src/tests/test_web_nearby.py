@@ -12,10 +12,11 @@ import pytest
 from markupsafe import escape
 
 from planetgen import tuning
+from planetgen.galaxy import spherical
 from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.galaxy.density import build_galaxy_shape
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import run_galaxy
 from planetgen.physics.units import ly_to_pc
 from planetgen.web.app import create_app
@@ -31,9 +32,10 @@ ADDRESSES = [(2, 0, 0), (2, 0, 1)]
 
 @pytest.fixture
 def client(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=2000.0, config=mysql_config)
-    store.replace_galaxy_layers([(1, 6), (0, 8), (-1, 6)], config=mysql_config)
+    store.replace_galaxy_shells([(shell, min(1, spherical.band_range(shell)[1])) for shell in range(9)],
+                                config=mysql_config)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 4
     for address in ADDRESSES:

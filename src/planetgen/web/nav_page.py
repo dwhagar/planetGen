@@ -453,7 +453,7 @@ def galaxy_course(from_raw, to_raw):
     Returns:
         dict or None: `scope` (`"galaxy"` or `"sector"`), `points`
             (`[{name, url, role, x, y, z}]`, parsecs; only for
-            `"galaxy"`), `sector` (`{id, name, ring, layer, slot}`, only
+            `"galaxy"`), `sector` (`{id, name, shell, band, wedge}`, only
             for `"sector"`, where the whole course sits inside one
             sector) and `navUrl` (back to the course on the NAV page).
             `None` when either endpoint can't be navigated, or the two
@@ -483,8 +483,8 @@ def galaxy_course(from_raw, to_raw):
         return {
             "scope": "sector", "points": [], "navUrl": nav_url_here,
             "sector": {
-                "id": sector["id"], "name": sector["name"], "ring": sector["shell_index"],
-                "layer": sector["band_index"], "slot": sector["wedge_index"],
+                "id": sector["id"], "name": sector["name"], "shell": sector["shell_index"],
+                "band": sector["band_index"], "wedge": sector["wedge_index"],
             },
         }
     names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})

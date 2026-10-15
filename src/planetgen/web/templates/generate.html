@@ -153,7 +153,7 @@
   {%- if summary.error %}
   <span class="badge">Database unavailable</span>
   {%- else %}
-  <span class="badge">{% if summary.shape %}Planned, edge at ring {{ "{:,}".format(summary.shape.outer_shell_index) }}{% else %}Not planned yet{% endif %}</span>
+  <span class="badge">{% if summary.shape %}Planned, edge at shell {{ "{:,}".format(summary.shape.outer_shell_index) }}{% else %}Not planned yet{% endif %}</span>
   <span class="badge">{{ num(summary.sectors or 0) }} sector{{ "" if summary.sectors == 1 else "s" }}</span>
   {%- if summary.bright %}
   <span class="badge">{% if summary.bright.scattered %}Bright stars scattered ({{ num(summary.bright.min_luminosity_sol, ",.0f") }} L&#9737; and up, seed {{ summary.bright.seed }}){% else %}Bright stars not scattered yet{% endif %}</span>
@@ -228,21 +228,21 @@
 <p class="hint">The forms below unlock when the current job finishes.</p>
 {%- endif %}
 
-{%- if summary.layers %}
-{% call fold("layers", "Galaxy layers") %}
-  {%- set layers = summary.layers %}
+{%- if summary.shells %}
+{% call fold("shells", "Galaxy shells") %}
+  {%- set shells = summary.shells %}
   <dl class="estimate-facts">
-    <dt>Layers</dt><dd>{{ num(layers.count) }} (layer {{ num(layers.lowest) }} to {{ num(layers.highest) }}, layer 0 in the middle)</dd>
-    <dt>Height</dt><dd>{{ num(layers.height_pc, ",.1f") }} pc per layer, {{ num(layers.thickness_pc, ",.0f") }} pc through all of them</dd>
-    <dt>Extent</dt><dd>Out to {{ num(layers.radius_pc, ",.0f") }} pc from the center at the widest layer</dd>
-    <dt>Charted</dt><dd>{{ num(layers.charted) }} sector{{ "" if layers.charted == 1 else "s" }} generated</dd>
+    <dt>Shells</dt><dd>{{ num(shells.count) }} (shell 0, the core ball, out to shell {{ num(shells.outermost) }})</dd>
+    <dt>Depth</dt><dd>{{ num(shells.depth_pc, ",.1f") }} pc per shell</dd>
+    <dt>Extent</dt><dd>Out to {{ num(shells.radius_pc, ",.0f") }} pc from the center at the outermost shell</dd>
+    <dt>Sectors</dt><dd>{{ num(shells.cells) }} inside the outline, {{ num(shells.charted) }} generated</dd>
   </dl>
   <div class="table-scroll"><table>
-    <caption>{% if layers.sampled %}An even sample of the layers, highest first.{% else %}Every layer, highest first.{% endif %}</caption>
-    <thead><tr><th scope="col" class="num">Layer</th><th scope="col" class="num">From z (pc)</th><th scope="col" class="num">To z (pc)</th><th scope="col" class="num">Extent (pc)</th><th scope="col" class="num">Charted</th></tr></thead>
+    <caption>{% if shells.sampled %}An even sample of the shells, outermost first.{% else %}Every shell, outermost first.{% endif %}</caption>
+    <thead><tr><th scope="col" class="num">Shell</th><th scope="col" class="num">From (pc)</th><th scope="col" class="num">To (pc)</th><th scope="col" class="num">Bands</th><th scope="col" class="num">Sectors</th><th scope="col" class="num">Generated</th></tr></thead>
     <tbody>
-      {%- for row in layers.rows %}
-      <tr><td class="num">{{ num(row.layer) }}</td><td class="num">{{ num(row.bottom_pc, ",.1f") }}</td><td class="num">{{ num(row.top_pc, ",.1f") }}</td><td class="num">{{ num(row.radius_pc, ",.0f") }}</td><td class="num">{{ num(row.charted) }}</td></tr>
+      {%- for row in shells.rows %}
+      <tr><td class="num">{{ num(row.shell) }}</td><td class="num">{{ num(row.inner_pc, ",.1f") }}</td><td class="num">{{ num(row.outer_pc, ",.0f") }}</td><td class="num">{{ num(row.bands) }}</td><td class="num">{{ num(row.cells) }}</td><td class="num">{{ num(row.charted) }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
@@ -298,47 +298,31 @@
       <div class="search-fields">
       {%- if mode == "random" %}
         {{ field("radius_pc", "Radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
-        {{ field("max_ring", "Highest ring", placeholder="Milky Way size", step="1", min=0, max=max_ring) }}
+        {{ field("max_shell", "Highest shell", placeholder="Milky Way size", step="1", min=0, max=max_shell) }}
         {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
         {{ field("neighborhoods", "Neighborhoods", placeholder="1", step="1", min=1, max=max_neighborhoods,
                  hint="More than one makes that many, each whole inside the galaxy and at least twice the radius from the others.") }}
         {{ field("neighborhood_gamma", "Density bias", placeholder="0", min=0, max=10,
                  hint="0 picks starts evenly by volume; higher favors denser space.") }}
         <label class="search-field generate-check"><span><input type="checkbox" name="avoid_filled_space" value="1"{% if form and form.get("avoid_filled_space") %} checked{% endif %}> Keep away from filled space: drop any start whose neighborhood touches sectors already generated</span></label>
-      {%- elif mode == "ring" %}
-        {{ field("ring", "Ring", step="1", min=0, max=max_ring) }}
-        {{ field("layer", "Layer", placeholder="0", step="1") }}
-        {{ field("limit", "Limit (sectors)", placeholder="the whole ring", step="1", min=1, max=max_limit) }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="whole_ring" value="1"> Allow a very large ring (over 2,000 slots) without a limit</span></label>
-      {%- elif mode == "center" %}
-        {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="A sphere around the center.") }}
-        {{ field("center_cylinder_sectors", "or radius (sectors)", step="any", min=0.5, max=40,
-                 hint="A round disc this many sectors across the plane (1 is the center and its face neighbors); used instead of the radius in parsecs.") }}
-        {{ field("center_cylinder_layers", "Layers either side", step="1", min=0, max=40, placeholder="the same as the radius",
-                 hint="With a radius in sectors: how far above and below the center's layer to fill.") }}
-      {%- elif mode == "slot" %}
-        {{ field("slot_ring", "Ring", step="1", min=0, max=max_ring) }}
-        {{ field("slot_layer", "Layer", placeholder="0", step="1") }}
-        {{ field("slot", "Slot", step="1", min=0) }}
-        {{ field("slot_radius_ly", "Neighborhood radius (ly)", placeholder="just this sector", min=min_radius_ly, max=max_radius_ly) }}
-      {%- elif mode == "column" %}
-        {{ field("column_ring", "Ring", step="1", min=0, max=max_ring) }}
-        {{ field("column_slot", "Slot", step="1", min=0) }}
-      {%- elif mode == "block" %}
-        {{ field("block", "Block", kind="text", placeholder="e.g. 3.40.7.0") }}
-        {{ field("block_layer", "Layer", placeholder="every layer", step="1") }}
-        {{ field("block_limit", "Limit (sectors)", placeholder="the whole block", step="1", min=1, max=max_limit) }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="whole_block" value="1"> Allow a block over 2,000 sectors without a limit</span></label>
-      {%- elif mode == "span" %}
-        {{ field("span_rings", "Rings", kind="text", placeholder="all, e.g. 10:20") }}
-        {{ field("span_layers", "Layers", kind="text", placeholder="all, e.g. -2:2") }}
-        {{ field("span_slots", "Slots (one ring only)", kind="text", placeholder="whole ring, e.g. 50:5") }}
-        {{ field("span_limit", "Limit (sectors)", placeholder="the whole span", step="1", min=1, max=max_limit) }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="whole_span" value="1"> Allow a span over 2,000 sectors without a limit</span></label>
       {%- elif mode == "shell" %}
-        {{ field("shell_ring", "Ring", step="1", min=0, max=max_ring) }}
+        {{ field("shell_index", "Shell", step="1", min=0, max=max_shell) }}
+        {{ field("shell_band", "Band", placeholder="every band", step="1") }}
         {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
+      {%- elif mode == "center" %}
+        {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="A sphere around the center.") }}
+      {%- elif mode == "address" %}
+        {{ field("address_shell", "Shell", step="1", min=0, max=max_shell) }}
+        {{ field("address_band", "Band", placeholder="0", step="1") }}
+        {{ field("address_wedge", "Wedge", step="1", min=0) }}
+        {{ field("address_radius_ly", "Neighborhood radius (ly)", placeholder="just this sector", min=min_radius_ly, max=max_radius_ly) }}
+      {%- elif mode == "span" %}
+        {{ field("span_shells", "Shells", kind="text", placeholder="all, e.g. 10:20") }}
+        {{ field("span_bands", "Bands", kind="text", placeholder="all, e.g. -2:2") }}
+        {{ field("span_wedges", "Wedges (one shell and band only)", kind="text", placeholder="the whole band, e.g. 4:9") }}
+        {{ field("span_limit", "Limit (sectors)", placeholder="the whole span", step="1", min=1, max=max_limit) }}
+        <label class="search-field generate-check"><span><input type="checkbox" name="whole_span" value="1"> Allow a span over 2,000 sectors without a limit</span></label>
       {%- endif %}
       </div>
       {%- if mode == "center" %}
@@ -373,9 +357,9 @@
         <p class="hint" data-finder-chosen role="status" aria-live="polite"></p>
         {%- elif by == "address" %}
         <div class="search-fields">
-          {{ field("center_ring", "Ring", step="1", min=0, max=max_ring) }}
-          {{ field("center_layer", "Layer", placeholder="0", step="1") }}
-          {{ field("center_slot", "Slot", step="1", min=0) }}
+          {{ field("center_shell", "Shell", step="1", min=0, max=max_shell) }}
+          {{ field("center_band", "Band", placeholder="0", step="1") }}
+          {{ field("center_wedge", "Wedge", step="1", min=0) }}
         </div>
         {%- else %}
         <div class="search-fields">
@@ -450,7 +434,7 @@
   </form>
 {% endcall %}
 
-{% call fold("bright-band", "Add a dimmer layer of bright stars") %}
+{% call fold("bright-band", "Add a dimmer step of bright stars") %}
   <p class="hint">Keeps every bright star already placed and adds only the stars from a lower level up to
   the current one, then lowers the galaxy's star-fill level. Sectors already generated are left out: their
   own systems were drawn below the old level, so they already hold stars that bright.
@@ -464,7 +448,7 @@
       {{ field("down_to", "Go down to (solar luminosities)", value="", min=1, required=True, placeholder="100") }}
     </div>
     <div class="search-actions">
-      <button type="submit" class="btn"{% if busy or not (summary.bright and summary.bright.scattered) %} disabled{% endif %}>Add layer</button>
+      <button type="submit" class="btn"{% if busy or not (summary.bright and summary.bright.scattered) %} disabled{% endif %}>Add step</button>
     </div>
   </form>
 {% endcall %}

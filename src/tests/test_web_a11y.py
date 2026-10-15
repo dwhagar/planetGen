@@ -142,7 +142,7 @@ def _add_bright_stars(config, count=300):
     (`bright_stars`), as a scatter would write them."""
     import math
 
-    from planetgen.galaxy.geometry import sector_address_at
+    from planetgen.galaxy.spherical import sector_address_at
 
     rng = random.Random(5)
     conn = store.get_connection(config)
@@ -194,6 +194,18 @@ def _add_population(config):
         conn.close()
 
 
+def _seat_loose_systems(config):
+    """Puts the systems `planetgen system` made alone into the fixture's first sector, so the pages' sample system
+    has planets and a sector; the batch fill of a shell makes planet-less systems on the switch branch (GEN.227)."""
+    conn = store.get_connection(config)
+    try:
+        sector = conn.execute("SELECT MIN(id) AS id FROM sectors").fetchone()["id"]
+        conn.execute("UPDATE star_systems SET sector_id = ? WHERE sector_id IS NULL", (sector,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 @pytest.fixture(scope="module")
 def site_db(_mysql_server_available):
     """A throwaway database with a small generated galaxy in it, for the
@@ -219,8 +231,10 @@ def site_db(_mysql_server_available):
             run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
             _add_bright_stars(config)
             with forced_system_config(PLANETS=True):
-                run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
-            run_cli("system", ["--quiet"] + target)
+                run_cli("galaxy", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
+            with forced_system_config(PLANETS=True):   # the sector fill above makes planet-less systems (GEN.227)
+                run_cli("system", ["--quiet"] + target)
+            _seat_loose_systems(config)
             for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
             _add_population(config)
@@ -318,9 +332,9 @@ def sample_job_tree(admin_token, site_db):
     work queue and a task under it."""
     from planetgen.queue import work as workQueue
 
-    with workQueue.job_node("galaxy", "planetgen galaxy --ring 1", site_db,
-                            argv=["galaxy", "--ring", "1"]) as root:
-        with workQueue.WorkQueue("Sectors (ring 1)", workers=1) as queue:
+    with workQueue.job_node("galaxy", "planetgen galaxy --shell 1", site_db,
+                            argv=["galaxy", "--shell", "1"]) as root:
+        with workQueue.WorkQueue("Sectors (shell 1)", workers=1) as queue:
             queue.submit("sector", "1,0,0", int, "7")
     return root.id
 
@@ -342,12 +356,15 @@ def sample_params(site_app, sample_job, sample_job_tree):
     sectors = [s for s in items("/api/sectors?limit=100") if s["system_count"]]
     sector = sectors[0]
     systems = items(f"/api/systems?sector_id={sector['id']}&limit=100")
+    everywhere = items("/api/systems?limit=100")
+    with_bodies = [s for s in everywhere if client.get(f"/api/systems/{s['id']}").get_json().get("planets")]
+    sample_system = (with_bodies or systems)[0]   # the pages' sample system has planets for the body-row tests
     phenomena = items("/api/phenomena?limit=100")
     phenomenon = phenomena[0]
     return {
         "sector_id": sector["id"],
-        "system_id": systems[0]["id"],
-        "from_id": systems[0]["id"],
+        "system_id": sample_system["id"],
+        "from_id": sample_system["id"],
         "to_id": systems[-1]["id"],
         "phenomenon_type": phenomenon["type"],
         "phenomenon_id": phenomenon["id"],
