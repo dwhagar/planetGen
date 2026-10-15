@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.167 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.52 |
+| DOC | DOC.53 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -556,6 +556,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | open |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
+| DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -787,7 +788,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule | none | open |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | none | open |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | open |
-| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | open |
+| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | done, PR #1660 |
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | none | open |
 | GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | open |
 | GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | none | open |
@@ -1035,7 +1036,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) | none | done, PR #1494 |
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) | none | done, PR #1490 |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) | none | done, PR #1519 |
-| MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | open |
+| MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | done, PR #1692 |
 | MAP.205 | Galaxy Map block ladder for shells | none | done, PR #1612 |
 | MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | none | open |
@@ -1333,7 +1334,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | done, PR #707 |
 | UX.22 | Meaningful units for every measurement | none | done, PR #1504 |
-| UX.23 | A shared unit-ladder module | none | open |
+| UX.23 | A shared unit-ladder module | none | done (shipped as src/planetgen/util/ladders.py; its entry left TODO.md earlier) |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | done, PR #558 |

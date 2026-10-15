@@ -118,10 +118,10 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
-| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, TEST.158, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.155, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.230, GEN.231, UX.107, UX.108, UX.109, UX.110, GEN.223, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, OPS.41, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.21, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, OPS.31, NAV.45, NAV.61, NAV.60, DB.35, DB.34, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.235, GEN.234, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.268, GEN.266, GEN.265, PERF.103, GEN.264, GEN.263, GEN.262, GEN.261, GEN.260, GEN.250, GEN.233, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.151, GEN.93, GEN.149, GEN.112, GEN.113, GEN.154, GEN.153, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, GEN.159, GEN.158, API.19 |
+| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
 phase's first ones run, as long as the order inside each phase holds.
@@ -450,7 +450,7 @@ with `clamp()`.
   04:21Z): markdown is no longer the web default for any planet or
   system text; the richer tables replace it, and markdown and wikitext
   are generated on the fly only when the user asks.
-  Prerequisite: UX.23. Related: UX.30 (absorbed into this
+  Prerequisites: none. Related: UX.30 (absorbed into this
   item), UX.32, UX.101.
 
 - [ ] **UX.107 Units in the description go through the ladders**
@@ -463,7 +463,7 @@ with `clamp()`.
   themselves (mass, temperature, pressure, Gyr rename) are UX.22, UX.23
   and UX.81 (UX, all done); this item is the call sites outside the
   files they edit.
-  Prerequisite: UX.23. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
+  Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
 - [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
   Nebulae, remnants, quasar, rogue planets, asteroid fields, sector
@@ -528,7 +528,7 @@ with `clamp()`.
   companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
   catalogue), hierarchical trees only, a row's members deleted when its
   sector builds it, pair rates from the middle of the evidence.
-  Prerequisites: GEN.260.
+  Prerequisite: GEN.260.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1322,26 +1322,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
 
-- [ ] **MAP.204 Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug)**
-  Boss (2026-10-15 05:33Z): "BUG: Attempting to select a region under
-  the galactic plane on the galaxy map is exceedingly difficult and the
-  system doesn't want to highlight or allow selecing anything on the
-  underside unless positioning is just right." Selecting and
-  highlighting a sector, slab or block on the underside of the galactic
-  plane (below the mid-plane, seen from above or at an angle) should
-  work as easily as above it. Find why the pick and the highlight miss
-  the underside (the picking ray, the plane or box tests, or the
-  highlight drawn only for the upper side) and fix it so the underside
-  is picked and highlighted wherever the cursor is over it. Done when a
-  browser test selects and highlights regions below the plane from
-  several camera angles. Owner: Maps (Bug 2 retired,
-  Boss 2026-10-15 05:39Z), at the end of its queue; it touches the same
-  selection and camera code as MAP.198 (done), MAP.199 (done), MAP.200 (done,
-  PR #1556) and the MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
-  to follow.
-  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199 (done,
-  PR #1513), MAP.200 (done, PR #1556), MAP.152.
-
 - [ ] **MAP.207 The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline**
   Step 9 of the whole-sphere train. Components (the Clouds, Sagittarius,
   dwarfs, clusters) and wanderers (hypervelocity stars, kicked neutron
@@ -1738,7 +1718,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spherical sector layout is, then we'll skip it and move to the next
   sequence until it's finished research and we can plan it." The
   research is finished and merged (#1659), so stage C is live.
-  Prerequisites: NAV.60. Related: NAV.12, NAV.44, NAV.45.
+  Prerequisite: NAV.60. Related: NAV.12, NAV.44, NAV.45.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 ## GEN: Generation and physics
@@ -2769,7 +2749,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Add a trapezia sentence: young non-hierarchical groups under their
   decay age are the one exception to hierarchical trees, stored as a
   `group` node (GEN.273).
-  Prerequisites: GEN.261.
+  Prerequisite: GEN.261.
 
 - [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -3566,28 +3546,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so the queue it uses is the new one.
   Prerequisite: PERF.99. Related: GEN.101, MAP.120.
 
-- [ ] **GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug)**
-  A random hypervelocity star (about 350 km/s) makes
-  `sector_path.integrate_path` run for many minutes on the core sector.
-  `test_galaxy_gen.py::test_ensure_sector_generated_creates_then_reuses_the_same_sector`
-  fails about one run in three on untouched main because of it, and two
-  generation tests time out when the draw lands (found by Maps,
-  2026-10-15, running its gate against clean main). Done: the
-  integration of a path has a bounded cost whatever the body's speed (a
-  cap on the step count or a coarser step for fast bodies, whichever
-  keeps the stored Hermite path within its error budget), the cost is
-  the same for every body in a sector, and the flaky test passes
-  repeatedly. Owner: Core (2026-10-15). Quality owns the test list, so
-  the flake is not a TEST item. Bug.
-  Related failure (Quality, 2026-10-15, 4:56 PM EDT run):
-  `test_ensure_sector_generated_creates_then_reuses_the_same_sector`
-  (TEST.111) hung; it looks like this item, a fast star's path
-  integration running for minutes. Core fixes it here; Quality re-checks
-  TEST.111 afterwards.
-  Quality confirms (2026-10-15): the TEST.111 test fails alone on main
-  and runs past 900 s in integrate_path, _simplify and hermite.
-  Prerequisites: none. Related: PERF.88.
-
 - [ ] **GEN.233 Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits**
   Step 1 of the whole-sphere train
   (docs/design/intergalactic-and-halo-contents.md section 9). The grid
@@ -3643,7 +3601,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the floor tests are rewritten. The local-density alternative
   (about 2.7 times higher) is kept as a documented constant. Owner: Core
   (2026-10-15).
-  Prerequisites: GEN.233. Related: GEN.78, GEN.134.
+  Prerequisite: GEN.233. Related: GEN.78, GEN.134.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.235 One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved**
@@ -3746,7 +3704,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outline, and the counts per radius match the law. Owner: Core
   (2026-10-15), after GEN.232 (a fast body's path integration runs for
   minutes until it is capped).
-  Prerequisites: GEN.233, GEN.232, GEN.235. Related: GEN.223, GEN.240.
+  Prerequisites: GEN.233, GEN.235. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -3757,7 +3715,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is not known from the searches done; get it before building. Done: the
   clouds exist as placed gas objects and the Stream is a chain of them.
   Later, after the components. Owner: Core (2026-10-15).
-  Prerequisites: GEN.237. Related: GEN.202, GEN.241.
+  Prerequisite: GEN.237. Related: GEN.202, GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.240 The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass**
@@ -3831,7 +3789,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   address columns and gain the point columns and cell key (DB.35); the
   scatter pass keeps its bands and order and the key is computed from
   whatever position it writes.
-  Prerequisites: GEN.232, GEN.234, GEN.235, GEN.237. Related: GEN.238,
+  Prerequisites: GEN.234, GEN.235, GEN.237. Related: GEN.238,
   GEN.223.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3947,7 +3905,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   circumstellar and circumbinary disk descriptor and the young
   non-hierarchical groups of sections 13.1 and 13.5 build on this state
   (GEN.273, GEN.275).
-  Prerequisites: GEN.235. Related: GEN.241, UX.108.
+  Prerequisite: GEN.235. Related: GEN.241, UX.108.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.243 Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X**
@@ -4036,7 +3994,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars show a debris disk on the star page, with a radius and a dust
   mass. Later: not part of the whole-sphere train and nothing in it
   waits on this; plan after it. Owner: Core, later (2026-10-15).
-  Prerequisites: GEN.242.
+  Prerequisite: GEN.242.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.246 Luminous blue variables and hypergiants (later)**
@@ -4046,7 +4004,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   becomes a Wolf-Rayet star or explodes, at the real count, with an
   ejecta nebula. Later: not part of the whole-sphere train and nothing
   in it waits on this; plan after it. Owner: Core, later (2026-10-15).
-  Prerequisites: GEN.243. Related: GEN.241.
+  Prerequisite: GEN.243. Related: GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.247 Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later)**
@@ -4089,7 +4047,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars (about 20% of B stars) with their `be` flag and decretion disk;
   this item keeps carbon stars and Mira variables. Decide when GEN.270
   lands whether the Be part is closed here.
-  Prerequisites: GEN.235.
+  Prerequisite: GEN.235.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.250 A phenomena registry: one table for every kind of object, with a completeness test**
@@ -4190,7 +4148,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows of section 13.5 (close companion under 0.6% inside 3 to 10 AU,
   wide 3.2%, pairs 15% of brown dwarfs, planetary-mass companions) are
   built by GEN.275.
-  Prerequisites: GEN.251. Related: GEN.129.
+  Prerequisite: GEN.251. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.253 White-dwarf pollution flag and cool white dwarf presets**
@@ -4205,7 +4163,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows of section 13.3 (close double white dwarfs, post-common-envelope
   pairs, cataclysmic variables, AM CVn, symbiotic and barium stars) are
   built by GEN.271, which extends this item.
-  Prerequisites: GEN.130.
+  Prerequisite: GEN.130.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.254 Superbubble field beside the nebula field (the Local Bubble cavity)**
@@ -4216,7 +4174,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exists, is deterministic from the seed, appears on the map and the
   sector page, and the clouds inside it are gone. Later. Owner: Core,
   later (2026-10-15).
-  Prerequisites: GEN.235. Related: GEN.113.
+  Prerequisite: GEN.235. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
@@ -4226,7 +4184,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on the object pages and the maps. Done: each of the three kinds shows
   a jet along its spin axis at its own rate. Later. Owner: Core then
   Interface, later (2026-10-15).
-  Prerequisites: GEN.242. Related: GEN.104, GEN.247.
+  Prerequisite: GEN.242. Related: GEN.104, GEN.247.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.256 A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars**
@@ -4246,7 +4204,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   overlay on the Galaxy Map, no objects. Done: the overlay can be shown
   and hidden and sits where the data puts it. Later. Owner: Interface,
   later (2026-10-15).
-  Prerequisites: GEN.233. Related: GEN.113.
+  Prerequisite: GEN.233. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.258 Protostars embedded in giant molecular clouds**
@@ -4302,7 +4260,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `velocity_z_kms` and `decay_age_yr`. Still one migration (0093 with
   GEN.223 and GEN.230); one column per value, no JSON. Done also: those
   columns exist and `check-db` knows them.
-  Prerequisites: GEN.223. Related: GEN.230, GEN.129.
+  Prerequisite: GEN.223. Related: GEN.230, GEN.129.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.261 The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members**
@@ -4376,7 +4334,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before the 6:08 PM EDT catalogue), hierarchical trees only, a row's
   members deleted when its sector builds it, pair rates from the middle
   of the evidence.
-  Prerequisites: GEN.262. Related: GEN.130.
+  Prerequisite: GEN.262. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.264 The fill builds a system from its stored members; the system pass keeps only planets, moons and belts**
@@ -4445,7 +4403,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
   catalogue), hierarchical trees only, a row's members deleted when its
   sector builds it, pair rates from the middle of the evidence.
-  Prerequisites: GEN.261. Related: GEN.130.
+  Prerequisite: GEN.261. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -4468,7 +4426,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   allows several hundred; the 1.1e6 to 1.1e2 systems of N = 8 to 12 in
   the default galaxy are in the tail table). A directive may still raise
   it.
-  Prerequisites: GEN.261. Related: GEN.129, GEN.180.
+  Prerequisite: GEN.261. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.268 System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test**
@@ -4491,7 +4449,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   multi-star/star-like-object system", built "into our generator
   throughout to match as close as possible to observed and theoretical
   probabilities (observed are best, theoretical are good too)".
-  Prerequisites: GEN.250. Related: GEN.261, GEN.269, GEN.274, GEN.275,
+  Prerequisite: GEN.250. Related: GEN.261, GEN.269, GEN.274, GEN.275,
   TEST.164.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4544,7 +4502,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   multi-star/star-like-object system", built "into our generator
   throughout to match as close as possible to observed and theoretical
   probabilities (observed are best, theoretical are good too)".
-  Prerequisites: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
+  Prerequisite: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.271 White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars**
@@ -4568,7 +4526,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system", built "into our generator throughout to match as close as
   possible to observed and theoretical probabilities (observed are best,
   theoretical are good too)".
-  Prerequisites: GEN.269. Related: GEN.253, GEN.130, GEN.268.
+  Prerequisite: GEN.269. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.272 Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples**
@@ -4639,7 +4597,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system", built "into our generator throughout to match as close as
   possible to observed and theoretical probabilities (observed are best,
   theoretical are good too)".
-  Prerequisites: GEN.268. Related: GEN.159, GEN.160, GEN.161, GEN.162,
+  Prerequisite: GEN.268. Related: GEN.159, GEN.160, GEN.161, GEN.162,
   GEN.163, GEN.164, GEN.273.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4662,7 +4620,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   multi-star/star-like-object system", built "into our generator
   throughout to match as close as possible to observed and theoretical
   probabilities (observed are best, theoretical are good too)".
-  Prerequisites: GEN.268. Related: GEN.252, GEN.95, GEN.242.
+  Prerequisite: GEN.268. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.276 planetgen/galaxy/cellkey.py: the cell key function and the sphere-to-key-runs cover, numpy only**
@@ -5054,7 +5012,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over the ceiling moves at most the ceiling, warns with the backlog,
   leaves the rest due, and the next run takes them first; the counts of
   GEN.223 include the backlog. Owner: Core (2026-10-15).
-  Prerequisites: GEN.223. Related: GEN.265, GEN.109.
+  Prerequisite: GEN.223. Related: GEN.265, GEN.109.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 ## DB: Database and schema
@@ -5633,7 +5591,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (65,535 shells), 96-bit object IDs, one rule set everywhere with
   per-sector parameters, nothing generated unless asked, and an asked
   sector always generated and saved.
-  Prerequisites: GEN.235. Related: UX.113, API.15.
+  Prerequisite: GEN.235. Related: UX.113, API.15.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## ADM: Admin tools
@@ -6280,7 +6238,7 @@ clears each one.
   body first. Done: each test exists and runs in the normal suite.
   Owner: Quality (all TEST items are Quality's), written beside the
   build step.
-  Prerequisites: GEN.251. Related: TEST.159.
+  Prerequisite: GEN.251. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
@@ -7085,6 +7043,26 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is live.
   Prerequisites: DB.34, GEN.276, NAV.60. Related: NAV.61, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
+
+- [ ] **DOC.52 A docs index page: links to every HTML page under docs/, each with a description of what it contains**
+  Boss (2026-10-15 7:01 PM EDT): "Add a TODO item in DOCS to build an
+  index with links to pages with descriptions of what each page contains
+  under docs to link the HTML together." Today the HTML pages under
+  docs/ (the execution plan, the tier plan, the TODO tree, the TODO
+  reference, the architecture page, and any page added later) do not
+  link to each other except by hand. Build `docs/index.html`: one entry
+  per HTML page with its title, a one-or-two sentence description of
+  what it contains and who it is for, and a link; the generated TODO
+  pages and the execution plan gain a header link back to the index, and
+  the index links the Markdown design notes and the GitHub issue list
+  for the goals (docs/plan/issue-groups.md). Keep it generated where the
+  page is generated (a small script reads each page's title and a
+  description line, so a new page cannot be forgotten, with a test that
+  fails when an HTML page under docs/ is missing from the index). Done:
+  docs/index.html exists, every HTML page under docs/ is listed with a
+  description and links back to it, and the test passes. Owner: Quality
+  (2026-10-15).
+  Prerequisites: none.
 
 ## VIEW: The view from a planet
 

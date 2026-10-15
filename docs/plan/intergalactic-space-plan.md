@@ -82,7 +82,6 @@ Each row is generated from the item's own entry in TODO.md on 2026-10-15; the en
 
 | Item | What | Owner | Needs | Unlocks |
 |---|---|---|---|---|
-| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | Core | none | GEN.238, GEN.240 |
 | GEN.223 | The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug) | Core | none | DB.34, DB.35, GEN.233, GEN.260, GEN.265, PERF.103, TEST.166 |
 | PERF.103 | A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night | Core | GEN.223 | (leaf) |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | Core | none | GEN.233 |
