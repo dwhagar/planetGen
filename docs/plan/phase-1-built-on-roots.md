@@ -211,10 +211,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
-| DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
-| DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |
-| DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail |  |  |
 | DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) |  |  |
 | DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS |  |  |
 | DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 |  |  |
