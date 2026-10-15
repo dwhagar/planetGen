@@ -37,6 +37,8 @@ from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_til
 
 from planetgen.api.limiter import page_limit
 
+from planetgen.admin import maintenance
+
 from . import bp, tables
 from .helpers import crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
 
@@ -173,6 +175,8 @@ def _has_territories(db):
 @page_limit("galaxy")
 def galaxy():
     """The 3D Galaxy Map plus the Quadrant table (`?quadrant=`, `?page=`)."""
+    if maintenance.is_on():  # UX.112: the map is being rebuilt; one page says so
+        return redirect(url_for("web.maintenance_page"), code=302)
     db = db_name()
     quadrant = _parse_quadrant(request.args.get("quadrant"))
 
