@@ -1330,6 +1330,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
+  State on main after the switch (PR #1607): the Galaxy Map browser tests
+  are parked behind the MAPS_PENDING skip marker (src/tests/maps_pending.py;
+  remove it as each test is restored), geometry.py stays until the map stops
+  importing it, and /galaxy answers 500 (KeyError 'shell_index' at
+  galaxy_views.py:99), which is why the post-switch full run showed 96
+  Galaxy Map browser failures. Both are Maps' to fix with this item and
+  MAP.206; the site stays in maintenance mode until the new map lands.
   Prerequisites: none to start (Boss released Maps, 07:31Z): built in parallel on a branch; the spherical switch (DB.32, GEN.227, UX.111, UX.112) merged in PR #1607. Clears maintenance mode when the new map lands.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
