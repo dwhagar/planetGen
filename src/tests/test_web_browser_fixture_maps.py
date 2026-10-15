@@ -750,6 +750,47 @@ def test_c_recenters_the_view_on_the_selection_and_the_mouse_turns_about_it(page
     assert again["target"] != after["target"]
 
 
+def test_wheel_zoom_and_turning_share_one_centre_and_a_shift_click_chooses_it(page, map_site):
+    """MAP.199: the wheel zooms about the same center the mouse turns the view
+    about (the cross in the middle of the map), wherever the pointer is; a
+    Shift-click makes the spot clicked the new center, keeping the angle and
+    zoom, and the cross stays in the middle."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(500)
+    canvas = page.locator(GALAXY_CANVAS)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    page.wait_for_timeout(200)
+    box = canvas.bounding_box()
+    cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    cross = page.locator("#galaxymap3d-centre")
+    assert cross.is_visible()
+    cross_box = cross.bounding_box()
+    assert abs(cross_box["x"] + cross_box["width"] / 2 - cx) < 2 and abs(cross_box["y"] + cross_box["height"] / 2 - cy) < 2
+    before = _camera(page)
+    page.mouse.move(cx + box["width"] / 4, cy + box["height"] / 6)
+    page.mouse.wheel(0, -300)
+    page.wait_for_timeout(300)
+    zoomed = _camera(page)
+    assert zoomed["zoom"] != before["zoom"], "the wheel zoomed"
+    assert zoomed["target"] == pytest.approx(before["target"], abs=1e-6), "the pointer was off center, the center stayed"
+    page.mouse.wheel(0, 300)
+    page.wait_for_timeout(300)
+    assert _camera(page)["target"] == pytest.approx(before["target"], abs=1e-6)
+    pre = _camera(page)
+    spot_x, spot_y = cx + box["width"] / 4, cy - box["height"] / 6
+    page.mouse.move(spot_x, spot_y)
+    page.keyboard.down("Shift")
+    page.mouse.click(spot_x, spot_y)
+    page.keyboard.up("Shift")
+    moved = _camera(page)
+    assert moved["target"] != before["target"], "the spot clicked became the center"
+    assert moved["zoom"] == pytest.approx(pre["zoom"]) and abs(moved["tilt"] - pre["tilt"]) < 1e-6
+    page.mouse.wheel(0, -300)
+    page.wait_for_timeout(300)
+    assert _camera(page)["target"] == pytest.approx(moved["target"], abs=1e-6)
+
+
 def test_galaxy_map_back_forward_and_url_state(page, map_site):
     _open_galaxy(page, map_site)
     steps = _walk_down(page, stages=3)
@@ -1612,7 +1653,14 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     page.wait_for_timeout(1000)
     # One step in, so the glow of the bright stars around them (every star of
     # a tile comes in together, MAP.152) leaves the dark blue neutron star clear.
-    page.locator(GALAXY_CANVAS).hover()
+    # The wheel zooms about the view's center (MAP.199): Shift-click the
+    # neutron star to center the view on it, then step in.
+    pulsar = next(point for point in POINT_FIELD if point["type"] == "neutron_star")
+    spot = _screen_of(page, (pulsar["x"], pulsar["y"], pulsar["z"]))
+    page.keyboard.down("Shift")
+    page.mouse.click(*spot)
+    page.keyboard.up("Shift")
+    _camera(page)
     page.mouse.wheel(0, -400)
     page.wait_for_timeout(600)
     _settle(page)
