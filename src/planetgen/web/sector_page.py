@@ -46,10 +46,6 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.maps.galaxymap import sector_quadrant
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, parts_of, plain
-from planetgen.web.lib.tilecache import fetch_tiles
-from planetgen.web.maps.galaxymap3d import (
-    initial_tile_request, render_galaxy_map3d_panel, tile_bounds_pc, view_radius_bounds,
-)
 from planetgen.web.maps.starmap import map_scene_data
 from planetgen.web.lib.systempage import facility_kind_label
 
@@ -59,11 +55,12 @@ from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.spherical import provisional_sector_designation
-from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.physics.units import pc_to_ly
 
 from . import bp, edit_actions, generate_page, jobs, tables
-from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
+from .helpers import (
+    bookmark, crumb, current_admin, db_name, generate_target, map_rebuilding_html, page_url, render_page, trusted_html,
+)
 
 PHENOMENON_TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
@@ -539,40 +536,17 @@ def _pick_mode(args):
             "nav_url": nav_url()}
 
 
-def _sector_map_html(detail, pick, admin):
+def _sector_map_html(detail):
     """
-    The sector page's map (MAP.68): the Galaxy Map's own engine
-    (`render_galaxy_map3d_panel`) locked to this sector, which it opens in
-    place (`static/galaxysector.js`). A sector with no place in the galaxy
-    has no map; the page says so.
+    The sector page's map panel (MAP.68): while the Galaxy Map's engine is
+    rebuilt for the spherical grid (UX.111), a notice in its place; a sector
+    with no place in the galaxy says it has no map.
     """
-    from .galaxy_views import phenomenon_url_template, sector_url_template, system_url_template  # galaxy_views imports this module
-
     address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
     if not detail["placed"] or None in address:
         return ('<section class="panel" id="map"><h2>Sector Map</h2>'
                 '<p class="hint">This sector has no place in the galaxy, so it has no map.</p></section>')
-    db = db_name()
-    galaxy_shape = apiclient.get_galaxy_shape(db)
-    edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-    min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
-    center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
-    initial_view = fetch_tiles(db, initial_tile_request(
-        min(max_radius, max(min_radius, 6 * edge_pc)), center, tile_bounds_pc(edge_pc, galaxy_shape)))
-    return render_galaxy_map3d_panel(
-        db, galaxy_shape, edge_pc, initial_view,
-        fetch_path=url_for("web.galaxy_tiles"),
-        stage_path=url_for("web.galaxy_stage"),
-        locate_path=url_for("web.galaxy_locate"),
-        territory_path=None,
-        sector_url=sector_url_template(),
-        generate=generate_target(admin),
-        pick=pick,
-        phenomenon_url=phenomenon_url_template(),
-        system_url=system_url_template(),
-        nav_url=page_url("nav"),
-        pinned={"shell": address[0], "band": address[1], "wedge": address[2], "center_pc": center},
-    )
+    return map_rebuilding_html("Sector Map", "map")
 
 
 def sector_designation(sector):
@@ -689,7 +663,7 @@ def sector(sector_id):
     _rows, map_systems = _contents(detail, facilities)
     contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
 
-    map_html = _sector_map_html(detail, pick, admin)
+    map_html = _sector_map_html(detail)
 
     quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None
     system_count = len(detail["systems"])
