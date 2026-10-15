@@ -22,7 +22,7 @@ release is stamped.
 | API | API.26 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.157 |
+| TEST | TEST.158 |
 | USR | USR.12 |
 | OPS | OPS.51 |
 | DOC | DOC.47 |
@@ -1121,7 +1121,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | done, PR #1179 |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | done, PR #905 |
-| PERF.33 | Progress bars and ETAs from measured performance | none | open |
+| PERF.33 | Progress bars and ETAs from measured performance | none | done, PR #1553 |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
 | PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | done, PR #865 |
@@ -1183,7 +1183,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | done, PR #1364 |
 | PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | done, PR #1383 |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | done, PR #1506 |
-| PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | open |
+| PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | done, PR #1553 |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | none | open |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | open |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | none | open |
@@ -1200,7 +1200,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.9 | A tech level generated for every technological species | none | done, PR #1461 |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | done, PR #1524 |
 | POP.11 | Scatter space vessels and stations for the races in their territories | none | open |
-| POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | open |
+| POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | done, PR #1554 |
 | POP.13 | A species editor: create and edit species and their environment limits | none | open |
 | POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
@@ -1611,6 +1611,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | done, PR #1486 |
 | TEST.155 | Wording and index agree: property test | none | open |
 | TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
+| TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
