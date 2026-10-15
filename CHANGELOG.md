@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1398] - 2026-10-15
+
+**Headline:** TODO pages and GitHub issues now match: every open item belongs to a goal issue, and every TODO page links its issues.
+
+### Changed
+
+- Thirty goal issues group the open TODO items (the rows are in `docs/plan/issue-groups.md`); Boss's own issues keep his text and gain a "TODO sync" comment.
+- The tier plan, the TODO tree and the TODO reference link every item to its issues; the execution plan is rebuilt for the two Core lanes, Interface, Quality and the stage plan, with issue links.
+- DOC.52 filed: a docs index page that links every HTML page under docs/ with a description.
+- The headline panel on the three generated pages now renders (it ran before its data existed).
+
+TODO items resolved: GEN.232, MAP.204 / Added: DOC.52
+
 ## [8.0.1397] - 2026-10-15
 
 **Headline:** The Galaxy Map is checked from under the galactic plane, so blocks below it are picked and outlined as easily as those above.
