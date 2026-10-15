@@ -223,7 +223,7 @@ def add_system_arguments(parser):
     Adds every option the `system` subcommand accepts (besides
     `--version`, which only the top-level parser offers) to `parser` --
     the tri-state `+name`/`-name` flags (see `TRISTATE_OPTIONS`),
-    `--system-file`, the MySQL connection args, `--markdown`,
+    `--system-file`, the MySQL connection args, `--format`,
     `--star-type`, `--num-orbits`, `--name`, `--age`, the flavor-text
     overrides, and the logging options (see `add_logging_arguments`).
 
@@ -249,12 +249,12 @@ def add_system_arguments(parser):
 
     parser.add_argument('--strict', action='store_true', help=STRICT_HELP)
 
-    # Output in Markdown format
-    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
-
-    # Write the page instead of saving (a one-off system)
+    # Write the description instead of saving (a one-off system)
+    parser.add_argument('--format', choices=run_system.OUTPUT_FORMATS, default=run_system.OUTPUT_FORMATS[0],
+                        help="With --output, how to write the system: plain text (the default), Markdown "
+                             "or wikitext.")
     parser.add_argument('--output', '-o', type=str, metavar='FILE',
-                        help="Write the system's page (wikitext, or Markdown with --markdown) to FILE "
+                        help="Write the system's description (in --format) to FILE "
                              "instead of saving the system to the database; '-' writes it to stdout.")
 
     # Logging (--debug, --quiet/--silent)

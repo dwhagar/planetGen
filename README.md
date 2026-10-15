@@ -195,8 +195,8 @@ planetgen galaxy --ring 12 --slot 5 --column
 # A quick test galaxy: plan with fewer pre-placed bright stars
 planetgen plan --bright-star-min-luminosity 5000
 
-# A single system with a habitable world, printed as Markdown, not saved
-planetgen system +habitable_world --markdown --output -
+# A single system with a habitable world, printed as Markdown on request, not saved
+planetgen system +habitable_world --format markdown --output -
 
 # A system built from a specification file
 planetgen system --system-file examples/systems/solar_system.json
