@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1327] - 2026-10-15
+
+### Changed
+- Docs: the 14 design notes that had no status now open with one saying what is built (with the PR) and what is not, six stale statuses were corrected (including population and politics, whose pages and tech levels are built), and the 23 imported research files carry a banner saying they are Boss's documents kept as received and linking the design notes that use them (DOC.26).
+
 ## [8.0.1326] - 2026-10-15
 
 ### Changed
