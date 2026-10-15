@@ -59,7 +59,7 @@ const {
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatLuminositySol, formatMassSolar, LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
-const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const {
@@ -3145,7 +3145,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function formatCount(value) {
     if (!(value > 0)) return "0";
     if (value >= 100) return formatNumber(value);
-    return String(Number(value.toPrecision(value >= 1 ? 3 : 2)));
+    return threeFigures(value);
   }
 
   function plural(count, word) {
