@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.159 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.47 |
+| DOC | DOC.48 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -527,13 +527,13 @@ Parents marked "new parent" had no old number of their own.
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
 | DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | done, PR #1594 |
 | DOC.26 | Give every design note a status line and refresh the stale ones | none | done, PR #1596 |
-| DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
-| DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
+| DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | done, PR #1628 |
+| DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | done, PR #1628 |
 | DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | done, PR #1581 |
 | DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | done, PR #1586 |
-| DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | open |
-| DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | open |
-| DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 | none | open |
+| DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | done, PR #1625 |
+| DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | done, PR #1625 |
+| DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 | none | done, PR #1625 |
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list | none | done, PR #1623 |
 | DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | done, PR #1588 |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | done, PR #1616 |
@@ -546,7 +546,8 @@ Parents marked "new parent" had no old number of their own.
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | done, PR #1584 |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | done, PR #1584 |
 | DOC.45 | Reference docs follow the description layer | none | open |
-| DOC.46 | Docs for the spherical sector grid | none | open |
+| DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
+| DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |

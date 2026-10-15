@@ -32,7 +32,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
 | TEST.158 | The math check tests the spherical shell, band and wedge grid |  |  |
-| DOC.46 | Docs for the spherical sector grid |  |  |
 
 ### References
 
@@ -136,6 +135,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.223 | The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug) |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, GEN.218, GEN.219 |  |
+| DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md |  |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
@@ -208,11 +208,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 |  |  |
-| DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names |  |  |
-| DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits |  |  |
-| DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages |  |  |
-| DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
 | DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions |  |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
