@@ -5510,6 +5510,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   queryDb rename and package docstrings); api/routes.py, apiclient.py,
   store.py and the rest of the switch files follow after it merges.
   This item stays open until then.
+  Part 1 done (PR #1602, Quality): the package module lists for api, queue,
+  db, cli, physics, util, names and generation, the queryDb names in 13
+  files, and the create_app location. Left: the files the spherical
+  switch changes (api/routes.py, web/lib/apiclient.py, db/store.py,
+  galaxy/__init__.py and about 50 more), after it merges.
   Prerequisites: none. Related: DOC.4.
 
 - [ ] **DOC.24 Bring Python 3.12, numba and astropy into the research notes and three source comments**
