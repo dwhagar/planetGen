@@ -22,7 +22,7 @@ release is stamped.
 | API | API.28 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.167 |
+| TEST | TEST.168 |
 | USR | USR.12 |
 | OPS | OPS.51 |
 | DOC | DOC.53 |
@@ -1689,6 +1689,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | open |
+| TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
