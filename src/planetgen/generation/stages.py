@@ -95,6 +95,8 @@ def plan_stages(args):
         return [Stage("band", "Add the dimmer band of bright stars")]
     if getattr(args, "fill_map_luminosity", False):
         return [Stage("map-luminosity", "Fill the map luminosity")]
+    if getattr(args, "fill_habitability", False):
+        return [Stage("habitability", "Re-score the habitability")]
     if getattr(args, "fill_block_stats", False):
         return [Stage("block-stats", "Rebuild the block totals")]
     if getattr(args, "redo_nebula_field", None):
