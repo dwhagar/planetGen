@@ -32,7 +32,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
 | DOC.46 | Docs for the spherical sector grid |  |  |
-| GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) |  |  |
 
 ### References
 
@@ -128,6 +127,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
 | GEN.221 | Short plain prose for the fixed text |  |  |
 | PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) |  |  |
+| GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |
