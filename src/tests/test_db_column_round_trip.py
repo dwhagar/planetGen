@@ -76,7 +76,9 @@ NULL_IN_THIS_GALAXY = {
     ("system_configs", "age"): "only with --age",
     # v87 (DB.26): the columns the Generation lane fills (GEN.148, GEN.150, GEN.178, GEN.207) once it lands (GEN.207's are written now).
     **{(table, column): "not generated yet" for table in ("planets", "moons") for column in (
-        "induced_moment_a_m2", "flux_variation")},
+        "flux_variation",)},
+    # GEN.178: only a moon has an induced field.
+    ("planets", "induced_moment_a_m2"): "moons only",
     # v88 (DB.27): the tech level the POP.9 pass draws.
     **{("species", column): "not generated yet" for column in (
         "energy_index", "materials_index", "information_index", "medical_index", "propulsion_index",
