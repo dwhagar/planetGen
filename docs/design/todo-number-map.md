@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.168 |
 | USR | USR.12 |
-| OPS | OPS.51 |
+| OPS | OPS.52 |
 | DOC | DOC.53 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
@@ -817,7 +817,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.258 | Protostars embedded in giant molecular clouds | none | open |
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) | none | open |
 | GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | none | open |
-| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | none | open |
+| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | none | done, PR #1705 |
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | open |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | none | open |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | none | open |
@@ -1151,6 +1151,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) | none | done, PR #1395 |
 | OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) | none | done, PR #1387 |
 | OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix | none | done, PR #1425 |
+| OPS.51 | The maintenance-mode flag file cannot be written by the web user on the server, so maintenance mode fails with a PermissionError (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |

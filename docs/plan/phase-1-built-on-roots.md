@@ -155,6 +155,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations |  | Lane 1 report 2026-10-10. |
+| OPS.51 | The maintenance-mode flag file cannot be written by the web user on the server, so maintenance mode fails with a PermissionError (bug) |  | Priority bug in flight. Interface. |
 
 ### Admin control
 
