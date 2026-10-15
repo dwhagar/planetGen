@@ -14,6 +14,7 @@ constants. Nothing in this module has side effects; it is imported wherever
 these values or tables are needed.
 """
 
+from planetgen.generation.phenomena import registry as _phenomena_registry
 from planetgen.physics import constants as _physical_constants
 
 # --- Planet Generation Parameters ---
@@ -2687,12 +2688,10 @@ float: The combined starlight of a Milky-Way-sized galaxy, in watts
 
 # --- Phenomenon Generation Mode (phenomenonGen.py) ---
 
-PHENOMENON_TYPE_CHOICES = (
-    "black-hole", "neutron-star", "nebula", "supernova-remnant",
-    "rogue-planet", "comet", "asteroid-field", "quasar",
-)
+PHENOMENON_TYPE_CHOICES = _phenomena_registry.phenomenon_types()
 """
-tuple: The valid `--type` values `phenomenonGen.py` accepts. Omitting
+tuple: The valid `--type` values `phenomenonGen.py` accepts, read from the
+phenomena registry (GEN.250). Omitting
 `--type` picks uniformly at random among `RANDOM_PHENOMENON_TYPE_CHOICES`.
 """
 
@@ -2775,7 +2774,7 @@ PHENOMENON_DENSITY_PC3 = {
 """dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
 the research value for each kind (see the design doc's table)."""
 
-PHENOMENON_RATE_SCALE = {kind: 1.0 for kind in PHENOMENON_DENSITY_PC3}
+PHENOMENON_RATE_SCALE = {kind: 1.0 for kind in _phenomena_registry.rated_kinds()}
 """dict: A multiplier per kind (default 1.0) to dial a rate up or down
 without touching its research value -- e.g. 0.1 for "rogue-planet" gives
 about 6 rogues per local sector instead of about 58 (Boss chose the full

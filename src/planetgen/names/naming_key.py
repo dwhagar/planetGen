@@ -28,6 +28,7 @@ import datetime
 import hashlib
 import re
 
+from planetgen.generation.phenomena import registry
 from planetgen.names import object_id
 from planetgen.names.gated_phoneme_codec import GatedPhonemeCodec
 
@@ -43,10 +44,7 @@ OBJECT_ID_DIGITS = 19
 """int: Every GEN.64 object ID is 19 hex digits; the decoder is told so
 (`decode(phrase, domain, length=19)` is exact)."""
 
-KINDS = (
-    "rogue-planet", "black-hole", "neutron-star", "nebula", "supernova-remnant",
-    "quasar", "comet", "asteroid-field", "black-hole-core", "neutron-star-core", "constellation",
-)
+KINDS = tuple(kind for kind in registry.id_codes() if kind != "bright-star") + ("constellation",)
 """tuple: The kinds the codec names: `object_id.KIND_CODES`' spelling
 (less the bright-sweep system, which is a star system), and
 `"constellation"` (VIEW.4)."""
