@@ -2995,7 +2995,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ionizes about 0.8 ly, and class radii are drawn independently of the
   stars. The nebula age window must join the `_bright_table` cache key
   `(threshold, population)`.
-  Prerequisites: none.
+  Prerequisites: DB.26 (the nebula age_myr, q_total and hosts columns).
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.151 Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up)**
@@ -4021,10 +4021,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tier_chemistry to phi4_air and tier_air, and add phi4_water,
   tier_water, phi4_suitability and tier_suitability (for GEN.207, which
   splits chemistry into air and water and adds the Suitability
-  dimension). The exact column types and defaults come from the spec the
+  dimension), and on the nebula table add age_myr, q_total and hosts, all
+  nullable (for GEN.150, H II regions from the ionizing photon rate). The exact column types and defaults come from the spec the
   coordinator sent to Foundations Database. It blocks GEN.207
   (Foundations Generation's first item), the flux_variation part of
-  GEN.148 and GEN.178, so it goes first in the Foundations Database queue, ahead of
+  GEN.148, GEN.178 and GEN.150, so it goes first in the Foundations Database queue, ahead of
   ADM.54 and the Redis rebuild (generation corrections come first; Boss,
   2026-10-10 22:19Z). No old-column compatibility shim (Boss,
   2026-10-07).
