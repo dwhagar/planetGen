@@ -1363,7 +1363,26 @@ def test_galaxy_map_draws_block_lines_only_in_a_window(page, map_site):
         _click_choice(page, GENERATED_CHOICE)
     assert seen[0] == (False, 0), seen
     windows = [edges for is_window, edges in seen if is_window]
-    assert len(windows) >= 2 and all(edges == 1 for edges in windows), seen
+    assert len(windows) >= 2 and all(0 < edges <= 0.15 for edges in windows), ("nearly invisible at rest (MAP.202)", seen)
+
+
+def test_galaxy_map_block_lines_show_only_on_the_block_being_chosen(page, map_site):
+    """MAP.202: in a window the lines between blocks are nearly invisible at
+    rest and show in full while a block is hovered, in both themes."""
+    for scheme in ("dark", "light"):
+        page.emulate_media(color_scheme=scheme)
+        _open_galaxy(page, map_site)
+        for _ in range(8):
+            if not _on_galaxy(page) or parse_qs(_query(page)).get("win"):
+                break
+            _click_choice(page, GENERATED_CHOICE)
+        if not parse_qs(_query(page)).get("win"):
+            pytest.skip("no window reached")
+        page.mouse.move(1, 1)
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines === 0")
+        assert 0 < page.evaluate(LINES)["blockEdges"] <= 0.15
+        assert _hover_choice(page), "no block to hover"
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blockEdges === 1")
 
 
 def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):
