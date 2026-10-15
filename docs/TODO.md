@@ -488,14 +488,14 @@ with `clamp()`.
   text. Build them into the same document model as UX.104 so one set of
   renderers (text, HTML tables, Markdown, wikitext) covers everything
   the program describes. Foundations Wording (filed 05:50Z, split out of
-  API.25, which was too big for one PR).
+  API.25 (done, PR #1527), which was too big for one PR).
   Prerequisites: UX.104 (done, PR #1509).
 
 - [ ] **UX.109 Remove the old per-class description text**
   Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
   __str__ text, db/render.py render_system_sections, the /sections
   endpoint and mdrender, once nothing reads them. Foundations Wording
-  (filed 05:50Z, split out of API.25).
+  (filed 05:50Z, split out of API.25, done PR #1527).
   Prerequisites: UX.105, UX.106, UX.108.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -4263,17 +4263,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   compatibility data.
   Prerequisite: GEN.199. Related: MAP.167.
 
-- [ ] **API.25 A structured description endpoint, and Markdown and wikitext on request only**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. GET /api/systems/<id>/description returns the document
-  model as JSON; /text?format=markdown|wikitext stays and is rendered
-  from the model; the page's Wikitext and Markdown buttons and the wiki
-  upload work unchanged from the user's side. Removes
-  SystemConfig.MARKDOWN and its global flipping (db/render.py _format,
-  render_star_system). The run-config markdown column goes with the
-  storage item. Updates docs/api.md in the same PR.
-
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -5918,7 +5907,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   design/habitability-index.md (PHI-6 naming) and testing.md. Each build
   item updates the page it changes in its own PR; this is what is left,
   part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
-  Prerequisites: UX.105, API.25, UX.106, GEN.218, GEN.219.
+  Prerequisites: UX.105, UX.106, GEN.218, GEN.219.
 
 ## VIEW: The view from a planet
 

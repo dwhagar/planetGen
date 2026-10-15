@@ -113,7 +113,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) |  |  |
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) |  |  |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.23 |  |
-| API.25 | A structured description endpoint, and Markdown and wikitext on request only |  |  |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request |  |  |
 | GEN.218 | One habitability describer, in the short wording |  |  |
 | GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
@@ -126,7 +125,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.106, UX.108 |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
-| DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
+| DOC.45 | Reference docs follow the description layer | UX.105, UX.106, GEN.218, GEN.219 |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
