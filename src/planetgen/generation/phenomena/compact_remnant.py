@@ -53,7 +53,7 @@ from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.physics.orbits import calculate_habitable_zone
 from planetgen.util.format import (
-    format_age_string, format_number, format_body_radius_km, format_distance_km, format_duration_seconds, format_length_km, format_mass_kg, properties_to_string,
+    format_age_string, format_number, format_body_radius_km, format_distance_km, format_duration_seconds, format_length_km, format_magnetic_field_gauss, format_mass_kg, properties_to_string,
 )
 from planetgen.util.random import log_uniform
 
@@ -569,7 +569,7 @@ class NeutronStar(CompactRemnant):
             "mass": mass_string,
             "radius": radius_string,
             "spin_period": format_duration_seconds(self.spin_period_ms / 1000),
-            "magnetic_field": f"{self.magnetic_field_gauss:.2e} G",
+            "magnetic_field": format_magnetic_field_gauss(self.magnetic_field_gauss),
             "surface_temp": f"{format_number(self.surface_temperature_k, ',.0f')} K",
             "orbit": orbit_string,
             "loc": self.name,

@@ -310,5 +310,33 @@ FLUX = Ladder(
     ),
 )
 
-LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY, MASS, POWER, FLUX)
+# Gas and dust in clouds are always quoted per cubic centimeter (a nebula runs
+# from a fraction of a particle to millions), so the one rung stands in for
+# the ladder, as the design note says for number densities.
+NUMBER_DENSITY = Ladder(
+    quantity="number density",
+    base="particles/m³",
+    nonfinite="particles/cm³",
+    zero="particles/cm³",
+    rungs=(Rung("particles/cm³", 1e6, "particles per cubic centimeter", start=0.0),),
+)
+
+# A magnetic field (UX.22): tesla with the SI prefixes for planets, then gauss
+# from 10,000 T (a hundred million gauss), where the literature quotes the
+# fields of pulsars and magnetars ("1.00 × 10¹² G").
+MAGNETIC_FIELD = Ladder(
+    quantity="magnetic field",
+    base="T",
+    nonfinite="G",
+    zero="T",
+    rungs=(
+        Rung("nT", 1e-9, "nanoteslas", start=0.0),
+        Rung("µT", 1e-6, "microteslas"),
+        Rung("mT", 1e-3, "milliteslas"),
+        Rung("T", 1.0, "teslas"),
+        Rung("G", 1e-4, "gauss", start=1e4),
+    ),
+)
+
+LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""

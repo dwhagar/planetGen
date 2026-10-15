@@ -430,6 +430,18 @@ def format_flux_w_m2(flux):
     return format_quantity(ladders.FLUX, flux)
 
 
+def format_number_density_cm3(per_cm3):
+    """A particle density in particles per cubic centimeter (clouds,
+    remnants): "3.5 particles/cm³". `None` gives an en dash."""
+    return format_quantity(ladders.NUMBER_DENSITY, None if per_cm3 is None else per_cm3 * 1e6)
+
+
+def format_magnetic_field_gauss(gauss):
+    """A magnetic field held in gauss (the schema's `magnetic_field_gauss`) on
+    the field ladder: "50 µT" for a planet, "1.00 × 10¹² G" for a pulsar."""
+    return format_quantity(ladders.MAGNETIC_FIELD, None if gauss is None else gauss * 1e-4)
+
+
 def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):
     """
     A planet, moon or star radius: always km in scientific notation (Boss,

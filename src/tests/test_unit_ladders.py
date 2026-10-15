@@ -63,7 +63,8 @@ class TestTable:
     def test_rungs_are_sorted_and_named(self, ladder):
         factors = [rung.factor for rung in ladder.rungs]
         starts = [rung.factor if rung.start is None else rung.start for rung in ladder.rungs]
-        assert factors == sorted(factors) and len(set(factors)) == len(factors)
+        # A rung may be a smaller unit than the one below it when it starts higher (gauss after tesla).
+        assert len(set(factors)) == len(factors)
         assert starts == sorted(starts)
         assert len({rung.symbol for rung in ladder.rungs}) == len(ladder.rungs)
         assert all(rung.name for rung in ladder.rungs)
@@ -102,6 +103,8 @@ def _astropy_factor(symbol):
              "L☉": const.L_sun, "nW/m²": 1e-9 * u.W / u.m ** 2, "µW/m²": 1e-6 * u.W / u.m ** 2,
              "mW/m²": 1e-3 * u.W / u.m ** 2, "W/m²": u.W / u.m ** 2, "kW/m²": 1e3 * u.W / u.m ** 2,
              "MW/m²": 1e6 * u.W / u.m ** 2,
+             "particles/cm³": 1e6 / u.m ** 3, "nT": u.nT, "µT": u.uT, "mT": u.mT, "T": u.T,
+             "G": 1e-4 * u.T,  # astropy's gauss is a CGS unit, not convertible without an equivalency
              "kg": u.kg, "lunar masses": 7.342e22 * u.kg, "Earth masses": const.M_earth,
              "Jupiter masses": const.M_jup, "solar masses": const.M_sun}
     quantity = named.get(symbol)
@@ -162,8 +165,13 @@ def test_mass_switches_units_at_the_decided_points(kilograms, text):
     (ladders.POWER, 1e-7 * constants.SOLAR_LUMINOSITY, "38.3 EW"),
     (ladders.FLUX, 0.087, "87 mW/m²"),
     (ladders.FLUX, 1361.0, "1.36 kW/m²"),
+    (ladders.NUMBER_DENSITY, 3.5e6, "3.5 particles/cm³"),
+    (ladders.NUMBER_DENSITY, 2.5e15, "2.50 × 10⁹ particles/cm³"),
+    (ladders.MAGNETIC_FIELD, 5e-5, "50 µT"),
+    (ladders.MAGNETIC_FIELD, 0.3, "300 mT"),
+    (ladders.MAGNETIC_FIELD, 1e8, "1.00 × 10¹² G"),
 ])
-def test_power_and_flux_switch_units_at_the_decided_points(ladder, value, text):
+def test_other_ladders_switch_units_at_the_decided_points(ladder, value, text):
     assert format_quantity(ladder, value) == text
 
 
