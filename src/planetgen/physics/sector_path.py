@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from planetgen.galaxy import geometry
+from planetgen.galaxy import spherical
 from planetgen.physics import constants
 
 DEFAULT_SOFTENING_M = constants.PARSEC_M
@@ -195,10 +195,10 @@ def sector_inside(address, edge_pc):
     """
     A predicate `inside(position_m)` that is true while the point (metres,
     galactic axes) is in the sector cell `address` of the grid with edge
-    `edge_pc` (`galaxy.geometry`).
+    `edge_pc` (`galaxy.spherical`).
     """
     to_pc = 1.0 / constants.PARSEC_M
-    contains = geometry.sector_cell_test(tuple(address), edge_pc)
+    contains = spherical.sector_cell_test(tuple(address), edge_pc)
 
     def inside(position_m):
         return contains((position_m[0] * to_pc, position_m[1] * to_pc, position_m[2] * to_pc))

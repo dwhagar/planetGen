@@ -41,8 +41,8 @@ vector with its U part removed (normalized), and E = N x U:
 
 "0 mark 0" therefore points straight at the frame's center. When the ship
 sits on the frame's up axis through the center (North undefined), North
-falls back to the frame's +X (the galaxy's existing zero meridian, ring
-slot 0), or +Y if the up vector is itself +X.
+falls back to the frame's +X (the galaxy's existing zero meridian, wedge 0),
+or +Y if the up vector is itself +X.
 
 Travel times
 ------------
