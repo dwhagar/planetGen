@@ -225,6 +225,11 @@ with `clamp()`.
   the banner shows on every page, and it also covers command-line runs,
   so `generate.py` and the CLI must write the same lock and publish
   progress.
+  Plan change (2026-10-15): the banner and its public endpoint are built on
+  the Redis run record and ETA function of PERF.96, never on the MySQL job
+  tree that PERF.100 deletes; PERF.99 only repoints the Generate page,
+  Queue page and job log. Foundations UX starts it when PERF.96 has merged.
+  Prerequisite: PERF.96.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -3888,7 +3893,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   executor is unused.
   Prerequisite: PERF.97. Related: PERF.86.
 
-- [ ] **PERF.99 Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command**
+- [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
   the only place a run lives; each scatter its own queue item run in
@@ -3900,14 +3905,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   completing unit; the event stream is the live log, written to the jobs
   directory at run end with the last 20 kept. Each step leaves main
   working, one PR, Foundations lane 1. Section 5.5 and 5.11 step 5. The
-  Generate page, the Queue page, the all-visitors banner (UX.3) and the
-  job log read the run record, counters and event stream; cancel sets
+  Generate page, the Queue page and the job log read the run record, counters and event stream; cancel sets
   the run to cancelling, cancels the waiting units, sends the stop
   command to the started ones and clears planetgen:run:active (about 0.5
   s); the stale-run Clear action (section 5.6) is added; the event
   stream is the live log and is written to the jobs directory at run end
   for the download link, last 20 kept. Done when: the pages need no
   MySQL job tree and cancel is measured under a second on a 75-job run.
+  The all-visitors banner is not in this step: it is UX.3 (Foundations UX),
+  built on the run record after PERF.96 (decided by the
+  coordinator, 2026-10-15).
   Prerequisite: PERF.98. Related: PERF.86, UX.3.
 
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
