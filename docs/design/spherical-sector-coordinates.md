@@ -55,7 +55,7 @@ Four cards are on the thread for Boss; the plan assumes the recommended answer u
 | The plane | Middle of the equatorial band (odd bands) | On a band boundary (even bands) |
 | Galaxy Map ladder | Built after coordinates and migration (card still open) | In parallel |
 
-Also open, to settle in the first item: shells 1 to 3 are too small for the cap rule to look right (shell 1's cap arc radius is 3.82 pc on a 4 pc sphere), so they get a hand-checked table; whether the migration's data delete needs a fresh word from Boss when it merges (it is destructive; Boss accepted the same for the v32 and v33 grids).
+Settled in the first item (GEN.224): shells 1 to 3 are too small for the cap rule to look right (shell 1's cap arc radius is 3.82 pc on a 4 pc sphere), so they are a hand-checked table in `spherical.py` (`SMALL_SHELL_TABLE`): shell 1 has caps cut at 37.5 degrees and one band of 12 wedges (cell volumes 0.9 to 1.4 edge cubes, against 4.8 for the caps and 0.67 for the cells under the rule), shells 2 and 3 keep the rule's own result. Still open: whether the migration's data delete needs a fresh word from Boss when it merges (it is destructive; Boss accepted the same for the v32 and v33 grids).
 
 ## 4. What is already built that this replaces
 
