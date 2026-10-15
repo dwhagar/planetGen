@@ -935,7 +935,7 @@ than persisted the way a system's is.
 ## Planned changes (not built)
 
 Schema changes the open TODO items plan, as of 2026-10-15 (galaxy
-schema v91, control schema v14). None of these exists yet; each lands as
+schema v92, control schema v14). None of these exists yet; each lands as
 a numbered Alembic revision when its item is built, and this section moves
 into the table descriptions below. The galaxy schema's revisions are
 written one lane at a time, and the second of two branches to reach main
@@ -2095,6 +2095,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v92 (MAP.205): `galaxy_block_stats` on shells
+
+Migration 0092 makes `galaxy_block_stats` again, for the Galaxy Map's block ladder on shells (`galaxy/drill.py`, `docs/design/spherical-block-ladder.md`). It holds one row per block of 243, 81, 27, 9 or 3 shells that holds a generated sector: `m` (SMALLINT UNSIGNED), `shell_index`, `band_index` and `wedge_index` (INT, the block's own address; together the primary key), `sector_count`, `systems` (BIGINT UNSIGNED), `expected_systems` (DOUBLE), `stars` (BIGINT UNSIGNED), `age_sum` (DOUBLE, each sector's mean age times its stars, so a mean is `age_sum / stars`) and `luminosity_sol` (DOUBLE). There is no `ladder_step` column any more: the ladder is 3-ary and a block is named by its shell, band and wedge. The figures come from `sectors` and `sector_stats`; a block with no generated sector has no row. `query.galaxy_block_stats(conn, m, cells)` reads a window's cells in one statement. `db/block_stats.py` keeps the table: a sector saved on its own (a visit) or deleted updates the blocks above it (`drill_chain_of`), and a `galaxy` run updates the blocks above all the sectors it created once at its end. The migration fills the table from the sectors already there, a shell at a time, and skips itself when the table exists, so a stopped run can be started again.
+
 ### v91 (DB.32): sectors on spherical shells
 
 The sector grid moved from the cylinder's ring, layer and slot to the sphere's shell, band and wedge (`docs/design/spherical-sector-coordinates.md`). Migration 0091 renames `ring_index`, `layer_index` and `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` on `sectors`, `bright_stars`, `sector_stats` and `phenomenon_scatter`, renames `galaxy_shape.outer_ring_index` to `outer_shell_index`, replaces `galaxy_layer` and `galaxy_column` with `galaxy_shell` and drops `galaxy_block_stats` (the block ladder is rebuilt on shells with MAP.205 and MAP.206).
@@ -2117,9 +2121,9 @@ It converts the data; nothing is deleted. Every star system, phenomenon and faci
 
 `planets` and `moons` gain `induced_moment_a_m2` (after `dipole_class`), `flux_variation` (after `energy_flux_w_m2`), `phi4_water`, `tier_water`, `phi4_suitability` and `tier_suitability`, and `phi4_chemistry` / `tier_chemistry` are renamed `phi4_air` / `tier_air` (GEN.178, GEN.148, GEN.207). `nebulae` gains `age_myr`, `q_total` (ionizing photons per second) and `hosts` (host stars as counts by spectral type) after `extinction_av` (GEN.150). All NULL on rows generated earlier; no compatibility name is kept for the old columns. The migration skips each step already done, so a stopped run can be started again.
 
-### v86 (DB.25): `galaxy_block_stats` (dropped in v91)
+### v86 (DB.25): `galaxy_block_stats` (cylinder form, dropped in v91)
 
-The table was dropped in v91 (DB.32); the ladder is rebuilt on shells. What it held, as it was:
+The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" above). What it held, as it was:
 
 `galaxy_block_stats` holds what a drill-down stage shows for each block of the Galaxy Map's block ladder above the sector (`galaxy.drill`, 243, 81, 27, 9 and 3 sectors a side): one row per block `(m, ring_index, wedge, slab)` that holds a generated sector, with `sector_count`, `systems`, `expected_systems`, `stars`, `age_sum` (each sector's mean age times its stars, so a mean is `age_sum / stars`) and `luminosity_sol` and `ladder_step` (v89). The figures come from `sectors` and `sector_stats`; a block with no generated sector has no row. `query.galaxy_block_stats(conn, m, cells)` reads a window's cells in one statement, and a test holds every row equal to what `query.galaxy_stage` computes for the same block. `db/block_stats.py` keeps it: a sector saved on its own (a visit) or deleted updates the blocks above it, a `galaxy` run updates the blocks above all the sectors it created once at its end (the stage "Update the block totals"), and `planetgen plan --fill-block-stats` rebuilds every row. The migration fills the table from the sectors already there. The ladder is 3-ary since MAP.151b; v90 emptied the table and filled it again for it. No foreign keys: a block is not a row of its own.
 

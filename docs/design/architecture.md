@@ -238,10 +238,10 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 |---|---|
 | [`__init__.py`](../../src/planetgen/galaxy/__init__.py) | The galaxy: its sector grid, density model and outline, seeds and version keys, object IDs, sectors, nebula fields and navigation. |
 | [`density.py`](../../src/planetgen/galaxy/density.py) | The galaxy density model (`docs/design/galaxy-disk-density.md`): an exponential thin disk with spiral arms, a thick disk and a boxy bar bulge, fitted to published Milky Way structure (GEN.118, GEN.119). |
-| [`drill.py`](../../src/planetgen/galaxy/drill.py) | The Galaxy Map's drill-down ladder of nested blocks (243, 81, 27, 9, 3 and 1 sectors a side), still the cylinder's; rebuilt on shells with MAP.205 and MAP.206. |
+| [`drill.py`](../../src/planetgen/galaxy/drill.py) | The Galaxy Map's block ladder on shells (`docs/design/spherical-block-ladder.md`): blocks of 243, 81, 27, 9 and 3 shells deep, each nested inside one of the next size up, keyed `m.shell.band.wedge`, with the closed-form chain from a sector up and the children of a block. |
 | [`frame.py`](../../src/planetgen/galaxy/frame.py) | Distances from the galactic axis and center, and the local axes a sector carries (`sector_orientation`), which the offsets of `star_systems.position_x/y/z_mpc` and the Sector Map's scenes are expressed in. |
 | [`galactic_orbit.py`](../../src/planetgen/galaxy/galactic_orbit.py) | A star system's circular orbit around the galactic center: its speed, period and phase, and the text every "Galactic Orbit" row shows. |
-| [`geometry.py`](../../src/planetgen/galaxy/geometry.py) | The cylindrical sector grid's geometry, kept only for what the Galaxy Map ladder (`drill.py`, `viewport.py`) and a few shared helpers (`binary_companion_offset_pc`) still use until MAP.205 and MAP.206 replace them; the sector grid is `spherical.py`. |
+| [`geometry.py`](../../src/planetgen/galaxy/geometry.py) | What is left of the old cylindrical sector grid's geometry: the offset of a binary companion (`binary_companion_offset_pc`), which the Sector Map and `db/query.py` still use. The sector grid is `spherical.py`. |
 | [`keepout.py`](../../src/planetgen/galaxy/keepout.py) | The keep-out radius of an object (NAV.24): how close a course should come before it counts as entering the object's gravity. |
 | [`nav_graph.py`](../../src/planetgen/galaxy/nav_graph.py) | A k-nearest-neighbor graph over systems' positions and its shortest hop-by-hop path (Dijkstra): the "optimal route via adjacent systems" half of NAV. |
 | [`navigation.py`](../../src/planetgen/galaxy/navigation.py) | Pure math for the NAV feature: the course (distance, bearing, mark) between two absolute 3D positions, and warp and fold travel times along that distance. |
@@ -249,7 +249,7 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`nebula_shape.py`](../../src/planetgen/galaxy/nebula_shape.py) | A nebula's irregular shape: a few warped metaballs, its triangle mesh and its containment test (GEN.75). |
 | [`object_uid.py`](../../src/planetgen/galaxy/object_uid.py) | The object ID (GEN.170, docs/design/object-id-options.md section 0): one fixed-length ID for every object in the galaxy, made of where it was born and which birth it was. |
 | [`objectref.py`](../../src/planetgen/galaxy/objectref.py) | One reference form for every object (NAV.7): `<kind>:<id>`. |
-| [`region.py`](../../src/planetgen/galaxy/region.py) | Regions of the sector grid for the generation commands (a neighborhood, a block, a course's cells); the cylinder's block parts are rebuilt on shells with MAP.205 and MAP.206. |
+| [`region.py`](../../src/planetgen/galaxy/region.py) | Regions of the sector grid for the generation commands (a neighborhood, a ball round a sector, a course's cells), described as ranges of shells, bands and wedges. |
 | [`remnant_distribution.py`](../../src/planetgen/galaxy/remnant_distribution.py) | Where neutron stars and black holes are, against where stars are (GEN.132). |
 | [`sector.py`](../../src/planetgen/galaxy/sector.py) | `SpaceSector` and `SectorSystemEntry` classes, which store a named collection of star systems laid out in three-dimensional space. |
 | [`seed.py`](../../src/planetgen/galaxy/seed.py) | The galaxy's 128-bit seed and the seeds derived from it (GEN.39; see docs/design/reproducible-galaxies.md, section 3). |
@@ -264,7 +264,7 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`version_history.py`](../../src/planetgen/galaxy/version_history.py) | The version keys an update has run under (OPS.13; docs/design/reproducible-galaxies.md). |
 | [`version_key.py`](../../src/planetgen/galaxy/version_key.py) | The version key (DB.6; docs/design/reproducible-galaxies.md, section 4): 22 uppercase hex digits naming exactly what a galaxy seed needs to make the same galaxy again -- the PlanetGen release and the environment it ran in. |
 | [`viewport.py`](../../src/planetgen/galaxy/viewport.py) | The Galaxy Map's cube-tile arithmetic (the octree of 16 pc to 65,536 pc cubes, tile keys) and viewport queries. |
-| [`window.py`](../../src/planetgen/galaxy/window.py) | The Galaxy Map's data windows of cells (MAP.151); rebuilt on shells with MAP.205 and MAP.206. |
+| [`window.py`](../../src/planetgen/galaxy/window.py) | The Galaxy Map's data windows (MAP.151): `g` cells across, a ball of the centre block's size, found in closed form per shell. |
 
 #### src/planetgen/population/
 
@@ -539,9 +539,9 @@ The map panels and their data.
 | Path | What it holds |
 |---|---|
 | [`galaxymap3d.js`](../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, tile fetching from `/galaxy/tiles` into an IndexedDB tile store, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
-| `galaxystages.js` | The drill-down's stage rules with no drawing: which blocks a stage holds, stage URLs (`?slab=`, `?at=`, `?sector=`), breadcrumb, labels, the flight path. No three.js import; tested under node. |
-| `galaxystageview.js` | The drill-down drawn and driven: the eight stages from galaxy to sector (the cylinder's ladder, rebuilt on shells with MAP.205 and MAP.206), camera flights, breadcrumb with sibling menus, slab slider, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
-| `galaxyprisms.js` | Sector-grid prisms, block level of detail, density shading and the `drill*` ladder rules (mirrors `galaxy/geometry.py` and `galaxy/drill.py`, the cylinder's; rebuilt on shells with MAP.205 and MAP.206). No three.js import, so tests run it under node. |
+| `galaxystages.js` | The drill-down's stage rules with no drawing: which blocks a stage holds, stage URLs (`?win=m.shell.band.wedge`, `&g=`, `&sector=`, `&open=1`), breadcrumb, labels, the flight path. No three.js import; tested under node. |
+| `galaxystageview.js` | The drill-down drawn and driven: the stages from galaxy to sector (the block ladder on shells), camera flights, breadcrumb with sibling menus, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
+| `galaxyprisms.js` | Sector-grid cells, block level of detail, density shading and the `drill*` ladder rules (the page's copy of `galaxy/spherical.py`, `galaxy/drill.py` and `galaxy/window.py`; `tests/test_galaxyprisms.py` and `tests/test_galaxydrill.py` hold them equal). No three.js import, so tests run it under node. |
 | `galaxyblocks.js` | Builds the block scene's typed arrays, in a Web Worker when it can. |
 | `sectorscene.js`, `galaxysector.js` | One sector's scene (stars, phenomena, bodies; three.js) and the stage that opens it in the Galaxy Map; the sector page's Sector Map is the Galaxy Map locked to its sector (MAP.66, MAP.68). |
 | `systemmap.js` | System Map clicks, moon drill-in and the 3D body spheres. |
@@ -820,7 +820,10 @@ once.
 grid to shells, bands and wedges in place (renumbering the object IDs from
 the new sectors). The migration turns maintenance mode on, which closes the
 site and the API to everyone but the admin until the Galaxy Map has been
-rebuilt (`planetgen/admin/maintenance.py`, `planetgen.cli.maintenance`).
+rebuilt; revision `0092` made the block totals on shells, and `planetgen.cli.warm_map`
+turns that maintenance off again once the opening view is built
+(`planetgen/admin/maintenance.py`, `planetgen.cli.maintenance`). An admin's own
+maintenance stays on.
 
 **Other writers.** `planetgen.cli.reset` truncates generated tables.
 `planetgen.cli.orbits` advances orbits (`store.advance_orbital_phases`,
@@ -891,13 +894,9 @@ tunes or disables it.
 with `DELETE /api/facilities/<id>`, each a plain CSRF-checked POST with a
 303 back to the page. Like every API write it clears the page cache.
 
-**The Galaxy Map.** `/galaxy` (`web/galaxy_views.py`) is being rebuilt
-for the shell grid (UX.111, MAP.205, MAP.206): until then the page shows a
-notice in place of the 3D map (`helpers.map_rebuilding_html`; the sector
-page's Sector Map does the same), with the Quadrant tables working as
-before. While the maps are rebuilt, maintenance mode closes the site to all
-but the admin and `/galaxy` redirects to the update page. The pieces the
-rebuilt map uses are in place:
+**The Galaxy Map.** `/galaxy` (`web/galaxy_views.py`) draws the 3D map on the
+shell grid, and the sector page's Sector Map is the same map locked to its
+sector. The pieces:
 
 - **Tiles.** `static/galaxymap3d.js` fetches tiles from `/galaxy/tiles`, a
   packed binary body (`web/lib/tilepack.py` writes it, `static/tilepack.js`
@@ -906,12 +905,14 @@ rebuilt map uses are in place:
   of space (the octree of `galaxy/viewport.py`), not sectors, so they do not
   depend on the sector grid.
 - **The block ladder.** The drill-down's stages (`/galaxy/stage`) and data
-  windows (`/galaxy/window`, MAP.151) are the cylinder grid's; the query
-  functions behind them (`db.query.galaxy_stage`, `galaxy_window` and their
-  key helpers) raise `NotImplementedError` until the ladder is rebuilt on
-  shells, so those routes answer with an error until then.
-- **Address bar.** A sector designation (such as `C8030005`), `x, y, z` in
-  parsecs or a name. A name goes to `/galaxy/locate`, which calls
+  windows (`/galaxy/window`, MAP.151) are blocks of 243, 81, 27, 9 and 3
+  shells (`galaxy/drill.py`, `galaxy/window.py`, `docs/design/spherical-block-ladder.md`).
+  `db.query.galaxy_stage` and `galaxy_window` read each block's totals from the
+  stored `galaxy_block_stats` table (schema 92, kept by `db/block_stats.py` as
+  sectors are saved and deleted) and the sectors of a level-3 block from
+  `sectors` and `sector_stats`.
+- **Address bar.** A sector designation (such as `C8030005`), `shell/band/wedge`
+  or `shell N band N wedge N`, `x, y, z` in parsecs or a name. A name goes to `/galaxy/locate`, which calls
   `db.query.galaxy_locate` through the API.
 - **NAV course.** The NAV result links to `/galaxy?course=<from>,<to>`.
   `galaxy_views._course_from_args` asks `nav_page.galaxy_course` for the

@@ -140,7 +140,7 @@ in real galaxy-frame 3D space (see
 ```bash
 planetgen galaxy --shell I [--band J [--wedge K [--radius-pc R]]] [--limit N | --yes] [options]
 planetgen galaxy [--shells A:B] [--bands C:D] [--wedges E:F] [--limit N | --yes] [options]
-planetgen galaxy --block M.I.S.SLAB [--limit N | --yes] [options]   # refused until the Galaxy Map's ladder is rebuilt
+planetgen galaxy --block M.I.S.SLAB [--limit N | --yes] [options]   # refused for now (see below)
 planetgen galaxy --center-sector ID --radius-pc R [options]
 planetgen galaxy --course FROM TO [--course-border] [--yes] [options]
 planetgen galaxy [--radius-pc R] [--max-shell I] [--neighborhoods N] [options]   # random start
@@ -180,9 +180,10 @@ The span form picks sectors by range instead: `--shells FIRST:LAST`,
 one band; a range whose first is past its last wraps through wedge 0, as in
 `50:5`). Each of the three defaults to everything the outline holds, so
 `--bands` alone fills those bands out to the galaxy's edge.
-`--block M.I.S.SLAB` is the Galaxy Map's drill-down block key (size M, shell
-I, wedge S, slab SLAB); it is refused until the map's ladder is rebuilt on
-shells (MAP.205, MAP.206).
+`--block M.I.S.SLAB` was the old drill-down's block key (size M, ring I, wedge
+S, slab SLAB) and is refused: the Galaxy Map's blocks are now keyed
+`m.shell.band.wedge` (`docs/design/spherical-block-ladder.md`), and the
+command does not take those yet. Fill a shell, a band or a span instead.
 `--center-sector ID --radius-pc R` generates every not-yet-generated sector
 within R parsecs of an already placed sector's own center.
 `--course FROM TO` (NAV.48) generates the uncharted sectors that block the NAV
