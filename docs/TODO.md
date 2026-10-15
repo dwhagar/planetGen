@@ -1330,6 +1330,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
+  State on main after the switch (PR #1607): the Galaxy Map browser tests
+  are parked behind the MAPS_PENDING skip marker (src/tests/maps_pending.py;
+  remove it as each test is restored), geometry.py stays until the map stops
+  importing it, and /galaxy answers 500 (KeyError 'shell_index' at
+  galaxy_views.py:99), which is why the post-switch full run showed 96
+  Galaxy Map browser failures. Both are Maps' to fix with this item and
+  MAP.206; the site stays in maintenance mode until the new map lands.
   Prerequisites: none to start (Boss released Maps, 07:31Z): built in parallel on a branch; the spherical switch (DB.32, GEN.227, UX.111, UX.112) merged in PR #1607. Clears maintenance mode when the new map lands.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
@@ -3241,22 +3248,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stop (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **GEN.228 Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug)**
-  Boss, 2026-10-15 07:44Z: binary star systems must be stable. Check the
-  Hill sphere of not only the two stars but of the farther orbit on
-  each, so the orbital paths of a wide binary never intersect. Boss has
-  seen two systems in his last generated galaxy whose wide-binary paths
-  overlap significantly and would eventually cause planetary collisions
-  and chaos, and does not want to deal with that. Done: generating a
-  binary rejects or moves any layout where the outermost stable orbit of
-  either star (limited by its Hill sphere in the pair) reaches the other
-  star's orbit region or planet paths; a test generates many wide
-  binaries and finds none whose orbital paths overlap. Follow-up check,
-  in this item: do the already generated wide binaries need a repair or
-  re-roll pass? Report how many break the rule; the repair itself needs
-  Boss's word. Owner: Generate lane, queued after the sector remapping
-  (the spherical switch, PR #1607, has merged).
-  Prerequisites: none.
+- [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
+  GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
+  check-db --deep --wide-binaries`, which counts the existing unstable
+  ones. Boss (2026-10-15 07:44Z) saw two in his last galaxy whose
+  orbital paths overlap and would end in planetary collisions. Run the
+  count and report how many break the rule; the repair or re-roll itself
+  needs Boss's word before anything is changed. Owner: Core. Source:
+  Boss's report 2026-10-15 07:44Z.
+  Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3632,6 +3632,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   together with PERF.96 (Boss retired the bug lanes, 2026-10-15
   05:39Z).
   Prerequisites: none. Related: PERF.96 (done, PR #1553), PERF.33 (done, PR #1553).
+
+- [ ] **PERF.102 The migration progress display shows no estimated time remaining on either bar (bug)**
+  Boss (2026-10-15 15:54 EDT), on his test server: "migration ETA
+  doesn't work". During a migration run the progress bars and the
+  elapsed time show, but neither bar shows an estimated time remaining.
+  Owner: Core (2026-10-15), grouped with PERF.101, which has the same
+  symptom for the phenomena index build. Done: the migration progress
+  display (`planetgen.cli.migrate`, run from update.sh) shows an estimated time
+  remaining on both bars from the first step that reports progress, and
+  a step with no progress updates says so instead of showing nothing; a
+  test covers the estimate for a step that reports progress and a step
+  that does not. Shares the progress and ETA code with PERF.101: fix
+  them together or in order. Bug.
+  Prerequisites: none. Related: PERF.101.
 
 ## DB: Database and schema
 
@@ -4111,6 +4125,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   when the grid has to be built; documented in the API docs and the
   compatibility data.
   Prerequisite: GEN.199. Related: MAP.167.
+
+- [ ] **API.26 Bump API_VERSION for the shell, band and wedge sector address**
+  Found by Quality after the switch (PR #1607). `API_VERSION` is still
+  3, but the switch changed the sector address parameters of the API
+  from ring, layer and slot to shell, band and wedge, which is a
+  breaking change (`src/tests/test_api_version.py` says to bump it and
+  add its line to the change list in `docs/api.md`). Owner: Core
+  (2026-10-15). Done: `API_VERSION` is 4, `docs/api.md` lists the
+  change, and the version header tests pass. Open question for Boss
+  (default: bump to 4; there is no backward compatibility and Boss is
+  the only user, so no 3 route is kept). Not a bug.
+  Prerequisites: none. Related: API.4.
 
 ## ADM: Admin tools
 
@@ -4678,6 +4704,18 @@ clears each one.
   ahead of every lane queue.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
+- [ ] **TEST.158 The math check tests the spherical shell, band and wedge grid**
+  Found by Quality after the switch (PR #1607). `physics/mathcheck.py`
+  still checks the old cylinder grid through
+  `geometry.ring_sector_count` and the ring and slot helpers, so it
+  passes or fails on code the map is about to stop using. Rewrite it to
+  check the shell grid: shell radii and the 4 pc depth, the core ball,
+  the pole caps, the 6*m wedge count of every band (m only 2, 3, 5, 7),
+  that the bands and wedges of a shell cover the shell exactly, and that
+  a point maps to the sector whose bounds contain it. Owner: Quality
+  (2026-10-15), taken alongside TEST.156. Not a bug.
+  Prerequisites: none. Related: TEST.156.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -5074,7 +5112,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the three map-ui design docs. Open the Boss-facing decisions these
   touch as they are made.
   Docs sweep (2026-10-09): Docs sweep (2026-10-14): the cli.md items are
-  covered by DOC.36, the database-schema.md ones by DOC.33 and DOC.32,
+  covered by DOC.36 (done, PR #1616), the database-schema.md ones by DOC.33 and DOC.32,
   the html-interface.md ones by DOC.31 and the system-file format ones
   by DOC.30; the docstring ones by DOC.21. This item stays only for what
   none of those cover (docs/deployment/macos.md 'Monthly orbit update'
@@ -5406,27 +5444,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   each example runs; checked against
   docs/design/api-design-standards.md.
   Prerequisites: none.
-
-- [ ] **DOC.36 Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  1 to 6 and 8. cli.md lists 8 of the 11 subcommands (versions, check-db
-  and benchmark are missing); its Planned commands table lists as
-  unbuilt things that exist (check-db, versions, --strict, --directive,
-  --avoid-filled-space, --neighborhoods, --rings, --layers, --slots,
-  --cylinder-*), leaving only repair-db, --resume and
-  scripts/maintenance.sh planned; the bright-star default is 9000 L_sun
-  with a range of 2500 to 4,000,000 (tuning.py), not 500 and 100 or more
-  (DOC.4 says 1,000, also stale); --force is no longer needed on the
-  scatter; plan --seed exists but the doc says it does not; --no-settle,
-  --phenomena-only, --star-mix, --then-scatter, --backfill-from, the
-  plan's shape flags and plan --redo-nebula-field (GEN.205, dry run by
-  default, apply to change; #1325) are undocumented. Done: cli.md
-  matches planetgen --help for every subcommand; any star count or run
-  time quoted is measured, not copied. Covers the cli.md part of DOC.4.
-  Prerequisites: none. Related: DOC.4.
 
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.

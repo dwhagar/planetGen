@@ -28,8 +28,9 @@ def _no_revision_hold(monkeypatch):
     monkeypatch.setattr(bump_version, "REVISION_HOLD", False)
 
 
-FIXED_NOTE = "### Fixed\n- Fixed a thing.\n"
-ADDED_NOTE = "### Added\n- Added a thing.\n"
+HEADLINE = "**Headline:** A thing works better.\n\n"
+FIXED_NOTE = HEADLINE + "### Fixed\n- Fixed a thing.\n"
+ADDED_NOTE = HEADLINE + "### Added\n- Added a thing.\n"
 
 
 def _make_repo(root, version="1.2.3"):
@@ -88,7 +89,7 @@ def test_stamp_updates_all_three_places_and_removes_the_note(tmp_path):
     assert "**Version:** 1.3.4 &middot;" in _read(root, "README.md")
     changelog = _read(root, "CHANGELOG.md")
     assert changelog.startswith(
-        "# Changelog\n\n## [1.3.4] - 2026-02-02\n\n### Fixed\n- Fixed a thing.\n\n## [1.2.3]")
+        "# Changelog\n\n## [1.3.4] - 2026-02-02\n\n**Headline:** A thing works better.\n\n### Fixed\n- Fixed a thing.\n\n## [1.2.3]")
     assert not os.path.exists(os.path.join(root, "changes", "thing.patch.md"))
     assert os.path.exists(os.path.join(root, "changes", "README.md"))
     assert bump_version.current_versions(root) == {
@@ -125,9 +126,12 @@ def test_dry_run_changes_nothing(tmp_path):
     ("thing.md", FIXED_NOTE, "isn't named"),
     ("thing.bugfix.md", FIXED_NOTE, "isn't named"),
     ("thing.patch.md", "", "is empty"),
-    ("thing.patch.md", "- no heading\n", "must start with a section heading"),
-    ("thing.patch.md", "### Fixes\n- typo'd section\n", "use one of"),
-    ("thing.patch.md", "## [9.9.9] - 2026-01-01\n### Fixed\n- x\n", "'#'/'##' heading"),
+    ("thing.patch.md", "- no heading\n", "must start with a Headline"),
+    ("thing.patch.md", "### Fixed\n- no headline\n", "must start with a Headline"),
+    ("thing.patch.md", "**Headline:**\n### Fixed\n- empty headline\n", "must start with a Headline"),
+    ("thing.patch.md", HEADLINE + "- no heading\n", "must start with a section heading"),
+    ("thing.patch.md", HEADLINE + "### Fixes\n- typo'd section\n", "use one of"),
+    ("thing.patch.md", HEADLINE + "## [9.9.9] - 2026-01-01\n### Fixed\n- x\n", "'#'/'##' heading"),
 ])
 def test_bad_notes_are_rejected_before_anything_is_stamped(tmp_path, name, body, complaint):
     root = _make_repo(str(tmp_path))
@@ -301,7 +305,7 @@ def test_merge_bodies_puts_new_bullets_first_in_each_section():
 
 def test_a_headline_line_leads_the_note_and_lands_under_the_release_heading(tmp_path):
     root = _make_repo(str(tmp_path))
-    _note(root, "thing.minor.md", "**Headline:** The map opens on the biggest group.\n\n" + ADDED_NOTE)
+    _note(root, "thing.minor.md", "**Headline:** The map opens on the biggest group.\n\n### Added\n- Added a thing.\n")
     bump_version.stamp(root, date="2026-02-02")
     changelog = _read(root, bump_version.CHANGELOG_FILE)
     assert ("## [1.3.4] - 2026-02-02\n\n**Headline:** The map opens on the biggest group.\n\n### Added"
@@ -311,7 +315,7 @@ def test_a_headline_line_leads_the_note_and_lands_under_the_release_heading(tmp_
 @pytest.mark.parametrize("body, complaint", [
     ("**Headline:** Only a headline.\n", "no section"),
     ("**Headline:** Then bullets.\n- no heading\n", "must start with a section heading"),
-    ("**Headline:**\n### Fixed\n- x\n", "must start with a section heading"),
+    ("**Headline:**\n### Fixed\n- x\n", "must start with a Headline"),
 ])
 def test_a_headline_still_needs_a_section_after_it(tmp_path, body, complaint):
     root = _make_repo(str(tmp_path))

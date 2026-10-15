@@ -2,6 +2,83 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1354] - 2026-10-15
+
+**Headline:** The plan files the migration progress bug: neither bar shows an estimated time remaining.
+
+### Changed
+- Filed PERF.102 (Core, bug): the migration progress display shows no estimated time remaining on either bar; grouped with PERF.101.
+
+TODO items resolved: none / Added: PERF.102
+
+## [8.0.1353] - 2026-10-15
+
+**Headline:** The plan files two follow-ups from the spherical switch: a math check for the shell grid and an API version bump.
+
+### Changed
+- Filed TEST.158 (Quality): rewrite `physics/mathcheck.py` for the shell, band and wedge grid.
+- Filed API.26 (Core): bump `API_VERSION` to 4 for the new sector address parameters, with an open question for Boss (default: bump).
+
+TODO items resolved: none / Added: TEST.158, API.26
+
+## [8.0.1352] - 2026-10-15
+
+**Headline:** The plan no longer lists the cli.md sync (DOC.36), now done.
+
+### Changed
+
+- TODO: retired DOC.36 (done in PR #1616) from the plan and the phase file; DOC.4 notes that its cli.md part is covered.
+
+TODO items resolved: DOC.36 / Added: none
+
+## [8.0.1351] - 2026-10-15
+
+**Headline:** The command-line reference now matches `planetgen --help` for all 11 subcommands, on the new shell, band and wedge grid.
+
+### Changed
+- `docs/cli.md` lists every subcommand (adding `check-db`, `versions` and `benchmark`), documents the galaxy shell, band, wedge and span options, the random-start options, `--no-settle`, `--backfill-from`, `--then-scatter`, `--directive`, `--star-mix`, the plan's shape flags and the phenomenon `--name` and `--no-settle`, uses the real bright-star default (9000 solar luminosities, from 2500 to 4,000,000), and shortens the Planned table to what is still unbuilt (`repair-db`, `--resume`). No code changes (DOC.36).
+
+## [8.0.1350] - 2026-10-15
+
+**Headline:** The plan now records what the spherical switch left for the Galaxy Map (the 500 on /galaxy and the parked browser tests).
+
+### Changed
+
+- TODO: MAP.205 records the post-switch state of the Galaxy Map: tests parked behind MAPS_PENDING, geometry.py kept, /galaxy answering 500, the 96 browser failures in the post-switch full run.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1349] - 2026-10-15
+
+**Headline:** The object-timing test no longer fails when the machine is busy.
+
+### Fixed
+- `test_time_spent_in_an_inner_object_is_not_counted_twice` timed real `sleep` calls and failed when a sleep overshot (8.0 ms against a 4 ms limit on a loaded machine). It now drives a fake clock, so the check is exact and never depends on speed (TEST.156).
+
+## [8.0.1348] - 2026-10-15
+
+**Headline:** Every release note now has to open with a Headline line, so no release goes out without one.
+
+### Changed
+- `scripts/bump_version.py` refuses a release note that does not start with a `**Headline:**` line (the rule has been optional since it was restored on 2026-10-14). `--check`, `--check-pr` and the stamp all apply it; `changes/README.md` says so.
+
+## [8.0.1347] - 2026-10-15
+
+### Changed
+
+- TODO: retired GEN.228 (done in PR #1610) and filed GEN.229, the repair of the wide binaries that already break the stability rule (count first with `planetgen check-db --deep --wide-binaries`; the repair needs Boss's word).
+
+TODO items resolved: GEN.228 / Added: GEN.229
+
+## [8.0.1346] - 2026-10-15
+
+### Changed
+- Wide binaries keep both stars' orbit regions apart (GEN.228). Each star's stable limit is now the tighter of the Holman & Wiegert fit and its own Hill sphere in the pair at periapsis (`orbits.hill_radius_in_pair_au`), the clearance between the two stars' outermost planets is measured at the pair's closest approach, not its average separation, and every comet a wide binary's star gets is an elliptical one whose whole orbit stays inside that limit (re-rolled up to `COMET_CEILING_ATTEMPTS` times, dropped when none fits). Before, comets ignored the limit: with comets forced on, 1,266 of 1,500 generated wide binaries had a comet reaching past it, toward the companion's planets.
+- `validation.check_star_system` reports a comet that leaves its star's stable limit, and `stabilize_star_system` with removal drops it.
+- `planetgen check-db --deep --wide-binaries` validates only the wide binaries, to count the stored pairs that break the rule.
+
+TODO items resolved: GEN.228 (the count of existing broken pairs is `check-db --deep --wide-binaries`; repair waits for Boss) / Added: none
+
 ## [8.0.1345] - 2026-10-15
 
 ### Changed

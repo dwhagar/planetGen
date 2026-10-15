@@ -83,8 +83,9 @@ REVISION_HOLD = True
 
 # The section headings CHANGELOG.md already uses (Keep a Changelog's set).
 SECTIONS = ("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security")
-# A release's Headline (Boss, 2026-10-10; restored 2026-10-14): one line, the best feature the release
-# brought, written as the first line of a note and kept above the sections in CHANGELOG.md.
+# A release's Headline (Boss, 2026-10-10; restored 2026-10-14; required of every note since the spherical
+# switch): one line, the best feature the release brought, written as the first line of a note and kept
+# above the sections in CHANGELOG.md.
 HEADLINE_RE = re.compile(r"^\*\*Headline:\*\* \S")
 
 FRAGMENT_RE = re.compile(r"^(?P<slug>[A-Za-z0-9][A-Za-z0-9_-]*)\.(?P<level>patch|minor|major)\.md$")
@@ -223,10 +224,14 @@ def validate_fragment_body(filename, body):
     if not lines:
         return [f"{CHANGES_DIR}/{filename} is empty"]
     allowed = ", ".join(f"'### {s}'" for s in SECTIONS)
-    if HEADLINE_RE.match(lines[0]):
-        lines = lines[1:]
-        if not lines:
-            return [f"{CHANGES_DIR}/{filename} has a Headline but no section"]
+    if not HEADLINE_RE.match(lines[0]):
+        return [
+            f"{CHANGES_DIR}/{filename} must start with a Headline line "
+            "('**Headline:** <the best feature of this release, one sentence>'), above the first section"
+        ]
+    lines = lines[1:]
+    if not lines:
+        return [f"{CHANGES_DIR}/{filename} has a Headline but no section"]
     first = lines[0].strip()
     if not first.startswith("### "):
         problems.append(f"{CHANGES_DIR}/{filename} must start with a section heading ({allowed})")
