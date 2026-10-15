@@ -681,7 +681,7 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
             picked = heading
             break
     assert picked, "no click on the uncharted sector picked one of its objects"
-    assert "its sector is not generated yet" in info.inner_text()
+    assert "its sector is not charted yet" in info.inner_text()
     assert info.locator("a", has_text="View").count() == 0, "an uncharted object has no page to view"
     assert info.locator("button", has_text="Start Here").count() == 0
     page.click('#galaxymap3d-controls [data-action="up"]')
