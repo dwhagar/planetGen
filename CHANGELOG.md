@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1387] - 2026-10-15
+
+**Headline:** A new design note says how many multi-star and compact-object systems exist, their limits and odds, and how a scatter row stores its companions as a tree.
+
+### Changed
+- Added `docs/design/multi-star-systems.md`: the census and theoretical limits of multi-star and compact-object systems, the companion odds for each placed object (stars, black holes, neutron stars, white dwarfs), the stored tree for a scatter row, the generator and its cost, motion, fill reuse, and eleven proposed TODO items. No code changed.
+
+TODO items resolved: none / Added: none (the proposed items are in the note's section 11)
+
 ## [8.0.1386] - 2026-10-15
 
 **Headline:** The intergalactic space plan is written down as one plan document.
