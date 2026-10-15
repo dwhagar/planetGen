@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1318] - 2026-10-15
+
+### Changed
+- Docs: `docs/cli.md` now has a Helper tools section giving the purpose, options and a safe example of `orbits`, `warm_map`, `worker`, `query`, `migrate`, `reset`, `lockouts`, `dedupe` and `config` (DOC.35).
+
 ## [8.0.1317] - 2026-10-15
 
 ### Changed
