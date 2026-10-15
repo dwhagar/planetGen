@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1260] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list facility types with affiliation and ratings (POP.10) as open work; the API part merged in #1517 and the web part in #1524.
+
+TODO items resolved: POP.10 / Added: none
+
 ## [8.0.1259] - 2026-10-15
 
 ### Changed
