@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -3636,26 +3636,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.40 Two shared queues, a reserved interactive worker and a real "cancel now"**
-  `planetgen-interactive` (one reserved worker) and `planetgen-bulk`
-  (workers serve `[interactive, bulk]`); "cancel now" for running tasks
-  via `send_stop_job_command` (safe: sector and backfill-chunk saves are
-  single transactions; `cancel()` alone leaves a running job running);
-  keep the interval-less `Retry(max=1)` and add no retry intervals
-  without a scheduler (a retry with an interval stayed `scheduled` on a
-  burst worker). Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-  default yes): a reserved
-  interactive worker costs one process (about 195 MB) while any bulk run
-  is active; start it on demand and exit when its queue is empty.
-  Note (2026-10-14, GitHub issue sweep):
-  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
-  2026-10-13): the whole work queue is to be redone (PERF.86). Build
-  this item only if the PERF.86 plan keeps it; otherwise it is folded
-  into or dropped by that plan.
-  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
-  plan, 2026-10-14 21:08Z); it is built there.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
   A `TILE_FORMAT` constant in the stamp base in place of `__version__`,
   with a golden test that fails when the tile or page structure changes
@@ -3721,30 +3701,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
-- [ ] **PERF.78 A reserved warm worker for long admin operations, and the poll pattern for them**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): queueing a read is not the answer
-  for page reads (it runs the same SQL on the same busy database, holds
-  one of the API daemon's 5 threads while the request waits, needs a
-  public polling route and costs 2.4 s to start a worker), but it is
-  right for work an admin starts and expects to take long. Done: the
-  `planetgen-interactive` queue of
-  docs/design/performance-eta-queue-and-caching.md 3.4 is built for
-  those operations only (Generate estimates, the deep database check
-  DB.21, exports), with a warm worker reserved for it and the admin poll
-  route they already use; no public polling route. Low priority. Owner:
-  Foundations lane 1.
-  Note (2026-10-14, GitHub issue sweep):
-  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
-  2026-10-13): the whole work queue is to be redone (PERF.86). Build
-  this item only if the PERF.86 plan keeps it; otherwise it is folded
-  into or dropped by that plan.
-  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
-  plan, 2026-10-14 21:08Z); it is built there.
-  Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
   (Boss, 2026-10-13 02:41Z): "I was mistaken about how Redis worked and
@@ -3753,8 +3709,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   subtask and all of that. It's going to be a lot of work too but I
   think I'm wasting a lot of efficiency." Done: a design note on what
   the queue does today, what it needs to do, and the simplest design on plain Redis queues,
-  then the rebuild; PERF.40, PERF.78, ADM.15, PERF.29 and PERF.30 wait
-  for this plan and are folded in or dropped. Decided (Boss, 2026-10-14
+  then the rebuild; PERF.40, PERF.78, ADM.15 (all folded into PERF.95,
+  done, PR #1506), PERF.29 and PERF.30 waited for this plan and are
+  folded in or dropped. Decided (Boss, 2026-10-14
   13:24Z): keep a "cancel now" that stops a job, progress bars and ETAs
   per stage, per-stage timing records (Boss wants stats on how long
   everything takes) and the job log with its download link; an admin
@@ -3766,8 +3723,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   best ways to use Redis in a situation like ours and to give him
   options before the rebuild starts. Owner: a research thread first
   (coordinator to assign), then Foundations lane 1.
-  Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
-  ADM.15, PERF.24.
+  Prerequisites: none. Related: PERF.40 (done, PR #1506), PERF.78 (done, PR #1506),
+  PERF.29, PERF.30, ADM.15 (done, PR #1506), PERF.24.
   Redis review (2026-10-14): research done (Research Lane 1, PR #1350,
   docs/design/redis-and-the-work-queue.md, with
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
@@ -3816,32 +3773,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.95 Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.4 and 5.11 step 1. Two
-  queues, planetgen-bulk and planetgen-interactive, each worker serving
-  only one; ensure_workers starts idle-timeout workers (max_idle_time
-  about 60 s, not burst) up to the wanted-count key
-  planetgen:workers:wanted, counts only live workers, cleans the worker
-  registry, and is called by whoever queues and by every status poll;
-  API jobs move to the interactive queue. Folds in PERF.40 (two shared
-  queues, a reserved interactive worker, a real cancel now), PERF.78 (a
-  reserved warm worker for long admin operations) and ADM.15 (worker
-  count from the Queue page, Ludicrous Speed as a number). Done when:
-  those items' behaviours work on the new spine and a test kills a
-  worker and a replacement starts.
-  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78,
-  ADM.15.
-
 - [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -3866,7 +3797,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   runs' stage timings or the time per task so far in this run; the ETA
   function must carry this fallback (the interim fix is the bug item
   PERF.101).
-  Prerequisite: PERF.95. Related: PERF.86, PERF.33.
+  Prerequisite: PERF.95 (done, PR #1506). Related: PERF.86, PERF.33.
 
 - [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4115,7 +4046,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   command, after which the check uses them. PERF.100 (which deletes the
   old work tables with a migration) must pass through this check too.
   Owner: Foundations Database, after DB.28 (done, PR #1476) and before PERF.100.
-  Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
+  Prerequisites: none. Related: PERF.95 (done, PR #1506), PERF.96, PERF.99, PERF.100,
   OPS.48, DB.18, DB.27 (done, PR #1446), DB.28 (done, PR #1476).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
@@ -4492,43 +4423,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `upload_runs`, `upload_units` and `upload_claims`.
   Decided (2026-10-10): Boss (19:16Z, Accept all): flag an upload that
   has been silent for 3 days; flag only, never auto-clear.
-
-- [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
-  Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
-  change the worker count including a "Ludicrous Speed" that will
-  basically change the system to run max CPU power on the system up to
-  95% of available CPU power but periodized so that the web interface
-  still works (even though they will be slow) and DB calls still work
-  (even though they will be slow). This speed mode will not care if
-  mysql is running and will have the goal of saturating the host CPU
-  safely." Today the worker count is fixed when a run starts
-  (`--workers`, `PLANETGEN_WORKERS`, or `worker_count()` in
-  `stellarObjects/workQueue.py`: 80% of the cores, one fewer when MySQL
-  is on this machine), with workers at lowered priority, and the admin
-  Queue page (`admin_queue.html`, ADM.10/11) can't change it. Done: an
-  admin can set the worker count on the Queue page (for running and
-  future work) and pick "Ludicrous Speed", which aims to saturate the
-  host's CPU up to 95% of its capacity without keeping a core back for a
-  local MySQL, while still giving the web site and database calls enough
-  time that they keep working, if slowly. The change is written to the
-  admin activity log.
-  Plan (2026-10-07): The worker count now means RQ worker processes
-  (PERF.24).
-  Research (2026-10-09, performance-eta-queue-and-caching.md): keep
-  lowered worker priority, but it does not protect the database: add one
-  connection per worker, a cap on total worker connections and the
-  reserved interactive worker; re-run PERF.34's page-time test under
-  Ludicrous Speed.
-  Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
-  run under Ludicrous Speed moved here from PERF.38; it needs this item
-  built and a real fill.
-  Note (2026-10-14, GitHub issue sweep):
-  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
-  2026-10-13): the whole work queue is to be redone (PERF.86). Build
-  this item only if the PERF.86 plan keeps it; otherwise it is folded
-  into or dropped by that plan.
-  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
-  plan, 2026-10-14 21:08Z); it is built there.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a

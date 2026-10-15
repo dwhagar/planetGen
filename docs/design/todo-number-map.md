@@ -403,7 +403,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.12 | Jobs as a tree, with timing for every node | none | done, PR #285 |
 | ADM.13 | Incomplete uploads page | none | open |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | done, PR #544 |
-| ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
+| ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | done, PR #1506 |
 | ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | dropped (Boss, 2026-10-09 20:42Z) |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | done, PR #816 |
@@ -1118,7 +1118,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | done, PR #865 |
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | done, PR #1144 |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | done, PR #1151 |
-| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | open |
+| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | done, PR #1506 |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
 | PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | done, PR #861 |
@@ -1156,7 +1156,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) | none | open |
 | PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | done, PR #1199 |
 | PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | done, PR #1199 |
-| PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
+| PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | done, PR #1506 |
 | PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | done, PR #1206 |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | done, PR #1251 |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | done, PR #1236 |
@@ -1173,7 +1173,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | done, PR #1371 |
 | PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | done, PR #1364 |
 | PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | done, PR #1383 |
-| PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | open |
+| PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | done, PR #1506 |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | open |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | none | open |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | open |
