@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1407] - 2026-10-15
+
+**Headline:** GEN.250 (the phenomena registry) is retired; GEN.268 and GEN.261 are unblocked.
+
+### Changed
+
+- GEN.250 (#1700) leaves the open list; DB.33 carries Quality's note that the check-db column-name case fix is merged.
+
+TODO items resolved: GEN.250 / Added: none
+
 ## [8.0.1406] - 2026-10-15
 
 **Headline:** Every kind of object the generator makes is now one row in a single registry, and the lists that used to repeat the kinds read it.
