@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1181] - 2026-10-15
+
+### Changed
+
+- Plan notes and MAP.151b: Foundations Maps may build the database changes it needs after telling Foundations Database first.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1180] - 2026-10-15
 
 ### Changed
