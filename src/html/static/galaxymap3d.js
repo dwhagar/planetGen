@@ -58,7 +58,7 @@ const {
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
-const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { formatDistancePc, formatMassSolar, LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
@@ -459,7 +459,7 @@ function showPointInfo(point) {
     fields: [
       ["Type", pointTypeLabel(point)],
       ["Luminosity", formatLuminosity(point.luminosity_sol)],
-    ].concat(point.mass_solar != null ? [["Mass", point.mass_solar.toLocaleString("en-US", { maximumSignificantDigits: 4 }) + " solar masses"]] : [], [
+    ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
       ["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),

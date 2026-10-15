@@ -36,7 +36,7 @@ from planetgen.names.wordsalad import LazySaladName, generate_phoneme_salad_name
 from planetgen.physics.orbits import calculate_habitable_zone, calculate_hill_sphere
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import (
-    format_age_string, format_number, format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, properties_to_string,
+    format_age_string, format_number, format_body_radius_km, format_distance_au, format_distance_km, format_mass_kg, format_relative_to_sol, properties_to_string,
 )
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
@@ -931,7 +931,7 @@ class Star(LazySaladName):
             dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `orbit`,
                  `loc`, each an already-formatted display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
+        mass_string = format_mass_kg(self.mass)
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
         radius_string = format_body_radius_km(self.system_config, self.radius)

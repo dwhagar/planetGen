@@ -249,5 +249,27 @@ GRAVITY = Ladder(
     companions=(Companion("g", "times standard gravity", physical_constants.EARTH_GRAVITY),),
 )
 
-LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY)
+# Mass (UX.22; Boss, 2026-10-10: lunar-mass rung wanted): kilograms (scientific
+# by the number rule) under 0.01 lunar mass, then lunar masses to 0.1 Earth
+# mass, Earth masses to 0.1 Jupiter mass, Jupiter masses to the hydrogen-burning
+# limit of 0.075 solar mass, and solar masses above.
+MASS = Ladder(
+    quantity="mass",
+    base="kg",
+    nonfinite="kg",
+    zero="kg",
+    rungs=(
+        Rung("kg", 1.0, "kilograms", start=0.0),
+        Rung("lunar masses", physical_constants.MOON_MASS_KG, "lunar masses", singular="lunar mass",
+             start=0.01 * physical_constants.MOON_MASS_KG),
+        Rung("Earth masses", physical_constants.EARTH_MASS_TO_KG, "Earth masses", singular="Earth mass",
+             start=0.1 * physical_constants.EARTH_MASS_TO_KG),
+        Rung("Jupiter masses", physical_constants.JUPITER_MASS_TO_KG, "Jupiter masses", singular="Jupiter mass",
+             start=0.1 * physical_constants.JUPITER_MASS_TO_KG),
+        Rung("solar masses", physical_constants.SOLAR_MASS_TO_KG, "solar masses", singular="solar mass",
+             start=0.075 * physical_constants.SOLAR_MASS_TO_KG),
+    ),
+)
+
+LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY, MASS)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""

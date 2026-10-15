@@ -84,4 +84,16 @@ export const LADDERS = {
       {"symbol": "m/s²", "factor": 1.0, "name": "meters per second squared", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false},
     ],
   },
+  "mass": {
+    "base": "kg", "nonfinite": "kg", "zero": "kg",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "kg", "factor": 1.0, "name": "kilograms", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "lunar masses", "factor": 7.342e+22, "name": "lunar masses", "start": 7.342e+20, "singular": "lunar mass", "whole_from": null, "with_aside": false},
+      {"symbol": "Earth masses", "factor": 5.972167867791379e+24, "name": "Earth masses", "start": 5.972167867791379e+23, "singular": "Earth mass", "whole_from": null, "with_aside": false},
+      {"symbol": "Jupiter masses", "factor": 1.8981245973360505e+27, "name": "Jupiter masses", "start": 1.8981245973360507e+26, "singular": "Jupiter mass", "whole_from": null, "with_aside": false},
+      {"symbol": "solar masses", "factor": 1.988409870698051e+30, "name": "solar masses", "start": 1.4913074030235382e+29, "singular": "solar mass", "whole_from": null, "with_aside": false},
+    ],
+  },
 };

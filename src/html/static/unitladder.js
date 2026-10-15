@@ -28,6 +28,7 @@ export const SECONDS_PER_YEAR = factorOf(LADDERS.time, "years");
 const companionOf = (ladder, symbol) => ladder.companions.find((companion) => companion.symbol === symbol).factor;
 export const STANDARD_ATMOSPHERE_PA = companionOf(LADDERS.pressure, "atm");
 export const STANDARD_GRAVITY = companionOf(LADDERS.gravity, "g");
+export const SOLAR_MASS_KG = factorOf(LADDERS.mass, "solar masses");
 
 // Three significant figures, or scientific notation under TINY_NUMBER, where a
 // unit would otherwise run to a row of zeros (planetgen/util/format.py
@@ -146,3 +147,7 @@ export const formatPressureAtm = (atm) => formatPressurePa(scaled(atm, STANDARD_
 
 // "3.71 m/s² (0.378 g)" for a gravity in multiples of standard gravity.
 export const formatGravityG = (g) => formatQuantity(LADDERS.gravity, scaled(g, STANDARD_GRAVITY));
+
+// A mass in kilograms: "1 Earth mass", "0.299 Jupiter masses", "0.122 solar masses".
+export const formatMassKg = (kg) => formatQuantity(LADDERS.mass, kg);
+export const formatMassSolar = (solar) => formatMassKg(scaled(solar, SOLAR_MASS_KG));

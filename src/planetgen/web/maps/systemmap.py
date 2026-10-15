@@ -80,7 +80,7 @@ import statistics
 from planetgen.web.lib.fmt import esc, format_distance_km, format_pressure_pa, format_speed_kms, format_temperature_k
 from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
 from planetgen.web.lib.tabledisplay import (
-    format_body_distance, format_body_mass, format_body_radius, format_period, format_star_luminosity, format_star_mass, format_star_radius,
+    format_body_distance, format_body_radius, format_period, format_star_luminosity, format_mass, format_star_radius,
     to_plain_text,
 )
 
@@ -801,7 +801,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         # MAP.92: the side panel's radius and mass, formatted here like
         # every other field.
         "radius": to_plain_text(format_body_radius(planet.get("radius_km"))),
-        "mass": to_plain_text(format_body_mass(planet.get("mass_kg"), planet["body_type"] == "g")),
+        "mass": to_plain_text(format_mass(planet.get("mass_kg"))),
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
         "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
         "period": format_period(planet["period_years"]),
@@ -1244,7 +1244,7 @@ def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
         "kind": "star", "id": star["id"], "name": _star_label(system, star),
         "role": "Primary" if is_primary else "Secondary",
         "type": star["star_type"], "temp": _star_temp_text(star),
-        "mass": to_plain_text(format_star_mass(star["mass_kg"])),
+        "mass": to_plain_text(format_mass(star["mass_kg"])),
         "radius": to_plain_text(format_star_radius(star["radius_km"])),
         "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
         # Raw km, alongside the formatted display string above -- see
@@ -1470,7 +1470,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
             "name": _star_label(system, star),
             "role": ("Primary" if is_primary else "Secondary") if is_binary else "Single",
             "type": star["star_type"], "temp": _star_temp_text(star),
-            "mass": to_plain_text(format_star_mass(star["mass_kg"])),
+            "mass": to_plain_text(format_mass(star["mass_kg"])),
             "radius": to_plain_text(format_star_radius(star["radius_km"])),
             "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
             "radiuskm": star["radius_km"],

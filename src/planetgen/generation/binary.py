@@ -29,7 +29,7 @@ from planetgen.physics.orbits import (
 )
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import (
-    format_age_string, format_distance_au, format_distance_km, format_relative_to_sol, properties_to_string, format_period_years, format_speed_kms,
+    format_age_string, format_distance_au, format_distance_km, format_mass_kg, format_relative_to_sol, properties_to_string, format_period_years, format_speed_kms,
 )
 
 class BinaryStarProxy(Star):
@@ -379,7 +379,7 @@ class BinaryStarProxy(Star):
                  `mutual_orbit`, `orbit`, `loc`, each an already-formatted
                  display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
+        mass_string = format_mass_kg(self.mass)
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
         separation_string = format_distance_au(self.binary_separation_au)
