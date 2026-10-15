@@ -228,21 +228,21 @@
 <p class="hint">The forms below unlock when the current job finishes.</p>
 {%- endif %}
 
-{%- if summary.layers %}
-{% call fold("layers", "Galaxy layers") %}
-  {%- set layers = summary.layers %}
+{%- if summary.shells %}
+{% call fold("shells", "Galaxy shells") %}
+  {%- set shells = summary.shells %}
   <dl class="estimate-facts">
-    <dt>Layers</dt><dd>{{ num(layers.count) }} (layer {{ num(layers.lowest) }} to {{ num(layers.highest) }}, layer 0 in the middle)</dd>
-    <dt>Height</dt><dd>{{ num(layers.height_pc, ",.1f") }} pc per layer, {{ num(layers.thickness_pc, ",.0f") }} pc through all of them</dd>
-    <dt>Extent</dt><dd>Out to {{ num(layers.radius_pc, ",.0f") }} pc from the center at the widest layer</dd>
-    <dt>Charted</dt><dd>{{ num(layers.charted) }} sector{{ "" if layers.charted == 1 else "s" }} generated</dd>
+    <dt>Shells</dt><dd>{{ num(shells.count) }} (shell 0, the core ball, out to shell {{ num(shells.outermost) }})</dd>
+    <dt>Depth</dt><dd>{{ num(shells.depth_pc, ",.1f") }} pc per shell</dd>
+    <dt>Extent</dt><dd>Out to {{ num(shells.radius_pc, ",.0f") }} pc from the center at the outermost shell</dd>
+    <dt>Sectors</dt><dd>{{ num(shells.cells) }} inside the outline, {{ num(shells.charted) }} generated</dd>
   </dl>
   <div class="table-scroll"><table>
-    <caption>{% if layers.sampled %}An even sample of the layers, highest first.{% else %}Every layer, highest first.{% endif %}</caption>
-    <thead><tr><th scope="col" class="num">Layer</th><th scope="col" class="num">From z (pc)</th><th scope="col" class="num">To z (pc)</th><th scope="col" class="num">Extent (pc)</th><th scope="col" class="num">Charted</th></tr></thead>
+    <caption>{% if shells.sampled %}An even sample of the shells, outermost first.{% else %}Every shell, outermost first.{% endif %}</caption>
+    <thead><tr><th scope="col" class="num">Shell</th><th scope="col" class="num">From (pc)</th><th scope="col" class="num">To (pc)</th><th scope="col" class="num">Bands</th><th scope="col" class="num">Sectors</th><th scope="col" class="num">Generated</th></tr></thead>
     <tbody>
-      {%- for row in layers.rows %}
-      <tr><td class="num">{{ num(row.layer) }}</td><td class="num">{{ num(row.bottom_pc, ",.1f") }}</td><td class="num">{{ num(row.top_pc, ",.1f") }}</td><td class="num">{{ num(row.radius_pc, ",.0f") }}</td><td class="num">{{ num(row.charted) }}</td></tr>
+      {%- for row in shells.rows %}
+      <tr><td class="num">{{ num(row.shell) }}</td><td class="num">{{ num(row.inner_pc, ",.1f") }}</td><td class="num">{{ num(row.outer_pc, ",.0f") }}</td><td class="num">{{ num(row.bands) }}</td><td class="num">{{ num(row.cells) }}</td><td class="num">{{ num(row.charted) }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>

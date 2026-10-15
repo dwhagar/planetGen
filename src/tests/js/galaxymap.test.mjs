@@ -252,8 +252,8 @@ test("sectorDesignation packs like Python's provisional_sector_designation", () 
   assert.ok(wide.designation.length > 8);
 });
 
-test("formatAddress names ring, layer and slot", () => {
-  assert.equal(G3.formatAddress(312, -3, 1042), "ring 312 layer -3 slot 1042");
+test("formatAddress names shell, band and wedge", () => {
+  assert.equal(G3.formatAddress(312, -3, 1042), "shell 312 band -3 wedge 1042");
 });
 
 test("every control button the panel draws has a handler", () => {

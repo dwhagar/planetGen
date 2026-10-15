@@ -17,7 +17,7 @@ import pytest  # noqa: E402
 
 from planetgen.web.maps.galaxymap import (  # noqa: E402
     QUADRANT_LABELS,
-    ZONE_RING_WIDTH,
+    ZONE_SHELL_DEPTH,
     ZONE_TARGET_LY,
     sector_quadrant,
     sector_zone,
@@ -50,18 +50,18 @@ def test_sector_quadrant_is_blind_to_z_by_construction():
     assert list(inspect.signature(sector_quadrant).parameters) == ["x_pc", "y_pc"]
 
 
-def test_sector_zone_groups_ring_index_into_fixed_width_bands():
+def test_sector_zone_groups_shell_index_into_fixed_depth_bands():
     assert sector_zone(0) == 0
-    assert sector_zone(ZONE_RING_WIDTH - 1) == 0
-    assert sector_zone(ZONE_RING_WIDTH) == 1
-    assert sector_zone(2 * ZONE_RING_WIDTH + 1) == 2
+    assert sector_zone(ZONE_SHELL_DEPTH - 1) == 0
+    assert sector_zone(ZONE_SHELL_DEPTH) == 1
+    assert sector_zone(2 * ZONE_SHELL_DEPTH + 1) == 2
 
 
-def test_zone_ring_width_is_at_least_one():
+def test_zone_shell_depth_is_at_least_one():
     # ZONE_TARGET_LY / DEFAULT_SECTOR_EDGE_LY could round to 0 for a
     # pathologically large edge length -- max(1, ...) in the module
     # guards against a ZeroDivisionError in sector_zone.
-    assert ZONE_RING_WIDTH >= 1
+    assert ZONE_SHELL_DEPTH >= 1
 
 
 def test_zone_bounds_ly_are_contiguous_and_span_zone_target_ly():
@@ -69,27 +69,27 @@ def test_zone_bounds_ly_are_contiguous_and_span_zone_target_ly():
     inner_1, outer_1 = zone_bounds_ly(1)
     assert inner_0 == 0.0
     assert outer_0 == pytest.approx(inner_1)  # zones tile with no gap/overlap
-    assert (outer_0 - inner_0) == pytest.approx(ZONE_TARGET_LY, rel=0.15)
+    assert (outer_1 - inner_1) == pytest.approx(ZONE_TARGET_LY, rel=0.15)
 
 
-def test_zone_bounds_ly_scale_linearly_with_zone_index():
+def test_zone_bounds_ly_step_by_whole_shells():
     inner_5, outer_5 = zone_bounds_ly(5)
     inner_1, outer_1 = zone_bounds_ly(1)
     width = outer_1 - inner_1
-    assert inner_5 == pytest.approx(5 * width)
-    assert outer_5 == pytest.approx(6 * width)
+    assert outer_5 - inner_5 == pytest.approx(width)
+    assert inner_5 - inner_1 == pytest.approx(4 * width)
 
 
-def test_sector_zone_and_zone_bounds_ly_agree_with_the_ring_grid():
-    # A ring's own zone, fed back into zone_bounds_ly, must contain that
-    # ring's whole radial extent -- zones are whole rings.
-    from planetgen.galaxy.geometry import ring_bounds_pc
+def test_sector_zone_and_zone_bounds_ly_agree_with_the_shell_grid():
+    # A shell's own zone, fed back into zone_bounds_ly, must contain that
+    # shell's whole radial extent -- zones are whole shells.
+    from planetgen.galaxy.spherical import shell_bounds_pc
     from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
     from planetgen.physics.units import ly_to_pc, pc_to_ly
 
     edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-    for ring_index in (0, 1, ZONE_RING_WIDTH, ZONE_RING_WIDTH * 3 + 2, 500):
-        inner_ly, outer_ly = zone_bounds_ly(sector_zone(ring_index))
-        ring_inner_pc, ring_outer_pc = ring_bounds_pc(ring_index, edge_pc)
-        assert inner_ly == pytest.approx(pc_to_ly(ring_inner_pc)) or inner_ly < pc_to_ly(ring_inner_pc)
-        assert pc_to_ly(ring_outer_pc) <= outer_ly + 1e-6
+    for shell_index in (0, 1, ZONE_SHELL_DEPTH, ZONE_SHELL_DEPTH * 3 + 2, 500):
+        inner_ly, outer_ly = zone_bounds_ly(sector_zone(shell_index))
+        shell_inner_pc, shell_outer_pc = shell_bounds_pc(shell_index, edge_pc)
+        assert inner_ly <= pc_to_ly(shell_inner_pc) + 1e-6
+        assert pc_to_ly(shell_outer_pc) <= outer_ly + 1e-6
