@@ -119,3 +119,12 @@ def test_the_check_finds_a_dead_path_a_dead_anchor_and_ignores_code(tmp_path):
         "`[in code](missing.md)`\n\n```\n[fenced](missing.md)\n```\n", encoding="utf-8")
     found = {(link, why) for _n, link, why in broken_links(page)}
     assert found == {("missing.md", "no such file"), ("other.md#nowhere", "no such heading")}
+
+
+def test_every_design_note_is_listed_in_the_design_index():
+    """DOC.27: docs/design/README.md names every note in the folder (the archive aside)."""
+    folder = ROOT / "docs" / "design"
+    index = (folder / "README.md").read_text(encoding="utf-8")
+    missing = [note.name for note in sorted(folder.glob("*.md"))
+               if note.name != "README.md" and note.name.replace(" ", "%20") not in index]
+    assert not missing, f"docs/design/README.md does not list: {', '.join(missing)}"
