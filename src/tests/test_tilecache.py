@@ -20,7 +20,7 @@ from planetgen.web.lib import tilecache, tilepack  # noqa: E402
 FAKE_STAR = {
     "id": 7, "name": "Named", "x": 1.23456789, "y": -2.0, "z": 0.00049, "luminosity_sol": 1234.56789,
     "temperature_k": 5778.4, "radius_sol": 1.234567, "star_type": "G2V Yellow Main Sequence Star",
-    "population": "young", "yerkes_class": "V", "ring_index": 3, "layer_index": 1, "ring_slot_index": 4,
+    "population": "young", "yerkes_class": "V", "shell_index": 3, "band_index": 1, "wedge_index": 4,
     "system_id": None,
 }
 

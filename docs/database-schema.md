@@ -164,7 +164,7 @@ display-string column (superseded by computing display formatting on
 demand from the underlying data columns, e.g. `planetgen/web/lib/tabledisplay.py`);
 v6/v7 gave every galaxy-placed sector exact vertices (`sector_vertices`,
 built from an exact local spherical Voronoi tessellation among its
-same-shell neighbors — see `planetgen/galaxy/geometry.py`); v8 added
+same-shell neighbors — the cylinder-era `galaxy/geometry.py`, removed in TEST.156); v8 added
 the galaxy-wide density "skeleton" (`galaxy_shape`/`galaxy_layer`,
 built by `planetgen plan` — see `planetgen/galaxy/density.py`/
 `galaxySkeleton.py`) plus a `UNIQUE (shell_index, shell_slot_index)`

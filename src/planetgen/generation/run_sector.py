@@ -549,8 +549,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             constant -- the `sector` subcommand (no galaxy context) always
             calls this with the default, so it keeps producing "unplaced"
             sectors.
-        cell (galaxy.geometry.SectorCell, optional): The sector's real
-            cylindrical cell, in light-years, for a galaxy-placed sector --
+        cell (galaxy.spherical.SectorCell, optional): The sector's real
+            shell, band and wedge cell, in light-years, for a galaxy-placed sector --
             systems and phenomena are then placed inside it rather than in
             a cube (see `SpaceSector.cell`).
         fill (brightStars.FillContext, optional): For a galaxy-placed

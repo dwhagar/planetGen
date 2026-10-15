@@ -50,7 +50,7 @@ from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_
 from planetgen._version import __version__
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
-from planetgen.galaxy.geometry import binary_companion_offset_pc
+from planetgen.galaxy.frame import binary_companion_offset_pc
 from planetgen.galaxy.spherical import (
     galaxy_to_local_pc, local_to_galaxy_pc, neighbor_addresses,
     provisional_sector_designation, sector_cell_vertices_pc, sector_position_pc,
