@@ -165,6 +165,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
+| POP.13 | A species editor: create and edit species and their environment limits | POP.12 |  |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
 ### Nebula planets

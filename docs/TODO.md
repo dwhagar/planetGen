@@ -4091,6 +4091,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
   OPS.48, DB.18, DB.27 (done, PR #1446), DB.28.
 
+- [ ] **DB.30 One migration for the per-species environment limits**
+  Needed by POP.12 (Foundations Generation), same rule as DB.27 and
+  DB.28: only Foundations Database adds migrations. Add the columns or
+  the table that hold each species' own environment limits, one value
+  per row of `LIMIT_ROWS` in `planetgen/physics/protection_limits.py`
+  (pressure, oxygen, temperature, wet-bulb, dose and the other rows it
+  holds), NULL for the human default, as laid out in
+  docs/design/habitability-index.md section 9 ("a later per-species
+  limit replaces a row in this table and nothing else"). Done: the
+  migration (next after DB.29's if that lands first) with its old-schema
+  fixture and tests, merged so POP.12 can be built on it. Owner:
+  Foundations Database, after DB.29.
+  Prerequisites: DB.29. Related: POP.12, POP.13, DB.27.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -6308,3 +6322,51 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   design (docs/design/Technological Assessment.md and the "Tech levels"
   section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
   Prerequisite: USR.10. Related: POP.7 (done, PR #1461), POP.10, USR.10.
+
+- [ ] **POP.12 List every species that could live in a given environment, and give every species its environment limits**
+  Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
+  one to list all races that would be able to inhabit that environment.
+  That means all species must also have that information. Add another
+  TODO item for species editor." Today a species row carries its build,
+  climate, size, life chemical, life stage and tech fields, but no
+  environment limits, and the habitability score describes only the
+  human visitor (`LIMIT_ROWS` in
+  `planetgen/physics/protection_limits.py`). Done: (1) every species
+  stores its own limits for the same rows, generated from its life
+  chemical, build, climate and size when the species is made and
+  backfilled for the species that exist; (2) a function scores any
+  planet or moon against a species' limits through the six habitability
+  domains (GEN.207); (3) the planet and moon page has a "Species that
+  could live here" list, with each species' rating per domain, and the
+  API has an endpoint that lists the species able to live in a planet or
+  moon, and the other way round (the environments a species could live
+  in, by sector or system); (4) the species page shows its own limits.
+  Open question for Boss (default: "able to inhabit" means no Red domain
+  without equipment, with a second list of species that could live there
+  with equipment at their own tech level, so one list is unaided and one
+  is equipped). Open question for Boss (default: homeworld-only species
+  get limits from their homeworld's conditions, so every species passes
+  its own homeworld). Rebuild nothing in the human score: a per-species
+  limit replaces a row of the table and nothing else.
+  Prerequisites: DB.30, POP.9 (done, PR #1461). Related: POP.13, POP.9, POP.7, GEN.207,
+  GEN.208, DB.30, API.15.
+  Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+- [ ] **POP.13 A species editor: create and edit species and their environment limits**
+  Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
+  one to list all races that would be able to inhabit that environment.
+  That means all species must also have that information. Add another
+  TODO item for species editor." Done: an admin page lists the species
+  and edits one or creates one: name, homeworld, life chemical, build,
+  climate, size, the six tech indexes and tech level (`tech_source`
+  becomes admin, the column POP.9 added for this), and the environment
+  limits of POP.12 with the generated defaults shown beside each so an
+  admin can see what was changed; saving checks the values (ranges, a
+  homeworld that exists, a unique name) and refreshes the "could live
+  here" lists; an admin-made species is marked as such and survives a
+  reseed like other admin edits. Same shape as the facility type editor
+  (POP.10) and the same admin patterns (ADM.9). Owner: Foundations UX
+  for the page, Foundations Generation for the checks. Phase 2: nothing
+  in Phase 1 needs it once POP.12 stores the data; Boss can pull it
+  forward.
+  Prerequisites: POP.12. Related: POP.10, POP.9, ADM.9.
