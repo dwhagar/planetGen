@@ -23,13 +23,14 @@ def _earth():
                      life_stage="biosphere")
 
 
-def test_an_earth_like_world_explains_six_factors_with_their_values():
-    text = "\n\n".join(explain.paragraphs(_earth(), _bold))
-    assert "**PHI-4 habitability** is 1.00" in text and "no equipment (conditions are ideal)" in text
-    assert "**Pressure: Blue** (1.00). The air pressure is 101 kPa, inside the Blue band (50 to 250 kPa)." in text
-    assert "**Temperature: Blue** (1.00). The air temperature is 15 C, inside the Blue band (0 to 31 C)." in text
-    assert "oxygen is 19.9 kPa reaching the lungs" in text and "the carbon dioxide, 0.0404 kPa (Blue)" in text
-    assert "**Radiation: Blue** (1.00)." in text
+def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_values():
+    paragraphs = explain.paragraphs(_earth(), _bold)
+    assert len(paragraphs) == 1
+    text = paragraphs[0]
+    assert text.startswith("**Habitability** is 1.00 (Blue).") and text.endswith("A visitor needs no equipment.")
+    for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
+        assert f"**{domain}: Blue**." in text
+    assert "At 101 kPa no gear is needed." in text and "At 15 C no gear is needed." in text
 
 
 def test_a_factor_names_the_input_that_sets_its_colour_and_where_it_sits():
@@ -37,15 +38,15 @@ def test_a_factor_names_the_input_that_sets_its_colour_and_where_it_sits():
     air = next(f for f in explain.factors(world) if f["domain"] == "Air")
     assert air["tier"] == "Yellow" and air["limiting"]["label"] == "carbon dioxide"
     assert "outside the Green band (up to 2 kPa), inside the Yellow band (up to 5 kPa)" in air["limiting"]["phrase"]
-    text = "\n\n".join(explain.paragraphs(world, _bold))
+    text = explain.paragraphs(world, _bold)[0]
     assert "a mask with a scrubber" in text and "**Air: Yellow**" in text
 
 
 def test_a_planet_of_a_compact_host_says_its_dose_is_rated_lethal():
     world = hab.World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21}, gravity_ms2=9.8,
                       surface_dose_sv_yr=1000.0)
-    text = "\n\n".join(explain.paragraphs(world, _bold, compact_host="neutron star"))
-    assert "1,000 Sv a year" in text and "a planet of a neutron star is rated as a lethal dose" in text
+    text = explain.paragraphs(world, _bold, compact_host="neutron star")[0]
+    assert "1,000 Sv a year" in text and "A planet of a neutron star is rated as a lethal dose" in text
     assert "**Radiation: Red**" in text
 
 
@@ -59,7 +60,9 @@ def _worlds(count=400):
             gases={"O2": o2, "CO2": co2, "CO": rng.choice([0.0, 1e-6, 1e-3]), "H2S": rng.choice([0.0, 1e-6, 1e-3])},
             gravity_ms2=rng.uniform(1, 25), relative_humidity=rng.uniform(0.05, 0.99), solvent="water",
             ph=rng.choice([None, 2.0, 7.0, 10.0, 13.0]), water_activity=rng.choice([1.0, 0.8, 0.5]),
-            chaotropicity_kj_kg=rng.choice([0.0, 50.0, 90.0]), surface_dose_sv_yr=10 ** rng.uniform(-3, 3))
+            chaotropicity_kj_kg=rng.choice([0.0, 50.0, 90.0]), surface_dose_sv_yr=10 ** rng.uniform(-3, 3),
+            life_stage=rng.choice(hab.LIFE_STAGES), water_source=rng.choice(["liquid", "ice", "hydrated", "vapour", None]),
+            life_on_surface=rng.random() < 0.8)
 
 
 def test_the_explained_colours_always_equal_the_stored_ones():
@@ -79,18 +82,18 @@ def _system_text(markdown):
         config = SystemConfig()
         config.MARKDOWN = markdown
         text = str(StarSystem(config))
-        if "PHI-4 habitability" in text:
+        if "Habitability** is" in text or "Habitability''' is" in text:
             return text
     raise AssertionError("no rocky body in 60 systems")
 
 
 def test_a_generated_planet_or_moon_description_carries_the_explanation():
     text = _system_text(True)
-    assert text.count("**PHI-4 habitability** is") >= 1
+    assert text.count("**Habitability** is") >= 1
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"**{domain}: " in text
 
 
 def test_the_wikitext_page_uses_wikitext_emphasis():
     text = _system_text(False)
-    assert "'''PHI-4 habitability''' is" in text and "**PHI-4" not in text
+    assert "'''Habitability''' is" in text and "**Habitability" not in text

@@ -561,9 +561,9 @@ class Planet(HoldsOrbitPosition):
 
     def _habitability_paragraphs(self):
         """
-        The PHI-4 explanation of a scored rocky body (UX.91): its score and the
-        equipment a human needs, and for each of the four colour factors the
-        colour, this world's inputs and which one sets it. None for a gas
+        The habitability paragraph of a scored rocky body (UX.91, GEN.208): its
+        score, each of the six categories with its colour, why it falls there
+        and the gear it asks for, and the gear a human needs overall. Empty for a gas
         giant or a body saved without scores. A planet of a pulsar, neutron
         star or black hole is rated as a lethal dose, as its stored score was.
         """
