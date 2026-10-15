@@ -275,7 +275,7 @@ def test_running_a_job_does_not_import_the_api():
     import subprocess
     import sys
     code = ("import sys, math; from planetgen.queue import api_jobs; "
-            "assert api_jobs.execute(math.pow, (2, 3)) == {'result': 8.0}; "
+            "assert api_jobs.execute('math:pow', (2, 3)) == {'result': 8.0}; "
             "assert 'planetgen.api.common' not in sys.modules and 'nltk' not in sys.modules")
     done = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=120)
     assert done.returncode == 0, done.stderr

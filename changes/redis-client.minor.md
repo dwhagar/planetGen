@@ -1,0 +1,3 @@
+### Changed
+- Every Redis connection (the web pages, the API's queued jobs, the tile locks, the login lockout store and the work queue) now comes from one client module with a connect and read timeout, a retry after a dropped connection, a health check and keepalive, so a hung Redis fails a call instead of hanging the web thread that made it.
+- The Generate page's jobs, the API's queued jobs and the scatter's progress messages travel through Redis as JSON instead of pickle. A run's own task queue still uses pickle until the work queue rebuild. `planetgen.cli.worker` now serves the web queue by default and refuses to mix the two kinds of queue in one worker.

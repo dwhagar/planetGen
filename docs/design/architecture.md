@@ -249,7 +249,8 @@ Modules the older tables above do not list (the layout moved to `src/planetgen/`
 | [`sector_path.py`](../../src/planetgen/physics/sector_path.py) | The path of a body without a closed orbit through its sector, as Hermite spline knots (GEN.123). |
 | [`state_vectors.py`](../../src/planetgen/physics/state_vectors.py) | Conversion between a two-body orbit's elements and its state vector, with the Kepler solver on scipy (GEN.122, GEN.66). |
 | [`api_jobs.py`](../../src/planetgen/queue/api_jobs.py) | Long API work on the Redis queue: the route answers 202 with a job id (PERF.24). |
-| [`redisqueue.py`](../../src/planetgen/queue/redisqueue.py) | The Redis connection, the RQ queues and the workers that run them (PERF.24). |
+| [`redisclient.py`](../../src/planetgen/queue/redisclient.py) | The one place a Redis client is made (PERF.94): a shared, cached client per server and settings, with connect and read timeouts, a retry on a dropped connection, a health check and keepalive. |
+| [`redisqueue.py`](../../src/planetgen/queue/redisqueue.py) | The RQ queues, the JSON serializer the web queues use and the workers that run them (PERF.24). |
 | [`systemscene.py`](../../src/planetgen/web/maps/systemscene.py) | The 3D system view's data: one system as JSON with its orbits (MAP.69). |
 
 ### src/ command-line tools

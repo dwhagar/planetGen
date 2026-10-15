@@ -236,7 +236,8 @@ def inline_wiki_queue(monkeypatch):
 
     def submit(function, *args):
         job_id = "%016x" % len(jobs)
-        jobs[job_id] = api_jobs.execute(function, args)
+        jobs[job_id] = api_jobs.execute(api_jobs.function_reference(function),
+                                        [api_jobs.encode_argument(arg) for arg in args])
         return job_id
 
     def wait(job_id, seconds=0):
