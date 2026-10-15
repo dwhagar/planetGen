@@ -6135,6 +6135,11 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   types refine the five
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
+  Progress (2026-10-15): the API part merged in PR #1517 (facility
+  types and typed fields, affiliation, the five ratings, PATCH, list and
+  suggest routes, no migration). The web part (system page chips,
+  placement and edit forms, admin Facility types page) remains; the
+  item retires with it.
   Prerequisite: DB.28 (the migration; done, PR #1476).
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
