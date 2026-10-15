@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1354] - 2026-10-15
+
+**Headline:** The plan files the migration progress bug: neither bar shows an estimated time remaining.
+
+### Changed
+- Filed PERF.102 (Core, bug): the migration progress display shows no estimated time remaining on either bar; grouped with PERF.101.
+
+TODO items resolved: none / Added: PERF.102
+
 ## [8.0.1353] - 2026-10-15
 
 **Headline:** The plan files two follow-ups from the spherical switch: a math check for the shell grid and an API version bump.
