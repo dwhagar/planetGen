@@ -27,10 +27,11 @@ def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_
     paragraphs = explain.paragraphs(_earth(), _bold)
     assert len(paragraphs) == 1
     text = paragraphs[0]
-    assert text.startswith("**PHI-6 habitability** is 1.00 (Blue).") and text.endswith("A visitor needs no equipment.")
+    assert text.startswith("**PHI-6 habitability** is 1.00, and a visitor needs no equipment.")
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
-        assert f"**{domain}: Blue**." in text
-    assert "At 101 kPa no gear is needed." in text and "At 15 C no gear is needed." in text
+        assert f"**{domain}: Blue** (1.00)." in text
+    assert "The air pressure is 101 kPa, so no gear is needed." in text
+    assert "The air temperature is 15 C, so no gear is needed." in text
 
 
 def test_a_factor_names_the_input_that_sets_its_colour_and_where_it_sits():
