@@ -47,8 +47,8 @@ Most `system` options use a `+name`/`-name` tri-state syntax (these forcing opti
 *   `+planets` / `-planets`: Ensure the system has at least one planet or asteroid belt, or none at all (star only).
 *   `--system-file`, `-f <path>`: Load a system generation specification from a JSON file (see below). Any of the options above, or the value options below, given on the command line override the corresponding value from the file.
 *   `--num-orbits <int>`: Force an exact number of orbital slots (planets and asteroid belts combined) to be generated.
-*   `--markdown`, `-m`: Formats the stored write-up in Markdown instead of the default wikitext.
-*   `--output`, `-o <file>`: Writes the system's page (wikitext, or Markdown with `--markdown`) to `file` instead of saving the system to the database; `-` writes it to stdout. The admin site's one-off system page (`/admin/generate/system`) does the same from the browser.
+*   `--format <text|markdown|wikitext>`: How `--output` writes the system: plain text for the terminal (the default), Markdown or MediaWiki text (the same description the site shows; UX.106).
+*   `--output`, `-o <file>`: Writes the system's description (in `--format`) to `file` instead of saving the system to the database; `-` writes it to stdout. The admin site's one-off system page (`/admin/generate/system`) does the same from the browser.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
 *   `--name <name>`: Specifies a name for the star system, overriding the default random generation. Everything in the system is named from it: planets are numbered in orbit order (`Sol I`, `Sol II`, ...), moons add a letter (`Sol IIIa`), a close binary's two stars are the system's A and B (`Sol A`, `Sol B`, with planets named for the system), and a wide binary's two stars are two words sharing the system name's first word (`Sol Kelmoor`, `Sol Pikkita`; the second star's word sounds like a diminutive). A wide pair's primary numbers its planets after that shared word (`Sol I`) and its secondary after its own word (`Pikkita I`). Asteroid belts aren't numbered.
 *   `--age <young|old>`: Specifies the age of the star system (young or old).
@@ -423,7 +423,7 @@ sector — for nebula/asteroid-field/black-hole/neutron-star, it also
 computes a real galaxy-frame position near that sector, instead of
 leaving it unplaced; other types are linked only (no placement columns of
 their own) — see `database-schema.md`'s "v18"/"v21" notes.
-`--markdown`, `--debug`/`--quiet`/`--silent`, and the
+`--markdown` (this command still writes its text per the old flag; it moves to `--format` with UX.108), `--debug`/`--quiet`/`--silent`, and the
 `--mysql-*` connection options all work the same way they do on
 `planetgen system`.
 

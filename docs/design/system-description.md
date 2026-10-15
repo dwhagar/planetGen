@@ -55,8 +55,9 @@ format switch, `db/render.py` and `SystemConfig.MARKDOWN` are deleted when the n
 
 ## 3. The Document
 
-A Document is a tree of sections. Every node is a plain dict or list in JSON; in Python they are small frozen
-dataclasses in `describe/model.py`.
+A Document is a tree of sections. Every node is a plain dict or list, the same in Python and in JSON; `describe/model.py`
+holds the constructors (`qty`, `facts`, `prose`, `ratings`, `section`, ...) and `check()`, which a test runs on every
+Document.
 
 ```
 Document   {"kind": "system", "ref": "system:12", "title": "40 Eridani", "sections": [Section, ...]}

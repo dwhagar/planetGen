@@ -628,6 +628,34 @@ tbody tr:last-child td {
 .flag-tier-2 { color: var(--tier-yellow); border-color: var(--tier-yellow); }
 .flag-tier-3 { color: var(--tier-red); border-color: var(--tier-red); }
 
+/* POP.10: a facility's rating chips. The shape (check, triangle, cross), the dimension's name and its word carry
+   the meaning, so colour is never the only signal; the Okabe-Ito fills take black text and a thin dark ring. */
+.rating-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  border-radius: 999px;
+  color: #000;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.rating-green { background: #009e73; }
+.rating-yellow { background: #e69f00; }
+.rating-red { background: #d55e00; }
+.rating-name { font-weight: 600; }
+
 .flag-yes {
   color: var(--accent);
   border-color: var(--accent);
@@ -783,6 +811,23 @@ tbody tr:last-child td {
   aspect-ratio: 1 / 1;
   border-radius: var(--radius);
   background: var(--bg-subtle);
+}
+
+/* MAP.199: the center the view turns and zooms about -- always the middle
+   of the map -- marked with a small cross so it is always known. */
+.starmap-centre {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: -0.55rem 0 0 -0.55rem;
+  pointer-events: none;
+  opacity: 0.75;
+  background:
+    linear-gradient(var(--accent), var(--accent)) center / 2px 100% no-repeat,
+    linear-gradient(var(--accent), var(--accent)) center / 100% 2px no-repeat;
+  filter: drop-shadow(0 0 1px var(--bg-subtle));
 }
 
 .starmap-canvas {

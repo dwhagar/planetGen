@@ -2,6 +2,322 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1283] - 2026-10-15
+
+### Changed
+
+- Plan note: wedge counts per band are 6 times a number with prime factors 2, 3, 5 and 7 only, one rule everywhere; TODO items resolved: none / Added: none.
+
+## [8.0.1282] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired the spherical grid module item (#1549); recorded that its wedge-count rule will be rewritten as one uniform rule and that the schema rename, generation paths and web wording land as one switch.
+
+TODO items resolved: GEN.224 / Added: none
+
+## [8.0.1281] - 2026-10-15
+
+### Added
+- `planetgen/galaxy/spherical.py`, the pure-geometry module for the spherical sector grid: shells (4 pc deep, shell 0 the 4 pc core ball), bands, wedges (multiples of 6) and polar caps (6 wedges at the rim, chord radius 3.82 pc), with `sector_address_at`, `sector_position_pc`, exact cell volumes, face neighbours, the sector-local frame and a cap-aware `SectorCell` sampler. Shells 1 to 3 are a hand-checked table (shell 1's caps are cut at 37.5 degrees). Nothing uses it yet; the cylinder grid stays in place until the later steps of the Spherical Sector Coordinates work.
+
+TODO items resolved: GEN.224 / Added: none
+
+## [8.0.1280] - 2026-10-15
+
+### Changed
+
+- TODO.md: recorded PR #1546 (two slow Galaxy Map browser tests sped up) as progress on the test suite stage 4 item.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1279] - 2026-10-15
+
+### Changed
+- The TODO list says GEN.224 and GEN.225 must tile all space (every point has exactly one address, inside or outside the outline) and DB.32 must leave no object without a sector, per Boss's no-undefined-space requirement.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1278] - 2026-10-15
+
+### Changed
+- **Two slow Galaxy Map browser tests find their spot in the page** (TEST.139 stage 4). `test_a_binary_picks_as_one_system_in_an_opened_sector` moved a real pointer to each of 400 bright spots (203 s on an idle machine, 340 s in the last full run) and `test_galaxy_map_buttons` did the same over a 21 x 21 grid for each choice it clicked (164 s idle). Both now send the pointer events from the page, skip any point where the map is not what a real pointer would meet, and move the real pointer only to the spots found: 13 s and 29 s on an idle machine, the same assertions.
+
+## [8.0.1277] - 2026-10-15
+
+### Changed
+- Plan note: the spherical grid must cover all space; the outline only limits generation, never which sectors exist.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1276] - 2026-10-15
+
+### Changed
+- The TODO list rewords GEN.224 (measure the window-edge step where fine wedge counts hand over to the nested chain before fixing the grid module) and MAP.205 (blocks hold the cells whose centre they hold; equator count 6 * 2^a * 3^b) to match Boss's decisions.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1275] - 2026-10-15
+
+### Changed
+- Plan note: wedge counts per band decided (fine in the disk window, nested chain above, equator count from primes 2 and 3); ladder blocks hold the cells whose centre they hold.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1274] - 2026-10-15
+
+### Added
+
+- A research note on wedge counts and shared meridians for the spherical-sector block ladder, with measured options (`docs/design/spherical-ladder-meridians.md`). No code changed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1273] - 2026-10-15
+
+### Changed
+- The TODO list now describes DB.32 as an in-place conversion of the existing galaxy to the shell grid that keeps every position, rebuilds the sector map and re-links every object to its sector, instead of deleting the galaxy.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1272] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the region data layer and 3-ary block ladder (MAP.151, parts a to d) as open work; it merged in #1539 with migration 0090 (schema v90). The per-tile origins of MAP.152 stay retired as met by MAP.102.
+
+TODO items resolved: MAP.151 / Added: none
+
+## [8.0.1271] - 2026-10-15
+
+### Changed
+- **The Galaxy Map's block ladder is now 3-ary (MAP.151b).** Blocks above a sector are 243, 81, 27, 9 and 3 sectors a side, each a third of the one above, so a click on a block opens a window a third the size instead of a ninth. A window of blocks bigger than a sector is read from the stored block totals in one query (`/api/galaxy/window`), and migration 0090 refills the totals for the new ladder.
+
+## [8.0.1270] - 2026-10-15
+
+### Added
+- The TODO list gains the spherical sector grid work at top priority: the grid module, outline, addresses, schema migration, generation paths, reads and web wording, the Galaxy Map ladder and drawing, the test rewrite and the docs (GEN.224 to GEN.227, DB.32, UX.111, MAP.205, MAP.206, TEST.156, DOC.46). MAP.151, MAP.152, GEN.101 and GEN.24 are marked held.
+
+TODO items resolved: none / Added: GEN.224, GEN.225, GEN.226, DB.32, GEN.227, UX.111, MAP.205, MAP.206, TEST.156, DOC.46
+
+## [8.0.1269] - 2026-10-15
+
+### Added
+- The TODO list gains a bug item for the orbital update skipping the galaxy position move of star systems with no placed sector (GEN.223).
+
+TODO items resolved: none / Added: GEN.223
+
+## [8.0.1268] - 2026-10-15
+
+### Added
+
+- The plan for moving the galaxy's sector grid to spherical shells, bands and wedges with a 4 pc core ball and pole caps (`docs/design/spherical-sector-coordinates.md`), with measured rules and a work-item breakdown. No code changed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1267] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the CLI text, Markdown and wikitext output option (UX.106) as open work; it merged in #1533.
+
+TODO items resolved: UX.106 / Added: none
+
+## [8.0.1266] - 2026-10-15
+
+### Changed
+
+- `planetgen system --output` writes plain text by default and takes `--format text|markdown|wikitext` (it used to write wikitext, or Markdown with `--markdown`; that flag is gone from `system`). The admin one-off system page passes the format it was asked for. `sector`, `galaxy` and the phenomenon commands keep `--markdown` until they are described the same way.
+
+## [8.0.1265] - 2026-10-15
+
+### Added
+- The TODO list gains a bug item for the wrong phenomena count on the overview page (UX.110).
+
+TODO items resolved: none / Added: UX.110
+
+## [8.0.1264] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the nebula kinds and layers per slab in the generation text (GEN.222) as open work; it merged in #1529.
+
+TODO items resolved: GEN.222 / Added: none
+
+## [8.0.1263] - 2026-10-15
+
+### Changed
+- The nebula field step of a plan run now prints a line for each slab it draws, saying how many clouds it holds, which sector layers they reach and the kinds of nebula by class (GEN.222).
+
+## [8.0.1262] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the structured description endpoint and text renderers (API.25) as open work; it merged in #1527.
+
+TODO items resolved: API.25 / Added: none
+
+## [8.0.1261] - 2026-10-15
+
+### Added
+
+- `GET /api/systems/<id>/description` returns a system's description as structured data (sections, fact and rating tables, compositions, prose, and every number as a typed quantity), built from the database rows on each request.
+- A system can be written as plain text as well as Markdown or wikitext (`/api/systems/<id>/text?format=text|markdown|wikitext`). Markdown and wikitext keep the headings and the wiki's data templates; the habitability rating is a table, and amounts are written by the same unit ladders as the pages.
+
+### Changed
+
+- The text, Markdown and wikitext of a system, its wiki upload and the `--markdown` output of `planetgen system` come from that description instead of each class writing its own text. Some wording is shorter or reordered (a star's age now reads "13.8 Gyr").
+
+## [8.0.1260] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list facility types with affiliation and ratings (POP.10) as open work; the API part merged in #1517 and the web part in #1524.
+
+TODO items resolved: POP.10 / Added: none
+
+## [8.0.1259] - 2026-10-15
+
+### Changed
+- The TODO list records that part 1 of the unit preference (UX.78) merged in #1523; the header menu and page spans remain.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1258] - 2026-10-15
+
+### Added
+- **Facility types on the web.** The system page's Facilities table now shows each facility's type (with its icon), affiliation and Green, Yellow or Red ratings for crime, housing, resources, maintenance and health, worst first; each rating is a shape, the dimension's name and a word, so colour is never the only signal. An admin picks a type, fills its fields, sets an affiliation (the system's owner by default) and ratings when placing a facility, can edit a facility's affiliation and ratings, and can have the unset ratings suggested (POP.10).
+- **Admin Facility types page.** `/admin/facility-types` lets an admin add, change, take out of use and delete facility types and their fields, and add an example type. The 64 icons a type may use are vendored Bootstrap Icons with their MIT licence (POP.10).
+
+## [8.0.1257] - 2026-10-15
+
+### Added
+
+- The unit ladders now know three unit systems: Automatic (the existing choice), Metric only and Customary (feet, miles, pounds, mph, psi, °F). Nothing offers the choice on a page yet; the header menu follows in the next change.
+
+## [8.0.1256] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the test Redis cleanup after runs (TEST.152) as open work; it merged in #1520.
+
+TODO items resolved: TEST.152 / Added: none
+
+## [8.0.1255] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the sector view star size match (MAP.203) as open work; it merged in #1519, and Bugfixes lane 1 is empty and retired.
+
+TODO items resolved: MAP.203 / Added: none
+
+## [8.0.1254] - 2026-10-15
+
+### Added
+- **`scripts/test.py` clears what earlier runs left on the test Redis** (TEST.152). Job, result and registry keys of test queues never expire, so the test server gained a few hundred keys a run (4,065 had piled up). Every run, a resumed one too, now removes the keys a test makes (by name, only on `PLANETGEN_TEST_REDIS_URL`, not the rate-limit keys) before it starts, and does nothing while a worker's heartbeat is under 90 s old. A resumed run's `--check` output says it covers only the tests that ran now.
+
+## [8.0.1253] - 2026-10-15
+
+### Fixed
+
+- The Sector Map's stars, black holes and other points of light are now drawn the same size as on the Galaxy Map (and no longer grow as the view closes in), so a sector looks like the map you just left (MAP.203, #1420).
+
+## [8.0.1252] - 2026-10-15
+
+### Changed
+- The TODO list records that the facility types API part (POP.10) merged in #1517; the web part remains.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1251] - 2026-10-15
+
+### Added
+- **Facility types and typed fields.** An admin can define facility types (a name, a kind, an icon, a description) with up to 24 typed fields each (whole number, decimal, text, yes/no or one of a list), through `GET/POST /api/facility-types`, `PATCH/DELETE /api/facility-types/<id>` and the matching `/fields` routes. Anyone can read them. A type facilities use keeps its kind and can only be retired, and a field with stored values cannot change under them (POP.10).
+- **Type, affiliation and ratings on facilities.** A facility can take a type with that type's field values, an affiliation (a polity, whose name it keeps, or free text) and Green, Yellow or Red ratings for crime, housing, resources, maintenance and health, set on `POST /api/facilities` or changed with the new `PATCH /api/facilities/<id>`. `GET /api/facilities` lists facilities and filters them by kind, type, affiliation and any rating, worst first if asked (POP.10).
+- **Suggested ratings and an example type.** `POST /api/facilities/<id>/suggest-ratings` (and one for every facility with an unset rating) fills the ratings nobody set from the host's habitability, the affiliated species' tech indices, the kind of facility and the distance from the capital, marks them generated and never changes a rating that is set. `POST /api/facility-types/examples` adds an example "Research outpost" type (POP.10).
+
+## [8.0.1250] - 2026-10-15
+
+### Changed
+- The design notes list now links the spherical-shell sectors research note (#1515).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1249] - 2026-10-15
+
+### Added
+
+- A research note on spherical-shell sectors with a 4 pc round core: what it would mean for the grid, the block ladder, the database and object IDs, measured against the real density model (`docs/design/spherical-shell-sectors.md`). No code changed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1248] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the Galaxy Map shared zoom and rotation centre (MAP.199) as open work; it merged in #1513.
+
+TODO items resolved: MAP.199 / Added: none
+
+## [8.0.1247] - 2026-10-15
+
+### Fixed
+- **The Galaxy Map's wheel zoom moved the view's center toward the pointer, so zooming and turning used different centers.**
+  Both now go about one center, marked by a small cross in the middle of the
+  map. Shift-click or right-click a spot to make it the new center (the view
+  flies there, keeping its angle and zoom); C and Shift/right-drag still work.
+
+## [8.0.1246] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the unit ladders (UX.22) and time symbols (UX.81) as open work; they merged in #1504. The two design-note ladders for planet bulk density and measured angles were not built because no page shows them.
+
+TODO items resolved: UX.22, UX.81 / Added: none
+
+## [8.0.1245] - 2026-10-15
+
+### Changed
+
+- A comet's orbit panel (period and perihelion), the Galaxy Map's block legend and scale bar, and the Generate page's sector count now round and group their numbers with the shared unit ladders and number rule. A comet's perihelion reads "2 AU" and its period "12.3 years" like every other distance and time; a test now fails when a page script formats a measurement by hand.
+
+## [8.0.1244] - 2026-10-15
+
+### Added
+- The TODO list gains two description items: UX.108 puts phenomena, sectors, the galaxy and facilities into the same description document, and UX.109 removes the old per-class description text.
+
+TODO items resolved: none / Added: UX.108, UX.109
+
+## [8.0.1243] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the single system description builder as open work (it merged in #1509).
+
+TODO items resolved: UX.104 / Added: none
+
+## [8.0.1242] - 2026-10-15
+
+### Added
+
+- `planetgen.describe.describe(system)` builds one structured description of a star system (sections, facts, ratings, prose and typed quantities, all plain JSON) from a generated or database-loaded system. Nothing shows it yet; the web page, the API and the command line move to it in the following changes.
+- `protection.rating()` gives a rocky body's six habitability categories as data; `protection.paragraph()` is built from it, so the words are unchanged.
+
+## [8.0.1241] - 2026-10-15
+
+### Changed
+
+- PERF.95 retired (merged in #1506: the queue spine), with PERF.40, PERF.78 and ADM.15 folded into it.
+
+TODO items resolved: PERF.95, PERF.40, PERF.78, ADM.15 / Added: none
+
+## [8.0.1240] - 2026-10-15
+
+### Changed
+
+- UX.100 is owned by Foundations UX (the interface owner was the retired Bugfixes lane 2).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1239] - 2026-10-15
+
+### Added
+- Two shared work queues, `planetgen-bulk` and `planetgen-interactive`, each served by its own workers. Workers wait a minute for work before they exit, so a run's queue can be empty for a moment between stages. The API's jobs and the admin's long operations use the interactive queue, so a long run never holds them up.
+- An admin can set the bulk worker count from the Queue page, or pick "Ludicrous Speed" (95% of the cores). Lowering the count asks the extra workers to finish their unit and exit.
+- A running job can be stopped at once, not only a waiting one.
+
+### Changed
+- A worker killed with `kill -9` is replaced the next time work is queued or a job's status is read.
+
 ## [8.0.1238] - 2026-10-15
 
 ### Changed

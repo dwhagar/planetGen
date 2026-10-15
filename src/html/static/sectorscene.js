@@ -429,13 +429,11 @@ function makeCloudVolume(cloud, volume) {
 // unless the entry says otherwise: an accreting black hole's core keeps
 // its disc's orange). planetgen/web/maps/starmap.py works every number out (from the
 // star's radius, luminosity and temperature, or a fixed recipe for a
-// phenomenon). The halo falls off a little more slowly than the Galaxy
-// Map's, so even a red dwarf shows a bright aura on this smaller map (Boss:
-// "realistic sizes with bright auras"). The only change with zoom: closing in grows a point up to
-// POINT_CLOSE_GROWTH times its size. On the light theme's pale background
+// phenomenon), with the Galaxy Map's own ranges and halo falloff, so a star
+// looks the same here as on the map the person just left (MAP.203); a
+// point never changes size with the zoom. On the light theme's pale background
 // a white core would vanish, so there the core is a darker shade of its
 // own color instead, and the halo blends as usual.
-export const POINT_CLOSE_GROWTH = 1.5;
 // A highlighted kind of phenomenon (MAP.123) is drawn this many times larger.
 var HIGHLIGHT_GROWTH = 2.2;
 // A click within this many pixels of a point's center (or inside its
@@ -454,7 +452,6 @@ var POINT_VERTEX_SHADER = [
   "attribute float pointBright;",
   "attribute float pointWhiten;",
   "uniform float pixelRatio;",
-  "uniform float sizeScale;",
   "varying vec3 vColor;",
   "varying float vCore;",
   "varying float vGlow;",
@@ -467,7 +464,7 @@ var POINT_VERTEX_SHADER = [
   "  vBright = pointBright;",
   "  vWhiten = pointWhiten;",
   "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
-  "  gl_PointSize = pointSize * sizeScale * pixelRatio;",
+  "  gl_PointSize = pointSize * pixelRatio;",
   "  #include <logdepthbuf_vertex>",
   "}",
 ].join("\n");
@@ -486,7 +483,7 @@ var POINT_FRAGMENT_SHADER = [
   "  float r = length(gl_PointCoord * 2.0 - 1.0);",
   "  if (r > 1.0) discard;",
   "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
-  "  float halo = vGlow * exp(-r * r * 3.0) * (1.0 - r * r);",
+  "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
   "  vec3 lit = mix(vColor, vec3(1.0), 0.6 * vBright * vWhiten);",
   "  vec3 coreColor = mix(lit, vColor * 0.55, lightBackground);",
   "  gl_FragColor = vec4(mix(vColor, coreColor, core), clamp(core * vBright + halo, 0.0, 1.0));",
@@ -528,7 +525,6 @@ function makePointsOfLight(entries, lightBackground) {
   var material = new THREE.ShaderMaterial({
     uniforms: {
       pixelRatio: { value: 1 },
-      sizeScale: { value: 1 },
       lightBackground: { value: lightBackground ? 1 : 0 },
     },
     vertexShader: POINT_VERTEX_SHADER,
@@ -608,20 +604,17 @@ var LABEL_HEIGHT = 22;
 //   accentColor          the accent (default the page's --accent);
 //   lightBackground      whether the map's background is light;
 //   pixelRatio           the renderer's device pixels per CSS pixel;
-//   sizeScale()          how much the points have grown with the zoom
-//                        (default 1).
 // Returns {group, pointEntries, entries (every entry, list order), layers
 // (the picker layers, nearest first: points, bodies, volumes), ringSize(entry),
 // entryByKey, kinds() (the kinds in
 // it, [{kind, label, count}]), setKindHidden(kind, hidden), kindHidden(kind),
-// update() (every frame), nebulaMeshCount() (nebulae drawn from their shape
+// nebulaMeshCount() (nebulae drawn from their shape
 // so far), dispose()}. `options.onShape(count)` is called as each arrives.
 export function buildSectorScene(data, options) {
   var o = options || {};
   var origin = o.origin || [0, 0, 0];
   var unit = o.unit || 1;
   var flip = o.flipY ? -1 : 1;
-  var sizeScale = o.sizeScale || function () { return 1; };
   var accentColor = o.accentColor || cssVar("--accent", "#4f5fe8");
 
   function toLocal(x, y, z) {
@@ -889,7 +882,7 @@ export function buildSectorScene(data, options) {
       reach: function (entry) {
         return entry.kind === "roguePlanet"
           ? ROGUE_PICK_PX
-          : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * sizeScale());
+          : Math.max(POINT_PICK_PX, (entry.light.corePx / 2));
       },
     },
     { name: "sector-bodies", occludes: true, meshes: function () { return shown(bodyObjects); }, entryOf: entryOf },
@@ -901,7 +894,7 @@ export function buildSectorScene(data, options) {
   // a body's or a cloud's round it in the scene.
   function ringSize(entry) {
     if (entry.light) {
-      return { px: Math.max(POINT_RING_MIN_PX, entry.light.corePx * 2 + 14) * sizeScale() };
+      return { px: Math.max(POINT_RING_MIN_PX, entry.light.corePx * 2 + 14) };
     }
     return { radius: Math.max(entry.r || 8 * unit, 4 * unit) * 1.3 };
   }
@@ -997,12 +990,6 @@ export function buildSectorScene(data, options) {
     return hi > 0 ? [lo, hi] : null;
   }
 
-  function update() {
-    if (pointsOfLight) {
-      pointsOfLight.material.uniforms.sizeScale.value = sizeScale();
-    }
-  }
-
   function dispose() {
     disposed = true;
     group.traverse(function (object) {
@@ -1035,7 +1022,6 @@ export function buildSectorScene(data, options) {
     minLuminosity: function () { return minLuminosity; },
     // Whether an entry is left off the map by a hidden kind, class or the floor.
     hides: hides,
-    update: update,
     nebulaMeshCount: function () { return nebulaMeshes; },
     dispose: dispose,
   };

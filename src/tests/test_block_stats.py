@@ -146,3 +146,29 @@ def test_the_migration_fills_the_table_from_the_sectors_already_there(galaxy, mo
         assert _stored(conn) == kept
     finally:
         conn.close()
+
+
+def test_the_ladder_migration_replaces_rows_of_the_old_ladder(galaxy, monkeypatch):
+    """MAP.151b: rows the old 243/27/3 ladder wrote mean something else on the 3-ary one, so the migration drops
+    every row and writes the table again."""
+    conn = store.get_connection(galaxy)
+    try:
+        kept = _stored(conn)
+        with conn:
+            conn.execute("DELETE FROM galaxy_block_stats WHERE m IN (81, 9)")      # levels the old ladder lacked
+            conn.execute("UPDATE galaxy_block_stats SET sector_count = sector_count + 7 WHERE m IN (27, 3)")
+            conn.execute("INSERT INTO galaxy_block_stats (m, ring_index, wedge, slab, sector_count, systems,"
+                         " expected_systems, stars, age_sum, luminosity_sol) VALUES (27, 99, 0, 0, 5, 1, 1.0, 2, 3.0, 4.0)")
+        assert _stored(conn) != kept
+    finally:
+        conn.close()
+    monkeypatch.setattr(alembic_runner, "report_progress", lambda *args: None)     # no Alembic context here
+    migration = importlib.import_module("planetgen.db.migrations.versions.0090_block_stats_ladder")
+    engine = alembic_runner._engine(galaxy)
+    with engine.begin() as connection:
+        migration._refill(connection)
+    conn = store.get_connection(galaxy)
+    try:
+        assert _stored(conn) == kept
+    finally:
+        conn.close()

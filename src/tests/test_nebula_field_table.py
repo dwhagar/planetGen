@@ -180,3 +180,34 @@ def test_apply_deletes_the_rejected_clouds_and_draws_the_table_again(mysql_confi
     stored_centers = {(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in after.values()
                       if r["nebula_class"] in nebula_field.TABLE_CLASSES}
     assert {(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in table if r["is_stored"]} == stored_centers
+
+
+# --- GEN.222: the log says what each slab of the field was given --------------------------------------------------
+
+def test_each_slab_line_lists_its_nebula_classes_and_the_layers_they_reach(mysql_config, monkeypatch):
+    """Boss: the nebula field step gave only a final total; each slab says its kinds of nebula and its layers."""
+    from planetgen.util import log
+    _seed_galaxy(mysql_config)
+    messages = []
+    monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
+    run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", "1"))
+    lines = [m for m in messages if m.startswith("Nebula field, slab ")]
+    table = _table(mysql_config)
+    assert table and lines
+    top = max(abs(layer) for layer, _outer in EXTENTS)
+    total = 0
+    for line in lines:
+        head, tail = line.split(" clouds in ")
+        total += int(head.rsplit(": ", 1)[1].replace(",", ""))
+        layers, kinds = tail.split(": ", 1)
+        numbers = [int(word) for word in layers.replace("layers ", "").replace("layer ", "").split(" to ")]
+        assert numbers == sorted(numbers) and all(-top <= number <= top for number in numbers)
+        assert " (class M)" in kinds or " (class N)" in kinds
+    assert total == len(table)
+    for letter in {row["nebula_class"] for row in table}:
+        assert any(f"{tuning.NEBULA_CLASSES[letter]['name']} (class {letter})" in line for line in lines), letter
+
+
+def test_a_slab_reports_the_layers_its_clouds_reach_within_the_galaxys_layers():
+    text = run_plan._layer_range_text
+    assert text((2, 2)) == "layer 2" and text((-1, 3)) == "layers -1 to 3"

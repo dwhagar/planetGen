@@ -27,6 +27,8 @@ _spec.loader.exec_module(runner)
 def _progress_logs_in_a_throwaway_directory(tmp_path, monkeypatch):
     """`runner.main` starts a progress log (TEST.150); these tests must not leave logs in the checkout's own."""
     monkeypatch.setattr(runner, "PROGRESS_DIR", str(tmp_path / "progress"))
+    # ... and must not clear the test Redis, which the tests running beside this one are using (TEST.152).
+    monkeypatch.setattr(runner, "clear_test_redis", lambda: "")
 
 
 @pytest.mark.parametrize("name, area", [

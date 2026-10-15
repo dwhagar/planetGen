@@ -686,27 +686,27 @@ def _star_dot_radius(radius_km):
 
 
 # MAP.15: every star, and every phenomenon that gives off light, is drawn
-# as a point of light the way the Galaxy Map draws its bright stars
-# (`static/galaxymap3d.js`, "Bright stars"): a tiny bright core in a soft
-# halo, both a fixed number of screen pixels across (`sectorscene.js` grows
-# them a little, up to `POINT_CLOSE_GROWTH`, as the camera closes in),
-# never a ball sized in scene units. `_star_light` works out each star's
-# from its radius, luminosity and temperature with the Galaxy Map's own
-# ranges, its faint end lifted a little so a red dwarf still shows on the
-# smaller Sector Map.
+# as a point of light the way the Galaxy Map draws its stars
+# (`static/galaxymap3d.js`, "Stars"): a tiny bright core in a soft halo,
+# both a fixed number of screen pixels across at every zoom, never a ball
+# sized in scene units. `_star_light` works out each star's from its radius,
+# luminosity and temperature with the Galaxy Map's own ranges (MAP.203:
+# the same numbers, so a star looks the same in a sector as on the map
+# the person just left; the Sector Map's lights were once bigger and
+# grew as the camera closed in).
 _LIGHT_LOG_LUMINOSITY = (-4.0, 6.0)
 """log10(L / L_sun) mapped onto 0..1 for the halo's size and strength."""
 _LIGHT_LOG_RADIUS = (-1.0, 3.0)
 """log10(R / R_sun) mapped onto 0..1 for the core's size."""
-_LIGHT_CORE_PX = (1.8, 5.0)
+_LIGHT_CORE_PX = (1.1, 4.5)
 """The core's diameter in pixels, from a red dwarf to a supergiant."""
-_LIGHT_SIZE_PX = (13.0, 40.0)
+_LIGHT_SIZE_PX = (6.0, 30.0)
 """The halo's full diameter in pixels, from the faintest star to the most
 luminous (grown by the square of the luminosity share, as on the Galaxy
 Map, so only a really bright star gets a big halo)."""
-_LIGHT_GLOW = (0.55, 0.85)
+_LIGHT_GLOW = (0.2, 0.6)
 """The halo's strength at its middle, faint star to bright star."""
-_LIGHT_BRIGHT = (0.9, 1.0)
+_LIGHT_BRIGHT = (0.75, 1.0)
 """The core's opacity and how far it whitens, faint star to bright star."""
 
 
@@ -808,19 +808,19 @@ def _star_light(luminosity_w, radius_km, temperature_k):
 # of their own and keep their spheres; a rogue planet is a faint point of
 # its own (`_ROGUE_LIGHT`); nebulae, supernova remnants and asteroid
 # fields stay clouds.
-_BLACK_HOLE_LIGHT = {"color": "#a43cff", "corePx": 4.0, "sizePx": 26.0, "glow": 0.7, "bright": 1.0, "whiten": 0.0}
+_BLACK_HOLE_LIGHT = {"color": "#a43cff", "corePx": 3.8, "sizePx": 23.0, "glow": 0.54, "bright": 1.0, "whiten": 0.0}
 """dict: A quiescent black hole in the Sector Map (MAP.185) and a scattered one
 before its sector is made (MAP.164): a lit purple point, the colour the Galaxy
 Map's black holes are (`galaxymap3d.js` `POINT_LOOKS`). Its old dark sphere
 (`#4b2f66` rim on black) disappeared against the dark scene."""
 
 _PHENOMENON_LIGHTS = {
-    "quasar": {"color": "#dfe6ff", "corePx": 5.0, "sizePx": 48.0, "glow": 0.9, "bright": 1.0},
+    "quasar": {"color": "#dfe6ff", "corePx": 4.2, "sizePx": 28.0, "glow": 0.58, "bright": 1.0},
     "blackHoleQuiescent": _BLACK_HOLE_LIGHT,
     "blackHoleAccreting": {
-        "color": "#ff9d4d", "corePx": 3.0, "sizePx": 28.0, "glow": 0.75, "bright": 0.95, "whiten": 0.0,
+        "color": "#ff9d4d", "corePx": 3.0, "sizePx": 22.0, "glow": 0.55, "bright": 0.95, "whiten": 0.0,
     },
-    "neutronStar": {"color": "#a9d4ff", "corePx": 2.2, "sizePx": 22.0, "glow": 0.7, "bright": 1.0},
+    "neutronStar": {"color": "#a9d4ff", "corePx": 3.5, "sizePx": 21.0, "glow": 0.52, "bright": 1.0},
 }
 
 # A rogue planet gives off no light of its own, so it is a dim, tiny point
@@ -1178,7 +1178,7 @@ in its title, its info panel and the Galaxy Map's frame."""
 # map gives them.
 _UNCHARTED_LIGHTS = {
     "black_hole": _BLACK_HOLE_LIGHT,
-    "neutron_star": {"color": "#3f63e0", "corePx": 3.0, "sizePx": 22.0, "glow": 0.7, "bright": 1.0, "whiten": 0.0},
+    "neutron_star": {"color": "#3f63e0", "corePx": 3.5, "sizePx": 21.0, "glow": 0.52, "bright": 1.0, "whiten": 0.0},
 }
 
 # What a scatter row has no size for: its drawn radius, in light years.

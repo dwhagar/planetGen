@@ -77,7 +77,7 @@ from planetgen.generation import steps
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
-from planetgen.population import facilities as facility_rules
+from planetgen.population import facilities as facility_rules, facility_attrs
 from planetgen.generation.comet import Comet, comet_designation, rename_comet_designation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.prevalence import FEATURES as PREVALENCE_FEATURES
@@ -1509,6 +1509,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (90, _column_marker("galaxy_block_stats", "ladder_step")),
     (89, _table_marker("facility_types")),
     (88, _column_marker("species", "tech_level")),
     (87, _column_marker("planets", "flux_variation")),
@@ -4995,7 +4996,7 @@ def _belt_orbit(conn, belt_id, mass, radius):
 
 
 def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=None, phase_deg=None,
-                 offset_ly=None, description=None):
+                 offset_ly=None, description=None, attrs=None):
     """
     Stores one facility after checking it against the placement rules
     (`facilities.check_facility`).
@@ -5018,6 +5019,8 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
             axes (`galaxyGeometry.sector_orientation`). The center if left
             out.
         description (str, optional): Free text.
+        attrs (dict, optional): `type_id`, `affiliation_polity_id` or `affiliation_name`, `ratings`,
+            `ratings_note` and `fields`, as `facility_attrs.resolve` reads them (POP.10).
 
     An asteroid facility in a belt takes no distance: it gets a random
     spot in the belt (`facilities.belt_position`) and the circular orbit
@@ -5029,11 +5032,13 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
 
     Raises:
         FacilityError: If the rules refuse it or the host doesn't exist.
+        FacilityTypeError: If the type, affiliation, ratings or field values are refused.
     """
     columns, mass, radius, body_type, sphere = _facility_host(conn, host_type, host_id)
     problem = facility_rules.check_facility(kind, placement, host_type, body_type)
     if problem:
         raise FacilityError(problem)
+    plan = facility_attrs.resolve(conn, kind, attrs) if attrs else None
 
     orbit = {}
     if placement == "orbital":
@@ -5093,9 +5098,36 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
             orbit.get("phase_deg"), description, facility_uid,
         ),
     )
+    if plan is not None:
+        facility_attrs.write(conn, cur.lastrowid, plan)
     if columns.get("star_system_id") is not None:
         touch_star_system(conn, columns["star_system_id"])
     return cur.lastrowid
+
+
+def update_facility(conn, facility_id, name=None, description=None, attrs=None):
+    """
+    Changes a facility's name, description, type, affiliation, ratings or field values (POP.10); its place never
+    changes. Only what is given changes: `attrs` is read like `add_facility`'s, and a key sent as `None` clears it.
+
+    Returns:
+        bool: `False` when there is no such facility.
+
+    Raises:
+        FacilityTypeError: If the type, affiliation, ratings or field values are refused.
+    """
+    row = conn.execute("SELECT kind, star_system_id FROM facilities WHERE id = ?", (facility_id,)).fetchone()
+    if row is None:
+        return False
+    plan = facility_attrs.resolve(conn, row["kind"], attrs or {}, current=facility_attrs.current_attrs(conn, facility_id))
+    if name is not None:
+        plan["columns"]["name"] = name
+    if description is not None:
+        plan["columns"]["description"] = description or None
+    facility_attrs.write(conn, facility_id, plan)
+    if row["star_system_id"] is not None:
+        touch_star_system(conn, row["star_system_id"])
+    return True
 
 
 def delete_facility(conn, facility_id):

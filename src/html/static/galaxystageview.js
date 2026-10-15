@@ -1886,20 +1886,12 @@ export function createStageView(host) {
     return MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
   }
 
-  // Zooms by `factor` (under 1 comes closer). With an `anchor` (a world
-  // point) the view's middle moves with the zoom so the anchor stays under
-  // the same pixel, and the camera closes on it by the same share each
-  // step, so it never reaches it (MAP.150); inside a system the zoom is
-  // about the middle.
-  function zoomBy(factor, anchor) {
+  // Zooms by `factor` (under 1 comes closer) about the view's middle: the
+  // one centre the view turns about too (MAP.199).
+  function zoomBy(factor) {
     if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
-    const before = view.dist;
     view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * factor, 1);
     reframe();
-    if (anchor && view.fit && !enteredSystem && before > 0 && view.dist !== before) {
-      view.target = MC.zoomAboutAnchor(view.target, anchor, view.dist / before);
-      clampPan(view.target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
-    }
     applyView();
   }
 
@@ -1908,10 +1900,7 @@ export function createStageView(host) {
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
-    if (deltaPx && !zoomAcross(deltaPx)) {
-      const anchor = typeof event.clientX === "number" && typeof event.clientY === "number" ? anchorUnder(event.clientX, event.clientY) : null;
-      zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX), anchor);
-    }
+    if (deltaPx && !zoomAcross(deltaPx)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
     return true;
   }
 
@@ -1983,6 +1972,12 @@ export function createStageView(host) {
     if (where) goal = where.center.slice();
     else if (entry) goal = [entry.x, entry.y, entry.z];
     else goal = view.fit.target.slice();
+    centreOn(goal);
+  }
+
+  // Flies the orbit center to `goal` (a world point), keeping the angle and
+  // the zoom: turning and zooming then both go about it (MAP.199).
+  function centreOn(goal) {
     const from = viewNow();
     const to = { target: goal, dist: view.dist, quat: view.quat.clone() };
     followBody = null;
@@ -1991,6 +1986,17 @@ export function createStageView(host) {
       view = Object.assign({}, kept, { target: goal.slice(), dist: kept.dist, quat: kept.quat.clone() });
       applyView();
     });
+  }
+
+  // MAP.199: Shift-click (or a right-click) takes the point under the
+  // pointer for the new center.
+  function centreAtPointer(event) {
+    if (!view || animation || !resolved || !view.fit || !isFree(resolved)) return;
+    const point = anchorUnder(event.clientX, event.clientY);
+    if (!point) return;
+    const goal = point.slice();
+    clampPan(goal, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    centreOn(goal);
   }
 
   // The other layer (a phenomenon) under the pointer, while there is one.
@@ -2068,6 +2074,7 @@ export function createStageView(host) {
       },
     },
     onClick: clickAt,
+    onPanClick: centreAtPointer,
     onHover: hoverAt,
     onLeave: onPointerLeave,
   });

@@ -417,6 +417,21 @@ HOVER_SCAN = """([wanted, steps]) => {
 }"""
 
 
+NAMED_SPOTS = """([spots, names]) => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    const found = [];
+    for (const [x, y] of spots) {
+        if (document.elementFromPoint(x, y) !== canvas) continue;  // a real pointer there would not be on the map
+        canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
+        const text = tip.hidden ? "" : tip.textContent;
+        if (names.some((name) => text.startsWith(name))) found.push([x, y, text]);
+    }
+    return found;
+}"""
+"""str: Of the screen points given, those where a hover names one of the given systems: [x, y, tooltip]."""
+
+
 HOVER_RETRIES = 20
 
 
@@ -431,9 +446,9 @@ def _charted_spot(page):
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     # What the pointer meets is the first block of its ray, the top face of the
     # cell under the sector in a slanted view: aim a little under the top of
-    # the cell at each size (1, 3, 27 and 243 sectors tall), the midplane too.
-    heights = [z, z + 2 - 0.01, z + 6 - 0.01, z + 54 - 0.01, z + 486 - 0.01,
-               z - 2 + 0.01, z - 6 + 0.01, z - 54 + 0.01, z - 486 + 0.01]  # and the bottoms, seen from under the plane
+    # the cell at each size (1, 3, 9, 27, 81 and 243 sectors tall), the midplane too.
+    heights = [z, z + 2 - 0.01, z + 6 - 0.01, z + 18 - 0.01, z + 54 - 0.01, z + 162 - 0.01, z + 486 - 0.01,
+               z - 2 + 0.01, z - 6 + 0.01, z - 18 + 0.01, z - 54 + 0.01, z - 162 + 0.01, z - 486 + 0.01]  # and the bottoms, seen from under the plane
     for _ in range(HOVER_RETRIES):
         for height in heights:
             spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [x, y, height])
@@ -554,7 +569,7 @@ def test_galaxy_map_hover_names_a_choice_and_leaving_hides_it(page, map_site):
 
 def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     """MAP.150: each click opens a window centred on the block clicked, one
-    size down, from the galaxy to a block of 243 sectors, 27, 3, a sector, and
+    size down, from the galaxy to a block of 243 sectors, 81, 27, 9, 3, a sector, and
     the sector itself opens in place."""
     _open_galaxy(page, map_site)
     assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
@@ -564,11 +579,11 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert _on_galaxy(page) and crumbs[-1].startswith("Sector "), crumbs
     sizes = []
     for query, _crumbs_seen in steps[1:-1]:
-        match = re.fullmatch(r"win=(27|3|1)\.\d+\.\d+\.-?\d+", query)
+        match = re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query)
         assert match, query
         sizes.append(int(match.group(1)))
-    # A block of 243 opens the window of its 27-blocks, and so on down.
-    assert sizes == sorted(sizes, reverse=True) and set(sizes) == {27, 3, 1}, sizes
+    # A block of 243 opens the window of its 81-blocks, and so on down.
+    assert sizes == sorted(sizes, reverse=True) and set(sizes) == {81, 27, 9, 3, 1}, sizes
 
 
 def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
@@ -579,8 +594,8 @@ def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
     assert _query(page) == "win=243.0.1.0"
     assert _crumbs(page) == ["Galaxy", "Block 0·1 (243)"], _crumbs(page)
     _click_choice(page)
-    assert re.fullmatch(r"win=27\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
-    assert len(_crumbs(page)) == 3 and _crumbs(page)[-1].endswith("(27)"), _crumbs(page)
+    assert re.fullmatch(r"win=81\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert len(_crumbs(page)) == 3 and _crumbs(page)[-1].endswith("(81)"), _crumbs(page)
     page.locator(GALAXY_CANVAS).focus()
     page.keyboard.press("Escape")
     _settle(page)
@@ -699,15 +714,13 @@ def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     page.wait_for_timeout(500)
     info = page.locator("#galaxymap3d-info")
-    tip = page.locator("#galaxymap3d-tooltip")
     headings = set()
     # Only dots whose tooltip names a system are clicked: a click on the
     # opened cell's outline, among the brightest spots, would open another sector.
-    for x, y in _bright_spots(page, GALAXY_CANVAS, limit=400):
+    # The 400 spots are tried with pointer events sent from the page (a real pointer move to each cost
+    # 0.8 s under load, 340 s in all, TEST.139 stage 4); the few that name a system are then clicked for real.
+    for x, y, text in page.evaluate(NAMED_SPOTS, [_bright_spots(page, GALAXY_CANVAS, limit=400), sorted(SYSTEM_NAMES)]):
         page.mouse.move(x, y)
-        text = tip.inner_text() if tip.is_visible() else ""
-        if not any(text.startswith(name) for name in SYSTEM_NAMES):
-            continue
         page.mouse.click(x, y)
         page.wait_for_timeout(100)
         if info.locator("h3").count():
@@ -748,6 +761,47 @@ def test_c_recenters_the_view_on_the_selection_and_the_mouse_turns_about_it(page
     page.keyboard.press("c")
     again = _camera(page)
     assert again["target"] != after["target"]
+
+
+def test_wheel_zoom_and_turning_share_one_centre_and_a_shift_click_chooses_it(page, map_site):
+    """MAP.199: the wheel zooms about the same center the mouse turns the view
+    about (the cross in the middle of the map), wherever the pointer is; a
+    Shift-click makes the spot clicked the new center, keeping the angle and
+    zoom, and the cross stays in the middle."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(500)
+    canvas = page.locator(GALAXY_CANVAS)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    page.wait_for_timeout(200)
+    box = canvas.bounding_box()
+    cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    cross = page.locator("#galaxymap3d-centre")
+    assert cross.is_visible()
+    cross_box = cross.bounding_box()
+    assert abs(cross_box["x"] + cross_box["width"] / 2 - cx) < 2 and abs(cross_box["y"] + cross_box["height"] / 2 - cy) < 2
+    before = _camera(page)
+    page.mouse.move(cx + box["width"] / 4, cy + box["height"] / 6)
+    page.mouse.wheel(0, -300)
+    page.wait_for_timeout(300)
+    zoomed = _camera(page)
+    assert zoomed["zoom"] != before["zoom"], "the wheel zoomed"
+    assert zoomed["target"] == pytest.approx(before["target"], abs=1e-6), "the pointer was off center, the center stayed"
+    page.mouse.wheel(0, 300)
+    page.wait_for_timeout(300)
+    assert _camera(page)["target"] == pytest.approx(before["target"], abs=1e-6)
+    pre = _camera(page)
+    spot_x, spot_y = cx + box["width"] / 4, cy - box["height"] / 6
+    page.mouse.move(spot_x, spot_y)
+    page.keyboard.down("Shift")
+    page.mouse.click(spot_x, spot_y)
+    page.keyboard.up("Shift")
+    moved = _camera(page)
+    assert moved["target"] != before["target"], "the spot clicked became the center"
+    assert moved["zoom"] == pytest.approx(pre["zoom"]) and abs(moved["tilt"] - pre["tilt"]) < 1e-6
+    page.mouse.wheel(0, -300)
+    page.wait_for_timeout(300)
+    assert _camera(page)["target"] == pytest.approx(moved["target"], abs=1e-6)
 
 
 def test_galaxy_map_back_forward_and_url_state(page, map_site):
@@ -1547,10 +1601,9 @@ def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
     _open_galaxy(page, map_site, "?win=27.27.0.0")
     assert page.evaluate(CAMERA)["tilt"] == pytest.approx(iso, abs=0.5)
     page.locator(GALAXY_CANVAS).focus()
-    page.keyboard.press("Escape")
-    _settle(page)
-    page.keyboard.press("Escape")
-    _settle(page)
+    for _ in range(3):  # 27, 81, 243 and the galaxy
+        page.keyboard.press("Escape")
+        _settle(page)
     assert _crumbs(page) == ["Galaxy"]
     assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)
 
@@ -1612,7 +1665,14 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     page.wait_for_timeout(1000)
     # One step in, so the glow of the bright stars around them (every star of
     # a tile comes in together, MAP.152) leaves the dark blue neutron star clear.
-    page.locator(GALAXY_CANVAS).hover()
+    # The wheel zooms about the view's center (MAP.199): Shift-click the
+    # neutron star to center the view on it, then step in.
+    pulsar = next(point for point in POINT_FIELD if point["type"] == "neutron_star")
+    spot = _screen_of(page, (pulsar["x"], pulsar["y"], pulsar["z"]))
+    page.keyboard.down("Shift")
+    page.mouse.click(*spot)
+    page.keyboard.up("Shift")
+    _camera(page)
     page.mouse.wheel(0, -400)
     page.wait_for_timeout(600)
     _settle(page)

@@ -16,7 +16,7 @@ from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.db.render import render_star_system
+from planetgen.db.render import FORMATS as OUTPUT_FORMATS, render_star_system
 from planetgen.generation import run_common
 
 
@@ -149,7 +149,7 @@ def build_system_config(args):
             setattr(system_config, attr, value)
 
     # Command-line value options override anything set by --system-file.
-    if args.markdown:
+    if getattr(args, 'markdown', False):  # sector and galaxy runs, until they move to --format (UX.108)
         system_config.MARKDOWN = True
     if args.star_type is not None:
         system_config.STAR_TYPE = args.star_type
@@ -258,7 +258,7 @@ def run_system(args):
                               f"short-lived and very large stars often have no room for one.")
 
     if args.output:
-        text = render_star_system(system, "markdown" if system_config.MARKDOWN else "wikitext")
+        text = render_star_system(system, args.format)
         if args.output == "-":
             sys.stdout.write(text if text.endswith("\n") else text + "\n")
         else:

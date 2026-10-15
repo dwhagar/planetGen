@@ -42,6 +42,8 @@ from planetgen.db.query import (
     facilities_for_system,
     facilities_in_sector,
     facility_detail,
+    FACILITY_SORTS,
+    list_facilities,
     NO_SECTOR,
     bright_star_scatter_status,
     bright_stars_in_sector,
@@ -68,6 +70,7 @@ from planetgen.db.query import (
     sectors_made,
     galaxy_locate,
     galaxy_stage,
+    galaxy_window,
     galaxy_tiles,
     list_phenomena,
     phenomena_facets,
@@ -90,14 +93,16 @@ from planetgen.db import near as near_search
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
+from planetgen.population import facility_ratings, facility_suggest, facility_types
 from planetgen.galaxy import objectref as object_ref, version_check
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
+from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
-from planetgen.db.render import render_system_sections, render_system_text
+from planetgen.db.render import describe_system, render_system_sections, render_system_text
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from planetgen.util.format import format_distance_ly
 from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
@@ -107,7 +112,7 @@ from .authz import audit, require_admin
 from .common import ApiError, request_json, require_json_body
 from .version import API_VERSION
 from .schemas import (
-    BodyRename, FacilityCreate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
+    BodyRename, FacilityCreate, FacilityUpdate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
     SystemRename, WikiUpload, given, parse_body,
 )
 from .limiter import limiter, page_limit
@@ -583,12 +588,26 @@ def system_scene(system_id):
     return jsonify(scene)
 
 
+@bp.route("/systems/<uid:system_id>/description")
+def system_description(system_id):
+    """
+    `GET /api/systems/<id>/description` -- the system's Document (API.25,
+    `planetgen/describe/`): sections, fact and rating tables, compositions
+    and prose, every number a typed quantity, built now from its database
+    rows. The web page renders it; `/text` writes it as text on request.
+    """
+    try:
+        return jsonify(describe_system(get_db(), system_id))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+
+
 @bp.route("/systems/<uid:system_id>/text")
 def system_text(system_id):
     """
-    `GET /api/systems/<id>/text?format=wikitext|markdown` -- the system's
-    full wiki page, rendered now from its database rows
-    (`planetgen/db/render.py`; no page text is stored since
+    `GET /api/systems/<id>/text?format=wikitext|markdown|text` -- the
+    system's description written as MediaWiki text, Markdown or plain text,
+    on request only (`planetgen/db/render.py`; no page text is stored since
     schema v29). `format` defaults to `wikitext`.
     """
     fmt = request.args.get("format", "wikitext")
@@ -985,6 +1004,20 @@ def galaxy_stage_route():
     """
     try:
         return jsonify(galaxy_stage(get_db(), request.args.get("at") or None))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/window")
+def galaxy_window_route():
+    """
+    A Galaxy Map data window of cells bigger than a sector: `?at=m.ring.wedge.slab`
+    (the middle cell) and `?g=` (cells across), read from the stored block
+    totals in one query -- see `queryDb.galaxy_window`. Called by
+    `/galaxy/window` (`planetgen/web/galaxy_views.py`).
+    """
+    try:
+        return jsonify(galaxy_window(get_db(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW))
     except ValueError as exc:
         raise ApiError(str(exc))
 
@@ -1916,6 +1949,55 @@ def facility_orbit():
         raise ApiError(str(exc), status_code=404 if exc.not_found else 400)
 
 
+def _facility_attrs(body):
+    """The keys of a create or change body that `facility_attrs.resolve` reads."""
+    attrs = {key: body[key] for key in ("type_id", "affiliation_polity_id", "affiliation_name", "ratings_note",
+                                        "fields") if key in body}
+    if body.get("ratings") is not None:
+        attrs["ratings"] = body["ratings"]
+    return attrs
+
+
+@bp.route("/facilities")
+def facility_list():
+    """`GET /api/facilities` -- a page of facilities. Filters: `kind`, `type_id`, `affiliation_polity_id`,
+    `affiliation_name`, `rating_crime`, `rating_housing`, `rating_resources`, `rating_maintenance`,
+    `rating_health` (each `green`, `yellow` or `red`) and `overall` (the worst of the five). `sort` is `name`
+    (the default), `kind`, `type` or `worst` (worst overall rating first, unassessed last; `order=desc` reverses
+    the ratings); `limit`/`offset` page. `total` counts what passes the filters."""
+    args = request.args
+    kind = args.get("kind") or None
+    if kind is not None and kind not in tuning.FACILITY_KINDS:
+        raise ApiError(f"kind must be one of: {', '.join(sorted(tuning.FACILITY_KINDS))}")
+
+    def whole(name):
+        raw = args.get(name)
+        if raw in (None, ""):
+            return None
+        try:
+            return int(raw)
+        except ValueError:
+            raise ApiError(f"{name} must be an integer, got {raw!r}") from None
+
+    def color(name):
+        raw = args.get(name)
+        if raw in (None, ""):
+            return None
+        if raw not in facility_ratings.COLORS:
+            raise ApiError(f"{name} must be one of: {', '.join(facility_ratings.COLORS)}")
+        return raw
+
+    ratings = {dimension: color(f"rating_{dimension}") for dimension in facility_ratings.RATINGS}
+    sort, descending = _parse_sort(args, FACILITY_SORTS)
+    limit, offset = _paginate(args)
+    items, total = list_facilities(
+        get_db(), kind=kind, type_id=whole("type_id"), polity_id=whole("affiliation_polity_id"),
+        affiliation_name=args.get("affiliation_name") or None,
+        ratings={name: value for name, value in ratings.items() if value is not None}, overall=color("overall"),
+        sort=sort, descending=descending, limit=limit, offset=offset)
+    return jsonify({"items": items, "total": total, "limit": limit, "offset": offset})
+
+
 @bp.route("/facilities", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
@@ -1934,15 +2016,79 @@ def create_facility():
                 conn, body["name"].strip(), body["kind"], body["placement"], body["host_type"], body["host_id"],
                 distance_km=body.get("distance_km"), phase_deg=body.get("phase_deg"),
                 offset_ly=body.get("offset_ly"), description=body.get("description"),
+                attrs=_facility_attrs(body),
             )
     except store.FacilityError as exc:
         raise ApiError(str(exc), status_code=404 if exc.not_found else 400)
+    except facility_types.FacilityTypeError as exc:
+        raise ApiError(str(exc), status_code=exc.status)
     finally:
         conn.close()
 
     audit("facility.create", target=f"facility:{facility_id}",
           detail=str({key: body[key] for key in ("name", "kind", "placement", "host_type", "host_id")}))
     return jsonify({"id": facility_id}), 201
+
+
+@bp.route("/facilities/<uid:facility_id>", methods=["PATCH"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def update_facility(facility_id):
+    """`PATCH /api/facilities/<id>` -- any of `name`, `description`, `type_id`, `affiliation_polity_id` or
+    `affiliation_name`, `ratings`, `ratings_note` and `fields` (see `POST /api/facilities`); a key sent as `null`
+    clears it. The place never changes. Returns the facility."""
+    body = given(parse_body(FacilityUpdate, require_json_body()))
+    conn = _write_conn()
+    try:
+        with conn:
+            found = store.update_facility(conn, facility_id, name=body.get("name", "").strip() or None,
+                                          description=body.get("description"), attrs=_facility_attrs(body))
+            detail = facility_detail(conn, facility_id) if found else None   # not `get_db()`: its snapshot predates the write
+    except facility_types.FacilityTypeError as exc:
+        raise ApiError(str(exc), status_code=exc.status)
+    finally:
+        conn.close()
+    if not found:
+        raise ApiError(f"no such facility: {facility_id}", status_code=404)
+    audit("facility.update", target=f"facility:{facility_id}", detail=str(sorted(body)))
+    return jsonify(detail)
+
+
+@bp.route("/facilities/<uid:facility_id>/suggest-ratings", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def suggest_facility_ratings(facility_id):
+    """`POST /api/facilities/<id>/suggest-ratings` (no body) -- fills the ratings nobody set from the stored
+    data (`facility_suggest`), marks them `generated` (unless some were set by hand) and never changes a rating
+    that is set. Returns `{"filled": [dimensions], "facility": {...}}`."""
+    conn = _write_conn()
+    try:
+        with conn:
+            filled = facility_suggest.suggest_for_facility(conn, facility_id)
+            detail = facility_detail(conn, facility_id) if filled is not None else None
+    finally:
+        conn.close()
+    if filled is None:
+        raise ApiError(f"no such facility: {facility_id}", status_code=404)
+    audit("facility.suggest_ratings", target=f"facility:{facility_id}", detail=", ".join(filled) or "none")
+    return jsonify({"filled": filled, "facility": detail})
+
+
+@bp.route("/facilities/suggest-ratings", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def suggest_all_facility_ratings():
+    """`POST /api/facilities/suggest-ratings` (no body) -- the same for every facility with an unset rating (at
+    most `facility_suggest.BATCH_LIMIT`, lowest ids first). Returns `{"facilities", "ratings"}`, how many facilities
+    changed and how many ratings were filled."""
+    conn = _write_conn()
+    try:
+        with conn:
+            facilities, filled = facility_suggest.suggest_for_unassessed(conn)
+    finally:
+        conn.close()
+    audit("facility.suggest_ratings", detail=f"{facilities} facilities, {filled} ratings")
+    return jsonify({"facilities": facilities, "ratings": filled})
 
 
 @bp.route("/facilities/<uid:facility_id>", methods=["DELETE"])

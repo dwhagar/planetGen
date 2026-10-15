@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN ladder_step")  # v90
         conn.execute("DROP TABLE facility_field_values")  # v89
         conn.execute("ALTER TABLE facilities DROP FOREIGN KEY fk_facilities_type")  # v89
         conn.execute("DROP TABLE facility_type_fields")  # v89

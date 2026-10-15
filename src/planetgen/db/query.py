@@ -44,6 +44,7 @@ from planetgen.db import countcache
 from planetgen.physics import constants
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
 from planetgen import tuning
+from planetgen.population import facility_ratings, facility_types
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
@@ -65,8 +66,10 @@ from planetgen.galaxy.viewport import (
     tile_bounds_pc,
     tile_keys_containing,
 )
+from planetgen.galaxy.window import check_width, parse_window_key, window_cells
 from planetgen.galaxy.drill import (
-    DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
+    DRILL_LEVELS, DRILL_STEP, DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key,
+    parse_drill_key,
 )
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
@@ -1553,8 +1556,10 @@ def _center_distance_ly(row):
 
 _FACILITY_SELECT = """
     SELECT f.*,
-           COALESCE(st.name, p.name, m.name, af.name, sec.name) AS host_name
+           COALESCE(st.name, p.name, m.name, af.name, sec.name) AS host_name,
+           ft.name AS type_name, ft.icon AS type_icon
     FROM facilities f
+    LEFT JOIN facility_types ft ON ft.id = f.type_id
     LEFT JOIN stars st ON st.id = f.star_id
     LEFT JOIN planets p ON p.id = f.planet_id
     LEFT JOIN moons m ON m.id = f.moon_id
@@ -1575,13 +1580,32 @@ def _facility_dict(row):
     host_columns = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
                     "asteroid_field": "asteroid_field_id", "space": "sector_id"}
     facility["host_id"] = row[host_columns[row["host_type"]]]
+    for key in ("type_id", "type_name", "type_icon", "affiliation_polity_id", "affiliation_name"):
+        facility[key] = row[key]
+    facility.update(facility_ratings.describe(row))
+    facility["fields"] = {}
     return facility
+
+
+def _attach_facility_fields(conn, facilities):
+    """Fills each facility's `fields` (`{key: value}` for the values it holds) in one query. Returns `facilities`."""
+    if not facilities:
+        return facilities
+    by_id = {facility["id"]: facility for facility in facilities}
+    marks = ", ".join(["?"] * len(by_id))
+    for row in conn.execute(
+            f"SELECT v.facility_id, d.`key`, d.datatype, v.value_int, v.value_dec, v.value_text, v.value_bool "
+            f"FROM facility_field_values v JOIN facility_type_fields d ON d.id = v.field_id "
+            f"WHERE v.facility_id IN ({marks}) ORDER BY d.sort_order, d.id", tuple(by_id)).fetchall():
+        value = row[facility_types.value_column(row["datatype"])]
+        by_id[row["facility_id"]]["fields"][row["key"]] = bool(value) if row["datatype"] == "bool" else value
+    return facilities
 
 
 def facility_detail(conn, facility_id):
     """One facility (schema v42), or `None`."""
     row = conn.execute(_FACILITY_SELECT + " WHERE f.id = ?", (facility_id,)).fetchone()
-    return None if row is None else _facility_dict(row)
+    return None if row is None else _attach_facility_fields(conn, [_facility_dict(row)])[0]
 
 
 def facilities_for_system(conn, system_id):
@@ -1589,7 +1613,7 @@ def facilities_for_system(conn, system_id):
     planets, moons and belts), by name."""
     rows = conn.execute(_FACILITY_SELECT + " WHERE f.star_system_id = ? ORDER BY f.name, f.id",
                         (system_id,)).fetchall()
-    return [_facility_dict(row) for row in rows]
+    return _attach_facility_fields(conn, [_facility_dict(row) for row in rows])
 
 
 def facilities_in_sector(conn, sector_id):
@@ -1599,7 +1623,58 @@ def facilities_in_sector(conn, sector_id):
         _FACILITY_SELECT + " WHERE f.sector_id = ? OR af.sector_id = ? ORDER BY f.name, f.id",
         (sector_id, sector_id),
     ).fetchall()
-    return [_facility_dict(row) for row in rows]
+    return _attach_facility_fields(conn, [_facility_dict(row) for row in rows])
+
+
+FACILITY_SORTS = ("name", "worst", "kind", "type")
+"""tuple: What `list_facilities` sorts by; `worst` puts the worst overall rating first."""
+
+_WORST = ("GREATEST(COALESCE(f.rating_crime, 0), COALESCE(f.rating_housing, 0), COALESCE(f.rating_resources, 0), "
+          "COALESCE(f.rating_maintenance, 0), COALESCE(f.rating_health, 0))")
+
+
+def list_facilities(conn, kind=None, type_id=None, polity_id=None, affiliation_name=None, ratings=None,
+                    overall=None, sort="name", descending=False, limit=50, offset=0):
+    """
+    A page of facilities, optionally filtered, and how many pass the filters.
+
+    Args:
+        kind (str, optional): A facility kind.
+        type_id (int, optional): A facility type.
+        polity_id (int, optional): Facilities affiliated with this polity.
+        affiliation_name (str, optional): Facilities with exactly this affiliation text.
+        ratings (dict, optional): `{dimension: colour word}` -- each named rating equals that colour.
+        overall (str, optional): A colour word -- the worst of the facility's assessed ratings.
+        sort (str): One of `FACILITY_SORTS`. `worst` lists the worst overall rating first (ascending order is
+            worst first; unassessed facilities come last either way).
+
+    Returns:
+        tuple: `(items, total)`.
+    """
+    where, params = [], []
+    for column, value in (("f.kind", kind), ("f.type_id", type_id), ("f.affiliation_polity_id", polity_id),
+                          ("f.affiliation_name", affiliation_name)):
+        if value is not None:
+            where.append(f"{column} = ?")
+            params.append(value)
+    for name, color in (ratings or {}).items():
+        where.append(f"f.rating_{name} = ?")
+        params.append(facility_ratings.value_of(color))
+    if overall is not None:
+        where.append(f"{_WORST} = ?")
+        params.append(facility_ratings.value_of(overall))
+    clause = f" WHERE {' AND '.join(where)}" if where else ""
+    total = conn.execute(f"SELECT COUNT(*) AS n FROM facilities f{clause}", tuple(params)).fetchone()["n"]
+    direction = "DESC" if descending else "ASC"
+    order = {
+        "name": f"f.name {direction}, f.id",
+        "kind": f"f.kind {direction}, f.name, f.id",
+        "type": f"ft.name IS NULL, ft.name {direction}, f.name, f.id",
+        "worst": f"{_WORST} = 0, {_WORST} {'ASC' if descending else 'DESC'}, f.name, f.id",
+    }[sort]
+    rows = conn.execute(_FACILITY_SELECT + clause + f" ORDER BY {order} LIMIT ? OFFSET ?",
+                        (*params, limit, offset)).fetchall()
+    return _attach_facility_fields(conn, [_facility_dict(row) for row in rows]), total
 
 
 def colonized_body_ids(conn, system_id):
@@ -4568,13 +4643,13 @@ def galaxy_stage(conn, at=None):
         return {"at": None, "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
     block = parse_drill_key(at)
-    child_m = block.m // (3 if block.m == 3 else 9)
+    child_m = block.m // DRILL_STEP
     try:
         where, params = _block_where(block)
     except ValueError:
         raise ValueError(f"no such block: {at!r}") from None
     layer_params, params = params[:2], params[2:]
-    level = (243, 27, 3, 1).index(child_m)
+    level = DRILL_LEVELS.index(child_m)
 
     if child_m == 1:
         rows = conn.execute(
@@ -4675,9 +4750,10 @@ def galaxy_block_stats(conn, m, cells):
         return {}
     rows = conn.execute(
         "SELECT ring_index, wedge, slab, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
-        " luminosity_sol AS luminosity FROM galaxy_block_stats WHERE m = ? AND (ring_index, wedge, slab) IN ("
+        " luminosity_sol AS luminosity FROM galaxy_block_stats WHERE m = ? AND ladder_step = ?"
+        " AND (ring_index, wedge, slab) IN ("
         + ", ".join("(?, ?, ?)" for _ in cells) + ")",
-        [m] + [value for cell in cells for value in cell]).fetchall()
+        [m, DRILL_STEP] + [value for cell in cells for value in cell]).fetchall()
     found = {}
     for r in rows:
         counts = {}
@@ -4685,6 +4761,43 @@ def galaxy_block_stats(conn, m, cells):
         found[(int(r["ring_index"]), int(r["wedge"]), int(r["slab"]))] = {
             "generated": counts[None][0], "stats": _stage_stats(counts[None])}
     return found
+
+
+def galaxy_window(conn, at, g):
+    """
+    A Galaxy Map data window of cells bigger than a sector (MAP.151b,
+    `galaxy.window`): `g` cells across around the cell `at`, read in one
+    statement from the stored block totals (`galaxy_block_stats`), where a
+    stage-by-stage window would query the stage of each of the up to 64
+    parent blocks it touches.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        at (str): A cell key `m.ring.wedge.slab` of a level above a sector.
+        g (int): Cells across, one of `window.WINDOW_WIDTHS`.
+
+    Returns:
+        dict: The shape `window.crop_stages` makes: `at`, `g`, `child_m`,
+            `cells`, `children` (the cells that hold a generated sector, as
+            `galaxy_stage` lists them) and `sectors` (`None`).
+
+    Raises:
+        ValueError: On a malformed key or width, or a sector cell (a window
+            of sectors lists names and comes from the parents' stages).
+    """
+    centre = parse_window_key(at)
+    if centre.m == 1:
+        raise ValueError("a window of sectors is read from the stages of its parents")
+    width = check_width(g)
+    cells = window_cells(centre, width)
+    found = galaxy_block_stats(conn, centre.m, [(c.ring, c.wedge, c.slab) for c in cells])
+    children = [{"ring": ring, "wedge": wedge, "slab": slab, **value}
+                for (ring, wedge, slab), value in found.items()]
+    children.sort(key=lambda c: (c["slab"], c["ring"], c["wedge"]))
+    return {
+        "at": format_drill_key(centre), "g": width, "child_m": centre.m,
+        "cells": [[c.ring, c.wedge, c.slab] for c in cells], "children": children, "sectors": None,
+    }
 
 
 def _sector_sums(row):
@@ -4871,8 +4984,8 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
 
 def galaxy_stage_keys(ring, layer, slot):
     """The stage keys a change to sector `(ring, layer, slot)` makes stale:
-    `"galaxy"` and its level-243, 27 and 3 blocks."""
-    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(ring, layer, slot)[:3]]
+    `"galaxy"` and its blocks above level 1."""
+    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(ring, layer, slot)[:-1]]
 
 
 GALAXY_CHANGES_MAX_SECTORS = 1000

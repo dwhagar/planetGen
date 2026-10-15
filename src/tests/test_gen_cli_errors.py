@@ -71,8 +71,8 @@ GALAXY_ERRORS = [
     # --block
     (["--block", "nope"], "--block: not a block key: 'nope'"),
     (["--block", "3.2.1"], "--block: not a block key: '3.2.1'"),
-    (["--block", "1.0.0.0"], "--block: block size must be one of (243, 27, 3), got 1"),
-    (["--block", "9.0.0.0"], "--block: block size must be one of (243, 27, 3), got 9"),
+    (["--block", "1.0.0.0"], "--block: block size must be one of (243, 81, 27, 9, 3), got 1"),
+    (["--block", "729.0.0.0"], "--block: block size must be one of (243, 81, 27, 9, 3), got 729"),
     (["--block", "3.0.99.0"], "--block: no such block: '3.0.99.0'"),
     (["--block", "3.-1.0.0"], "--block: no such block: '3.-1.0.0'"),
     (["--block", "3.2.1.0", "--layer", "0"], "--block can't be combined with --layer."),
