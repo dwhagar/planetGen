@@ -29,7 +29,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
-| TEST.158 | The math check tests the spherical shell, band and wedge grid |  |  |
 
 ### References
 
@@ -210,7 +209,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count is 0 (bug) |  | Quality run 2026-10-15. Quality. |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
-| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions |  |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete |  |  |
