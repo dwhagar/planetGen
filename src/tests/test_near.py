@@ -12,7 +12,7 @@ import pytest
 
 from planetgen.api.config import Config
 from planetgen.db import near, query, store
-from planetgen.galaxy.geometry import local_to_galaxy_pc, sector_position_pc
+from planetgen.galaxy.spherical import local_to_galaxy_pc, sector_position_pc
 from planetgen.generation import run_galaxy
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
 from planetgen.web.app import create_app

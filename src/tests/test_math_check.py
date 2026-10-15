@@ -111,3 +111,39 @@ def test_command_line_exit_codes(capsys, monkeypatch):
     monkeypatch.setattr(mathCheck, "all_checks", lambda: [bad])
     assert mathCheck.main([]) == 1
     assert "FAIL bad" in capsys.readouterr().out
+
+
+def test_a_broken_wedge_rule_fails(monkeypatch):
+    """A wedge count that is not 6*m with m made of 2, 3, 5 and 7 (an 11 in it) is caught."""
+    from planetgen.galaxy import spherical
+
+    real = spherical.wedge_count
+    monkeypatch.setattr(spherical, "wedge_count", lambda shell, band: real(shell, band) * 11 // 6 * 6 if shell == 9 and band == 0 else real(shell, band))
+    check = next(c for c in CHECKS if c.name == "wedge_count_rule")
+    assert not mathCheck.run_check(check).passed
+
+
+def test_a_sector_found_in_the_wrong_cell_fails(monkeypatch):
+    """A lookup that puts a point one wedge over from its true cell is caught."""
+    from planetgen.galaxy import spherical
+
+    real = spherical.sector_address_at
+
+    def shifted(position, edge_pc):
+        shell, band, wedge = real(position, edge_pc)
+        return (shell, band, wedge + 1) if shell == 5 and spherical.wedge_count(shell, band) > 1 else (shell, band, wedge)
+
+    monkeypatch.setattr(spherical, "sector_address_at", shifted)
+    for name in ("sector_address_round_trip", "point_lies_in_its_sector"):
+        check = next(c for c in CHECKS if c.name == name)
+        assert not mathCheck.run_check(check).passed, name
+
+
+def test_shells_that_stop_tiling_fail(monkeypatch):
+    """A cell volume that loses a sliver of every cell is caught by the shell volume check."""
+    from planetgen.galaxy import spherical
+
+    real = spherical.cell_volume
+    monkeypatch.setattr(spherical, "cell_volume", lambda *a, **k: real(*a, **k) * (1 - 1e-9))
+    check = next(c for c in CHECKS if c.name == "shell_cells_fill_shell")
+    assert not mathCheck.run_check(check).passed

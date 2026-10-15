@@ -13,8 +13,8 @@
   loop to the normal approximation just above
   `_POISSON_NORMAL_APPROX_MEAN`, and the approximation never goes
   negative; `grow_from_seed`'s default target is drawn from it;
-- explicit positions on the real cylindrical cell's boundary (corners and
-  faces, ring 0's wedge tip on the galactic axis included) are inside and
+- explicit positions on the real spherical cell's boundary (corners and
+  faces, the core's origin and a cap's axis included) are inside and
   kept exactly, and just outside is refused for a pre-placed star;
 - `nearest_neighbors` with a bad count (negative, non-integer, None).
 
@@ -37,7 +37,8 @@ from planetgen.physics import constants as pc
 from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import SectorCell
+from planetgen.galaxy import spherical
+from planetgen.galaxy.spherical import SectorCell
 from planetgen.galaxy.sector import SpaceSector
 
 ATTEMPTS = prog.SECTOR_MAX_PLACEMENT_ATTEMPTS
@@ -145,7 +146,7 @@ def test_the_message_and_bound_follow_the_attempts_constant(monkeypatch):
 
 def test_a_full_galaxy_cell_raises_the_same_message():
     edge = prog.DEFAULT_SECTOR_EDGE_LY
-    sector = SpaceSector("nucleus", edge_ly=edge, cell=SectorCell.for_ring(0, edge))
+    sector = SpaceSector("nucleus", edge_ly=edge, cell=SectorCell.for_address(0, 0, 0, edge))
     sector.add_system(_StubSystem(100.0), position=(0.0, 0.0, 0.0))
     with _seeded_sector_rng(31):
         with pytest.raises(ValueError, match=f"^{re.escape(_full_message(edge))}$"):
@@ -280,7 +281,27 @@ def test_grow_from_seed_with_a_zero_draw_adds_nothing(monkeypatch):
 # Explicit positions on the cell boundary
 # ---------------------------------------------------------------------------
 
-CELL_RINGS = [0, 1, 2, 10, 3855]
+def _cell_address(shell, kind):
+    """The `(shell, band, wedge)` of a middle wedge of an ordinary band, the north cap or the core."""
+    if shell == 0:
+        return (0, 0, 0)
+    if kind == "cap":
+        return (shell, spherical.band_range(shell)[1], 0)
+    return (shell, 0, spherical.wedge_count(shell, 0) // 2)
+
+
+CELLS = [(0, "core"), (1, "band"), (1, "cap"), (2, "band"), (2, "cap"), (10, "band"), (3855, "band"), (3855, "cap")]
+CELL_IDS = [f"shell{shell}-{kind}" for shell, kind in CELLS]
+
+
+def _local(cell, point):
+    """A galaxy-frame point in the cell's own sector-local frame."""
+    return spherical.galaxy_to_local_pc(cell.center, point)
+
+
+def _galaxy_point(radius, colatitude, longitude):
+    s = math.sin(colatitude)
+    return (radius * s * math.cos(longitude), radius * s * math.sin(longitude), radius * math.cos(colatitude))
 
 
 def _boundary_points(cell):
@@ -288,46 +309,51 @@ def _boundary_points(cell):
     cell's own local frame."""
     points = []
     for r in (cell.r_inner, cell.r_outer):
-        for theta in (-cell.half_angle, cell.half_angle):
-            for z in (-cell.half_height, cell.half_height):
-                points.append((r * math.cos(theta) - cell.r_center, r * math.sin(theta), z))
-    mid_r = cell.r_center
+        for colat in (cell.colat_north, cell.colat_south):
+            for lon in (cell.lon_start, cell.lon_end):
+                points.append(_galaxy_point(r, colat, lon))
+    mid_colat = (cell.colat_north + cell.colat_south) / 2
+    mid_lon = (cell.lon_start + cell.lon_end) / 2
+    mid_r = (cell.r_inner + cell.r_outer) / 2
     points += [
-        (cell.r_inner - cell.r_center, 0.0, 0.0),
-        (cell.r_outer - cell.r_center, 0.0, 0.0),
-        (mid_r * math.cos(cell.half_angle) - cell.r_center, mid_r * math.sin(cell.half_angle), 0.0),
-        (mid_r * math.cos(-cell.half_angle) - cell.r_center, mid_r * math.sin(-cell.half_angle), 0.0),
-        (0.0, 0.0, cell.half_height),
-        (0.0, 0.0, -cell.half_height),
+        _galaxy_point(cell.r_inner, mid_colat, mid_lon),
+        _galaxy_point(cell.r_outer, mid_colat, mid_lon),
+        _galaxy_point(mid_r, cell.colat_north, mid_lon),
+        _galaxy_point(mid_r, cell.colat_south, mid_lon),
+        _galaxy_point(mid_r, mid_colat, cell.lon_start),
+        _galaxy_point(mid_r, mid_colat, cell.lon_end),
     ]
-    return points
+    return [_local(cell, point) for point in points]
 
 
 def _outside_points(cell):
-    """Just past each face: a millionth of the edge outward."""
+    """Just past each face the cell has: a millionth of the edge outward."""
     step = 1e-6 * (cell.r_outer - cell.r_inner)
-    theta = cell.half_angle + 1e-6
-    mid_r = cell.r_center
-    points = [
-        (cell.r_outer + step - cell.r_center, 0.0, 0.0),
-        (0.0, 0.0, cell.half_height + step),
-        (0.0, 0.0, -cell.half_height - step),
-        (mid_r * math.cos(theta) - cell.r_center, mid_r * math.sin(theta), 0.0),
-        (mid_r * math.cos(-theta) - cell.r_center, mid_r * math.sin(-theta), 0.0),
-    ]
+    mid_colat = (cell.colat_north + cell.colat_south) / 2
+    mid_lon = (cell.lon_start + cell.lon_end) / 2
+    mid_r = (cell.r_inner + cell.r_outer) / 2
+    points = [_galaxy_point(cell.r_outer + step, mid_colat, mid_lon)]
     if cell.r_inner > 0:
-        points.append((cell.r_inner - step - cell.r_center, 0.0, 0.0))
-    return points
+        points.append(_galaxy_point(cell.r_inner - step, mid_colat, mid_lon))
+    if cell.colat_north > 0:
+        points.append(_galaxy_point(mid_r, cell.colat_north - 1e-6, mid_lon))
+    if cell.colat_south < math.pi:
+        points.append(_galaxy_point(mid_r, cell.colat_south + 1e-6, mid_lon))
+    if cell.lon_end - cell.lon_start < 2 * math.pi - 1e-9:
+        points.append(_galaxy_point(mid_r, mid_colat, cell.lon_start - 1e-6))
+        points.append(_galaxy_point(mid_r, mid_colat, cell.lon_end + 1e-6))
+    return [_local(cell, point) for point in points]
 
 
-def _cell_sector(ring):
+def _cell_sector(shell, kind):
     edge = prog.DEFAULT_SECTOR_EDGE_LY
-    return SpaceSector(f"ring {ring}", edge_ly=edge, cell=SectorCell.for_ring(ring, edge))
+    cell = SectorCell.for_address(*_cell_address(shell, kind), edge)
+    return SpaceSector(f"shell {shell} {kind}", edge_ly=edge, cell=cell)
 
 
-@pytest.mark.parametrize("ring", CELL_RINGS)
-def test_explicit_positions_on_the_cell_boundary_are_inside_and_kept(ring):
-    sector = _cell_sector(ring)
+@pytest.mark.parametrize("shell,kind", CELLS, ids=CELL_IDS)
+def test_explicit_positions_on_the_cell_boundary_are_inside_and_kept(shell, kind):
+    sector = _cell_sector(shell, kind)
     for point in _boundary_points(sector.cell):
         assert sector.contains(point), point
         system = sector.add_system(_StubSystem(0.0), position=point)
@@ -336,17 +362,17 @@ def test_explicit_positions_on_the_cell_boundary_are_inside_and_kept(ring):
         assert remnant.position == point
 
 
-@pytest.mark.parametrize("ring", CELL_RINGS)
-def test_preplaced_stars_on_the_cell_boundary_are_accepted(ring):
-    sector = _cell_sector(ring)
+@pytest.mark.parametrize("shell,kind", CELLS, ids=CELL_IDS)
+def test_preplaced_stars_on_the_cell_boundary_are_accepted(shell, kind):
+    sector = _cell_sector(shell, kind)
     for point in _boundary_points(sector.cell):
         entry = sector.add_preplaced_system(_StubSystem(0.0), point)
         assert entry.preplaced and entry.position == point
 
 
-@pytest.mark.parametrize("ring", CELL_RINGS)
-def test_preplaced_stars_just_outside_the_cell_are_refused(ring):
-    sector = _cell_sector(ring)
+@pytest.mark.parametrize("shell,kind", CELLS, ids=CELL_IDS)
+def test_preplaced_stars_just_outside_the_cell_are_refused(shell, kind):
+    sector = _cell_sector(shell, kind)
     for point in _outside_points(sector.cell):
         assert not sector.contains(point), point
         with pytest.raises(ValueError, match="pre-placed position .* is outside the sector"):
@@ -356,25 +382,33 @@ def test_preplaced_stars_just_outside_the_cell_are_refused(ring):
     assert not any(entry.preplaced for entry in sector.entries)
 
 
-def test_ring_zero_wedge_tip_on_the_galactic_axis_is_inside():
-    """Ring 0's cells are pie wedges: the whole inner edge collapses onto
-    the axis, local x = -r_center at any angle and height."""
-    sector = _cell_sector(0)
+def test_the_cap_tip_on_the_galactic_axis_is_inside_and_the_other_pole_is_not():
+    """A cap is the whole circle round the axis: the pole point of the shell, at any radius inside it, is
+    in the cap, and the point across the galaxy is in the south cap, not this one."""
+    sector = _cell_sector(10, "cap")
     cell = sector.cell
-    assert cell.r_inner == 0.0
-    for z in (-cell.half_height, 0.0, cell.half_height):
-        tip = (-cell.r_center, 0.0, z)
+    assert cell.colat_north == 0.0 and cell.lon_end - cell.lon_start == pytest.approx(2 * math.pi)
+    for r in (cell.r_inner, cell.r_center, cell.r_outer):
+        tip = _local(cell, (0.0, 0.0, r))
         assert sector.contains(tip)
         assert sector.add_preplaced_system(_StubSystem(0.0), tip).position == tip
-    # Across the axis (the opposite wedge) is outside.
-    assert not sector.contains((-cell.r_center - 1e-6 * cell.r_outer, 0.0, 0.0))
+    assert not sector.contains(_local(cell, (0.0, 0.0, -cell.r_center)))
+
+
+def test_the_core_ball_holds_its_origin_and_its_radius_but_not_a_point_past_it():
+    sector = _cell_sector(0, "core")
+    cell = sector.cell
+    assert cell.r_inner == 0.0
+    assert sector.contains(_local(cell, (0.0, 0.0, 0.0)))
+    assert sector.contains(_local(cell, (cell.r_outer, 0.0, 0.0)))
+    assert not sector.contains(_local(cell, (cell.r_outer * (1 + 1e-6), 0.0, 0.0)))
 
 
 def test_boundary_positions_block_random_placement_like_any_other():
     """A system pinned to a cell corner still keeps later random
     placements out of its Hill sphere."""
-    sector = _cell_sector(10)
-    corner = _boundary_points(sector.cell)[-1]
+    sector = _cell_sector(10, "band")
+    corner = _boundary_points(sector.cell)[0]
     sector.add_system(_StubSystem(2.0), position=corner)
     with _seeded_sector_rng(6):
         for _ in range(5):

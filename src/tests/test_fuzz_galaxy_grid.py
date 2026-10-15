@@ -1,17 +1,18 @@
 # tests/test_fuzz_galaxy_grid.py
 
 """
-Brute-force and property tests for the galaxy's cylindrical sector grid
-(`planetgen/galaxy/geometry.py`), its planned outline
-(`galaxySkeleton.py`), the density model (`galaxyDensity.py`) and the
-Galaxy Map's tile math (`galaxyViewport.py`) -- the geometry every
-planning, placing and map request stands on.
+Brute-force and property tests for the galaxy's spherical sector grid
+(`planetgen/galaxy/spherical.py`: shells, bands and wedges), its planned
+outline (`skeleton.py`), the density model (`density.py`) and the Galaxy
+Map's tile math (`viewport.py`) -- the geometry every planning, placing and
+map request stands on.
 
 Each test states one invariant and lets hypothesis hunt for the address,
 point or shape that breaks it (see tests/fuzz_support.py for the
 profiles). Where a closed-form shortcut exists (`enumerate_sectors_within_
-radius`, `_overlapping_slots`, `GalaxyBounds.random_address`), it is
-checked against a slow brute-force enumeration of the same answer.
+radius`, `_overlapping_wedges`, `neighbor_addresses`,
+`GalaxyBounds.random_address`), it is checked against a slow brute-force
+enumeration of the same answer.
 """
 
 import math
@@ -28,130 +29,172 @@ from planetgen.galaxy import (
 from tests.fuzz_support import finite
 
 EDGES = st.sampled_from([4.0, 1.0, 0.5, 3.26156, 10.0, 7.0])
-RINGS = st.integers(min_value=0, max_value=5000)
-LAYERS = st.integers(min_value=-4096, max_value=4095)
+SHELLS = st.integers(min_value=0, max_value=4095)
 ANGLE_TOL = 1e-9
 
 
 @st.composite
-def addresses(draw, rings=RINGS, layers=LAYERS):
-    ring = draw(rings)
-    layer = draw(layers)
-    slot = draw(st.integers(min_value=0, max_value=gg.ring_sector_count(ring) - 1))
-    return ring, layer, slot
+def addresses(draw, shells=SHELLS):
+    """A cell of the grid: a shell, one of its bands (caps included) and a wedge of that band."""
+    shell = draw(shells)
+    low, high = spherical.band_range(shell)
+    band = draw(st.integers(min_value=low, max_value=high))
+    wedge = draw(st.integers(min_value=0, max_value=spherical.wedge_count(shell, band) - 1))
+    return shell, band, wedge
 
 
 def _small_addresses():
-    return addresses(rings=st.integers(0, 60), layers=st.integers(-20, 20))
+    return addresses(shells=st.integers(0, 40))
 
 
-# --- ring_sector_count --------------------------------------------------------
-
-def test_ring_sector_count_first_rings_match_the_documented_sequence():
-    assert [gg.ring_sector_count(i) for i in range(8)] == [3, 9, 15, 21, 27, 36, 42, 48]
-
-
-@given(st.integers(min_value=0, max_value=10**7))
-def test_ring_sector_count_is_a_growing_multiple_of_its_master_count(ring):
-    n, n_next = gg.ring_sector_count(ring), gg.ring_sector_count(ring + 1)
-    master = gg.ring_master_count(ring)
-    assert n >= 3 and n % master == 0
-    assert gg.ring_master_count(ring + 1) in (master, 2 * master)
-    assert n_next >= n
-    assert 0.94 <= 2 * math.pi * (ring + 0.5) / n <= 1.065
+def _is_smooth(m):
+    for prime in (2, 3, 5, 7):
+        while m % prime == 0:
+            m //= prime
+    return m == 1
 
 
-@given(st.integers(max_value=-1))
-def test_ring_sector_count_rejects_negative_rings(ring):
+# --- the layout of a shell ------------------------------------------------------
+
+def test_the_first_shells_match_the_documented_layout():
+    assert spherical.cell_count(0) == 1 and spherical.band_range(0) == (0, 0)
+    # Shell 1 is hand cut: one band of 12 wedges between two caps of 37.5 degrees.
+    assert spherical.band_range(1) == (-1, 1)
+    assert [spherical.wedge_count(1, band) for band in (-1, 0, 1)] == [1, 12, 1]
+    assert math.degrees(spherical.band_colatitude_bounds(1, 1)[1]) == pytest.approx(37.5)
+
+
+@given(st.integers(min_value=1, max_value=10**6))
+def test_a_shell_has_an_odd_number_of_bands_between_two_caps(shell):
+    layout = spherical.shell_layout(shell)
+    low, high = spherical.band_range(shell)
+    assert layout.band_count % 2 == 1 and (low, high) == (-(layout.high_band + 1), layout.high_band + 1)
+    assert spherical.is_cap(shell, high) and spherical.is_cap(shell, low)
+    assert not spherical.is_cap(shell, 0)
+    assert 0 < layout.cap_colatitude < math.pi / 2
+
+
+@given(st.integers(min_value=2, max_value=3000), st.data())
+def test_ordinary_bands_hold_six_times_a_smooth_number_of_wedges(shell, data):
+    low, high = spherical.band_range(shell)
+    band = data.draw(st.integers(low + 1, high - 1))
+    n = spherical.wedge_count(shell, band)
+    assert n % spherical.CAP_RIM_WEDGES == 0 and _is_smooth(n // spherical.CAP_RIM_WEDGES)
+    # North and south halves are mirror images.
+    assert spherical.wedge_count(shell, -band) == n
+    # A cap is one cell.
+    assert spherical.wedge_count(shell, high) == spherical.wedge_count(shell, low) == 1
+
+
+@given(st.integers(min_value=8, max_value=4000))
+def test_the_equatorial_band_has_about_one_edge_of_arc_per_wedge(shell):
+    n = spherical.wedge_count(shell, 0)
+    arc = 2 * math.pi * shell / n
+    assert 0.9 <= arc <= 1.1
+
+
+@given(st.integers(min_value=-5, max_value=-1))
+def test_a_negative_shell_is_rejected(shell):
     with pytest.raises(ValueError):
-        gg.ring_sector_count(ring)
+        spherical.shell_layout(shell)
 
 
-@given(st.integers(min_value=0, max_value=10**6), EDGES)
-def test_every_ring_cell_is_close_to_a_cube(ring, edge):
-    # Module docstring: the arc is within about 6% of an edge.
-    cell = gg.SectorCell.for_ring(ring, edge)
-    arc = cell.r_center * 2 * cell.half_angle
-    if ring >= 1:
-        assert 0.94 <= arc / edge <= 1.065
+@given(st.integers(0, 3000))
+def test_a_shells_cell_count_is_the_sum_of_its_bands_wedges(shell):
+    low, high = spherical.band_range(shell)
+    assert spherical.cell_count(shell) == sum(spherical.wedge_count(shell, band) for band in range(low, high + 1))
+
+
+@given(st.integers(0, 300), st.data())
+def test_nth_cell_in_band_range_counts_cells_north_to_south(shell, data):
+    high = data.draw(st.integers(0, spherical.band_range(shell)[1]))
+    total = spherical.cells_in_band_range(shell, high)
+    index = data.draw(st.integers(0, total - 1))
+    s, band, wedge = spherical.nth_cell_in_band_range(shell, high, index)
+    assert s == shell and -high <= band <= high and 0 <= wedge < spherical.wedge_count(shell, band)
+    with pytest.raises(ValueError):
+        spherical.nth_cell_in_band_range(shell, high, total)
 
 
 # --- position <-> address ------------------------------------------------------
 
 @given(addresses(), EDGES)
 def test_a_sector_center_maps_back_to_its_own_address(address, edge):
-    center = gg.sector_position_pc(*address, edge)
-    assert gg.sector_address_at(center, edge) == address
+    center = spherical.sector_position_pc(*address, edge)
+    assert spherical.sector_address_at(center, edge) == address
 
 
 @given(st.tuples(finite, finite, finite), EDGES)
 @example((0.0, 0.0, 0.0), 4.0)
-@example((0.0, 0.0, -2.0), 4.0)  # exactly on a layer boundary
-@example((4.0, 0.0, 2.0), 4.0)   # exactly on a ring boundary, +X axis
-@example((-4.0, -0.0, 0.0), 4.0)  # theta = pi from below and above
+@example((0.0, 0.0, 2.0), 4.0)    # exactly on the core's surface, on the axis
+@example((0.0, 0.0, -2.0), 4.0)
+@example((4.0, 0.0, 0.0), 4.0)    # in the middle of shell 1, +X axis
+@example((-4.0, -0.0, 0.0), 4.0)  # longitude pi from below and above
 @example((1e-300, -1e-300, 0.0), 4.0)
 def test_any_point_lands_in_a_cell_whose_bounds_hold_it(point, edge):
     x, y, z = point
-    assume(abs(x) < 1e9 and abs(y) < 1e9 and abs(z) < 1e9)
-    ring, layer, slot = gg.sector_address_at(point, edge)
-    n = gg.ring_sector_count(ring)
-    assert 0 <= slot < n
-    r_in, r_out = gg.ring_bounds_pc(ring, edge)
-    r = math.hypot(x, y)
+    # Past about 1e7 edges the wedge multiplier leaves its table (`spherical.SMOOTH_LIMIT`), far beyond the 262 kpc reach.
+    assume(math.sqrt(x * x + y * y + z * z) < 1e6 * edge)
+    shell, band, wedge = spherical.sector_address_at(point, edge)
+    assert 0 <= wedge < spherical.wedge_count(shell, band)
+    r = math.sqrt(x * x + y * y + z * z)
+    r_in, r_out = spherical.shell_bounds_pc(shell, edge)
     assert r_in - 1e-9 * max(1, r) <= r < r_out + 1e-9 * max(1, r)
-    z_lo, z_hi = gg.layer_bounds_pc(layer, edge)
-    assert z_lo - 1e-9 * max(1, abs(z)) <= z <= z_hi + 1e-9 * max(1, abs(z))
-    if r > 1e-6:
+    north, south = spherical.band_colatitude_bounds(shell, band)
+    colat = math.atan2(math.hypot(x, y), z)
+    assert north - ANGLE_TOL <= colat <= south + ANGLE_TOL
+    if math.hypot(x, y) > 1e-6 and spherical.wedge_count(shell, band) > 1:
         theta = math.atan2(y, x) % (2 * math.pi)
-        t_lo, t_hi = gg.slot_angle_bounds(ring, slot)
-        assert t_lo - ANGLE_TOL <= theta <= t_hi + ANGLE_TOL or (slot == n - 1 and theta < ANGLE_TOL)
+        start, end = spherical.wedge_longitude_bounds(shell, band, wedge)
+        n = spherical.wedge_count(shell, band)
+        assert start - ANGLE_TOL <= theta <= end + ANGLE_TOL or (wedge == n - 1 and theta < ANGLE_TOL)
 
 
-@given(addresses(rings=st.integers(0, 400), layers=st.integers(-50, 50)), EDGES, st.randoms(use_true_random=False))
+@given(addresses(shells=st.integers(0, 400)), EDGES, st.randoms(use_true_random=False))
 def test_points_sampled_inside_a_cell_map_back_to_that_cell(address, edge, rng):
-    ring, layer, slot = address
-    center = gg.sector_position_pc(ring, layer, slot, edge)
-    cell = gg.SectorCell.for_ring(ring, edge)
+    center = spherical.sector_position_pc(*address, edge)
+    cell = spherical.SectorCell.for_address(*address, edge)
     for _ in range(20):
         local = cell.sample(rng)
         # Stay a hair inside so a point on a shared face can't be claimed
         # by the neighbor through rounding.
         shrunk = tuple(v * 0.999 for v in local)
-        point = gg.local_to_galaxy_pc(center, (shrunk[0], shrunk[1], shrunk[2]))
+        point = spherical.local_to_galaxy_pc(center, shrunk)
         if not cell.contains(shrunk):
             continue
-        assert gg.sector_address_at(point, edge) == address
+        assert spherical.sector_address_at(point, edge) == address
 
 
 @given(addresses(), EDGES)
 def test_cell_vertices_are_on_the_cell_bounds(address, edge):
-    ring, layer, slot = address
-    vertices = gg.sector_cell_vertices_pc(ring, layer, slot, edge)
+    shell, band, wedge = address
+    vertices = spherical.sector_cell_vertices_pc(shell, band, wedge, edge)
     assert len(vertices) == 8
-    r_bounds = gg.ring_bounds_pc(ring, edge)
-    z_bounds = gg.layer_bounds_pc(layer, edge)
+    r_bounds = spherical.shell_bounds_pc(shell, edge)
+    colat_bounds = spherical.band_colatitude_bounds(shell, band)
     for index, (x, y, z) in enumerate(vertices):
-        r_bit, z_bit = index >> 2, (index >> 1) & 1
-        assert math.isclose(math.hypot(x, y), r_bounds[r_bit], rel_tol=1e-9, abs_tol=1e-9)
-        assert z == z_bounds[z_bit]
+        r_bit, colat_bit = index >> 2, (index >> 1) & 1
+        assert math.isclose(math.sqrt(x * x + y * y + z * z), r_bounds[r_bit], rel_tol=1e-9, abs_tol=1e-9)
+        assert math.isclose(math.atan2(math.hypot(x, y), z), colat_bounds[colat_bit], abs_tol=1e-9) or r_bounds[r_bit] == 0
 
 
-@given(st.integers(0, 5000), LAYERS, st.integers())
-def test_out_of_range_slots_are_rejected_everywhere(ring, layer, slot):
-    n = gg.ring_sector_count(ring)
-    assume(not 0 <= slot < n)
-    for fn in (gg.sector_position_pc, gg.sector_cell_vertices_pc, gg.describe_sector_cell):
+@given(st.integers(0, 3000), st.integers(), st.integers())
+def test_out_of_range_bands_and_wedges_are_rejected_everywhere(shell, band, wedge):
+    low, high = spherical.band_range(shell)
+    assume(not (low <= band <= high and 0 <= wedge < spherical.wedge_count(shell, band)) if low <= band <= high
+           else True)
+    for fn in (spherical.sector_position_pc, spherical.sector_cell_vertices_pc, spherical.describe_sector_cell):
         with pytest.raises(ValueError):
-            fn(ring, layer, slot, 4.0)
+            fn(shell, band, wedge, 4.0)
     with pytest.raises(ValueError):
-        gg.neighbor_addresses(ring, layer, slot)
+        spherical.neighbor_addresses(shell, band, wedge)
 
 
 # --- sector-local frame --------------------------------------------------------
 
 @given(st.tuples(finite, finite, finite).filter(lambda p: math.hypot(p[0], p[1]) < 1e8 and abs(p[2]) < 1e8))
 def test_sector_orientation_is_a_right_handed_orthonormal_basis(center):
-    ax, ay, az = gg.sector_orientation(center)
+    ax, ay, az = spherical.sector_orientation(center)
     dot = lambda a, b: sum(i * j for i, j in zip(a, b))
     for a in (ax, ay, az):
         assert math.isclose(dot(a, a), 1.0, rel_tol=1e-12)
@@ -160,136 +203,181 @@ def test_sector_orientation_is_a_right_handed_orthonormal_basis(center):
     assert all(math.isclose(c, e, abs_tol=1e-12) for c, e in zip(cross, az))
 
 
-@given(addresses(rings=st.integers(0, 2000)), EDGES, st.tuples(*[st.floats(-3, 3)] * 3))
+@given(addresses(shells=st.integers(0, 2000)), EDGES, st.tuples(*[st.floats(-3, 3)] * 3))
 def test_local_offsets_keep_their_length_in_the_galaxy_frame(address, edge, offset):
-    center = gg.sector_position_pc(*address, edge)
-    point = gg.local_to_galaxy_pc(center, offset)
+    center = spherical.sector_position_pc(*address, edge)
+    point = spherical.local_to_galaxy_pc(center, offset)
     assert math.isclose(math.dist(point, center), math.hypot(*offset), rel_tol=1e-9, abs_tol=1e-9)
 
 
 # --- SectorCell ----------------------------------------------------------------
 
-@given(st.integers(0, 5000), EDGES, st.randoms(use_true_random=False))
-def test_sampled_points_are_always_inside_the_cell(ring, edge, rng):
-    cell = gg.SectorCell.for_ring(ring, edge)
+@given(addresses(shells=st.integers(0, 3000)), EDGES, st.randoms(use_true_random=False))
+def test_sampled_points_are_always_inside_the_cell(address, edge, rng):
+    cell = spherical.SectorCell.for_address(*address, edge)
     for _ in range(50):
         assert cell.contains(cell.sample(rng))
 
 
-@given(st.integers(0, 5000), EDGES)
-def test_a_rings_cells_add_up_to_the_whole_annulus(ring, edge):
-    cell = gg.SectorCell.for_ring(ring, edge)
-    r_in, r_out = gg.ring_bounds_pc(ring, edge)
-    annulus = math.pi * (r_out ** 2 - r_in ** 2) * edge
-    assert math.isclose(cell.volume * gg.ring_sector_count(ring), annulus, rel_tol=1e-12)
+@given(st.integers(0, 40), EDGES)
+def test_a_shells_cells_add_up_to_the_whole_shell(shell, edge):
+    inner, outer = spherical.shell_bounds_pc(shell, edge)
+    total = sum(spherical.cell_volume(*address, edge) for address in spherical.shell_cells(shell))
+    assert math.isclose(total, 4 / 3 * math.pi * (outer ** 3 - inner ** 3), rel_tol=1e-9)
 
 
-@given(st.integers(0, 500), EDGES)
-def test_cell_contains_its_origin_and_rejects_points_just_outside(ring, edge):
-    cell = gg.SectorCell.for_ring(ring, edge)
+@given(addresses(shells=st.integers(1, 500)), EDGES)
+def test_a_cells_volume_matches_its_cell_object(address, edge):
+    cell = spherical.SectorCell.for_address(*address, edge)
+    assert math.isclose(cell.volume, spherical.cell_volume(*address, edge), rel_tol=1e-9)
+
+
+@given(addresses(shells=st.integers(1, 500)), EDGES)
+def test_cell_contains_its_center_and_rejects_points_just_outside(address, edge):
+    shell, band, wedge = address
+    cell = spherical.SectorCell.for_address(shell, band, wedge, edge)
     assert cell.contains((0.0, 0.0, 0.0))
-    assert not cell.contains((0.0, 0.0, cell.half_height * 1.0001 + 1e-9))
-    assert not cell.contains((0.0, 0.0, -cell.half_height * 1.0001 - 1e-9))
-    assert not cell.contains((cell.r_outer - cell.r_center + edge * 1e-6, 0.0, 0.0))
-    if ring > 0:
-        assert not cell.contains((cell.r_inner - cell.r_center - edge * 1e-6, 0.0, 0.0))
-    # Just past the slot's angular edge, on the ring centerline.
-    angle = cell.half_angle * 1.001 + 1e-9
-    px, py = cell.r_center * math.cos(angle), cell.r_center * math.sin(angle)
-    assert not cell.contains((px - cell.r_center, py, 0.0))
+
+    def local(radius, colat, lon):
+        s = radius * math.sin(colat)
+        return spherical.galaxy_to_local_pc(cell.center, (s * math.cos(lon), s * math.sin(lon), radius * math.cos(colat)))
+
+    colat_mid = (cell.colat_north + cell.colat_south) / 2
+    lon_mid = (cell.lon_start + cell.lon_end) / 2
+    assert cell.contains(local(cell.r_center, colat_mid, lon_mid))
+    # Radially past either face.
+    assert not cell.contains(local(cell.r_outer + edge * 1e-6, colat_mid, lon_mid))
+    assert not cell.contains(local(cell.r_inner - edge * 1e-6, colat_mid, lon_mid))
+    # Past a band's latitude face.
+    if cell.colat_north > 1e-3:
+        assert not cell.contains(local(cell.r_center, cell.colat_north - 1e-6, lon_mid))
+    if cell.colat_south < math.pi - 1e-3:
+        assert not cell.contains(local(cell.r_center, cell.colat_south + 1e-6, lon_mid))
+    # Past a wedge's longitude face.
+    if cell.lon_end - cell.lon_start < 2 * math.pi - 1e-9:
+        assert not cell.contains(local(cell.r_center, colat_mid, cell.lon_end + 1e-6))
+        assert not cell.contains(local(cell.r_center, colat_mid, cell.lon_start - 1e-6))
 
 
 # --- neighbors -----------------------------------------------------------------
 
 @given(_small_addresses())
 def test_neighbor_relation_is_symmetric(address):
-    for neighbor in gg.neighbor_addresses(*address):
-        assert address in gg.neighbor_addresses(*neighbor), (address, neighbor)
+    for neighbor in spherical.neighbor_addresses(*address):
+        assert address in spherical.neighbor_addresses(*neighbor), (address, neighbor)
 
 
 @given(addresses())
 def test_neighbors_are_unique_valid_and_exclude_the_cell(address):
-    neighbors = gg.neighbor_addresses(*address)
+    neighbors = spherical.neighbor_addresses(*address)
     assert address not in neighbors
     assert len(neighbors) == len(set(neighbors))
-    for ring, layer, slot in neighbors:
-        assert ring >= 0
-        assert 0 <= slot < gg.ring_sector_count(ring)
-    ring = address[0]
-    # Two in-ring, two vertical, and 1-3 overlapping slots per adjacent ring
-    # (ring 0's three wedges each touch all three... no: ring 0 has no inner
-    # neighbor, ring 1 has 9 slots so each ring-0 wedge overlaps 3 of them).
-    assert 4 + (0 if ring == 0 else 1) + 1 <= len(neighbors) <= 4 + 3 + 3
+    for shell, band, wedge in neighbors:
+        assert shell >= 0 and abs(shell - address[0]) <= 1
+        low, high = spherical.band_range(shell)
+        assert low <= band <= high and 0 <= wedge < spherical.wedge_count(shell, band)
+    assert neighbors   # every cell touches something
 
 
-def _float_overlaps(from_ring, slot, to_ring):
-    a0, a1 = gg.slot_angle_bounds(from_ring, slot)
+def _float_overlaps(from_count, wedge, to_count):
+    a0, a1 = 2 * math.pi * wedge / from_count, 2 * math.pi * (wedge + 1) / from_count
     result = []
-    for other in range(gg.ring_sector_count(to_ring)):
-        b0, b1 = gg.slot_angle_bounds(to_ring, other)
+    for other in range(to_count):
+        b0, b1 = 2 * math.pi * other / to_count, 2 * math.pi * (other + 1) / to_count
         if min(a1, b1) - max(a0, b0) > 1e-12:
             result.append(other)
     return result
 
 
-@given(st.integers(0, 300), st.data())
-def test_overlapping_slots_match_a_brute_force_angle_check(ring, data):
-    slot = data.draw(st.integers(0, gg.ring_sector_count(ring) - 1))
-    for other in (ring - 1, ring + 1):
-        if other < 0:
+@given(st.integers(1, 400), st.integers(1, 400), st.data())
+def test_overlapping_wedges_match_a_brute_force_angle_check(from_count, to_count, data):
+    wedge = data.draw(st.integers(0, from_count - 1))
+    assert list(spherical._overlapping_wedges(from_count, wedge, to_count)) == _float_overlaps(from_count, wedge, to_count)
+
+
+def _brute_force_neighbors(shell, band, wedge):
+    """Every cell sharing a face of nonzero area, by testing every band of the three nearest shells."""
+    n = spherical.wedge_count(shell, band)
+    north, south = spherical.band_colatitude_bounds(shell, band)
+    found = set()
+    for other_shell in (shell - 1, shell, shell + 1):
+        if other_shell < 0:
             continue
-        assert gg._overlapping_slots(ring, slot, other) == _float_overlaps(ring, slot, other)
+        low, high = spherical.band_range(other_shell)
+        for other in range(low, high + 1):
+            o_north, o_south = spherical.band_colatitude_bounds(other_shell, other)
+            m = spherical.wedge_count(other_shell, other)
+            if other_shell == shell:
+                if other == band:
+                    if n > 1:
+                        found.update({(shell, band, (wedge - 1) % n), (shell, band, (wedge + 1) % n)})
+                    continue
+                touches = abs(other - band) == 1 and min(south, o_south) - max(north, o_north) > -1e-12
+                if not touches:
+                    continue
+            elif min(south, o_south) - max(north, o_north) <= 1e-12:
+                continue
+            found.update((other_shell, other, w) for w in _float_overlaps(n, wedge, m))
+    found.discard((shell, band, wedge))
+    return found
 
 
-def test_neighbors_of_every_cell_in_the_first_rings_brute_force():
-    # Exhaustive, not sampled: every cell in rings 0..40 on one layer.
-    for ring in range(41):
-        for slot in range(gg.ring_sector_count(ring)):
-            neighbors = set(gg.neighbor_addresses(ring, 0, slot))
-            expected = {(ring, 0, (slot - 1) % gg.ring_sector_count(ring)),
-                        (ring, 0, (slot + 1) % gg.ring_sector_count(ring)),
-                        (ring, -1, slot), (ring, 1, slot)}
-            for other in (ring - 1, ring + 1):
-                if other >= 0:
-                    expected.update((other, 0, s) for s in _float_overlaps(ring, slot, other))
-            expected.discard((ring, 0, slot))
-            assert neighbors == expected, (ring, slot)
+@settings(max_examples=60)
+@given(addresses(shells=st.integers(0, 45)))
+def test_neighbors_match_a_brute_force_scan_of_the_nearby_bands(address):
+    assert set(spherical.neighbor_addresses(*address)) == _brute_force_neighbors(*address)
+
+
+def test_the_core_touches_all_of_shell_one_and_nothing_else():
+    assert set(spherical.neighbor_addresses(0, 0, 0)) == set(spherical.shell_cells(1))
 
 
 # --- designations --------------------------------------------------------------
 
-@given(addresses(rings=st.integers(0, 60000)))
+def _designatable(address):
+    return -spherical.DESIGNATION_BAND_BIAS <= address[1] < spherical.DESIGNATION_BAND_BIAS
+
+
+@given(addresses().filter(_designatable))
 def test_designations_round_trip(address):
-    designation = gg.provisional_sector_designation(*address)
+    designation = spherical.provisional_sector_designation(*address)
     assert designation == designation.upper()
     assert all(c in "0123456789ABCDEF" for c in designation)
-    assert gg.parse_sector_designation(designation) == address
-    assert gg.parse_sector_designation(f"  {designation.lower()}\n") == address
+    assert spherical.parse_sector_designation(designation) == address
+    assert spherical.parse_sector_designation(f"  {designation.lower()}\n") == address
 
 
-@given(addresses(rings=st.integers(0, 3000)), addresses(rings=st.integers(0, 3000)))
+@given(addresses(shells=st.integers(0, 3000)).filter(_designatable),
+       addresses(shells=st.integers(0, 3000)).filter(_designatable))
 def test_distinct_addresses_get_distinct_designations(a, b):
     assume(a != b)
-    assert gg.provisional_sector_designation(*a) != gg.provisional_sector_designation(*b)
+    assert spherical.provisional_sector_designation(*a) != spherical.provisional_sector_designation(*b)
 
 
-@given(st.integers(0, 100), st.one_of(st.integers(max_value=-4097), st.integers(min_value=4096)))
-def test_designation_rejects_layers_outside_its_bit_field(ring, layer):
+@given(addresses(shells=st.integers(1300, 4095)).filter(lambda address: not _designatable(address)))
+def test_designation_rejects_bands_outside_its_bit_field(address):
+    # The caps and high bands of the outer shells (past about shell 1,300) are beyond the 12-bit band field.
     with pytest.raises(ValueError):
-        gg.provisional_sector_designation(ring, layer, 0)
+        spherical.provisional_sector_designation(*address)
 
 
-@given(st.integers(max_value=-1), LAYERS, st.integers(0, 2))
-def test_designation_rejects_negative_rings(ring, layer, slot):
+@given(st.integers(min_value=1 << 12, max_value=10**6))
+def test_designation_rejects_shells_outside_its_bit_field(shell):
     with pytest.raises(ValueError):
-        gg.provisional_sector_designation(ring, layer, slot)
+        spherical.provisional_sector_designation(shell, 0, 0)
 
 
-@given(st.integers(0, 5000), LAYERS, st.integers(min_value=0, max_value=(1 << 20) - 1))
-def test_designation_rejects_slots_the_ring_does_not_have(ring, layer, slot):
-    assume(slot >= gg.ring_sector_count(ring))
+@given(st.integers(max_value=-1), st.integers(-3, 3), st.integers(0, 2))
+def test_designation_rejects_negative_shells(shell, band, wedge):
     with pytest.raises(ValueError):
-        gg.provisional_sector_designation(ring, layer, slot)
+        spherical.provisional_sector_designation(shell, band, wedge)
+
+
+@given(st.integers(0, 3000), st.integers(min_value=0, max_value=(1 << 20) - 1))
+def test_designation_rejects_wedges_the_band_does_not_have(shell, wedge):
+    assume(wedge >= spherical.wedge_count(shell, 0))
+    with pytest.raises(ValueError):
+        spherical.provisional_sector_designation(shell, 0, wedge)
 
 
 @given(st.text(max_size=30))
@@ -297,22 +385,23 @@ def test_designation_rejects_slots_the_ring_does_not_have(ring, layer, slot):
 @example("-1")
 @example("G")
 @example("0x")
-@example("FFFFF")  # slot 1,048,575 of ring 0
+@example("FFFFF")  # shell 0, a band and a wedge the core does not have
 def test_parse_designation_only_ever_raises_value_error(text):
     try:
-        ring, layer, slot = gg.parse_sector_designation(text)
+        shell, band, wedge = spherical.parse_sector_designation(text)
     except ValueError:
         return
-    assert ring >= 0
-    assert -4096 <= layer <= 4095
-    assert 0 <= slot < gg.ring_sector_count(ring)
+    assert shell >= 0
+    low, high = spherical.band_range(shell)
+    assert low <= band <= high
+    assert 0 <= wedge < spherical.wedge_count(shell, band)
 
 
 # --- zones and quadrants -------------------------------------------------------
 
 @given(finite, finite)
 def test_quadrant_is_always_one_to_four_and_matches_the_angle(x, y):
-    quadrant = gg.sector_quadrant(x, y)
+    quadrant = spherical.sector_quadrant(x, y)
     assert quadrant in (1, 2, 3, 4)
     # Within a rounding error of an axis, atan2 may land on either side.
     assume(abs(x) > 1e-9 * abs(y) and abs(y) > 1e-9 * abs(x))
@@ -327,51 +416,50 @@ def test_quadrant_is_always_one_to_four_and_matches_the_angle(x, y):
 
 
 @given(st.integers(0, 10**6), st.floats(0.1, 1000), st.floats(0.1, 10000))
-def test_zones_are_monotone_in_ring(ring, edge_ly, target):
-    assert 0 <= gg.sector_zone(ring, edge_ly, target) <= gg.sector_zone(ring + 1, edge_ly, target)
+def test_zones_are_monotone_in_shell(shell, edge_ly, target):
+    assert 0 <= spherical.sector_zone(shell, edge_ly, target) <= spherical.sector_zone(shell + 1, edge_ly, target)
 
 
 # --- enumerate_sectors_within_radius ------------------------------------------
 
 def _brute_force_within(center, radius, edge):
-    cx, cy, cz = center
-    r_c = math.hypot(cx, cy)
+    reach = math.dist(center, (0.0, 0.0, 0.0))
     eps = 1e-9
     found = set()
-    for ring in range(0, int((r_c + radius) / edge) + 2):
-        n = gg.ring_sector_count(ring)
-        for layer in range(math.floor((cz - radius) / edge) - 1, math.ceil((cz + radius) / edge) + 2):
-            for slot in range(n):
-                position = gg.sector_position_pc(ring, layer, slot, edge)
-                if math.dist(position, center) <= radius + eps:
-                    found.add((ring, layer, slot))
+    # A cell's center is `shell * edge` from the origin, so only these shells can hold one in range.
+    first = max(0, math.floor((reach - radius) / edge) - 1)
+    for shell in range(first, int((reach + radius) / edge) + 2):
+        for shell_, band, wedge in spherical.shell_cells(shell):
+            position = spherical.sector_position_pc(shell, band, wedge, edge)
+            if math.dist(position, center) <= radius + eps:
+                found.add((shell, band, wedge))
     return found
 
 
 @settings(max_examples=40)
 @given(
-    st.tuples(st.floats(-60, 60), st.floats(-60, 60), st.floats(-30, 30)),
+    st.tuples(st.floats(-40, 40), st.floats(-40, 40), st.floats(-30, 30)),
     st.floats(0, 25),
     st.sampled_from([4.0, 3.0, 7.5]),
 )
 @example((0.0, 0.0, 0.0), 0.0, 4.0)
-@example((0.0, 0.0, 0.0), 2.0, 4.0)  # exactly reaches ring 0's centers
-@example((6.0, 0.0, 0.0), 0.0, 4.0)  # exactly on a center
-@example((0.0, 0.0, 2.0), 25.0, 4.0)
+@example((0.0, 0.0, 0.0), 4.0, 4.0)   # exactly reaches shell 1's centers
+@example((8.0, 0.0, 0.0), 0.0, 4.0)   # exactly on a center
+@example((0.0, 0.0, 4.0), 25.0, 4.0)  # on the axis, on a cap's center
 def test_enumerate_within_radius_matches_brute_force(center, radius, edge):
-    fast = {(r, l, s) for r, l, s, *_ in gg.enumerate_sectors_within_radius(center, radius, edge)}
+    fast = {(s, b, w) for s, b, w, *_ in spherical.enumerate_sectors_within_radius(center, radius, edge)}
     assert fast == _brute_force_within(center, radius, edge)
 
 
 @given(st.tuples(st.floats(-200, 200), st.floats(-200, 200), st.floats(-50, 50)), st.floats(0, 40), EDGES)
 def test_enumerate_within_radius_yields_consistent_tuples(center, radius, edge):
     seen = set()
-    for ring, layer, slot, x, y, z, distance in gg.enumerate_sectors_within_radius(center, radius, edge):
-        assert (ring, layer, slot) not in seen
-        seen.add((ring, layer, slot))
+    for shell, band, wedge, x, y, z, distance in spherical.enumerate_sectors_within_radius(center, radius, edge):
+        assert (shell, band, wedge) not in seen
+        seen.add((shell, band, wedge))
         # math.isclose with pytest.approx's default tolerances: this loop
         # can visit a million sectors, and approx() costs ~10x more each.
-        expected = gg.sector_position_pc(ring, layer, slot, edge)
+        expected = spherical.sector_position_pc(shell, band, wedge, edge)
         assert all(_approx(a, b) for a, b in zip((x, y, z), expected)), ((x, y, z), expected)
         assert distance <= radius + 1e-9
         assert _approx(distance, math.dist((x, y, z), center))
@@ -384,40 +472,48 @@ def _approx(a, b):
 @given(st.floats(max_value=-1e-12, allow_nan=False, allow_infinity=False))
 def test_enumerate_rejects_a_negative_radius(radius):
     with pytest.raises(ValueError):
-        list(gg.enumerate_sectors_within_radius((0.0, 0.0, 0.0), radius, 4.0))
+        list(spherical.enumerate_sectors_within_radius((0.0, 0.0, 0.0), radius, 4.0))
 
 
 @given(st.floats(max_value=0.0, allow_nan=False, allow_infinity=False))
 def test_enumerate_rejects_a_non_positive_edge(edge):
     with pytest.raises(ValueError):
-        list(gg.enumerate_sectors_within_radius((0.0, 0.0, 0.0), 1.0, edge))
+        list(spherical.enumerate_sectors_within_radius((0.0, 0.0, 0.0), 1.0, edge))
 
 
-@given(st.integers(1, 30), st.integers(0, 5000))
-def test_slots_near_angle_always_returns_valid_distinct_slots(n_seed, data_seed):
+@given(st.integers(1, 400), st.integers(0, 5000))
+def test_wedges_near_longitude_returns_valid_distinct_wedges_and_every_close_one(count, data_seed):
     rng = random.Random(data_seed)
-    n = gg.ring_sector_count(n_seed)
-    theta = rng.uniform(-10, 10)
+    center = rng.uniform(0, 2 * math.pi)
     half = rng.uniform(0, 4)
-    slots = list(gg._slots_near_angle(n, theta, half))
-    assert len(slots) == len(set(slots))
-    assert all(0 <= s < n for s in slots)
+    wedges = list(spherical._wedges_near_longitude(count, center, half))
+    assert len(wedges) == len(set(wedges)) and all(0 <= w < count for w in wedges)
+    step = 2 * math.pi / count
+    for w in range(count):
+        middle = (w + 0.5) * step
+        gap = abs((middle - center + math.pi) % (2 * math.pi) - math.pi)
+        if gap < half - 1e-6:
+            assert w in wedges, (count, center, half, w)
 
 
 # --- describe_sector_cell ------------------------------------------------------
 
-@given(addresses(rings=st.integers(0, 3000)), EDGES)
+@given(addresses(shells=st.integers(0, 3000)).filter(_designatable), EDGES)
 def test_describe_sector_cell_is_self_consistent(address, edge):
-    cell = gg.describe_sector_cell(*address, edge)
-    ring, layer, slot = address
+    cell = spherical.describe_sector_cell(*address, edge)
+    shell, band, wedge = address
     x, y, z = cell["cartesian_pc"]
-    assert gg.sector_address_at((x, y, z), edge) == address
-    assert gg.parse_sector_designation(cell["designation"]) == address
-    assert cell["bounds"]["r_inner_pc"] < cell["cylindrical"]["r_pc"] < cell["bounds"]["r_outer_pc"]
-    assert cell["bounds"]["z_bottom_pc"] < cell["cylindrical"]["z_pc"] < cell["bounds"]["z_top_pc"]
+    assert spherical.sector_address_at((x, y, z), edge) == address
+    assert spherical.parse_sector_designation(cell["designation"]) == address
+    assert (cell["shell_index"], cell["band_index"], cell["wedge_index"]) == address
+    bounds = cell["bounds"]
+    assert bounds["r_inner_pc"] <= cell["spherical"]["r_pc"] < bounds["r_outer_pc"]
+    assert bounds["colatitude_north_rad"] <= cell["spherical"]["polar_rad"] <= bounds["colatitude_south_rad"]
+    assert math.isclose(math.hypot(x, y), cell["cylindrical"]["r_pc"], abs_tol=1e-9 * max(1.0, abs(z)))
     assert cell["volume_pc3"] > 0
     assert 0 <= cell["spherical"]["polar_rad"] <= math.pi
-    for value in (x, y, z, cell["volume_pc3"], cell["mean_arc_length_pc"]):
+    assert len(cell["vertices_pc"]) == 8
+    for value in (x, y, z, cell["volume_pc3"], cell["mean_band_arc_pc"], cell["mean_wedge_arc_pc"]):
         assert math.isfinite(value)
 
 
