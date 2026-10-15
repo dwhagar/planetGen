@@ -8,6 +8,7 @@ markers (`tests/areas.py`, added by `conftest.py`) and the slice picker
 
 import importlib.util
 import os
+import sys
 
 import pytest
 
@@ -70,7 +71,7 @@ def test_full_runs_the_browser_tests_after_the_rest_on_fewer_workers():
 def test_budget_runs_only_the_budget_tests_on_one_worker_and_switches_them_on(monkeypatch):
     assert runner.build_phases("budget", [], 8, 2) == [("budget", "budget", 1)]
     seen = []
-    monkeypatch.setattr(runner.subprocess, "run", lambda command, cwd=None, env=None, **kw: seen.append(env) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: seen.append(environment) or (0, {"passed": 1}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["budget"]) == 0
@@ -101,7 +102,7 @@ def test_a_run_is_remembered_for_the_next_one(tmp_path, monkeypatch):
 
 def test_everything_after_a_double_dash_goes_to_pytest(monkeypatch):
     calls = []
-    monkeypatch.setattr(runner.subprocess, "run", lambda command, cwd=None, **kw: calls.append(command) or type("R", (), {"returncode": 0})())
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: calls.append(command) or (0, {"passed": 1}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["quick", "--", "-x", "-k", "login", "--durations=5"]) == 0
@@ -145,8 +146,43 @@ def test_changed_runs_the_same_two_phases_as_full():
 
 def test_changed_options_reach_pytest(monkeypatch):
     calls = []
-    monkeypatch.setattr(runner.subprocess, "run", lambda command, cwd=None, **kw: calls.append(command) or type("R", (), {"returncode": 5})())
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: calls.append(command) or (5, {}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["changed", "--base", "HEAD~1"]) == 0
     assert all(call[-2:] == ["--changed", "HEAD~1"] for call in calls) and len(calls) == 2
+
+
+def test_the_summary_line_of_pytest_gives_the_counts():
+    assert runner.summary_counts("=== 3 failed, 15419 passed, 22 skipped, 2 errors in 1081.44s (0:18:01) ===") == {
+        "failed": 3, "passed": 15419, "skipped": 22, "errors": 2}
+    assert runner.summary_counts("12 passed in 0.5s") == {}  # only the `=` banner line
+    assert runner.summary_counts("FAILED src/tests/test_x.py::test_a - 3 passed") == {}
+
+
+def test_the_last_line_says_pass_fail_or_interrupted(monkeypatch, capsys):
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: (0, {"passed": 7, "skipped": 1}))
+    assert runner.main(["quick"]) == 0
+    assert "quick: PASS in" in capsys.readouterr().out.splitlines()[-1]
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: (1, {"passed": 5, "failed": 2}))
+    assert runner.main(["quick"]) == 1
+    last = capsys.readouterr().out.splitlines()[-1]
+    assert "quick: FAIL in" in last and "5 passed, 2 failed" in last
+
+    def stopped(command, environment):
+        raise KeyboardInterrupt("SIGTERM")
+
+    monkeypatch.setattr(runner, "run_phase", stopped)
+    assert runner.main(["quick"]) == 130
+    last = capsys.readouterr().out.splitlines()[-1]
+    assert "quick: INTERRUPTED (SIGTERM) in the quick phase" in last and "not finished" in last
+
+
+def test_run_phase_passes_the_output_through_and_returns_the_counts(capfd):
+    code, counts = runner.run_phase([sys.executable, "-c", "print('hello'); print('=== 2 passed, 1 skipped in 0.10s ===')"],
+                                    dict(os.environ))
+    assert code == 0 and counts == {"passed": 2, "skipped": 1}
+    assert "hello" in capfd.readouterr().out

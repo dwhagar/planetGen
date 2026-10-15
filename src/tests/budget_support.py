@@ -6,7 +6,7 @@ queries read.
 
 `ensure_big_galaxy` builds (once, then reuses) a database of `PLANETGEN_BUDGET_SYSTEMS` systems (default 2,000,000),
 one star each, spread over `PLANETGEN_BUDGET_SECTORS` sectors (default 150,000), by cloning one real saved system.
-That takes about two minutes and 3 GB, which is why the tier is opt-in (`scripts/test.py budget`) and why the
+That takes about eight minutes and 3 GB, which is why the tier is opt-in (`scripts/test.py budget`) and why the
 database is kept between runs, named for its size and the schema version so a new schema rebuilds it.
 
 `rows_read(conn, call)` runs one page's query function on a connection and returns how many rows the server read to

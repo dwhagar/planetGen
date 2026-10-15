@@ -21,8 +21,9 @@ and when the run ends the failed tests are run again alone, on one worker, each 
 (it only failed under load or beside other tests) or "fails alone" (a real failure). `--no-rerun` skips that.
 
 The first line printed is the start time and how long this command took last
-time on this checkout; the last line is the duration, which is stored in
-`.test-runs.json` (not tracked by git) for the next run.
+time on this checkout; the last line is `PASS` or `FAIL` with the duration and the counts, or `INTERRUPTED` when the
+run was stopped (Ctrl-C, or a stop from outside) -- a run whose output ends with none of the three was killed
+without a chance to say so. The duration is stored in `.test-runs.json` (not tracked by git) for the next run.
 
 Needs the same setup as plain pytest (docs/testing.md): the `test` extra, a
 MySQL or MariaDB server and Redis through the PLANETGEN_TEST_* variables.
@@ -32,6 +33,8 @@ import argparse
 import datetime
 import json
 import os
+import re
+import signal
 import subprocess
 import sys
 import time
@@ -78,6 +81,46 @@ def pytest_command(marker, workers, extra):
     if workers and workers > 1:
         command += ["-n", str(workers)]
     return command + list(extra)
+
+
+SUMMARY_COUNT = re.compile(r"(\d+) (passed|failed|errors?|skipped|xfailed|xpassed|deselected)")
+
+
+def summary_counts(line):
+    """{word: count} from a pytest summary line such as `=== 3 failed, 15419 passed, 22 skipped in 1081.44s ===`,
+    or {} when the line is not one."""
+    if not (line.startswith("=") and re.search(r" in [\d.]+s", line)):
+        return {}
+    counts = {}
+    for number, word in SUMMARY_COUNT.findall(line):
+        counts["errors" if word.startswith("error") else word] = int(number)
+    return counts
+
+
+def run_phase(command, environment):
+    """Runs one pytest command, passing its output through line by line. Returns (exit code, counts from its
+    summary line). If this process is interrupted the child is stopped first and the interrupt goes on."""
+    counts = {}
+    child = subprocess.Popen(command, cwd=ROOT, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             text=True, errors="replace", bufsize=1)
+    try:
+        for line in child.stdout:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            counts = summary_counts(line.strip()) or counts
+        return child.wait(), counts
+    except BaseException:
+        child.terminate()
+        try:
+            child.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            child.kill()
+        raise
+
+
+def describe_counts(counts):
+    order = ("passed", "failed", "errors", "skipped", "xfailed", "xpassed", "deselected")
+    return ", ".join(f"{counts[word]} {word}" for word in order if counts.get(word)) or "no tests ran"
 
 
 def load_runs():
@@ -174,6 +217,7 @@ def main(argv=None):
           + (f", last time {minutes(previous['seconds'])}" if previous else ", no earlier run recorded"), flush=True)
 
     status = 0
+    totals = {}
     try:
         os.remove(FAILURES_FILE)
     except OSError:
@@ -181,16 +225,34 @@ def main(argv=None):
     environment = dict(os.environ, PLANETGEN_FAILURE_LOG=FAILURES_FILE)
     if args.command == "budget":
         environment["PLANETGEN_BUDGET"] = "1"
-    for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
-        print(f"--- {label}: -m {marker!r}, {workers} worker(s)", flush=True)
-        result = subprocess.run(pytest_command(marker, workers, extra), cwd=ROOT, env=environment)
-        if result.returncode not in (0, 5):  # 5: nothing collected in this phase
-            status = status or result.returncode
-    if status and not args.no_rerun:
-        rerun_failures(environment)
+    phase = "before the first phase"
+
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt(signal.Signals(signum).name)
+
+    previous_handler = signal.signal(signal.SIGTERM, interrupted)  # a stop from outside ends like Ctrl-C: with the INTERRUPTED line
+    try:
+        for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
+            phase = label
+            print(f"--- {label}: -m {marker!r}, {workers} worker(s)", flush=True)
+            code, counts = run_phase(pytest_command(marker, workers, extra), environment)
+            for word, number in counts.items():
+                totals[word] = totals.get(word, 0) + number
+            if code not in (0, 5):  # 5: nothing collected in this phase
+                status = status or code
+        if status and not args.no_rerun:
+            rerun_failures(environment)
+    except KeyboardInterrupt as stop:
+        seconds = round(time.time() - started)
+        print(f"scripts/test.py {key}: INTERRUPTED ({stop.args[0] if stop.args else 'Ctrl-C'}) in the {phase} phase "
+              f"after {minutes(seconds)}; not finished, {describe_counts(totals)} so far", flush=True)
+        return 130
+    finally:
+        signal.signal(signal.SIGTERM, previous_handler)
     seconds = time.time() - started
     save_run(key, seconds, status == 0)
-    print(f"scripts/test.py {key}: {'passed' if status == 0 else 'FAILED'} in {minutes(round(seconds))}", flush=True)
+    print(f"scripts/test.py {key}: {'PASS' if status == 0 else 'FAIL'} in {minutes(round(seconds))}: "
+          f"{describe_counts(totals)}", flush=True)
     return status
 
 

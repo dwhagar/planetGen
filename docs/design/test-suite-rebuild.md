@@ -260,3 +260,14 @@ Checked on a small file set: touching a file nothing used selected 0 of 43; touc
 - Cases are the project's own query functions: the Systems and Sectors pages (several sorts, a star-type filter, offsets 0, 20,000 and a quarter of the table) and the counts. TEST.135 adds the nebula reads once DB.24 is in.
 - First run on 200,000 systems found: sort by sector and by octant are now within budget (PERF.70 holds); the Sectors list sorted by name, systems or density, the Systems page filtered by star type, and deep offsets by name read far more than a page and are expected failures until their fixes land.
 - `test_budget_support.py` builds 3,000 systems and runs every case in the ordinary run, so a schema or query change that breaks the tier is seen at once.
+- **Measured on the full size** (2026-10-15, MariaDB 10.11): building 2,000,000 systems took 474 s (397 s of it the system rows, whose many indexes are the cost), 45 s for the stars, 22 s to rebuild the full-text indexes; the 13 cases then ran in about 60 s: 7 within budget, 6 expected failures. Later runs reuse the database.
+
+## 15. A clear last line from `scripts/test.py` (Boss, 2026-10-15 00:09Z)
+
+Boss's rule: a run must never be cut by the 30-minute background limit, and it must be certain when a run is done. Start every long run with `run_in_background` and a timeout of at least 90 minutes (7,200,000 ms), with its output and start time written to a file. `scripts/test.py` now passes pytest's output through and ends with exactly one of:
+
+- `scripts/test.py <command>: PASS in <time>: <counts>`
+- `scripts/test.py <command>: FAIL in <time>: <counts>` (the failed tests were already listed with their verdicts above it)
+- `scripts/test.py <command>: INTERRUPTED (<signal>) in the <phase> phase after <time>; not finished, <counts> so far` on Ctrl-C or a SIGTERM; the child pytest is stopped first.
+
+A run whose output ends with none of the three was killed (SIGKILL or the background limit, which cannot be caught) and counts as not run.

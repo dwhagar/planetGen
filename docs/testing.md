@@ -189,6 +189,14 @@ A pull request needs a green `scripts/test.py changed` (below) or, at the end of
 a sequence of related items, a green `scripts/test.py full` (or `pytest -n auto`
 as before).
 
+### Telling when a run is done
+
+`scripts/test.py` always ends with one line: `PASS in <time>: <counts>`, `FAIL in <time>: <counts>`, or `INTERRUPTED ...`
+(Ctrl-C or a SIGTERM; it stops pytest first). Output that ends with none of these was killed. A full run takes about
+45 to 75 minutes, so start it in the background with a timeout of at least 90 minutes (7,200,000 ms; the default 30
+minutes cuts it), with its output and start time written to a file, and read the last line of that file rather than
+looking for processes.
+
 ### Only the tests a change touches, `scripts/test.py changed`
 
 `scripts/test.py full` also records, for every test that passed, which
@@ -320,7 +328,7 @@ These skip unless you turn them on:
   and `PLANETGEN_TEST_MEDIAWIKI_PASSWORD`.
 - `src/tests/test_budget_queries.py` is the big-galaxy query budget (TEST.133): `scripts/test.py budget`. It
   builds (once; kept between runs) a database of 2,000,000 systems on 150,000 sectors by cloning one real saved
-  system, about two minutes and 3 GB, named for its size and the schema version so a new schema builds it again.
+  system, about eight minutes and 3 GB, named for its size and the schema version so a new schema builds it again.
   Each case runs one page or list query and counts the rows the server read (the session's `Handler_read*`
   counters, which do not depend on how fast the machine is); it fails when a page reads far more rows than it
   shows. It is not in the merge gate or CI: run it by hand before a performance merge. `PLANETGEN_BUDGET_SYSTEMS`
