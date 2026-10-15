@@ -12,6 +12,8 @@ Informs: GEN.115, GEN.108, GEN.106, GEN.125, GEN.6 (done), GEN.9 (context only)
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The `gala` objection in the library section (it needs Python 3.12 or later, which was above the old floor) no longer holds on the floor; re-check it if a library is wanted. The `R0` and constants figures are unaffected.
+
 See also: [orbital-updates.md](orbital-updates.md) (the update run, thresholds
 and the other solvers), [galaxy-coordinate-system.md](galaxy-coordinate-system.md)
 (frame, grid, galactic orbits since 7.37.0) and

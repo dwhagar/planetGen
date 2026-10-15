@@ -13,6 +13,8 @@ Informs: OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.18, ADM.19, ADM.20
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The stale-lock table's "Python 3.9" column (`filelock`) describes the old floor.
+
 Evidence tags: [S] seen in a search result or a fetched primary file (URL
 in Sources), [C] computed or measured in the research sandbox, [R]
 recalled and unconfirmed. The research environment could only read

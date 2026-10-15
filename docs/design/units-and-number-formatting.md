@@ -11,6 +11,8 @@ Informs: UX.23, UX.22, UX.36, UX.30, UX.32, GEN.66 (and, only where relevant, UX
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+**Update (2026-10-15).** Astropy is no longer a runtime dependency (GEN.211, #1310): `physics/constants.py` is a literal table, so "the ladder module imports from `physics/constants.py`, which reads astropy" is out of date and the lock-file reproducibility gap in finding 3 is closed. The recommendation (a custom table) stands and is easier. The project floor is Python 3.12 (OPS.42), so the Python 3.9 rows and the "Python 3.9 compatible" module header are history.
+
 Evidence tags: [S] seen in a search result or a fetched primary file (URL in
 Sources), [C] computed or measured in the research sandbox, [R] recalled and
 unconfirmed. The research environment could only read search-result text and

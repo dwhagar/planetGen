@@ -6,6 +6,8 @@ Informs: DB.8, DB.9, DB.10, DB.11 (Alembic parts of DB.7 and NAV.10), DB.13, DB.
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The `pyeclib` exclusion ("fails the macOS and Python 3.9 requirement") rests on a floor that no longer exists; the in-tree codec stays chosen, but the reason should be re-checked against 3.12.
+
 Evidence tags: [S] seen (source file, PyPI JSON or search text, listed under Sources), [C] computed or measured during the research, [R] recalled from memory and unconfirmed. The research environment could only read search-result text and raw source files, not the papers or manuals themselves. Every statement about MySQL 8.4 or MariaDB 11.4 behaviour is read from their GitHub source, measured on the one server available (MariaDB 10.11.14), or tagged [R]. No MySQL 8.4 or MariaDB 11.4 server was available. Repo statements were re-checked against the checkout on 2026-10-09.
 
 ## 1. Decisions already taken
