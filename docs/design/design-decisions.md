@@ -6,12 +6,16 @@ was chosen, when, why, and what was turned down. Versions are from
 written down anywhere in the repository, this file says so instead of
 guessing.
 
+**Status lines (2026-10-15).** Each decision below opens with a status: *in force*, *reversed*, *built* or *being replaced*, with the TODO item. The decisions are kept as written; the status says what happened since.
+
 The git history in this repository starts on 2026-09-23 (PR #66). Earlier
 choices are known only from `CHANGELOG.md` and old copies of `docs/TODO.md`.
 
 ---
 
 ## 1. The cylindrical sector grid (rings, layers, slots; 4 pc sectors)
+
+**Status: being replaced.** Boss (2026-10-15) replaced the ring, layer and slot grid with spherical sectors: shells of 4 pc depth, latitude bands and wedges from pole to pole. The switch is built on `claude/spherical-switch` and not yet on main; [spherical-sector-coordinates.md](spherical-sector-coordinates.md) is the plan, and this section and `galaxy-coordinate-system.md` describe the grid main still runs until it merges.
 
 **Chosen:** every galaxy-placed sector is one cell of a cylindrical grid
 around the galactic axis: ring `i` (radius), layer `j` (height, layer 0 on
@@ -59,6 +63,8 @@ sectors with their systems and phenomena.
 
 ## 2. Rendering system pages from the database instead of storing text
 
+**Status: in force.**
+
 **Chosen:** a system's wikitext and Markdown pages are rendered on demand
 from its rows (`planetgen/db/render.py`). The stored copies
 (`star_systems.wikitext_content`, `markdown_content`) are gone.
@@ -82,6 +88,8 @@ why loading a binary now re-derives which star is heavier (same release).
 ---
 
 ## 3. three.js for the Galaxy Map (and the other maps)
+
+**Status: in force.**
 
 **Chosen:** the Sector, System and Galaxy Maps draw with three.js (r186),
 vendored as one minified file in `src/html/static/vendor/`, not loaded from
@@ -112,6 +120,8 @@ hand). If WebGL runs out, three's own `InstancedMesh`, `BatchedMesh` and
 ---
 
 ## 4. A Flask-only website (CGI pages removed)
+
+**Status: in force.**
 
 **Chosen:** every page is served by the same Flask app as the API
 (`src/planetgen/web/`, Jinja2 templates, mounted at `/` through mod_wsgi or
@@ -147,6 +157,8 @@ Flask (it existed by 5.3.2).
 
 ## 5. MySQL as the store
 
+**Status: in force, with the pool changed.** The connection pool is SQLAlchemy's `QueuePool` (`db/store.py`), not `DBUtils.PooledDB`, and schema migrations are Alembic revisions (DB.11); the schema is past v43, at v90 on main (`db/migrations/versions/`).
+
 **Chosen:** MySQL 8.0.16+ or a compatible MariaDB, InnoDB tables, through
 `pymysql` with a `DBUtils.PooledDB` connection pool. Schema changes are
 numbered migrations recorded in `schema_migrations` (now at v43).
@@ -174,6 +186,8 @@ start at v8), so it could never run.
 
 ## 6. Release notes in `changes/`, versions stamped after merge
 
+**Status: in force.** A note may open with a `**Headline:**` line (DOC.39).
+
 **Chosen:** a PR does not edit the version. It adds one note,
 `changes/<name>.<patch|minor|major>.md`. After the merge,
 `.github/workflows/stamp-version.yml` runs `scripts/bump_version.py`, which
@@ -200,6 +214,8 @@ plus one and never resets; the counters only allocate TODO IDs. See
 ---
 
 ## 7. System Python with apt on Linux, venvs elsewhere
+
+**Status: reversed by OPS.45** (merged, #1333, 2026-10-14). The installers now make planetGen's own virtual environment at `/usr/local/planetgen/venv` from the hash-checked lock, on Linux and macOS alike, and mod_wsgi reaches it through `python-home` ([apache.md](../deployment/apache.md#planetgens-own-python)); the system Python is left alone. The dedicated venv this section turned down "for now" is the one that was built.
 
 **Chosen:** on Linux, `install.sh` and `update.sh` put the libraries into the
 system Python. On an externally managed Python (PEP 668: Debian 12+,
@@ -241,6 +257,8 @@ recorded.
 ---
 
 ## 8. Population as a separate pass, optional and off by default
+
+**Status: in force.**
 
 **Chosen:** species, civilizations, polities and territories are built by
 their own pass over what is already stored (`generate.py population`,
@@ -294,6 +312,8 @@ population data (`GET /api/population`, a polity count). Details:
 
 ## 9. An in-memory cache for the pages' API answers
 
+**Status: in force.**
+
 **Chosen:** each web process keeps the API's public GET answers in memory
 (`planetgen/web/lib/pagecache.py`, asked by `apiclient._request` before each call).
 Any successful API write in the process clears it; at most once every 15
@@ -326,6 +346,8 @@ say why; the chosen scheme is simpler and needs only the one stamp call.
 
 ## 10. A drill-down for the Galaxy Map instead of a free camera
 
+**Status: being replaced.** The fly-through map (MAP.146 and MAP.147 to MAP.155) is the planned replacement for the drill-down stages and Free look; until it is built the stages stay, and the spherical sector switch (decision 1) changes the block ladder they sit on.
+
 **Chosen:** the Galaxy Map opens on discrete stages: blocks 243, 27 and 3
 sectors a side, then single sectors, alternating a 3D view of a block's
 children and a top-down view of one slab, eight clicks from the galaxy to
@@ -349,7 +371,9 @@ every drag-rotate and to start top-down, picking a wedge, then a slice,
 then a block. That would settle the design doc's decision 2 against Free
 look and change how the first stages work.
 
-## 11. Third-party libraries instead of zero dependencies (planned)
+## 11. Third-party libraries instead of zero dependencies
+
+**Status: largely built** (OPS.20 to OPS.24, DB.11, PERF.24, UX.39 to UX.41, ADM.22, MAP.102). Two parts changed: astropy was dropped (GEN.211, #1310) and three-mesh-bvh was dropped; the work queue is being redone under PERF.86 (Redis only). See the status line in [library-migration.md](library-migration.md).
 
 **Chosen:** Boss (2026-10-03): "we have an explicit directive to move the
 code base from a 0-dependency model into using 3rd party open source
@@ -371,7 +395,9 @@ fixed by the libraries rather than patched.
 **Turned down:** the job guide's broker-less process pool (Boss chose
 Redis); Huey and Celery (section 3 of `library-migration.md`).
 
-## 12. Names from IDs (planned)
+## 12. Names from IDs
+
+**Status: built** (object IDs, the naming key and the phoneme codec; [object-ids.md](object-ids.md)). IDs are renumbered when a sector moves to the spherical grid (decision 1).
 
 **Chosen:** Boss (2026-10-03): "Do away with name generation for any
 object, do away with our word-salad code entirely", narrowed on
@@ -390,7 +416,9 @@ an admin. Details: `object-ids.md`.
 registries, no word lists to keep reproducible), and changing the key
 renames the whole galaxy without touching a row.
 
-## 13. Every sector can be generated (planned)
+## 13. Every sector can be generated
+
+**Status: built** (GEN.81: a density or size refusal is now a warning, and the run goes ahead).
 
 **Chosen:** Boss (2026-10-03 and 2026-10-07): "No sector should generate
 and not fill with stuff even if there are no star systems" and "The
