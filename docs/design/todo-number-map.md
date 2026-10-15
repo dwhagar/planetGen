@@ -18,11 +18,11 @@ release is stamped.
 | NAV | NAV.60 |
 | GEN | GEN.268 |
 | PERF | PERF.103 |
-| DB | DB.33 |
+| DB | DB.34 |
 | API | API.28 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.163 |
+| TEST | TEST.164 |
 | USR | USR.12 |
 | OPS | OPS.51 |
 | DOC | DOC.51 |
@@ -502,6 +502,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.30 | One migration for the per-species environment limits | none | open |
 | DB.31 | Store structure, not prose, for life and flavour | none | open |
 | DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | none | done, PR #1607 |
+| DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1668,6 +1669,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | open |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | none | open |
+| TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count is 0 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

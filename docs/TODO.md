@@ -3474,6 +3474,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same for every body in a sector, and the flaky test passes
   repeatedly. Owner: Core (2026-10-15). Quality owns the test list, so
   the flake is not a TEST item. Bug.
+  Related failure (Quality, 2026-10-15, 4:56 PM EDT run):
+  `test_ensure_sector_generated_creates_then_reuses_the_same_sector`
+  (TEST.111) hung; it looks like this item, a fast star's path
+  integration running for minutes. Core fixes it here; Quality re-checks
+  TEST.111 afterwards.
   Prerequisites: none. Related: PERF.88.
 
 - [ ] **GEN.233 Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits**
@@ -4803,6 +4808,21 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
 
+- [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
+  Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
+  coordinator). On MySQL 8.0.46 the foreign keys `fk_facilities_type`
+  and `fk_facility_field_values_field` reflect with `ondelete` RESTRICT
+  while the models declare none, so `check-db` reports a healthy
+  database as damaged and six tests fail (test_db_check, test_db_models,
+  test_db_check_deep). Whether it also fails on main is not checked (the
+  cause is in the reflection of MySQL 8.0.46, not in the lane's change;
+  Core confirms on main first). Fix: compare RESTRICT, NO ACTION and
+  none as equal in `db/check.py` `_model_drift` and in `db/models.py`.
+  Done: check-db passes on a healthy MySQL 8.0.46 database, the six
+  tests pass, and a real drift in a foreign key's delete rule is still
+  reported. Owner: Core (2026-10-15).
+  Prerequisites: none.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -5376,6 +5396,10 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
+  Recurrence (Quality, 2026-10-15, 4:56 PM EDT run): the test hung, not
+  just failed, and looks like GEN.232's uncapped path integration of a
+  fast star. Core fixes GEN.232; Quality re-checks this test after it
+  and closes this item on 5 clean full runs as decided.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -5615,6 +5639,9 @@ clears each one.
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
   into the rebuild, no separate hunt; same family and fix as TEST.126.
   Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
+  Recurrence (Quality, 2026-10-15, 4:56 PM EDT run):
+  `test_open_map_menus_hold_no_overlap[web.sector-600]` also failed once
+  under load; same family, same fix.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -5803,6 +5830,18 @@ clears each one.
   middle of the evidence.
   Prerequisites: GEN.262, GEN.264. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **TEST.163 test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count is 0 (bug)**
+  Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
+  coordinator). `test_nav_ends_picked_from_bookmarks_on_every_page`
+  failed once under load with the `#course-heading` count at 0 (the page
+  had not finished rendering the course); it did not fail when re-run
+  alone. Not checked on main. Same load-timeout family as TEST.126 and
+  TEST.138. Done: the cause is found (a load timeout in the page wait,
+  or the heading really missing at that moment) and the test is made
+  reliable without loosening it. Owner: Quality (all TEST items are
+  Quality's), with TEST.126 and TEST.138.
+  Prerequisites: none.
 
 ## USR: User accounts
 
