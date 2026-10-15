@@ -42,7 +42,7 @@ EDGE_PC = 4.0
 RIM_RHO_PC = 6 * EDGE_PC / (2 * math.pi)
 
 
-@pytest.mark.parametrize("shell, expected", [(0, 1), (1, 14), (2, 50), (3, 104), (4, 194), (5, 296), (10, 1250)])
+@pytest.mark.parametrize("shell, expected", [(0, 1), (1, 14), (2, 50), (3, 104), (4, 206), (5, 296), (10, 1250)])
 def test_cell_count_of_the_first_shells(shell, expected):
     assert cell_count(shell) == expected
     assert sum(1 for _ in shell_cells(shell)) == expected
@@ -52,8 +52,29 @@ def test_shell_four_is_cut_as_the_study_measured():
     layout = shell_layout(4)
     assert math.degrees(layout.cap_colatitude) == pytest.approx(13.81, abs=0.01)
     assert layout.band_count == 11
-    assert [wedge_count(4, b) for b in range(5, -6, -1)] == [6, 12, 18, 24, 24, 24, 24, 24, 18, 12, 6][::1]
+    assert [wedge_count(4, b) for b in range(5, -6, -1)] == [12, 12, 18, 24, 24, 24, 24, 24, 18, 12, 12]
     assert band_range(4) == (-6, 6)
+
+
+@pytest.mark.parametrize("x, expected", [(0.2, 1), (1.0, 1), (1.4, 1), (1.5, 2), (11.0, 12), (11.9, 12), (13.0, 14),
+                                         (16.9, 16), (17.0, 18), (19.0, 20), (22.5, 24), (22.4, 21), (4320.0, 4320)])
+def test_the_wedge_multiplier_is_the_seven_smooth_number_nearest_in_ratio(x, expected):
+    assert spherical.nearest_smooth(x) == expected
+
+
+def test_every_band_of_every_shell_uses_one_rule():
+    """Boss (2026-10-15): 6 * m with m made only of 2, 3, 5 and 7 and nearest the 4 pc arc, in every ordinary band
+    of every shell from 4 out; no outline, window or neighbouring shell enters."""
+    for shell in [4, 5, 9, 31, 250, 1000, 3764, 4095]:
+        low, high = band_range(shell)
+        radius = shell * EDGE_PC
+        for band in range(low + 1, high):
+            m, remainder = divmod(wedge_count(shell, band), 6)
+            assert remainder == 0 and m >= 1
+            for prime in (2, 3, 5, 7):
+                while m % prime == 0:
+                    m //= prime
+            assert m == 1
 
 
 @pytest.mark.parametrize("shell", [4, 10, 100, 1000, 3764])
@@ -231,8 +252,8 @@ def test_a_cell_in_another_unit_scales_by_the_unit_cubed():
 
 
 def test_the_measured_arcs_in_a_deep_shell():
-    """Study figure: about 99.8% of cells have their band and wedge arcs within 0.5% of 4 pc, in the real galaxy;
-    here every cell of four shells around shell 1000."""
+    """Study figure (uniform primes-up-to-7 rule): wedge arcs within 2% of 4 pc for nearly every cell; here every
+    cell of four shells around shell 1000, the few near a pole excepted."""
     close = total = 0
     for shell in range(1000, 1004):
         low, high = band_range(shell)
@@ -243,9 +264,9 @@ def test_the_measured_arcs_in_a_deep_shell():
             lon_arc = 2 * math.pi * radius * math.sin((north + south) / 2) / wedge_count(shell, band)
             n = wedge_count(shell, band)
             total += n
-            if abs(lat_arc / EDGE_PC - 1) < 0.005 and abs(lon_arc / EDGE_PC - 1) < 0.005:
+            if abs(lat_arc / EDGE_PC - 1) < 0.005 and abs(lon_arc / EDGE_PC - 1) < 0.02:
                 close += n
-    assert close / total > 0.998
+    assert close / total > 0.97
 
 
 @pytest.mark.parametrize("shell", [4, 5, 6, 30])
@@ -347,3 +368,169 @@ def test_a_negative_shell_has_no_layout():
 def test_the_module_keeps_the_study_names_and_none_of_the_cylinder_words():
     public = " ".join(spherical.__all__)
     assert "ring" not in public and "layer" not in public.replace("ShellLayout", "").replace("shell_layout", "")
+
+
+def test_designations_round_trip_and_fit_forty_bits():
+    for address in [(0, 0, 0), (1, 1, 0), (1, -1, 0), (4, 6, 0), (4, -6, 0), (10, 0, 59), (3764, 2, 23519),
+                    (1020, 1602, 0), (1020, -1602, 0), (4095, 0, 0)]:
+        text = spherical.provisional_sector_designation(*address)
+        assert spherical.parse_sector_designation(text) == address
+        assert int(text, 16) < 1 << 40 and text == text.upper()
+
+
+def test_a_designation_is_the_sector_field_of_the_object_ids_born_there():
+    from planetgen.galaxy import object_uid
+    for address in [(0, 0, 0), (7, -3, 11), (3764, 2, 23519), (1020, -1602, 0)]:
+        designation = spherical.provisional_sector_designation(*address)
+        printed = object_uid.format_id(object_uid.pack(*address, object_uid.SERIAL_GENERATED, 5, 7))
+        assert int(printed.split("-")[0], 16) == int(designation, 16)
+
+
+def test_designations_of_neighbors_differ_and_sort_by_shell_then_band_then_wedge():
+    keys = [int(spherical.provisional_sector_designation(*a), 16) for a in sorted(
+        (a for shell in range(0, 5) for a in shell_cells(shell)), key=lambda a: (a[0], a[1], a[2]))]
+    assert keys == sorted(keys) and len(set(keys)) == len(keys)
+
+
+@pytest.mark.parametrize("address", [(4096, 0, 0), (3000, 2048, 0), (3000, -2049, 0), (-1, 0, 0), (3, 5, 0), (3, 0, 18)])
+def test_a_designation_outside_the_field_or_the_grid_is_refused(address):
+    with pytest.raises(ValueError):
+        spherical.provisional_sector_designation(*address)
+
+
+@pytest.mark.parametrize("text", ["XYZ", "", "10000000000", "-1", "FFFFFFFFFF"])
+def test_a_designation_that_names_nothing_is_refused(text):
+    with pytest.raises(ValueError):
+        spherical.parse_sector_designation(text)
+
+
+def _brute_force_within(center, radius, shells):
+    found = set()
+    for shell in shells:
+        for address in shell_cells(shell):
+            if math.dist(sector_position_pc(*address, EDGE_PC), center) <= radius + 1e-9:
+                found.add(address)
+    return found
+
+
+@pytest.mark.parametrize("center, radius", [
+    ((0.0, 0.0, 0.0), 11.0), ((0.0, 0.0, 0.0), 0.0), ((1.0, 2.0, 3.0), 9.0), ((30.0, 5.0, 2.0), 16.0),
+    ((0.0, 0.0, 60.0), 20.0), ((0.0, 0.0, -45.0), 14.0), ((-25.0, 40.0, -30.0), 25.0), ((60.0, 0.0, 0.0), 7.0),
+    ((2.0, -1.0, 80.0), 33.0), ((0.5, 0.0, 12.0), 5.0),
+])
+def test_enumerating_a_sphere_matches_a_scan_of_every_cell(center, radius):
+    found = list(spherical.enumerate_sectors_within_radius(center, radius, EDGE_PC))
+    addresses = {row[:3] for row in found}
+    assert len(addresses) == len(found)
+    top = int((math.dist(center, (0, 0, 0)) + radius) / EDGE_PC) + 2
+    assert addresses == _brute_force_within(center, radius, range(max(0, int((math.dist(center, (0, 0, 0)) - radius) / EDGE_PC) - 2), top + 1)) | ({(0, 0, 0)} if math.dist(center, (0, 0, 0)) <= radius else set())
+    for shell, band, wedge, x, y, z, distance in found:
+        assert (x, y, z) == sector_position_pc(shell, band, wedge, EDGE_PC)
+        assert distance == pytest.approx(math.dist((x, y, z), center))
+
+
+def test_enumerating_random_spheres_matches_a_scan():
+    rng = random.Random(33)
+    for _ in range(12):
+        center = tuple(rng.uniform(-70, 70) for _ in range(3))
+        radius = rng.uniform(0, 28)
+        found = {row[:3] for row in spherical.enumerate_sectors_within_radius(center, radius, EDGE_PC)}
+        top = int((math.dist(center, (0, 0, 0)) + radius) / EDGE_PC) + 2
+        assert found == _brute_force_within(center, radius, range(max(1, int((math.dist(center, (0, 0, 0)) - radius) / EDGE_PC) - 2), top + 1)) | ({(0, 0, 0)} if math.dist(center, (0, 0, 0)) <= radius else set())
+
+
+def test_enumeration_refuses_a_negative_radius_or_edge():
+    with pytest.raises(ValueError):
+        list(spherical.enumerate_sectors_within_radius((0, 0, 0), -1.0, EDGE_PC))
+    with pytest.raises(ValueError):
+        list(spherical.enumerate_sectors_within_radius((0, 0, 0), 1.0, 0.0))
+
+
+def test_no_point_of_a_cell_is_farther_from_its_center_than_the_reach():
+    farthest = 0.0
+    rng = random.Random(2)
+    for shell in list(range(0, 14)) + [100, 500]:
+        for address in list(shell_cells(shell))[::1 if shell < 100 else 997]:
+            center = sector_position_pc(*address, EDGE_PC)
+            cell = SectorCell.for_address(*address, EDGE_PC)
+            from planetgen.galaxy.geometry import local_to_galaxy_pc
+            points = sector_cell_vertices_pc(*address, EDGE_PC)
+            points += [local_to_galaxy_pc(center, cell.sample(rng)) for _ in range(6)]
+            for point in points:
+                farthest = max(farthest, math.dist(point, center))
+    assert 1.2 < farthest / EDGE_PC < spherical.CELL_REACH_EDGES
+
+
+def test_cells_touching_a_sphere_hold_every_point_of_it():
+    rng = random.Random(8)
+    for center, radius in [((20.0, 10.0, 5.0), 12.0), ((0.0, 0.0, 30.0), 10.0), ((0.0, 0.0, 0.0), 9.0)]:
+        touching = {row[:3] for row in spherical.cells_touching_sphere(center, radius, EDGE_PC)}
+        for _ in range(1500):
+            v = [rng.gauss(0, 1) for _ in range(3)]
+            norm = math.sqrt(sum(c * c for c in v))
+            scale = radius * rng.random() ** (1 / 3) / norm
+            point = tuple(center[i] + v[i] * scale for i in range(3))
+            assert sector_address_at(point, EDGE_PC) in touching
+
+
+def _sampled_cells(start, end, steps=6000):
+    return {sector_address_at(tuple(start[i] + (end[i] - start[i]) * k / steps for i in range(3)), EDGE_PC)
+            for k in range(steps + 1)}
+
+
+@pytest.mark.parametrize("start, end", [
+    ((1.0, 1.0, 1.0), (50.0, 40.0, -30.0)),
+    ((-60.0, 3.0, 0.0), (60.0, 3.0, 0.0)),            # along the plane
+    ((-40.0, -40.0, 5.0), (40.0, 40.0, 5.0)),         # past the axis
+    ((0.0, 0.0, -50.0), (0.0, 0.0, 50.0)),            # along the axis
+    ((30.0, 0.0, 40.0), (30.0, 0.0, -40.0)),          # across the plane
+    ((70.0, 20.0, 3.0), (-70.0, 25.0, 30.0)),
+    ((5.0, 5.0, 0.0), (5.0, 5.0, 0.0)),               # a point
+    ((0.0, 0.0, 0.0), (0.0, 0.0, 9.0)),
+])
+def test_a_segment_lists_the_cells_it_passes_through(start, end):
+    found = spherical.sectors_along_segment(start, end, EDGE_PC)
+    assert len(found) == len(set(found))
+    assert found[0] == sector_address_at(start, EDGE_PC)
+    assert sector_address_at(end, EDGE_PC) in found
+    sampled = _sampled_cells(start, end)
+    assert sampled <= set(found), sampled - set(found)
+    # Cells beyond the sampled ones are only those the segment touches at a corner or a sliver.
+    assert len(set(found) - sampled) <= max(3, len(sampled) // 10)
+
+
+def test_random_segments_list_every_cell_dense_sampling_finds():
+    rng = random.Random(77)
+    for _ in range(25):
+        start = tuple(rng.uniform(-60, 60) for _ in range(3))
+        end = tuple(rng.uniform(-60, 60) for _ in range(3))
+        found = set(spherical.sectors_along_segment(start, end, EDGE_PC))
+        assert _sampled_cells(start, end, 5000) <= found
+
+
+def test_a_segment_is_listed_in_the_order_it_enters_cells():
+    """A line past the core enters shells from the outside in and out again: the shell runs down, then up."""
+    found = spherical.sectors_along_segment((-30.0, 0.5, 0.5), (30.0, 0.5, 0.5), EDGE_PC)
+    shells = [cell[0] for cell in found]
+    low = shells.index(min(shells))
+    assert shells[:low + 1] == sorted(shells[:low + 1], reverse=True)
+    assert shells[low:] == sorted(shells[low:])
+
+
+def test_describing_a_cell():
+    info = spherical.describe_sector_cell(10, 3, 7, EDGE_PC)
+    assert (info["shell_index"], info["band_index"], info["wedge_index"]) == (10, 3, 7)
+    assert info["designation"] == spherical.provisional_sector_designation(10, 3, 7)
+    assert info["cartesian_pc"] == list(sector_position_pc(10, 3, 7, EDGE_PC))
+    assert info["spherical"]["r_pc"] == 40.0 and len(info["vertices_pc"]) == 8
+    assert info["volume_pc3"] == pytest.approx(cell_volume(10, 3, 7, EDGE_PC))
+    assert info["mean_band_arc_pc"] == pytest.approx(4.0, rel=0.1)
+    core = spherical.describe_sector_cell(0, 0, 0, EDGE_PC)
+    assert core["volume_pc3"] == pytest.approx(4 / 3 * math.pi * 8) and core["cartesian_pc"] == [0.0, 0.0, 0.0]
+    with pytest.raises(ValueError):
+        spherical.describe_sector_cell(10, 3, 99, EDGE_PC)
+
+
+def test_zone_and_quadrant_group_as_before():
+    assert spherical.sector_zone(0, 13.05) == 0 and spherical.sector_zone(8, 13.05) == 1
+    assert [spherical.sector_quadrant(*xy) for xy in [(1, 1), (-1, 1), (-1, -1), (1, -1)]] == [1, 2, 3, 4]
