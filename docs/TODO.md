@@ -1037,6 +1037,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Server: drop the generated_star_floor_sol brightness floors, settle
   the 400-star cap, and choose tiles by distance. Client: the
   cross-fades with hysteresis and the per-tile origins.
+  Progress (2026-10-15): the server part merged (PR #1439): Galaxy Map
+  tiles are picked by distance from the camera, the per-level brightness
+  floors are gone and stars fade by distance. The client part (scale
+  cross-fades, per-tile origins) is next, so this item stays open. The
+  star-drawing items MAP.198 to MAP.203 (Bug 1's MAP.203, Bug 2's
+  MAP.199 and MAP.200) are unblocked from the server side; they still
+  start from main and check the client part's branch before touching
+  the shared camera and star code.
   Prerequisites: none (MAP.150 done, #1382). Related: MAP.102, MAP.125,
   MAP.146.
   Foundations lane 2 (2026-10-10, MAP.148 first
