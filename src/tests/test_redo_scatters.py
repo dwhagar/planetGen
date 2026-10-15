@@ -13,7 +13,7 @@ from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.generation import run_plan, stages
 from planetgen.generation import phenomenon_scatter as scatter
-from tests.test_bright_star_scatter import EDGE_PC, EXTENTS, E_VALUE, SHAPE, THRESHOLD, light_rings  # noqa: F401
+from tests.test_bright_star_scatter import EDGE_PC, EXTENTS, E_VALUE, SHAPE, THRESHOLD, light_steps  # noqa: F401
 
 
 def _args(mysql_config, *extra):
@@ -30,9 +30,9 @@ def _args(mysql_config, *extra):
 
 
 def _seed(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=E_VALUE, config=mysql_config)
-    store.replace_galaxy_layers(EXTENTS, config=mysql_config)
+    store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 
 def _star_ids(mysql_config, where):
@@ -161,7 +161,7 @@ def test_the_mass_pass_and_the_luminosity_pass_record_their_own_rows(mysql_confi
     assert recorder.pool_rate("scatter-mass", 1) is not None and recorder.pool_rate("scatter-bright", 1) is not None
 
 
-def test_the_phenomena_layers_record_their_writing_time_apart_from_the_whole(mysql_config, monkeypatch):
+def test_the_phenomena_shells_record_their_writing_time_apart_from_the_whole(mysql_config, monkeypatch):
     recorder = _recording_stats(monkeypatch)
     _seed(mysql_config)
     run_plan.scatter_phenomena(_args(mysql_config))

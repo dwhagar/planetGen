@@ -50,7 +50,7 @@ def test_without_then_scatter_the_three_scatter_stages_are_skipped_and_still_num
 
 
 def test_a_galaxy_run_with_an_address_has_one_sector_stage():
-    found = stages.galaxy_stages(_galaxy("--ring", "3", "--layer", "0"))
+    found = stages.galaxy_stages(_galaxy("--shell", "3", "--band", "0"))
     assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 8
 
 

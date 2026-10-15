@@ -19,7 +19,7 @@ from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import sample_living_star
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 from tests.test_bright_star_scatter import (
     EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _row_dict, _seed_galaxy,
 )
@@ -80,7 +80,8 @@ def test_fill_context_draws_lighter_stars_and_counts_the_mass_pass_in_its_share(
 
 
 def test_the_backfill_draws_only_stars_lighter_than_the_mass_limit():
-    addresses = [(2, 0, slot) for slot in range(15)] + [(3, 1, slot) for slot in range(21)]
+    addresses = ([(2, 0, wedge) for wedge in range(wedge_count(2, 0))]
+                 + [(3, 1, wedge) for wedge in range(wedge_count(3, 1))])
     rows = list(brightStars.backfill_cells(SHAPE, addresses, EDGE_PC, E_VALUE, 100.0, THRESHOLD, 2,
                                            mass_range=(None, MASS_LIMIT)))
     assert rows and all(_row_dict(row)["initial_mass_sol"] < MASS_LIMIT for row in rows)
@@ -109,11 +110,11 @@ def test_the_scatter_runs_the_mass_pass_then_a_luminosity_pass_that_skips_marked
     light = [row for row in rows if row["initial_mass_sol"] < MASS_LIMIT]
     assert heavy and light
     assert all(row["luminosity_w"] >= floor_w * 0.999999 for row in light)
-    marked = {(row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    marked = {(row["shell_index"], row["band_index"], row["wedge_index"])
               for row in heavy if row["luminosity_w"] >= floor_w}
     assert marked
     # Pass 4 left every marked sector alone: it already holds a star that bright.
-    assert not [row for row in light if (row["ring_index"], row["layer_index"], row["ring_slot_index"]) in marked]
+    assert not [row for row in light if (row["shell_index"], row["band_index"], row["wedge_index"]) in marked]
 
 
 def test_a_band_below_the_floor_draws_only_lighter_stars(mysql_config, monkeypatch):

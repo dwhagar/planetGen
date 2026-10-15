@@ -3,15 +3,16 @@ import argparse
 
 import pytest
 
-from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.galaxy import spherical
 from planetgen.galaxy.skeleton import GalaxyBounds
 from planetgen.galaxy.span import Span, SpanError, parse_range
+from planetgen.galaxy.spherical import wedge_count
 from planetgen.web import generate_page
 
 
 def _bounds():
-    # layer 0 reaches ring 6, layers +-1 reach ring 3, layers +-2 reach ring 1
-    return GalaxyBounds({0: 6, 1: 3, -1: 3, 2: 1, -2: 1}, 4.0)
+    # the equator band reaches shell 6, bands +-1 reach shell 4, bands +-2 reach shell 3, +-3 reach shell 3
+    return GalaxyBounds([(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 2), (6, 1)], 4.0)
 
 
 def test_parse_range():
@@ -24,8 +25,8 @@ def test_parse_range():
 
 
 @pytest.mark.parametrize("kwargs", [
-    {"rings": (5, 2)}, {"layers": (3, 1)}, {"slots": (0, 3)}, {"slots": (0, 3), "rings": (1, 2)},
-    {"rings": (2, 2), "slots": (0, 10 ** 6)}, {"rings": (-1, 2)},
+    {"shells": (5, 2)}, {"bands": (3, 1)}, {"wedges": (0, 3)}, {"wedges": (0, 3), "shells": (1, 2)},
+    {"shells": (2, 2), "bands": (0, 0), "wedges": (0, 10 ** 6)}, {"shells": (-1, 2)},
 ])
 def test_span_refuses_nonsense(kwargs):
     with pytest.raises(SpanError):
@@ -34,27 +35,39 @@ def test_span_refuses_nonsense(kwargs):
 
 def test_count_matches_the_addresses_it_lists():
     bounds = _bounds()
-    for span in (Span(), Span(rings=(1, 4)), Span(layers=(0, 1)), Span(rings=(2, 5), layers=(-1, 1)),
-                 Span(layers=(2, 2)), Span(rings=(3, 3), slots=(2, 6)), Span(rings=(3, 3), slots=(ring_sector_count(3) - 2, 1))):
+    arc_wrap = (wedge_count(3, 0) - 2, 1)
+    for span in (Span(), Span(shells=(1, 4)), Span(bands=(0, 1)), Span(shells=(2, 5), bands=(-1, 1)),
+                 Span(bands=(4, 4)), Span(shells=(3, 3), bands=(0, 0), wedges=(2, 6)),
+                 Span(shells=(3, 3), bands=(0, 0), wedges=arc_wrap)):
         listed = list(span.addresses(bounds))
         assert span.count(bounds) == len(listed) == len(set(listed))
-        assert all(bounds.contains(ring, layer) for ring, layer, _slot in listed)
+        assert all(bounds.contains(shell, band) for shell, band, _wedge in listed)
+        assert all(0 <= wedge < wedge_count(shell, band) for shell, band, wedge in listed)
 
 
 def test_whole_galaxy_is_the_outline_cell_count():
     bounds = _bounds()
     assert Span().count(bounds) == bounds.cell_count()
+    assert bounds.cell_count() == sum(spherical.cells_in_band_range(shell, high) for shell, high in
+                                      [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 2), (6, 1)])
 
 
-def test_slot_arc_wraps_through_zero():
-    total = ring_sector_count(3)
-    slots = [slot for _r, layer, slot in Span(rings=(3, 3), layers=(0, 0), slots=(total - 2, 1)).addresses(_bounds())]
-    assert slots == [total - 2, total - 1, 0, 1]
+def test_wedge_arc_wraps_through_zero():
+    total = wedge_count(3, 0)
+    wedges = [wedge for _s, _b, wedge in Span(shells=(3, 3), bands=(0, 0), wedges=(total - 2, 1)).addresses(_bounds())]
+    assert wedges == [total - 2, total - 1, 0, 1]
 
 
-def test_rings_beyond_a_layers_edge_are_left_out():
-    listed = list(Span(rings=(2, 5), layers=(2, 2)).addresses(_bounds()))
-    assert listed == []  # layer 2 ends at ring 1
+def test_shells_beyond_a_bands_edge_are_left_out():
+    listed = list(Span(shells=(5, 6), bands=(3, 3)).addresses(_bounds()))
+    assert listed == []  # band 3 ends at shell 4
+
+
+def test_a_span_lists_bands_north_to_south_a_shell_at_a_time():
+    listed = list(Span(shells=(1, 2), bands=(-1, 1)).addresses(_bounds()))
+    assert [shell for shell, _b, _w in listed] == sorted(shell for shell, _b, _w in listed)
+    shell_one = [band for shell, band, _w in listed if shell == 1]
+    assert shell_one == sorted(shell_one, reverse=True)
 
 
 def _parse(argv):
@@ -70,12 +83,12 @@ def _parse(argv):
 
 
 def test_cli_span_options_build_a_span():
-    args = _parse(["--rings", "3:5", "--layers=-1:1"])
-    assert args.span.rings == (3, 5) and args.span.layers == (-1, 1) and args.span.slots is None
+    args = _parse(["--shells", "3:5", "--bands=-1:1"])
+    assert args.span.shells == (3, 5) and args.span.bands == (-1, 1) and args.span.wedges is None
 
 
-@pytest.mark.parametrize("argv", [["--slots", "1:2"], ["--rings", "1:3", "--slot", "2"], ["--rings", "9:2"],
-                                  ["--layers", "1", "--column"]])
+@pytest.mark.parametrize("argv", [["--wedges", "1:2"], ["--shells", "1:3", "--wedges", "2"], ["--shells", "9:2"],
+                                  ["--bands", "1", "--shell", "3"]])
 def test_cli_refuses_a_bad_span(argv):
     with pytest.raises(SystemExit):
         _parse(argv)
@@ -91,31 +104,18 @@ def test_page_builds_span_argv():
             generate_page.span_argv(bad)
 
 
-def test_cylinder_extent_holds_the_face_neighbours_at_one_sector():
+def test_ball_extent_holds_the_face_neighbours_at_one_sector():
     import math
-    from planetgen.galaxy.geometry import enumerate_sectors_within_radius, sector_address_at
     from planetgen.generation import run_galaxy
     edge = 4.0
-    horizontal, layers, sphere = run_galaxy.cylinder_extent(1, 1, edge)
-    assert horizontal == pytest.approx(1.385 * edge) and layers == 1
-    assert sphere == pytest.approx(math.hypot(horizontal, 1.5 * edge))
-    center = (60.0, 25.0, 0.0)
-    here = sector_address_at(center, edge)
-    can = [c for c in enumerate_sectors_within_radius(center, sphere, edge)
-           if abs(c[1] - here[1]) <= layers and math.hypot(c[3] - center[0], c[4] - center[1]) <= horizontal]
-    plane = [c for c in can if c[1] == here[1]]
-    assert 5 <= len(plane) <= 7 and len(can) == len(plane) * 3
-
-
-def test_cli_cylinder_options():
-    args = _parse(["--center-sector", "3", "--cylinder-sectors", "2"])
-    assert args.cylinder_sectors == 2 and args.cylinder_layers == 2 and args.radius_pc > 0
-    assert _parse(["--center-sector", "3", "--cylinder-sectors", "2", "--cylinder-layers", "0"]).cylinder_layers == 0
-    for bad in (["--cylinder-sectors", "2"], ["--center-sector", "3", "--cylinder-sectors", "2", "--radius-pc", "5"],
-                ["--center-sector", "3", "--cylinder-layers", "1"], ["--center-sector", "3", "--cylinder-sectors", "999"],
-                ["--rings", "1", "--cylinder-sectors", "2"]):
-        with pytest.raises(SystemExit):
-            _parse(bad)
+    radius = run_galaxy.ball_extent(1, edge)
+    assert radius == pytest.approx(1.75 * edge)
+    for shell, band, wedge in ((5, 0, 0), (5, 2, 3), (20, 0, 3), (60, 2, 0)):
+        center = spherical.sector_position_pc(shell, band, wedge, edge)
+        face = spherical.neighbor_addresses(shell, band, wedge)
+        reached = {c[:3] for c in spherical.enumerate_sectors_within_radius(center, radius, edge)}
+        assert set(face) <= reached
+        assert all(math.dist(center, spherical.sector_position_pc(*a, edge)) <= radius for a in face)
 
 
 def test_page_center_argv_takes_a_radius_in_sectors():

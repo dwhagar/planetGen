@@ -1074,7 +1074,8 @@ def _nebula_field_task(payload):
         conn.commit()
     finally:
         conn.close()
-    shells = None if reach[0] is None else (reach[0], min(reach[1], payload["outer_shell"]))
+    outer = payload["outer_shell"]
+    shells = None if reach[0] is None else (min(reach[0], outer), min(reach[1], outer))
     return {"written": written, "counts": counts, "shells": shells}
 
 
@@ -1235,34 +1236,6 @@ def fill_habitability(args):
                 log.reset_console()
         log.normal(f"Re-scored the habitability of {updated:,} bodies.")
         return updated
-    finally:
-        conn.close()
-
-
-def fill_block_stats(args):
-    """
-    Rebuilds the stored block totals (DB.25, `galaxy_block_stats`) from the generated sectors and their stats, a shell
-    at a time, and swaps them in in one transaction. For a galaxy whose table is missing rows (it was generated
-    before schema v86 and not migrated through it, or the ladder gained a level); a `galaxy` run keeps the table
-    current for the sectors it saves.
-
-    Returns:
-        int: The rows written.
-    """
-    from planetgen.db import block_stats
-
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        with run_common._generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                with steps.Step("Rebuilding the block totals", "block-stats", 1, args=args, progress=progress) as bar:
-                    written = block_stats.rebuild(conn, lambda done, total: bar.update(completed=done, total=total))
-                conn.commit()
-            finally:
-                log.reset_console()
-        log.normal(f"Rebuilt {written:,} block totals.")
-        return written
     finally:
         conn.close()
 
@@ -1537,12 +1510,6 @@ def run_plan(args):
         stages.enter("habitability")
         with workQueue.job_node("habitability", "Habitability"):
             fill_habitability(args)
-        stages.finish()
-        return
-    if getattr(args, "fill_block_stats", False):
-        stages.enter("block-stats")
-        with workQueue.job_node("block-stats", "Block totals"):
-            fill_block_stats(args)
         stages.finish()
         return
     if getattr(args, "redo_nebula_field", None):

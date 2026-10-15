@@ -6,7 +6,8 @@ import pytest
 
 from planetgen.db import query
 from planetgen.db import store as _db
-from planetgen.galaxy.geometry import BINARY_PAIR_DIRECTION, binary_companion_offset_pc
+from planetgen.galaxy.frame import BINARY_PAIR_DIRECTION, binary_companion_offset_pc
+from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -14,6 +15,7 @@ from planetgen.web import sector_page
 from planetgen.web.maps import starmap
 
 CENTER_PC = (300.0, 400.0, 20.0)  # off the X axis, so the sector's own axes are turned
+ADDRESS = sector_address_at(CENTER_PC, 4.0)
 SYSTEM_POSITION_LY = (1.0, 0.5, -0.4)
 
 
@@ -40,7 +42,7 @@ def binary_sector(mysql_config):
     position = {
         "center_x_pc": CENTER_PC[0], "center_y_pc": CENTER_PC[1], "center_z_pc": CENTER_PC[2],
         "galactic_radius_pc": math.dist(CENTER_PC, (0.0, 0.0, 0.0)),
-        "ring_index": 80, "layer_index": 5, "ring_slot_index": 3,
+        "shell_index": ADDRESS[0], "band_index": ADDRESS[1], "wedge_index": ADDRESS[2],
     }
     sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=position)
     conn = _db.get_connection(mysql_config)
@@ -63,7 +65,7 @@ def _scene_stars_pc(conn, sector_id, compress):
     detail = query.sector_detail(conn, sector_id)
     systems = [sector_page._map_system({**row, "stars": row["stars"]}) for row in detail["systems"]]
     scene = starmap.map_scene_data(
-        _link, detail["edge_mpc"], (80, 5, 3), CENTER_PC, systems, compress_binaries=compress)
+        _link, detail["edge_mpc"], ADDRESS, CENTER_PC, systems, compress_binaries=compress)
     half = scene["halfEdgePc"]
     scale = half / scene["sceneHalfPx"]
     return scene, [

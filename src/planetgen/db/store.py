@@ -5885,7 +5885,7 @@ def sector_bright_masses(conn, addresses, current=False):
     for chunk in _address_chunks(addresses):
         marks = ", ".join("(?, ?, ?)" for _ in chunk)
         for row in conn.execute(
-            "SELECT shell_index, band_index, wedge_index, bright_mass_sol FROM sector_stats"
+            "SELECT shell_index, band_index, wedge_index, bright_mass_sol FROM sector_stats FORCE INDEX (PRIMARY)"
             f" WHERE bright_mass_sol IS NOT NULL AND (shell_index, band_index, wedge_index) IN ({marks})"
             + (" FOR UPDATE" if current else ""),
             tuple(value for key in chunk for value in key),
@@ -5943,7 +5943,9 @@ def lock_sector_stats(conn, entries):
         chunk = rows[start:start + 500]
         # ON DUPLICATE KEY UPDATE takes each row's exclusive lock at once;
         # INSERT IGNORE would take a shared one, and two workers both
-        # upgrading it to exclusive for the SELECT below would deadlock.
+        # upgrading it to exclusive for the SELECT below would deadlock. The
+        # SELECT is held to the primary key: left to choose, the server reads
+        # the (level, address) index, which locks the rows in level order.
         # A derived table rather than VALUES(col), deprecated on MySQL
         # (tests/test_sql_portability.py).
         selects = " UNION ALL ".join(
@@ -5961,7 +5963,7 @@ def lock_sector_stats(conn, entries):
     for chunk in _address_chunks([row[:3] for row in rows]):
         marks = ", ".join("(?, ?, ?)" for _ in chunk)
         for row in conn.execute(
-            "SELECT shell_index, band_index, wedge_index, bright_level_sol FROM sector_stats"
+            "SELECT shell_index, band_index, wedge_index, bright_level_sol FROM sector_stats FORCE INDEX (PRIMARY)"
             f" WHERE (shell_index, band_index, wedge_index) IN ({marks}) FOR UPDATE",
             tuple(value for key in chunk for value in key),
         ).fetchall():

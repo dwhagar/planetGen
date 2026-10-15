@@ -16,24 +16,24 @@ from planetgen.db import query
 from planetgen.db import store
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import pc_to_ly
 from tests.test_galaxy_gen import EDGE_PC, _seed_skeleton
 
 
-def _core_sector(mysql_config, slot=0, sector=None):
-    """Saves `sector` (empty by default) at a real ring-0, layer-0 address,
-    the way `generate_and_save_sector_at` would."""
-    x, y, z = sector_position_pc(0, 0, slot, EDGE_PC)
+def _core_sector(mysql_config, sector=None):
+    """Saves `sector` (empty by default) at the core's address (shell 0,
+    the one cell there), the way `generate_and_save_sector_at` would."""
+    x, y, z = sector_position_pc(0, 0, 0, EDGE_PC)
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
-        "ring_index": 0, "layer_index": 0, "ring_slot_index": slot,
+        "shell_index": 0, "band_index": 0, "wedge_index": 0,
     }
     if sector is None:
-        sector = SpaceSector(f"Core {slot}")
+        sector = SpaceSector("Core")
     return store.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
 
@@ -92,7 +92,7 @@ def test_add_galactic_nucleus_respects_the_chance(monkeypatch):
 
 def test_core_sector_quasar_is_stored_at_the_galactic_center(mysql_config, monkeypatch):
     # The in-sector offset add_galactic_nucleus picks must convert back to
-    # the galactic origin through the sector's own cylindrical frame.
+    # the galactic origin through the sector's own frame.
     x, y, z = sector_position_pc(0, 0, 0, EDGE_PC)
     distance_ly = pc_to_ly(math.sqrt(x * x + y * y + z * z))
 
@@ -119,28 +119,29 @@ def test_core_sector_quasar_is_stored_at_the_galactic_center(mysql_config, monke
     assert detail["black_hole_mass_solar"] == row["black_hole_mass_solar"]
 
 
-def test_only_the_first_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch):
-    n_0 = ring_sector_count(0)
-    _seed_skeleton(mysql_config, layers=[(1, 0), (0, 0), (-1, 0)])
+def test_only_the_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch):
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 1)])
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
     monkeypatch.setattr(
         run_sector, "generate_sector",
         lambda args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None: ("Fake", SpaceSector("Fake")),
     )
 
-    for layer in (-1, 0, 1):
-        for slot in range(n_0):
-            run_galaxy.ensure_sector_generated(0, layer, slot, config=mysql_config)
+    for shell in (0, 1, 2):
+        for band in range(-1 if shell else 0, 2 if shell else 1):
+            for wedge in range(wedge_count(shell, band)):
+                run_galaxy.ensure_sector_generated(shell, band, wedge, config=mysql_config)
 
     conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute(
-            "SELECT q.galactic_radius_pc, s.layer_index, s.ring_slot_index FROM quasars q JOIN sectors s ON s.id = q.sector_id"
+            "SELECT q.galactic_radius_pc, s.shell_index, s.band_index, s.wedge_index FROM quasars q"
+            " JOIN sectors s ON s.id = q.sector_id"
         ).fetchall()
     finally:
         conn.close()
     assert len(rows) == 1
-    assert (rows[0]["layer_index"], rows[0]["ring_slot_index"]) == (0, 0)
+    assert (rows[0]["shell_index"], rows[0]["band_index"], rows[0]["wedge_index"]) == (0, 0, 0)
     assert rows[0]["galactic_radius_pc"] == pytest.approx(0.0, abs=1e-9)
 
 
@@ -150,26 +151,28 @@ def test_save_phenomenon_places_a_quasar_only_at_the_core_and_only_once(mysql_co
         SpaceSector("Outer"), config=mysql_config,
         galaxy_position={
             "center_x_pc": 50.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 50.0,
-            "ring_index": 5, "layer_index": 0, "ring_slot_index": 0,
+            "shell_index": 5, "band_index": 0, "wedge_index": 0,
         },
     )
-    with pytest.raises(ValueError, match="ring-0, layer-0"):
+    with pytest.raises(ValueError, match="core sector"):
         store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=outer_id)
 
-    core_id = _core_sector(mysql_config, slot=1)
+    core_id = _core_sector(mysql_config)
     quasar_id = store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=core_id)
     with pytest.raises(ValueError, match="already has a quasar"):
         store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=core_id)
 
-    # Above or below the plane at ring 0 is not the core either.
+    # Any sector outside shell 0 is not the core either.
+    above = sector_position_pc(1, 1, 0, EDGE_PC)
     above_id = store.save_sector(
         SpaceSector("Above"), config=mysql_config,
         galaxy_position={
-            "center_x_pc": 1.76, "center_y_pc": 0.0, "center_z_pc": EDGE_PC, "galactic_radius_pc": 3.94,
-            "ring_index": 0, "layer_index": 1, "ring_slot_index": 0,
+            "center_x_pc": above[0], "center_y_pc": above[1], "center_z_pc": above[2],
+            "galactic_radius_pc": math.sqrt(sum(c * c for c in above)),
+            "shell_index": 1, "band_index": 1, "wedge_index": 0,
         },
     )
-    with pytest.raises(ValueError, match="ring-0, layer-0"):
+    with pytest.raises(ValueError, match="core sector"):
         store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=above_id)
 
     # Unplaced quasars (no sector) are still allowed, like every other type.

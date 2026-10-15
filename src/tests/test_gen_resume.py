@@ -4,7 +4,7 @@
 TEST.23 Resume after an interrupted fill and TEST.26 `--force` scatter then
 fill (docs/TODO.md).
 
-TEST.23: a `galaxy --ring`, `--ring --shell` or `--block` run stopped
+TEST.23: a `galaxy --shell --band`, `--shell` or `--shells --bands` run stopped
 partway (a sector that fails before it is saved, or one whose save fails
 inside its transaction) and then run again ends with the same sectors as
 one uninterrupted run in a second database: the same set of addresses,
@@ -14,7 +14,7 @@ sector.
 
 TEST.26: the sectors a `plan --bright-stars-only --force` left out (they
 were already filled) stay as they were through a later fill of their
-ring, get no bright stars from the fill's backfill either, and the
+band, get no bright stars from the fill's backfill either, and the
 sectors around them build every star the forced scatter placed for them.
 """
 
@@ -27,7 +27,7 @@ from planetgen.generation import run_galaxy
 from planetgen.generation import run_plan
 from planetgen.db import store
 from planetgen import tuning
-from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 
 from tests import worker_patches
 from tests.bughunt_support import mysql_argv, run_cli
@@ -65,16 +65,16 @@ def second_mysql_config(mysql_config):
 
 # --- TEST.23 ---------------------------------------------------------------
 
-LAYERS = [(1, 5), (0, 5), (-1, 5)]
-"""Three layers out to ring 5 of test_galaxy_gen's toy shape (one system
+SHELLS = [(0, 0), (1, 1), (2, 1), (3, 1)]
+"""Shells out to 3, each with bands -1 to 1, of test_galaxy_gen's toy shape (one system
 per sector at density 1, so the backfill draws next to nothing)."""
 
 NUM_SYSTEMS = 2
 
 MODES = {
-    "ring": ["--ring", "1", "--layer", "0"],
-    "shell": ["--ring", "1", "--shell"],
-    "block": ["--block", "3.0.0.0", "--block-layer", "0"],
+    "band": ["--shell", "2", "--band", "0"],
+    "shell": ["--shell", "3"],
+    "span": ["--shells", "2:3", "--bands", "0"],
 }
 
 
@@ -101,24 +101,24 @@ def _snapshot(config):
     conn = store.get_connection(config)
     try:
         sectors = conn.execute(
-            "SELECT s.ring_index, s.layer_index, s.ring_slot_index, COUNT(DISTINCT s.id) AS sectors,"
+            "SELECT s.shell_index, s.band_index, s.wedge_index, COUNT(DISTINCT s.id) AS sectors,"
             " COUNT(ss.id) - COUNT(b.id) AS systems FROM sectors s"
             " LEFT JOIN star_systems ss ON ss.sector_id = s.id"
             " LEFT JOIN bright_stars b ON b.star_system_id = ss.id"
-            " GROUP BY s.ring_index, s.layer_index, s.ring_slot_index").fetchall()
+            " GROUP BY s.shell_index, s.band_index, s.wedge_index").fetchall()
         orphans = conn.execute(
             "SELECT COUNT(*) AS n FROM star_systems ss LEFT JOIN sectors s ON s.id = ss.sector_id"
             " WHERE s.id IS NULL").fetchone()["n"]
         unbuilt = conn.execute(
-            "SELECT COUNT(*) AS n FROM bright_stars b JOIN sectors s ON s.ring_index = b.ring_index"
-            " AND s.layer_index = b.layer_index AND s.ring_slot_index = b.ring_slot_index"
+            "SELECT COUNT(*) AS n FROM bright_stars b JOIN sectors s ON s.shell_index = b.shell_index"
+            " AND s.band_index = b.band_index AND s.wedge_index = b.wedge_index"
             " WHERE b.star_system_id IS NULL").fetchone()["n"]
         dangling = conn.execute(
             "SELECT COUNT(*) AS n FROM bright_stars b LEFT JOIN star_systems ss ON ss.id = b.star_system_id"
             " WHERE b.star_system_id IS NOT NULL AND ss.id IS NULL").fetchone()["n"]
     finally:
         conn.close()
-    by_address = {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): (row["sectors"], row["systems"])
+    by_address = {(row["shell_index"], row["band_index"], row["wedge_index"]): (row["sectors"], row["systems"])
                   for row in sectors}
     return by_address, orphans, unbuilt, dangling
 
@@ -144,7 +144,7 @@ def _check_partial(partial, saved_before_failure):
 
 
 def _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode):
-    _seed_skeleton(second_mysql_config, layers=LAYERS)
+    _seed_skeleton(second_mysql_config, shells=SHELLS)
     _galaxy(second_mysql_config, MODES[mode])
     resumed, orphans, unbuilt, dangling = _snapshot(mysql_config)
     whole, *_rest = _snapshot(second_mysql_config)
@@ -158,7 +158,7 @@ def _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
-    _seed_skeleton(mysql_config, layers=LAYERS)
+    _seed_skeleton(mysql_config, shells=SHELLS)
     calls = _fail_on_call(monkeypatch, tmp_path, run_galaxy, "generate_and_save_sector_at", 4)
     with pytest.raises(_Interrupted):
         _galaxy(mysql_config, MODES[mode])
@@ -176,7 +176,7 @@ def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
     # `record_sector_stats` runs last inside `insert_sector`'s transaction,
     # after the sector, its systems and their bright-star links are written.
-    _seed_skeleton(mysql_config, layers=LAYERS)
+    _seed_skeleton(mysql_config, shells=SHELLS)
     _fail_on_call(monkeypatch, tmp_path, store, "record_sector_stats", 3)
     with pytest.raises(_Interrupted):
         _galaxy(mysql_config, MODES[mode])
@@ -194,8 +194,8 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
     # stopping partway) ends where one whole run does: the same sectors,
     # each filled once with the same systems of its own (`_snapshot`
     # leaves out the bright stars the earlier steps' backfills placed).
-    _seed_skeleton(mysql_config, layers=LAYERS)
-    total = ring_sector_count(1) * len(LAYERS)
+    _seed_skeleton(mysql_config, shells=SHELLS)
+    total = sum(wedge_count(3, band) for band in (-1, 0, 1))
     for _ in range(-(-total // 4)):
         run_cli("galaxy", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
                            *mysql_argv(mysql_config)])
@@ -210,8 +210,8 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
 
 # --- TEST.26 -----------------------------------------------------------------
 
-FORCE_RING = 8
-PRE_FILLED = [(FORCE_RING, 0, 1), (FORCE_RING, 0, 3)]
+FORCE_SHELL = 8
+PRE_FILLED = [(FORCE_SHELL, 0, 1), (FORCE_SHELL, 0, 3)]
 LIMIT = 5
 
 
@@ -220,10 +220,10 @@ def _cell_counts(config, addresses):
     try:
         return {
             address: (
-                conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
-                             " AND ring_slot_index = ?", address).fetchone()["n"],
-                conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
-                             " AND ring_slot_index = ? AND star_system_id IS NULL", address).fetchone()["n"],
+                conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE shell_index = ? AND band_index = ?"
+                             " AND wedge_index = ?", address).fetchone()["n"],
+                conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE shell_index = ? AND band_index = ?"
+                             " AND wedge_index = ? AND star_system_id IS NULL", address).fetchone()["n"],
             )
             for address in addresses
         }
@@ -235,17 +235,17 @@ def _sector_rows(config):
     conn = store.get_connection(config)
     try:
         rows = conn.execute(
-            "SELECT s.id, s.ring_index, s.layer_index, s.ring_slot_index, COUNT(ss.id) AS systems"
+            "SELECT s.id, s.shell_index, s.band_index, s.wedge_index, COUNT(ss.id) AS systems"
             " FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
-            " GROUP BY s.id, s.ring_index, s.layer_index, s.ring_slot_index").fetchall()
+            " GROUP BY s.id, s.shell_index, s.band_index, s.wedge_index").fetchall()
     finally:
         conn.close()
-    return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): (row["id"], row["systems"])
+    return {(row["shell_index"], row["band_index"], row["wedge_index"]): (row["id"], row["systems"])
             for row in rows}
 
 
 def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config, monkeypatch):
-    # Heavier backfill rings (GEN.187) keep the run's backfill quick; they
+    # Heavier backfill steps (GEN.187) keep the run's backfill quick; they
     # still reach the skipped sectors next door.
     monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_RING_MASSES_SOL", (5.0, 8.0))
     _seed_galaxy(mysql_config)
@@ -259,14 +259,14 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
     assert forced["total"] > 0
     assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 
-    # The ring's first slots, around and between the skipped sectors.
-    run_cli("galaxy", ["--ring", str(FORCE_RING), "--layer", "0", "--limit", str(LIMIT), "--num-systems", "1",
+    # The band's first wedges, around and between the skipped sectors.
+    run_cli("galaxy", ["--shell", str(FORCE_SHELL), "--band", "0", "--limit", str(LIMIT), "--num-systems", "1",
                        *mysql_argv(mysql_config)])
 
     after = _sector_rows(mysql_config)
     new = sorted(set(after) - set(before))
-    assert new == [(FORCE_RING, 0, slot) for slot in range(LIMIT + len(PRE_FILLED)) if
-                   (FORCE_RING, 0, slot) not in PRE_FILLED]
+    assert new == [(FORCE_SHELL, 0, slot) for slot in range(LIMIT + len(PRE_FILLED)) if
+                   (FORCE_SHELL, 0, slot) not in PRE_FILLED]
     # The skipped sectors were neither refilled nor touched, and the new
     # fills' backfill put nothing in their cells.
     assert {address: after[address] for address in PRE_FILLED} == {address: before[address]
@@ -279,21 +279,21 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
         for address in new:
             sector_id = after[address][0]
             linked = conn.execute(
-                "SELECT b.ring_index, b.layer_index, b.ring_slot_index, ss.sector_id FROM bright_stars b"
+                "SELECT b.shell_index, b.band_index, b.wedge_index, ss.sector_id FROM bright_stars b"
                 " JOIN star_systems ss ON ss.id = b.star_system_id WHERE ss.sector_id = ?", (sector_id,)).fetchall()
             # Every star placed in this cell (by the forced scatter or the
             # backfill) is built, once, into this sector and no other.
             counts = _cell_counts(mysql_config, [address])[address]
             assert counts[1] == 0
             assert len(linked) == counts[0]
-            assert {(row["ring_index"], row["layer_index"], row["ring_slot_index"]) for row in linked} <= {address}
+            assert {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in linked} <= {address}
             systems_per_star = conn.execute(
                 "SELECT star_system_id, COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL"
                 " GROUP BY star_system_id HAVING n > 1").fetchall()
             assert systems_per_star == []
         some_scattered = conn.execute(
-            "SELECT COUNT(*) AS n FROM bright_stars WHERE ring_index = ? AND layer_index = 0 AND ring_slot_index < ?",
-            (FORCE_RING, LIMIT + len(PRE_FILLED))).fetchone()["n"]
+            "SELECT COUNT(*) AS n FROM bright_stars WHERE shell_index = ? AND band_index = 0 AND wedge_index < ?",
+            (FORCE_SHELL, LIMIT + len(PRE_FILLED))).fetchone()["n"]
     finally:
         conn.close()
     assert some_scattered > 0

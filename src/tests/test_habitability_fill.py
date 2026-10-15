@@ -161,7 +161,7 @@ def test_the_fill_can_not_be_combined_with_another_plan_job():
 
     parser = argparse.ArgumentParser(prefix_chars="-+")
     generate_cli.add_plan_arguments(parser)
-    args = parser.parse_args(["--fill-habitability", "--fill-block-stats"])
+    args = parser.parse_args(["--fill-habitability", "--fill-map-luminosity"])
     with pytest.raises(SystemExit):
         generate_cli.validate_plan_args(args, parser)
 

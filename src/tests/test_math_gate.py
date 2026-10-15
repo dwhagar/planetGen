@@ -76,7 +76,7 @@ def test_check_math_runs_from_the_command_line():
 
 
 @pytest.mark.parametrize("argv", [
-    ["galaxy", "--ring", "5"],
+    ["galaxy", "--shell", "5"],
     ["plan"],
     ["population"],
     ["sector", "--num-sectors", "3"],
@@ -105,7 +105,7 @@ def test_single_object_runs_are_not_gated(broken_math, handlers, monkeypatch, ar
 def test_bulk_runs_go_ahead_when_the_math_is_right(handlers, monkeypatch):
     monkeypatch.setattr(mathCheck, "_STARTUP_RESULTS", [])
     ran, _ = handlers
-    _main(monkeypatch, "galaxy", "--ring", "5")
+    _main(monkeypatch, "galaxy", "--shell", "5")
     assert ran == ["galaxy"]
 
 

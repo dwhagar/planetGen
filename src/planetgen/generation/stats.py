@@ -76,7 +76,7 @@ in the test suite's small fill. Moons are about 40%, then planets,
 the whole database, galaxy-wide tables and empty ones included."""
 
 GALAXY_WIDE_TABLES = frozenset({
-    "bright_stars", "galaxy_column", "galaxy_layer", "galaxy_shape", "generation_runs", "id_blocks",
+    "bright_stars", "galaxy_shape", "galaxy_shell", "generation_runs", "id_blocks",
     "schema_migrations", "sector_stats",
 })
 """frozenset: Tables a plan or the bright-star scatter fills for the

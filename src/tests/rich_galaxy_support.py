@@ -63,7 +63,7 @@ def _build(config):
     target = mysql_argv(config)
     run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
     with forced_system_config(PLANETS=True):
-        run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "6", "--population",
+        run_cli("galaxy", ["--shell", "0", "--band", "0", "--num-systems", "6", "--population",
                            "--yes", "--quiet"] + target)
     conn = store.get_connection(config)
     try:

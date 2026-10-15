@@ -349,7 +349,7 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None, scattered=False):
 
 
 NUCLEUS_ADDRESS = phenomenon_scatter.NUCLEUS_ADDRESS
-"""tuple: The `(ring, layer, slot)` of the one sector per galaxy that rolls
+"""tuple: The `(shell, band, wedge)` of the one sector per galaxy that rolls
 for an active nucleus (see `add_galactic_nucleus`); in a galaxy whose
 phenomenon scatter ran, the nucleus is a scatter row instead."""
 
@@ -363,16 +363,13 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
 
     There is only ever one nucleus, and only at the origin.
     `generate_and_save_sector_at` calls this for exactly one sector per
-    galaxy, `NUCLEUS_ADDRESS` (ring 0, layer 0, slot 0 -- every ring-0,
-    layer-0 cell has the galactic axis as its inner edge and the plane
-    through its middle, so each touches the origin, and picking one keeps
-    it to a single roll).
+    galaxy, `NUCLEUS_ADDRESS` (shell 0, the one core cell, which is
+    centered on the origin, so picking it keeps it to a single roll).
 
-    The sector's local +X axis points radially out from the galactic axis
-    to the sector's own center, and a layer-0 center sits on the plane
-    (`galaxyGeometry.sector_orientation`), so the center sits at
-    `(-galactic_center_dist_ly, 0, 0)` in the sector's own frame;
-    `store.insert_sector` converts that back to the galaxy origin.
+    The core sector's center is the galactic origin, so the nucleus sits at
+    `(-galactic_center_dist_ly, 0, 0)` in the sector's own frame (a
+    distance of 0 there); `store.insert_sector` converts that back to the
+    galaxy origin.
 
     Args:
         sector (SpaceSector): The core sector, already populated.

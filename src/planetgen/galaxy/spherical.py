@@ -680,6 +680,8 @@ class SectorCell:
         when it lands exactly on a face)."""
         x, y, z = local_to_galaxy_pc(self.center, point)
         radius = math.sqrt(x * x + y * y + z * z)
+        if not math.isfinite(radius):
+            return False
         tolerance = 1e-12 * max(1.0, self.r_outer)
         if radius < self.r_inner - tolerance or radius > self.r_outer + tolerance:
             return False

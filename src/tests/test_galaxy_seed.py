@@ -113,7 +113,7 @@ def _stored_seed(mysql_config):
 
 def _plan(mysql_config, monkeypatch, *extra):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
-    monkeypatch.setattr(sys, "argv", ["planetgen", "plan", "--no-bright-stars", "--max-ring", "40", *extra]
+    monkeypatch.setattr(sys, "argv", ["planetgen", "plan", "--no-bright-stars", "--max-shell", "40", *extra]
                         + _mysql_argv(mysql_config))
     generate_cli.main()
 
@@ -150,7 +150,7 @@ def test_a_new_seed_replaces_the_old_only_before_any_sector(mysql_config, monkey
     other = "F" * 32
     _plan(mysql_config, monkeypatch, "--seed", other)
     assert _stored_seed(mysql_config) == bytes.fromhex(other)
-    monkeypatch.setattr(sys, "argv", ["planetgen", "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
+    monkeypatch.setattr(sys, "argv", ["planetgen", "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
                                       "--backfill-from", "none"] + _mysql_argv(mysql_config))
     generate_cli.main()
     with pytest.raises(SystemExit) as raised:
