@@ -201,7 +201,11 @@ def form_context(system_id):
         owner = apiclient.get_system_owner(db_name(), system_id)
     except apiclient.ApiError:
         owner = None
-    return {"types": apiclient.get_facility_types(db_name()), "owner": owner}
+    try:
+        types = apiclient.get_facility_types(db_name())
+    except apiclient.ApiError:
+        types = []
+    return {"types": types, "owner": owner}
 
 
 def _convert_field(field, raw):
