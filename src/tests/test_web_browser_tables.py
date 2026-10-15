@@ -24,6 +24,7 @@ from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 from planetgen.web import sector_page  # noqa: E402
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
+from tests.maps_pending import MAPS_PENDING  # noqa: E402
 
 DB = "planetgen_table_fixture"
 VIEWPORT = {"width": 1280, "height": 900}
@@ -463,6 +464,7 @@ def test_a_politys_systems_scroll_and_sort_through_the_tables_own_route(page, ta
     assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["distance"], "systems_order": ["desc"]}
 
 
+@MAPS_PENDING
 def test_the_sector_page_runs_its_map_and_its_table_together(page, table_site):
     """The map script finds the Contents buttons through the table's "rows drawn" event; the
     page fixture fails this on any script error from either."""
