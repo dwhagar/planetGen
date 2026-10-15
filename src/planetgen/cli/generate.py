@@ -1049,6 +1049,12 @@ def add_plan_arguments(parser):
                                       "scattered before schema v84, from their stored masses, in id-range batches "
                                       "that readers never wait for. Resumable: it only fills rows still empty. A "
                                       "new scatter writes the value with each row.")
+    phenomena_group.add_argument('--fill-habitability', action='store_true',
+                                 help="Re-derive the stored habitability numbers (the flux swing of a planet in a "
+                                      "double-star system, the PHI-6 index, the six domains, the equipment tier and "
+                                      "the note) of every planet and moon from its stored conditions, so a galaxy "
+                                      "generated before a change to the rules agrees with a new one. Only those "
+                                      "columns change; it can be stopped and run again.")
     phenomena_group.add_argument('--fill-block-stats', action='store_true',
                                  help="Rebuild the stored block totals the Galaxy Map's block ladder reads, "
                                       "from the generated sectors and their stats. A `galaxy` run keeps them "
@@ -1130,6 +1136,12 @@ def validate_plan_args(args, parser):
         parser.error("--fill-block-stats can't be combined with --redo-scatters, --redo-nebula-field, "
                      "--fill-map-luminosity, --phenomena-only, --bright-stars-only, --bright-stars-down-to or "
                      "--no-bright-stars.")
+    if args.fill_habitability and (args.redo_scatters or args.redo_nebula_field or args.fill_map_luminosity
+                                   or args.fill_block_stats or args.phenomena_only or args.bright_stars_only
+                                   or args.bright_stars_down_to is not None or args.no_bright_stars):
+        parser.error("--fill-habitability can't be combined with --redo-scatters, --redo-nebula-field, "
+                     "--fill-map-luminosity, --fill-block-stats, --phenomena-only, --bright-stars-only, "
+                     "--bright-stars-down-to or --no-bright-stars.")
     if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
         parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
     if args.bright_stars_down_to is not None:

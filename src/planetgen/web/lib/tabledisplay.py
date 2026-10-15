@@ -63,7 +63,7 @@ try:
     from planetgen.physics import constants
     from planetgen.generation.config import SystemConfig
     from planetgen.util.format import (
-        format_body_radius_km, format_distance_km, format_period_years, format_relative_to_sol, to_scientific_notation,
+        format_body_radius_km, format_distance_km, format_mass_kg, format_period_years, format_power_w, to_scientific_notation,
     )
 
     _HTML_CONFIG = SystemConfig()
@@ -78,8 +78,8 @@ except ImportError:
 
 def _dash_unless_positive(formatter):
     """`dash_unless_finite(formatter)`, and a dash for a negative value too:
-    a negative mass or luminosity is no real value, and `format_relative_to_sol`
-    would spell -1e300 out as a 300-digit percentage (TEST.53)."""
+    a negative mass or luminosity is no real value, and a ratio of it
+    would be spelled out as a 300-digit number (TEST.53)."""
     guarded = dash_unless_finite(formatter)
 
     def positive(value, *args, **kwargs):
@@ -89,16 +89,21 @@ def _dash_unless_positive(formatter):
     return positive
 
 
-def format_star_mass(mass_kg):
+def format_mass(mass_kg):
+    """A star's, compact remnant's, planet's or moon's mass on the mass
+    ladder (UX.22): kg, lunar, Earth, Jupiter or solar masses, whichever is
+    meaningful."""
     if _HTML_CONFIG is None:
         return f"{mass_kg} kg"
-    return format_relative_to_sol(_HTML_CONFIG, mass_kg, constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
+    return format_mass_kg(mass_kg)
 
 
-def format_star_luminosity(luminosity_w):
+def format_luminosity(luminosity_w):
+    """A star's or remnant's luminosity on the power ladder (UX.22): W to EW,
+    then solar luminosities."""
     if _HTML_CONFIG is None:
         return f"{luminosity_w} W"
-    return format_relative_to_sol(_HTML_CONFIG, luminosity_w, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
+    return format_power_w(luminosity_w)
 
 
 def format_star_radius(radius_km):
@@ -159,22 +164,11 @@ def format_body_radius(radius_km):
     return f"{format_body_radius_km(_HTML_CONFIG, radius_km)} ({_times_reference(ratio)} Earth radii)"
 
 
-def format_body_mass(mass_kg, gas_giant=False):
-    """A planet's or moon's mass (MAP.92): kg in scientific notation, then
-    in Earth masses, or Jupiter masses for a gas giant."""
-    if _HTML_CONFIG is None:
-        return f"{mass_kg} kg"
-    reference, label = ((constants.JUPITER_MASS_TO_KG, "Jupiter masses") if gas_giant
-                        else (constants.EARTH_MASS_TO_KG, "Earth masses"))
-    return f"{to_scientific_notation(_HTML_CONFIG, mass_kg)} kg ({_times_reference(mass_kg / reference)} {label})"
-
-
 # TEST.53: `None`, NaN, an infinity or a number past float range shows a
 # dash, never "nan km" or a traceback.
-format_star_mass = _dash_unless_positive(format_star_mass)
-format_star_luminosity = _dash_unless_positive(format_star_luminosity)
+format_mass = _dash_unless_positive(format_mass)
+format_luminosity = _dash_unless_positive(format_luminosity)
 format_star_radius = dash_unless_finite(format_star_radius)
 format_period = dash_unless_finite(format_period)
 format_body_distance = dash_unless_finite(format_body_distance)
 format_body_radius = _dash_unless_positive(format_body_radius)
-format_body_mass = _dash_unless_positive(format_body_mass)

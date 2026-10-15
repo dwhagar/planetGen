@@ -428,8 +428,20 @@ def water_score(world):
     return min(band_score(value, band) for _label, value, band in inputs)
 
 
+NO_ATMOSPHERE_KPA = 0.05
+"""float: Under this surface pressure a world has no air to speak of (it prints as 0.0 kPa): the Air domain
+is Red with a score of 0, not Green for lack of toxins (GEN.215, Boss 2026-10-15)."""
+
+
+def has_atmosphere(world):
+    return world.pressure_kpa >= NO_ATMOSPHERE_KPA
+
+
 def air_score(world):
-    """Air Chemistry: is the air breathable, the worst of oxygen and the filtered gases."""
+    """Air Chemistry: is the air breathable, the worst of oxygen and the filtered gases. A world with no
+    atmosphere has no air to breathe: 0."""
+    if not has_atmosphere(world):
+        return 0.0
     return min(_gas_scores(world).values())
 
 

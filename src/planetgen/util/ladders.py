@@ -249,5 +249,94 @@ GRAVITY = Ladder(
     companions=(Companion("g", "times standard gravity", physical_constants.EARTH_GRAVITY),),
 )
 
-LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY)
+# Mass (UX.22; Boss, 2026-10-10: lunar-mass rung wanted): kilograms (scientific
+# by the number rule) under 0.01 lunar mass, then lunar masses to 0.1 Earth
+# mass, Earth masses to 0.1 Jupiter mass, Jupiter masses to the hydrogen-burning
+# limit of 0.075 solar mass, and solar masses above.
+MASS = Ladder(
+    quantity="mass",
+    base="kg",
+    nonfinite="kg",
+    zero="kg",
+    rungs=(
+        Rung("kg", 1.0, "kilograms", start=0.0),
+        Rung("lunar masses", physical_constants.MOON_MASS_KG, "lunar masses", singular="lunar mass",
+             start=0.01 * physical_constants.MOON_MASS_KG),
+        Rung("Earth masses", physical_constants.EARTH_MASS_TO_KG, "Earth masses", singular="Earth mass",
+             start=0.1 * physical_constants.EARTH_MASS_TO_KG),
+        Rung("Jupiter masses", physical_constants.JUPITER_MASS_TO_KG, "Jupiter masses", singular="Jupiter mass",
+             start=0.1 * physical_constants.JUPITER_MASS_TO_KG),
+        Rung("solar masses", physical_constants.SOLAR_MASS_TO_KG, "solar masses", singular="solar mass",
+             start=0.075 * physical_constants.SOLAR_MASS_TO_KG),
+    ),
+)
+
+# Luminosity and power (UX.22): watts with the SI prefixes, then solar
+# luminosities from a millionth of the Sun's (3.8e20 W), where a star's
+# "1.00 L☉" reads better than "383 EW". Below one watt (Hawking luminosities)
+# scientific text, by the tiny-number rule.
+POWER = Ladder(
+    quantity="power",
+    base="W",
+    nonfinite="W",
+    zero="W",
+    rungs=(
+        Rung("W", 1.0, "watts", start=0.0),
+        Rung("kW", 1e3, "kilowatts"),
+        Rung("MW", 1e6, "megawatts"),
+        Rung("GW", 1e9, "gigawatts"),
+        Rung("TW", 1e12, "terawatts"),
+        Rung("PW", 1e15, "petawatts"),
+        Rung("EW", 1e18, "exawatts"),
+        Rung("L☉", physical_constants.SOLAR_LUMINOSITY, "solar luminosities",
+             start=1e-6 * physical_constants.SOLAR_LUMINOSITY),
+    ),
+)
+
+# Heat flow and flux (UX.22): W/m² with SI prefixes, so Earth's 0.087 W/m²
+# reads "87 mW/m²" as in the literature.
+FLUX = Ladder(
+    quantity="flux",
+    base="W/m²",
+    nonfinite="W/m²",
+    zero="W/m²",
+    rungs=(
+        Rung("nW/m²", 1e-9, "nanowatts per square meter", start=0.0),
+        Rung("µW/m²", 1e-6, "microwatts per square meter"),
+        Rung("mW/m²", 1e-3, "milliwatts per square meter"),
+        Rung("W/m²", 1.0, "watts per square meter"),
+        Rung("kW/m²", 1e3, "kilowatts per square meter"),
+        Rung("MW/m²", 1e6, "megawatts per square meter"),
+    ),
+)
+
+# Gas and dust in clouds are always quoted per cubic centimeter (a nebula runs
+# from a fraction of a particle to millions), so the one rung stands in for
+# the ladder, as the design note says for number densities.
+NUMBER_DENSITY = Ladder(
+    quantity="number density",
+    base="particles/m³",
+    nonfinite="particles/cm³",
+    zero="particles/cm³",
+    rungs=(Rung("particles/cm³", 1e6, "particles per cubic centimeter", start=0.0),),
+)
+
+# A magnetic field (UX.22): tesla with the SI prefixes for planets, then gauss
+# from 10,000 T (a hundred million gauss), where the literature quotes the
+# fields of pulsars and magnetars ("1.00 × 10¹² G").
+MAGNETIC_FIELD = Ladder(
+    quantity="magnetic field",
+    base="T",
+    nonfinite="G",
+    zero="T",
+    rungs=(
+        Rung("nT", 1e-9, "nanoteslas", start=0.0),
+        Rung("µT", 1e-6, "microteslas"),
+        Rung("mT", 1e-3, "milliteslas"),
+        Rung("T", 1.0, "teslas"),
+        Rung("G", 1e-4, "gauss", start=1e4),
+    ),
+)
+
+LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""

@@ -25,6 +25,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from planetgen.physics import constants
 from planetgen.util import ladders
 from planetgen.util.format import format_quantity, pick_rung
 from tests import fuzz_support  # noqa: F401  (loads the hypothesis profile)
@@ -62,7 +63,8 @@ class TestTable:
     def test_rungs_are_sorted_and_named(self, ladder):
         factors = [rung.factor for rung in ladder.rungs]
         starts = [rung.factor if rung.start is None else rung.start for rung in ladder.rungs]
-        assert factors == sorted(factors) and len(set(factors)) == len(factors)
+        # A rung may be a smaller unit than the one below it when it starts higher (gauss after tesla).
+        assert len(set(factors)) == len(factors)
         assert starts == sorted(starts)
         assert len({rung.symbol for rung in ladder.rungs}) == len(ladder.rungs)
         assert all(rung.name for rung in ladder.rungs)
@@ -95,7 +97,16 @@ def _astropy_factor(symbol):
              "nK": 1e-9 * u.K, "µK": u.uK, "mK": u.mK, "K": u.K,
              "nPa": 1e-9 * u.Pa, "µPa": u.uPa, "mPa": u.mPa, "Pa": u.Pa, "kPa": u.kPa, "MPa": u.MPa, "GPa": u.GPa,
              "TPa": 1e12 * u.Pa, "m/s²": u.m / u.s ** 2, "bar": u.bar, "mbar": u.mbar,
-             "g": const.g0}
+             "g": const.g0,
+             # The IAU defines no lunar mass: 7.342e22 kg is project-nominal (constants.MOON_MASS_KG).
+             "W": u.W, "kW": u.kW, "MW": u.MW, "GW": u.GW, "TW": 1e12 * u.W, "PW": 1e15 * u.W, "EW": 1e18 * u.W,
+             "L☉": const.L_sun, "nW/m²": 1e-9 * u.W / u.m ** 2, "µW/m²": 1e-6 * u.W / u.m ** 2,
+             "mW/m²": 1e-3 * u.W / u.m ** 2, "W/m²": u.W / u.m ** 2, "kW/m²": 1e3 * u.W / u.m ** 2,
+             "MW/m²": 1e6 * u.W / u.m ** 2,
+             "particles/cm³": 1e6 / u.m ** 3, "nT": u.nT, "µT": u.uT, "mT": u.mT, "T": u.T,
+             "G": 1e-4 * u.T,  # astropy's gauss is a CGS unit, not convertible without an equivalency
+             "kg": u.kg, "lunar masses": 7.342e22 * u.kg, "Earth masses": const.M_earth,
+             "Jupiter masses": const.M_jup, "solar masses": const.M_sun}
     quantity = named.get(symbol)
     if quantity is None:
         return None
@@ -125,6 +136,51 @@ def test_the_temperature_companions_agree_with_astropys_scales():
             (kelvin * u.K).to(u.deg_C, u.temperature()).value, abs=1e-9)
         assert (kelvin - fahrenheit.offset) / fahrenheit.factor == pytest.approx(
             (kelvin * u.K).to(u.imperial.deg_F, u.temperature()).value, abs=1e-9)
+
+
+@pytest.mark.parametrize("kilograms, text", [
+    (1_000.0, "1,000 kg"),
+    (7.0e20, "7.00 × 10²⁰ kg"),
+    (1.3e22, "0.177 lunar masses"),
+    (7.35e22 * 4.49, "4.49 lunar masses"),
+    (0.107 * constants.EARTH_MASS_TO_KG, "0.107 Earth masses"),
+    (17.1 * constants.EARTH_MASS_TO_KG, "17.1 Earth masses"),
+    (0.299 * constants.JUPITER_MASS_TO_KG, "0.299 Jupiter masses"),
+    (0.122 * constants.SOLAR_MASS_TO_KG, "0.122 solar masses"),
+    (4.3e6 * constants.SOLAR_MASS_TO_KG, "4.30 × 10⁶ solar masses"),
+    (constants.EARTH_MASS_TO_KG, "1 Earth mass"),
+])
+def test_mass_switches_units_at_the_decided_points(kilograms, text):
+    """The design note's prototype outputs (docs/design/units-and-number-formatting.md)."""
+    assert format_quantity(ladders.MASS, kilograms) == text
+
+
+@pytest.mark.parametrize("ladder, value, text", [
+    (ladders.POWER, 9.01e-31, "9.01 × 10⁻³¹ W"),
+    (ladders.POWER, 47e12, "47 TW"),
+    (ladders.POWER, 335e15, "335 PW"),
+    (ladders.POWER, constants.SOLAR_LUMINOSITY, "1 L☉"),
+    (ladders.POWER, 0.00155 * constants.SOLAR_LUMINOSITY, "0.00155 L☉"),
+    (ladders.POWER, 2.6e13 * constants.SOLAR_LUMINOSITY, "2.60 × 10¹³ L☉"),
+    (ladders.POWER, 1e-7 * constants.SOLAR_LUMINOSITY, "38.3 EW"),
+    (ladders.FLUX, 0.087, "87 mW/m²"),
+    (ladders.FLUX, 1361.0, "1.36 kW/m²"),
+    (ladders.NUMBER_DENSITY, 3.5e6, "3.5 particles/cm³"),
+    (ladders.NUMBER_DENSITY, 2.5e15, "2.50 × 10⁹ particles/cm³"),
+    (ladders.MAGNETIC_FIELD, 5e-5, "50 µT"),
+    (ladders.MAGNETIC_FIELD, 0.3, "300 mT"),
+    (ladders.MAGNETIC_FIELD, 1e8, "1.00 × 10¹² G"),
+])
+def test_other_ladders_switch_units_at_the_decided_points(ladder, value, text):
+    assert format_quantity(ladder, value) == text
+
+
+def test_the_mass_rungs_start_where_boss_decided():
+    """UX.22, Boss 2026-10-10: lunar masses from 0.01 lunar mass, Earth masses from 0.1, Jupiter masses
+    from 0.1 M_J, solar masses from the 0.075 M☉ hydrogen-burning limit."""
+    starts = {rung.symbol: rung.start / rung.factor for rung in ladders.MASS.rungs[1:]}
+    assert starts == pytest.approx({"lunar masses": 0.01, "Earth masses": 0.1, "Jupiter masses": 0.1,
+                                    "solar masses": 0.075})
 
 
 def test_atm_and_psi_are_the_exact_definitions():

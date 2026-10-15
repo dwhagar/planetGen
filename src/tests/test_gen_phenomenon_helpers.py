@@ -11,6 +11,7 @@ BlackHole, NeutronStar): keys, string values, and the conditional wobble
 rows.
 """
 import math
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -431,6 +432,6 @@ def test_neutron_star_table_properties():
     assert set(props) == {"type", "mass", "radius", "spin_period", "magnetic_field", "surface_temp", "orbit", "loc"}
     assert_all_strings(props)
     assert props["magnetic_field"].endswith(" G") and props["surface_temp"].endswith(" K")
-    assert math.isfinite(float(props["magnetic_field"][:-2]))
+    assert re.fullmatch(r"[0-9.,]+(?: × 10[⁰¹²³⁴-⁹]+)? G", props["magnetic_field"]), props["magnetic_field"]
     star.reflex_offset_x = 1e-5
     assert "wobble" in star.get_table_properties()

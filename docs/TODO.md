@@ -301,11 +301,13 @@ with `clamp()`.
   and AU from 1,000,000 km, then UX.22 temperature, pressure, gravity).
   Progress (2026-10-15, PR #1450, Foundations UX): steps 0 to 3 done:
   distance, speed, time, temperature, pressure and gravity run through
-  the shared ladders. Remaining: mass (step 4), luminosity, power and
-  flux, density, number density, magnetic field and angles, the leftover
-  `toFixed` calls in `galaxymap3d.js` and `galaxystageview.js`
-  (coordinates, angles, luminosity; folded in from UX.81 as steps 5 to
-  7), and the JavaScript lint test that bans direct `toFixed` for unit
+  the shared ladders. Step 4 done (PR #1480): masses run through the
+  ladder (kg, lunar, Earth, Jupiter, solar). Step 5 done (PR #1488):
+  luminosity, power and heat flow run through ladders. Step 6 done
+  (PR #1497): density and magnetic field units.
+  Remaining (step 7): the leftover `toFixed` calls in `galaxymap3d.js`
+  and `galaxystageview.js` (coordinates, angles; folded in from UX.81),
+  and the JavaScript lint test that bans direct `toFixed` for unit
   values.
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
@@ -534,19 +536,6 @@ with `clamp()`.
   a Phase 2 item for the interface builders.
   Prerequisites: none. Related: PERF.66.
 
-- [ ] **UX.103 Design note for the description layer**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Write docs/design/system-description.md: the document
-  model (per body a heading, a facts table of typed quantities, a rating
-  table of the six PHI-6 rows with colour, score and one short sentence,
-  and a few short sentences), the HTML, Markdown, wikitext and
-  plain-text renderers, what is stored versus computed, the migration
-  list for Foundations Database, and a map of every field now written by
-  a to_paragraph_list(). Reconciles with UX.30 (now absorbed). Docs-only
-  PR.
-  Prerequisites: none.
-
 - [ ] **UX.104 Build the document model for stars, pairs, planets, moons, belts, comets and the overview**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -560,7 +549,6 @@ with `clamp()`.
   compare field coverage against the old tables so nothing is dropped. A
   quantity not yet on a unit ladder is carried as a plain number with
   its unit and converted when UX.22/UX.23 land.
-  Prerequisite: UX.103.
 
 - [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -1536,30 +1524,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
   Prerequisite: MAP.199. Related: MAP.198 (done, PR #1470), MAP.152, MAP.146.
 
-- [ ] **MAP.201 A selected sector that is not filled stays highlighted on the map until something else is selected (bug)**
-  Boss, 2026-10-15 01:49Z: when a sector is selected but unfilled, it
-  cannot be entered, but it should then stay highlighted on the map
-  until something else is selected. Done: selecting an unfilled sector
-  keeps its highlight (same outline as MAP.198) after the refusal to
-  enter, until another selection replaces it; browser test. Owner:
-  Bugfixes lane 2, right after MAP.198 (same selection and highlight
-  area). GitHub issue
-  [#1416](https://github.com/dwhagar/planetGen/issues/1416).
-  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199, MAP.152.
-
-- [ ] **MAP.202 Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug)**
-  Boss, 2026-10-15 01:51Z, after his eye test of MAP.188 (done, PR
-  #1289): both 187 and 188 are resolved, but the sector barriers should
-  be nearly invisible unless a block is being selected. This is the
-  remaining change of MAP.188. Done: at rest the sector and slab borders
-  are nearly invisible on both themes, and they show (with the
-  wire-frame highlight) only while a block is being selected; browser
-  test. Owner: Bugfixes lane 2, right after MAP.198 (same selection and
-  highlight area; shares the outline code, avoid overlap with MAP.152).
-  GitHub issue
-  [#1212](https://github.com/dwhagar/planetGen/issues/1212).
-  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.201, MAP.152.
-
 - [ ] **MAP.203 Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug)**
   Boss, 2026-10-15 02:15Z, with three screenshots: when viewing a
   sector, the stars and such look too big compared to what the user just
@@ -1574,6 +1538,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   client part next), so start from main after that merge. GitHub issue
   [#1420](https://github.com/dwhagar/planetGen/issues/1420).
   Prerequisites: none. Related: MAP.152, MAP.198 (done, PR #1470), MAP.146.
+
+- [ ] **MAP.204 Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug)**
+  Boss (2026-10-15 05:33Z): "BUG: Attempting to select a region under
+  the galactic plane on the galaxy map is exceedingly difficult and the
+  system doesn't want to highlight or allow selecing anything on the
+  underside unless positioning is just right." Selecting and
+  highlighting a sector, slab or block on the underside of the galactic
+  plane (below the mid-plane, seen from above or at an angle) should
+  work as easily as above it. Find why the pick and the highlight miss
+  the underside (the picking ray, the plane or box tests, or the
+  highlight drawn only for the upper side) and fix it so the underside
+  is picked and highlighted wherever the cursor is over it. Done when a
+  browser test selects and highlights regions below the plane from
+  several camera angles. Owner: Bugfixes lane 2 (galaxystageview.js
+  selection work), queued after MAP.199 and MAP.200; it touches the same
+  selection and camera code as MAP.198 (done), MAP.199, MAP.200 and the
+  MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
+  to follow.
+  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199,
+  MAP.200, MAP.152.
 
 ## NAV: Navigation and courses
 
@@ -3398,70 +3382,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.215 Air shows Green with 0 Air when the air pressure is 0 (bug)**
-  Boss (2026-10-15 03:46Z): "Bug, Air will say Green with 0 Air when
-  there's 0 air pressure because it's free of toxins." With no
-  atmosphere the Air domain is Green only because it has no toxins. With
-  no air (0.0 kPa) the Air rating must be Red and its value 0. Target
-  line: "**Air: Red** (0.0). There is no atmosphere (0.0 kPa)." Done
-  when a world with no atmosphere never shows Green in Air and a test
-  covers it.
-  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
-
-- [ ] **GEN.216 Habitability text is too wordy and the Suitability sentence is oddly worded (bug)**
-  Boss (2026-10-15 03:46Z): "Bug, Sustainability text is very oddly
-  worded: **Suitability: Red** (0.20). The food is none, what native
-  life a person could eat from. Also considered: the water within reach,
-  ice, or an ocean under ice (Yellow); the shelter, 742 mSv a year
-  (Yellow). Should say something like: **Suitability: Red** (0.20).
-  There is no food or water readily available, but there is shelter
-  available." and "Bug, All text is to wordy. Example cleanup: **PHI-4
-  habitability** is 0.00, and a visitor needs a sealed suit. /
-  **Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure
-  suit is needed. / **Temperature: Red** (0.00). The air temperature is
-  -227 C, so an environment suit is needed. / **Air: Red** (0.0). There
-  is no atmosphere (0.0 kPa). / **Water: Red** (0.00). There is no
-  liquid water to support life. / **Radiation: Yellow** (0.45). The
-  radiation dose is a mean of 742 mSv a year, inside the Yellow band (up
-  to 1 Sv a year). / **Suitability: Red** (0.20). There is no atmosphere
-  (0.0 kPa), no food or water. Shelter is potentially available." Use
-  these lines as the spec for every line of the description (index line,
-  Pressure, Temperature, Air, Water, Radiation, Suitability): short
-  sentences, the number and the consequence, no list of what else was
-  considered. The index is named PHI-6 in the text (the first line of
-  Boss's example says PHI-4 only because it is the old text). Same code
-  as the two items before it; do it after them. Done when every rating
-  line reads like the examples and tests pin the wording. Rebase on
-  main; Foundations Generation avoids the description text meanwhile.
-  Prerequisite: GEN.215. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
-
-- [ ] **GEN.217 Refresh the stored habitability numbers on existing planets and moons**
-  The habitability paragraph is recomputed on every request, but the
-  stored numbers (flux_variation, phi4, the six phi4_* and tier_*
-  columns, equipment_tier, hab_note) are stale or NULL on old rows (the
-  six-domain columns are NULL on rows made before schema v87). The
-  planet-row chip, tooltip, search page and habitability facet counts
-  therefore disagree with the paragraph, and no command refreshes them.
-  Add `plan --fill-habitability` (run_plan.py), in the style of
-  `--fill-map-luminosity` and `--fill-block-stats`: per system, load the
-  graph, run insolation.refresh_system and the same scoring step the
-  life pass uses, and UPDATE only the habitability columns of planets
-  and moons. Resumable per system. No migration, no shim. Found by
-  Foundations Generation (no new Boss message).
-  Prerequisite: GEN.216. Related: GEN.214 (done, PR #1472), GEN.215,
-  GEN.216.
-
 - [ ] **GEN.218 One habitability describer, in the short wording**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
   for this item. Fold physics/protection.paragraph and
   physics/habitability_explain into one module that returns the rating
-  rows (domain, colour, score, sentence) in Boss's wording from GEN.216
+  rows (domain, colour, score, sentence) in Boss's wording from GEN.216 (done, PR #1482)
   (his example lines are the spec): one number formatter on the ladders,
   one gas-name table, PHI-6 everywhere, dead code deleted
   (habitability_explain.factors and helpers unless a row sentence needs
   them). Keeps GEN.148's temperature behaviour.
-  Prerequisites: UX.104, GEN.215, GEN.216, GEN.214 (done, PR #1472).
+  Prerequisites: UX.104, GEN.214 (done, PR #1472).
 
 - [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -3499,6 +3430,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
   Prerequisite: UX.104.
+
+- [ ] **GEN.222 Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug)**
+  Boss (2026-10-15 05:30Z): "BUG: Output, when generation text is
+  output, nebulae should show text showing the kinds of nebulae in each
+  slab and the layers included in each slab." When a generation run
+  prints its text output, the nebula part should say, for each slab,
+  which kinds of nebulae were made there and which layers the slab
+  holds. Found: the output prints nebulae without that per-slab
+  breakdown. Done when a run's text output lists, per slab, the nebula
+  kinds and the layers included.
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3918,6 +3860,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from measured performance). Done when: the library passes its tests
   for the barrier, counters, stream and ETA and PERF.33's acceptance is
   met by it.
+  Also (Boss, 2026-10-15 05:30Z): when a phase reports no updates, the
+  whole task bar still shows an estimated time remaining, from earlier
+  runs' stage timings or the time per task so far in this run; the ETA
+  function must carry this fallback (the interim fix is the bug item
+  PERF.101).
   Prerequisite: PERF.95. Related: PERF.86, PERF.33.
 
 - [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
@@ -4011,6 +3958,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   automatic resume. Done when: the suite is green with the old code gone
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
+
+- [ ] **PERF.101 No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug)**
+  Boss (2026-10-15 05:30Z): "Why is there no update going on for the
+  phenomena indexes? There has to be something we can track, during a
+  phase with no updates the whole task bar should also still have an
+  estimated time remaining based on previous statistics or how long the
+  run has taken per task so far." Today the phase "Building the
+  phenomena indexes" (run_plan.py, step phenomena-index) is one pass
+  over the whole phenomenon_scatter table and says outright that there
+  is no progress until it is done. Fix: build the indexes so something
+  is countable (one index at a time, or chunks), so the step reports
+  progress; and when any phase reports nothing, the whole task bar still
+  shows an estimated time remaining from earlier runs' stage timings, or
+  from the time per task so far in this run. The same fallback must be
+  part of PERF.96's ETA function (see its acceptance), so it survives
+  the move to the Redis run record.
+  Prerequisites: none. Related: PERF.96, PERF.33.
 
 ## DB: Database and schema
 
@@ -4113,18 +4077,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.28 One migration for the facility type tables and the new facility columns**
-  Needed by POP.10 (Foundations Generation), same rule as DB.27: only
-  Foundations Database adds migrations. Add `facility_types`,
-  `facility_type_fields` and `facility_field_values`, and the new
-  columns on `facilities` (type, affiliation, the five Green/Yellow/Red
-  ratings and the rating source), as laid out under "Data model" in the
-  facility section of docs/design/population-and-politics.md. Done: the
-  migration (next after DB.27's) with its old-schema fixture and tests,
-  merged so POP.10 can be built on it. Owner: Foundations Database,
-  right after DB.27.
-  Prerequisite: DB.27 (done, PR #1446). Related: POP.10, DB.27 (done, PR #1446).
-
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
   Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
   to a new version, if there are active jobs, ask the user to cancel the
@@ -4159,9 +4111,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   lists active runs, and PERF.99 supplies the cancel through the stop
   command, after which the check uses them. PERF.100 (which deletes the
   old work tables with a migration) must pass through this check too.
-  Owner: Foundations Database, after DB.28 and before PERF.100.
+  Owner: Foundations Database, after DB.28 (done, PR #1476) and before PERF.100.
   Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
-  OPS.48, DB.18, DB.27 (done, PR #1446), DB.28.
+  OPS.48, DB.18, DB.27 (done, PR #1446), DB.28 (done, PR #1476).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
   Needed by POP.12 (Foundations Generation), same rule as DB.27 and
@@ -5209,24 +5161,9 @@ clears each one.
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
   automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
-  TEST.151 and TEST.152, owner the Test Suite Rebuild thread (TEST.133
+  TEST.151 (done, PR #1484) and TEST.152, owner the Test Suite Rebuild thread (TEST.133
   done, #1405).
   Prerequisites: none. Related: TEST.139.
-
-- [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
-  Option A of TEST.148. `scripts/test.py <command> --resume` computes
-  the build id, finds the progress log, and deselects the tests that
-  passed (a skip list passed to pytest on every worker at collection);
-  tests that failed, errored, were running when it stopped or never
-  started run again. It prints the build id, the time of the earlier run
-  and the counts first, and ends with a line that says the run was
-  resumed (for example PASS: N from the earlier run + M now). Each phase
-  (non-browser, then browser) resumes by its own test ids. A resumed run
-  is never automatic, and it is not the merge gate unless the PR says
-  so: a PR that used one says which build and run it continued. Done
-  when a run killed in either phase resumes and finishes with the same
-  verdict a full run gives, with tests for the skip list.
-  Prerequisite: TEST.150 (done, PR #1431). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
   Option A of TEST.148. A killed run can leave keys on the shared Redis:
@@ -5239,19 +5176,7 @@ clears each one.
   the labelling rule (a resumed run says so in its last line and in the
   PR). Done when a killed run leaves nothing that changes a resumed
   run's result and the guide matches.
-  Prerequisite: TEST.151. Related: TEST.148, TEST.139.
-
-- [ ] **TEST.154 A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug)**
-  Reported by Foundations Maps (2026-10-15, MAP.197 gate):
-  src/tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
-  fails 2 of 6 reruns on an idle machine. The test assumes the first
-  facility's host body is the first planet of a random system, but the
-  system is not seeded so the assumption breaks. Make the test pick its
-  host from the data (or seed the system) so it passes every time.
-  Owner: Test Suite Rebuild. Done when 20 reruns in a row pass.
-  Seen again by Foundations UX in its UX.81 and UX.22 gate (2026-10-15):
-  the same test, so two lanes now hit it.
-  Prerequisites: none. Related: TEST.147, TEST.149, TEST.126.
+  Prerequisite: TEST.151 (done, PR #1484). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.155 Wording and index agree: property test**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -5261,7 +5186,7 @@ clears each one.
   sentence names, the gear and the equipment label disagree; when a body
   has life text but the index gives it no life (check the 130 C case
   first); when an airless body shows Air as anything but Red (shared
-  with GEN.215); and when any quantity in the describer is formatted
+  with GEN.215, done in PR #1478); and when any quantity in the describer is formatted
   with a raw :.Nf. Test items are owned by Test Suite Rebuild: that
   thread approves, Foundations Wording writes it.
   Prerequisite: GEN.218.
@@ -6430,7 +6355,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   types refine the five
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
-  Prerequisite: DB.28 (the migration).
+  Prerequisite: DB.28 (the migration; done, PR #1476).
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.11 Scatter space vessels and stations for the races in their territories**

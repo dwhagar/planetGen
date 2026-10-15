@@ -97,6 +97,7 @@ STEP_KINDS = {
     "topup": "Backfill top-up",
     "save": "Sector save",
     "population": "Population pass",
+    "habitability": "Habitability re-score",
     "reset": "Reset",
     "orbits": "Orbit update",
     "migrate": "Migration",

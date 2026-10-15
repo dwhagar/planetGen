@@ -220,6 +220,7 @@ def apply_life_data(planet):
         planet.reflection_spectrum_non_visible = None
         planet.evolutionary_speed = None
         planet.evolutionary_data = []
+        habitability_world.rescore(planet)  # GEN.217: the score of a lifeless world is still redone once everything is final
         log.debug("Life chemistry: none, the habitability index gives microbial life 0")
         return
 

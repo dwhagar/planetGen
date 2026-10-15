@@ -31,7 +31,7 @@ from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_
 from planetgen.web.lib.fmt import esc, format_distance_km, format_gravity_g_short, format_number, format_speed_kms
 from planetgen.web.lib.mdrender import markdown_to_html
 from planetgen.web.lib.tabledisplay import (
-    format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
+    format_body_distance, format_period, format_luminosity, format_mass, format_star_radius,
 )
 
 
@@ -64,10 +64,10 @@ def stars_html(stars, class_url=None, notes_html=""):
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
-        f'<td data-label="Mass">{format_star_mass(star["mass_kg"])}</td>'
+        f'<td data-label="Mass">{format_mass(star["mass_kg"])}</td>'
         f'<td data-label="Radius">{format_star_radius(star["radius_km"])}</td>'
         f'<td data-label="Temp">{format_number(star["temperature_k"])} K</td>'
-        f'<td data-label="Luminosity">{format_star_luminosity(star["luminosity_w"])}</td>'
+        f'<td data-label="Luminosity">{format_luminosity(star["luminosity_w"])}</td>'
         "</tr>"
         for star in stars
     )

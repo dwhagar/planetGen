@@ -401,6 +401,47 @@ def format_gravity_g_short(gravity_g):
     return f"{_three_figures_or_tiny(gravity_g)} g"
 
 
+def format_mass_kg(kilograms):
+    """A mass in kilograms on the mass ladder (UX.22): "5.97 × 10²⁴ kg" is
+    shown as "1 Earth mass", "0.299 Jupiter masses", "0.122 solar masses"."""
+    return format_quantity(ladders.MASS, kilograms)
+
+
+def format_mass_solar(solar_masses):
+    """`format_mass_kg` for a mass held in solar masses (black holes, neutron
+    stars, the quasar's black hole)."""
+    return format_quantity(ladders.MASS, None if solar_masses is None else solar_masses * physical_constants.SOLAR_MASS_TO_KG)
+
+
+def format_power_w(watts):
+    """A luminosity or power in watts on the power ladder (UX.22): "47.2 TW",
+    "1 L☉", "9.01 × 10⁻³¹ W"."""
+    return format_quantity(ladders.POWER, watts)
+
+
+def format_luminosity_sol(solar_luminosities):
+    """`format_power_w` for a luminosity held in solar luminosities."""
+    return format_quantity(ladders.POWER, None if solar_luminosities is None
+                           else solar_luminosities * physical_constants.SOLAR_LUMINOSITY)
+
+
+def format_flux_w_m2(flux):
+    """A heat flow or flux in W/m² on the flux ladder (UX.22): "87 mW/m²"."""
+    return format_quantity(ladders.FLUX, flux)
+
+
+def format_number_density_cm3(per_cm3):
+    """A particle density in particles per cubic centimeter (clouds,
+    remnants): "3.5 particles/cm³". `None` gives an en dash."""
+    return format_quantity(ladders.NUMBER_DENSITY, None if per_cm3 is None else per_cm3 * 1e6)
+
+
+def format_magnetic_field_gauss(gauss):
+    """A magnetic field held in gauss (the schema's `magnetic_field_gauss`) on
+    the field ladder: "50 µT" for a planet, "1.00 × 10¹² G" for a pulsar."""
+    return format_quantity(ladders.MAGNETIC_FIELD, None if gauss is None else gauss * 1e-4)
+
+
 def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):
     """
     A planet, moon or star radius: always km in scientific notation (Boss,
@@ -444,36 +485,6 @@ def format_length_km(system_config: SystemConfig, value_km, threshold, round_dig
         return f"{format_number(round(value_km, round_digits), ',')} km"
     precision = scientific_precision if scientific_precision is not None else round_digits
     return f"{to_scientific_notation(system_config, value_km, precision)} km"
-
-
-def format_relative_to_sol(system_config: SystemConfig, value, sol_constant, unit, low_percent_precision=2):
-    """
-    Formats a physical quantity (mass, luminosity, ...) with its value in
-    scientific notation alongside a comparison to the Sol reference value:
-    a percentage when the ratio is small, or a "×" multiplier when it's large.
-
-    Args:
-        system_config (SystemConfig): The shared SystemConfig object.
-        value (float): The quantity's value, in SI units.
-        sol_constant (float): The Sol-reference value for the same quantity
-                              (e.g. `physical_constants.SOLAR_MASS_TO_KG`).
-        unit (str): The unit label for the SI value (e.g. "kg", "W").
-        low_percent_precision (int, optional): Decimal places used for the
-                                               percentage when the ratio is
-                                               below `PERCENT_SOL_THRESHOLD_LOW`.
-                                               Defaults to 2.
-
-    Returns:
-        str: The formatted string, e.g. "1.23 × 10^30 kg (1.00× Sol)".
-    """
-    sol_val = value / sol_constant
-    sci_notation = to_scientific_notation(system_config, value)
-    if sol_val < tuning.PERCENT_SOL_THRESHOLD_LOW:
-        return f"{sci_notation} {unit} ({sol_val * tuning.PERCENT_MULTIPLIER:.{low_percent_precision}f}% of Sol)"
-    elif sol_val < tuning.PERCENT_SOL_THRESHOLD_HIGH:
-        return f"{sci_notation} {unit} ({sol_val * tuning.PERCENT_MULTIPLIER:.1f}% of Sol)"
-    else:
-        return f"{sci_notation} {unit} ({format_number(sol_val, ',.1f')}× Sol)"
 
 
 def to_scientific_notation(system_config: SystemConfig, number, precision=2):

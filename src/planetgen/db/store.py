@@ -70,7 +70,7 @@ from planetgen.db import alembic_runner, login
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, kepler, magnetism, radiation, spin
+from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import steps
@@ -4423,6 +4423,52 @@ def _refresh_cloud_doses(conn, system_changes):
                     _update_by_id(conn, table, columns, updates, touch=True)
                 if scored_updates:
                     _update_by_id(conn, table, columns + habitability_world.SCORE_FIELDS, scored_updates, touch=True)
+
+
+def refresh_habitability(conn, system_id):
+    """
+    GEN.217: re-derives the stored habitability numbers of every scored rocky planet and moon of one system from
+    its stored conditions: `flux_variation` and the `habitability_world.SCORE_FIELDS` (the index, the six domains
+    with their tiers, the equipment tier and the note). It is how a body saved before a change to the rules
+    (GEN.148's flux swing, GEN.207's six domains, GEN.215's airless Air) gets the numbers a new one would, without
+    regenerating it. A system of one star has no swing (0); a system of two is loaded and its swing worked out as
+    generation does (`insolation.refresh_system`). A planet of a pulsar, neutron star or black hole keeps the host
+    its note names. A gas giant, and a body saved before v76 (no `energy_flux_w_m2`), are left alone.
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        system_id (int): The `star_systems` row.
+
+    Returns:
+        int: Bodies updated.
+    """
+    swings = {}
+    if conn.execute("SELECT COUNT(*) AS n FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()["n"] > 1:
+        system = load_star_system(conn, system_id)
+        insolation.refresh_system(system)
+        for planet in system.planets + getattr(system, "secondary_planets", []):
+            if planet.body_type == "a":
+                continue
+            swings[("planets", planet.db_id)] = planet.flux_variation
+            for moon in planet.moons:
+                swings[("moons", moon.db_id)] = moon.flux_variation
+    columns = habitability_world.SCORE_FIELDS + ("flux_variation",)
+    updated = 0
+    for table in ("planets", "moons"):
+        rows = []
+        for row in conn.execute(
+                f"SELECT * FROM {table} WHERE star_system_id = ? AND energy_flux_w_m2 IS NOT NULL AND body_type <> 'g'",
+                (system_id,)).fetchall():
+            swing = swings.get((table, row["id"]), 0.0)
+            host = re.match(r"Planet of an? ([a-z ]+):", row["hab_note"] or "")
+            scores = habitability_world.compute(
+                {**dict(row), "flux_variation": swing, "life_stage": _stored_life_stage(conn, table, row)},
+                host.group(1) if host else None)
+            rows.append((row["id"], *(scores[name] for name in habitability_world.SCORE_FIELDS), swing))
+        if rows:
+            _update_by_id(conn, table, columns, rows, touch=True)
+            updated += len(rows)
+    return updated
 
 
 PLACED_PHENOMENON_TABLES = (

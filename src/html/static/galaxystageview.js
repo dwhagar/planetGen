@@ -63,6 +63,7 @@ const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
+const REST_BLOCK_EDGES = 0.1; // MAP.202: the share of the lines between blocks drawn at rest
 const HOVER_SHADE_OPACITY = 0.16; // MAP.198: the shade over the block a click would open
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
@@ -373,7 +374,7 @@ export function createStageView(host) {
       const meshes = [];
       // The whole galaxy shows no sector or block lines (MAP.85); a window
       // shows the lines between its blocks.
-      const gridEdges = isWholeGalaxy(r) ? 0 : 1;
+      const gridEdges = isWholeGalaxy(r) ? 0 : REST_BLOCK_EDGES;
       [built.solid, built.glass].forEach(function (part, n) {
         if (!part.vertexCount) return;
         const mesh = host.makeBlockMesh(part, n === 1);
@@ -384,7 +385,7 @@ export function createStageView(host) {
         meshes.push(mesh);
       });
       root.add(group);
-      groups.push({ option: single ? null : options[index], meshes: meshes, fade: 1 });
+      groups.push({ option: single ? null : options[index], meshes: meshes, fade: 1, restEdges: gridEdges });
     });
     const charted = chartedOnly ? chartedLines(options, data) : null;
     if (charted) root.add(charted);
@@ -1423,8 +1424,8 @@ export function createStageView(host) {
   // An accent outline round the whole block a click would open (MAP.18,
   // MAP.52, MAP.198): every edge of its solid, top and bottom and up the
   // corners, and a faint shade over its faces, on top of the map.
-  function outlineOption(index) {
-    clearOutline();
+  function outlineOption(index, keep) {
+    if (!keep) clearOutline();
     const option = display.options[index];
     const mid = (option.a0 + option.a1) / 2;
     const span = spanOf(option.blocks, mid);
@@ -1463,10 +1464,21 @@ export function createStageView(host) {
       // The sector opened in place is drawn by its own scene: its block
       // is only a faint cell round it.
       if (entered && sectorOption(entered.sector) === n) group.fade = ENTERED_BLOCK_FADE;
+      // MAP.202: the lines round a block are nearly invisible at rest and
+      // show in full on the block being chosen.
+      const edges = index === n ? 1 : group.restEdges;
+      group.meshes.forEach(function (mesh) {
+        if (mesh.material.uniforms && mesh.material.uniforms.gridEdges && group.restEdges > 0) mesh.material.uniforms.gridEdges.value = edges;
+      });
     });
     if (!animation) setDisplayFade(display, 1);
+    // MAP.201: the sector selected (one that is not opened, as an
+    // unfilled one cannot be) stays outlined until something else is
+    // selected, whether or not the pointer is on it.
+    const selected = selectedSector && !entered ? sectorOption(selectedSector) : -1;
     if (index >= 0 && display.options[index]) outlineOption(index);
     else clearOutline();
+    if (selected >= 0 && selected !== index) outlineOption(selected, true);
   }
 
   function showTooltip(text, clientX, clientY) {

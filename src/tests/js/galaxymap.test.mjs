@@ -352,7 +352,8 @@ test("the whole galaxy has no grid lines; a window shows the lines between its b
   assert.deepEqual(gridEdges(m), [0]);
   await drillOnce(m);
   assert.equal(m.view.stage().win.centre.m, 27);
-  assert.deepEqual(gridEdges(m), [1]);
+  const rest = gridEdges(m);
+  assert.ok(rest.length === 1 && rest[0] > 0 && rest[0] <= 0.15, "nearly invisible at rest (MAP.202): " + rest);
   assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "chartedLines", "hovered"]);
 });
 

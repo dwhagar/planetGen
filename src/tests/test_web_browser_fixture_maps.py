@@ -681,7 +681,7 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
             picked = heading
             break
     assert picked, "no click on the uncharted sector picked one of its objects"
-    assert "its sector is not generated yet" in info.inner_text()
+    assert "its sector is not charted yet" in info.inner_text()
     assert info.locator("a", has_text="View").count() == 0, "an uncharted object has no page to view"
     assert info.locator("button", has_text="Start Here").count() == 0
     page.click('#galaxymap3d-controls [data-action="up"]')
@@ -1363,7 +1363,26 @@ def test_galaxy_map_draws_block_lines_only_in_a_window(page, map_site):
         _click_choice(page, GENERATED_CHOICE)
     assert seen[0] == (False, 0), seen
     windows = [edges for is_window, edges in seen if is_window]
-    assert len(windows) >= 2 and all(edges == 1 for edges in windows), seen
+    assert len(windows) >= 2 and all(0 < edges <= 0.15 for edges in windows), ("nearly invisible at rest (MAP.202)", seen)
+
+
+def test_galaxy_map_block_lines_show_only_on_the_block_being_chosen(page, map_site):
+    """MAP.202: in a window the lines between blocks are nearly invisible at
+    rest and show in full while a block is hovered, in both themes."""
+    for scheme in ("dark", "light"):
+        page.emulate_media(color_scheme=scheme)
+        _open_galaxy(page, map_site)
+        for _ in range(8):
+            if not _on_galaxy(page) or parse_qs(_query(page)).get("win"):
+                break
+            _click_choice(page, GENERATED_CHOICE)
+        if not parse_qs(_query(page)).get("win"):
+            pytest.skip("no window reached")
+        page.mouse.move(1, 1)
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines === 0")
+        assert 0 < page.evaluate(LINES)["blockEdges"] <= 0.15
+        assert _hover_choice(page), "no block to hover"
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blockEdges === 1")
 
 
 def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):
@@ -1429,6 +1448,28 @@ def test_galaxy_map_outlines_the_whole_block_a_click_would_open_and_shades_it(pa
         _settle(page)
         if not _on_galaxy(page):
             break
+
+
+def test_galaxy_map_an_unfilled_sector_stays_outlined_once_selected(page, map_site):
+    """MAP.201: a sector with nothing generated cannot be opened, but once
+    selected it stays outlined when the pointer leaves, until something else
+    is selected."""
+    _open_galaxy(page, map_site)
+    for _ in range(8):
+        if re.search(r"Sector .*uncharted$", (_hover_choice(page, r"^Sector .*uncharted$") or (0, 0, ""))[2]):
+            break
+        _click_choice(page, GENERATED_CHOICE)
+    spots = page.evaluate(HOVER_SCAN, [r"^Sector .*uncharted$", 48])
+    assert spots, "no unfilled sector on the map"
+    page.mouse.click(spots[0], spots[1])
+    _settle(page)
+    if "open=1" in _query(page):
+        pytest.skip("the first unfilled sector holds scattered objects and opens")
+    # Passing over another sector and leaving the map used to drop the outline.
+    assert _hover_choice(page, r"^Sector .*, charted$"), "no charted sector to pass over"
+    page.mouse.move(1, 1)
+    page.wait_for_timeout(300)
+    assert page.evaluate(LINES)["hovered"]["lines"] > 0, "the selected sector lost its outline"
 
 
 def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(page, map_site):

@@ -10,6 +10,7 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/test-suite-rebui
     scripts/test.py full                  everything: the merge gate; also refreshes the map `changed` reads
     scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
+    scripts/test.py <command> --resume    continue the last run of this same build, skipping the tests that passed in it
 
 Every command except `quick` and `browser` (`changed` and `full` included) runs in two phases: the tests that
 need no browser on every core, then the browser tests on `--browser-workers`
@@ -19,6 +20,11 @@ have, and running both at once is what timed the browser tests out (TEST.126).
 Failures: every failing test's full report (traceback, worker, machine load) is kept in `.test-failures.jsonl`,
 and when the run ends the failed tests are run again alone, on one worker, each with the verdict "passes alone"
 (it only failed under load or beside other tests) or "fails alone" (a real failure). `--no-rerun` skips that.
+
+Resuming (TEST.148): every run keeps `.test-progress/<build id>.jsonl`, a line per finished test. After a run was
+killed or stopped, the same command with `--resume` and nothing else changed (same code, files, packages, servers,
+command and day: the build id) skips the tests that passed and runs the rest. It says RESUMING first and RESUMED on
+its last line; with a different build it runs nothing and says which part changed. Never automatic.
 
 The first line printed is the start time and how long this command took last
 time on this checkout; the last line is `PASS` or `FAIL` with the duration and the counts, or `INTERRUPTED` when the
@@ -125,15 +131,52 @@ def describe_counts(counts):
     return ", ".join(f"{counts[word]} {word}" for word in order if counts.get(word)) or "no tests ran"
 
 
-def start_progress_log(command_key, extra, base, directory=None, now=None):
-    """Starts the progress log of this run (TEST.150): works out the build id, empties the log of that id if an
-    earlier run left one, writes its header line, removes logs older than a day, and returns (id, path, parts).
-    `src/tests/progress_log.py` appends a line for every test that finishes."""
+def _progress_modules():
     sys.path.insert(0, os.path.join(ROOT, "src"))
     try:
-        from tests import buildid
+        from tests import buildid, progress_log
     finally:
         sys.path.pop(0)
+    return buildid, progress_log
+
+
+def explain_no_resume(buildid, progress_log, directory, command_key, parts):
+    """Why there is nothing to resume: the newest earlier run of this command and the parts of the build that
+    differ from it, or that there is none."""
+    newest = None
+    for name in os.listdir(directory):
+        if not name.endswith(".jsonl"):
+            continue
+        path = os.path.join(directory, name)
+        header, _ = progress_log.read(path)
+        if header.get("command") == command_key and (newest is None or os.path.getmtime(path) > newest[0]):
+            newest = (os.path.getmtime(path), header)
+    if newest is None:
+        return f"no earlier run of `{command_key}` has left a progress log in {os.path.relpath(directory, ROOT)}"
+    header = newest[1]
+    changed = buildid.differences(header.get("parts", {}), parts)
+    return (f"the last `{command_key}` run (build {header.get('build')}, started {header.get('started')}) was another "
+            f"build: {', '.join(changed) or 'no part differs, but it recorded no passed test'} changed since")
+
+
+class Progress:
+    """The progress log of one run (TEST.150) and, when `resume` is asked for, what the earlier run of the same
+    build had passed (TEST.151). `problem` says why a resume cannot be made."""
+
+    def __init__(self, identifier, path, parts, skip_file=None, passed=0, earlier_started="", problem=None):
+        self.identifier, self.path, self.parts = identifier, path, parts
+        self.skip_file, self.passed, self.earlier_started, self.problem = skip_file, passed, earlier_started, problem
+
+
+def start_progress_log(command_key, extra, base, directory=None, now=None, resume=False):
+    """Starts the progress log of this run: works out the build id, removes logs older than a day, and writes
+    the header of the log of that id (emptying one an earlier run of the same build left, unless `resume`).
+    `src/tests/progress_log.py` appends a line for every test that finishes.
+
+    With `resume`, the log of the same build is kept and added to, and the node ids it records as passed are
+    written to a skip list for pytest (`--skip-passed`). When the build has no log with a passed test, the result's
+    `problem` says why and nothing is written."""
+    buildid, progress_log = _progress_modules()
     directory = directory or PROGRESS_DIR
     now = now or datetime.datetime.now(datetime.timezone.utc)
     parts = buildid.build_parts(ROOT, command_key, extra, base, now=now)
@@ -143,16 +186,29 @@ def start_progress_log(command_key, extra, base, directory=None, now=None):
     for name in os.listdir(directory):
         old = os.path.join(directory, name)
         try:
-            if name.endswith(".jsonl") and os.path.getmtime(old) < cutoff:
+            if name.endswith((".jsonl", ".skip")) and os.path.getmtime(old) < cutoff:
                 os.remove(old)
         except OSError:
             pass
     path = os.path.join(directory, identifier + ".jsonl")
+    if resume:
+        header, tests = progress_log.read(path)
+        passed = sorted(nodeid for nodeid, line in tests.items() if line.get("outcome") == "passed")
+        if not header or not passed:
+            why = explain_no_resume(buildid, progress_log, directory, command_key, parts) if not header else \
+                f"the log of build {identifier} records no test that passed"
+            return Progress(identifier, path, parts, problem=why)
+        skip_file = os.path.join(directory, identifier + ".skip")
+        with open(skip_file, "w", encoding="utf-8") as f:
+            json.dump(passed, f)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"kind": "resume", "at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "skipped": len(passed)}) + "\n")
+        return Progress(identifier, path, parts, skip_file, len(passed), header.get("started", ""))
     header = {"kind": "header", "build": identifier, "command": command_key, "parts": parts,
               "started": now.strftime("%Y-%m-%dT%H:%M:%SZ")}
     with open(path, "w", encoding="utf-8") as f:
         f.write(json.dumps(header) + "\n")
-    return identifier, path, parts
+    return Progress(identifier, path, parts)
 
 
 def load_runs():
@@ -233,6 +289,9 @@ def main(argv=None):
     parser.add_argument("--browser-workers", type=int, default=2, help="workers for the browser tests (default 2)")
     parser.add_argument("--base", default="", help="for `changed` and `--check`: the commit to compare with "
                         "(default: where this branch left origin/main)")
+    parser.add_argument("--resume", action="store_true",
+                        help="continue the last run of this same build: skip the tests that passed in it (never "
+                        "automatic; the last line says the run was resumed)")
     parser.add_argument("--check", action="store_true",
                         help="for `full`: list the failing tests `changed` would not have selected")
     argv = sys.argv[1:] if argv is None else list(argv)
@@ -254,10 +313,21 @@ def main(argv=None):
     key = args.command + (" " + " ".join(args.areas) if args.areas else "")
     previous = load_runs().get(key)
     started = time.time()
-    identifier, progress_path, _ = start_progress_log(key, extra, args.base)
+    progress = start_progress_log(key, extra, args.base, resume=args.resume)
+    identifier, progress_path = progress.identifier, progress.path
+    if progress.problem:
+        print(f"scripts/test.py {key}: cannot resume build {identifier}: {progress.problem}. Nothing was run; start the "
+              "run again without --resume.", flush=True)
+        return 2
     print(f"scripts/test.py {key}: started {datetime.datetime.now(datetime.timezone.utc):%H:%M}Z"
           + (f", last time {minutes(previous['seconds'])}" if previous else ", no earlier run recorded")
           + f", build {identifier}", flush=True)
+    if args.resume:
+        print(f"scripts/test.py {key}: RESUMING build {identifier} from the run started {progress.earlier_started}: "
+              f"the {progress.passed} tests that passed there are skipped, the rest run now", flush=True)
+        extra_for_pytest = extra + ["--skip-passed", progress.skip_file]
+    else:
+        extra_for_pytest = extra
 
     status = 0
     totals = {}
@@ -278,7 +348,7 @@ def main(argv=None):
         for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
             phase = label
             print(f"--- {label}: -m {marker!r}, {workers} worker(s)", flush=True)
-            code, counts = run_phase(pytest_command(marker, workers, extra), environment)
+            code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
             for word, number in counts.items():
                 totals[word] = totals.get(word, 0) + number
             if code not in (0, 5):  # 5: nothing collected in this phase
@@ -287,20 +357,26 @@ def main(argv=None):
             rerun_failures(environment)
     except KeyboardInterrupt as stop:
         seconds = round(time.time() - started)
+        _, logged = _progress_modules()[1].read(progress_path)
+        done = sum(1 for line in logged.values() if line.get("outcome") == "passed")
         print(f"scripts/test.py {key}: INTERRUPTED ({stop.args[0] if stop.args else 'Ctrl-C'}) in the {phase} phase "
-              f"after {minutes(seconds)}; not finished, {describe_counts(totals)} so far", flush=True)
+              f"after {minutes(seconds)}; not finished, {done} tests had passed (build {identifier}; the same command "
+              "with --resume continues it)", flush=True)
         return 130
     finally:
         signal.signal(signal.SIGTERM, previous_handler)
     seconds = time.time() - started
-    save_run(key, seconds, status == 0)
+    if not args.resume:  # a resumed run is short because it skipped tests; it says nothing about the usual time
+        save_run(key, seconds, status == 0)
     timed_out = timed_out_tests()
     if timed_out:
         print(f"--- TIMED OUT: {len(timed_out)} test(s) ran past the per-test limit and were stopped:", flush=True)
         for nodeid in timed_out:
             print(f"  {nodeid}", flush=True)
+    resumed = (f" (RESUMED build {identifier}: {progress.passed} more passed in the run started "
+               f"{progress.earlier_started})" if args.resume else "")
     print(f"scripts/test.py {key}: {'PASS' if status == 0 else 'FAIL'} in {minutes(round(seconds))}: "
-          f"{describe_counts(totals)}" + (f" ({len(timed_out)} TIMED OUT)" if timed_out else ""), flush=True)
+          f"{describe_counts(totals)}" + (f" ({len(timed_out)} TIMED OUT)" if timed_out else "") + resumed, flush=True)
     return status
 
 

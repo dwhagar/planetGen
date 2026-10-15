@@ -12,7 +12,7 @@ from flask import flash, get_flashed_messages, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain
-from planetgen.web.lib.fmt import format_density, format_distance_ly, format_number
+from planetgen.web.lib.fmt import format_density, format_distance_ly, format_luminosity_sol, format_number
 from planetgen.web.maps.galaxymap import sector_quadrant
 
 from planetgen.api.limiter import page_limit
@@ -132,7 +132,7 @@ def _uncharted_row(star, can_generate):
             "fields": [[csrf.FIELD_NAME, csrf.csrf_token()]]}}
     return [
         {"text": label},
-        {"text": f"{format_number(star['luminosity_sol'])} L\u2609"},
+        {"text": f"{format_luminosity_sol(star['luminosity_sol'])}"},
         {"text": f"{star['star_type']} ({_POPULATION_LABELS.get(star['population'], star['population'])})"},
         {"text": f"{format_number(round(star['temperature_k']))} K"},
         {"text": f"{star['age_gy']:.2f} Gyr"},
