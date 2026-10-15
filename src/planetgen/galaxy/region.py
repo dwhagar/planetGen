@@ -177,7 +177,7 @@ class Region:
 
     def count(self, bounds=None):
         """How many sectors the region holds, inside the outline when
-        `bounds` (a `skeleton.ShellBounds`) is given."""
+        `bounds` (a `skeleton.GalaxyBounds`) is given."""
         return sum(arc.count for arc in self.band_arcs() if self._within(arc, bounds))
 
     def addresses(self, bounds=None):

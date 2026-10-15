@@ -5,7 +5,7 @@ import pytest
 
 from planetgen.galaxy import spherical
 from planetgen.galaxy.region import BALL_EDGE_ALLOWANCE, BandArc, Region
-from planetgen.galaxy.skeleton import ShellBounds
+from planetgen.galaxy.skeleton import GalaxyBounds
 
 EDGE = 4.0
 
@@ -25,7 +25,7 @@ def _bounds(last_shell, limit=None):
     for shell in range(last_shell + 1):
         high = spherical.band_range(shell)[1]
         rows.append((shell, high if limit is None else min(high, limit)))
-    return ShellBounds(rows, EDGE)
+    return GalaxyBounds(rows, EDGE)
 
 
 CENTRES = [
