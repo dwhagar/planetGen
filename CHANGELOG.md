@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1136] - 2026-10-15
+
+### Changed
+
+- The TODO list retires OPS.48 (Redis server settings example and warnings, merged in #1395).
+
 ## [8.0.1135] - 2026-10-15
 
 ### Added
