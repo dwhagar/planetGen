@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1252] - 2026-10-15
+
+### Changed
+- The TODO list records that the facility types API part (POP.10) merged in #1517; the web part remains.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1251] - 2026-10-15
 
 ### Added
