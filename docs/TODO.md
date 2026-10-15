@@ -4658,6 +4658,9 @@ clears each one.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
   Two System Map browser tests that failed under load (seen by Foundations lane 2 and the rebuild thread) were fixed on 2026-10-14 (#1367).
+  Seen again on 2026-10-15 (Bugfixes lane 2, NAV.47 suite, load 8.9, call 40.6 s on
+  gw0): src/tests/test_web_browser_controls.py::test_every_plain_button_does_something[web.sector];
+  passed alone, main not checked.
   Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
   test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
   playwright error), test_bookmarks_keep_a_course_pick_on_the_galaxy_map and
