@@ -8,6 +8,7 @@ regime, storage and the v48 back-fill.
 
 import math
 import random
+import re
 
 import pytest
 
@@ -132,7 +133,7 @@ def test_phenomenon_page_rows():
               "surface_regime": "ice-shell-ocean", "surface_temperature_k": 35.1, "surface_pressure_pa": 0.3,
               "ice_shell_thickness_km": 13.4, "ocean_depth_km": 120.0, "has_internal_heat": 1}
     with create_app(_Config).test_request_context("/"):
-        fields = {label: text for label, text, _url in system_pages.phenomenon_fields("rogue_planet", detail)}
+        fields = {label: re.sub(r"<[^>]*>", "", str(text)) for label, text, _url in system_pages.phenomenon_fields("rogue_planet", detail)}
     assert fields["Surface"] == "Ice shell over a liquid ocean"
     assert fields["Surface Temperature"] == "35.1 K (-238 °C, -396 °F)"
     assert fields["Surface Pressure"] == "300 mPa (a trace)"
