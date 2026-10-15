@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1322] - 2026-10-15
+
+### Changed
+- Docs: the research notes that still treated Python 3.9 and astropy as live (determinism, reproducible galaxies, units, library migration, galactic potential, orbital solvers, database check, API standards, scheduling) now carry a dated status line saying what OPS.42 and GEN.211 changed and what is still open (DOC.24). `queue/work.py` uses `add_note` and a `settings.py` comment no longer cites Python 3.9.
+
 ## [8.0.1321] - 2026-10-15
 
 ### Changed
