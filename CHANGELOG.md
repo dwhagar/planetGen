@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1237] - 2026-10-15
+
+### Added
+
+- Plan entry for a Boss bug: regions under the galactic plane are hard to highlight and select on the Galaxy Map (MAP.204).
+
+TODO items resolved: none / Added: MAP.204
+
 ## [8.0.1236] - 2026-10-15
 
 ### Changed
