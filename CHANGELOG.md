@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1166] - 2026-10-15
+
+### Changed
+
+- **Six habitability domains and Suitability (GEN.207).** The habitability colours now run over six domains: Pressure, Temperature, Air (is the air breathable), Water (is the water drinkable; a world with no liquid water is Red), Radiation and a new long-term Suitability, the lowest of water within reach, native food and shelter from radiation. The overall score is the geometric mean held under colour gates: Radiation and Temperature cap it at their own colour, Pressure in Yellow or Red caps it there unless a full suit is needed anyway, Air, Water or a Red Suitability cap it at Yellow (never lower on their own), and Blue needs all six Blue. A Red Suitability is forced when Radiation, Temperature, Pressure or Water is Red. Planet and moon rows, the Habitability levels page and the description show all six; the equipment still comes from pressure, temperature, air and radiation. Scores stored before this release change when a planet is regenerated.
+
 ## [8.0.1165] - 2026-10-15
 
 ### Changed
