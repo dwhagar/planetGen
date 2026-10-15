@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1176] - 2026-10-15
+
+### Changed
+
+- The TODO list notes the server part of the fly-through map hand-off (MAP.152) as done.
+
 ## [8.0.1175] - 2026-10-15
 
 ### Changed
