@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.60 |
 | GEN | GEN.217 |
 | PERF | PERF.101 |
-| DB | DB.30 |
+| DB | DB.31 |
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
@@ -27,7 +27,7 @@ release is stamped.
 | OPS | OPS.51 |
 | DOC | DOC.45 |
 | VIEW | VIEW.11 |
-| POP | POP.12 |
+| POP | POP.14 |
 
 ## Why this exists
 
@@ -496,6 +496,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | done, PR #1446 |
 | DB.28 | One migration for the facility type tables and the new facility columns | none | open |
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
+| DB.30 | One migration for the per-species environment limits | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1179,6 +1180,8 @@ Parents marked "new parent" had no old number of their own.
 | POP.9 | A tech level generated for every technological species | none | done, PR #1461 |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | open |
 | POP.11 | Scatter space vessels and stations for the races in their territories | none | open |
+| POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | open |
+| POP.13 | A species editor: create and edit species and their environment limits | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
