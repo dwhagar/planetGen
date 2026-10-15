@@ -57,13 +57,13 @@ def sector_url_template():
 def uncharted_scene_url_template():
     """
     The URL of an uncharted sector's scene JSON (`galaxy_uncharted_scene`)
-    with `{ring}`, `{layer}` and `{slot}` where the address goes, for the
+    with `{shell}`, `{band}` and `{wedge}` where the address goes, for the
     Galaxy Map to open a cell nothing was generated in (MAP.162).
     """
-    return url_for("web.galaxy_uncharted_scene", ring=_ID_PLACEHOLDER, layer=_ID_PLACEHOLDER + 1,
-                   slot=_ID_PLACEHOLDER + 2).replace(
-        str(_ID_PLACEHOLDER + 1), "{layer}").replace(str(_ID_PLACEHOLDER + 2), "{slot}").replace(
-        str(_ID_PLACEHOLDER), "{ring}")
+    return url_for("web.galaxy_uncharted_scene", shell=_ID_PLACEHOLDER, band=_ID_PLACEHOLDER + 1,
+                   wedge=_ID_PLACEHOLDER + 2).replace(
+        str(_ID_PLACEHOLDER + 1), "{band}").replace(str(_ID_PLACEHOLDER + 2), "{wedge}").replace(
+        str(_ID_PLACEHOLDER), "{shell}")
 
 
 def system_url_template():
@@ -97,9 +97,9 @@ def _quadrant_summary_rows(sectors):
     for label in QUADRANT_LABELS:
         members = by_quadrant[label]
         extent = None
-        rings = [s["shell_index"] for s in members if s["shell_index"] is not None]
-        if rings:
-            _inner, outer_ly = zone_bounds_ly(sector_zone(max(rings)))
+        shells = [s["shell_index"] for s in members if s["shell_index"] is not None]
+        if shells:
+            _inner, outer_ly = zone_bounds_ly(sector_zone(max(shells)))
             extent = f"out to ~{format_distance_ly(outer_ly)}"
         rows.append({
             "label": label,
@@ -133,7 +133,7 @@ def _quadrant_load(state, limit, offset, want_facets):
     return in_memory(
         members, state, limit, offset, want_facets,
         {"name": lambda s, descending: s["name"].casefold(),
-         "zone": lambda s, descending: s["shell_index"],
+         "zone": lambda s, descending: s["ring_index"],
          "radius": lambda s, descending: s["galactic_radius_pc"],
          "systems": lambda s, descending: s["system_count"] or 0},
         {"zone": _zone_label}, _quadrant_cells)
@@ -271,7 +271,7 @@ def _made_from_args():
     return {
         "total": made["total"],
         "points": [{"x": i["x"], "y": i["y"], "z": i["z"]} for i in made["items"]],
-        "sectors": [[i["shell_index"], i["band_index"], i["wedge_index"]] for i in made["items"]],
+        "sectors": [[i["ring_index"], i["layer_index"], i["ring_slot_index"]] for i in made["items"]],
     }
 
 
@@ -388,9 +388,9 @@ def galaxy_locate():
 galaxy_locate.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
-@bp.route("/galaxy/uncharted/<int:ring>/<int:layer>/<int:slot>/scene")
+@bp.route("/galaxy/uncharted/<int:shell>/<int:band>/<int:wedge>/scene")
 @page_limit("galaxy_tiles")
-def galaxy_uncharted_scene(ring, layer, slot):
+def galaxy_uncharted_scene(shell, band, wedge):
     """
     The scene JSON of a sector cell nothing was generated in
     (`starmap.uncharted_scene_data`, MAP.162): the waiting bright stars and
@@ -400,7 +400,7 @@ def galaxy_uncharted_scene(ring, layer, slot):
     404 and an API failure a 502, both as `{"error": ...}` JSON.
     """
     try:
-        cell = apiclient.get_uncharted_sector(db_name(), ring, layer, slot)
+        cell = apiclient.get_uncharted_sector(db_name(), shell, band, wedge)
     except apiclient.NotFoundError as exc:
         return _json_error(str(exc) or "Not found.", 404)
     except apiclient.ApiError as exc:
@@ -411,7 +411,7 @@ def galaxy_uncharted_scene(ring, layer, slot):
     if cell["sector_id"] is not None:
         return redirect(url_for("web.sector_scene", sector_id=cell["sector_id"]), code=302)
     scene = uncharted_scene_data(
-        (ring, layer, slot), cell["designation"], cell["center_pc"], cell["edge_pc"],
+        (shell, band, wedge), cell["designation"], cell["center_pc"], cell["edge_pc"],
         {"stars": cell["stars"], "scattered": cell["scattered"]}, generate=generate_target(current_admin()))
     response = jsonify(scene)
     response.headers["Cache-Control"] = "no-store"

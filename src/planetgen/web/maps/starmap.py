@@ -26,8 +26,8 @@ it sits in the galaxy.
 `_outline_data` computes the scene's own bounding shape -- one of two,
 depending on whether the sector has a galaxy placement: a sector with a
 grid address gets its real cylindrical cell (see
-`galaxyGeometry.sector_cell_vertices_pc` -- one ring wide, one layer tall,
-one slot's angle across, its curved edges sampled as arcs); one without a
+`spherical.sector_cell_vertices_pc` -- one shell deep, one band tall,
+one wedge's angle across, its curved edges sampled as arcs); one without a
 placement falls back to a plain axis-aligned cube of edge `edge_mpc`.
 
 Links: `map_scene_data` takes a `link_url(name, **params)` callable (the
@@ -57,14 +57,14 @@ except ImportError:
     SOLAR_RADIUS_M = 6.957e8
 
 try:
-    from planetgen.galaxy.geometry import (
-        binary_companion_offset_pc,
-        layer_bounds_pc,
-        ring_bounds_pc,
+    from planetgen.galaxy.geometry import binary_companion_offset_pc
+    from planetgen.galaxy.spherical import (
+        band_colatitude_bounds,
         sector_cell_vertices_pc,
         sector_orientation,
         sector_position_pc,
-        slot_angle_bounds,
+        shell_bounds_pc,
+        wedge_longitude_bounds,
     )
     from planetgen.physics.units import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
 except ImportError:
@@ -80,9 +80,9 @@ except ImportError:
     binary_companion_offset_pc = None
     sector_cell_vertices_pc = None
     sector_orientation = None
-    ring_bounds_pc = None
-    layer_bounds_pc = None
-    slot_angle_bounds = None
+    shell_bounds_pc = None
+    band_colatitude_bounds = None
+    wedge_longitude_bounds = None
     mpc_to_pc = None
     pc_to_mpc = None
     milliparsecs_to_ly = None
@@ -235,9 +235,9 @@ def _rotate_to_galaxy_frame(center_pc, local_vec):
     Re-expresses `local_vec` -- a star system's position relative to its
     sector's own center (`star_systems.position_x/y/z_mpc`, in whatever
     axes the sector's own local frame uses) -- along the galaxy frame's
-    axes instead, via `galaxyGeometry.sector_orientation`'s fixed
+    axes instead, via `spherical.sector_orientation`'s fixed
     convention (local `+X` radially outward from the galactic axis, `+Y`
-    along the ring, `+Z` galactic north), computed from the stored
+    toward increasing longitude, `+Z` galactic north), computed from the stored
     `center_pc` alone.
 
     Without this, a star dot's local (x, y, z) was plotted as if it were
@@ -280,12 +280,12 @@ def _rotate_to_galaxy_frame(center_pc, local_vec):
 
 def _cell_edges_px(address, edge_mpc, half_edge):
     """
-    The sector's real cylindrical cell (`sector_cell_vertices_pc`) as 8
+    The sector's real spherical cell (`sector_cell_vertices_pc`) as 8
     `(x, y, z)` scene-space points, in the same convention
     `map_scene_data` uses for star dots (sector-center-relative parsecs
     -> milliparsecs -> normalized by `half_edge` -> scene units, y flipped
     since +y is "up" on screen) -- so the outline and the stars share one
-    frame. Not clamped: a core-ring cell is a pie wedge noticeably bigger
+    frame. Not clamped: a polar cap or the core is noticeably bigger
     than the cube.
 
     Args:
@@ -322,17 +322,19 @@ def _cell_edges_px(address, edge_mpc, half_edge):
 
 
 _ARC_STEP_RAD = math.pi / 90
-"""Angle between samples along a cell's curved edges (2 degrees): a slot's
-inner and outer faces are arcs of the ring's radius, so each arc edge is
-drawn as a polyline of this many-degree steps rather than one chord."""
+"""Angle between samples along a cell's curved edges (2 degrees): a cell's
+faces are arcs of its shell's radius, so each arc edge is drawn as a
+polyline of this many-degree steps rather than one chord."""
 
 
 def _cell_arc_edges_px(address, edge_mpc, half_edge):
     """
     The sector's cell outline as 12 polylines in the same scene frame as
-    `_cell_edges_px`: the 8 edges between corners that differ in radius or
-    height are straight, and the 4 that differ in slot angle (corners `i`
-    and `i ^ 1`) follow the ring's arc, sampled every `_ARC_STEP_RAD`.
+    `_cell_edges_px`: the 4 edges between corners that differ only in radius
+    are straight, the 4 that differ in longitude (corners `i` and `i ^ 1`)
+    follow a parallel of the shell and the 4 that differ in colatitude
+    (`i` and `i ^ 2`) follow a meridian of it, each sampled every
+    `_ARC_STEP_RAD`.
 
     Returns:
         list[list[tuple]] or None: One point list per `_EDGE_PAIRS` edge
@@ -340,28 +342,35 @@ def _cell_arc_edges_px(address, edge_mpc, half_edge):
             when `_cell_edges_px` would be.
     """
     corners = _cell_edges_px(address, edge_mpc, half_edge)
-    if corners is None or ring_bounds_pc is None:
+    if corners is None or shell_bounds_pc is None:
         return None
 
-    shell_index, band_index, slot_index = address
+    shell_index, band_index, wedge_index = address
     edge_pc = mpc_to_pc(edge_mpc)
     center_pc = sector_position_pc(*address, edge_pc)
-    r_bounds = ring_bounds_pc(shell_index, edge_pc)
-    z_bounds = layer_bounds_pc(band_index, edge_pc)
-    t_start, t_end = slot_angle_bounds(shell_index, slot_index)
-    steps = max(2, int(math.ceil(abs(t_end - t_start) / _ARC_STEP_RAD)))
+    r_bounds = shell_bounds_pc(shell_index, edge_pc)
+    colat_bounds = band_colatitude_bounds(shell_index, band_index)
+    lon_bounds = wedge_longitude_bounds(shell_index, band_index, wedge_index)
+    lon_steps = max(2, int(math.ceil(abs(lon_bounds[1] - lon_bounds[0]) / _ARC_STEP_RAD)))
+    colat_steps = max(2, int(math.ceil(abs(colat_bounds[1] - colat_bounds[0]) / _ARC_STEP_RAD)))
 
-    def to_px(r, z, theta):
-        nx = pc_to_mpc(r * math.cos(theta) - center_pc[0]) / half_edge
-        ny = pc_to_mpc(r * math.sin(theta) - center_pc[1]) / half_edge
-        nz = pc_to_mpc(z - center_pc[2]) / half_edge
+    def to_px(r, colat, lon):
+        s = r * math.sin(colat)
+        nx = pc_to_mpc(s * math.cos(lon) - center_pc[0]) / half_edge
+        ny = pc_to_mpc(s * math.sin(lon) - center_pc[1]) / half_edge
+        nz = pc_to_mpc(r * math.cos(colat) - center_pc[2]) / half_edge
         return (nx * _SCENE_HALF_PX, -ny * _SCENE_HALF_PX, nz * _SCENE_HALF_PX)
 
     edges = []
     for i, j in _EDGE_PAIRS:
         if i ^ j == 1:
-            r, z = r_bounds[(i >> 2) & 1], z_bounds[(i >> 1) & 1]
-            edges.append([to_px(r, z, t_start + (t_end - t_start) * k / steps) for k in range(steps + 1)])
+            r, colat = r_bounds[(i >> 2) & 1], colat_bounds[(i >> 1) & 1]
+            edges.append([to_px(r, colat, lon_bounds[0] + (lon_bounds[1] - lon_bounds[0]) * k / lon_steps)
+                          for k in range(lon_steps + 1)])
+        elif i ^ j == 2:
+            r, lon = r_bounds[(i >> 2) & 1], lon_bounds[i & 1]
+            edges.append([to_px(r, colat_bounds[0] + (colat_bounds[1] - colat_bounds[0]) * k / colat_steps, lon)
+                          for k in range(colat_steps + 1)])
         else:
             edges.append([corners[i], corners[j]])
     return edges
@@ -371,9 +380,8 @@ def _outline_data(address, edge_mpc, half_edge):
     """
     Builds the scene's outline as `{"kind": "cell"|"cube", "edges": [...]}`
     -- 12 edges (see `_EDGE_PAIRS`), each a list of points to draw as one
-    line. A sector with a grid address gets its real cylindrical cell
-    (`_cell_arc_edges_px`), whose inner and outer faces' edges are sampled
-    arcs; anything else gets the plain axis-aligned fallback cube's
+    line. A sector with a grid address gets its real spherical cell
+    (`_cell_arc_edges_px`), whose curved edges are sampled arcs; anything else gets the plain axis-aligned fallback cube's
     straight edges (`_cube_corners_px`). `sectorscene.js` draws it as a
     faint wireframe.
 
@@ -495,8 +503,8 @@ def _neighbor_indicator_data(link_url, neighbor):
         "x": ux * reach, "y": -uy * reach, "z": uz * reach,
         "r": _NEIGHBOR_INDICATOR_RADIUS_PX,
         "isNeighbor": True,
-        "ringIndex": neighbor["shell_index"], "layerIndex": neighbor["band_index"],
-        "ringSlotIndex": neighbor["wedge_index"],
+        "shellIndex": neighbor["shell_index"], "bandIndex": neighbor["band_index"],
+        "wedgeIndex": neighbor["wedge_index"],
         "designation": neighbor["designation"],
         "exists": neighbor["exists"],
     }
@@ -1224,7 +1232,7 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
     (no outline or neighbors: the Galaxy Map draws the cell itself).
 
     Args:
-        address (tuple): The cell's `(ring, layer, slot)`.
+        address (tuple): The cell's `(shell, band, wedge)`.
         designation (str): Its galaxy designation.
         center_pc (sequence): Its center, galaxy-frame parsecs.
         edge_pc (float): The grid's sector edge.

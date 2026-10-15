@@ -406,7 +406,7 @@ def test_map_scene_data_existing_neighbor_carries_its_href():
     assert entry["name"] == "Neighboring Sector"
     assert entry["href"] == "/sector?sector_id=42"
     assert "navTarget" not in entry and "navParams" not in entry
-    assert (entry["ringIndex"], entry["layerIndex"], entry["ringSlotIndex"]) == (6, -2, 9)
+    assert (entry["shellIndex"], entry["bandIndex"], entry["wedgeIndex"]) == (6, -2, 9)
 
 
 def test_map_scene_data_missing_neighbor_carries_no_href():

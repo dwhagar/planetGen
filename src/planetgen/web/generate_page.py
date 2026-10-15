@@ -962,12 +962,12 @@ def _admin_or_403():
 def _galaxy_summary(database):
     """Whether the galaxy is planned and how many sectors it holds.
     Fails open: the page still works when the database doesn't answer."""
-    summary = {"shape": None, "sectors": None, "bright": None, "layers": None, "version_warning": None,
+    summary = {"shape": None, "sectors": None, "bright": None, "shells": None, "version_warning": None,
                "error": None}
     try:
         summary["shape"] = apiclient.get_galaxy_shape(database)
         summary["bright"] = apiclient.get_bright_star_status(database)
-        summary["layers"] = apiclient.get_layer_specs(database)
+        summary["shells"] = apiclient.get_shell_specs(database)
         summary["version_warning"] = apiclient.get_version_warning(database)
         summary["sectors"] = apiclient.get_sectors(database, limit=1, offset=0)["total"]
     except (apiclient.ApiError, apiclient.NotFoundError) as exc:
@@ -1485,7 +1485,7 @@ def generate_sectors():
         return _no_store(make_response(jsonify({"error": "The sector list could not be loaded."}), 502))
     items = [{
         "id": row["id"], "name": row["name"], "systems": row.get("system_count"),
-        "ring": row.get("shell_index"), "layer": row.get("band_index"), "slot": row.get("wedge_index"),
+        "shell": row.get("shell_index"), "band": row.get("band_index"), "wedge": row.get("wedge_index"),
     } for row in found["items"]]
     return _no_store(jsonify({"items": items, "total": found["total"], "page": page,
                               "pages": max(1, -(-found["total"] // FINDER_PAGE_SIZE))}))

@@ -25,7 +25,7 @@ Admin actions are POST forms to the same URL, each carrying
   ADM.11) that keeps running when the page is closed.
 - The Delete and Regenerate buttons (ADM.8) post an `edit_action`
   instead, handled by `web/edit_actions.py`: delete the sector with
-  everything in it, or delete it and generate its slot again.
+  everything in it, or delete it and generate its cell again.
 
 A successful action flashes its message and redirects (303) back to the
 GET page, so reloading never repeats it. A failed one re-renders the page
@@ -58,7 +58,7 @@ from planetgen.api.limiter import page_limit
 from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log
-from planetgen.galaxy.geometry import provisional_sector_designation
+from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 
@@ -571,7 +571,7 @@ def _sector_map_html(detail, pick, admin):
         phenomenon_url=phenomenon_url_template(),
         system_url=system_url_template(),
         nav_url=page_url("nav"),
-        pinned={"ring": address[0], "layer": address[1], "slot": address[2], "center_pc": center},
+        pinned={"shell": address[0], "band": address[1], "wedge": address[2], "center_pc": center},
     )
 
 
