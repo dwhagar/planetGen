@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1298] - 2026-10-15
+
+### Added
+
+- TODO.md: filed UX.112, a maintenance mode that closes the site and database access to everyone but admin while the maps are rebuilt, as part of the spherical switch.
+
+TODO items resolved: none / Added: UX.112
+
 ## [8.0.1297] - 2026-10-15
 
 ### Changed
