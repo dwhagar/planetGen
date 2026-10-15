@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1142] - 2026-10-15
+
+### Added
+- The admin Stats page shows Redis's health: whether it answers, whether its append-only file is on (off means a restart loses queued work), its memory policy, the memory used, the last save and how many workers are alive. A Redis that does not answer is reported with the reason, and the check never waits more than a second for it.
+
 ## [8.0.1141] - 2026-10-15
 
 ### Added
