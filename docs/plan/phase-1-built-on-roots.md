@@ -159,7 +159,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.78 | Unit preference: Automatic, Metric only or Customary | UX.23 | Research: under UX.23. |
 | UX.22 | Meaningful units for every measurement | UX.23 | One quantity family per PR. |
 | UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
-| UX.42 | In-universe wording across the interface |  | After the UX sweep removes controls, so only kept wording is changed. |
 
 ### Queue
 

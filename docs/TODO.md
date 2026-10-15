@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -370,23 +370,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **UX.42 In-universe wording across the interface**
-  Boss (2026-10-03 05:38Z): "Begin replacing wording to make the
-  interface in-universe (i.e. the interface and wording should not be
-  designed so they sound like they know it's for a game)." Done: a word
-  list (for example "Generate" becomes "Chart", "Generated only" became
-  "Charted only" in MAP item MAP.111) agreed with Boss, then pages,
-  buttons and messages changed page by page; admin-only tools may keep
-  plain wording.
-  Decided (2026-10-15): Boss approved the word list on the decision
-  card: "Chart", "charted" and "uncharted" on public pages; admin pages
-  keep plain wording.
-  Research (2026-10-09, map-ui-and-frontend-libraries.md): schedule with
-  UX.43 so each page is restyled once. Shoelace 2.20.1 is its final
-  release ("sunset"); open question for Boss (default: stay, and do the
-  `sl-` to `wa-` rename inside UX.43's restyle if it rewrites
-  `shoelace-theme.css` anyway).
-
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
   Boss (2026-10-07 11:47Z): "All design elements should be built from
   the ground up to look like, as much as possible, a starmap and
@@ -404,7 +387,6 @@ with `clamp()`.
   B612 Mono for numbers and designations only); `--line` is a new token
   beside `--border`. Selection and caution are both amber, by aviation
   custom and never in the same place (default: accept).
-  Prerequisite: UX.42.
 
 - [ ] **UX.45 Bookmark management**
   Boss (2026-10-07 11:47Z): "Bookmark management system." Today
@@ -452,7 +434,7 @@ with `clamp()`.
 - [ ] **UX.78 Unit preference: Automatic, Metric only or Customary**
   Stored in `localStorage` key `planetgen.units` and applied by
   re-rendering `.qty` spans from `data-si`; a header menu on
-  `sl-dropdown`. UX.42 is wording only; do not fold units into it.
+  `sl-dropdown`. UX.42 (done, PR #1466) was wording only; do not fold units into it.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: the
   three presets, per browser).
   Prerequisite: UX.23.
@@ -4103,7 +4085,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration (next after DB.29's if that lands first) with its old-schema
   fixture and tests, merged so POP.12 can be built on it. Owner:
   Foundations Database, after DB.29.
-  Prerequisites: DB.29. Related: POP.12, POP.13, DB.27.
+  Prerequisite: DB.29. Related: POP.12, POP.13, DB.27.
 
 ## API: The JSON API
 
@@ -5684,7 +5666,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   interface." Done: the coordinate frames (galactic, sector, system),
   the unit ladder and when a unit switches (UX.22, UX.23, UX.78, UX.81),
   sector addresses and paths, the object ID (GEN.170), the epoch and
-  time scales, and the in-universe terms (UX.42), each with a worked
+  time scales, and the in-universe terms (UX.42, done), each with a worked
   example. The page is a Markdown file in docs/help/ built into the Help
   section, linked from each page it describes, and updated by any later
   change to those features (a feature item is not done until its help
@@ -6369,4 +6351,4 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   for the page, Foundations Generation for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
-  Prerequisites: POP.12. Related: POP.10, POP.9, ADM.9.
+  Prerequisite: POP.12. Related: POP.10, POP.9, ADM.9.
