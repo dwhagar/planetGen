@@ -461,15 +461,6 @@ with `clamp()`.
   Prerequisite: UX.23. Related: UX.30 (absorbed into this
   item), UX.32, UX.101.
 
-- [ ] **UX.106 CLI output as plain text by default, Markdown and wikitext on request**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. planetgen system, sector and galaxy --markdown becomes
-  --format text|markdown|wikitext; default text (the plain tables;
-  decided default, stands unless Boss says otherwise). The one-line
-  lists in cli/query.py go through the unit ladders. Updates docs/cli.md
-  in the same PR.
-
 - [ ] **UX.107 Units in the description go through the ladders**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -496,7 +487,7 @@ with `clamp()`.
   __str__ text, db/render.py render_system_sections, the /sections
   endpoint and mdrender, once nothing reads them. Foundations Wording
   (filed 05:50Z, split out of API.25, done PR #1527).
-  Prerequisites: UX.105, UX.106, UX.108.
+  Prerequisites: UX.105, UX.108.
 
 - [ ] **UX.110 The phenomena count on the overview page is wrong (bug)**
   Boss (2026-10-15 06:41Z): "Add a bug to TODO the phenomena count in
@@ -5909,7 +5900,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   design/habitability-index.md (PHI-6 naming) and testing.md. Each build
   item updates the page it changes in its own PR; this is what is left,
   part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
-  Prerequisites: UX.105, UX.106, GEN.218, GEN.219.
+  Prerequisites: UX.105, GEN.218, GEN.219.
 
 ## VIEW: The view from a planet
 

@@ -1343,7 +1343,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.103 | Design note for the description layer | none | done, PR #1496 |
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | done, PR #1509 |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | open |
-| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | open |
+| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | done, PR #1533 |
 | UX.107 | Units in the description go through the ladders | none | open |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | open |
 | UX.109 | Remove the old per-class description text | none | open |
