@@ -104,6 +104,17 @@ def delete_facility_type(type_id):
     return jsonify({"status": "ok"})
 
 
+@bp.route("/facility-types/examples", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def install_example_types():
+    """`POST /api/facility-types/examples` (no body) -- adds the example types that are not there yet; returns
+    `{"added": [names]}`."""
+    added = _write(types.install_examples)
+    audit("facility_type.examples", detail=", ".join(added) or "none")
+    return jsonify({"added": added}), 201 if added else 200
+
+
 @bp.route("/facility-types/<int:type_id>/fields", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)

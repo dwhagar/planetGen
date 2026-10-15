@@ -3108,6 +3108,31 @@ FACILITY_RULES = {
 `(placement, host_type)`. A terrestrial facility also needs a terrestrial
 (`body_type = 't'`) planet or moon -- `facilities.check_facility`."""
 
+FACILITY_RATING_GREEN = 0.66
+"""float: A suggested rating score at or above this is Green (POP.10, `facility_suggest`)."""
+
+FACILITY_RATING_YELLOW = 0.33
+"""float: At or above this (and below `FACILITY_RATING_GREEN`) is Yellow; below it, Red."""
+
+FACILITY_RATING_NOISE = 0.1
+"""float: A suggested score gets a stable draw of up to this much either way, seeded from the facility."""
+
+FACILITY_RATING_UNKNOWN = 0.5
+"""float: What a missing input (an index nobody drew, a host with no habitability) counts as."""
+
+FACILITY_RATING_ORBITAL_HABITABILITY = 0.6
+"""float: The habitability an orbital or free-flying facility counts as: sealed, off the surface."""
+
+FACILITY_RATING_UNAFFILIATED_PENALTY = 0.2
+"""float: Taken off a facility's crime score when no polity polices it."""
+
+FACILITY_KIND_SIZE = {"colony": 1.0, "starbase": 0.8, "mining-colony": 0.7, "station": 0.6, "outpost": 0.4}
+"""dict: How much room a kind of facility has to house people, 0 to 1 (the housing score)."""
+
+FACILITY_HOST_RICHNESS = {"asteroid_belt": 0.9, "asteroid_field": 0.9, "planet": 0.6, "moon": 0.6, "star": 0.5,
+                          "space": 0.2}
+"""dict: What a host offers a facility to work with, 0 to 1 (the resources score)."""
+
 FACILITY_DEFAULT_ORBIT_RADII = 3.0
 """float: An orbital facility around a planet or moon with no distance
 given orbits at this many of its host's radii."""

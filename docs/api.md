@@ -1368,6 +1368,22 @@ facilities already use needs a `default_text`, which every one of them takes.
 A name or key that is already taken is a `409`; anything else wrong is a `400`
 naming the problem.
 
+**Suggested ratings.** `POST /api/facilities/<id>/suggest-ratings` (no body)
+fills the ratings nobody set, from what is stored: the host's habitability
+for a surface facility (a sealed orbital one counts as 0.6), the six tech
+indices of the affiliated species, the kind of facility, what the host
+offers, and how far the system is from its polity's capital. Each score
+(0 to 1, plus a stable draw of up to 0.1 either way seeded from the facility)
+is Green at 0.66 or more, Yellow at 0.33 or more, Red below. It never changes
+a rating that is set; `ratings_source` becomes `generated` when no rating was
+set by hand, and stays `admin` otherwise. It returns `{"filled", "facility"}`,
+where `filled` lists the dimensions it set. `POST /api/facilities/suggest-ratings`
+does the same for every facility with an unset rating (at most 5,000, lowest
+ids first) and returns `{"facilities", "ratings"}`.
+
+`POST /api/facility-types/examples` (no body) adds the example type, "Research
+outpost", unless it is there already, and returns `{"added": [names]}`.
+
 ### Wiki publishing — request body
 
 `POST /api/systems/<id>/wiki` and `POST /api/sectors/<id>/wiki` share the

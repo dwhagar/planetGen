@@ -749,8 +749,17 @@ values): `population/facility_attrs.py` checks and stores them
 (`store.add_facility`/`update_facility`), `population/facility_ratings.py`
 holds the colour words and the per-dimension wording, and `GET
 /api/facilities` filters and sorts by them (`db/query.list_facilities`).
-Saving ratings by hand marks them `admin`; the suggestion that fills unset
-ones as `generated` is part 3.
+Saving ratings by hand marks them `admin`.
+
+**Part 3** (suggested ratings): `population/facility_suggest.py` is the first
+rule set of "Setting ratings", with the weights in the module docstring and
+the constants in `tuning.FACILITY_RATING_*`, `FACILITY_KIND_SIZE` and
+`FACILITY_HOST_RICHNESS`. The government form is not read yet (nothing
+stores more than its name); nearness is the system's distance from its
+polity's capital over the polity's reach. A rating that is set is never
+changed; the facility is marked `generated` only when no rating was set by
+hand. One example type, "Research outpost", installs with
+`POST /api/facility-types/examples`.
 
 ### API and UI sketch
 

@@ -428,3 +428,29 @@ def delete_field(conn, type_id, field_id):
     if in_use:
         raise FacilityTypeError(f"{in_use} facilities hold a value for this field; it cannot be deleted", status=409)
     conn.execute("DELETE FROM facility_type_fields WHERE id = ?", (field_id,))
+
+
+EXAMPLE_TYPES = (
+    {
+        "name": "Research outpost", "kind": "outpost", "icon": "flask", "sort_order": 10,
+        "description": "A small crewed post that studies the world or system it watches.",
+        "fields": (
+            {"key": "staff", "label": "Staff", "datatype": "int", "min_value": 1, "max_value": 10000,
+             "required": True, "default_text": "12", "sort_order": 1},
+            {"key": "focus", "label": "Focus", "datatype": "choice", "sort_order": 2,
+             "choices": ["Survey", "Laboratory", "Relay"], "default_text": "Survey"},
+            {"key": "armed", "label": "Armed", "datatype": "bool", "sort_order": 3},
+        ),
+    },
+)
+"""tuple: The example types `install_examples` adds: the mechanism is there to show what a type can do."""
+
+
+def install_examples(conn):
+    """Adds each of `EXAMPLE_TYPES` that is not there yet (by name). Returns the names added."""
+    added = []
+    for spec in EXAMPLE_TYPES:
+        if conn.execute("SELECT 1 FROM facility_types WHERE name = ?", (spec["name"],)).fetchone() is None:
+            create_type(conn, {key: value for key, value in spec.items() if key != "fields"}, spec["fields"])
+            added.append(spec["name"])
+    return added

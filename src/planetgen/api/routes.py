@@ -92,7 +92,7 @@ from planetgen.db import near as near_search
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
-from planetgen.population import facility_ratings, facility_types
+from planetgen.population import facility_ratings, facility_suggest, facility_types
 from planetgen.galaxy import objectref as object_ref, version_check
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
 from planetgen.util.settings import get_settings
@@ -2022,6 +2022,43 @@ def update_facility(facility_id):
         raise ApiError(f"no such facility: {facility_id}", status_code=404)
     audit("facility.update", target=f"facility:{facility_id}", detail=str(sorted(body)))
     return jsonify(detail)
+
+
+@bp.route("/facilities/<uid:facility_id>/suggest-ratings", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def suggest_facility_ratings(facility_id):
+    """`POST /api/facilities/<id>/suggest-ratings` (no body) -- fills the ratings nobody set from the stored
+    data (`facility_suggest`), marks them `generated` (unless some were set by hand) and never changes a rating
+    that is set. Returns `{"filled": [dimensions], "facility": {...}}`."""
+    conn = _write_conn()
+    try:
+        with conn:
+            filled = facility_suggest.suggest_for_facility(conn, facility_id)
+            detail = facility_detail(conn, facility_id) if filled is not None else None
+    finally:
+        conn.close()
+    if filled is None:
+        raise ApiError(f"no such facility: {facility_id}", status_code=404)
+    audit("facility.suggest_ratings", target=f"facility:{facility_id}", detail=", ".join(filled) or "none")
+    return jsonify({"filled": filled, "facility": detail})
+
+
+@bp.route("/facilities/suggest-ratings", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def suggest_all_facility_ratings():
+    """`POST /api/facilities/suggest-ratings` (no body) -- the same for every facility with an unset rating (at
+    most `facility_suggest.BATCH_LIMIT`, lowest ids first). Returns `{"facilities", "ratings"}`, how many facilities
+    changed and how many ratings were filled."""
+    conn = _write_conn()
+    try:
+        with conn:
+            facilities, filled = facility_suggest.suggest_for_unassessed(conn)
+    finally:
+        conn.close()
+    audit("facility.suggest_ratings", detail=f"{facilities} facilities, {filled} ratings")
+    return jsonify({"facilities": facilities, "ratings": filled})
 
 
 @bp.route("/facilities/<uid:facility_id>", methods=["DELETE"])
