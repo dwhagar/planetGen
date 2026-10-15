@@ -503,6 +503,20 @@ with `clamp()`.
   (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
+- [ ] **UX.111 Reads, API and web wording on shells**
+  `query.py`, `store.py`, the API, the Galaxy and Sector pages, URLs and
+  bookmarks say shell, band and wedge; "layer" and "slab" mean nothing
+  any more. Done: pages and API keep working on a regenerated small
+  galaxy; after this item Boss can regenerate a galaxy and look at it
+  before Maps work begins. Owner: Spherical Sector Coordinates thread.
+  Source: item 6 of section 6 of the plan. Boss decided the move
+  (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
+  wedge (vert), shell (radius), and band (horizontal), together they
+  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
+  ahead of every lane queue.
+  Prerequisites: DB.32, GEN.227.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -978,6 +992,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   round the clicked cell, one size down; Up zooms out one step; the arc,
   slab and segment picks, the slab buttons and the 3x3x3 view are gone.
   This unlocks MAP.189 and MAP.190. Left: MAP.151b (the 3-ary ladder).
+  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
+  replaces the cylinder grid this item assumes. Held until the thread
+  reports; the TODO thread will reword or retire it when the new grid
+  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1025,6 +1043,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   floors, and reconciling the per-tile cap
   (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
   2 flagged.
+  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
+  replaces the cylinder grid this item assumes. Held until the thread
+  reports; the TODO thread will reword or retire it when the new grid
+  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
@@ -1438,6 +1460,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to follow.
   Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199 (done,
   PR #1513), MAP.200, MAP.152.
+
+- [ ] **MAP.205 Galaxy Map block ladder for shells**
+  A design note for nested blocks on shells (master rules in longitude
+  and latitude, caps, stage keys, `galaxy_block_stats`), then
+  `drill.py`, `region.py`, `window.py`, the block stats table and its
+  migration. Waits for Boss's answer on the ladder card. Replaces the
+  cylinder 243/81/27/9/3/1 ladder (MAP.151). Owner: Foundations Maps,
+  after item 6. Source: item 7 of section 6 of the plan. Boss decided
+  the move (2026-10-15 06:39Z): "two meridian lines from pole to pole
+  make a wedge (vert), shell (radius), and band (horizontal), together
+  they identify a single 3D segment of the sphere". TOP PRIORITY in
+  Phase 1, ahead of every lane queue.
+  Prerequisites: UX.111.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **MAP.206 Galaxy Map drawing on shells**
+  `galaxyprisms.js`, `galaxystageview.js`, `galaxymap3d.js`, tile cuts
+  and picking draw and pick shell cells and caps; the slab slider
+  becomes a band control. Owner: Foundations Maps, after the ladder
+  item. Source: item 8 of section 6 of the plan. Boss decided the move
+  (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
+  wedge (vert), shell (radius), and band (horizontal), together they
+  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
+  ahead of every lane queue.
+  Prerequisites: MAP.205.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## NAV: Navigation and courses
 
@@ -1860,6 +1908,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-11): the centre of the galaxy becomes one round disc sector, 4
   pc across and 4 pc tall (GEN.210); this item then fills that one
   sector instead of a set of core sectors.
+  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
+  replaces the cylinder grid this item assumes. Held until the thread
+  reports; the TODO thread will reword or retire it when the new grid
+  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
   Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
@@ -2400,6 +2452,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Hilbert as approved, using the
   4-voxel-block variant so the first sector is the centre, or take the
   serpentine and greedy walk?
+  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
+  replaces the cylinder grid this item assumes. Held until the thread
+  reports; the TODO thread will reword or retire it when the new grid
+  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
   Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
@@ -3329,6 +3385,58 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stop (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
+- [ ] **GEN.224 Spherical grid module: shells, bands, wedges, caps and the core ball**
+  New `planetgen/galaxy/spherical.py` (pure geometry) with the rules in
+  section 2 of the plan: the layout per shell, cell bounds, volume,
+  `address_at` and `cell_center`, face neighbours, the local frame, a
+  cap-aware `SectorCell` sampler, and a hand-checked table for shells 1
+  to 3. Done: tests for exact tiling (cell volumes sum to the ball),
+  round trip, counts near 23.93 billion and the measured arcs. Owner:
+  Spherical Sector Coordinates thread. Source: item 1 of section 6 of
+  the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
+  lines from pole to pole make a wedge (vert), shell (radius), and band
+  (horizontal), together they identify a single 3D segment of the
+  sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
+  Prerequisites: none.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **GEN.225 Outline and bounds on shells**
+  `skeleton.py` builds the outline as a band range per shell (and the
+  column view); `GalaxyBounds.contains` and `random_address` use it.
+  Done: cells counted against the cylinder's. Owner: Spherical Sector
+  Coordinates thread. Source: item 2 of section 6 of the plan. Boss
+  decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
+  pole make a wedge (vert), shell (radius), and band (horizontal),
+  together they identify a single 3D segment of the sphere". TOP
+  PRIORITY in Phase 1, ahead of every lane queue.
+  Prerequisites: GEN.224.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **GEN.226 Addresses on shells: designation, sector ID, seeds and object ID**
+  `provisional_sector_designation`, `sector_uid`, the 40-bit
+  birth-sector field and the per-sector seed string use shell, band and
+  wedge; width checks are added to the plan step; the GEN.69 and GEN.170
+  rules are otherwise unchanged. Owner: Spherical Sector Coordinates
+  thread. Source: item 3 of section 6 of the plan. Boss decided the
+  move (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
+  wedge (vert), shell (radius), and band (horizontal), together they
+  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
+  ahead of every lane queue.
+  Prerequisites: GEN.224.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **GEN.227 Generation paths on shells**
+  `run_plan`, `run_galaxy`, `bright_stars`, `phenomenon_scatter`,
+  regions, spans and fills use the new grid: GEN.24 core by whole
+  shells, ADM.29 and ADM.30 as shell and band ranges, GEN.101 fill
+  order. Owner: Spherical Sector Coordinates thread. Source: item 5 of
+  section 6 of the plan. Boss decided the move (2026-10-15 06:39Z): "two
+  meridian lines from pole to pole make a wedge (vert), shell (radius),
+  and band (horizontal), together they identify a single 3D segment of
+  the sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
+  Prerequisites: GEN.224, GEN.225, GEN.226, DB.32.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3961,6 +4069,21 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration and agrees its timing; Foundations Wording writes
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
+
+- [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and migrate**
+  A new Alembic revision renames `ring_index`, `layer_index` and
+  `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` in
+  the seven address-keyed tables, deletes galaxy-placed sectors, systems
+  and phenomena, rebuilds the outline, and adds the old-schema fixture.
+  Merged only with Boss's go-ahead for the delete (it is destructive).
+  Owner: Spherical Sector Coordinates thread (the only migration lane
+  while this runs). Source: item 4 of section 6 of the plan. Boss
+  decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
+  pole make a wedge (vert), shell (radius), and band (horizontal),
+  together they identify a single 3D segment of the sphere". TOP
+  PRIORITY in Phase 1, ahead of every lane queue.
+  Prerequisites: GEN.224, GEN.225, GEN.226.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## API: The JSON API
 
@@ -4948,6 +5071,17 @@ clears each one.
   thread approves, Foundations Wording writes it.
   Prerequisite: GEN.218.
 
+- [ ] **TEST.156 Rewrite the tests that name ring, layer and slot**
+  The 79 affected test files are rewritten as each of the grid items
+  lands; a MISSED line is a selection bug. Owner: Test Suite Rebuild
+  thread. Source: item 9 of section 6 of the plan. Boss decided the
+  move (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
+  wedge (vert), shell (radius), and band (horizontal), together they
+  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
+  ahead of every lane queue.
+  Prerequisites: GEN.224.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -5920,6 +6054,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   item updates the page it changes in its own PR; this is what is left,
   part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
   Prerequisites: UX.105, GEN.218, GEN.219.
+
+- [ ] **DOC.46 Docs for the spherical sector grid**
+  `galaxy-coordinate-system.md` rewritten, the cylinder design archived,
+  README, INSTALL and the docs sweep updated. Owner: documentation,
+  after the reads item. Source: item 10 of section 6 of the plan. Boss
+  decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
+  pole make a wedge (vert), shell (radius), and band (horizontal),
+  together they identify a single 3D segment of the sphere". TOP
+  PRIORITY in Phase 1, ahead of every lane queue.
+  Prerequisites: UX.111.
+  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## VIEW: The view from a planet
 
