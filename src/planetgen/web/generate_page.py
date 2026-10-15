@@ -72,7 +72,7 @@ from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.format import format_number
 from planetgen.generation.limits import (
-    MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
+    MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_SHELL,
 )
 
 from . import bp, jobs
@@ -364,7 +364,7 @@ def random_start_argv(form):
     radius = _number(form, "radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
     if radius is not None:
         argv += ["--radius-pc", str(radius)]
-    max_ring = _number(form, "max_ring", "Highest ring", int, minimum=0, maximum=MAX_GENERATE_RING)
+    max_ring = _number(form, "max_ring", "Highest ring", int, minimum=0, maximum=MAX_GENERATE_SHELL)
     if max_ring is not None:
         argv += ["--max-ring", str(max_ring)]
     density = _number(form, "min_start_density", "Minimum start density", float, minimum=0.001)
@@ -421,7 +421,7 @@ def center_argv(form, edge_pc=None):
         description = f"around sector {sector_id}"
         argv = ["--center-sector", str(sector_id)]
     elif by == "address":
-        ring = _number(form, "center_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        ring = _number(form, "center_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
         layer = _number(form, "center_layer", "Layer", int) or 0
         slot = _number(form, "center_slot", "Slot", int, required=True, minimum=0)
         description = f"around ring {ring} layer {layer} slot {slot}"
@@ -433,10 +433,10 @@ def center_argv(form, edge_pc=None):
         if None in point:
             return [], ""
         edge = float(edge_pc or tuning.DEFAULT_SECTOR_EDGE_PC)
-        if max(abs(v) for v in point) > (MAX_GENERATE_RING + 1) * edge:
+        if max(abs(v) for v in point) > (MAX_GENERATE_SHELL + 1) * edge:
             raise FormError("That position is outside the galaxy grid.")
         ring, layer, slot = sector_address_at(point, edge)
-        if ring > MAX_GENERATE_RING:
+        if ring > MAX_GENERATE_SHELL:
             raise FormError("That position is outside the galaxy grid.")
         description = (f"around {', '.join(f'{v:g}' for v in point)} pc "
                        f"(ring {ring} layer {layer} slot {slot})")
@@ -467,7 +467,7 @@ def galaxy_argv(form, edge_pc=None):
     if mode == "random":
         return random_start_argv(form), "around a random start"
     if mode == "ring":
-        ring = _number(form, "ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        ring = _number(form, "ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
         layer = _number(form, "layer", "Layer", int)
         argv = ["--ring", str(ring), "--layer", str(layer or 0)]
         limit = _number(form, "limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
@@ -479,7 +479,7 @@ def galaxy_argv(form, edge_pc=None):
     if mode == "center":
         return center_argv(form, edge_pc)
     if mode == "slot":
-        ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
         layer = _number(form, "slot_layer", "Layer", int) or 0
         slot = _number(form, "slot", "Slot", int, required=True, minimum=0)
         argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
@@ -490,7 +490,7 @@ def galaxy_argv(form, edge_pc=None):
             description = f"around ring {ring} layer {layer} slot {slot}"
         return argv, description
     if mode == "column":
-        ring = _number(form, "column_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        ring = _number(form, "column_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
         slot = _number(form, "column_slot", "Slot", int, required=True, minimum=0)
         return (["--ring", str(ring), "--slot", str(slot), "--column"],
                 f"in the column at ring {ring} slot {slot}")
@@ -521,7 +521,7 @@ def galaxy_argv(form, edge_pc=None):
     if mode == "course":
         return course_argv(form)
     if mode == "shell":
-        ring = _number(form, "shell_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        ring = _number(form, "shell_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
         argv = ["--ring", str(ring), "--shell"]
         limit = _number(form, "shell_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
         if limit is not None:
@@ -1213,7 +1213,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
         min_radius_ly=MIN_NEIGHBORHOOD_RADIUS_LY,
         max_radius_ly=MAX_GENERATE_RADIUS_LY,
-        max_ring=MAX_GENERATE_RING,
+        max_ring=MAX_GENERATE_SHELL,
         max_limit=MAX_GENERATE_LIMIT,
         max_neighborhoods=MAX_GENERATE_NEIGHBORHOODS,
         center_choices=CENTER_CHOICES,

@@ -52,6 +52,23 @@ def vertical_factor(kind, z_pc, thin_height_pc):
     return min(_sech2_profile(z_pc, thin_height_pc * ratio) / stars, tuning.REMNANT_VERTICAL_FACTOR_MAX)
 
 
+def vertical_factor_array(kind, z_pc, thin_height_pc):
+    """`vertical_factor` for an array of heights (one per band of a shell, the phenomena scatter's shell at once)."""
+    z_pc = np.asarray(z_pc, dtype=float)
+    ratio = tuning.REMNANT_SCALE_HEIGHT_RATIO.get(kind)
+    if ratio is None or thin_height_pc <= 0.0:
+        return np.ones_like(z_pc)
+
+    def profile(scale_pc):
+        x = np.minimum(np.abs(z_pc) / (2.0 * scale_pc), 300.0)
+        return np.where(np.abs(z_pc) / (2.0 * scale_pc) > 300.0, 0.0, 1.0 / np.cosh(x) ** 2 / (4.0 * scale_pc))
+
+    stars = profile(thin_height_pc)
+    thick = profile(thin_height_pc * ratio)
+    cap = tuning.REMNANT_VERTICAL_FACTOR_MAX
+    return np.where(stars <= 0.0, cap, np.minimum(thick / np.where(stars <= 0.0, 1.0, stars), cap))
+
+
 def radial_factor(kind, radius_pc):
     """The kind's density against the stars' at galactocentric `radius_pc`:
     black holes gain `tuning.BLACK_HOLE_CORE_EXCESS` extra at the core, falling

@@ -1,108 +1,121 @@
-"""MAP.151: the round region as layer, ring and wrapping slot-arc ranges."""
+"""MAP.151: the round region as shell, band and wrapping wedge-arc ranges."""
 import math
 
 import pytest
 
-from planetgen.galaxy.geometry import (
-    enumerate_sectors_within_radius, ring_sector_count, sector_address_at, sector_position_pc,
-)
-from planetgen.galaxy.region import CYLINDER_EDGE_ALLOWANCE, Region
+from planetgen.galaxy import spherical
+from planetgen.galaxy.region import BALL_EDGE_ALLOWANCE, BandArc, Region
 from planetgen.galaxy.skeleton import GalaxyBounds
 
 EDGE = 4.0
 
 
 def _walked(region):
-    """The region by brute force: every sector of the sphere round it, cut to the can."""
-    reach = math.hypot(region.horizontal_pc, (region.half_layers + 0.5) * region.edge_pc)
-    low, high = region.layer_range
-    cx, cy = region.center_pc[0], region.center_pc[1]
+    """The region by brute force: every sector of the ball the sphere walk finds."""
     return {
-        (ring, layer, slot)
-        for ring, layer, slot, x, y, _z, _d in enumerate_sectors_within_radius(region.center_pc, reach, region.edge_pc)
-        if low <= layer <= high and math.hypot(x - cx, y - cy) <= region.horizontal_pc + 1e-9
+        (shell, band, wedge)
+        for shell, band, wedge, _x, _y, _z, _d
+        in spherical.enumerate_sectors_within_radius(region.center_pc, region.reach_pc, region.edge_pc)
     }
 
 
+def _bounds(last_shell, limit=None):
+    """An outline that holds every band of shells 0 to `last_shell` (or bands -limit..limit)."""
+    rows = []
+    for shell in range(last_shell + 1):
+        high = spherical.band_range(shell)[1]
+        rows.append((shell, high if limit is None else min(high, limit)))
+    return GalaxyBounds(rows, EDGE)
+
+
 CENTRES = [
-    (0, 0, 0),      # the axis
-    (1, 0, 1),      # beside it
+    (0, 0, 0),       # the core
+    (1, 0, 0),
     (2, 1, 0),
     (12, 0, 5),
-    (40, -2, 0),    # slot 0 on a bigger ring
-    (40, 3, 63),
+    (12, 3, 7),
+    (40, -2, 0),     # wedge 0 on a bigger shell
+    (40, 3, 20),
     (150, 0, 400),
 ]
 
 
+def _centre_of(address):
+    return spherical.sector_position_pc(*address, EDGE)
+
+
 @pytest.mark.parametrize("centre", CENTRES)
-@pytest.mark.parametrize("sectors,layers", [(0.5, 0), (1, 1), (2, 1), (5, 2), (13, 3), (30, 0)])
-def test_a_region_is_the_sectors_a_walk_of_the_sphere_finds(centre, sectors, layers):
-    ring, layer, slot = centre
-    slot %= ring_sector_count(ring)
-    region = Region.around_sector(ring, layer, slot, sectors, layers, EDGE)
-    listed = list(region.addresses())
-    assert len(listed) == len(set(listed)) == region.count()
-    assert set(listed) == _walked(region)
-    assert all(region.contains(*address) for address in listed)
+@pytest.mark.parametrize("sectors", [0.5, 1, 2, 5, 13, 30])
+def test_a_region_is_the_sectors_a_walk_of_the_sphere_finds(centre, sectors):
+    region = Region.around_sector(*centre, sectors, EDGE)
+    got = list(region.addresses())
+    assert len(got) == len(set(got)) == region.count()
+    assert set(got) == _walked(region)
 
 
 def test_the_centre_sector_is_always_in_and_a_far_sector_is_not():
-    region = Region.around_sector(40, 1, 3, 4, 2, EDGE)
-    assert region.contains(40, 1, 3)
-    assert not region.contains(40, 4, 3)
-    assert not region.contains(40, 1, 30)
+    region = Region.around_sector(40, 0, 0, 1, EDGE)
+    assert region.contains(40, 0, 0)
+    assert region.count() >= 1
+    assert not region.contains(60, 0, 0)
+    assert not region.contains(0, 0, 0)
 
 
-def test_an_arc_that_crosses_slot_zero_wraps_and_splits_for_sql():
-    region = Region.around_sector(40, 0, 0, 3, 0, EDGE)
-    arc = next(a for a in region.ring_arcs() if a.ring == 40)
-    n = ring_sector_count(40)
-    assert not arc.whole and arc.first > arc.count and arc.first + arc.count > n
-    low, high = region.slot_ranges(arc)
-    assert low == (arc.first, n - 1) and high[0] == 0 and high[1] == arc.first + arc.count - n - 1
-    assert sorted(slot for a, b in (low, high) for slot in range(a, b + 1)) == sorted(
-        slot for _r, _l, slot in region.addresses() if _r == 40 and _l == 0)
+def test_an_arc_that_crosses_wedge_zero_wraps_and_splits_for_sql():
+    region = Region.around_sector(40, 0, 0, 3, EDGE)
+    arcs = [arc for arc in region.band_arcs() if arc.shell == 40 and arc.band == 0]
+    assert len(arcs) == 1
+    arc = arcs[0]
+    n = spherical.wedge_count(40, 0)
+    assert arc.first > 0 and arc.first + arc.count > n and not arc.whole
+    first, second = region.wedge_ranges(arc)
+    assert first == (arc.first, n - 1) and second == (0, arc.first + arc.count - 1 - n)
+    wedges = [wedge for shell, band, wedge in region.addresses() if (shell, band) == (40, 0)]
+    assert wedges[0] == arc.first and set(wedges) == set(range(*first[:1], n)) | set(range(0, second[1] + 1))
 
 
-def test_a_region_over_the_axis_holds_whole_rings():
-    region = Region.around_sector(0, 0, 0, 3, 0, EDGE)
-    arcs = region.ring_arcs()
-    assert arcs[0].ring == 0 and all(a.whole for a in arcs[:3])
-    assert [a.ring for a in arcs] == list(range(len(arcs)))
-    # the ring just past the reach holds an arc or nothing, never a whole ring
-    assert sum(a.count for a in arcs) == region.count()
+def test_a_region_over_the_core_holds_whole_bands_and_the_core():
+    region = Region((0, 0, 0), 6 * EDGE, EDGE)
+    arcs = region.band_arcs()
+    assert arcs[0] == BandArc(0, 0, 0, 1, True)
+    assert all(arc.whole for arc in arcs)
+    assert {arc.shell for arc in arcs} == set(range(0, 7))
 
 
-def test_a_region_beside_the_axis_has_whole_inner_rings_and_arcs_outside():
-    region = Region.around_sector(2, 0, 4, 6, 0, EDGE)
-    arcs = region.ring_arcs()
-    assert arcs[0].whole
-    assert not arcs[-1].whole
-    assert [a.ring for a in arcs] == sorted(a.ring for a in arcs)
+def test_a_region_beside_the_axis_has_whole_caps_and_arcs_in_the_bands():
+    region = Region.around_sector(30, 0, 0, 4, EDGE)
+    partial = [arc for arc in region.band_arcs() if not arc.whole]
+    assert partial and all(arc.count < spherical.wedge_count(arc.shell, arc.band) for arc in partial)
+    assert set(region.addresses()) == _walked(region)
+
+
+def test_a_region_on_a_pole_holds_the_cap():
+    north = (30, spherical.band_range(30)[1], 0)
+    region = Region.around_sector(*north, 1, EDGE)
+    assert BandArc(30, north[1], 0, 1, True) in region.band_arcs()
+    assert set(region.addresses()) == _walked(region)
 
 
 def test_the_count_and_cells_follow_the_outline():
-    bounds = GalaxyBounds({0: 6, 1: 3, -1: 3, 2: 1, -2: 1}, EDGE)
-    region = Region.around_sector(2, 0, 3, 3, 2, EDGE)
+    region = Region.around_sector(12, 0, 5, 6, EDGE)
+    bounds = _bounds(40, limit=1)
     listed = list(region.addresses(bounds))
     assert region.count(bounds) == len(listed) < region.count()
-    assert all(bounds.contains(ring, layer) for ring, layer, _slot in listed)
-    # rings past a layer's edge are the only ones left out
-    assert set(listed) == {a for a in region.addresses() if bounds.contains(a[0], a[1])}
+    assert all(bounds.contains(shell, band) for shell, band, _wedge in listed)
+    assert len(list(region.cells(bounds))) == len(listed)
 
 
 def test_cells_carry_their_centre_and_distance():
-    region = Region.around_sector(12, 0, 5, 2, 1, EDGE)
-    centre = region.center_pc
-    for ring, layer, slot, x, y, z, distance in region.cells():
-        assert (x, y, z) == pytest.approx(sector_position_pc(ring, layer, slot, EDGE))
-        assert distance == pytest.approx(math.dist((x, y, z), centre))
+    region = Region.around_sector(12, 3, 7, 3, EDGE)
+    for shell, band, wedge, x, y, z, distance in region.cells():
+        assert (x, y, z) == pytest.approx(_centre_of((shell, band, wedge)))
+        assert distance == pytest.approx(math.dist((x, y, z), region.center_pc))
+        assert distance <= region.reach_pc + 1e-9
 
 
 def test_spans_describe_the_same_sectors():
-    region = Region.around_sector(40, 0, 0, 3, 1, EDGE)
-    bounds = GalaxyBounds({layer: 100 for layer in range(-3, 4)}, EDGE)
+    region = Region.around_sector(40, 0, 0, 3, EDGE)
+    bounds = _bounds(60)
     from_spans = set()
     for span in region.spans():
         from_spans.update(span.addresses(bounds))
@@ -110,21 +123,29 @@ def test_spans_describe_the_same_sectors():
     assert sum(span.count(bounds) for span in region.spans()) == region.count(bounds)
 
 
-def test_a_centre_off_a_sector_centre_uses_its_own_layer():
+def test_a_centre_off_a_sector_centre_uses_its_own_sector():
     position = (60.0, 25.0, 9.0)
-    region = Region(position, 2 * EDGE, 1, EDGE)
-    assert region.center_layer == sector_address_at(position, EDGE)[1]
+    region = Region(position, 2 * EDGE, EDGE)
+    assert region.contains(*spherical.sector_address_at(position, EDGE))
     assert set(region.addresses()) == _walked(region)
 
 
 def test_the_allowance_matches_the_fill_that_uses_it():
     from planetgen.generation import run_galaxy
-    assert run_galaxy.cylinder_extent(1, 1, EDGE)[0] == pytest.approx((1 + CYLINDER_EDGE_ALLOWANCE) * EDGE)
+    assert run_galaxy.ball_extent(1, EDGE) == pytest.approx((1 + BALL_EDGE_ALLOWANCE) * EDGE)
+
+
+def test_a_radius_of_one_sector_holds_the_centre_and_its_face_neighbours():
+    for address in [(12, 0, 5), (40, -2, 0), (150, 3, 100)]:
+        region = Region.around_sector(*address, 1, EDGE)
+        neighbours = set(spherical.neighbor_addresses(*address))
+        inside = set(region.addresses())
+        assert address in inside
+        assert len(neighbours & inside) >= 0.9 * len(neighbours)
 
 
 @pytest.mark.parametrize("kwargs", [
-    {"horizontal_pc": -1, "half_layers": 0, "edge_pc": 4}, {"horizontal_pc": 1, "half_layers": -1, "edge_pc": 4},
-    {"horizontal_pc": 1, "half_layers": 0, "edge_pc": 0},
+    {"reach_pc": -1, "edge_pc": 4}, {"reach_pc": 1, "edge_pc": 0},
 ])
 def test_a_region_refuses_nonsense(kwargs):
     with pytest.raises(ValueError):

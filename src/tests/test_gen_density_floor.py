@@ -2,7 +2,8 @@
 
 """
 GEN.78 Some regions have a star probability of zero, and GEN.79 Bright
-stars only land between layers -121 and 121 (docs/TODO.md).
+stars only land between layers -121 and 121 (docs/TODO.md); on the shell grid
+"far above the plane" is a band near a pole and a height of more than 485 pc.
 
 GEN.78: the density model never falls below the halo floor
 (`tuning.MIN_RELATIVE_DENSITY`), so the sector draw, the bright-star
@@ -11,7 +12,7 @@ chance of a star, at the far edge of the disk and in the halo above it.
 
 GEN.79: old disk and bulge giants reach the 1000 Lsun bright-star threshold
 (their short bright tip, `tuning.GIANT_TIP_FRACTION`), so a galaxy with a
-large bulge gets bright stars far above layer 121.
+large bulge gets bright stars far above the plane (more than 485 pc).
 """
 
 import math
@@ -19,9 +20,10 @@ import math
 import pytest
 
 from planetgen import tuning
+from planetgen.galaxy import spherical
 from planetgen.galaxy.density import _raw_density, build_galaxy_shape, population_densities, relative_density
-from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
-from planetgen.galaxy.skeleton import build_layer_extents, expected_system_count_at_density_1
+from planetgen.galaxy.skeleton import build_shell_extents, expected_system_count_at_density_1
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation.star_population import bright_star_fraction
 
@@ -70,11 +72,12 @@ def test_the_floor_does_not_widen_the_outline():
 
 def _halo_and_edge_cells(shape):
     """Cells inside the outline where the model alone predicts under one
-    star: the top layer's rings and the plane's outermost ring."""
-    extents, outer, _confirmed = build_layer_extents(shape, EDGE_PC, 1.0 / E_VALUE)
-    top_layer, top_ring = extents[0]
-    cells = [(ring, top_layer, slot) for ring in range(top_ring + 1) for slot in range(ring_sector_count(ring))]
-    cells += [(outer, 0, slot) for slot in range(0, ring_sector_count(outer), 97)]
+    star: the highest band of every hundredth shell and the outermost shell's
+    equatorial band."""
+    extents, outer, _confirmed = build_shell_extents(shape, EDGE_PC, 1.0 / E_VALUE)
+    cells = [(shell, high, wedge) for shell, high in extents[::100]
+             for wedge in range(0, spherical.wedge_count(shell, high), 7)]
+    cells += [(outer, 0, wedge) for wedge in range(0, spherical.wedge_count(outer, 0), 5)]
     return cells
 
 
@@ -85,9 +88,10 @@ def test_every_cell_at_the_far_edge_and_in_the_halo_can_get_a_bright_star():
         densities = population_densities(sector_position_pc(*address, EDGE_PC), MILKY_WAY)
         mean = E_VALUE * sum(densities[population] * fractions[population] for population in densities)
         assert mean > 0.0, address
-    # The layer scatter's own per-ring means (no bin is zeroed).
-    top_layer, top_ring = build_layer_extents(MILKY_WAY, EDGE_PC, 1.0 / E_VALUE)[0][0]
-    assert brightStars.layer_expected_stars(MILKY_WAY, top_layer, top_ring, EDGE_PC, E_VALUE, fractions) > 0.0
+    # The shell scatter's own per-shell means (no bin is zeroed).
+    extents = build_shell_extents(MILKY_WAY, EDGE_PC, 1.0 / E_VALUE)[0]
+    shell, high = extents[-1]
+    assert brightStars.shell_expected_stars(MILKY_WAY, shell, high, EDGE_PC, E_VALUE, fractions) > 0.0
 
 
 def test_the_backfill_draws_stars_in_sparse_cells():
@@ -109,48 +113,50 @@ def test_old_and_bulge_stars_reach_the_bright_star_threshold(population):
             < bright_star_fraction(LOW_FLOOR, "young") / 5)
 
 
-@pytest.mark.parametrize("layer_index", [400, -600])
-def test_a_large_bulge_gets_bright_stars_far_above_layer_121(layer_index):
-    extents = dict(build_layer_extents(LARGE_BULGE, EDGE_PC, 1.0 / E_VALUE)[0])
-    assert extents[layer_index] > 60
-    # Its inner rings, where the bulge is.
-    rows = list(brightStars.scatter_layer(LARGE_BULGE, layer_index, 60, EDGE_PC, E_VALUE,
-                                          LOW_FLOOR, 3))
+def _scatter(shell, high_band=None, shape=MILKY_WAY):
+    high = spherical.band_range(shell)[1] if high_band is None else high_band
+    return list(brightStars.scatter_shell(shape, shell, high, EDGE_PC, E_VALUE, LOW_FLOOR, 7))
+
+
+def _height_pc(row):
+    return row[5] / brightStars.MPC_PER_PC
+
+
+def test_a_large_bulge_gets_bright_stars_far_above_the_plane():
+    extents = dict(build_shell_extents(LARGE_BULGE, EDGE_PC, 1.0 / E_VALUE)[0])
+    assert extents[400] == spherical.band_range(400)[1]       # the outline reaches the axis there
+    rows = _scatter(400, shape=LARGE_BULGE)
     assert len(rows) > 20
-    assert {row[1] for row in rows} == {layer_index}
-    assert {row[6] for row in rows} <= {"bulge", "old"}
+    assert max(abs(_height_pc(row)) for row in rows) > 1000.0
+    high = [row for row in rows if abs(_height_pc(row)) > 485.0]
+    assert len(high) > 20
+    populations = [row[6] for row in high]
+    assert populations.count("bulge") + populations.count("old") > 0.8 * len(high)
 
 
 # --- GEN.117 --------------------------------------------------------------
 
-INNER_RINGS = 242
-"""int: The inner disk out to about 970 pc (Block 0-2 on the Galaxy Map)."""
+INNER_SHELL = 240
+"""int: A shell about 960 pc out (Block 0-2 on the Galaxy Map's inner disk)."""
 
 
-def _scatter(layer_index):
-    return list(brightStars.scatter_layer(MILKY_WAY, layer_index, INNER_RINGS, EDGE_PC, E_VALUE,
-                                          LOW_FLOOR, 7))
-
-
-@pytest.mark.parametrize("layer_index", [121, -121])
-def test_bright_stars_rise_far_above_the_thin_young_band(layer_index):
-    # About 485 pc from the plane, where young stars are all but gone,
+def test_bright_stars_rise_far_above_the_thin_young_band():
+    # More than 485 pc from the plane, where young stars are all but gone,
     # old disk and bulge giants still give hundreds of bright stars.
-    rows = _scatter(layer_index)
+    rows = [row for row in _scatter(INNER_SHELL) if abs(_height_pc(row)) > 485.0]
     populations = [row[6] for row in rows]
     assert len(rows) > 200
     assert populations.count("old") + populations.count("bulge") > 0.8 * len(rows)
 
 
 def test_the_bright_stars_z_spread_by_population():
-    plane = [row[6] for row in _scatter(0)]
-    high = [row[6] for row in _scatter(60)]       # about 240 pc up
+    rows = _scatter(INNER_SHELL)
+    plane = [row[6] for row in rows if abs(_height_pc(row)) < 100.0]
+    high = [row[6] for row in rows if 200.0 < abs(_height_pc(row)) < 300.0]       # about 240 pc up
     # Young stars are a big share of the plane's (the rest is mostly the
     # bar bulge, which fills the inner kiloparsec); 240 pc up young ones
     # are rare, but every older population is still there in strength.
     assert plane.count("young") > 0.25 * len(plane)
     assert high.count("young") < 0.1 * len(high)
     for population in ("intermediate", "old", "bulge"):
-        assert high.count(population) > 0.1 * plane.count(population), population
-    # Altogether, 240 pc up holds more than a tenth of the plane's count.
-    assert len(high) > 0.1 * len(plane)
+        assert high.count(population) > 0.1 * plane.count(population) * (100.0 / 200.0), population

@@ -30,7 +30,7 @@ from planetgen.queue import redisqueue
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.galaxy.density import relative_density
-from planetgen.galaxy.region import CYLINDER_EDGE_ALLOWANCE, Region
+from planetgen.galaxy.region import BALL_EDGE_ALLOWANCE, Region
 from planetgen.galaxy.drill import (
     DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key,
 )
@@ -49,7 +49,7 @@ from planetgen.generation import stages, steps
 from planetgen.util import draw
 
 
-LARGE_RING_WARNING_THRESHOLD = 2000
+LARGE_RUN_WARNING_THRESHOLD = 2000
 """int: `--ring I` requires `--limit` or `--yes` when ring `I` holds more
 slots than this (see `ring_sector_count`) -- from ring 321, ~4,200 ly
 out. Anything larger takes a real, unbounded amount of time and disk, so
@@ -861,14 +861,14 @@ def run_ring_batch(args, edge_pc, progress):
     Raises:
         SystemExit: Under `--strict`, if the ring and layer lie outside the
                    galaxy's stored outline, or the ring's slot count
-                   exceeds `LARGE_RING_WARNING_THRESHOLD` and neither
+                   exceeds `LARGE_RUN_WARNING_THRESHOLD` and neither
                    `--limit` nor `--yes` was given. Without it each is a
                    warning and the ring is generated (GEN.81).
     """
     shell_index, band_index = args.ring, args.layer
     total_slots = ring_sector_count(shell_index)
 
-    if total_slots > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
+    if total_slots > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
         run_common._refuse_or_warn(args, f"Ring {shell_index} holds {total_slots} sector slots, a very large run "
                               f"(--limit N generates only the first N not-yet-generated slots).")
 
@@ -920,7 +920,7 @@ def cylinder_extent(sectors, layers, edge_pc):
     the in-plane radius for `sectors` sectors, the layers either side of
     the centre's, and the radius of a sphere that holds the whole can.
     """
-    horizontal_pc = (sectors + CYLINDER_EDGE_ALLOWANCE) * edge_pc
+    horizontal_pc = (sectors + BALL_EDGE_ALLOWANCE) * edge_pc
     return horizontal_pc, layers, math.hypot(horizontal_pc, (layers + 0.5) * edge_pc)
 
 
@@ -1544,7 +1544,7 @@ def run_block(args, edge_pc, progress):
     Block mode: every sector the galaxy's outline allows inside one
     drill-down block (`--block`, optionally one `--block-layer`). Needs
     `--limit` or `--yes` when that is more than
-    `LARGE_RING_WARNING_THRESHOLD` sectors.
+    `LARGE_RUN_WARNING_THRESHOLD` sectors.
 
     Raises:
         SystemExit: If the outline allows nothing in the block, or it is
@@ -1560,8 +1560,8 @@ def run_block(args, edge_pc, progress):
         if not bounds.contains(address[0], address[1]):
             continue
         addresses.append(address)
-        if not confirmed and len(addresses) == LARGE_RING_WARNING_THRESHOLD + 1:
-            run_common._refuse_or_warn(args, f"{where.capitalize()} holds more than {LARGE_RING_WARNING_THRESHOLD} "
+        if not confirmed and len(addresses) == LARGE_RUN_WARNING_THRESHOLD + 1:
+            run_common._refuse_or_warn(args, f"{where.capitalize()} holds more than {LARGE_RUN_WARNING_THRESHOLD} "
                                   f"sector slots, a very large run (--limit N generates only the first N).")
     if not addresses:
         run_common._refuse_or_warn(args, f"The galaxy's outline allows no sector in {where}, so there is nothing "
@@ -1601,7 +1601,7 @@ def run_shell(args, edge_pc, progress):
     """
     Shell mode: every sector of ring `--ring I` through every layer the
     galaxy's outline reaches there. Needs `--limit` or `--yes` when that
-    is more than `LARGE_RING_WARNING_THRESHOLD` sectors.
+    is more than `LARGE_RUN_WARNING_THRESHOLD` sectors.
 
     Raises:
         SystemExit: If the outline doesn't reach the ring, or the shell is
@@ -1615,7 +1615,7 @@ def run_shell(args, edge_pc, progress):
         return
     total_slots = ring_sector_count(args.ring)
     total = total_slots * len(layers)
-    if total > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
+    if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
         run_common._refuse_or_warn(args, f"The shell at ring {args.ring} holds {total} sector slots ({total_slots} "
                               f"slots across {len(layers)} layers), a very large run (--limit N generates "
                               f"only the first N).")
@@ -1628,7 +1628,7 @@ def run_span(args, edge_pc, progress):
     Span mode (ADM.29): every not-yet-generated sector in `args.span`, a
     range of rings, layers and slots, inside the galaxy's outline. The
     count comes from prefix sums, so the size warning is instant. Needs
-    `--limit` or `--yes` when it is more than `LARGE_RING_WARNING_THRESHOLD`
+    `--limit` or `--yes` when it is more than `LARGE_RUN_WARNING_THRESHOLD`
     sectors.
     """
     span = args.span
@@ -1638,7 +1638,7 @@ def run_span(args, edge_pc, progress):
     if total == 0:
         log.normal(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
         return
-    if total > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
+    if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
         run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total} sectors, a very large run "
                                          f"(--limit N generates only the first N).")
     _generate_addresses(args, list(span.addresses(batch_density.bounds)), what, edge_pc, progress, batch_density)

@@ -26,7 +26,7 @@ already stored.
 import functools
 import math
 
-from planetgen.galaxy import density as galaxyDensity, geometry as galaxyGeometry, object_uid as objectUid, seed as galaxySeed
+from planetgen.galaxy import density as galaxyDensity, object_uid as objectUid, seed as galaxySeed, spherical as galaxySpherical
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
@@ -162,8 +162,8 @@ def centroid_mpc(nebula, center_pc):
 
 
 def birth_sector(nebula, center_pc, edge_pc):
-    """The `(ring, layer, slot)` of the sector holding the centroid of `nebula`, placed at `center_pc`."""
-    return galaxyGeometry.sector_address_at(tuple(v / 1000.0 for v in centroid_mpc(nebula, center_pc)), edge_pc)
+    """The `(shell, band, wedge)` of the sector holding the centroid of `nebula`, placed at `center_pc`."""
+    return galaxySpherical.sector_address_at(tuple(v / 1000.0 for v in centroid_mpc(nebula, center_pc)), edge_pc)
 
 
 def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None):
@@ -197,7 +197,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
     # Every cloud born here has its centre within a cloud radius of the sector.
     sector_size = edge_pc * math.sqrt(3.0)
     reach = MAX_CLOUD_RADIUS_PC + sector_size
-    sector_center = galaxyGeometry.sector_position_pc(*address, edge_pc)
+    sector_center = galaxySpherical.sector_position_pc(*address, edge_pc)
     low = cell_index(tuple(c - reach for c in sector_center))
     high = cell_index(tuple(c + reach for c in sector_center))
     rank = 0
@@ -246,14 +246,21 @@ TABLE_CLASSES = ("M", "N")
 cannot be seen beyond about 250 pc, stay seeded and implicit."""
 
 
-def field_extent_pc(edge_pc, outer_ring, top_layer):
+def field_extent_pc(edge_pc, extents):
     """
     `(radius, half_height)` in parsecs of the cylinder whose field cells hold every cloud that can reach a sector of
-    a galaxy with outer ring `outer_ring` and highest layer `top_layer`: the sectors, their half diagonal and the
-    largest cloud's radius.
+    a galaxy with the outline `extents` (`(shell_index, high_band)` per shell): the sectors, their half diagonal and
+    the largest cloud's radius. The cylinder is the outline's own bounding one: the outer shell's reach across, and
+    the highest point of any band the outline holds up.
     """
     margin = edge_pc * math.sqrt(3.0) / 2 + MAX_CLOUD_RADIUS_PC
-    return (outer_ring + 1) * edge_pc + margin, (abs(top_layer) + 0.5) * edge_pc + margin
+    rows = list(extents)
+    radius = max(shell for shell, _high in rows) + 0.5
+    height = 0.0
+    for shell, high in rows:
+        north = galaxySpherical.band_colatitude_bounds(shell, high)[0]
+        height = max(height, (shell + 0.5) * math.cos(north))
+    return radius * edge_pc + margin, height * edge_pc + margin
 
 
 def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
