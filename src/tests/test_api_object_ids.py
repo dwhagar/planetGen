@@ -140,12 +140,17 @@ def test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing(bodies):
     api, _config = bodies
     system_id = api.get("/api/systems").get_json()["items"][0]["id"]
     detail = api.get(f"/api/systems/{system_id}").get_json()
-    planet = detail["planets"][0]["id"]
-    assert api.get(f"/api/objects/planet:{planet}").status_code == 200
+    planets = [planet["id"] for planet in detail["planets"]]
+    for planet in planets:
+        assert api.get(f"/api/objects/planet:{planet}").status_code == 200
     assert api.get("/api/objects/planet:1").status_code in (400, 404)
     facility = api.get(f"/api/systems/{system_id}/facilities").get_json()
     facilities = facility.get("items") or facility.get("facilities") or facility
-    assert api.get(f"/api/facilities/{facilities[0]['id']}").get_json()["host_id"] == planet
+    # The fixture puts its facility on one planet of a random system, which is not always the first one listed (TEST.154):
+    # the host is whichever planet the facility names, and it must be one of the system's own, reached by its id.
+    host = api.get(f"/api/facilities/{facilities[0]['id']}").get_json()["host_id"]
+    assert host in planets
+    assert api.get(f"/api/objects/planet:{host}").status_code == 200
     assert api.get("/api/facilities/1").status_code == 404
 
 
