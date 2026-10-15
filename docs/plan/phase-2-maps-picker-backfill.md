@@ -190,6 +190,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | GEN.250 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 12. Core. |
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 7. Core. |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | GEN.223, GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 6. Core. |
+| PERF.103 | A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night | GEN.223 | Orbital update, Boss 2026-10-15 6:26 PM EDT. Small. Core. |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.260, GEN.261, GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | GEN.262 | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | GEN.260, GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 3. Core. |

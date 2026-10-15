@@ -3467,6 +3467,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tables' point columns and key (DB.35); GEN.276
   (`planetgen/galaxy/cellkey.py`) goes first because DB.34's SQL key is
   tested against it. Still one migration.
+  Reworded (multi-star thread's inspection of the orbital update code,
+  approved by Boss, 2026-10-15 6:26 PM EDT): (a) two new movement scales
+  next to galactic (0.01 mpc), system (0.01 AU) and planetary (100,000
+  km) in `THRESHOLDS_M` (`src/planetgen/physics/position.py`, with
+  `update_interval_s`): `halo` = 1 mpc (about 206 AU) for objects in the
+  halo and `intergalactic` = 40 mpc (1% of a 4 pc shell) for objects
+  beyond the galaxy's reach. The scale is chosen by the object's region
+  when its `next_update_due` is set; the disc and the bulge keep 0.01
+  mpc. The region boundaries are a tuning value (halo = beyond the disc
+  and bulge profile, intergalactic = beyond the reach of 262 kpc).
+  Reason: at 200 km/s a 2 AU threshold makes a far object due about
+  every two weeks, and 40 mpc makes it about 190 years. (b) A
+  sector-crossing guard: an object that has a sector comes due no later
+  than half the time it needs to reach its sector's boundary at its
+  current speed, interval = min(threshold / speed, 0.5 *
+  distance_to_boundary / speed), so refiling, containment, nearest
+  systems and location never go stale (today the interval is
+  distance-only and refiling happens only when a row is due); it applies
+  on the shell, band and wedge grid, so reread the sector index first.
+  (c) Counting: every kind of object this item adds (sector-less
+  systems, standalone phenomena, scatter placeholders, scatter systems'
+  barycentres) is in the `counts` that `advance_galactic_positions`
+  (`db/store.py`) returns; `refiled` becomes `sector_crossings`, a count
+  per kind, including objects entering or leaving a sector with no
+  previous sector; new counts for rows given their first due time, rows
+  woken by the crossing guard and rows due but not moved; all printed in
+  the CLI summary (`cli/orbits.py`), the job log and the admin page.
+  Done also: a test fails if any object kind is moved without being
+  counted, and a test that an object crossing a boundary is counted once
+  as a crossing and refiled. Scatter members need no scale (they are
+  computed on read, GEN.265). No migration beyond this item's. Owner:
+  Core.
   Prerequisites: none.
 
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
@@ -4389,6 +4421,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   black hole companion fraction 1.25%, cap 12 stars (7 before the 6:08
   PM EDT catalogue), hierarchical trees only, a row's members deleted
   when its sector builds it, pair rates from the middle of the evidence.
+  Reworded (Boss 2026-10-15 6:26 PM EDT, with GEN.223's halo and
+  intergalactic scales and sector-crossing guard): a system's members
+  need no movement scale of their own, they are computed on read; the
+  barycentre moves on GEN.223's scale for its region, with the crossing
+  guard.
   Prerequisites: GEN.223, GEN.260. Related: GEN.109.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -5007,6 +5044,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   automatic resume. Done when: the suite is green with the old code gone
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
+
+- [ ] **PERF.103 A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night**
+  From the multi-star thread (approved by Boss, 2026-10-15 6:26 PM EDT
+  with GEN.223's halo and intergalactic scales). If the number of due
+  rows in an orbital-update run passes a configured ceiling, the run
+  logs a warning with the backlog size and moves the rest the next
+  night; due rows stay due and none is skipped silently. Done: a run
+  over the ceiling moves at most the ceiling, warns with the backlog,
+  leaves the rest due, and the next run takes them first; the counts of
+  GEN.223 include the backlog. Owner: Core (2026-10-15).
+  Prerequisites: GEN.223. Related: GEN.265, GEN.109.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 ## DB: Database and schema
 
