@@ -871,9 +871,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
   MAP.159 (packed binary tiles; needs MAP.158; one cache stamp bump with
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
-  and MAP.150); this umbrella closes last.
+  and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.150, MAP.151, MAP.152, MAP.153,
+  Prerequisites: MAP.151, MAP.152, MAP.153,
   MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -918,54 +918,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
   2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: one free camera from the whole galaxy to a star system. The
-  wheel zooms toward the point under the cursor with clearance from what
-  is in front; double-click flies to the thing clicked (MAP.140's go-to
-  extended); the observer is always in the 3D galaxy, also when looking
-  at a sector; the container is named from the camera position and the
-  breadcrumb is derived from it; URLs and bookmarks hold the camera. The
-  arc, slab and segment picks (MAP.85, MAP.56 and MAP.17 flow) stop
-  being the way to move, and old stage URLs stop working (no backward
-  compatibility).
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default yes):
-  retire the arc, slab and segment
-  picks as the navigation flow?
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: keep the
-  slab strip as an optional
-  section plane, not a stage): or drop it?
-  Prerequisites: none. Related: MAP.140, MAP.85, MAP.59, NAV.13,
-  NAV.14, MAP.146.
-  Dependency (2026-10-09, fly-through-view-distance.md): If the camera
-  radius R used by MAP.153's rank rule is redefined for a free camera
-  (for example distance to the nearest sector instead of to the target),
-  keep it continuous in the camera position: a jump in R is a pop for
-  every star at once.
-  Built (2026-10-09): MAP.149 is built (PR #1141): the near-field rules
-  (depth fade, see-through tube, pick rule on the near-field share,
-  blocker fade from MAP.121 and the faint-context rule from MAP.141) are
-  in static/nearfield.js and tested; nothing draws neighbouring regions
-  yet, so MAP.150, MAP.148 and MAP.155 use them. MAP.121 and MAP.141
-  stay open for the drawing and stepping parts.
-  Built (2026-10-09): MAP.149 deviations from the design (recorded in
-  docs/design/fly-through-view-distance.md section 4.6): the tube eases
-  in with a smooth ramp; the 0.35 pick rule applies to the near-field
-  share, not the fill alpha; there is no dithered discard (blocks are
-  sorted at build time).
-  Built in part (Foundations lane 2, 2026-10-10, PR #1182): the wheel
-  zooms toward the cursor. Still open: select-with-click and
-  double-click-to-go (this changes the click-drills-in flow that most
-  Galaxy Map browser tests lean on), the camera in URLs and bookmarks,
-  the breadcrumb from position, and retiring the arc, slab and segment
-  picks. These need MAP.151's region data layer first, because the stage
-  query is the only source of block data today; the lane returns to them
-  after MAP.151.
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1055,6 +1007,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (done, #1376: galaxy_block_stats, read by query.galaxy_block_stats;
   add the new levels to drill.DRILL_LEVELS and a rebuild fills them), so
   MAP.151b is unblocked.
+  MAP.151d part 2 done (Foundations lane 2, 2026-10-15, #1382): the galaxy is
+  a plain disk of level-243 blocks; a click opens a window of nine blocks
+  round the clicked cell, one size down; Up zooms out one step; the arc,
+  slab and segment picks, the slab buttons and the 3x3x3 view are gone.
+  This unlocks MAP.189 and MAP.190. Left: MAP.151b (the 3-ary ladder).
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1073,7 +1030,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Server: drop the generated_star_floor_sol brightness floors, settle
   the 400-star cap, and choose tiles by distance. Client: the
   cross-fades with hysteresis and the per-tile origins.
-  Prerequisite: MAP.150. Related: MAP.102, MAP.125,
+  Prerequisites: none (MAP.150 done, #1382). Related: MAP.102, MAP.125,
   MAP.146.
   Foundations lane 2 (2026-10-10, MAP.148 first
   stage, PR #1160): MAP.148 is retired as built. The client-side law
@@ -1100,7 +1057,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   layer range in the "Show" menu, top-down camera with the same
   vertical-fade rules as the rest of the map, stars and sectors outside
   the range hidden.
-  Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
+  Prerequisites: none. Related: MAP.146, MAP.150 (done, #1382), MAP.141, MAP.122,
   ADM.29.
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -1333,7 +1290,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   click flies to the zoom at which it splits (no page change), with a
   keyboard path. Done: hover, click and keyboard paths with browser
   tests. Owner: Foundations lane 2.
-  Prerequisite: MAP.176. Related: MAP.150.
+  Prerequisite: MAP.176. Related: MAP.150 (done, #1382).
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.181 Dust colour for the dark nebula family on both themes**
@@ -1387,8 +1344,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only that region at the start; the user can still zoom out to the
   whole galaxy. A browser test loads a galaxy with one neighbourhood and
   finds the camera framed on it. Owner: Foundations lane 2, after
-  MAP.150 and MAP.152; part of the fly-through headline.
-  Prerequisites: MAP.150, MAP.152. Related: MAP.146, MAP.151, MAP.190.
+  MAP.152 (MAP.150 done, #1382); part of the fly-through headline.
+  Prerequisite: MAP.152. Related: MAP.146, MAP.151, MAP.190.
 
 - [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
   GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
@@ -1465,6 +1422,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache and the browser's IndexedDB. Leaving out stars a parent tile
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
+
+- [ ] **MAP.197 Remove the obsolete drill container code left by the map flip**
+  Foundations lane 2, 2026-10-15, after the map flip (PR #1382, MAP.151d
+  part 2). The Galaxy Map is now a plain disk of level-243 blocks with a
+  nine-block window per click, so the old drill container pieces are
+  unused: galaxyprisms.js wedgeLines and drillBlockSectors have no
+  callers, while drill.py's container rules and
+  tests/test_galaxydrill.py still use the non-null drillChildren
+  branches and drillSlabs. Remove them together with their tests.
+  Prerequisites: none. Related: MAP.151.
 
 ## NAV: Navigation and courses
 
