@@ -302,6 +302,12 @@ Playwright asks for a build the image does not have and every browser test
 skips). `markdown` must be 3.11 as in `requirements.lock`; 3.11.1 fails 74
 tests (see TEST.139 in the TODO).
 
+To have all of that ready in every new session, paste
+[`examples/cloud-environment/setup-planetgen-env.sh`](../examples/cloud-environment/setup-planetgen-env.sh) into the
+cloud environment's Setup script field (it installs MySQL 8, Apache 2, Redis and every dependency, and leaves a
+`planetgen-env-up` command that starts the services each session); its
+[README](../examples/cloud-environment/README.md) says what each part does.
+
 ## Database engines
 
 Local runs here use MariaDB 10.11. CI's `test` job has five legs, each with its own Redis container: the whole
