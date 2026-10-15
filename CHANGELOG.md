@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1258] - 2026-10-15
+
+### Added
+- **Facility types on the web.** The system page's Facilities table now shows each facility's type (with its icon), affiliation and Green, Yellow or Red ratings for crime, housing, resources, maintenance and health, worst first; each rating is a shape, the dimension's name and a word, so colour is never the only signal. An admin picks a type, fills its fields, sets an affiliation (the system's owner by default) and ratings when placing a facility, can edit a facility's affiliation and ratings, and can have the unset ratings suggested (POP.10).
+- **Admin Facility types page.** `/admin/facility-types` lets an admin add, change, take out of use and delete facility types and their fields, and add an example type. The 64 icons a type may use are vendored Bootstrap Icons with their MIT licence (POP.10).
+
 ## [8.0.1257] - 2026-10-15
 
 ### Added
