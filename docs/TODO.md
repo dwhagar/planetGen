@@ -5105,7 +5105,7 @@ clears each one.
   recommendation, and Boss picks one; the build is then filed as its own
   items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: the Test
   Suite Rebuild thread, part of TEST.139, not a lane.
-  Decided (2026-10-15): Decided (Boss, 2026-10-15 00:2xZ, tapped Build
+  Decided (Boss, 2026-10-15, tapped Build
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
   automatic and not part of the merge gate. Build items TEST.150,
