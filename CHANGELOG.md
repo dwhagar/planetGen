@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1265] - 2026-10-15
+
+### Added
+- The TODO list gains a bug item for the wrong phenomena count on the overview page (UX.110).
+
+TODO items resolved: none / Added: UX.110
+
 ## [8.0.1264] - 2026-10-15
 
 ### Changed
