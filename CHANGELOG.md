@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1309] - 2026-10-15
+
+### Fixed
+- **The admin Stats page said Redis was not answering whenever a work-queue worker was registered** (found by `test_a_live_redis_reports_its_settings` in two full test runs). The Redis health check counted live workers with a helper that PERF.96 moved from `api_jobs` to `workers`, so it raised `AttributeError` as soon as one worker existed and the page showed the error text instead of the figures. It now calls `workers.process_exists` (the helper lost its leading underscore, as another module uses it), and a test registers one live, one dead and one remote worker.
+
 ## [8.0.1308] - 2026-10-15
 
 ### Changed
