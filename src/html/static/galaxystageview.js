@@ -63,6 +63,7 @@ const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
+const HOVER_SHADE_OPACITY = 0.16; // MAP.198: the shade over the block a click would open
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
 // The block of the sector opened in place, round its own scene.
@@ -730,7 +731,25 @@ export function createStageView(host) {
       });
     });
     const chartedLines = display.charted ? display.charted.geometry.getAttribute("position").count / 2 : 0;
-    return { blockEdges: blockEdges, chartedLines: chartedLines };
+    // MAP.198: the hovered block's outline: its line pieces, the heights
+    // they reach, and the shade over its faces.
+    const hovered = { lines: 0, zMin: null, zMax: null, shade: 0 };
+    if (outlineGroup) {
+      outlineGroup.children.forEach(function (part) {
+        if (part.userData.hoverShade) {
+          hovered.shade = part.material.opacity;
+          return;
+        }
+        const position = part.geometry.getAttribute("position");
+        hovered.lines += position.count / 2;
+        for (let i = 0; i < position.count; i++) {
+          const z = position.getZ(i);
+          hovered.zMin = hovered.zMin === null ? z : Math.min(hovered.zMin, z);
+          hovered.zMax = hovered.zMax === null ? z : Math.max(hovered.zMax, z);
+        }
+      });
+    }
+    return { blockEdges: blockEdges, chartedLines: chartedLines, hovered: hovered };
   };
 
   // The camera's tilt from straight down, in degrees (0 top-down, 90
@@ -1382,14 +1401,44 @@ export function createStageView(host) {
     outlineGroup.add(line);
   }
 
-  // An accent outline around a choice's block along its own sides (MAP.18,
-  // MAP.52), on top of it.
+  // The solid of one block as triangles [x, y, z]: top and bottom, the two
+  // radial sides and the two arcs.
+  function prismTriangles(b, mid) {
+    const t0 = mid + wrapAngle(b.t0 - mid);
+    let dt = (((b.t1 - b.t0) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    if (dt === 0) dt = 2 * Math.PI;
+    const steps = Math.max(1, Math.ceil(dt / (Math.PI / 60)));
+    const at = function (r, k, h) { const t = t0 + (dt * k) / steps; return new THREE.Vector3(r * Math.cos(t), r * Math.sin(t), h); };
+    const points = [];
+    const quad = function (a, c, d, e) { points.push(a, c, d, a, d, e); };
+    for (let k = 0; k < steps; k++) {
+      [b.z0, b.z1].forEach(function (h) { quad(at(b.r0, k, h), at(b.r1, k, h), at(b.r1, k + 1, h), at(b.r0, k + 1, h)); });
+      quad(at(b.r1, k, b.z0), at(b.r1, k + 1, b.z0), at(b.r1, k + 1, b.z1), at(b.r1, k, b.z1));
+      if (b.r0 > 0) quad(at(b.r0, k, b.z0), at(b.r0, k + 1, b.z0), at(b.r0, k + 1, b.z1), at(b.r0, k, b.z1));
+    }
+    [0, steps].forEach(function (k) { quad(at(b.r0, k, b.z0), at(b.r1, k, b.z0), at(b.r1, k, b.z1), at(b.r0, k, b.z1)); });
+    return points;
+  }
+
+  // An accent outline round the whole block a click would open (MAP.18,
+  // MAP.52, MAP.198): every edge of its solid, top and bottom and up the
+  // corners, and a faint shade over its faces, on top of the map.
   function outlineOption(index) {
     clearOutline();
     const option = display.options[index];
     const mid = (option.a0 + option.a1) / 2;
     const span = spanOf(option.blocks, mid);
-    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, null), 1);
+    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, { z0: span.z0, z1: span.z1 }), 1);
+    const shade = [];
+    option.blocks.forEach(function (block) { Array.prototype.push.apply(shade, prismTriangles(block.bounds, mid)); });
+    const fill = new THREE.Mesh(
+      new THREE.BufferGeometry().setFromPoints(shade),
+      new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: HOVER_SHADE_OPACITY, depthTest: false, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    fill.renderOrder = 5;
+    fill.frustumCulled = false;
+    fill.userData.hoverShade = true;
+    outlineGroup.add(fill);
   }
 
   function setHover(next) {

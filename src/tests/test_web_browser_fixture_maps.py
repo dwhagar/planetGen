@@ -1401,6 +1401,31 @@ def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines === 0")
 
 
+@pytest.mark.parametrize("scheme", ["dark", "light"])
+def test_galaxy_map_outlines_the_whole_block_a_click_would_open_and_shades_it(page, map_site, scheme):
+    """MAP.198: the block under the pointer, at every level, is outlined all
+    round (top and bottom edges and up its corners) and shaded a little, in
+    both themes; with the pointer off the map nothing is outlined."""
+    page.emulate_media(color_scheme=scheme)
+    _open_galaxy(page, map_site)
+    for _ in range(3):
+        found = _hover_choice(page)
+        assert found, "no block under the pointer to outline"
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines > 0")
+        hovered = page.evaluate(LINES)["hovered"]
+        assert hovered["zMax"] > hovered["zMin"], ("the outline reaches only one height", hovered)
+        assert 0 < hovered["shade"] <= 0.3, ("the block is shaded a little", hovered)
+        page.mouse.move(1, 1)
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines === 0")
+        found = _hover_choice(page, GENERATED_CHOICE)
+        if not found:
+            break
+        page.mouse.click(found[0], found[1])
+        _settle(page)
+        if not _on_galaxy(page):
+            break
+
+
 def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(page, map_site):
     """MAP.107: a click on the map while the stage just picked is still
     loading its data (the breadcrumb has moved, the drawing has not) picks
