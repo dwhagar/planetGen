@@ -806,7 +806,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | none | open |
 | GEN.248 | Tidal streams as placed components of the halo (later) | none | open |
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | none | open |
-| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | none | open |
+| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | none | done, PR #1700 |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | none | open |
 | GEN.252 | Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert | none | open |
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets | none | open |
