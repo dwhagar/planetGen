@@ -506,9 +506,9 @@ with `clamp()`.
 - [ ] **UX.111 Reads, API and web wording on shells**
   `query.py`, `store.py`, the API, the Galaxy and Sector pages, URLs and
   bookmarks say shell, band and wedge; "layer" and "slab" mean nothing
-  any more. Done: pages and API keep working on a regenerated small
-  galaxy; after this item Boss can regenerate a galaxy and look at it
-  before Maps work begins. Owner: Spherical Sector Coordinates thread.
+  any more. Done: pages and API keep working on a converted (DB.32)
+  small galaxy; after this item Boss can open the converted galaxy and
+  look at it before Maps work begins. Owner: Spherical Sector Coordinates thread.
   Source: item 6 of section 6 of the plan. Boss decided the move
   (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
   wedge (vert), shell (radius), and band (horizontal), together they
