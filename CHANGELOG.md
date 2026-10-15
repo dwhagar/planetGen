@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1128] - 2026-10-15
+
+### Changed
+
+- The TODO list retires OPS.49 (update.sh database login, merged in #1387).
+
 ## [8.0.1127] - 2026-10-15
 
 ### Fixed
