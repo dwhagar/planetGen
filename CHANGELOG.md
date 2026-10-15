@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1352] - 2026-10-15
+
+**Headline:** The plan no longer lists the cli.md sync (DOC.36), now done.
+
+### Changed
+
+- TODO: retired DOC.36 (done in PR #1616) from the plan and the phase file; DOC.4 notes that its cli.md part is covered.
+
+TODO items resolved: DOC.36 / Added: none
+
 ## [8.0.1351] - 2026-10-15
 
 **Headline:** The command-line reference now matches `planetgen --help` for all 11 subcommands, on the new shell, band and wedge grid.
