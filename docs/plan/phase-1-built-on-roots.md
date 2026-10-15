@@ -114,6 +114,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) |  |  |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
+| GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) |  |  |
+| GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) |  |  |
+| GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) |  |  |
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) |  |  |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) |  |  |
 | MAP.197 | Remove the obsolete drill container code left by the map flip |  |  |
