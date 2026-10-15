@@ -6352,3 +6352,27 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
   Prerequisite: POP.12. Related: POP.10, POP.9, ADM.9.
+
+- [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
+  Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
+  consistency that if we put a race on a planet it is within the limits
+  of what can survive there." Done: (1) one check, built on the species
+  limits and the scoring function of POP.12, that every way of putting a
+  species on a planet or moon calls before it writes: generation
+  (homeworld and any later settlement the scatter makes, POP.11), the
+  species editor (POP.13), the API and any command or import; it refuses
+  a placement outside the species' limits and says which domain fails,
+  in plain in-universe wording; (2) a consistency check over the stored
+  data (a report command and a test over a generated galaxy) that lists
+  every species placed outside its limits; any it finds are fixed by
+  regenerating the limits or the placement, with no shim and no
+  tolerance flag. How it fits: the POP.12 default takes a species'
+  limits from its homeworld, so every species passes its own homeworld
+  by construction and this check matters for every other placement; an
+  admin who edits limits in the species editor (POP.13) must not be able
+  to leave a species outside its homeworld's conditions, so the editor
+  runs this check on save and shows the failing domain. A placement that
+  is only acceptable with equipment counts as outside the limits unless
+  the placement says it is a habitat or vessel (default: only unaided
+  survival counts for a planet or moon surface).
+  Prerequisites: POP.12. Related: POP.12, POP.13, POP.11, POP.10.
