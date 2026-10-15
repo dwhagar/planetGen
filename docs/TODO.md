@@ -2668,6 +2668,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pasted contradicts the test-particle limit. Full text and transcribed
   code: exotic-environments-planets-and-compact-binaries.md section 2.3
   and /mnt/project-files/research/scripts/exotic/vynatheya2022.py.
+  Boss asked (2026-10-15) whether a black hole or neutron star can have
+  a star system. Today a scattered or rolled one is a standalone row
+  with no system (`run_sector.py:449`); a system is built around one
+  only on request with `phenomenon --anchor-system`, and a remnant
+  passed to `StarSystem` skips binary generation (`system.py:255`). The
+  design note (section 5.12) points at this item for the rules: the same
+  fractions let a Wolf-Rayet star's companions (GEN.243) and the
+  remnants' companions (GEN.130) be drawn as trees.
 
 - [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -2714,6 +2722,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, globular-clusters.md): the captured-giant type
   (type B) is enabled once clusters exist, as GEN.163; Boss's 18:37Z
   decision (left out until clusters are modelled) holds today.
+  Boss asked (2026-10-15) whether a black hole or neutron star can have
+  a star system. Today a scattered or rolled one is a standalone row
+  with no system (`run_sector.py:449`); a system is built around one
+  only on request with `phenomenon --anchor-system`, and a remnant
+  passed to `StarSystem` skips binary generation (`system.py:255`). The
+  design note (section 5.12) points at this item for the rules: this
+  item decides the company a black hole or neutron star keeps (white
+  dwarf, young neutron star none, millisecond pulsar 1% with planets,
+  dormant black hole with a Gaia-type companion), so a scattered remnant
+  can be promoted to a system. Nothing in the whole-sphere train waits
+  on it.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
@@ -3646,6 +3665,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   262 kpc (65,535 shells), 96-bit object IDs, one rule set everywhere
   with per-sector parameters, nothing generated unless asked, and an
   asked sector always generated and saved.
+  Systems around protostars (design note section 5.12, answering Boss's
+  2026-10-15 question). A protostar is a state of an ordinary star, so
+  it gets an ordinary star system with no special path. No planets yet:
+  the planet draw already drops every non-belt body around a star
+  younger than `PLANET_MIN_STAR_AGE_GY` = 0.01 Gy (`system.py:1024`), so
+  belts are the most it keeps and nothing new is needed for that. Add a
+  `disk` descriptor on the star instead (class 0, I or II by age under
+  0.15, 0.5 and 3 Myr; mass 0.01 to 0.3 of the star, outer radius 10 to
+  300 AU), with no bodies in it. Companions come from the normal binary
+  machinery at the Perseus multiplicity: 0.57 for Class 0 and 0.23 for
+  Class I, higher than the field's 0.26 to 0.45. Done also means: a
+  protostar's system shows its disk and its companions, and holds no
+  planets.
   Prerequisites: GEN.235. Related: GEN.241, UX.108.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3683,6 +3715,85 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector always generated and saved.
   Prerequisites: GEN.235, GEN.158, GEN.241. Related: GEN.113, MAP.132,
   MAP.176.
+  Systems around Wolf-Rayet stars (design note section 5.12, answering
+  Boss's 2026-10-15 question). A W star is a state of an ordinary star,
+  so it gets an ordinary system with no special path. No planets (the
+  same age cut as above; no planet is known around one), belts allowed.
+  Companions come from the normal binary machinery with the W star's own
+  fractions: 50% for WN and 90% for WC (the surveyed 0.96 capped), the
+  companion an O or B star or a compact object, the period drawn from
+  the WN law (mostly short, like O stars) or the WC law (peak near 5,000
+  days). After GEN.129 the same fractions apply to trees. A planetary
+  nebula's central white dwarf is already an ordinary system, so planets
+  there are possible and engulfment removes the inner ones. Done also
+  means: a W star's system carries its companions at those fractions and
+  no planets.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.244 Young open clusters and OB associations as components (later)**
+  Design note 5.12. A component of the same table as the globular
+  clusters (GEN.237): a Plummer profile, age under 1 Gyr, disk-bound,
+  with its own age window and [Fe/H]; the hosted nebulae of GEN.241 are
+  its youngest form. Done: a cell inside a young cluster holds its
+  members at the cluster's age and the map can show the cluster as a
+  point or a region. Later: not part of the whole-sphere train and
+  nothing in it waits on this; plan after it. Owner: Core, later
+  (2026-10-15).
+  Prerequisites: GEN.237, GEN.241. Related: GEN.158.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.245 Debris disks around A and F stars (later)**
+  Design note 5.12. A debris-disk flag (Vega type) on A and F stars as a
+  descriptor on the star, no new rows; the protoplanetary `disk`
+  descriptor of young stars belongs to GEN.242. Done: a share of A and F
+  stars show a debris disk on the star page, with a radius and a dust
+  mass. Later: not part of the whole-sphere train and nothing in it
+  waits on this; plan after it. Owner: Core, later (2026-10-15).
+  Prerequisites: GEN.242.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.246 Luminous blue variables and hypergiants (later)**
+  Design note 5.12. States of the massive-star model like Wolf-Rayet (a
+  short window before it, with an ejecta nebula); rare, tens in the
+  Galaxy. Done: a very massive star passes through the state before it
+  becomes a Wolf-Rayet star or explodes, at the real count, with an
+  ejecta nebula. Later: not part of the whole-sphere train and nothing
+  in it waits on this; plan after it. Owner: Core, later (2026-10-15).
+  Prerequisites: GEN.243. Related: GEN.241.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.247 Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later)**
+  Design note 5.12. Subtypes of white-dwarf-plus-companion systems once
+  the tree and exotic-system rules exist (the symbiotic one is already
+  in `anomalies.md`); they follow the old-star share, so they appear in
+  the halo and in clusters. X-ray binaries, microquasars and magnetars
+  are already designed in `anomalies.md` and
+  `multistar-and-compact-systems.md` 7.3 and follow the young share.
+  Done: a white dwarf with a close companion can be a nova or
+  cataclysmic variable at its rate, and the Type Ia remnant share of
+  GEN.241 reads from them. Later: not part of the whole-sphere train and
+  nothing in it waits on this; plan after it. Owner: Core, later
+  (2026-10-15).
+  Prerequisites: GEN.129, GEN.130. Related: GEN.241.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.248 Tidal streams as placed components of the halo (later)**
+  Design note 5.12. Streams (Sagittarius and the thin ones) as an
+  elongated density term in the component table; each is too small to
+  alter a cell on its own. Done: a cell on a stream expects the extra
+  stars and the component table lists the stream. Later: not part of the
+  whole-sphere train and nothing in it waits on this; plan after it.
+  Owner: Core, later (2026-10-15).
+  Prerequisites: GEN.237, GEN.234. Related: GEN.239.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.249 Be stars, carbon stars and Mira variables as star attributes (later)**
+  Design note 5.12. State or attribute on an ordinary star (decretion
+  disks, carbon stars, Mira variables); no new kind, no new rows. Done:
+  each attribute appears on the star at its rate and the star page says
+  so. Later: not part of the whole-sphere train and nothing in it waits
+  on this; plan after it. Owner: Core, later (2026-10-15).
+  Prerequisites: GEN.235.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
