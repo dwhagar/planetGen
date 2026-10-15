@@ -16,7 +16,7 @@
 
 // This module's own `?v=`, so the sibling loads at the same version.
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { formatDistanceKm, formatDurationSeconds, formatSpeedKms } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { formatDistanceKm, formatDistanceKmSpoken, formatDurationSeconds, formatSpeedKms } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 const G = 6.6743e-11; // m^3 kg^-1 s^-2
 
@@ -48,7 +48,7 @@ function setUp(form) {
     const speedKms = (2 * Math.PI * km) / periodS;
     readout.textContent = `${formatDistanceKm(km)} from its host, one orbit every ${formatDurationSeconds(periodS)}, `
       + `at ${formatSpeedKms(speedKms)}`;
-    slider.setAttribute("aria-valuetext", formatDistanceKm(km));
+    slider.setAttribute("aria-valuetext", formatDistanceKmSpoken(km));
   };
 
   const filterHosts = () => {

@@ -107,7 +107,7 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     raise ValueError(
         f"Could not sample a mass in [{min_mass_sol}, {max_mass_sol}] Msun whose implied "
         f"main-sequence lifespan doesn't exceed the age of the universe "
-        f"({tuning.UNIVERSE_AGE_GY} Gy) after "
+        f"({tuning.UNIVERSE_AGE_GY} Gyr) after "
         f"{tuning.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS} attempts."
     )
 
@@ -1097,7 +1097,7 @@ class Star(LazySaladName):
 
         self._apply_params(star_params(initial_mass_sol, age, state))
         log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "
-                                      f"age {age:.3g} Gy")
+                                      f"age {age:.3g} Gyr")
 
     def _apply_params(self, params):
         """Sets this star's generated properties from a `star_params` dict

@@ -1,5 +1,5 @@
 """
-UX.91: a planet's and moon's description explains its PHI-4 colours: the score and the equipment, then each of
+UX.91: a planet's and moon's description explains its PHI-6 colours: the score and the equipment, then each of
 the four factors with its colour, this world's input values and which input sets the colour. The explanation reads
 the same world and band edges as the stored score, so its colours always agree with the chip.
 """
@@ -27,7 +27,7 @@ def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_
     paragraphs = explain.paragraphs(_earth(), _bold)
     assert len(paragraphs) == 1
     text = paragraphs[0]
-    assert text.startswith("**Habitability** is 1.00 (Blue).") and text.endswith("A visitor needs no equipment.")
+    assert text.startswith("**PHI-6 habitability** is 1.00 (Blue).") and text.endswith("A visitor needs no equipment.")
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"**{domain}: Blue**." in text
     assert "At 101 kPa no gear is needed." in text and "At 15 C no gear is needed." in text
@@ -82,18 +82,18 @@ def _system_text(markdown):
         config = SystemConfig()
         config.MARKDOWN = markdown
         text = str(StarSystem(config))
-        if "Habitability** is" in text or "Habitability''' is" in text:
+        if "PHI-6 habitability** is" in text or "PHI-6 habitability''' is" in text:
             return text
     raise AssertionError("no rocky body in 60 systems")
 
 
 def test_a_generated_planet_or_moon_description_carries_the_explanation():
     text = _system_text(True)
-    assert text.count("**Habitability** is") >= 1
+    assert text.count("**PHI-6 habitability** is") >= 1
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"**{domain}: " in text
 
 
 def test_the_wikitext_page_uses_wikitext_emphasis():
     text = _system_text(False)
-    assert "'''Habitability''' is" in text and "**Habitability" not in text
+    assert "'''PHI-6 habitability''' is" in text and "**PHI-6" not in text

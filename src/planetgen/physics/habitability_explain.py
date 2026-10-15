@@ -1,7 +1,7 @@
 # planetgen/physics/habitability_explain.py
 
 """
-The words behind a body's PHI-4 colours (UX.91): for each of the six
+The words behind a body's PHI-6 colours (UX.91): for each of the six
 factors (pressure, temperature, air, water, radiation, suitability) its colour and score,
 the inputs that make it up with this world's value for each, and which input
 sets the colour. It reads the same `habitability.World` the stored numbers
@@ -14,7 +14,7 @@ the chip on the system list; the wording matches the Habitability levels page
 from planetgen.physics import habitability, protection
 from planetgen.physics.habitability import (
     ARMSTRONG_KPA, DOSE_BAND, GAS_LIMITS_KPA, INSPIRED_O2_MIN_KPA, O2_HIGH_BAND, PRESSURE_BAND, TEMPERATURE_BAND,
-    WET_BULB_CRIT_C, band_score, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
+    WET_BULB_CRIT_C, band_score, gas_inputs, inspired_o2_kpa, temperature_extremes_c, tier, water_inputs, wet_bulb_c)
 
 DOMAIN_ORDER = habitability.DOMAINS
 """tuple: The six factors, in the order the description lists them."""
@@ -131,9 +131,13 @@ def _pressure_items(world):
 
 
 def _temperature_items(world):
+    cold, hot = temperature_extremes_c(world)
     items = [_banded("air temperature", world.temperature_c, TEMPERATURE_BAND, _celsius)]
-    if -20.0 <= world.temperature_c <= 50.0:
-        bulb = wet_bulb_c(world.temperature_c, world.relative_humidity)
+    if hot != cold:
+        for label, value in (("coldest point of the stars' light cycle", cold), ("hottest point of the stars' light cycle", hot)):
+            items.append(_banded(label, value, TEMPERATURE_BAND, _celsius))
+    if -20.0 <= hot <= 50.0:
+        bulb = wet_bulb_c(hot, world.relative_humidity)
         if bulb >= WET_BULB_CRIT_C:
             items.append(_item("wet-bulb temperature (heat and humidity together)", _celsius(bulb), 0.75 - 1e-9,
                                f"at or above {_celsius(WET_BULB_CRIT_C)}, where a body can no longer shed heat, "

@@ -2,7 +2,7 @@
 
 """
 The text of the habitability levels page (`/classes/habitability`, UX.90):
-the five equipment levels, the six PHI-4 domains with their Blue, Green,
+the five equipment levels, the six PHI-6 domains with their Blue, Green,
 Yellow and Red thresholds, the compact-host rule and the chips a planet row
 shows. The equipment labels come from `planetgen.physics.habitability_world`;
 the thresholds repeat `docs/design/habitability-index.md` section 2 and
@@ -30,7 +30,7 @@ DOMAIN_TIERS = (
     ("Yellow", "Needs equipment or limits the time spent outside."),
     ("Red", "Beyond what a person can survive without heavy protection."),
 )
-"""tuple: `(colour, meaning)` of a PHI-4 domain's score, best first."""
+"""tuple: `(colour, meaning)` of a PHI-6 domain's score, best first."""
 
 DOMAINS = (
     ("Pressure", [
@@ -71,7 +71,7 @@ column a variable is Red."""
 SCORE_RULE = (
     "Each variable scores 1 in Blue and falls to 0.75 at the edge of Green, 0.4 at the edge of Yellow and 0 "
     "at the outer edge of Red. A domain takes the score of its worst variable: Blue at 1, Green from 0.75, "
-    "Yellow from 0.4, Red below. The PHI-4 score on a "
+    "Yellow from 0.4, Red below. The PHI-6 score on a "
     "planet's tooltip is the geometric mean of the six domains, held under the colour gates: Radiation and "
     "Temperature cap it at their own colour, Pressure in Yellow or Red caps it there (unless a full suit is "
     "needed anyway), Air, Water or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "

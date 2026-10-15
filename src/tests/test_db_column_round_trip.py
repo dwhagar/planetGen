@@ -74,9 +74,6 @@ NULL_IN_THIS_GALAXY = {
     ("sectors", "wiki_url"): "never published", ("star_systems", "wikijs_url"): "never published",
     ("star_systems", "mediawiki_url"): "never published",
     ("system_configs", "age"): "only with --age",
-    # v87 (DB.26): the columns the Generation lane fills (GEN.148, GEN.150, GEN.178, GEN.207) once it lands (GEN.207's are written now).
-    **{(table, column): "not generated yet" for table in ("planets", "moons") for column in (
-        "flux_variation",)},
     # GEN.178: only a moon has an induced field.
     ("planets", "induced_moment_a_m2"): "moons only",
     # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
@@ -84,10 +81,6 @@ NULL_IN_THIS_GALAXY = {
         "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",
         "rating_resources", "rating_maintenance", "rating_health", "ratings_source", "ratings_note",
         "ratings_set_at")},
-    # v88 (DB.27): the tech level the POP.9 pass draws.
-    **{("species", column): "not generated yet" for column in (
-        "energy_index", "materials_index", "information_index", "medical_index", "propulsion_index",
-        "defense_index", "tech_level", "tech_source")},
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -121,6 +114,7 @@ NEVER_READ = {
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
+<<<<<<< HEAD
     # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
     **{("facilities", column): "read once POP.10 lands" for column in (
         "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",
@@ -130,6 +124,8 @@ NEVER_READ = {
     **{("species", column): "read once POP.9 lands" for column in (
         "energy_index", "materials_index", "information_index", "medical_index", "propulsion_index",
         "defense_index", "tech_level", "tech_source")},
+=======
+>>>>>>> origin/main
     # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
     ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,

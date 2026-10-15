@@ -32,7 +32,7 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.format import (
-    format_body_radius_km, format_distance_au, format_distance_km, format_number, properties_to_string, to_paragraph, format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k,
+    format_body_radius_km, format_distance_au, format_distance_km, format_gravity_g, format_number, properties_to_string, to_paragraph, format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k,
 )
 
 
@@ -497,7 +497,7 @@ class Planet(HoldsOrbitPosition):
             "period": format_period_years(self.period),
             "speed": format_speed_kms(self.orbital_speed_kms),
             "radius": radius_string,
-            "gravity": f"{round(self.gravity, 3)} g",
+            "gravity": format_gravity_g(self.gravity),
         }
         # Only shown for a moon-having planet (reflex_offset_* defaults to
         # 0.0 for a moonless planet or a moon itself -- see its own

@@ -48,7 +48,7 @@ def classes():
         title="Classes",
         section="classes",
         breadcrumbs=[crumb("Classes")],
-        description="Every class of star, planet, nebula and other object this galaxy generator assigns.",
+        description="Every class of star, planet, nebula and other object this galaxy survey assigns.",
         rows=rows,
         habitability_url=page_url("habitability_levels"),
         population=_population_links(),
@@ -69,7 +69,7 @@ def _population_links():
 
 @bp.route("/classes/habitability")
 def habitability_levels():
-    """UX.90: what the equipment levels and PHI-4 colours on the planet pages mean."""
+    """UX.90: what the equipment levels and PHI-6 colours on the planet pages mean."""
     return render_page(
         "habitability.html",
         title="Habitability Levels",

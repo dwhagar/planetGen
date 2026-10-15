@@ -30,7 +30,7 @@ const { buildSystemScene } = await import(`./systemview3d.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED, MODE_TRUE, UNIT_KM } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { createOrbitClock } = await import(`./orbitclock.js${VERSION_QUERY}`);
 const { relativeAt } = await import(`./orbitpositions.js${VERSION_QUERY}`);
-const { formatDistanceM } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 const KM_PER_PC = 3.0856775814913673e13;
 const AU_KM = 149597870.7;
@@ -118,10 +118,10 @@ export function createSystemStage(host) {
     const fields = [["Kind", entry.kind]];
     if (body.planet_class) fields.push(["Class", body.planet_class]);
     if (body.star_type) fields.push(["Star type", body.star_type]);
-    if (body.radius_km) fields.push(["Radius", formatDistanceM(body.radius_km * 1000)]);
+    if (body.radius_km) fields.push(["Radius", formatBodyRadiusKm(body.radius_km)]);
     if (body.orbit && body.orbit.distance_km) {
-      fields.push(["Orbit", formatDistanceM(body.orbit.distance_km * 1000)]);
-      if (body.orbit.period_years) fields.push(["Period", body.orbit.period_years.toPrecision(3) + " years"]);
+      fields.push(["Orbit", formatDistanceKm(body.orbit.distance_km)]);
+      if (body.orbit.period_years) fields.push(["Period", formatPeriodYears(body.orbit.period_years)]);
     }
     return {
       title: entry.name,

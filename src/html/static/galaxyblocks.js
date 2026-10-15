@@ -184,12 +184,12 @@ export function statsRanges(cells) {
 export const COLOR_MODES = {
   default: { label: "Age, density and luminosity" },
   density: {
-    label: "Density", range: "density", unit: "systems per generated sector",
+    label: "Density", range: "density", unit: "systems per charted sector",
     value: function (stats, filled) { return Math.log1p(stats.systems / filled); },
     text: function (v) { return formatLegend(Math.expm1(v)); },
   },
   age: {
-    label: "Mean age", range: "age", unit: "Gy",
+    label: "Mean age", range: "age", unit: "Gyr",
     value: function (stats) { return stats.mean_age_gy || 0; },
     text: function (v) { return formatLegend(v); },
   },
@@ -199,7 +199,7 @@ export const COLOR_MODES = {
     text: function (v) { return formatLegend(Math.pow(10, v)); },
   },
   stars: {
-    label: "Star count", range: "stars", unit: "stars per generated sector",
+    label: "Star count", range: "stars", unit: "stars per charted sector",
     value: function (stats, filled) { return stats.stars / filled; },
     text: function (v) { return formatLegend(v); },
   },
@@ -280,7 +280,7 @@ function rangeShare(value, range, name) {
 // stars' density gives it (FILLED_OPACITY_SPARSE up to
 // FILLED_OPACITY_DENSE, never more than MAX_FILL_OPACITY) by
 // blockFillStep, so one filled sector among many still shows. The density
-// is what the block holds (systems per generated sector against
+// is what the block holds (systems per charted sector against
 // FILLED_FULL_SYSTEMS, on a log scale), not a rank among the cells in
 // view. A filled block with no stars only lifts the unfilled opacity by
 // FILLED_EMPTY_STEP.

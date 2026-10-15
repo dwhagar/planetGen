@@ -260,6 +260,7 @@ class World:
     pressure_kpa: float
     temperature_c: float
     gases: dict
+    flux_variation: float = 0.0
     gravity_ms2: float = 9.81
     relative_humidity: float = 0.5
     solvent: str = "water"
@@ -347,9 +348,24 @@ def pressure_score(world):
     return band_score(world.pressure_kpa, PRESSURE_BAND, log=True)
 
 
+def temperature_extremes_c(world):
+    """
+    `(coldest, hottest)` surface temperature over the cycle of a world whose light swings (GEN.148). The
+    equilibrium temperature goes as the fourth root of the insolation, so a flux that varies by the
+    fraction `flux_variation` peak to peak moves T by `(1 +- f/2)^(1/4)`; a lone star (0) gives the one value.
+    """
+    f = min(max(world.flux_variation or 0.0, 0.0), 1.0)
+    if f == 0.0:
+        return world.temperature_c, world.temperature_c
+    kelvin = world.temperature_c + 273.15
+    return kelvin * (1.0 - f / 2.0) ** 0.25 - 273.15, kelvin * (1.0 + f / 2.0) ** 0.25 - 273.15
+
+
 def temperature_score(world):
-    score = band_score(world.temperature_c, TEMPERATURE_BAND)
-    if -20.0 <= world.temperature_c <= 50.0 and wet_bulb_c(world.temperature_c, world.relative_humidity) >= WET_BULB_CRIT_C:
+    """Pressure's partner: the worse of the cycle's cold and hot extremes (they are one value for a lone star)."""
+    cold, hot = temperature_extremes_c(world)
+    score = min(band_score(cold, TEMPERATURE_BAND), band_score(hot, TEMPERATURE_BAND))
+    if -20.0 <= hot <= 50.0 and wet_bulb_c(hot, world.relative_humidity) >= WET_BULB_CRIT_C:
         score = min(score, 0.75 - 1e-9)  # an uncompensable wet bulb needs cooling garments: Yellow
     return score
 

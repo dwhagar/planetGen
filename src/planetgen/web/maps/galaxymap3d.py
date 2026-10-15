@@ -623,7 +623,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         )
         pick_banner = (
             '<p class="pick-banner" role="status"><strong>' + _escape(pick["banner"]) + ":</strong> drill down"
-            " to a generated sector and click it, then pick a system or phenomenon there &middot; "
+            " to a charted sector and click it, then pick a system or phenomenon there &middot; "
             '<a href="' + _escape(pick["cancel"]) + '">Cancel</a></p>\n'
         )
     course_hint = ""
@@ -659,7 +659,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         if galaxy_shape
         else (
             '<p class="hint">The galaxy\'s density skeleton hasn\'t been built yet '
-            "(<code>planetgen plan</code>) -- only generated sectors are shown, as blocks, "
+            "(<code>planetgen plan</code>) -- only charted sectors are shown, as blocks, "
             "and no density shading is shown.</p>"
         )
     )

@@ -72,10 +72,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.30; one thread. |
-| UX.30 | Planet information without the Markdown render | UX.22, UX.32, UX.23 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
+| UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
-| UX.43 | A visual design built like a pilot's starmap and navigation console | UX.42 |  |
+| UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
 
 ### Backfill
@@ -165,6 +164,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
+| POP.13 | A species editor: create and edit species and their environment limits | POP.12 |  |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
 ### Nebula planets
@@ -245,9 +245,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.129 | Multi-star systems of up to seven stars |  | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center |  | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
-| DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source |  |  |
-| DB.28 | One migration for the facility type tables and the new facility columns | DB.27 |  |
-| DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
@@ -256,4 +253,3 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 - NAV.24: A keep-out radius for every kind of object, see its entry in TODO.md.
 - UX.32: Planet rows show the class only, without the type and moon labels, see its entry in TODO.md.
-- UX.30: Planet information without the Markdown render, see its entry in TODO.md.

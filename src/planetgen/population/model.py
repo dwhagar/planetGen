@@ -30,6 +30,7 @@ from dataclasses import dataclass
 import pymysql
 
 from planetgen import tuning
+from planetgen.population import tech
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.evolution import life_stage_from_paragraphs
@@ -455,13 +456,47 @@ def drop_species_without_civilization(conn):
     return dropped
 
 
+TECH_INDEX_COLUMNS = tuple(f"{domain}_index" for domain in tech.DOMAINS)
+"""tuple: The six `species` index columns, in `tuning.TECH_DOMAINS` order."""
+
+
+def refresh_tech_levels(conn):
+    """
+    Draws the six tech indices and the tech level of every species that has none (POP.9): a new species, or
+    one that existed before the columns. A species whose `tech_source` is `'admin'` (edited by hand) is never
+    redrawn. The draw uses a stream of its own (`tech:<homeworld planet id>`), apart from the one
+    `scan_life_worlds` draws a species' traits and age from, so no stored age changes.
+
+    Returns:
+        int: Species drawn.
+    """
+    missing = " OR ".join(f"{column} IS NULL" for column in TECH_INDEX_COLUMNS)
+    rows = conn.execute(
+        "SELECT id, homeworld_planet_id, civilization_age_years FROM species "
+        f"WHERE civilization_age_years IS NOT NULL AND (tech_source IS NULL OR tech_source <> 'admin') AND ({missing})"
+    ).fetchall()
+    updates = []
+    for row in rows:
+        indices = tech.draw_indices(row["civilization_age_years"], draw.Stream(f"tech:{row['homeworld_planet_id']}"))
+        updates.append((*(indices[domain] for domain in tech.DOMAINS), tech.tech_level(indices), row["id"]))
+    if updates:
+        sets = ", ".join(f"{column} = ?" for column in TECH_INDEX_COLUMNS)
+        with conn:
+            conn.executemany(
+                f"UPDATE species SET {sets}, tech_level = ?, tech_source = 'generated' WHERE id = ?", updates)
+        log.debug(f"Population: {len(updates)} species given tech levels")
+    return len(updates)
+
+
 def refresh_civilizations(conn):
     """
     Recomputes every civilization's era from its stored age (picking up
     retuned `CIVILIZATION_ERAS`), founds a polity for each newly
     spacefaring species, updates every polity's reach, and dissolves
-    polities whose species is no longer spacefaring.
+    polities whose species is no longer spacefaring. Species with no tech indices get theirs
+    (`refresh_tech_levels`).
     """
+    refresh_tech_levels(conn)
     with conn:
         rows = conn.execute(
             "SELECT id, civilization_age_years, era, spacefaring FROM species "
@@ -595,7 +630,9 @@ def population_status(conn):
 _SPECIES_COLUMNS = (
     "s.id, s.name, s.homeworld_planet_id, p.name AS homeworld_name, s.star_system_id, ss.name AS system_name, "
     "s.life_chemical, s.life_stage, s.build, s.climate, s.size, s.civilization_age_years, s.era, s.spacefaring, "
-    "pol.id AS polity_id, pol.name AS polity_name"
+    "pol.id AS polity_id, pol.name AS polity_name, "
+    "s.energy_index, s.materials_index, s.information_index, s.medical_index, s.propulsion_index, s.defense_index, "
+    "s.tech_level, s.tech_source"
 )
 _SPECIES_FROM = (
     "FROM species s JOIN planets p ON p.id = s.homeworld_planet_id "
@@ -606,19 +643,41 @@ _SPECIES_FROM = (
 def _species_dict(row):
     item = dict(row)
     item["spacefaring"] = bool(item["spacefaring"])
+    indices = {domain: item[f"{domain}_index"] for domain in tech.DOMAINS}
+    if item["tech_level"] is None or None in indices.values():
+        item["tech_band"] = item["limiting_domain"] = item["lopsided"] = None
+    else:
+        item["tech_level"] = float(item["tech_level"])
+        item["tech_band"] = tech.band_name(item["tech_level"])
+        item["limiting_domain"] = tech.limiting_domain(indices)
+        item["lopsided"] = tech.is_lopsided(indices)
     return item
 
 
 SPECIES_SORTS = {
     "name": "s.name", "homeworld": "p.name", "system": "ss.name", "era": "s.era", "spacefaring": "s.spacefaring",
-    "polity": "pol.name",
+    "polity": "pol.name", "tech": "s.tech_level",
 }
 """dict: The sort keys `list_species` accepts (the Species table's column keys) -> the SQL they order by."""
 
 
-def _species_where(spacefaring=None, eras=()):
-    """`(where_sql, params)` for the Species table's filters (an empty `eras` filters nothing)."""
+TECH_RANGE_COLUMNS = ("tech_level",) + TECH_INDEX_COLUMNS
+"""tuple: The columns `list_species` can search by range (`tech`)."""
+
+
+def _species_where(spacefaring=None, eras=(), tech_ranges=None):
+    """`(where_sql, params)` for the Species table's filters (an empty `eras` filters nothing). `tech_ranges`
+    maps a `TECH_RANGE_COLUMNS` name to `(low, high)`, either end `None` for open."""
     clauses, params = [], []
+    for column, (low, high) in (tech_ranges or {}).items():
+        if column not in TECH_RANGE_COLUMNS:
+            raise ValueError(f"unknown tech range {column!r}")
+        if low is not None:
+            clauses.append(f"s.{column} >= ?")
+            params.append(low)
+        if high is not None:
+            clauses.append(f"s.{column} <= ?")
+            params.append(high)
     if spacefaring is not None:
         clauses.append("s.spacefaring = ?")
         params.append(int(spacefaring))
@@ -628,15 +687,16 @@ def _species_where(spacefaring=None, eras=()):
     return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
 
 
-def list_species(conn, spacefaring=None, limit=50, offset=0, sort="name", descending=False, eras=()):
+def list_species(conn, spacefaring=None, limit=50, offset=0, sort="name", descending=False, eras=(),
+                 tech_ranges=None):
     """A page of species, by `sort` (a key of `SPECIES_SORTS`; ties fall back
     to name, then id), optionally only (non-)spacefaring ones or those in
     one of the `eras`. A species with no polity sorts last by `"polity"`."""
     if sort not in SPECIES_SORTS:
         raise ValueError(f"unknown species sort {sort!r}")
-    where, params = _species_where(spacefaring, eras)
+    where, params = _species_where(spacefaring, eras, tech_ranges)
     column = SPECIES_SORTS[sort]
-    nulls_last = f"{column} IS NULL, " if sort in ("polity", "era") else ""
+    nulls_last = f"{column} IS NULL, " if sort in ("polity", "era", "tech") else ""
     rows = conn.execute(
         f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {where}"
         f"ORDER BY {nulls_last}{column} {'DESC' if descending else 'ASC'}, s.name, s.id LIMIT ? OFFSET ?",
@@ -645,12 +705,12 @@ def list_species(conn, spacefaring=None, limit=50, offset=0, sort="name", descen
     return [_species_dict(row) for row in rows]
 
 
-def count_species(conn, spacefaring=None, eras=()):
-    where, params = _species_where(spacefaring, eras)
+def count_species(conn, spacefaring=None, eras=(), tech_ranges=None):
+    where, params = _species_where(spacefaring, eras, tech_ranges)
     return conn.execute(f"SELECT COUNT(*) AS n FROM species s {where}", params).fetchone()["n"]
 
 
-def species_facets(conn, spacefaring=None, eras=()):
+def species_facets(conn, spacefaring=None, eras=(), tech_ranges=None):
     """
     The option counts for the Species table's menus: `spacefaring` (`"yes"`/
     `"no"`) and `era`. Each menu ignores its own filter.
@@ -659,7 +719,8 @@ def species_facets(conn, spacefaring=None, eras=()):
         dict: `{"spacefaring"|"era": [{"value", "count"}]}`, options with no species left out.
     """
     def counts(select, **filters):
-        where, params = _species_where(**{"spacefaring": spacefaring, "eras": eras, **filters})
+        where, params = _species_where(**{"spacefaring": spacefaring, "eras": eras, "tech_ranges": tech_ranges,
+                                          **filters})
         return {row["value"]: row["n"] for row in conn.execute(
             f"SELECT {select} AS value, COUNT(*) AS n FROM species s {where}GROUP BY value", params).fetchall()}
 

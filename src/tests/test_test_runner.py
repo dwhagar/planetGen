@@ -7,6 +7,7 @@ markers (`tests/areas.py`, added by `conftest.py`) and the slice picker
 """
 
 import importlib.util
+import json
 import os
 import sys
 
@@ -192,3 +193,40 @@ def test_run_phase_passes_the_output_through_and_returns_the_counts(capfd):
                                     dict(os.environ))
     assert code == 0 and counts == {"passed": 2, "skipped": 1}
     assert "hello" in capfd.readouterr().out
+
+
+def test_timed_out_tests_are_named_from_the_failure_log(tmp_path):
+    log = tmp_path / "failures.jsonl"
+    log.write_text(json.dumps({"nodeid": "t.py::test_slow", "when": "call", "text": "Failed: Timeout (>900.0s) from pytest-timeout."}) + "\n"
+                   + json.dumps({"nodeid": "t.py::test_wrong", "when": "call", "text": "AssertionError"}) + "\n")
+    assert runner.timed_out_tests(str(log)) == ["t.py::test_slow"]
+    assert runner.timed_out_tests(str(tmp_path / "missing.jsonl")) == []
+
+
+def test_the_last_line_counts_the_tests_that_timed_out(monkeypatch, capsys):
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)
+    monkeypatch.setattr(runner, "timed_out_tests", lambda: ["t.py::test_slow"])
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: (1, {"passed": 5, "failed": 1}))
+    assert runner.main(["quick"]) == 1
+    out = capsys.readouterr().out
+    assert "TIMED OUT: 1 test(s)" in out and "  t.py::test_slow" in out
+    assert out.splitlines()[-1].endswith("5 passed, 1 failed (1 TIMED OUT)")
+
+
+def test_pytest_ini_gives_every_test_a_time_limit_that_stops_a_hang():
+    import configparser
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "pytest.ini"))
+    assert 600 <= int(config["pytest"]["timeout"]) <= 1800  # the slowest test recorded took 479 s under load
+    assert config["pytest"]["timeout_method"].strip() == "signal"  # stops the test in a worker without losing the worker
+
+
+def test_a_test_that_hangs_is_stopped_and_named(tmp_path):
+    import subprocess
+    (tmp_path / "test_hang.py").write_text("import time\ndef test_hangs():\n    time.sleep(30)\n")
+    result = subprocess.run([sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "-c", os.devnull, "--rootdir", str(tmp_path),
+                             "--timeout", "2", "--timeout-method", "signal", "-q", str(tmp_path / "test_hang.py")],
+                            cwd=tmp_path, capture_output=True, text=True, timeout=60)
+    assert result.returncode == 1 and "Timeout (>2.0s) from pytest-timeout" in result.stdout

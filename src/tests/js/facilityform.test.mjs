@@ -40,6 +40,7 @@ async function load(placement, step) {
   if (!fmt.distance) {
     const ladder = await import(new URL("unitladder.js", STATIC_URL).href);
     fmt.distance = ladder.formatDistanceKm;
+    fmt.spoken = ladder.formatDistanceKmSpoken;
     fmt.period = ladder.formatDurationSeconds;
     fmt.speed = ladder.formatSpeedKms;
   }
@@ -95,7 +96,7 @@ test("the orbit slider shows only for an orbit", async () => {
 test("the readout runs from just above the surface to the edge of the sphere of influence", async () => {
   const f = await load("orbital", 0);
   assert.equal(f.readout.textContent, expectedReadout(EARTH.min, EARTH.mass));
-  assert.equal(f.slider.getAttribute("aria-valuetext"), fmt.distance(EARTH.min));
+  assert.equal(f.slider.getAttribute("aria-valuetext"), fmt.spoken(EARTH.min));
   f.slider.value = String(STEPS);
   change(f.slider, "input");
   assert.equal(f.readout.textContent, expectedReadout(EARTH.max, EARTH.mass));

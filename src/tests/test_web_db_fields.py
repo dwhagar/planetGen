@@ -37,7 +37,7 @@ def test_black_hole_stored_with_zero_hawking_values_shows_the_real_ones():
     # Rows saved before GEN.82 hold 0 for a disk-less black hole.
     fields = _fields("black_hole", {"mass_solar": 10.0, "has_accretion_disk": False,
                                     "temperature_k": 0.0, "luminosity_w": 0.0})
-    assert fields["Hawking Temperature"] == "6.17 × 10⁻⁹ K"
+    assert fields["Hawking Temperature"] == "6.17 nK"
     assert fields["Luminosity"] == "9.01 × 10⁻³¹ W"
 
 

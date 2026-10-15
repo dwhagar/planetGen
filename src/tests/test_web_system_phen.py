@@ -504,7 +504,7 @@ def test_rogue_planet_detail_shows_its_surface_gravity(client, fake):
     fake.phenomenon = {"id": 1, "name": "Drifter", "planet_type": "t", "planet_class": "C", "mass_kg": 5.0e24,
                        "radius_km": 6200.0, "gravity_g": 0.9123, "galactic_radius_pc": 7000.0, "sector_id": None}
     html = client.get("/phenomenon/rogue_planet/1").get_data(as_text=True)
-    assert '<th scope="row">Surface Gravity</th><td>0.912 g</td>' in html
+    assert '<th scope="row">Surface Gravity</th><td>8.95 m/s² (0.912 g)</td>' in html
 
 
 def test_remnant_page_keeps_the_au_diagram(client, fake):

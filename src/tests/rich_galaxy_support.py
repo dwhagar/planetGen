@@ -17,6 +17,7 @@ import pytest
 from planetgen.util import draw
 from planetgen.cli import orbits
 from planetgen.db import store
+from planetgen.population import model as population
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.db_schema_support import scratch_database
@@ -110,6 +111,7 @@ def _add_polity_and_facilities(config):
                 ("Velarix", planet["id"], planet["star_system_id"], "chlorophyll", "technological_civilization",
                  "medium", "temperate", "medium", 60000.0, "established", 1))
             species = one("SELECT id, star_system_id FROM species ORDER BY id LIMIT 1")
+        population.refresh_tech_levels(conn)
         conn.execute("INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly)"
                      " VALUES (?, ?, ?, ?, ?, ?)",
                      ("Velarix Concord", species["id"], species["star_system_id"], "Concord", "#3366cc", 40.0))

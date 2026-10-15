@@ -2,6 +2,214 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1211] - 2026-10-15
+
+### Added
+
+- Plan entries for the Foundations Wording list: description layer, system page tables, description endpoint, CLI format, one habitability describer, levels page from limits, stored text, docs. UX.30 is absorbed into UX.105.
+
+TODO items resolved: UX.30 (absorbed into UX.105) / Added: UX.103, UX.104, UX.105, API.25, UX.106, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, UX.107, DB.31, DOC.45
+
+## [8.0.1210] - 2026-10-15
+
+### Added
+
+- GEN.217: `plan --fill-habitability` refreshes the stored habitability numbers on existing planets and moons (plan entry only).
+
+TODO items resolved: none / Added: GEN.217
+
+## [8.0.1209] - 2026-10-15
+
+### Changed
+
+- GEN.214 retired (merged in #1472).
+
+TODO items resolved: GEN.214 / Added: none
+
+## [8.0.1208] - 2026-10-15
+
+### Changed
+
+- MAP.198 retired (merged in #1470).
+
+TODO items resolved: MAP.198 / Added: none
+
+## [8.0.1207] - 2026-10-15
+
+### Fixed
+
+- **Planet and moon descriptions, their tooltips and the Habitability levels page name the index PHI-6 (GEN.214).** They still said PHI-4. The description's first line now reads "PHI-6 habitability is ...". The stored columns keep their `phi4` names.
+
+## [8.0.1206] - 2026-10-15
+
+### Fixed
+- **The Galaxy Map did not show clearly which region a click would zoom into.**
+  The block under the pointer is now outlined all round (top and bottom edges
+  and up its corners, at every level) and shaded a little, in both the light
+  and dark themes, so a block holding the star or group you are after can be
+  told from its neighbours.
+
+## [8.0.1205] - 2026-10-15
+
+### Changed
+
+- Lane roster and plan: Foundations Wording added; UX.30 records the markdown-on-request direction.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1204] - 2026-10-15
+
+### Added
+
+- An item to ensure a race is only placed where it can survive, with a placement check and a consistency check over the data.
+
+TODO items resolved: none / Added: POP.14
+
+## [8.0.1203] - 2026-10-15
+
+### Changed
+
+- UX.42 retired (merged in #1466).
+
+TODO items resolved: UX.42 / Added: none
+
+## [8.0.1202] - 2026-10-15
+
+### Changed
+
+- The public pages and map panels say "charted" and "uncharted" where they said "generated" and "not generated yet" (the Galaxy Map's sector panel, Nearby, Search, the course chart page, page descriptions and the map hints), and the classes page says the survey records the classes. Admin pages, the admin Generate tab, logs and the command line keep their plain wording.
+
+## [8.0.1201] - 2026-10-15
+
+### Changed
+
+- DB.28 and DB.29 move from the Phase 2 table to Phase 1, with DB.27 (done) and DB.30.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1200] - 2026-10-15
+
+### Added
+
+- Items for listing the species that could live in an environment (with per-species environment limits and their migration) and a species editor.
+
+TODO items resolved: none / Added: DB.30, POP.12, POP.13
+
+## [8.0.1199] - 2026-10-15
+
+### Changed
+
+- POP.9 and POP.7 retired (merged in #1461).
+
+TODO items resolved: POP.9, POP.7 / Added: none
+
+## [8.0.1198] - 2026-10-15
+
+### Changed
+
+- GEN.214, GEN.215 and GEN.216 move from Bug 1's queue to Foundations Generation's.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1197] - 2026-10-15
+
+### Added
+
+- **Every species has a tech level (POP.9).** The population pass draws six indices from 0 to 7 (energy, materials, information, medical, propulsion and defense) and the weighted tech level, kept in the `species` columns. A species made before the columns gets its levels on the next pass, and a hand-edited one is never redrawn. The species list API sorts and filters by tech level and by each index, the Species table has a Tech level column with its band name, and a species page shows the six indices, what limits its tech and whether it is lopsided.
+
+## [8.0.1196] - 2026-10-15
+
+### Changed
+
+- UX.3 now builds the visitor banner on the PERF.96 run record; PERF.99 no longer includes the banner.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1195] - 2026-10-15
+
+### Changed
+
+- UX.22 and UX.81 progress recorded (#1450); TEST.154 second sighting.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1194] - 2026-10-15
+
+### Changed
+
+- Times in thousands, millions and billions of years now read kyr, Myr and Gyr (not ky, My and Gy, which clash with the gray), on the system pages, star ages and the Galaxy Map legend.
+- Distances switch from kilometers to AU at a million kilometers, so Mercury is "0.387 AU" and not "5.79 × 10⁷ km".
+- A value far below the lowest unit on a ladder is written in scientific notation ("2.50 × 10⁻⁷ µs") instead of a row of zeros, and crashed the browser formatter at about 100 zeros.
+- The System Map panels (and the Galaxy Map's system panel) show a body's orbit, period and radius through the shared units; the radius is scientific km as everywhere else. The facility form's distance slider reads out the unit's name to screen readers ("1.5 astronomical units").
+
+## [8.0.1193] - 2026-10-15
+
+### Changed
+
+- Surface conditions share the unit ladders: temperatures read K, °C and °F everywhere a surface temperature is shown (the rogue planet page too, which showed K and °C only), with mK, µK and nK under 1 K; pressures run nPa to TPa with atm and psi beside them, bar from 10 atm and mbar for thin atmospheres (Mars: "610 Pa (0.00602 atm, 0.0885 psi, 6.1 mbar)"); gravity reads "3.71 m/s² (0.378 g)" in property tables and rogue planet pages, and "0.378 g" alone on a list row.
+- Hawking temperatures, neutron star and effective temperatures use the temperature ladder without °C and °F.
+
+## [8.0.1192] - 2026-10-15
+
+### Changed
+
+- GEN.148 retired (flux half merged in #1457; part one was #1404).
+
+TODO items resolved: GEN.148 / Added: none
+
+## [8.0.1191] - 2026-10-15
+
+### Changed
+
+- **A swinging light counts against a planet's temperature rating (GEN.148).** A planet of one star of a wide pair, or a circumbinary planet, gets a stored `flux_variation`: how much its total starlight swings, as a fraction of the mean, because the companion's distance changes or the bright star is off the pair's centre. The Temperature rating now takes the worse of the cold and hot ends of that swing (`T` to the fourth root of the light), and the description lists the two ends. A planet of a single star is unchanged. Planets generated before this release have no swing until regenerated.
+
+## [8.0.1190] - 2026-10-15
+
+### Changed
+
+- MAP.197 retired (merged in #1455); TEST.154 added for a flaky object-id test.
+
+TODO items resolved: MAP.197 / Added: TEST.154
+
+## [8.0.1189] - 2026-10-15
+
+### Changed
+- **The Galaxy Map's page no longer carries the old drill container code (MAP.197).** The wedge-line, slab and block-sector helpers the map flip left without callers are gone from the page, and the galaxy's block list is one small function. No change to what the map shows.
+
+## [8.0.1188] - 2026-10-15
+
+### Added
+
+- Bug items for the habitability text: the index name in planet descriptions, Air at zero pressure and the wording of every line.
+
+TODO items resolved: none / Added: GEN.214, GEN.215, GEN.216
+
+## [8.0.1187] - 2026-10-15
+
+### Changed
+
+- TEST.153 retired (merged in #1451).
+
+TODO items resolved: TEST.153 / Added: none
+
+## [8.0.1186] - 2026-10-15
+
+### Fixed
+- **A single hung test can no longer stall a whole test run** (TEST.153). The paused-queue tests in `test_work_queue_admin.py` used a helper thread that stopped without resuming the queue when it timed out under load, so the test waited for ever. The helper now always resumes and the failure is raised in the test. Every test also has a 900 s limit (`pytest.ini`), and `scripts/test.py` lists the tests that hit it under "TIMED OUT" and counts them on its last line.
+
+## [8.0.1185] - 2026-10-15
+
+### Changed
+
+- DB.27 retired (merged in #1446, schema v88); the DB.26 harshness regression it fixed is noted in the PR.
+
+TODO items resolved: DB.27 / Added: none
+
+## [8.0.1184] - 2026-10-15
+
+### Added
+- Schema v88: `species` gains the six tech indexes, `tech_level` (indexed for range search) and `tech_source`, ready for the tech-level pass.
+
 ## [8.0.1183] - 2026-10-15
 
 ### Changed

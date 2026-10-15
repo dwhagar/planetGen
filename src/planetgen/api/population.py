@@ -32,6 +32,29 @@ def _spacefaring_filter(raw):
     raise ApiError(f"spacefaring must be true or false, got {raw!r}")
 
 
+def _tech_ranges(args):
+    """The `tech_min`/`tech_max` (tech level, 0 to 7) and `<domain>_min`/`<domain>_max` (a whole index, 0 to
+    7) range filters of `/api/species`, as `{column: (low, high)}`."""
+    ranges = {}
+    for column, prefix in zip(model.TECH_RANGE_COLUMNS, ("tech",) + model.tech.DOMAINS):
+        ends = []
+        for end in ("min", "max"):
+            raw = args.get(f"{prefix}_{end}")
+            if raw in (None, ""):
+                ends.append(None)
+                continue
+            try:
+                value = float(raw)
+            except ValueError:
+                raise ApiError(f"{prefix}_{end} must be a number, got {raw!r}") from None
+            if not 0 <= value <= model.tech.MAX_INDEX:
+                raise ApiError(f"{prefix}_{end} must be from 0 to {model.tech.MAX_INDEX}, got {raw!r}")
+            ends.append(value)
+        if ends != [None, None]:
+            ranges[column] = tuple(ends)
+    return ranges
+
+
 @bp.route("/population")
 def population_status():
     """`GET /api/population` -- `{generated, species, polities,
@@ -49,21 +72,27 @@ def species_list():
     `polity`) with `order=asc|desc`, the repeatable filter `era`, and
     `facets=1` for the option counts of its two menus (`facets`:
     `spacefaring` `yes`/`no`, `era`). `total` counts what passes the filters.
+    Tech (POP.9): each species carries its six indices, `tech_level`,
+    `tech_band`, `limiting_domain` and `lopsided`; `sort=tech` orders by
+    level (those without one last), and `tech_min`/`tech_max` and
+    `<domain>_min`/`<domain>_max` (`energy`, `materials`, `information`,
+    `medical`, `propulsion`, `defense`) keep a range.
     """
     spacefaring = _spacefaring_filter(request.args.get("spacefaring"))
     sort, descending = _parse_sort(request.args, model.SPECIES_SORTS)
     eras = [v for v in request.args.getlist("era") if v]
+    ranges = _tech_ranges(request.args)
     limit, offset = _paginate(request.args)
     db = get_db()
     body = {
         "items": model.list_species(db, spacefaring=spacefaring, limit=limit, offset=offset, sort=sort,
-                                    descending=descending, eras=eras),
-        "total": model.count_species(db, spacefaring=spacefaring, eras=eras),
+                                    descending=descending, eras=eras, tech_ranges=ranges),
+        "total": model.count_species(db, spacefaring=spacefaring, eras=eras, tech_ranges=ranges),
         "limit": limit,
         "offset": offset,
     }
     if request.args.get("facets") == "1":
-        body["facets"] = model.species_facets(db, spacefaring=spacefaring, eras=eras)
+        body["facets"] = model.species_facets(db, spacefaring=spacefaring, eras=eras, tech_ranges=ranges)
     return jsonify(body)
 
 
