@@ -3295,8 +3295,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hand-checked table for shells 1 to 3. Done: the measurement is
   recorded in the plan; tests for exact tiling (cell volumes sum to the
   ball), round trip, counts near 23.93 billion and the measured arcs.
-  Owner:
-  Spherical Sector Coordinates thread. Source: item 1 of section 6 of
+  No undefined space (Boss, 2026-10-15 06:59Z): the core, every shell,
+  cap, band and wedge tile all of space, so every point has exactly one
+  address with no gap and no overlap, generated or not; `address_at`
+  answers for any point, inside or outside the outline, as far as the
+  40-bit birth-sector field reaches (shell below 4,096); a tiling test
+  draws random points inside and outside the outline and each lands in
+  exactly one cell, including shells 1 to 3, the caps, the window-edge
+  step and the nested chain. Owner: Spherical Sector Coordinates thread. Source: item 1 of section 6 of
   the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
   lines from pole to pole make a wedge (vert), shell (radius), and band
   (horizontal), together they identify a single 3D segment of the
@@ -3307,7 +3313,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.225 Outline and bounds on shells**
   `skeleton.py` builds the outline as a band range per shell (and the
   column view); `GalaxyBounds.contains` and `random_address` use it.
-  Done: cells counted against the cylinder's. Owner: Spherical Sector
+  The outline only limits what may be generated: it never decides which
+  cells exist, and `address_at` (GEN.224) still answers outside it
+  (Boss, 2026-10-15 06:59Z, no undefined space). Done: cells counted
+  against the cylinder's; a test shows a point outside the outline has
+  an address and is refused by `contains` only for generation. Owner: Spherical Sector
   Coordinates thread. Source: item 2 of section 6 of the plan. Boss
   decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
   pole make a wedge (vert), shell (radius), and band (horizontal),
@@ -3991,7 +4001,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and wedge its position falls in; planets and moons anchor to their
   star's sector and are never placed by their own coordinates; a check
   compares every position before and after (zero difference) and counts
-  objects per sector. Nothing is regenerated and nothing is deleted
+  objects per sector, and no object is left without a sector (an object
+  outside the old outline gets the address its position falls in,
+  because no space is undefined: Boss, 2026-10-15 06:59Z). Nothing is
+  regenerated and nothing is deleted
   except sector rows. Merged only with Boss's go-ahead (it rewrites the
   whole sector map). Owner: Spherical Sector Coordinates thread (the
   only migration lane while this runs). Source: item 4 of section 6 of
