@@ -129,7 +129,7 @@ def _in_rung(rung, value):
     """`value` (in base units) shown in `rung`'s unit, with the unit's
     symbol: three significant figures, or a whole number from the rung's
     `whole_from`; the singular form when the number is exactly 1."""
-    number = value / rung.factor
+    number = (value - rung.offset) / rung.factor
     if rung.whole_from is not None and abs(value) >= rung.whole_from:
         return f"{format_number(number)} {rung.symbol}"
     text = _three_figures_or_tiny(number)
@@ -155,14 +155,16 @@ def pick_rung(ladder, value):
     return rung
 
 
-def format_quantity(ladder, value, companions=True):
+def format_quantity(ladder, value, companions=True, system=ladders.AUTOMATIC):
     """
     The site's one unit formatter (UX.23): `value`, in the ladder's base
     unit, in the most meaningful unit on `ladder` (`planetgen.util.ladders`),
     to three significant figures in `format_number`'s style. A rung that
     carries an aside adds one more familiar unit in parentheses, and the
     ladder's companion units (°C and °F beside K, atm and psi beside Pa)
-    follow in their own parentheses unless `companions` is false.
+    follow in their own parentheses unless `companions` is false. `system`
+    is the reader's unit preference (UX.78): "auto" (the ladders as they
+    are), "metric" or "customary".
     `static/unitladder.js` mirrors it; tests/test_unit_ladders.py checks the
     two against one table.
 
@@ -178,6 +180,7 @@ def format_quantity(ladder, value, companions=True):
         return "–"
     if math.isinf(value):
         return f"{value:g} {ladder.nonfinite}"
+    ladder = ladder.for_system(system)
     rung = pick_rung(ladder, value)
     text = _in_rung(rung, value)
     if rung.with_aside:

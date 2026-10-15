@@ -21,6 +21,7 @@ under `TINY_NUMBER` of a rung is shown in scientific notation instead of a
 row of zeros (UX.81).
 """
 
+import functools
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
@@ -29,6 +30,13 @@ from planetgen.physics import constants as physical_constants
 TINY_NUMBER = 1e-3
 """float: A number below this in the unit shown is written as scientific
 notation ("2.50 × 10⁻¹³ Pa"), not "0.00000000000025 Pa" (UX.81)."""
+
+
+AUTOMATIC, METRIC, CUSTOMARY = "auto", "metric", "customary"
+SYSTEMS = (AUTOMATIC, METRIC, CUSTOMARY)
+"""tuple: The unit preferences (UX.78): Automatic is the ladders as Boss set
+them, Metric only drops the astronomical and customary units for SI ones, and
+Customary puts feet, miles, pounds, °F and psi first."""
 
 
 @dataclass(frozen=True)
@@ -61,6 +69,13 @@ class Rung:
     """bool: The text carries one more familiar unit in parentheses,
     chosen by the ladder's `asides` ("4.2 pc (13.7 ly)")."""
 
+    offset: float = 0.0
+    """float: The base value that is zero in this unit (255.37 K for °F), so
+    the number shown is (value - offset) / factor."""
+
+    systems: Tuple[str, ...] = SYSTEMS
+    """Tuple[str, ...]: The unit preferences this rung belongs to."""
+
 
 @dataclass(frozen=True)
 class Companion:
@@ -91,6 +106,9 @@ class Companion:
     max_size: Optional[float] = None
     """float, optional: Only shown when the value's size, in base units, is
     under this."""
+
+    systems: Tuple[str, ...] = SYSTEMS
+    """Tuple[str, ...]: The unit preferences this companion belongs to."""
 
 
 @dataclass(frozen=True)
@@ -127,23 +145,56 @@ class Ladder:
                 return candidate
         raise KeyError(symbol)
 
+    @functools.lru_cache(maxsize=None)
+    def for_system(self, system):
+        """
+        This ladder as it reads under a unit preference (UX.78): only the
+        rungs and companions of `system`, the asides that still have a rung
+        (the last one taking over as the fallback), and the zero rung only
+        if it is still there.
+        """
+        if system not in SYSTEMS:
+            raise ValueError(f"unknown unit system {system!r}")
+        rungs = tuple(rung for rung in self.rungs if system in rung.systems)
+        symbols = {rung.symbol for rung in rungs}
+        asides = tuple((size, symbol) for size, symbol in self.asides if symbol in symbols)
+        if not any(rung.with_aside for rung in rungs):
+            asides = ()
+        if asides and asides[-1][0] != 0.0:
+            asides = asides[:-1] + ((0.0, asides[-1][1]),)
+        return Ladder(
+            quantity=self.quantity, base=self.base, rungs=rungs, nonfinite=self.nonfinite,
+            zero=self.zero if self.zero in symbols else None,
+            companions=tuple(companion for companion in self.companions if system in companion.systems),
+            asides=asides)
+
 
 LENGTH = Ladder(
     quantity="length",
     base="m",
     nonfinite="km",
     rungs=(
+        # Customary: feet to a mile, miles to the astronomical units.
+        Rung("ft", physical_constants.FOOT_M, "feet", start=0.0, systems=(CUSTOMARY,)),
+        Rung("mi", physical_constants.MILE_M, "miles", whole_from=1e6, systems=(CUSTOMARY,)),
         # Whole kilometers read better than three figures ("384,400 km").
-        Rung("km", physical_constants.KM_M, "kilometers", start=0.0, whole_from=1e6),
+        Rung("km", physical_constants.KM_M, "kilometers", start=0.0, whole_from=1e6, systems=(AUTOMATIC, METRIC)),
+        # Metric only: SI prefixes in place of the astronomical units.
+        Rung("Gm", 1e9, "gigameters", systems=(METRIC,)),
+        Rung("Tm", 1e12, "terameters", systems=(METRIC,)),
+        Rung("Pm", 1e15, "petameters", systems=(METRIC,)),
+        Rung("Em", 1e18, "exameters", systems=(METRIC,)),
+        Rung("Zm", 1e21, "zettameters", systems=(METRIC,)),
+        Rung("Ym", 1e24, "yottameters", systems=(METRIC,)),
         # From a million km (0.0067 AU), so Mercury is "0.387 AU", not "5.79 × 10⁷ km" (UX.81).
-        Rung("AU", physical_constants.AU_M, "astronomical units", start=1e6 * physical_constants.KM_M),
-        Rung("mpc", physical_constants.MILLIPARSEC_M, "milliparsecs", with_aside=True),
-        Rung("cpc", physical_constants.CENTIPARSEC_M, "centiparsecs", with_aside=True),
-        Rung("ly", physical_constants.LIGHTYEAR_M, "light-years"),
-        Rung("pc", physical_constants.PARSEC_M, "parsecs", with_aside=True),
-        Rung("kpc", physical_constants.KILOPARSEC_M, "kiloparsecs", with_aside=True),
-        Rung("Mpc", physical_constants.MEGAPARSEC_M, "megaparsecs", with_aside=True),
-        Rung("Gpc", physical_constants.GIGAPARSEC_M, "gigaparsecs", with_aside=True),
+        Rung("AU", physical_constants.AU_M, "astronomical units", start=1e6 * physical_constants.KM_M, systems=(AUTOMATIC, CUSTOMARY)),
+        Rung("mpc", physical_constants.MILLIPARSEC_M, "milliparsecs", with_aside=True, systems=(AUTOMATIC, CUSTOMARY)),
+        Rung("cpc", physical_constants.CENTIPARSEC_M, "centiparsecs", with_aside=True, systems=(AUTOMATIC, CUSTOMARY)),
+        Rung("ly", physical_constants.LIGHTYEAR_M, "light-years", systems=(AUTOMATIC, CUSTOMARY)),
+        Rung("pc", physical_constants.PARSEC_M, "parsecs", with_aside=True, systems=(AUTOMATIC, CUSTOMARY)),
+        Rung("kpc", physical_constants.KILOPARSEC_M, "kiloparsecs", with_aside=True, systems=(AUTOMATIC, CUSTOMARY)),
+        Rung("Mpc", physical_constants.MEGAPARSEC_M, "megaparsecs", with_aside=True, systems=(AUTOMATIC, CUSTOMARY)),
+        Rung("Gpc", physical_constants.GIGAPARSEC_M, "gigaparsecs", with_aside=True, systems=(AUTOMATIC, CUSTOMARY)),
     ),
     # A parsec value's parenthetical is in ly when the distance is at least
     # 0.01 ly, else AU when at least 0.01 AU, else km (Boss, 2026-09-30:
@@ -162,9 +213,11 @@ SPEED = Ladder(
     base="m/s",
     nonfinite="km/s",
     rungs=(
-        Rung("km/h", physical_constants.KM_M / 3600, "kilometers per hour", start=0.0),
-        Rung("km/s", physical_constants.KM_M, "kilometers per second"),
-        Rung("Mm/s", 1e6, "megameters per second"),
+        Rung("mph", physical_constants.MILE_M / 3600, "miles per hour", start=0.0, systems=(CUSTOMARY,)),
+        Rung("km/h", physical_constants.KM_M / 3600, "kilometers per hour", start=0.0, systems=(AUTOMATIC, METRIC)),
+        Rung("mi/s", physical_constants.MILE_M, "miles per second", systems=(CUSTOMARY,)),
+        Rung("km/s", physical_constants.KM_M, "kilometers per second", systems=(AUTOMATIC, METRIC)),
+        Rung("Mm/s", 1e6, "megameters per second", systems=(AUTOMATIC, METRIC)),
         Rung("c", physical_constants.SPEED_OF_LIGHT_M_S, "times the speed of light",
              start=0.1 * physical_constants.SPEED_OF_LIGHT_M_S),
     ),
@@ -200,14 +253,19 @@ TEMPERATURE = Ladder(
     nonfinite="K",
     zero="K",
     rungs=(
-        Rung("nK", 1e-9, "nanokelvins", start=0.0),
-        Rung("µK", 1e-6, "microkelvins"),
-        Rung("mK", 1e-3, "millikelvins"),
-        Rung("K", 1.0, "kelvins"),
+        Rung("nK", 1e-9, "nanokelvins", start=0.0, systems=(AUTOMATIC, METRIC)),
+        Rung("µK", 1e-6, "microkelvins", systems=(AUTOMATIC, METRIC)),
+        Rung("mK", 1e-3, "millikelvins", systems=(AUTOMATIC, METRIC)),
+        Rung("K", 1.0, "kelvins", systems=(AUTOMATIC, METRIC)),
+        # Customary: °F all the way down, with °C and K beside it.
+        Rung("°F", 5 / 9, "degrees Fahrenheit", start=0.0, offset=physical_constants.CELSIUS_ZERO_K - 32 * 5 / 9,
+             systems=(CUSTOMARY,)),
     ),
     companions=(
         Companion("°C", "degrees Celsius", 1.0, offset=physical_constants.CELSIUS_ZERO_K, whole=True),
-        Companion("°F", "degrees Fahrenheit", 5 / 9, offset=physical_constants.CELSIUS_ZERO_K - 32 * 5 / 9, whole=True),
+        Companion("°F", "degrees Fahrenheit", 5 / 9, offset=physical_constants.CELSIUS_ZERO_K - 32 * 5 / 9, whole=True,
+                  systems=(AUTOMATIC,)),
+        Companion("K", "kelvins", 1.0, systems=(CUSTOMARY,)),
     ),
 )
 
@@ -226,17 +284,22 @@ PRESSURE = Ladder(
         Rung("µPa", 1e-6, "micropascals"),
         Rung("mPa", 1e-3, "millipascals"),
         Rung("Pa", 1.0, "pascals"),
-        Rung("kPa", 1e3, "kilopascals"),
-        Rung("MPa", 1e6, "megapascals"),
-        Rung("GPa", 1e9, "gigapascals"),
-        Rung("TPa", 1e12, "terapascals"),
+        Rung("kPa", 1e3, "kilopascals", systems=(AUTOMATIC, METRIC)),
+        Rung("MPa", 1e6, "megapascals", systems=(AUTOMATIC, METRIC)),
+        Rung("GPa", 1e9, "gigapascals", systems=(AUTOMATIC, METRIC)),
+        Rung("TPa", 1e12, "terapascals", systems=(AUTOMATIC, METRIC)),
+        # Customary: psi from a hundredth of one (69 Pa) up, with atm beside it.
+        Rung("psi", physical_constants.PSI_PA, "pounds per square inch", start=0.01 * physical_constants.PSI_PA,
+             systems=(CUSTOMARY,)),
     ),
     companions=(
-        Companion("atm", "standard atmospheres", physical_constants.STANDARD_ATMOSPHERE_PA),
-        Companion("psi", "pounds per square inch", physical_constants.PSI_PA),
+        Companion("atm", "standard atmospheres", physical_constants.STANDARD_ATMOSPHERE_PA,
+                  systems=(AUTOMATIC, CUSTOMARY)),
+        Companion("psi", "pounds per square inch", physical_constants.PSI_PA, systems=(AUTOMATIC,)),
         Companion("bar", "bars", 1e5, min_size=10 * physical_constants.STANDARD_ATMOSPHERE_PA,
-                  max_size=1e4 * physical_constants.STANDARD_ATMOSPHERE_PA),
-        Companion("mbar", "millibars", 1e2, min_size=1.0, max_size=0.01 * physical_constants.STANDARD_ATMOSPHERE_PA),
+                  max_size=1e4 * physical_constants.STANDARD_ATMOSPHERE_PA, systems=(AUTOMATIC, METRIC)),
+        Companion("mbar", "millibars", 1e2, min_size=1.0, max_size=0.01 * physical_constants.STANDARD_ATMOSPHERE_PA,
+                  systems=(AUTOMATIC, METRIC)),
     ),
 )
 
@@ -245,8 +308,12 @@ GRAVITY = Ladder(
     quantity="gravity",
     base="m/s²",
     nonfinite="m/s²",
-    rungs=(Rung("m/s²", 1.0, "meters per second squared", start=0.0),),
-    companions=(Companion("g", "times standard gravity", physical_constants.EARTH_GRAVITY),),
+    rungs=(
+        Rung("m/s²", 1.0, "meters per second squared", start=0.0, systems=(AUTOMATIC, METRIC)),
+        Rung("ft/s²", physical_constants.FOOT_M, "feet per second squared", start=0.0, systems=(CUSTOMARY,)),
+    ),
+    companions=(Companion("g", "times standard gravity", physical_constants.EARTH_GRAVITY,
+                          systems=(AUTOMATIC, CUSTOMARY)),),
 )
 
 # Mass (UX.22; Boss, 2026-10-10: lunar-mass rung wanted): kilograms (scientific
@@ -259,15 +326,16 @@ MASS = Ladder(
     nonfinite="kg",
     zero="kg",
     rungs=(
-        Rung("kg", 1.0, "kilograms", start=0.0),
+        Rung("kg", 1.0, "kilograms", start=0.0, systems=(AUTOMATIC, METRIC)),
+        Rung("lb", physical_constants.POUND_KG, "pounds", start=0.0, systems=(CUSTOMARY,)),
         Rung("lunar masses", physical_constants.MOON_MASS_KG, "lunar masses", singular="lunar mass",
-             start=0.01 * physical_constants.MOON_MASS_KG),
+             start=0.01 * physical_constants.MOON_MASS_KG, systems=(AUTOMATIC,)),
         Rung("Earth masses", physical_constants.EARTH_MASS_TO_KG, "Earth masses", singular="Earth mass",
-             start=0.1 * physical_constants.EARTH_MASS_TO_KG),
+             start=0.1 * physical_constants.EARTH_MASS_TO_KG, systems=(AUTOMATIC,)),
         Rung("Jupiter masses", physical_constants.JUPITER_MASS_TO_KG, "Jupiter masses", singular="Jupiter mass",
-             start=0.1 * physical_constants.JUPITER_MASS_TO_KG),
+             start=0.1 * physical_constants.JUPITER_MASS_TO_KG, systems=(AUTOMATIC,)),
         Rung("solar masses", physical_constants.SOLAR_MASS_TO_KG, "solar masses", singular="solar mass",
-             start=0.075 * physical_constants.SOLAR_MASS_TO_KG),
+             start=0.075 * physical_constants.SOLAR_MASS_TO_KG, systems=(AUTOMATIC,)),
     ),
 )
 
@@ -288,8 +356,13 @@ POWER = Ladder(
         Rung("TW", 1e12, "terawatts"),
         Rung("PW", 1e15, "petawatts"),
         Rung("EW", 1e18, "exawatts"),
+        # Metric only: more SI prefixes in place of the solar luminosity.
+        Rung("ZW", 1e21, "zettawatts", systems=(METRIC,)),
+        Rung("YW", 1e24, "yottawatts", systems=(METRIC,)),
+        Rung("RW", 1e27, "ronnawatts", systems=(METRIC,)),
+        Rung("QW", 1e30, "quettawatts", systems=(METRIC,)),
         Rung("L☉", physical_constants.SOLAR_LUMINOSITY, "solar luminosities",
-             start=1e-6 * physical_constants.SOLAR_LUMINOSITY),
+             start=1e-6 * physical_constants.SOLAR_LUMINOSITY, systems=(AUTOMATIC, CUSTOMARY)),
     ),
 )
 
@@ -334,7 +407,7 @@ MAGNETIC_FIELD = Ladder(
         Rung("µT", 1e-6, "microteslas"),
         Rung("mT", 1e-3, "milliteslas"),
         Rung("T", 1.0, "teslas"),
-        Rung("G", 1e-4, "gauss", start=1e4),
+        Rung("G", 1e-4, "gauss", start=1e4, systems=(AUTOMATIC, CUSTOMARY)),
     ),
 )
 
