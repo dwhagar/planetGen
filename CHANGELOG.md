@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1162] - 2026-10-15
+
+### Changed
+
+The MySQL 8 login hook (`planetgen/db/login.py`) stays in place when PyMySQL releases its fix and is tested against both the current pymysql step and a fixed one on a fake MySQL 8 server without TLS, so the login works on either release (OPS.49 follow-up).
+
 ## [8.0.1161] - 2026-10-15
 
 ### Changed
