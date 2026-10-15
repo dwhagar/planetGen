@@ -152,37 +152,6 @@ export function ringSectorCount(ring) {
   return Math.max(master, master * Math.round((2 * Math.PI * (ring + 0.5)) / master));
 }
 
-// The same rule for a group grid's rings (kept under its old name).
-export var azimuthSegments = ringSectorCount;
-
-// The Galaxy Map's wedge lines: every master line (see ringMasterCount),
-// in-plane from the ring its zone starts at out to galaxyRadius, as
-// [{ bearingDeg, angleRad, r0, masters }]. r0 is the radius the line starts
-// at (pc) and masters the master count of the zone it starts in (3 for the
-// lines through the core, then 6, 12, ...), so the page can show coarser
-// lines first. Bearings are counterclockwise from +X (the zero meridian,
-// every ring's slot 0 leading edge), rounded to 0.01 degree.
-export function wedgeLines(edgePc, galaxyRadius) {
-  var lastRing = Math.max(0, Math.ceil(galaxyRadius / edgePc));
-  var lines = [];
-  var previous = 0;
-  for (var ring = 0; ring <= lastRing; ring++) {
-    var masters = ringMasterCount(ring);
-    if (masters === previous) continue;
-    for (var k = 0; k < masters; k++) {
-      // Lines of a coarser zone already run through here.
-      if (previous && (k * previous) % masters === 0) continue;
-      var angle = (2 * Math.PI * k) / masters;
-      lines.push({
-        bearingDeg: Math.round((36000 * k) / masters) / 100,
-        angleRad: angle, r0: ring * edgePc, masters: masters,
-      });
-    }
-    previous = masters;
-  }
-  return lines;
-}
-
 // The (ring, layer, slot) cell holding galaxy-frame point (x, y, z).
 // As galaxyGeometry.sector_address_at: each division-based guess is
 // checked against the cell's own bounds and moved by one if it rounded
@@ -454,10 +423,6 @@ export function blockSlotRange(ring, seg, m, sectorRing, wedges) {
 
 export var DRILL_LEVELS = [243, 27, 3, 1];
 
-function drillStep(m) {
-  return m === 3 ? 3 : 9;
-}
-
 function drillTarget(ring) {
   return Math.max(3, Math.round(2 * Math.PI * (ring + 0.5)));
 }
@@ -498,78 +463,26 @@ export function drillChainOf(ring, layer, slot) {
   return chain.reverse();
 }
 
-// A block's child slabs, lowest first (at m = 3, sector layers). For the
-// galaxy (block null), the level-243 slabs reaching maxLayer (the
-// outline's galaxy_layer), or just slab 0 without one.
-export function drillSlabs(block, maxLayer) {
-  var lo, hi;
-  if (!block) {
-    if (maxLayer == null) return [0];
-    hi = Math.floor((maxLayer + 121) / 243);
-    lo = -hi;
-  } else {
-    var half = (drillStep(block.m) - 1) / 2;
-    lo = block.slab * drillStep(block.m) - half;
-    hi = block.slab * drillStep(block.m) + half;
-  }
-  var slabs = [];
-  for (var s = lo; s <= hi; s++) slabs.push(s);
-  return slabs;
-}
-
-// The sectors of level-3 block `block` on sector layer `layer`: the slots
-// whose centers fall in its wedge, in each of its three rings.
-export function drillBlockSectors(block, layer) {
-  var wedges = drillWedgeCount(3, block.ring);
-  var sectors = [];
-  for (var i = 3 * block.ring; i < 3 * block.ring + 3; i++) {
-    var slots = blockSlotRange(block.ring, block.wedge, 3, i, wedges);
-    for (var k = slots.first; k <= slots.last; k++) sectors.push({ m: 1, ring: i, wedge: k, slab: layer });
-  }
-  return sectors;
-}
-
-// A block's children grouped by child slab, lowest first: [{slab, blocks}].
-// A level-3 block's are its sectors, by layer. For the galaxy (block
-// null), every level-243 block out to sector ring maxRing on
-// drillSlabs(null, maxLayer); whether the outline allows any sector in
-// them is blockExists's job.
-export function drillChildren(block, maxRing, maxLayer) {
-  return drillSlabs(block, maxLayer).map(function (slab) {
+// The galaxy home's blocks grouped by slab, lowest first: [{slab, blocks}]:
+// every level-243 block out to sector ring maxRing on the slabs reaching
+// maxLayer (the outline's galaxy_layer), or just slab 0 without one.
+// Whether the outline allows any sector in them is the stage's job.
+export function galaxyBlockGroups(maxRing, maxLayer) {
+  var hi = maxLayer == null ? 0 : Math.floor((maxLayer + 121) / 243);
+  var groups = [];
+  for (var slab = -hi; slab <= hi; slab++) {
     var blocks = [];
-    if (!block) {
-      for (var r = 0; r <= Math.floor(maxRing / 243); r++) {
-        for (var w = 0; w < drillWedgeCount(243, r); w++) blocks.push({ m: 243, ring: r, wedge: w, slab: slab });
-      }
-    } else if (block.m === 3) {
-      blocks = drillBlockSectors(block, slab);
-    } else {
-      var f = drillStep(block.m);
-      var childM = block.m / f;
-      var parentWedges = drillWedgeCount(block.m, block.ring);
-      for (var i = block.ring * f; i < block.ring * f + f; i++) {
-        var q = drillWedgeCount(childM, i) / parentWedges;
-        for (var s = block.wedge * q; s < block.wedge * q + q; s++) blocks.push({ m: childM, ring: i, wedge: s, slab: slab });
-      }
+    for (var r = 0; r <= Math.floor(maxRing / 243); r++) {
+      for (var w = 0; w < drillWedgeCount(243, r); w++) blocks.push({ m: 243, ring: r, wedge: w, slab: slab });
     }
-    return { slab: slab, blocks: blocks };
-  });
+    groups.push({ slab: slab, blocks: blocks });
+  }
+  return groups;
 }
 
 // "m.ring.wedge.slab", a stage URL's `at`.
 export function formatDrillKey(block) {
   return [block.m, block.ring, block.wedge, block.slab].join(".");
-}
-
-// formatDrillKey's inverse, or null: a known size, ring and wedge in range.
-export function parseDrillKey(key) {
-  var parts = String(key == null ? "" : key).split(".");
-  if (parts.length !== 4 || !parts.every(function (p) { return /^-?\d+$/.test(p); })) return null;
-  var v = parts.map(Number);
-  var block = { m: v[0], ring: v[1], wedge: v[2], slab: v[3] };
-  if ([243, 27, 3].indexOf(block.m) < 0 || block.ring < 0 || !Number.isSafeInteger(block.ring)) return null;
-  if (block.wedge < 0 || block.wedge >= drillWedgeCount(block.m, block.ring)) return null;
-  return block;
 }
 
 // A drill block's bounds, {r0, r1, t0, t1, z0, z1}: rings ring*m to

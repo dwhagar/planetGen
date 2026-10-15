@@ -151,19 +151,11 @@ def drill_chain_of(ring, layer, slot):
     return chain[::-1]
 
 
-def drill_slabs(block, max_layer=None):
+def drill_slabs(block):
     """
     The child slabs of `block`, lowest first (child-level numbering; at
-    `m = 3`, sector layers). For the galaxy (`block` is `None`), the
-    level-243 slabs reaching `max_layer` (the outline's `galaxy_layer`),
-    or just slab 0 without one.
+    `m = 3`, sector layers).
     """
-    if block is None:
-        if max_layer is None:
-            return [0]
-        half = (DRILL_TOP - 1) // 2
-        top = (max_layer + half) // DRILL_TOP
-        return list(range(-top, top + 1))
     m, _ring, _wedge, slab = block
     _check_level(m)
     if m == 1:
@@ -192,23 +184,12 @@ def drill_block_sectors(block, layer):
     return sectors
 
 
-def drill_children(block, max_ring=None, max_layer=None):
+def drill_children(block):
     """
     `block`'s children, grouped by child slab: `[(slab, [DrillBlock,
     ...]), ...]`, lowest slab first. A level-3 block's children are its
-    sectors, grouped by layer. For the galaxy (`block` is `None`), every
-    level-243 block out to sector ring `max_ring` (required) on the slabs
-    `drill_slabs(None, max_layer)` gives -- whether the stored outline
-    allows any sector in them is the caller's test.
+    sectors, grouped by layer.
     """
-    if block is None:
-        if max_ring is None:
-            raise ValueError("the galaxy's children need max_ring")
-        rings = range(0, max_ring // DRILL_TOP + 1)
-        return [
-            (slab, [DrillBlock(DRILL_TOP, i, s, slab) for i in rings for s in range(drill_wedge_count(DRILL_TOP, i))])
-            for slab in drill_slabs(None, max_layer)
-        ]
     m, ring, wedge, _slab = block
     if m == 3:
         return [(layer, drill_block_sectors(block, layer)) for layer in drill_slabs(block)]

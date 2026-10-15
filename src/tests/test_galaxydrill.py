@@ -78,9 +78,6 @@ def test_wedge_arcs_stay_near_one_block_edge(m, low, high):
 
 
 def test_slabs_nest_and_center_on_the_plane():
-    assert drill_slabs(None, EDGE_LAYER) == [-1, 0, 1]
-    assert drill_slabs(None, 121) == [0] and drill_slabs(None, 122) == [-1, 0, 1]
-    assert drill_slabs(None) == [0]
     assert drill_slabs(DrillBlock(243, 0, 0, -1)) == list(range(-13, -4))
     assert drill_slabs(DrillBlock(3, 0, 0, 2)) == [5, 6, 7]
     for m in (243, 27, 3):
@@ -136,14 +133,6 @@ def test_level_three_blocks_hold_about_nine_sectors_a_layer():
     assert 8.0 <= sum(sizes) / len(sizes) <= 10.5
 
 
-def test_galaxy_children_are_every_top_block():
-    groups = drill_children(None, max_ring=EDGE_RING, max_layer=EDGE_LAYER)
-    assert [slab for slab, _blocks in groups] == [-1, 0, 1]
-    assert len(groups[1][1]) == sum(drill_wedge_count(243, i) for i in range(16))
-    with pytest.raises(ValueError):
-        drill_children(None)
-
-
 def test_keys_round_trip_and_reject_bad_blocks():
     block = DrillBlock(27, 63, 115, -1)
     assert format_drill_key(block) == "27.63.115.-1"
@@ -189,24 +178,16 @@ console.log(JSON.stringify({json.dumps(sectors)}.map(([i, j, k]) =>
 
 
 @node_only
-def test_page_children_and_slabs_match():
-    chains = [drill_chain_of(*sector) for sector in _sample_sectors(30, seed=5)]
-    blocks = sorted({b for chain in chains for b in chain[:3]})
+def test_page_galaxy_block_groups_match():
     got = _run(f"""
-const blocks = {json.dumps([list(b) for b in blocks])};
 console.log(JSON.stringify({{
-  children: blocks.map(([m, ring, wedge, slab]) =>
-    P.drillChildren({{m, ring, wedge, slab}}).map(g => [g.slab, g.blocks.map(b => [b.m, b.ring, b.wedge, b.slab])])),
-  galaxy: P.drillChildren(null, {EDGE_RING}, {EDGE_LAYER}).map(g => [g.slab, g.blocks.length]),
-  galaxySlabs: [P.drillSlabs(null), P.drillSlabs(null, 121), P.drillSlabs(null, 122)],
-  keys: ["27.63.115.-1", "1.0.0.0", "27.0.99.0", "x", "243.15.0.1"].map(k => P.parseDrillKey(k)),
+  galaxy: P.galaxyBlockGroups({EDGE_RING}, {EDGE_LAYER}).map(g => [g.slab, g.blocks.length, [g.blocks[0].m, g.blocks[0].ring, g.blocks[0].wedge, g.blocks[0].slab], [g.blocks.at(-1).m, g.blocks.at(-1).ring, g.blocks.at(-1).wedge, g.blocks.at(-1).slab]]),
+  slabs: [P.galaxyBlockGroups(10), P.galaxyBlockGroups(10, 121), P.galaxyBlockGroups(10, 122)].map(gs => gs.map(g => g.slab)),
   formatted: P.formatDrillKey({{m: 3, ring: 568, wedge: 1036, slab: -7}}),
 }}));
 """)
-    assert got["children"] == [[[slab, [list(b) for b in group]] for slab, group in drill_children(b)] for b in blocks]
-    assert got["galaxy"] == [[slab, len(group)] for slab, group in drill_children(None, EDGE_RING, EDGE_LAYER)]
-    assert got["galaxySlabs"] == [[0], [0], [-1, 0, 1]]
-    assert got["keys"][0] == {"m": 27, "ring": 63, "wedge": 115, "slab": -1}
-    assert got["keys"][1:4] == [None, None, None]
-    assert got["keys"][4] == {"m": 243, "ring": 15, "wedge": 0, "slab": 1}
+    count = sum(drill_wedge_count(243, i) for i in range(EDGE_RING // 243 + 1))
+    assert got["galaxy"] == [[slab, count, [243, 0, 0, slab], [243, EDGE_RING // 243, drill_wedge_count(243, EDGE_RING // 243) - 1, slab]]
+                             for slab in (-1, 0, 1)]
+    assert got["slabs"] == [[0], [0], [-1, 0, 1]]
     assert got["formatted"] == "3.568.1036.-7"
