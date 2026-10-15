@@ -499,7 +499,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
 | DB.30 | One migration for the per-species environment limits | none | open |
 | DB.31 | Store structure, not prose, for life and flavour | none | open |
-| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | none | open |
+| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | none | done, PR #1607 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -771,8 +771,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.223 | The orbital update does not move the galaxy position of a star system that has no placed sector (bug) | none | open |
 | GEN.224 | Spherical grid module: shells, bands, wedges, caps and the core ball | none | done, PR #1549 |
 | GEN.225 | Outline and bounds on shells | none | done, PR #1551 |
-| GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | none | open |
-| GEN.227 | Generation paths on shells | none | open |
+| GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | none | done, PR #1607 |
+| GEN.227 | Generation paths on shells | none | done, PR #1607 |
 | GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
@@ -1358,8 +1358,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | open |
 | UX.109 | Remove the old per-class description text | none | open |
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | open |
-| UX.111 | Reads, API and web wording on shells | none | open |
-| UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | open |
+| UX.111 | Reads, API and web wording on shells | none | done, PR #1607 |
+| UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

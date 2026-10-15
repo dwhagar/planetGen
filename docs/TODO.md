@@ -489,40 +489,6 @@ with `clamp()`.
   (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **UX.111 Reads, API and web wording on shells**
-  `query.py`, `store.py`, the API, the Galaxy and Sector pages, URLs and
-  bookmarks say shell, band and wedge; "layer" and "slab" mean nothing
-  any more. Done: pages and API keep working on a converted (DB.32)
-  small galaxy; after this item Boss can open the converted galaxy and
-  look at it before Maps work begins. Owner: Spherical Sector Coordinates thread.
-  Source: item 6 of section 6 of the plan. Boss decided the move
-  (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
-  wedge (vert), shell (radius), and band (horizontal), together they
-  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
-  ahead of every lane queue.
-  Progress: merged into the switch branch claude/spherical-switch with
-  UX.112 (PR #1601, 13:46Z). The item retires when the final switch PR
-  reaches main. Docs wording UX left behind is under DOC.46.
-  Prerequisites: DB.32, GEN.227.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
-- [ ] **UX.112 Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt**
-  Boss, 2026-10-15 08:01Z: "Make the galaxy map redirect to a page
-  saying that a correlative update is underway and give a general ETA on
-  when it should finish if one is available, in fact make the entire
-  site and database access unavailable to anyone but admin while the
-  maps are being rebuilt." Done: a maintenance mode that closes the site ONLY while the maps are being updated and leaves it open otherwise (Boss, 08:03Z: not "off by default"). It comes on automatically when the spherical switch is applied (the migration, or the update step right after it) and goes off automatically when Maps' new map lands; an admin command-line command and an admin page toggle stay as manual overrides, with a free-text ETA the admin can set. While on, every
-  non-admin web page answers with a 503 page that says an update is
-  underway and shows the ETA if one is set (the Galaxy Map redirects to
-  it), and every API call and database read answers with 503 JSON;
-  admins see the site normally with a banner saying maintenance mode is
-  on. The mode is stored where the web workers and the queue both see
-  it. Used by the spherical switch: MAP.205 and MAP.206 clear it when the new map lands. Owner: UX lane, in progress as part of the
-  spherical switch (PR into claude/spherical-switch).
-  Progress: merged into claude/spherical-switch with UX.111 (PR #1601,
-  13:46Z); the item retires when the final switch PR reaches main.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -941,10 +907,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   floors, and reconciling the per-tile cap
   (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
   2 flagged.
-  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
-  replaces the cylinder grid this item assumes. Held until the thread
-  reports; the TODO thread will reword or retire it when the new grid
-  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
+  Reread against the shell grid before starting: the spherical sector
+  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
+  docs/design/spherical-sector-coordinates.md section 4).
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
@@ -1365,7 +1330,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
-  Prerequisites: none to start (Boss released Maps, 07:31Z): build in parallel on a branch and merge after the DB.32 + GEN.227 + UX.111 switch. Clears maintenance mode (UX.112) when the new map lands.
+  Prerequisites: none to start (Boss released Maps, 07:31Z): built in parallel on a branch; the spherical switch (DB.32, GEN.227, UX.111, UX.112) merged in PR #1607. Clears maintenance mode when the new map lands.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **MAP.206 Galaxy Map drawing on shells**
@@ -1377,7 +1342,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisite: MAP.205 (build in parallel on a branch, merge after the DB.32 + GEN.227 + UX.111 switch). Clears maintenance mode (UX.112) when the new map lands, with MAP.205.
+  Prerequisite: MAP.205 (built in parallel on a branch; the spherical switch merged in PR #1607). Clears maintenance mode when the new map lands, with MAP.205.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## NAV: Navigation and courses
@@ -1801,10 +1766,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-11): the centre of the galaxy becomes one round disc sector, 4
   pc across and 4 pc tall (GEN.210); this item then fills that one
   sector instead of a set of core sectors.
-  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
-  replaces the cylinder grid this item assumes. Held until the thread
-  reports; the TODO thread will reword or retire it when the new grid
-  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
+  Reread against the shell grid before starting: the spherical sector
+  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
+  docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
   Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
@@ -2345,10 +2309,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Hilbert as approved, using the
   4-voxel-block variant so the first sector is the centre, or take the
   serpentine and greedy walk?
-  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
-  replaces the cylinder grid this item assumes. Held until the thread
-  reports; the TODO thread will reword or retire it when the new grid
-  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
+  Reread against the shell grid before starting: the spherical sector
+  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
+  docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
   Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
@@ -3278,42 +3241,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stop (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **GEN.226 Addresses on shells: designation, sector ID, seeds and object ID**
-  Progress (2026-10-15): PR #1551 did the designation, the object-ID
-  shell, band and wedge fields and the geometry extras; the sector ID
-  function and the stored rows ride DB.32, so this item stays open until
-  they land.
-  `provisional_sector_designation`, `sector_uid`, the 40-bit
-  birth-sector field and the per-sector seed string use shell, band and
-  wedge; width checks are added to the plan step; the GEN.69 and GEN.170
-  rules are otherwise unchanged. Owner: Spherical Sector Coordinates
-  thread. Source: item 3 of section 6 of the plan. Boss decided the
-  move (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
-  wedge (vert), shell (radius), and band (horizontal), together they
-  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
-  ahead of every lane queue.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
-- [ ] **GEN.227 Generation paths on shells**
-  Progress (2026-10-15): merged into the integration branch
-  `claude/spherical-switch` as PR #1576 (part 1 PR #1570); it retires when
-  the final switch PR reaches main. ADM.30's old "cylinder height = X
-  layers" no longer applies: `--radius-pc` is a pure ball. The block-totals
-  step and `--fill-block-stats` are gone until MAP.205. Three tests stay
-  red until other work lands: the Sector Map bounds test (Maps, MAP.205/
-  206), the Generate page span test (UX, UX.111) and a sandbox-only
-  migration test.
-  `run_plan`, `run_galaxy`, `bright_stars`, `phenomenon_scatter`,
-  regions, spans and fills use the new grid: GEN.24 core by whole
-  shells, ADM.29 and ADM.30 as shell and band ranges, GEN.101 fill
-  order. Owner: Spherical Sector Coordinates thread. Source: item 5 of
-  section 6 of the plan. Boss decided the move (2026-10-15 06:39Z): "two
-  meridian lines from pole to pole make a wedge (vert), shell (radius),
-  and band (horizontal), together they identify a single 3D segment of
-  the sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: GEN.226, DB.32.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
 - [ ] **GEN.228 Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug)**
   Boss, 2026-10-15 07:44Z: binary star systems must be stable. Check the
   Hill sphere of not only the two stars but of the farther orbit on
@@ -3328,7 +3255,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in this item: do the already generated wide binaries need a repair or
   re-roll pass? Report how many break the rule; the repair itself needs
   Boss's word. Owner: Generate lane, queued after the sector remapping
-  (after the DB.32 + GEN.227 + UX.111 switch merges).
+  (the spherical switch, PR #1607, has merged).
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -3871,62 +3798,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration and agrees its timing; Foundations Wording writes
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
-
-- [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything**
-  Progress (2026-10-15): merged into the integration branch
-  `claude/spherical-switch` as PR #1574 (not yet on main; it retires when
-  the final switch PR merges). Left for the others on that branch: Maps
-  (MAP.205, MAP.206) replaces the Galaxy Map queries that now raise
-  NotImplementedError (galaxy_bright_stars_in_box,
-  galaxy_scattered_points_in_box, galaxy_filled_in_box, galaxy_stage,
-  galaxy_block_sums, galaxy_block_stats, galaxy_window,
-  galaxy_stage_keys); Generate (GEN.227) moves run_plan.py off
-  store.get_galaxy_layers and fill_block_stats, and the test helpers in
-  tests/test_galaxy_gen.py off outer_ring_index. Sector-less star systems
-  stay unplaced with their IDs until GEN.223.
-  Switch (2026-10-15): DB.32, GEN.227 and UX.111 land as one switch,
-  because the schema rename breaks the store, queries, generation and the
-  Galaxy Map code at once. Structure: a shared integration branch
-  `claude/spherical-switch`, owned by the Spherical Sector Coordinates
-  thread; Database (DB.32), Generate (GEN.227) and UX (UX.111) each open
-  their PR into it, and one final PR goes to main after Boss's word.
-  GEN.224 (PR #1549) and GEN.225 (PR #1551) are merged; the wedge-count
-  rule is Boss's 07:17Z one (6 * m, primes 2, 3, 5, 7; shell 1 stays
-  hand-cut: 12 wedges, cap 37.5 degrees).
-  A new Alembic revision renames `ring_index`, `layer_index` and
-  `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` in
-  the seven address-keyed tables, and adds the old-schema fixture. It
-  also carries the conversion plan (Boss, 2026-10-15 06:54Z): "it will
-  need to be able to wipe out all of the sector data without losing the
-  position coordinates of everything. Rebuild the galactic sector map,
-  then link everything back to the sector it belongs in. Now, planets
-  and moons that have a star can just anchor to that, they are whatever
-  sector the star is in. Nothing's position changes just what we call
-  it." Done: the old sector rows, outline and sector-keyed statistics
-  are emptied; every star system, free-floating object and phenomenon
-  keeps its stored position, velocity and epoch; the sector map is
-  rebuilt on the shell grid; each object is linked to the shell, band
-  and wedge its position falls in; planets and moons anchor to their
-  star's sector and are never placed by their own coordinates; a check
-  compares every position before and after (zero difference) and counts
-  objects per sector, and no object is left without a sector (an object
-  outside the old outline gets the address its position falls in,
-  because no space is undefined: Boss, 2026-10-15 06:59Z). Object IDs
-  are renumbered (Decided, Boss, 2026-10-15 07:32Z): every object gets a
-  new ID built from its new sector in the conversion, and every table
-  that stores an object ID is rewritten with it; positions are
-  unchanged. Nothing is regenerated and nothing is deleted except sector
-  rows. The final PR to main merges on a green gate without waiting for
-  Boss's word (Boss, 07:56Z: "Do not wait for my word to merge unless
-  there becomes an outstanding question that you do not have a reasonable
-  default for"), even though it rewrites the whole sector map. Owner: Spherical Sector Coordinates thread (the
-  only migration lane while this runs). Source: item 4 of section 6 of
-  the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
-  lines from pole to pole make a wedge (vert), shell (radius), and band
-  (horizontal), together they identify a single 3D segment of the
-  sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisite: GEN.226.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## API: The JSON API
 
@@ -5576,7 +5447,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   pole make a wedge (vert), shell (radius), and band (horizontal),
   together they identify a single 3D segment of the sphere". TOP
   PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisite: UX.111.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## VIEW: The view from a planet
