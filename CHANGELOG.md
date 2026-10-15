@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1347] - 2026-10-15
+
+### Changed
+
+- TODO: retired GEN.228 (done in PR #1610) and filed GEN.229, the repair of the wide binaries that already break the stability rule (count first with `planetgen check-db --deep --wide-binaries`; the repair needs Boss's word).
+
+TODO items resolved: GEN.228 / Added: GEN.229
+
 ## [8.0.1346] - 2026-10-15
 
 ### Changed
