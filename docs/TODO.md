@@ -3552,6 +3552,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.111) hung; it looks like this item, a fast star's path
   integration running for minutes. Core fixes it here; Quality re-checks
   TEST.111 afterwards.
+  Quality confirms (2026-10-15): the TEST.111 test fails alone on main
+  and runs past 900 s in integrate_path, _simplify and hermite.
   Prerequisites: none. Related: PERF.88.
 
 - [ ] **GEN.233 Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits**
@@ -5178,13 +5180,21 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and `fk_facility_field_values_field` reflect with `ondelete` RESTRICT
   while the models declare none, so `check-db` reports a healthy
   database as damaged and six tests fail (test_db_check, test_db_models,
-  test_db_check_deep). Whether it also fails on main is not checked (the
-  cause is in the reflection of MySQL 8.0.46, not in the lane's change;
-  Core confirms on main first). Fix: compare RESTRICT, NO ACTION and
-  none as equal in `db/check.py` `_model_drift` and in `db/models.py`.
-  Done: check-db passes on a healthy MySQL 8.0.46 database, the six
-  tests pass, and a real drift in a foreign key's delete rule is still
-  reported. Owner: Core (2026-10-15).
+  test_db_check_deep). Quality confirmed (2026-10-15, combined run) that
+  it fails alone on a clean main, so no lane's change causes it; the six
+  tests are test_a_healthy_database_passes,
+  test_a_stale_system_count_is_a_warning_not_damage,
+  test_the_command_exits_one_on_damage_and_zero_when_clean,
+  test_models_match_a_database_built_from_schema_sql,
+  test_a_changed_column_is_noticed and
+  test_a_deep_check_off_a_terminal_needs_yes. Declaring
+  ondelete='RESTRICT' alone would fix 8.0.46 but break MySQL 8.4 and
+  MariaDB, which reflect none, so the compare must treat all three as
+  equal. Fix: compare RESTRICT, NO ACTION and none as equal in
+  `db/check.py` `_model_drift` and in `db/models.py`. Done: check-db
+  passes on a healthy MySQL 8.0.46 database, the six tests pass, and a
+  real drift in a foreign key's delete rule is still reported. Owner:
+  Core (2026-10-15).
   Prerequisites: none.
 
 - [ ] **DB.34 Cell key and covering index on every table that holds a position, in the shared 0093 migration**
@@ -5812,6 +5822,10 @@ clears each one.
   just failed, and looks like GEN.232's uncapped path integration of a
   fast star. Core fixes GEN.232; Quality re-checks this test after it
   and closes this item on 5 clean full runs as decided.
+  Quality confirms (2026-10-15, combined run, MySQL 8.0.46): the test
+  runs past 900 s and fails alone on main, in db/sector_paths.py settle
+  and physics/sector_path.py integrate_path, _simplify and hermite; it
+  points at GEN.232.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
