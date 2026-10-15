@@ -214,7 +214,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) |  |  |
 | DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 |  |  |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults |  |  |
-| DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config |  |  |
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list |  |  |
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 |  |  |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names |  |  |

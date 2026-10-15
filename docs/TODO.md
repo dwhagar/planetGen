@@ -5685,17 +5685,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/design/api-design-standards.md.
   Prerequisites: none.
 
-- [ ] **DOC.35 Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, finding
-  7. These modules have no reference; the doc also implies an
-  update-orbits command, but the real one is planetgen.cli.orbits. Done:
-  a section in cli.md, or a page linked from it, gives each tool's
-  purpose, usage and a safe example.
-  Prerequisites: none. Related: DOC.4.
-
 - [ ] **DOC.36 Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
