@@ -56,8 +56,12 @@ installs the monthly orbit update (and update.sh, unless
 
 1. **Homebrew packages:**
 
-       brew install python@3.12 nginx mariadb     # or mysql@8.4 instead of mariadb
+       brew install python@3.12 nginx mariadb redis   # or mysql@8.4 instead of mariadb
        brew services start mariadb
+       brew services start redis
+
+   Redis runs the Generate page's jobs, the work queue and the rate limits;
+   without it no Generate job starts. `redis-cli ping` answers `PONG` when it runs.
 
    Homebrew's MariaDB lets your macOS user in as a database admin
    (`sudo mariadb` or `mariadb -u $(whoami)`). Create the database and

@@ -62,7 +62,7 @@ Keep it a git checkout: the update scripts update it by fetching and
 resetting to the tracked branch.
 
 On macOS, install the Homebrew packages first:
-`brew install python@3.12 nginx mariadb` (or `mysql@8.4` instead of
+`brew install python@3.12 nginx mariadb redis` (then `brew services start redis`; or `mysql@8.4` instead of
 `mariadb`).
 
 ## 2. Create the database and account

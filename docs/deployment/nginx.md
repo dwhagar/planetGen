@@ -33,7 +33,9 @@ this page.
 2. **`sudo ./install.sh`** from the checkout. It installs the Python
    libraries, migrates the database, fetches the NLTK corpus, and sets
    up the permissions, the tile cache, the jobs directory and the debug
-   log. Without Apache installed, its Apache step prints a warning and
+   log. It also installs and starts `redis-server` (the Generate page's
+   jobs and the work queue run on it; `redis-cli ping` should answer
+   `PONG`). Without Apache installed, its Apache step prints a warning and
    carries on, and it gives the runtime directories to `www-data`, the
    account gunicorn runs as. Ignore its closing Apache instructions.
    Note the admin password it prints in step 2/8. It also offers the

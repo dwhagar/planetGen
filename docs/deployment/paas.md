@@ -17,10 +17,12 @@ private network if it runs elsewhere.
 
 ## Platform-as-a-service
 
-planetGen needs three things a typical platform-as-a-service makes
+planetGen needs four things a typical platform-as-a-service makes
 awkward:
 
 - MySQL or MariaDB;
+- a Redis server (the Generate page's jobs, the work queue and the rate
+  limits run on it; set `PLANETGEN_REDIS_URL` to its address);
 - a persistent disk for the Generate jobs directory (and, less
   critically, the tile cache, which can be rebuilt);
 - a job runner that keeps running after the web request that started it.
