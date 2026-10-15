@@ -5561,20 +5561,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the switch.
   Prerequisites: none. Related: PERF.88.
 
-- [ ] **DOC.25 Refresh docs/design/design-decisions.md: mark the reversed and built decisions**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  41 to 45. Decision 7 (system Python) is reversed by OPS.45 (merged, #1333,
-  so say reversed); decision 10 (drill-down instead of a free camera) is
-  being replaced by MAP.146; decisions 11 to 13 say planned but are
-  built or largely built; section 5 still describes DBUtils.PooledDB and
-  schema v43 (it is now SQLAlchemy QueuePool and v83); the file has no
-  status line. Done: each decision says in force, reversed or built,
-  with the item.
-  Prerequisites: none. Related: OPS.45, MAP.146.
-
 - [ ] **DOC.26 Give every design note a status line and refresh the stale ones**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
@@ -5710,20 +5696,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   matches planetgen --help for every subcommand; any star count or run
   time quoted is measured, not copied. Covers the cli.md part of DOC.4.
   Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.37 Rewrite the install docs for the venv install (OPS.45 merged, #1333)**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, finding
-  17. OPS.45 merged (#1333, 2026-10-14): the venv is at /usr/local/planetgen/venv and install.sh and update.sh were rewritten, so the install paths, the Python the services use
-  and where packages live all change: INSTALL.md,
-  docs/deployment/apache.md, nginx.md, caddy.md, macos.md, paas.md,
-  docs/server-checklist.md, README.md and the header comments of
-  install.sh, update.sh and scripts/install-python-deps.sh. Boss must add python-home=/usr/local/planetgen/venv to the
-  WSGIDaemonProcess planetgen-api line of his Apache site, so every Apache guide says so. Done: every
-  one of them describes the venv, how mod_wsgi, the CGI scripts and the
-  services use it, and how to rebuild it.
 
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
