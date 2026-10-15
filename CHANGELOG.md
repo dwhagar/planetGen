@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1188] - 2026-10-15
+
+### Added
+
+- Bug items for the habitability text: the index name in planet descriptions, Air at zero pressure and the wording of every line.
+
+TODO items resolved: none / Added: GEN.214, GEN.215, GEN.216
+
 ## [8.0.1187] - 2026-10-15
 
 ### Changed
