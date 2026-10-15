@@ -528,7 +528,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.26 | Give every design note a status line and refresh the stale ones | none | open |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
-| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | open |
+| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | done, PR #1581 |
 | DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | open |
 | DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | open |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | open |
@@ -539,7 +539,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | open |
 | DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | open |
 | DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | open |
-| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | open |
+| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | done, PR #1581 |
 | DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail | none | open |
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | open |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | open |

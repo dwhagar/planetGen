@@ -5614,19 +5614,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (the architecture artifact) is rebuilt from it.
   Prerequisites: none.
 
-- [ ] **DOC.29 A docs link check in the test suite, and a note that the web interface has no help or about page yet**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, finding
-  48, with 30 and 46. Broken relative paths (mdconvert.py, the
-  .planetgen link) and 11 dead links in architecture.md went unnoticed.
-  Done: a test fails when a relative link or anchor in any docs markdown
-  file does not resolve (the sweep's links.py and anch.py helpers are a
-  start); html-interface.md says that DOC.6 is what adds the help
-  section.
-  Prerequisites: none. Related: DOC.6, TEST.139.
-
 - [ ] **DOC.30 Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
@@ -5788,25 +5775,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the next one on opens with a Headline line, and changes/README says
   so.
   Prerequisites: none.
-
-- [ ] **DOC.40 Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  8 and 19 to 24. The test job has five legs, not three runs on 3.12;
-  testing.md omits scripts/test.py changed and full --check (TEST.139,
-  #1323), PLANETGEN_TEST_REDIS_URL and how to start Redis; ci-runners.md
-  omits the Redis container and the dependency-audit job; README
-  Contributing and INSTALL Development setup present plain pytest as the
-  way to run. Done: both docs match the workflow file and the runner,
-  say that the full suite stays the merge gate and changed is a fast
-  loop, and give the Redis setup.
-  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 49
-  minutes (49 min 14 s measured after #1367, 59 min 43 s before); any
-  figure for the full run's length in docs/testing.md or the rebuild
-  note should say about 50 minutes, not 60.
-  Prerequisites: none. Related: TEST.139.
 
 - [ ] **DOC.41 Fix the activity-log file name in the fail2ban guide and the shipped jail**
   Found by the full documentation sweep Boss asked for (2026-10-14
