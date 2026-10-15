@@ -1357,7 +1357,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A design note for nested blocks on shells (master rules in longitude
   and latitude, caps, stage keys, `galaxy_block_stats`), then
   `drill.py`, `region.py`, `window.py`, the block stats table and its
-  migration. Waits for Boss's answer on the ladder card. Replaces the
+  migration. Boss's answer (2026-10-15 06:58Z): a block holds the cells
+  whose centre it holds, not cells cut on block edges, so the note
+  picks a block count per level; the equator count is 6 * 2^a * 3^b
+  (primes 2 and 3) so the counts nest. The ladder-timing question (after
+  the coordinates, or in parallel) is still open with Boss. Replaces the
   cylinder 243/81/27/9/3 ladder (MAP.151, done, PR #1539). Owner: Foundations Maps,
   after item 6. Source: item 7 of section 6 of the plan. Boss decided
   the move (2026-10-15 06:39Z): "two meridian lines from pole to pole
@@ -3278,12 +3282,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
 
 - [ ] **GEN.224 Spherical grid module: shells, bands, wedges, caps and the core ball**
-  New `planetgen/galaxy/spherical.py` (pure geometry) with the rules in
-  section 2 of the plan: the layout per shell, cell bounds, volume,
-  `address_at` and `cell_center`, face neighbours, the local frame, a
-  cap-aware `SectorCell` sampler, and a hand-checked table for shells 1
-  to 3. Done: tests for exact tiling (cell volumes sum to the ball),
-  round trip, counts near 23.93 billion and the measured arcs. Owner:
+  First, measure (Boss's wedge-count answer, 2026-10-15 06:57Z: fine
+  counts of 6 times a whole number inside the populated window, a
+  nested chain above it, and an equator count of 6 * 2^a * 3^b, primes 2
+  and 3 only): the arc error above the window and the one non-nested
+  step per shell where the fine counts hand over to the chain; fix the
+  exact window edge and chain from that measurement before the module
+  is fixed. Then the new `planetgen/galaxy/spherical.py` (pure
+  geometry) with the rules in section 2 of the plan: the layout per
+  shell, cell bounds, volume, `address_at` and `cell_center`, face
+  neighbours, the local frame, a cap-aware `SectorCell` sampler, and a
+  hand-checked table for shells 1 to 3. Done: the measurement is
+  recorded in the plan; tests for exact tiling (cell volumes sum to the
+  ball), round trip, counts near 23.93 billion and the measured arcs.
+  Owner:
   Spherical Sector Coordinates thread. Source: item 1 of section 6 of
   the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
   lines from pole to pole make a wedge (vert), shell (radius), and band
