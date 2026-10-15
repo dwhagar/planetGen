@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1230] - 2026-10-15
+
+### Fixed
+- **A selected sector with nothing generated lost its highlight on the Galaxy Map.**
+  It cannot be opened, and now stays outlined and shaded, even after the
+  pointer passes over other blocks, until something else is selected.
+
 ## [8.0.1229] - 2026-10-15
 
 ### Changed
