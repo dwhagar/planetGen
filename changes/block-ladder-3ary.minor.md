@@ -1,2 +1,0 @@
-### Changed
-- **The Galaxy Map's block ladder is now 3-ary (MAP.151b).** Blocks above a sector are 243, 81, 27, 9 and 3 sectors a side, each a third of the one above, so a click on a block opens a window a third the size instead of a ninth. A window of blocks bigger than a sector is read from the stored block totals in one query (`/api/galaxy/window`), and migration 0090 refills the totals for the new ladder.
