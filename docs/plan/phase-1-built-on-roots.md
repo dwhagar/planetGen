@@ -206,7 +206,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults |  |  |
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list |  |  |
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 |  |  |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names |  |  |

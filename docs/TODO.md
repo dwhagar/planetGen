@@ -5074,7 +5074,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the three map-ui design docs. Open the Boss-facing decisions these
   touch as they are made.
   Docs sweep (2026-10-09): Docs sweep (2026-10-14): the cli.md items are
-  covered by DOC.36, the database-schema.md ones by DOC.33 and DOC.32,
+  covered by DOC.36 (done, PR #1616), the database-schema.md ones by DOC.33 and DOC.32,
   the html-interface.md ones by DOC.31 and the system-file format ones
   by DOC.30; the docstring ones by DOC.21. This item stays only for what
   none of those cover (docs/deployment/macos.md 'Monthly orbit update'
@@ -5406,27 +5406,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   each example runs; checked against
   docs/design/api-design-standards.md.
   Prerequisites: none.
-
-- [ ] **DOC.36 Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  1 to 6 and 8. cli.md lists 8 of the 11 subcommands (versions, check-db
-  and benchmark are missing); its Planned commands table lists as
-  unbuilt things that exist (check-db, versions, --strict, --directive,
-  --avoid-filled-space, --neighborhoods, --rings, --layers, --slots,
-  --cylinder-*), leaving only repair-db, --resume and
-  scripts/maintenance.sh planned; the bright-star default is 9000 L_sun
-  with a range of 2500 to 4,000,000 (tuning.py), not 500 and 100 or more
-  (DOC.4 says 1,000, also stale); --force is no longer needed on the
-  scatter; plan --seed exists but the doc says it does not; --no-settle,
-  --phenomena-only, --star-mix, --then-scatter, --backfill-from, the
-  plan's shape flags and plan --redo-nebula-field (GEN.205, dry run by
-  default, apply to change; #1325) are undocumented. Done: cli.md
-  matches planetgen --help for every subcommand; any star count or run
-  time quoted is measured, not copied. Covers the cli.md part of DOC.4.
-  Prerequisites: none. Related: DOC.4.
 
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
