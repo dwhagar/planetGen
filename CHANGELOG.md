@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1206] - 2026-10-15
+
+### Fixed
+- **The Galaxy Map did not show clearly which region a click would zoom into.**
+  The block under the pointer is now outlined all round (top and bottom edges
+  and up its corners, at every level) and shaded a little, in both the light
+  and dark themes, so a block holding the star or group you are after can be
+  told from its neighbours.
+
 ## [8.0.1205] - 2026-10-15
 
 ### Changed
