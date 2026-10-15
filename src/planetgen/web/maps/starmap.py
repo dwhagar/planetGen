@@ -40,7 +40,7 @@ sector_id=...)`; every scene entry carries the result as `href`.
 import colorsys
 import math
 
-from planetgen.web.lib.fmt import format_distance_ly, format_number
+from planetgen.web.lib.fmt import format_distance_ly, format_luminosity_sol, format_number
 
 try:
     from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -508,7 +508,7 @@ def _neighbor_indicator_data(link_url, neighbor):
     if bright:
         data["brightStarCount"] = len(bright)
         data["brightStars"] = [
-            f'{star["star_type"]}, {format_number(star["luminosity_sol"])} L\u2609' for star in bright[:_NEIGHBOR_BRIGHT_STARS_SHOWN]
+            f'{star["star_type"]}, {format_luminosity_sol(star["luminosity_sol"])}' for star in bright[:_NEIGHBOR_BRIGHT_STARS_SHOWN]
         ]
     return data
 

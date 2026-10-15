@@ -29,6 +29,7 @@ const companionOf = (ladder, symbol) => ladder.companions.find((companion) => co
 export const STANDARD_ATMOSPHERE_PA = companionOf(LADDERS.pressure, "atm");
 export const STANDARD_GRAVITY = companionOf(LADDERS.gravity, "g");
 export const SOLAR_MASS_KG = factorOf(LADDERS.mass, "solar masses");
+export const SOLAR_LUMINOSITY_W = factorOf(LADDERS.power, "L☉");
 
 // Three significant figures, or scientific notation under TINY_NUMBER, where a
 // unit would otherwise run to a row of zeros (planetgen/util/format.py
@@ -151,3 +152,8 @@ export const formatGravityG = (g) => formatQuantity(LADDERS.gravity, scaled(g, S
 // A mass in kilograms: "1 Earth mass", "0.299 Jupiter masses", "0.122 solar masses".
 export const formatMassKg = (kg) => formatQuantity(LADDERS.mass, kg);
 export const formatMassSolar = (solar) => formatMassKg(scaled(solar, SOLAR_MASS_KG));
+
+// A luminosity or power in watts: "47 TW", "1 L☉"; a heat flow in W/m²: "87 mW/m²".
+export const formatPowerW = (watts) => formatQuantity(LADDERS.power, watts);
+export const formatLuminositySol = (solar) => formatPowerW(scaled(solar, SOLAR_LUMINOSITY_W));
+export const formatFluxWm2 = (flux) => formatQuantity(LADDERS.flux, flux);

@@ -98,6 +98,10 @@ def _astropy_factor(symbol):
              "TPa": 1e12 * u.Pa, "m/s²": u.m / u.s ** 2, "bar": u.bar, "mbar": u.mbar,
              "g": const.g0,
              # The IAU defines no lunar mass: 7.342e22 kg is project-nominal (constants.MOON_MASS_KG).
+             "W": u.W, "kW": u.kW, "MW": u.MW, "GW": u.GW, "TW": 1e12 * u.W, "PW": 1e15 * u.W, "EW": 1e18 * u.W,
+             "L☉": const.L_sun, "nW/m²": 1e-9 * u.W / u.m ** 2, "µW/m²": 1e-6 * u.W / u.m ** 2,
+             "mW/m²": 1e-3 * u.W / u.m ** 2, "W/m²": u.W / u.m ** 2, "kW/m²": 1e3 * u.W / u.m ** 2,
+             "MW/m²": 1e6 * u.W / u.m ** 2,
              "kg": u.kg, "lunar masses": 7.342e22 * u.kg, "Earth masses": const.M_earth,
              "Jupiter masses": const.M_jup, "solar masses": const.M_sun}
     quantity = named.get(symbol)
@@ -146,6 +150,21 @@ def test_the_temperature_companions_agree_with_astropys_scales():
 def test_mass_switches_units_at_the_decided_points(kilograms, text):
     """The design note's prototype outputs (docs/design/units-and-number-formatting.md)."""
     assert format_quantity(ladders.MASS, kilograms) == text
+
+
+@pytest.mark.parametrize("ladder, value, text", [
+    (ladders.POWER, 9.01e-31, "9.01 × 10⁻³¹ W"),
+    (ladders.POWER, 47e12, "47 TW"),
+    (ladders.POWER, 335e15, "335 PW"),
+    (ladders.POWER, constants.SOLAR_LUMINOSITY, "1 L☉"),
+    (ladders.POWER, 0.00155 * constants.SOLAR_LUMINOSITY, "0.00155 L☉"),
+    (ladders.POWER, 2.6e13 * constants.SOLAR_LUMINOSITY, "2.60 × 10¹³ L☉"),
+    (ladders.POWER, 1e-7 * constants.SOLAR_LUMINOSITY, "38.3 EW"),
+    (ladders.FLUX, 0.087, "87 mW/m²"),
+    (ladders.FLUX, 1361.0, "1.36 kW/m²"),
+])
+def test_power_and_flux_switch_units_at_the_decided_points(ladder, value, text):
+    assert format_quantity(ladder, value) == text
 
 
 def test_the_mass_rungs_start_where_boss_decided():

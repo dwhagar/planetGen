@@ -96,4 +96,32 @@ export const LADDERS = {
       {"symbol": "solar masses", "factor": 1.988409870698051e+30, "name": "solar masses", "start": 1.4913074030235382e+29, "singular": "solar mass", "whole_from": null, "with_aside": false},
     ],
   },
+  "power": {
+    "base": "W", "nonfinite": "W", "zero": "W",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "W", "factor": 1.0, "name": "watts", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "kW", "factor": 1000.0, "name": "kilowatts", "start": 1000.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "MW", "factor": 1000000.0, "name": "megawatts", "start": 1000000.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "GW", "factor": 1000000000.0, "name": "gigawatts", "start": 1000000000.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "TW", "factor": 1000000000000.0, "name": "terawatts", "start": 1000000000000.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "PW", "factor": 1000000000000000.0, "name": "petawatts", "start": 1000000000000000.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "EW", "factor": 1e+18, "name": "exawatts", "start": 1e+18, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "L☉", "factor": 3.828e+26, "name": "solar luminosities", "start": 3.828e+20, "singular": null, "whole_from": null, "with_aside": false},
+    ],
+  },
+  "flux": {
+    "base": "W/m²", "nonfinite": "W/m²", "zero": "W/m²",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "nW/m²", "factor": 1e-09, "name": "nanowatts per square meter", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "µW/m²", "factor": 1e-06, "name": "microwatts per square meter", "start": 1e-06, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "mW/m²", "factor": 0.001, "name": "milliwatts per square meter", "start": 0.001, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "W/m²", "factor": 1.0, "name": "watts per square meter", "start": 1.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "kW/m²", "factor": 1000.0, "name": "kilowatts per square meter", "start": 1000.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "MW/m²", "factor": 1000000.0, "name": "megawatts per square meter", "start": 1000000.0, "singular": null, "whole_from": null, "with_aside": false},
+    ],
+  },
 };

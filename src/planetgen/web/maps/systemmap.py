@@ -80,7 +80,7 @@ import statistics
 from planetgen.web.lib.fmt import esc, format_distance_km, format_pressure_pa, format_speed_kms, format_temperature_k
 from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
 from planetgen.web.lib.tabledisplay import (
-    format_body_distance, format_body_radius, format_period, format_star_luminosity, format_mass, format_star_radius,
+    format_body_distance, format_body_radius, format_period, format_luminosity, format_mass, format_star_radius,
     to_plain_text,
 )
 
@@ -1246,7 +1246,7 @@ def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
         "type": star["star_type"], "temp": _star_temp_text(star),
         "mass": to_plain_text(format_mass(star["mass_kg"])),
         "radius": to_plain_text(format_star_radius(star["radius_km"])),
-        "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
+        "lum": to_plain_text(format_luminosity(star["luminosity_w"])),
         # Raw km, alongside the formatted display string above -- see
         # `_planet_attrs`'s identical `radiuskm` for why (the "measure
         # distance" feature's own around-the-star obstacle radius).
@@ -1472,7 +1472,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
             "type": star["star_type"], "temp": _star_temp_text(star),
             "mass": to_plain_text(format_mass(star["mass_kg"])),
             "radius": to_plain_text(format_star_radius(star["radius_km"])),
-            "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
+            "lum": to_plain_text(format_luminosity(star["luminosity_w"])),
             "radiuskm": star["radius_km"],
             # Real km (a close binary's own true, small separation from
             # the shared barycenter -- (0, 0) for a single star, per
