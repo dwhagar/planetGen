@@ -75,7 +75,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | GEN.235, API.27 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
-| DOC.48 | Docs: the reach, the halo and the profile rules in the density, coordinate, cluster and object-rate notes | GEN.233, GEN.234, GEN.235, GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 12. Quality. |
+| DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
 
@@ -144,7 +144,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential |  | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
-| GEN.241 | The required objects of a nebula are decided by its kind, not its place, and are made when the nebula is made | GEN.235, GEN.236 | Whole-sphere build train, Boss 2026-10-15. Step 11. Core. |
+| GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | GEN.235, GEN.158, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Step 13. Core. |
+| GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 11. Core. |
+| GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.235, GEN.236, GEN.242 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
 | API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.232, GEN.234, GEN.235, GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
@@ -152,8 +154,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.235, GEN.159, GEN.160 | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
 | GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | GEN.235, GEN.158 | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |
 | GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | GEN.233, GEN.234 | Whole-sphere build train, Boss 2026-10-15. Step 2. Core. |
-| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations |  | Whole-sphere build train, Boss 2026-10-15. Step 3. Core. |
-| GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | GEN.230 | Whole-sphere build train, Boss 2026-10-15. Step 1. Core. |
+| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | GEN.233 | Whole-sphere build train, Boss 2026-10-15. Step 3. Core. |
+| GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | GEN.230, GEN.223 | Whole-sphere build train, Boss 2026-10-15. Step 1. Core. |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115 |  |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
@@ -166,11 +168,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.115, GEN.109 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
-| TEST.159 | Whole-sphere tests: required contents per nebula kind, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.233, GEN.235, GEN.236, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Step 13. Quality. |
+| TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.233, GEN.235, GEN.236, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | GEN.198 | Research. |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
-| MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists |  | Phase 2. Optional, default do not build. |
 | MAP.181 | Dust colour for the dark nebula family on both themes |  | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | MAP.176 | Phase 2. Foundations lane 2. |
 | MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173 | Phase 2. Foundations lane 2. |

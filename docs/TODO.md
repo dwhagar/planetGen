@@ -44,6 +44,10 @@ that default.
 - A bug is a subitem of the item whose feature it breaks, marked
   "(bug)". A bug in something with no item here is a top-level item in
   its category, marked "(bug)" (for example UX.15).
+- The project is in early alpha (Boss, 2026-10-15 5:27 PM EDT): the
+  current database schema is not a constraint on any item. Redesign
+  tables, columns and layouts as the work needs, with one migration or a
+  fresh galaxy.
 
 ### Links
 
@@ -766,7 +770,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1.17:1 today); classes are distinguished by a non-colour cue.
   Note (2026-10-10, nebula research): Boss asked on 2026-10-10 21:46Z
   that nebulae be visible on the Galaxy Map; the work is split into
-  MAP.172 to MAP.182 (the dark-theme contrast fix is MAP.175, the dust
+  MAP.172 to MAP.181 (MAP.182 was folded into GEN.241; the dark-theme contrast fix is MAP.175, the dust
   colour MAP.181, the grouped regions MAP.176 and the individual clouds
   MAP.178). This item keeps the fuzzy-boundary shape work.
 
@@ -1194,18 +1198,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: MAP.175. Related: MAP.142.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **MAP.182 Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. about 590,000 at the default scale; hold until the O
-  and B counts and the H II radii of GEN.150 settle. Default: do not
-  build. Owner: Foundations lane 2 if Boss asks.
-  Prerequisites: none. Related: GEN.150 (done, PR #1442), GEN.99.
-  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
   Boss (2026-10-10 22:01Z): review the cloud density against the real
   Milky Way and decide how to manage it so things stay visible. From the
@@ -1336,11 +1328,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dwarfs, clusters) and wanderers (hypervelocity stars, kicked neutron
   stars) are drawn as points where the outline ends, with no change to
   the shading of the sectors. Map code uses `galaxy/spherical.py` and
-  `galaxy/frame.py`, never `geometry.py`. MAP.182 (hosted nebulae for
-  pre-placed stars) stays do not build unless Boss asks. Done: a visitor
-  flying out of the disk finds the Magellanic Clouds where the data puts
-  them, and nothing is drawn for the empty halo cells. Owner: Interface.
-  Prerequisites: GEN.237, GEN.238. Related: MAP.182.
+  `galaxy/frame.py`, never `geometry.py`. Done: a visitor flying out of
+  the disk finds the Magellanic Clouds where the data puts them, and
+  nothing is drawn for the empty halo cells. Owner: Interface. Nebulae hosted by pre-placed stars show through the nebula
+  items (MAP.172 to MAP.181) from their scatter rows (GEN.241).
+  Prerequisites: GEN.237, GEN.238.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## NAV: Navigation and courses
@@ -3283,6 +3275,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Spherical Sector Coordinates work, so reread it against the shell
   grid first. Owner: Core. Bug and feature: the missing move is the bug,
   the column layout is the change.
+  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
+  database schema is not a constraint. Redesign tables, columns and
+  layouts as the work needs, with one migration or a fresh galaxy;
+  nothing is kept for the sake of production data. Core does this item
+  and GEN.230 in one shared migration, as the first of the
+  spherical-grid group: the point-in-space columns and the 96-bit layout
+  land together, before the reach (GEN.233) and everything after it.
   Prerequisites: none.
 
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
@@ -3322,6 +3321,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and object IDs, so it is Core's migration and is decided before more
   sectors are created in the halo; the reach setting itself is GEN.233.
   Bug.
+  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
+  database schema is not a constraint. Redesign tables, columns and
+  layouts as the work needs, with one migration or a fresh galaxy;
+  nothing is kept for the sake of production data. The layout is the
+  96-bit one whatever it costs the stored designations and object IDs.
+  Core does this item and GEN.223 first, in one shared migration,
+  because the spherical grid is finished before the whole-sphere work
+  (GEN.233 and after) starts.
   Prerequisites: none. Related: GEN.229.
 
 - [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
@@ -3381,7 +3388,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a cell beyond it is refused. Owner: Core (2026-10-15); the
   migration, if any, is Core's. Resolves GEN.230's layout question;
   GEN.230 fixes the band field for the default galaxy first.
-  Prerequisites: GEN.230. Related: GEN.9.
+  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
+  database schema is not a constraint. Redesign tables, columns and
+  layouts as the work needs, with one migration or a fresh galaxy;
+  nothing is kept for the sake of production data. Order (Boss,
+  2026-10-15 5:27 PM EDT): the spherical sector layout finishes first
+  (GEN.230, GEN.223, this item), then the whole-sphere work (GEN.234 and
+  after), then the spherical-region database query.
+  Prerequisites: GEN.230, GEN.223. Related: GEN.9.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.234 A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations**
@@ -3405,7 +3419,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the floor tests are rewritten. The local-density alternative
   (about 2.7 times higher) is kept as a documented constant. Owner: Core
   (2026-10-15).
-  Prerequisites: none. Related: GEN.78, GEN.134.
+  Prerequisites: GEN.233. Related: GEN.78, GEN.134.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.235 One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved**
@@ -3429,6 +3443,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter and a fill, an asked halo sector is saved as a generated empty
   sector, and nothing is generated unless asked. Owner: Core
   (2026-10-15).
+  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
+  database schema is not a constraint. Redesign tables, columns and
+  layouts as the work needs, with one migration or a fresh galaxy;
+  nothing is kept for the sake of production data. The sector rows, the
+  profile fields and the generated flag may be redesigned together; only
+  the rules above are fixed.
   Prerequisites: GEN.233, GEN.234. Related: GEN.76, GEN.81, GEN.42.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3478,6 +3498,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (2026-10-15).
   Prerequisites: GEN.235, GEN.159, GEN.160. Related: GEN.9, GEN.161,
   GEN.164.
+  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
+  database schema is not a constraint. Redesign tables, columns and
+  layouts as the work needs, with one migration or a fresh galaxy;
+  nothing is kept for the sake of production data. The component table
+  is designed for what it holds, not squeezed into existing tables.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.238 Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population**
@@ -3540,33 +3565,124 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   saved.
   Prerequisites: GEN.232, GEN.234, GEN.235, GEN.237. Related: GEN.238,
   GEN.223.
+  Decided (Boss, 2026-10-15 5:27 PM EDT): the scatter from the origin
+  keeps the banded, layered approach it has now, because the bands of a
+  shell have fixed slices (Boss's recollection; Core checks it against
+  `object_first.py` and the band and wedge counts of `spherical.py`
+  before relying on it, and reports if it is wrong). The band groups of
+  this item stay inside that structure. Decided (Boss, 2026-10-15 5:27
+  PM EDT): early alpha, so the current database schema is not a
+  constraint. Redesign tables, columns and layouts as the work needs,
+  with one migration or a fresh galaxy; nothing is kept for the sake of
+  production data.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.241 The required objects of a nebula are decided by its kind, not its place, and are made when the nebula is made**
-  Step 11 of the whole-sphere train (design note section 5.10).
-  Planetary nebulae (a white dwarf) and supernova remnants (a neutron
-  star, black hole or nothing) keep building their core at creation in
-  any cell. Emission, reflection and Wolf-Rayet nebulae are hosted: the
-  host star is chosen first from the cell's young population and the
-  nebula grown around it; the cluster classes D, E and G get real member
-  stars drawn from the young mix (or the class is not offered in that
-  cell), and embedded protostars for classes P and Q become real objects
-  or the class is withheld. The Type Ia remnant share becomes a profile
-  field (1 where there is no young population); core-collapse remnants
-  and hosted nebulae scale with the young share, planetary nebulae and
-  Type Ia remnants with the old share, molecular clouds with `gas`;
-  `nebula_field` must read the cell's `gas`, not the disk position
-  alone. The Wolf-Rayet class is added with the anomalies lane. Done: an
-  asked halo cell never shows an H II region or a pulsar-bearing
-  remnant, a planetary nebula always has its white dwarf, every hosted
-  nebula holds its host star, and a Magellanic cell can show all of
-  them. MAP.182 (hosted nebulae for pre-placed stars) stays do not build
-  unless Boss asks. Owner: Core (2026-10-15). Decided (Boss,
+- [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
+  Step 12 of the whole-sphere train (design note section 5.10); replaces
+  the text-only hosts and the "do not build" default of MAP.182, which
+  is folded in here (hosted nebulae for stars pre-placed by the bright
+  and mass passes: the hosted roll is decided from the star's own seed,
+  so it is the same whether the star was pre-placed or made during a
+  fill, and the page and the map show the nebula from the scatter row).
+  The rule: a nebula's required stars are real star systems made in the
+  same step as the nebula and placed inside its bounds, and which kinds
+  it needs depends on its class, not on where it is. A nebula that
+  cannot get its stars (the sector is full) is not made. Per class:
+  emission C the one O or early-B star at the centre; D and E the seed
+  star plus the cluster's ionizing members (stars of 5.5 solar masses
+  and up that are still alive: 42 on average for D, 549 for E) in a
+  Plummer sphere of half-mass radius 1 pc (D) and 2 pc (E) clipped to
+  the nebula radius; emission-reflection G the early-B star; reflection
+  F the B3 to A9 star; planetary nebulae keep their white dwarf and gain
+  the close companion the class table says is "often" there (20%);
+  supernova remnants keep their neutron star or black hole at 60% of
+  core-collapse remnants; Bok globule P one protostar in 30% of
+  globules; star-forming core Q 1 to 4 protostars (Poisson mean 2, at
+  least 1) clumped near the centre; giant molecular cloud M and dark
+  cloud N none. Protostars need the pre-main-sequence state (GEN.242).
+  Cluster members and protostars are derived from the nebula's own seed
+  and placed by position, and each sector generates only the members
+  whose positions fall in its cube, the way `nebula_field` hands each
+  sector its clouds, so a nebula across sectors needs no coordination.
+  Any code path that creates a nebula of a hosted class without a host
+  calls one function, `build_nebula_with_contents`. The Type Ia remnant
+  share becomes a profile field (1 where there is no young population);
+  emission, reflection, Wolf-Rayet and core-collapse remnants scale with
+  the young share of the profile's mix, planetary nebulae and Type Ia
+  remnants with the old share, molecular clouds and protostars with
+  `gas`; `nebula_field` must read the cell's `gas`, not the disk
+  position alone. Open question for Boss (default: only the ionizing
+  members are real, the rest of the cluster stays the sector's ordinary
+  background density): filling the whole cluster is the dearer
+  alternative, about 8 minutes of generation per giant complex, behind a
+  setting. Cost at the default, if every sector were filled: about 7e6
+  systems; an asked sector holding a massive complex gets about 270
+  extra systems and 7 seconds. Done: an asked halo cell never shows an H
+  II region or a pulsar-bearing remnant, a planetary nebula always has
+  its white dwarf, every hosted nebula holds its stars inside its
+  radius, a Magellanic cell can show all of them, and a pre-placed
+  star's nebula shows from its scatter row. Owner: Core (2026-10-15);
+  the map shows the nebulae through the existing nebula items (MAP.172
+  to MAP.181). Decided (Boss, 2026-10-15): the research note's
+  recommendation stands: reach 262 kpc (65,535 shells), 96-bit object
+  IDs, one rule set everywhere with per-sector parameters, nothing
+  generated unless asked, and an asked sector always generated and
+  saved.
+  Prerequisites: GEN.235, GEN.236, GEN.242. Related: MAP.172, GEN.150,
+  GEN.202, GEN.99.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.242 A pre-main-sequence state for young stars, so protostars can exist as real stars**
+  Step 11 of the whole-sphere train (design note section 5.10). The star
+  model has no pre-main-sequence state: `evolve_star` goes from the main
+  sequence on. Add one (age under 1 Myr for stars below 8 solar masses,
+  drawn from the IMF's low end for protostars), shown as such on the
+  star page and in the description layer (wording through the Interface
+  lane's document model, UX.105 and UX.108). Done: a star younger than
+  the limit comes out of `evolve_star` as a pre-main-sequence star with
+  its own radius, luminosity and type text, the older states are
+  unchanged, and the page says so. Owner: Core (2026-10-15). Decided
+  (Boss, 2026-10-15): the research note's recommendation stands: reach
+  262 kpc (65,535 shells), 96-bit object IDs, one rule set everywhere
+  with per-sector parameters, nothing generated unless asked, and an
+  asked sector always generated and saved.
+  Prerequisites: GEN.235. Related: GEN.241, UX.108.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.243 Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X**
+  Step 13 of the whole-sphere train (design note section 5.11; GEN.113's
+  Tier 2 item 3, never built because the star model has no W state). The
+  star: a star of initial mass 25 solar masses or more (solar
+  metallicity) is Wolf-Rayet during the last 0.3 Myr of its life
+  (`WR_MIN_INITIAL_MASS_SOL = 25`, `WR_PHASE_MYR`, at most half the life
+  for the heaviest) instead of a supergiant, at 40% to 60% of its
+  initial mass, 30,000 to 200,000 K and 1e5 to 1e6 solar luminosities;
+  subtype WN for the first 60% of the phase, WC for the next 30%, WO for
+  the last 10% (the heaviest only), as spectral text `WN6`, `WC8` and
+  Yerkes class `W`. The threshold rises as metallicity falls (about 35
+  at half solar, 56 at a fifth), so it is a population field in the
+  profile, not a constant. The bright and mass passes already place the
+  massive stars and then draw the state through `evolve_star`, so
+  Wolf-Rayet stars come out of them without a new rate; none exists in
+  any population older than about 10 Myr (halo, clusters, old
+  satellites, bulge). The nebula: new class `X` in `NEBULA_CLASSES`,
+  family emission, radius 2 to 35 pc, a thin shell with a hollow
+  interior on the existing `nebula_shape` mesh, host rule `("W", 0, 9,
+  ("X",), 0.4)` in `NEBULA_HOST_RULES` and
+  `NEBULA_CLASS_MAX_AGE_MYR["X"] = 5.0`; its one required star is the W
+  star at the centre, a real system (GEN.241), and after the phase the
+  star becomes the core-collapse remnants the generator already makes.
+  The Wolf-Rayet row of `anomalies.md` becomes a pointer here. Done: the
+  Milky Way disk holds 1,200 +- 300 Wolf-Rayet stars at the default
+  scale, none in an old population, every class X nebula holds a W star,
+  and the star and nebula pages and the map show them. Owner: Core
+  (2026-10-15); the map marker (MAP.132) is Interface's. Decided (Boss,
   2026-10-15): the research note's recommendation stands: reach 262 kpc
   (65,535 shells), 96-bit object IDs, one rule set everywhere with
   per-sector parameters, nothing generated unless asked, and an asked
   sector always generated and saved.
-  Prerequisites: GEN.235, GEN.236. Related: MAP.182, GEN.202, GEN.99.
+  Prerequisites: GEN.235, GEN.158, GEN.241. Related: GEN.113, MAP.132,
+  MAP.176.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -5011,22 +5127,22 @@ clears each one.
   (2026-10-15), taken alongside TEST.156. Not a bug.
   Prerequisites: none. Related: TEST.156.
 
-- [ ] **TEST.159 Whole-sphere tests: required contents per nebula kind, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
-  Step 13 of the whole-sphere train. Tests: no emission, reflection or
+- [ ] **TEST.159 Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
+  Step 15 of the whole-sphere train. Tests: no emission, reflection or
   core-collapse remnant in a halo or old cluster cell; a planetary
   nebula always has its white dwarf; a core-collapse remnant has a
   compact core at the stated share; every hosted nebula holds its host
-  star; tiling and the object ID round trip at the widest shell of the
-  reach; the profile and an empty sector are deterministic; the
-  pre-placed share of every population; no double count of a cluster
-  star; the King solver against the textbook concentrations. Done: each
-  test above exists and runs in the normal suite. Owner: Quality (all
-  TEST items are Quality's), written beside each build step. Decided
-  (Boss, 2026-10-15): the research note's recommendation stands: reach
-  262 kpc (65,535 shells), 96-bit object IDs, one rule set everywhere
-  with per-sector parameters, nothing generated unless asked, and an
-  asked sector always generated and saved.
-  Prerequisites: GEN.233, GEN.235, GEN.236, GEN.241. Related: TEST.156.
+  star and every D or E region its members inside its radius; a
+  Wolf-Rayet nebula holds a W star and the Milky Way count is 1,200 +-
+  300 with none in old populations; tiling and the object ID round trip
+  at the widest shell of the reach; the profile and an empty sector are
+  deterministic; the pre-placed share of every population; no double
+  count of a cluster star; the King solver against the textbook
+  concentrations. Done: each test above exists and runs in the normal
+  suite. Owner: Quality (all TEST items are Quality's), written beside
+  each build step.
+  Prerequisites: GEN.233, GEN.235, GEN.236, GEN.241, GEN.243. Related:
+  TEST.156.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## USR: User accounts
@@ -5682,17 +5798,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Not a bug.
   Prerequisites: none. Related: DOC.27, DOC.28 (done, PR #1628).
 
-- [ ] **DOC.48 Docs: the reach, the halo and the profile rules in the density, coordinate, cluster and object-rate notes**
-  Step 12 of the whole-sphere train.
+- [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
+  Step 14 of the whole-sphere train.
   `docs/design/galaxy-disk-density.md` says the stellar halo is not
   modelled beyond the floor, `docs/design/galaxy-coordinate-system.md`
   section 4 describes only the outline,
-  `docs/design/globular-clusters.md` needs its status, and
+  `docs/design/globular-clusters.md` needs its status,
   `docs/design/interstellar-object-rates.md` needs the populations and
-  the kind factors. Done: all four describe the halo term, the reach
-  versus the outline, the profile, the components, the kind factors and
+  the kind factors, and `docs/design/anomalies.md` points its Wolf-Rayet
+  row at the design note. Done: all five describe the halo term, the
+  reach versus the outline, the profile, the components, the kind
+  factors, the nebula contents, the Wolf-Rayet state and class X, and
   the 96-bit layout as built. Owner: Quality, after the code.
-  Prerequisites: GEN.233, GEN.234, GEN.235, GEN.237.
+  Prerequisites: GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## VIEW: The view from a planet

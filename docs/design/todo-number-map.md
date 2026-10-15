@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.114 |
 | MAP | MAP.208 |
 | NAV | NAV.60 |
-| GEN | GEN.242 |
+| GEN | GEN.244 |
 | PERF | PERF.103 |
 | DB | DB.33 |
 | API | API.28 |
@@ -549,7 +549,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.45 | Reference docs follow the description layer | none | open |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
-| DOC.48 | Docs: the reach, the halo and the profile rules in the density, coordinate, cluster and object-rate notes | none | open |
+| DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -790,7 +790,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | none | open |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | none | open |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | none | open |
-| GEN.241 | The required objects of a nebula are decided by its kind, not its place, and are made when the nebula is made | none | open |
+| GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | none | open |
+| GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | none | open |
+| GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -972,7 +974,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.179 | Scattered nebulae as markers from level 8 | none | open |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | open |
 | MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
-| MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
+| MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | merged into GEN.241 (Boss, 2026-10-15) |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
 | MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | done, PR #1282 |
 | MAP.185 | Black holes vanish in the Sector Map (bug) | none | done, PR #1279 |
@@ -1635,7 +1637,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
 | TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | done, PR #1572 |
 | TEST.158 | The math check tests the spherical shell, band and wedge grid | none | open |
-| TEST.159 | Whole-sphere tests: required contents per nebula kind, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | open |
+| TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
