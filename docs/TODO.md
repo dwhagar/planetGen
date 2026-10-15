@@ -525,9 +525,9 @@ with `clamp()`.
   pairs, are generated at scatter time because they matter for gravity;
   planets, moons and belts stay at sector fill. Defaults taken
   (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
-  row's members deleted when its sector builds it, pair rates from the
-  middle of the evidence.
+  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
+  catalogue), hierarchical trees only, a row's members deleted when its
+  sector builds it, pair rates from the middle of the evidence.
   Prerequisites: GEN.260.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -2605,7 +2605,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   subspace and other fiction anomalies wanted? Tier 3 only through a
   default-off `lore-anomaly` kind with `K_lore` 0.
 
-- [ ] **GEN.129 Multi-star systems of up to seven stars**
+- [ ] **GEN.129 Multi-star systems of up to twelve stars**
   Boss (GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777)): "We need to add scientifically accurate star
   systems with up to 7 stars, this is going to be complex but that is
   the highest number of stars we've seen in orbit around each other."
@@ -2707,6 +2707,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   systems (f) and the planet zones and flux sums (g). Replaces the
   earlier "multi-star systems around a scattered object appear at sector
   fill only".
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): 'up to seven'
+  becomes 'up to twelve' (the cap is a setting, GEN.267, default 12).
+  Add a trapezia sentence: young non-hierarchical groups under their
+  decay age are the one exception to hierarchical trees, stored as a
+  `group` node (GEN.273).
   Prerequisites: GEN.261.
 
 - [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
@@ -2817,6 +2823,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white dwarf and planetary-nebula-star rows of the system pass, pulsar
   planets at fill (0.7% for millisecond pulsars) and the radiation
   environment.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): slice (c), the
+  accretion luminosity and the accreting compact pair, is built by
+  GEN.272 (X-ray binaries, microquasars, spider pulsars), which reads
+  GEN.269's interaction states.
   Prerequisites: GEN.251, GEN.266.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
@@ -3786,6 +3797,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item: the stars and phenomena a nebula needs are real objects made
   with it; they get planets and moons only when the nebula's sector is
   being filled, never in a scatter.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the young
+  non-hierarchical groups and trapezia of section 13.1 are built by
+  GEN.273 on this item's cores.
   Prerequisites: GEN.235, GEN.236, GEN.242, GEN.251. Related: MAP.172,
   GEN.150, GEN.202, GEN.99.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
@@ -3827,6 +3842,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   give it one; nebulae need stars and phenomena, not planets. For this
   item: a protostar's disk, companions and belts come when its sector
   fills; the scattered row carries none.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the
+  circumstellar and circumbinary disk descriptor and the young
+  non-hierarchical groups of sections 13.1 and 13.5 build on this state
+  (GEN.273, GEN.275).
   Prerequisites: GEN.235. Related: GEN.241, UX.108.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3885,6 +3905,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phenomena, not planets. For this item: a Wolf-Rayet star's companions
   and belts come when its sector fills; the pre-placed or scattered row
   carries none.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the Wolf-Rayet
+  binary row of section 13.2 (WN 52%, WC 90%) and the kind `wolf-rayet`
+  in the star model are built by GEN.269 and GEN.270 on this item's W
+  state.
   Prerequisites: GEN.235, GEN.158, GEN.241. Related: GEN.113, MAP.132,
   MAP.176.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
@@ -3898,6 +3923,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point or a region. Later: not part of the whole-sphere train and
   nothing in it waits on this; plan after it. Owner: Core, later
   (2026-10-15).
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): OB associations
+  hold the trapezia of GEN.273 and the runaway origins of GEN.274.
   Prerequisites: GEN.237, GEN.241. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3975,6 +4003,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets; planets and moons only when a sector is filled with
   everything; a fill represents every kind and builds the systems
   phenomena can have at real-world odds.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the registry's
+  kind list also gains the member kinds `stripped-helium`,
+  `thorne-zytkow` and `wolf-rayet` and the node kind `group` (GEN.269,
+  GEN.273); the type rates themselves live in GEN.268.
   Prerequisites: none. Related: GEN.235, GEN.236, GEN.241.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4043,6 +4076,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rule for close companions. Done: a system can hold a brown dwarf star
   at the observed rate, shown as one on its page. Later; nothing in the
   whole-sphere train waits on it. Owner: Core, later (2026-10-15).
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the brown dwarf
+  rows of section 13.5 (close companion under 0.6% inside 3 to 10 AU,
+  wide 3.2%, pairs 15% of brown dwarfs, planetary-mass companions) are
+  built by GEN.275.
   Prerequisites: GEN.251. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4053,6 +4091,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: a cool white dwarf shows a pollution flag at that share and its
   system presets are the cool-white-dwarf ones. Later. Owner: Core,
   later (2026-10-15).
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the white dwarf
+  rows of section 13.3 (close double white dwarfs, post-common-envelope
+  pairs, cataclysmic variables, AM CVn, symbiotic and barium stars) are
+  built by GEN.271, which extends this item.
   Prerequisites: GEN.130.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4137,13 +4180,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   black hole pairs, are generated at scatter time because they matter
   for gravity; planets, moons and belts stay at sector fill. Defaults
   taken (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
-  row's members deleted when its sector builds it, pair rates from the
-  middle of the evidence.
+  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
+  catalogue), hierarchical trees only, a row's members deleted when its
+  sector builds it, pair rates from the middle of the evidence.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the same
+  migration also adds `state`, `flags` and `interaction` (VARCHAR(20),
+  on nodes), makes `slot` a SMALLINT on `scatter_members` and
+  `scatter_nodes` (a group has N slots), adds the node kinds `group` and
+  `compact`, and for group members the columns `offset_x_au`,
+  `offset_y_au`, `offset_z_au`, `velocity_x_kms`, `velocity_y_kms`,
+  `velocity_z_kms` and `decay_age_yr`. Still one migration (0093 with
+  GEN.223 and GEN.230); one column per value, no JSON. Done also: those
+  columns exist and `check-db` knows them.
   Prerequisites: GEN.223. Related: GEN.230, GEN.129.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
-- [ ] **GEN.261 The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to seven members**
+- [ ] **GEN.261 The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members**
   Step 2 (design note 6.1 and 11 item 2). `draw_member_tree`: GEN.129's
   steps (a) to (d) (period and mass-ratio redraw, eccentric pair orbits,
   the hierarchy generator for N = 3 to 7 with the Mardling-Aarseth,
@@ -4160,10 +4213,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   objects, including neutron star and black hole pairs, are generated at
   scatter time because they matter for gravity; planets, moons and belts
   stay at sector fill. Defaults taken (reversible): compact pairs
-  promoted to the scatter, black hole companion fraction 1.25%, cap 7
-  stars, hierarchical trees only, a row's members deleted when its
-  sector builds it, pair rates from the middle of the evidence.
-  Prerequisites: GEN.250. Related: GEN.129, GEN.130, GEN.242, GEN.252.
+  promoted to the scatter, black hole companion fraction 1.25%, cap 12
+  stars (7 before the 6:08 PM EDT catalogue), hierarchical trees only, a
+  row's members deleted when its sector builds it, pair rates from the
+  middle of the evidence.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the generator
+  also produces the catalogue's types (contact, Algol,
+  post-common-envelope and accreting pairs and the rest of sections 13.1
+  to 13.6) from the rates in GEN.268's `SYSTEM_TYPE_RATES`, and the
+  default cap is twelve stars (GEN.267), with the N = 8 to 12 tail of
+  section 13.1. Built on in GEN.269 to GEN.275.
+  Prerequisites: GEN.250, GEN.268. Related: GEN.129, GEN.130, GEN.242,
+  GEN.252.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.262 Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted**
@@ -4182,9 +4244,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pairs, are generated at scatter time because they matter for gravity;
   planets, moons and belts stay at sector fill. Defaults taken
   (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
-  row's members deleted when its sector builds it, pair rates from the
-  middle of the evidence.
+  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
+  catalogue), hierarchical trees only, a row's members deleted when its
+  sector builds it, pair rates from the middle of the evidence.
   Prerequisites: GEN.260, GEN.261. Related: GEN.240, GEN.238.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4201,9 +4263,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   including neutron star and black hole pairs, are generated at scatter
   time because they matter for gravity; planets, moons and belts stay at
   sector fill. Defaults taken (reversible): compact pairs promoted to
-  the scatter, black hole companion fraction 1.25%, cap 7 stars,
-  hierarchical trees only, a row's members deleted when its sector
-  builds it, pair rates from the middle of the evidence.
+  the scatter, black hole companion fraction 1.25%, cap 12 stars (7
+  before the 6:08 PM EDT catalogue), hierarchical trees only, a row's
+  members deleted when its sector builds it, pair rates from the middle
+  of the evidence.
   Prerequisites: GEN.262. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4223,9 +4286,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   including neutron star and black hole pairs, are generated at scatter
   time because they matter for gravity; planets, moons and belts stay at
   sector fill. Defaults taken (reversible): compact pairs promoted to
-  the scatter, black hole companion fraction 1.25%, cap 7 stars,
-  hierarchical trees only, a row's members deleted when its sector
-  builds it, pair rates from the middle of the evidence.
+  the scatter, black hole companion fraction 1.25%, cap 12 stars (7
+  before the 6:08 PM EDT catalogue), hierarchical trees only, a row's
+  members deleted when its sector builds it, pair rates from the middle
+  of the evidence.
   Prerequisites: GEN.260, GEN.261, GEN.262, GEN.251. Related: GEN.251,
   GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
@@ -4245,9 +4309,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star and black hole pairs, are generated at scatter time because they
   matter for gravity; planets, moons and belts stay at sector fill.
   Defaults taken (reversible): compact pairs promoted to the scatter,
-  black hole companion fraction 1.25%, cap 7 stars, hierarchical trees
-  only, a row's members deleted when its sector builds it, pair rates
-  from the middle of the evidence.
+  black hole companion fraction 1.25%, cap 12 stars (7 before the 6:08
+  PM EDT catalogue), hierarchical trees only, a row's members deleted
+  when its sector builds it, pair rates from the middle of the evidence.
   Prerequisites: GEN.223, GEN.260. Related: GEN.109.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4264,26 +4328,223 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pairs, are generated at scatter time because they matter for gravity;
   planets, moons and belts stay at sector fill. Defaults taken
   (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
-  row's members deleted when its sector builds it, pair rates from the
-  middle of the evidence.
+  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
+  catalogue), hierarchical trees only, a row's members deleted when its
+  sector builds it, pair rates from the middle of the evidence.
   Prerequisites: GEN.261. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
-  Step 11 (design note 11 item 11; small). `MAX_STARS` (default 7) and a
-  `--stars N` directive so a user may force N members or raise the cap,
-  and a prevalence knob for the N of 5 or more columns, as GEN.129
+  Step 11 (design note 11 item 11; small). `MAX_STARS` (default 12) and
+  a `--stars N` directive so a user may force N members or raise the
+  cap, and a prevalence knob for the N of 5 or more columns, as GEN.129
   already has. Done: the setting and the directive exist and a forced N
   is honoured or refused with the reason. Owner: Core (2026-10-15). Boss
   (2026-10-15 5:51 PM EDT): stellar companions of stars and star-like
   objects, including neutron star and black hole pairs, are generated at
   scatter time because they matter for gravity; planets, moons and belts
   stay at sector fill. Defaults taken (reversible): compact pairs
-  promoted to the scatter, black hole companion fraction 1.25%, cap 7
-  stars, hierarchical trees only, a row's members deleted when its
-  sector builds it, pair rates from the middle of the evidence.
+  promoted to the scatter, black hole companion fraction 1.25%, cap 12
+  stars (7 before the 6:08 PM EDT catalogue), hierarchical trees only, a
+  row's members deleted when its sector builds it, pair rates from the
+  middle of the evidence.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): the default cap
+  is 12, not 7 (ten candidate systems with multiplicity up to 12; theory
+  allows several hundred; the 1.1e6 to 1.1e2 systems of N = 8 to 12 in
+  the default galaxy are in the tail table). A directive may still raise
+  it.
   Prerequisites: GEN.261. Related: GEN.129, GEN.180.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.268 System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test**
+  Step 12 of the multi-star train (design note sections 13 and 14, "The
+  dict"). Add `SYSTEM_TYPE_RATES` beside GEN.250's registry: one entry
+  per row of the catalogue (sections 13.1 to 13.6, about sixty types)
+  holding the reference class, the default, the low and high of its
+  range, the evidence tag, the populations that may host it (the
+  profile's `mix`), the generator function, the mode (scatter or fill)
+  and the `theoretical` flag, plus the tuning knobs of section 13.7
+  (tight-tail weight 1.0, post-common-envelope fraction 0.10, accreting
+  fractions 1% to 40% by class, merger-product fractions 8%, 0.5% and
+  10%). GEN.261 and every later item of this group read their rates from
+  it and hold none of their own. Done: every row of the catalogue has an
+  entry with a generator and an audit count; a test fails when a row,
+  entry, generator or audit count is missing; a default changes by
+  editing the dict, with no change to the generator code. Owner: Core
+  (2026-10-15). Boss (2026-10-15 6:08 PM EDT) widened the multi-star
+  plan to "every observed and theoretical type of
+  multi-star/star-like-object system", built "into our generator
+  throughout to match as close as possible to observed and theoretical
+  probabilities (observed are best, theoretical are good too)".
+  Prerequisites: GEN.250. Related: GEN.261, GEN.269, GEN.274, GEN.275,
+  TEST.164.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.269 Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds**
+  Step 13 (design note sections 13 and 14, items 1 to 5). In
+  `physics/stellar_evolution.py`, `Star` and `star_labels.py`: the
+  Eggleton Roche-lobe radius and filling factor at the system's age; a
+  classifier that gives each pair an `interaction` of detached,
+  semi-detached, contact, accreting, post-common-envelope or
+  merger-product (stored as `interaction` on `scatter_nodes` and
+  `orbit_nodes`); the member flags `mass_reversed`, `mass_gainer`,
+  `merger_product`, `be`, `fragile` and `theoretical` (`runaway_origin`
+  is filled in by GEN.274); a rejuvenated effective age for a merger
+  product, with the real system age kept; and the new kinds
+  `stripped-helium`, `thorne-zytkow` and `wolf-rayet` (GEN.243 supplies
+  the W evolution; this item adds the kind). The states come from
+  geometry and evolution, and the tuning knobs of GEN.268 align their
+  rates with the observed ones. Done: every pair the tree generator
+  draws carries an `interaction` consistent with its radii (audit test
+  13 of section 15), the new kinds exist in the star model and the
+  labels, and a merger product has a rejuvenated age. Owner: Core
+  (2026-10-15). Boss (2026-10-15 6:08 PM EDT) widened the multi-star
+  plan to "every observed and theoretical type of
+  multi-star/star-like-object system", built "into our generator
+  throughout to match as close as possible to observed and theoretical
+  probabilities (observed are best, theoretical are good too)".
+  Prerequisites: GEN.260, GEN.261. Related: GEN.268, GEN.243, GEN.242,
+  GEN.270, GEN.271, GEN.272.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
+  Step 14 (design note sections 13.1 and 13.2). On GEN.269's classifier:
+  contact binaries (0.2% of FGK dwarfs, a 60% tertiary share, 1% of O
+  and B binaries over-contact), semi-detached Algols (0.1% to 0.2% of
+  disk stars, `mass_reversed` donors), the spectroscopic and eclipsing
+  flags derived from the geometry (a pair eclipses when the inclination
+  is within asin((R1+R2)/a) of edge-on), field blue stragglers and
+  merger products (0.5% of old and intermediate stars), massive-star
+  merger products (8%) and mass gainers (20%), hot subdwarfs and
+  stripped helium stars, Be stars (about 20% of B stars, 30% with a
+  stripped companion), Wolf-Rayet binaries (WN 52%, WC 90%), the R
+  Coronae Borealis and FK Comae flags, and the Thorne-Zytkow default
+  (100 in the Galaxy, flagged theoretical). Contact and Algol rates are
+  tuned with the tight-tail weight. Done: over a seeded fill each type's
+  count is within four Poisson sigma of its default (audit test 10) and
+  no type appears where its gate forbids it (audit test 11). Owner: Core
+  (2026-10-15). Boss (2026-10-15 6:08 PM EDT) widened the multi-star
+  plan to "every observed and theoretical type of
+  multi-star/star-like-object system", built "into our generator
+  throughout to match as close as possible to observed and theoretical
+  probabilities (observed are best, theoretical are good too)".
+  Prerequisites: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.271 White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars**
+  Step 15 (design note section 13.3); extends GEN.253. A white dwarf
+  with a companion 30% (22% of them wide); a close double white dwarf
+  9.5% of white dwarfs (axis log-uniform 0.001 to 4 AU, the Peters
+  rule); double white dwarf merger products (10% of white dwarfs, mass
+  0.8 to 1.1 solar masses, flagged); post-common-envelope pairs (axis
+  0.005 to 2 AU); cataclysmic variables (6.5e-4 of white dwarfs, periods
+  1.3 to 10 h, 36% magnetic); AM CVn binaries (7.5e-5 of white dwarfs,
+  periods 5 to 65 min, a helium donor of kind `stripped-helium`); barium
+  and CH stars (1% of G and K giants) and symbiotic stars (5e-6 of
+  giants); white dwarf plus brown dwarf. A Type Ia explosion is an event
+  and out of scope. Done: counts within four Poisson sigma of the
+  defaults (close double white dwarf 9.5% of white dwarfs, cataclysmic
+  variable 3.4e-5 of systems, AM CVn 3.9e-6), and every accreting pair
+  has `interaction` accreting. Owner: Core (2026-10-15). Boss
+  (2026-10-15 6:08 PM EDT) widened the multi-star plan to "every
+  observed and theoretical type of multi-star/star-like-object system",
+  built "into our generator throughout to match as close as possible to
+  observed and theoretical probabilities (observed are best, theoretical
+  are good too)".
+  Prerequisites: GEN.269. Related: GEN.253, GEN.130, GEN.268.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.272 Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples**
+  Step 16 (design note section 13.4); extends slice (c) of GEN.130.
+  High-mass X-ray binaries (the 0.3% compact companion of a living
+  massive star, 40% of them accreting, Be/X-ray 60% of those); low-mass
+  X-ray binaries (5e-5 of neutron stars and 1e-3 of black holes, 1%
+  accreting); the microquasar flag with jets along the spin axis
+  (GEN.255); millisecond-pulsar companion classes (white dwarf 80%,
+  black widow 8%, redback 4%, neutron star 5%, other 3%) with the
+  ablation flag; pulsars with main-sequence or Be companions; accretion
+  luminosity L = eta Mdot c^2 capped at the Eddington limit; dormant
+  black hole and neutron star companions (the Gaia kind); compact
+  triples (30% of compact binaries, at most three compact members);
+  magnetar binaries at 0 by default. Done: an accreting pair shows an
+  X-ray luminosity at or under Eddington, counts are within four Poisson
+  sigma of the defaults, and no Be/X-ray binary appears in the halo.
+  Owner: Core (2026-10-15). Boss (2026-10-15 6:08 PM EDT) widened the
+  multi-star plan to "every observed and theoretical type of
+  multi-star/star-like-object system", built "into our generator
+  throughout to match as close as possible to observed and theoretical
+  probabilities (observed are best, theoretical are good too)".
+  Prerequisites: GEN.269, GEN.266. Related: GEN.130, GEN.255, GEN.263,
+  GEN.268.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
+  Step 17 (design note sections 13.1 and 14 item 6); works with GEN.241
+  and GEN.244. A node of kind `group` with N members, each with an
+  offset (AU) and a velocity (km/s) at an epoch, and a `decay_age_yr`;
+  internal motion is a straight line, there are no Kepler elements, and
+  the nightly update does not integrate it. Default 5% of massive (O and
+  early B) systems younger than 0.3 Myr, drawn at fill in star-forming
+  cores and at scatter for the few mass-pass stars of that age; the
+  sector page shows the group with its remaining life. A group older
+  than its decay age is never drawn: the generator draws its result, the
+  lightest member ejected as a runaway row (`runaway_origin` dynamical)
+  and a tighter hierarchical remnant. Done: every stored group is
+  younger than its `decay_age_yr` (audit test 14), a group older than
+  that is replaced by its remnant, and members carry their offset and
+  velocity columns. Owner: Core (2026-10-15). Boss (2026-10-15 6:08 PM
+  EDT) widened the multi-star plan to "every observed and theoretical
+  type of multi-star/star-like-object system", built "into our generator
+  throughout to match as close as possible to observed and theoretical
+  probabilities (observed are best, theoretical are good too)".
+  Prerequisites: GEN.260, GEN.261. Related: GEN.241, GEN.244, GEN.274,
+  UX.114, GEN.268.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.274 Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova**
+  Step 18 (design note sections 13.4 and 13.6). `runaway_origin` (none,
+  supernova, dynamical) on a runaway, at the observed rates (10% to 30%
+  of O stars and 5% to 10% of B stars; two-thirds supernova, one-third
+  dynamical for the massive ones); for the supernova channel a compact
+  companion left behind at the rate the survival rule gives; companions
+  unbound by a collapse (83% of non-interacting massive binaries) are
+  not stored, the survivor is an ordinary row with the runaway flag;
+  hypervelocity stars stay single. Cluster-hosted compact binaries
+  replace the field fractions: a black hole with a star 10%, a
+  millisecond pulsar with a companion 80% with a higher neutron-star
+  share, and dynamical black-hole pairs from the cluster density. Done:
+  counts within the ranges (audit test 10), no runaway carries a missing
+  origin, and a cluster sector draws its compact binaries at the cluster
+  rates, not the field rates. Owner: Core (2026-10-15). Boss (2026-10-15
+  6:08 PM EDT) widened the multi-star plan to "every observed and
+  theoretical type of multi-star/star-like-object system", built "into
+  our generator throughout to match as close as possible to observed and
+  theoretical probabilities (observed are best, theoretical are good
+  too)".
+  Prerequisites: GEN.268. Related: GEN.159, GEN.160, GEN.161, GEN.162,
+  GEN.163, GEN.164, GEN.273.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.275 Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets**
+  Step 19 (design note section 13.5). Brown dwarf close companions
+  (under 0.6% inside 3 to 10 AU, the desert), wide companions (3.2% at
+  28 to 1,590 AU), brown dwarf pairs (15% of brown dwarfs),
+  planetary-mass companions (under 13 Jupiter masses, flagged
+  `planetary-mass`), circumbinary planets (at least 10% of close
+  eclipsing binaries, the Holman-Wiegert P-type zone from the node,
+  planets at fill only), circumbinary disks (a descriptor on the node,
+  no bodies), S-type planets in wide pairs and rogue planet pairs.
+  GEN.94 (the feasibility study) is done; GEN.95 applies the nebula
+  conditions. Done: counts within four Poisson sigma of the defaults
+  (brown dwarf wide companion 3.2%), a circumbinary planet's orbit lies
+  outside the stable zone, and a disk carries no bodies. Owner: Core
+  (2026-10-15). Boss (2026-10-15 6:08 PM EDT) widened the multi-star
+  plan to "every observed and theoretical type of
+  multi-star/star-like-object system", built "into our generator
+  throughout to match as close as possible to observed and theoretical
+  probabilities (observed are best, theoretical are good too)".
+  Prerequisites: GEN.268. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -5825,9 +6086,9 @@ clears each one.
   black hole pairs, are generated at scatter time because they matter
   for gravity; planets, moons and belts stay at sector fill. Defaults
   taken (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
-  row's members deleted when its sector builds it, pair rates from the
-  middle of the evidence.
+  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
+  catalogue), hierarchical trees only, a row's members deleted when its
+  sector builds it, pair rates from the middle of the evidence.
   Prerequisites: GEN.262, GEN.264. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -5842,6 +6103,29 @@ clears each one.
   reliable without loosening it. Owner: Quality (all TEST items are
   Quality's), with TEST.126 and TEST.138.
   Prerequisites: none.
+
+- [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
+  Step 20 (design note section 15, tests 10 to 14). Over a seeded fill
+  of at least 1e6 systems per region class, each type's count lies
+  within four Poisson sigma of its default (contact 0.2% of FGK, Algol
+  0.1% to 0.2%, cataclysmic variable 3.4e-5 of systems, AM CVn 3.9e-6,
+  double white dwarf 9.5% of white dwarfs, brown dwarf wide companion
+  3.2%, runaway 10% to 30% of O stars); no type appears where its gate
+  forbids it; the number of systems with N = 8 to 12 matches the tail
+  table; every semi-detached pair has a donor at or over its Roche lobe,
+  every contact pair both, and no accreting pair has a non-compact
+  receiver unless it is a mass gainer; every stored group is younger
+  than its decay age. Done: the five tests exist and run in the suite,
+  and the representation audit report includes them. The docs of the
+  catalogue are in DOC.50. Owner: Quality (2026-10-15). Boss (2026-10-15
+  6:08 PM EDT) widened the multi-star plan to "every observed and
+  theoretical type of multi-star/star-like-object system", built "into
+  our generator throughout to match as close as possible to observed and
+  theoretical probabilities (observed are best, theoretical are good
+  too)".
+  Prerequisites: GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273,
+  GEN.274, GEN.275. Related: TEST.162, DOC.50, TEST.160.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 ## USR: User accounts
 
@@ -6529,7 +6813,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `phenomena-catalogue-and-fill.md` sections 3 and 5 corrected, a
   pointer from `interstellar-object-rates.md`. Done: each says what the
   build does. Owner: Quality, after the code.
-  Prerequisites: GEN.260, GEN.262, GEN.264, GEN.266. Related: DOC.49.
+  Catalogue (Boss 2026-10-15 6:08 PM EDT;
+  docs/design/multi-star-systems.md sections 13 to 16): also the schema
+  doc for the new columns (`state`, `flags`, `interaction`, the SMALLINT
+  `slot`, the `group` and `compact` node kinds, the offset, velocity and
+  `decay_age_yr` columns), a pointer from
+  `phenomena-catalogue-and-fill.md` section 4 to the catalogue sections
+  13 to 16, and the cap of twelve. Runs after the catalogue code and
+  audit.
+  Prerequisites: GEN.260, GEN.262, GEN.264, GEN.266, TEST.164. Related:
+  DOC.49.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 ## VIEW: The view from a planet
