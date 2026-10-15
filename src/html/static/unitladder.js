@@ -14,6 +14,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber, scientificText, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { LADDERS, TINY_NUMBER } = await import(`./unitladders.js${VERSION_QUERY}`);
+const { unitSystem } = await import(`./unitpreference.js${VERSION_QUERY}`);
 
 export { LADDERS };
 
@@ -120,8 +121,8 @@ export function forSystem(ladder, system = "auto") {
 // `spoken` spells the units out ("1.5 astronomical units"), for
 // `aria-valuetext` and the like; `companions: false` leaves out the units
 // beside the primary one (°C and °F beside K); `system` is the reader's unit
-// preference.
-export function formatQuantity(ladder, value, { spoken = false, companions = true, system = "auto" } = {}) {
+// preference, the saved one (unitpreference.js) unless given.
+export function formatQuantity(ladder, value, { spoken = false, companions = true, system = unitSystem() } = {}) {
   if (value == null || isNaN(value)) {
     return "–";
   }
