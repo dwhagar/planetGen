@@ -297,3 +297,33 @@ def test_merge_bodies_puts_new_bullets_first_in_each_section():
         "\n\n### Fixed\n- Old fix.\n### Changed\n- Old change.\n")
     assert merged == ("### Added\n- New.\n\n### Fixed\n- New fix.\n- Old fix.\n\n"
                       "### Changed\n- Old change.")
+
+
+def test_a_headline_line_leads_the_note_and_lands_under_the_release_heading(tmp_path):
+    root = _make_repo(str(tmp_path))
+    _note(root, "thing.minor.md", "**Headline:** The map opens on the biggest group.\n\n" + ADDED_NOTE)
+    bump_version.stamp(root, date="2026-02-02")
+    changelog = _read(root, bump_version.CHANGELOG_FILE)
+    assert ("## [1.3.4] - 2026-02-02\n\n**Headline:** The map opens on the biggest group.\n\n### Added"
+            in changelog)
+
+
+@pytest.mark.parametrize("body, complaint", [
+    ("**Headline:** Only a headline.\n", "no section"),
+    ("**Headline:** Then bullets.\n- no heading\n", "must start with a section heading"),
+    ("**Headline:**\n### Fixed\n- x\n", "must start with a section heading"),
+])
+def test_a_headline_still_needs_a_section_after_it(tmp_path, body, complaint):
+    root = _make_repo(str(tmp_path))
+    _note(root, "thing.patch.md", body)
+    with pytest.raises(bump_version.BumpError, match=complaint):
+        bump_version.stamp(root)
+
+
+def test_merge_bodies_keeps_the_newest_headline():
+    merged = bump_version.merge_bodies(
+        "**Headline:** New one.\n\n### Added\n- New.\n",
+        "\n\n**Headline:** Old one.\n\n### Added\n- Old.\n")
+    assert merged == "**Headline:** New one.\n\n### Added\n- New.\n- Old."
+    assert bump_version.merge_bodies("### Added\n- New.\n", "\n**Headline:** Old one.\n### Added\n- Old.\n") \
+        .startswith("**Headline:** Old one.\n\n### Added")

@@ -47,6 +47,17 @@ The contents are exactly what goes under the release heading in
   index on `sectors.center_*` (schema v25).
 ```
 
+**Headline.** Every release opens with a Headline (Boss, 2026-10-10; the rule lapsed at 8.0.912 and was restored on 2026-10-14): the single best feature that release brought, as one sentence. Write it as the first line of the note, above the first `###` section:
+
+```markdown
+**Headline:** The Galaxy Map opens on the largest group of created sectors.
+
+### Added
+- ...
+```
+
+The stamp puts it directly under the release heading in `CHANGELOG.md`. Releases from 8.0.912 to the restoration have none and keep none. `bump_version.py` accepts a note with or without the line, so a note that forgets it still releases; reviewers add it.
+
 Don't write the `## [x.y.z] - date` heading, and don't edit `_version.py`,
 the README badge or the top of `CHANGELOG.md`; CI fails a PR that does, and
 also fails a PR that adds no note (`.github/workflows/release-note.yml`,
