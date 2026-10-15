@@ -1340,7 +1340,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   visible feature. about 590,000 at the default scale; hold until the O
   and B counts and the H II radii of GEN.150 settle. Default: do not
   build. Owner: Foundations lane 2 if Boss asks.
-  Prerequisites: none. Related: GEN.150, GEN.99.
+  Prerequisites: none. Related: GEN.150 (done, PR #1442), GEN.99.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
@@ -3088,19 +3088,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `TEMP_RANGES`, `WD_LUMINOSITY_RANGE_SOL`). Affects the
   planetary-nebula scatter and `PLANETARY_NEBULA_CENTRAL_STAR_TYPES`.
   Prerequisites: none.
-  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.150 H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts**
-  Derive the H II radius and density from the ionizing photon rate Q
-  (Stromgren radius plus Spitzer expansion), add `age_myr`, `q_total`
-  and the host list to the nebula record, and replace the
-  `NEBULA_HOST_RULES` chances with the IMF-based cluster draw; drop B0
-  to B2 as hosts of class D (keep for C and G). Today a B0 to B2 star
-  has a 50% chance of a class D nebula (3 to 30 pc) though one B2V
-  ionizes about 0.8 ly, and class radii are drawn independently of the
-  stars. The nebula age window must join the `_bright_table` cache key
-  `(threshold, population)`.
-  Prerequisites: DB.26 (done, PR #1423; the nebula age_myr, q_total and hosts columns).
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.151 Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up)**
