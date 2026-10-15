@@ -61,6 +61,25 @@ class ProgressLog:
             os.close(fd)
 
 
+def pytest_addoption(parser):
+    parser.addoption("--skip-passed", metavar="FILE", default=None,
+                     help="a JSON list of node ids to leave out: the tests a run of the same build already passed "
+                     "(scripts/test.py --resume, TEST.151)")
+
+
+def pytest_collection_modifyitems(config, items):
+    path = config.getoption("--skip-passed")
+    if not path:
+        return
+    with open(path, encoding="utf-8") as f:
+        skip = set(json.load(f))
+    kept = [item for item in items if item.nodeid not in skip]
+    dropped = [item for item in items if item.nodeid in skip]
+    if dropped:
+        config.hook.pytest_deselected(items=dropped)
+        items[:] = kept
+
+
 def pytest_configure(config):
     path = os.environ.get("PLANETGEN_PROGRESS_LOG")
     # Under xdist the controller sees every report the workers send; only the workers write.
