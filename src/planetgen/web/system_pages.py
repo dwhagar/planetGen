@@ -443,7 +443,7 @@ TYPE_LABELS = {
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
     "quasar": "Quasar", "hypervelocity_star": "Hypervelocity Star",
 }
-"""dict: Every phenomenon type (`queryDb._PHENOMENON_TABLES`) and its label."""
+"""dict: Every phenomenon type (`planetgen.db.query._PHENOMENON_TABLES`) and its label."""
 
 
 def _title_case(value):

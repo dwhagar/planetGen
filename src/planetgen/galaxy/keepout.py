@@ -3,7 +3,7 @@
 """
 The keep-out radius of an object (NAV.24): how close a course should come
 before it counts as entering the object's gravity. One rule per kind, the
-data for it read by `queryDb.keep_out_radius`:
+data for it read by `planetgen.db.query.keep_out_radius`:
 
 - planet, moon: its stored Hill radius;
 - star, system: the stored `system_perimeter_km` (the wider of the pair

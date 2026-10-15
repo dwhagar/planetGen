@@ -292,7 +292,7 @@ def linkify_nearest(location, name_to_id, system_url):
 
 
 def nearest_systems_html(neighbors, system_url):
-    """`{id, name, distance_ly}` neighbors (`queryDb.nearest_systems`) as
+    """`{id, name, distance_ly}` neighbors (`planetgen.db.query.nearest_systems`) as
     comma-separated links with their distances (the nearest `NEAREST_SHOWN`).
     HTML-safe markup."""
     def _distance(neighbor):
@@ -376,7 +376,7 @@ def format_density(edge_ly, system_count):
 
 def inside_text(row):
     """`"Inside <name>"` for a system or phenomenon that sits in a nebula
-    or supernova remnant (`queryDb.containing_cloud`, schema v39), else
+    or supernova remnant (`planetgen.db.query.containing_cloud`, schema v39), else
     `None`."""
     inside = row.get("inside")
     return f"Inside {inside['name']}" if inside else None

@@ -102,7 +102,7 @@ def build_knn_adjacency(positions, k):
     Runs in O(n log n) via a `scipy.spatial.cKDTree` (`_Points`; NAV.52) rather than the naive O(n^2) "sort every other point's
     distance, for every point" approach this replaced -- indistinguishable
     for a single sector's own handful of systems, but this same function
-    also backs a *galaxy*-scope NAV route (`queryDb.nav_between`,
+    also backs a *galaxy*-scope NAV route (`planetgen.db.query.nav_between`,
     `positions_near_segment`), over every system in every galaxy-placed
     sector generated so far. That set only ever grows as more of the
     galaxy gets visited/generated, and the O(n^2) version's own runtime

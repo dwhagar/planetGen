@@ -2817,7 +2817,7 @@ INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12
 """float: Interstellar comets and planetesimals (m-km) per pc^3 at
 REFERENCE_STELLAR_DENSITY_PC3, 1e11-1e14 (Engelhardt et al. 2017, AJ
 153:133; Seligman & Laughlin 2020, ApJL 896:L8) -- far too many for rows,
-so a sector shows it as a figure (`queryDb.interstellar_debris_count`)."""
+so a sector shows it as a figure (`planetgen.db.query.interstellar_debris_count`)."""
 
 RUNAWAY_STAR_SPEED_RANGE_KMS = (30.0, 200.0)
 """tuple: A runaway star's speed relative to its neighbors, km/s
