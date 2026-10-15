@@ -493,7 +493,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | done, PR #1317 |
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | done, PR #1376 |
 | DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings | none | done, PR #1423 |
-| DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | open |
+| DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | done, PR #1446 |
 | DB.28 | One migration for the facility type tables and the new facility columns | none | open |
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
