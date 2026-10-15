@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1222] - 2026-10-15
+
+### Fixed
+- **The API object-ID test takes the facility's host from the data** (TEST.154). `test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing` expected the facility's host to be the first planet the API lists, but its fixture puts the facility on the lowest planet row, and a random system lists its planets in another order about 1 time in 20 (4 of 80 on an idle machine). It now reads the host from the facility, checks it is one of the system's own planets and reaches every planet by its id; 0 failures in 150 draws.
+
 ## [8.0.1221] - 2026-10-15
 
 ### Changed
