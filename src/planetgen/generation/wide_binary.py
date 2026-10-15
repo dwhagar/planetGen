@@ -42,7 +42,8 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.random import log_uniform
 from planetgen.generation.star import Star
 from planetgen.physics.orbits import (
-    circular_orbital_speed_kms, holman_wiegert_critical_semimajor_axis, minimum_update_interval_years, orbital_position_au,
+    circular_orbital_speed_kms, hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis,
+    minimum_update_interval_years, orbital_position_au,
 )
 from planetgen.util.format import (
     format_distance_au, format_distance_km, properties_to_string, format_period_years, format_speed_kms,
@@ -181,12 +182,19 @@ class WideBinaryPair:
         # Each star's own critical semi-major axis is evaluated from THAT
         # star's perspective -- `mu` is always the *other* star's mass
         # fraction -- so the primary and secondary generally get different
-        # limits unless the two masses are equal. Stored directly on each
-        # `Star` (see `Star.a_crit_au`), not duplicated here.
-        primary.a_crit_au = holman_wiegert_critical_semimajor_axis(
-            self.separation_au, secondary.mass / total_mass_kg, self.eccentricity)
-        secondary.a_crit_au = holman_wiegert_critical_semimajor_axis(
-            self.separation_au, primary.mass / total_mass_kg, self.eccentricity)
+        # limits unless the two masses are equal. It is the tighter of the
+        # Holman & Wiegert fit and the star's own Hill sphere in the pair at
+        # periapsis (GEN.228): the fit is the usual limit, the Hill sphere
+        # the hard one nothing can stay bound beyond. Stored directly on
+        # each `Star` (see `Star.a_crit_au`), not duplicated here.
+        primary.a_crit_au = min(
+            holman_wiegert_critical_semimajor_axis(
+                self.separation_au, secondary.mass / total_mass_kg, self.eccentricity),
+            hill_radius_in_pair_au(self.separation_au, primary.mass / total_mass_kg, self.eccentricity))
+        secondary.a_crit_au = min(
+            holman_wiegert_critical_semimajor_axis(
+                self.separation_au, primary.mass / total_mass_kg, self.eccentricity),
+            hill_radius_in_pair_au(self.separation_au, secondary.mass / total_mass_kg, self.eccentricity))
 
     @property
     def primary_a_crit_au(self):
