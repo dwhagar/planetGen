@@ -88,16 +88,6 @@ export function wheelPixels(event, pageHeightPx, limitPx) {
   return Math.max(-limitPx, Math.min(limitPx, deltaPx));
 }
 
-// Where the orbit target goes so that the point `anchor` stays under the
-// same pixel while the camera's distance from the target changes by
-// `ratio` (new over old) and the view's turn stays: camera and target both
-// scale about the anchor (MAP.150, zooming toward the cursor).
-export function zoomAboutAnchor(target, anchor, ratio) {
-  return target.map(function (t, i) {
-    return anchor[i] + (t - anchor[i]) * ratio;
-  });
-}
-
 // The point where the ray (`origin`, unit `direction`) crosses the plane
 // through `target` at right angles to the unit `forward` axis (the way the
 // camera looks), or null when the ray runs along the plane or away from it.
@@ -133,6 +123,8 @@ export function pointOnFocusPlane(origin, direction, target, forward) {
 //                   where it went down, not with the right button) or
 //                   "click" (the browser's click, skipped after a drag);
 //   onClick(event, pointerType)   a click;
+//   onPanClick(event)   a pan press (right button or Shift) released where it
+//                   went down, a click that moves nothing;
 //   onHover(event)  the pointer moved with no press down;
 //   onLeave(event)  it left the canvas.
 export function createPointerControl(canvasEl, options) {
@@ -220,12 +212,14 @@ export function createPointerControl(canvasEl, options) {
     // A turn-at-once press is "dragging" from its first move: whether it
     // was a drag is the distance it travelled.
     const wasDrag = (pointer.dragging && !o.turnAtOnce) || pointer.pan || moved > clickPx;
+    const panClick = pointer.pan && !pointer.dragging && moved <= clickPx;
     pointer = null;
     try {
       canvasEl.releasePointerCapture(event.pointerId);
     } catch (err) {
       // Already released: nothing to clean up.
     }
+    if (panClick && o.onPanClick) o.onPanClick(event);
     if (o.clickOn === "click") {
       if (wasDrag) {
         suppressNextClick = true;

@@ -98,6 +98,27 @@ test("a pan press never clicks, and the right button never clicks", () => {
   assert.deepEqual(seen, []);
 });
 
+test("a pan press released where it went down is a pan click, not a click", () => {
+  const canvas = h("canvas");
+  const seen = [];
+  MC.createPointerControl(canvas, {
+    attach: true, dragClickPx: 6, buttons: [0, 2],
+    isPan: (event) => event.button === 2 || event.shiftKey,
+    onClick: () => seen.push("click"),
+    onPanClick: () => seen.push("pan-click"),
+  });
+  press(canvas, "pointerdown", 0, 0, { shiftKey: true });
+  press(canvas, "pointerup", 0, 0, { shiftKey: true });
+  press(canvas, "pointerdown", 0, 0, { button: 2 });
+  press(canvas, "pointerup", 1, 1, { button: 2 });
+  press(canvas, "pointerdown", 0, 0, { button: 2 });
+  press(canvas, "pointermove", 10, 0, { button: 2 });
+  press(canvas, "pointerup", 10, 0, { button: 2 });
+  press(canvas, "pointerdown", 0, 0);
+  press(canvas, "pointerup", 0, 0);
+  assert.deepEqual(seen, ["pan-click", "pan-click", "click"]);
+});
+
 test("turnAtOnce follows from the first move and eats the click after a drag", () => {
   const canvas = h("canvas");
   const seen = [];
@@ -138,12 +159,6 @@ test("two fingers pinch: the ratio is the first spread over the spread now", () 
   touch(control.up, 1, 0);
   assert.equal(started, 1);
   assert.deepEqual(ratios, [0.5]);
-});
-
-test("zoomAboutAnchor scales the target about the anchor so the anchor holds its place", () => {
-  assert.deepEqual(MC.zoomAboutAnchor([10, 0, 0], [0, 0, 0], 0.5), [5, 0, 0]);
-  assert.deepEqual(MC.zoomAboutAnchor([10, 4, 2], [10, 4, 2], 0.1), [10, 4, 2], "anchored on the target: nothing moves");
-  assert.deepEqual(MC.zoomAboutAnchor([1, 2, 3], [5, 6, 7], 1), [1, 2, 3]);
 });
 
 test("pointOnFocusPlane crosses the plane through the target at right angles to the view", () => {

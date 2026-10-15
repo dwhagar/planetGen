@@ -785,6 +785,23 @@ tbody tr:last-child td {
   background: var(--bg-subtle);
 }
 
+/* MAP.199: the center the view turns and zooms about -- always the middle
+   of the map -- marked with a small cross so it is always known. */
+.starmap-centre {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: -0.55rem 0 0 -0.55rem;
+  pointer-events: none;
+  opacity: 0.75;
+  background:
+    linear-gradient(var(--accent), var(--accent)) center / 2px 100% no-repeat,
+    linear-gradient(var(--accent), var(--accent)) center / 100% 2px no-repeat;
+  filter: drop-shadow(0 0 1px var(--bg-subtle));
+}
+
 .starmap-canvas {
   display: block;
   width: 100%;
