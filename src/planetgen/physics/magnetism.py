@@ -144,14 +144,14 @@ def _rocky_moment(body, mass_earth, age_gy):
     mobile_lid = draw.random() < mobile_lid_chance(body, mass_earth)
     if mass_earth < MIN_DYNAMO_MASS_EARTH or core < MIN_CORE_FRACTION:
         return 0.0
+    if mass_earth < 0.1 and core > 0.4:
+        return MERCURY_MOMENT_A_M2 * _log_normal(0.5)  # before the lifetime test: Mercury's field is alive at 4.5 Gyr
     if not mobile_lid:
         lifetime *= STAGNANT_LID_LIFETIME_FACTOR
     if core < 0.2:
         lifetime *= 0.5
     if age_gy >= lifetime:
         return 0.0
-    if mass_earth < 0.1 and core > 0.4:
-        return MERCURY_MOMENT_A_M2 * _log_normal(0.5)
     return (EARTH_MOMENT_A_M2 * mass_earth * (core / EARTH_CORE_FRACTION) * strength
             * (1.0 - age_gy / lifetime) ** 0.3)
 
