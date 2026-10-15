@@ -188,8 +188,8 @@ from `planetgen/web/lib/fmt.py`'s `static_url(name)`, which appends `?v=<package
 version>` (read from `src/planetgen/_version.py`, which the release
 Action stamps). A release therefore changes every static URL, and the
 web server can let browsers cache them for a year (see
-[`deployment/apache.md`](deployment/apache.md#static-files-compression-and-security-headers);
-every other guide in [`deployment/`](deployment/README.md) sets the same
+[`deployment/README.md`](deployment/README.md#what-every-setup-has-in-common);
+each platform guide in [`deployment/`](deployment/README.md) sets the same
 rule).
 The ES modules that import siblings (`galaxymap3d.js`, `systemmap.js`,
 `galaxymap3d.js`, `galaxystageview.js` -> `mapcore.js`, `mapcontrol.js`, `mappick.js`,
@@ -219,6 +219,9 @@ Every page is served by the same Flask app as the API
 pages used to be one CGI script each; the "Replaces" column names the
 old script, whose URL now answers with a 301 to the new page (see "Old
 URLs" below).
+
+The site has no help or about page yet. DOC.6 in the TODO adds a static help section (a page template, an index,
+a help link on each page and a test that every page has one); until then the pages explain themselves.
 
 | URL | Replaces | Shows |
 |---|---|---|

@@ -1,6 +1,6 @@
 # System Specification Files
 
-[`.planetgen`](.planetgen)'s `system` subcommand can load a full
+[`planetgen`](../src/planetgen/cli/generate.py)'s `system` subcommand can load a full
 (or partial) star system specification from a JSON file with
 `--system-file` / `-f`:
 

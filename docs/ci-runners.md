@@ -25,7 +25,7 @@ self-hosted default in the table.
 
 | Variable | Jobs | Default when `SELF_HOSTED` is `true` | Needs |
 |---|---|---|---|
-| `RUNNER_LINUX` | tests (3 database engines), browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` | Linux with Docker |
+| `RUNNER_LINUX` | tests (five legs: MySQL 8.0, MySQL 8.4 and MariaDB 11.4 with Redis, plus the 2- and 4-worker generation legs), browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` | Linux with Docker |
 | `RUNNER_LINUX_INSTALLERS` | `install.sh` and `update.sh` on Linux against a live database | `"ubuntu-latest"` | Linux with Docker; see [The installer jobs](#the-installer-jobs) |
 | `RUNNER_MACOS_INSTALLERS` | `install.sh` on macOS | `"macos-latest"` | see [macOS](#macos) |
 
@@ -119,9 +119,10 @@ The jobs set up everything else themselves:
 
 - **Python**: `actions/setup-python` downloads 3.9 and 3.12 into the
   runner's tool cache (`_work/_tool`) the first time they are needed.
-- **The database**: each test job starts its own MySQL or MariaDB
-  container on a free port, so jobs don't collide. A MySQL server you
-  already run on port 3306 is fine too.
+- **The database and Redis**: each test job starts its own MySQL or
+  MariaDB container and a `redis:7` container (the work queue and rate
+  limits need it) on free ports, so jobs don't collide. A MySQL server
+  you already run on port 3306 is fine too.
 - **Packages**: each job installs into its own virtualenv, which is
   deleted when the job ends.
 - **NLTK's `words` corpus**: downloaded once to `~/nltk_data`.
@@ -179,7 +180,7 @@ wipe, such as a VM you restore to a snapshot after each run.
 | A job sits in "Queued" forever | No online runner has all of its labels. Compare the job's labels (shown on the job page) with Settings > Actions > Runners. Fix the runner's labels, set the matching `RUNNER_*` variable, or set it to `"ubuntu-latest"` to use GitHub's machines. |
 | Runner shows Offline | The service isn't running. Run `sudo ./svc.sh status`, then `start`. |
 | `docker: command not found`, or `permission denied` on `/var/run/docker.sock` | Install Docker and add the runner user to the `docker` group, then restart the service (`sudo ./svc.sh stop && sudo ./svc.sh start`). |
-| A service container never becomes healthy | Docker can't pull the image (no internet or a proxy), or the machine is out of memory or disk. Run `docker pull mysql:8.0` by hand as the runner user to see the error. |
+| A service container never becomes healthy | Docker can't pull the image (no internet or a proxy), or the machine is out of memory or disk. Run `docker pull mysql:8.0` (or `redis:7`, `mariadb:11.4`) by hand as the runner user to see the error. |
 | setup-python can't find 3.9 or 3.12 | Its downloads are built for Ubuntu. On other distributions, install those versions into the runner's tool cache yourself, or run this runner in an Ubuntu VM. |
 | Hundreds of jobs queued, new ones wait for hours | Runs queued before the runners came online are worked through oldest first. Cancel the stale ones: Actions tab > filter "is:queued" > open each run > Cancel workflow run. |
 | Old pull requests' "Release note" check fails saying the PR "changes the version" | A run that waited in the queue was comparing against today's main. Fixed: the check now compares against the base the run started from. Re-run it, or ignore it on merged PRs. |

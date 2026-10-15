@@ -193,8 +193,8 @@ as before).
 
 `scripts/test.py` always ends with one line: `PASS in <time>: <counts>`, `FAIL in <time>: <counts>`, or `INTERRUPTED ...`
 (Ctrl-C or a SIGTERM; it stops pytest first). Output that ends with none of these was killed. A full run takes about
-45 to 75 minutes, so start it in the background with a timeout of at least 90 minutes (7,200,000 ms; the default 30
-minutes cuts it), with its output and start time written to a file, and read the last line of that file rather than
+35 to 50 minutes (34 min 32 s on a 4-core machine, 2026-10-15), so start it in the background with a timeout of at least
+90 minutes (7,200,000 ms; the default 30 minutes cuts it), with its output and start time written to a file, and read the last line of that file rather than
 looking for processes.
 
 ### A test that hangs
@@ -294,8 +294,9 @@ the TODO).
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK
 corpus (`python -m nltk.downloader words`), MariaDB or MySQL with a user that
-has `ALL ... WITH GRANT OPTION` (one test creates a restricted user), Redis,
-and a Playwright whose Chromium matches the one on the machine: the image
+has `ALL ... WITH GRANT OPTION` (one test creates a restricted user), Redis
+(`redis-server --daemonize yes`, then `export PLANETGEN_TEST_REDIS_URL=redis://127.0.0.1:6379/0`; the tests that
+need it skip without that variable), and a Playwright whose Chromium matches the one on the machine: the image
 carries Chromium 1194, so use `pip install playwright==1.56.0` (a newer
 Playwright asks for a build the image does not have and every browser test
 skips). `markdown` must be 3.11 as in `requirements.lock`; 3.11.1 fails 74
@@ -303,9 +304,10 @@ tests (see TEST.139 in the TODO).
 
 ## Database engines
 
-Local runs here use MariaDB 10.11. CI's `test` job runs the whole suite
-three times on Python 3.12: MySQL 8.0, MySQL 8.4 and MariaDB 11.4. MySQL 8 is stricter about reserved words and `GROUP BY`
-than MariaDB, so a query that works locally can still fail there.
+Local runs here use MariaDB 10.11. CI's `test` job has five legs, each with its own Redis container: the whole
+suite on Python 3.12 against MySQL 8.0, MySQL 8.4 and MariaDB 11.4, then the `generation` tests alone with 2 workers
+(MySQL 8.4, Python 3.12) and with 4 workers (MariaDB 11.4, Python 3.13). MySQL 8 is stricter about reserved words and
+`GROUP BY` than MariaDB, so a query that works locally can still fail there.
 
 ## Kinds of test
 
@@ -438,9 +440,8 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
 
 ## When CI runs
 
-`.github/workflows/ci.yml` (every test leg: math check, MySQL 8.4, MariaDB
-11.4, MySQL 8.0, browser and accessibility, the JS tests, the
-installer checks) never runs on a push or a pull request. It runs:
+`.github/workflows/ci.yml` (the math check, the five test legs described under "Database engines", browser and
+accessibility, the JS tests, the installer checks, the dependency audit) never runs on a push or a pull request. It runs:
 
 - **On a schedule**, on main (every day at 07:00 UTC; the `cron` line in
   the file). The same scheduled run starts CI on every remote branch named

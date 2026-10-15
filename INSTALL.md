@@ -302,10 +302,10 @@ editable install with the test extras:
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[test,api]"
-pytest -n auto
+scripts/test.py changed       # the tests your change touches; `full --check` runs everything
 python3 src/html/wsgi.py      # the site at http://127.0.0.1:5000/
 ```
 
 Set `admin_cookie_insecure` in `config.json` to log in over plain HTTP
-locally. Database tests need a MySQL server and skip without one; see
-[`docs/testing.md`](docs/testing.md).
+locally. Database tests need a MySQL or MariaDB server, and the work-queue tests need Redis
+(`PLANETGEN_TEST_REDIS_URL`); both skip without one. See [`docs/testing.md`](docs/testing.md).
