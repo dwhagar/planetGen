@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1127] - 2026-10-15
+
+### Fixed
+
+update.sh no longer stops at "Migrating the configured MySQL database" with "'NoneType' object has no attribute 'is_auth_switch_request'". pymysql 1.2.3, the current release, fails that way when a MySQL 8 account (caching_sha2_password) logs in the first time after a server start on a server without TLS; the fix is merged upstream but not yet released, so planetGen now logs in through pymysql's own step with the one-line difference described in `planetgen/db/login.py`. The library check now requires pymysql 1.2.3 or newer, and a failed login prints "Couldn't log in to the database server at host:port as 'user'" with what to check, from every command (OPS.49).
+
 ## [8.0.1126] - 2026-10-15
 
 ### Added
