@@ -171,6 +171,42 @@ def test_a_stagnant_lid_shortens_the_dynamo_and_a_mobile_lid_keeps_it():
     assert young.magnetic_moment_a_m2 > 0
 
 
+def test_europas_ocean_gives_the_induced_dipole_galileo_saw():
+    """GEN.178: Europa's 100 km MgSO4 ocean in Jupiter's field turning every 11.2 h answers at about 100 nT."""
+    synodic = magnetism.synodic_period_s(9.925, 85.228 / 24.0 / 365.25)
+    assert synodic / 3600.0 == pytest.approx(11.23, abs=0.05)
+    moment, response = magnetism.induced_moment(1.56e27, 6.711e8, synodic, 1.5608e6, 2.75 * 100e3, 1.5608e6 - 20e3)
+    assert response > 0.95
+    equatorial_nt = magnetism.VACUUM_PERMEABILITY / (4.0 * math.pi) * moment / 1.5608e6 ** 3 * 1e9
+    assert 70 < equatorial_nt < 160
+    # Callisto, 2.8x further out in the same field, is weaker by the cube of the distance and a thinner response.
+    callisto, _ = magnetism.induced_moment(1.56e27, 1.8827e9, magnetism.synodic_period_s(9.925, 400.5 / 24 / 365.25),
+                                           2.41e6, 1.0 * 100e3, 2.41e6 - 100e3)
+    assert 0.02 * moment < callisto < 0.4 * moment
+
+
+def test_induction_needs_an_ocean_a_field_and_a_changing_field():
+    """GEN.178: no ocean, no parent field, a locked parent or a dry moon give none; a thin ocean gives less."""
+    moment = magnetism.induced_moment
+    assert moment(0.0, 6.7e8, 4.0e4, 1.5e6, 2.75e5, 1.4e6)[0] == 0.0     # no parent field
+    assert moment(1.56e27, 6.7e8, None, 1.5e6, 2.75e5, 1.4e6)[0] == 0.0  # the parent turns with the moon
+    assert moment(1.56e27, 6.7e8, 4.0e4, 1.5e6, 0.0, 1.4e6)[0] == 0.0    # no conducting layer
+    thick = moment(1.56e27, 6.7e8, 4.0e4, 1.5e6, 2.75e5, 1.4e6)
+    thin = moment(1.56e27, 6.7e8, 4.0e4, 1.5e6, 2.75e1, 1.4e6)
+    assert thin[1] < thick[1] and thin[0] < thick[0]
+    parent = types.SimpleNamespace(magnetic_moment_a_m2=1.56e27, rotation_period_hours=9.925, dipole_class="strong",
+                                   body_type="g", is_moon=False)
+    europa = types.SimpleNamespace(hydrosphere="ice-covered ocean", ocean_depth_km=100.0, ice_shell_km=20.0,
+                                   ocean_class="neutral", period=85.228 / 24.0 / 365.25, distance=6.711e8 / 1.496e11,
+                                   radius=1560.8)
+    magnetism.generate_induced_field(europa, parent)
+    assert 2e18 < europa.induced_moment_a_m2 < 8e18
+    for state in ("dry", "ice", "vapour"):
+        europa.hydrosphere = state
+        magnetism.generate_induced_field(europa, parent)
+        assert europa.induced_moment_a_m2 == 0.0
+
+
 def test_earths_magnetopause_is_ten_radii():
     body = _body(1.0, 5.51, 24.0)
     body.magnetic_moment_a_m2 = magnetism.EARTH_MOMENT_A_M2
@@ -198,3 +234,26 @@ def test_generated_bodies_store_their_field_and_exposure():
             assert planet.xuv_flux_earth == pytest.approx(
                 activity.xuv_flux_earth(planet.star, planet.distance))
     assert {"none", "strong"} <= seen
+
+
+def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
+    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from tests.fuzz_support import deterministic_entropy
+
+    moons = 0
+    for seed in range(6):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if not hasattr(planet, "moons"):
+                continue
+            assert planet.induced_moment_a_m2 is None
+            for moon in planet.moons:
+                moons += 1
+                assert moon.induced_moment_a_m2 is not None and moon.induced_moment_a_m2 >= 0.0
+                if moon.hydrosphere not in magnetism.INDUCTION_HYDROSPHERES:
+                    assert moon.induced_moment_a_m2 == 0.0
+    assert moons > 5

@@ -26,7 +26,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import life as planetLife, prevalence, validation
-from planetgen.physics import constants
+from planetgen.physics import constants, magnetism
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -477,6 +477,7 @@ class StarSystem:
                 planetLife.apply_life_data(obj)
                 planetLife.decide_flavor_text(obj)
                 for moon in obj.moons:
+                    magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
 
