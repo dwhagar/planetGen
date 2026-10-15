@@ -75,8 +75,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.9 | A tech level generated for every technological species |  |  |
-| POP.7 | Tech levels for technological species | POP.9 | Parent. |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings |  |  |
 
 ### Nebula planets
