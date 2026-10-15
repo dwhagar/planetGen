@@ -3913,7 +3913,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for the download link, last 20 kept. Done when: the pages need no
   MySQL job tree and cancel is measured under a second on a 75-job run.
   The all-visitors banner is not in this step: it is UX.3 (Foundations UX),
-  built on the run record after PERF.96 (Boss-visible decision by the
+  built on the run record after PERF.96 (decided by the
   coordinator, 2026-10-15).
   Prerequisite: PERF.98. Related: PERF.86, UX.3.
 
