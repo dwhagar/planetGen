@@ -363,7 +363,8 @@ test("the whole galaxy turns and zooms in to half its fit, never out past it", a
   const wheel = (deltaY, deltaMode) => m.view.onWheel(new FakeEvent("wheel", { deltaY, deltaMode: deltaMode || 0 }));
   assert.equal(wheel(100), true, "the wheel zooms");
   assert.ok(Math.abs(lastCamera(m).dist - fit.dist) < 1e-9 * fit.dist, "no further out than the fit");
-  for (let n = 0; n < 100; n++) wheel(-3, 1);
+  // Up to the limit; one more tick there takes the block under the pointer (MAP.152), tested below.
+  for (let n = 0; n < 100 && lastCamera(m).dist > fit.dist * SV.GALAXY_MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
   assert.ok(Math.abs(lastCamera(m).dist - fit.dist * SV.GALAXY_MIN_ZOOM) < 1e-6 * fit.dist, "twice as close at most");
   m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 0, pointerType: "mouse" }));
   m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 480, clientY: 260, pointerId: 1, pointerType: "mouse" }));
@@ -612,10 +613,24 @@ test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () =
   const wheel = (deltaY, deltaMode) => m.view.onWheel(new FakeEvent("wheel", { deltaY, deltaMode: deltaMode || 0 }));
   assert.equal(wheel(100), true);
   assert.ok(lastCamera(m).dist > fit, "scrolling down zooms out");
-  for (let n = 0; n < 50; n++) wheel(200);
+  // Up to each limit; one more tick there carries the zoom to the next stage (MAP.152, tested below).
+  for (let n = 0; n < 50 && lastCamera(m).dist < fit * SV.MAX_ZOOM * (1 - 1e-6); n++) wheel(200);
   assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MAX_ZOOM) < 1e-6 * fit);
-  for (let n = 0; n < 100; n++) wheel(-3, 1);
+  for (let n = 0; n < 100 && lastCamera(m).dist > fit * SV.MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
   assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MIN_ZOOM) < 1e-6 * fit);
+});
+
+test("the wheel past the end of a window's zoom goes on into the block under the pointer, and out to the parent (MAP.152)", async () => {
+  const m = await freeStage();
+  const fit = lastCamera(m).dist;
+  const wheel = (deltaY, deltaMode, at) => m.view.onWheel(new FakeEvent("wheel", Object.assign({ deltaY, deltaMode: deltaMode || 0 }, at || {})));
+  for (let n = 0; n < 100 && lastCamera(m).dist > fit * SV.MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
+  assert.equal(m.view.stage().win.centre.m, 81, "still in the window at its closest");
+  wheel(-3, 1);
+  assert.equal(m.view.stage().win.centre.m, 27, "one tick more takes the block: the window one size down");
+  // A glide of further ticks only zooms: one stage a gesture.
+  for (let n = 0; n < 10; n++) wheel(-3, 1);
+  assert.equal(m.view.stage().win.centre.m, 27);
 });
 
 test("the wheel zooms about the view's one center, wherever the pointer is (MAP.199)", async () => {
