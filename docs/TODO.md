@@ -1506,7 +1506,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: star and object sizes in the sector view follow the Galaxy Map's
   look at the hand-off (no jump in apparent size), the sector map
   matches, on both themes, with a browser test. Owner: Bugfixes lane 1
-  (Bug 1), right after OPS.50. It touches the shared star drawing
+  (Bug 1), right after OPS.50 (done, PR #1425). It touches the shared star drawing
   (galaxymap3d.js, starfade.js, sectorscene.js and the star shader) that
   Foundations Maps changes in MAP.152 (server part merges about 02:55Z,
   client part next), so start from main after that merge. GitHub issue
@@ -3052,7 +3052,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mSv/yr as two quantities. Decided (Boss, 2026-10-10 18:44Z, defaults
   approved; default: 20 mSv/yr
   for the Blue tier, 50 as the single-year limit).
-  Prerequisite (the flux_variation part only): DB.26.
+  Prerequisite (the flux_variation part only): DB.26 (done, PR #1423).
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.149 Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K**
@@ -3075,7 +3075,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ionizes about 0.8 ly, and class radii are drawn independently of the
   stars. The nebula age window must join the `_bright_table` cache key
   `(threshold, population)`.
-  Prerequisites: DB.26 (the nebula age_myr, q_total and hosts columns).
+  Prerequisites: DB.26 (done, PR #1423; the nebula age_myr, q_total and hosts columns).
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.151 Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up)**
@@ -3226,7 +3226,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   modelled. Done: the induced field is computed for ocean moons and
   stored beside the intrinsic field, with a test on a known case (a
   Europa-like moon of a gas giant).
-  Prerequisites: DB.26 (the induced_moment_a_m2 column), GEN.88 merged (PR #963). Related: GEN.86.
+  Prerequisites: DB.26 (done, PR #1423; the induced_moment_a_m2 column), GEN.88 merged (PR #963). Related: GEN.86.
 
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
   Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
@@ -3388,7 +3388,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-14 19:54Z, on a decision
   card relayed by the coordinator): Suitability is the lowest of three,
   water access, food and shelter, as a 0 to 1 number.
-  Prerequisite: DB.26 (the one migration for the new columns). Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+  Prerequisite: DB.26 (done, PR #1423; the one migration for the new columns). Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -4080,24 +4080,32 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.26 One migration for the habitability columns: flux variation and the air, water and suitability ratings**
-  Foundations Generation, 2026-10-15, relayed by the coordinator:
-  Foundations Generation may not add migrations, so it needs this one
-  from Foundations Database. One Alembic migration on planets and moons:
-  add flux_variation (for GEN.148), add induced_moment_a_m2 after
-  dipole_class (for GEN.178, the induced field of an ocean moon), rename phi4_chemistry and
-  tier_chemistry to phi4_air and tier_air, and add phi4_water,
-  tier_water, phi4_suitability and tier_suitability (for GEN.207, which
-  splits chemistry into air and water and adds the Suitability
-  dimension), and on the nebula table add age_myr, q_total and hosts, all
-  nullable (for GEN.150, H II regions from the ionizing photon rate). The exact column types and defaults come from the spec the
-  coordinator sent to Foundations Database. It blocks GEN.207
-  (Foundations Generation's first item), the flux_variation part of
-  GEN.148, GEN.178 and GEN.150, so it goes first in the Foundations Database queue, ahead of
-  ADM.54 and the Redis rebuild (generation corrections come first; Boss,
-  2026-10-10 22:19Z). No old-column compatibility shim (Boss,
-  2026-10-07).
-  Prerequisites: none. Related: GEN.207, GEN.148, GEN.178.
+- [ ] **DB.27 One migration for the species tech-level columns: six indices, tech level and tech source**
+  Asked for by Foundations Generation through the coordinator
+  (2026-10-15 02:23Z): POP.9 needs one migration and Foundations
+  Database is the only lane adding migrations. Add to `species` the
+  columns `energy_index`, `materials_index`, `information_index`,
+  `medical_index`, `propulsion_index` and `defense_index` (TINYINT
+  UNSIGNED, CHECK 0..7, NULL until drawn), `tech_level` DECIMAL(3,2)
+  with an index for range search, and `tech_source` ('generated' or
+  'admin'), as listed under "Planned columns (POP.9, POP.10)" in
+  docs/design/population-and-politics.md. Done: the migration (next
+  number after 0087, schema v88) with its old-schema fixture and tests,
+  merged so Foundations Generation can build POP.9 on it. Owner:
+  Foundations Database, first in its queue after DB.26.
+  Prerequisites: none. Related: POP.9, POP.10, DB.28.
+
+- [ ] **DB.28 One migration for the facility type tables and the new facility columns**
+  Needed by POP.10 (Foundations Generation), same rule as DB.27: only
+  Foundations Database adds migrations. Add `facility_types`,
+  `facility_type_fields` and `facility_field_values`, and the new
+  columns on `facilities` (type, affiliation, the five Green/Yellow/Red
+  ratings and the rating source), as laid out under "Data model" in the
+  facility section of docs/design/population-and-politics.md. Done: the
+  migration (next after DB.27's) with its old-schema fixture and tests,
+  merged so POP.10 can be built on it. Owner: Foundations Database,
+  right after DB.27.
+  Prerequisites: DB.27. Related: POP.10, DB.27.
 
 ## API: The JSON API
 
@@ -5502,19 +5510,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.50 Keep the pymysql login workaround and make it compatible with the upstream fix**
-  Boss, 2026-10-15 00:46Z: the caching_sha2 workaround in
-  planetgen/db/login.py (OPS.49, merged in #1387) stays; it is not
-  removed. Make it compatible with the upstream fix (PyMySQL PR 1275,
-  merged 2026-09-18, unreleased) so that once pymysql answers that step
-  itself the plugin hook steps aside or behaves identically and nothing
-  changes for users. The hook detects whether the installed pymysql
-  already answers the step; tests cover the current library and a
-  stand-in that behaves like the fix; the clear login error stays.
-  GitHub issue
-  [#1392](https://github.com/dwhagar/planetGen/issues/1392).
-  Prerequisites: none.
-
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
@@ -6338,6 +6333,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
     limiting domain (lowest of E, M, I) and the lopsided flag (max minus
     min at least 3) are derived, not stored; show the tech band name
     beside the age era on the species page.
+    Prerequisite: DB.27 (the migration).
     Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
@@ -6362,6 +6358,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   types refine the five
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
+  Prerequisite: DB.28 (the migration).
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.11 Scatter space vessels and stations for the races in their territories**
