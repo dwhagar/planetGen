@@ -5554,6 +5554,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   queue/work.py (247) and cli/generate.py (1376). PERF.88 (the numba
   sector-path integrator) is still open, so say so. Done: the notes and
   comments match OPS.42 and GEN.211.
+  Progress (PR #1592, Quality): the notes and two of the comments are
+  done. One leftover: the Python 3.9 docstring and workaround
+  `reject_lost_option_values` in cli/generate.py is dead on 3.12; Quality
+  removes it after the spherical switch merges, because generate.py is in
+  the switch.
   Prerequisites: none. Related: PERF.88.
 
 - [ ] **DOC.25 Refresh docs/design/design-decisions.md: mark the reversed and built decisions**
