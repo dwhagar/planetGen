@@ -6,7 +6,7 @@ import math
 
 import pytest
 
-from planetgen.galaxy import geometry
+from planetgen.galaxy import spherical
 from planetgen.physics import constants
 from planetgen.physics import sector_path as sp
 
@@ -135,8 +135,8 @@ def test_paths_chain_across_sectors_from_the_exit_state():
 def test_sector_inside_follows_the_grid_cell():
     edge_pc = 4.0
     address = (1500, 2, 700)
-    centre_pc = geometry.sector_position_pc(*address, edge_pc)
+    centre_pc = spherical.sector_position_pc(*address, edge_pc)
     inside = sp.sector_inside(address, edge_pc)
     assert inside(tuple(c * PC for c in centre_pc))
-    far = tuple(c * PC for c in geometry.sector_position_pc(1500, 2, 703, edge_pc))
+    far = tuple(c * PC for c in spherical.sector_position_pc(1500, 2, 703, edge_pc))
     assert not inside(far)
