@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -231,85 +231,6 @@ with `clamp()`.
   Queue page and job log. Foundations UX starts it when PERF.96 has merged.
   Prerequisite: PERF.96.
 
-- [ ] **UX.22 Meaningful units for every measurement**
-  Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
-  like we have so that we always have meaningful units. From mass, to
-  distance, to time, to speed, just everything that can have units.
-  Atmospheric pressure and surface conditions should show customary
-  units as well as a secondary to help contextualize the metric values
-  given." Today only distance has a ladder (`format_distance_m` and
-  friends in `stellarObjects/utils.py` and `html/lib/fmt.py`, mirrored
-  by `static/distance.js`), speed (UX.13: `format_speed_kms`,
-  `static/speed.js`) and durations (UX.14: `format_duration_seconds`,
-  `format_period_years`, `static/period.js`). Done: one ladder per quantity, in Python with a JavaScript
-  mirror, picking a meaningful unit the same way, and every page, map
-  panel and form converted to it: mass (kg, Earth, Jupiter and solar
-  masses), distance, time, speed, temperature, pressure, gravity,
-  density, luminosity, power and any other quantity shown with a unit.
-  Surface conditions show temperature in K, °C and °F; atmospheric
-  pressure and the other surface conditions show a customary unit
-  (such as atm, psi or g) beside the metric value. Surface
-  temperature (K, °C, °F) and pressure (kPa, atm, psi) shipped in PR
-  #234; this item covers the rest. Question (decided below): the ladder
-  and switch
-  points for each quantity; which customary unit goes with each surface
-  condition; whether the secondary unit shows in tables or only in
-  detail panels.
-  Research (2026-10-09, units-and-number-formatting.md): answer the open
-  questions with the defaults in section 1 of the doc (ladder and switch
-  points per quantity; atm, psi and bar for pressure; g and m/s² for
-  gravity, ft/s² under Customary; °F for temperature; lb and mi only
-  under the Customary preset). Secondary units show in detail panels,
-  property grids and generator text; table rows and chips show the
-  primary unit with the secondary in a tooltip. The rogue-planet page
-  (`web/system_pages.py` `_temperature_text`, `_pressure_text`) still
-  bypasses the shipped K/°C/°F and pressure formatters. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults taken): lunar-mass rung
-  wanted (0.01 lunar mass to
-  0.1 Earth mass; Jupiter masses from 0.1 M_J; solar masses from 0.075
-  M☉); keep "AU" and accept "au" on input; no fourth in-universe unit
-  set.
-
-  - [ ] **UX.23 A shared unit-ladder module**
-    Done: one Python ladder module (in `stellarObjects/utils.py` or a new
-    `units.py`) and its JavaScript twin, generalising the existing
-    distance, speed and duration ladders, with a test that the Python and
-    JavaScript twins agree for a table of values. Then one sub-item per
-    quantity family: mass; temperature; pressure and gravity; density,
-    luminosity and power.
-    Plan (2026-10-07): The ladder is built on astropy.units (GEN.66).
-    Research (2026-10-09, units-and-number-formatting.md): re-scope to a
-    data-driven ladder table in Python, one generated JS data file and
-    one algorithm per language, built on astropy constants. Step 0: the
-    module, a generated `unitladders.js`, wrappers keeping the old
-    names; behaviour-preserving, proven by a 600,000-value equivalence
-    run against the current formatters, plus the rounding fix as the one
-    deliberate output change. Replace the sub-item list with the
-    migration order in section 5: distance, time,
-    temperature/pressure/gravity, mass, luminosity/power/flux,
-    density/number density/magnetic field/angles, JS stragglers,
-    preference menu. Add the seven Hypothesis/parity tests of section 4
-    to "Done". The text names `stellarObjects/utils.py` and
-    `html/lib/fmt.py`; the files are now `src/planetgen/util/format.py`
-    and `src/planetgen/web/lib/fmt.py`.
-  Decided (2026-10-10): Boss (19:12Z): accept the research unit table in
-  units-and-number-formatting.md (ladders, switch points, customary
-  pairings).
-  Progress (2026-10-15): step 0 merged (PR #1427): one unit-ladder
-  table and algorithm for distance, speed and time, in Python and the
-  browser. Next steps follow in the migration order (UX.81 kyr/Myr/Gyr
-  and AU from 1,000,000 km, then UX.22 temperature, pressure, gravity).
-  Progress (2026-10-15, PR #1450, Foundations UX): steps 0 to 3 done:
-  distance, speed, time, temperature, pressure and gravity run through
-  the shared ladders. Step 4 done (PR #1480): masses run through the
-  ladder (kg, lunar, Earth, Jupiter, solar). Step 5 done (PR #1488):
-  luminosity, power and heat flow run through ladders. Step 6 done
-  (PR #1497): density and magnetic field units.
-  Remaining (step 7): the leftover `toFixed` calls in `galaxymap3d.js`
-  and `galaxystageview.js` (coordinates, angles; folded in from UX.81),
-  and the JavaScript lint test that bans direct `toFixed` for unit
-  values.
-
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
   Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
   and moon from the row display just giving class instead of class and
@@ -419,28 +340,6 @@ with `clamp()`.
   three presets, per browser).
   Prerequisite: UX.23.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
-- [ ] **UX.81 Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3**
-  Rename before GEN.87 introduces the gray (touches `PERIOD_LADDER`,
-  `format_age_string`, `period.js`, tests). Start the AU rung at
-  1,000,000 km (0.0067 AU) so inner-system distances never print as
-  "5.79 × 10⁷ km", and use scientific text below mantissa 1e-3 for every
-  rung (pressure prints "0.00000000000025 Pa" today). Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults yes): the rename and
-  the AU start. Also pass
-  `aria-valuetext` the unit name, not the symbol, in `facilityform.js`,
-  and route direct `toFixed`/`toPrecision` calls in `systemview3d.js`,
-  `galaxysystem.js`, `galaxymap3d.js`, `galaxystages.js` and
-  `galaxystageview.js` through the ladders.
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-  Progress (2026-10-15, PR #1450, Foundations UX): done: the kyr, Myr
-  and Gyr symbols, AU from 1,000,000 km, scientific text for tiny
-  values, `aria-valuetext` with the unit name, and the `systemview3d.js`
-  and `galaxysystem.js` routing. Left over: the direct `toFixed` calls
-  in `galaxymap3d.js` and `galaxystageview.js` (coordinates, angles,
-  luminosity), now steps 5 to 7 of UX.22. UX.81 retires when UX.22
-  finishes those.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
@@ -575,9 +474,9 @@ with `clamp()`.
   habitability text), the CLI query lines, the class page radius ranges,
   and the wide-binary, comet, nebula and quasar numbers. The ladders
   themselves (mass, temperature, pressure, Gyr rename) are UX.22, UX.23
-  and UX.81 (Foundations UX); this item is the call sites outside the
+  and UX.81 (Foundations UX, all done); this item is the call sites outside the
   files they edit.
-  Prerequisite: UX.23. Related: UX.22, UX.81.
+  Prerequisite: UX.23. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
 - [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
   Nebulae, remnants, quasar, rogue planets, asteroid fields, sector
