@@ -525,7 +525,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | open |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
 | DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | done, PR #1594 |
-| DOC.26 | Give every design note a status line and refresh the stale ones | none | open |
+| DOC.26 | Give every design note a status line and refresh the stale ones | none | done, PR #1596 |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
 | DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | done, PR #1581 |
