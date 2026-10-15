@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -6089,36 +6089,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
 #184.
 
-- [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
-  Boss (2026-10-03 05:38Z): "Add facility types that are programable and
-  can be selected from a dropdown when adding facilities.  Facility data
-  should include affiliation and a place to store data like a
-  Green/Yellow/Red system for saying the facilities crime, housing,
-  resources, maintenance, and health." Today facilities
-  (`facilities.py`, ADM.9) have no type list. Done: admins define
-  facility types (name, icon, fields) and pick one from a dropdown when
-  placing a facility; each facility stores an affiliation and
-  Green/Yellow/Red ratings for crime, housing, resources, maintenance
-  and health.
-  Research (2026-10-09, population-and-politics.md): may split into (a)
-  types and typed fields with admin CRUD and API, (b) an affiliation FK
-  plus name snapshot, (c) five ratings, the chip component and the icon
-  allowlist, (d) optional "suggest ratings". The rating chip shows an
-  icon and the word, not colour alone (palette in the design doc). The
-  icon allowlist and vendoring (60 to 100 Bootstrap Icons, MIT licence
-  file kept) is a small separate task under UX.43 or UX.49. Decided
-  (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken): facility
-  types refine the five
-  existing kinds rather than replace them; ship the mechanism plus one
-  example type.
-  Progress (2026-10-15): the API part merged in PR #1517 (facility
-  types and typed fields, affiliation, the five ratings, PATCH, list and
-  suggest routes, no migration). The web part (system page chips,
-  placement and edit forms, admin Facility types page) remains; the
-  item retires with it.
-  Prerequisite: DB.28 (the migration; done, PR #1476).
-  Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
-
 - [ ] **POP.11 Scatter space vessels and stations for the races in their territories**
   GitHub issue [#1226](https://github.com/dwhagar/planetGen/issues/1226)
   (Boss, 2026-10-12 23:27Z): "Also part of population and tech, have the
@@ -6129,7 +6099,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   level allows vessels and which stations is set from the tech-level
   design (docs/design/Technological Assessment.md and the "Tech levels"
   section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
-  Prerequisite: USR.10. Related: POP.7 (done, PR #1461), POP.10, USR.10.
+  Prerequisite: USR.10. Related: POP.7 (done, PR #1461), POP.10 (done, PRs #1517 and #1524), USR.10.
 
 - [ ] **POP.12 List every species that could live in a given environment, and give every species its environment limits**
   Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
@@ -6173,11 +6143,11 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   homeworld that exists, a unique name) and refreshes the "could live
   here" lists; an admin-made species is marked as such and survives a
   reseed like other admin edits. Same shape as the facility type editor
-  (POP.10) and the same admin patterns (ADM.9). Owner: Foundations UX
+  (POP.10, done) and the same admin patterns (ADM.9). Owner: Foundations UX
   for the page, Foundations Generation for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
-  Prerequisite: POP.12. Related: POP.10, POP.9, ADM.9.
+  Prerequisite: POP.12. Related: POP.10 (done, PRs #1517 and #1524), POP.9, ADM.9.
 
 - [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
   Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
@@ -6201,4 +6171,4 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   is only acceptable with equipment counts as outside the limits unless
   the placement says it is a habitat or vessel (default: only unaided
   survival counts for a planet or moon surface).
-  Prerequisite: POP.12. Related: POP.12, POP.13, POP.11, POP.10.
+  Prerequisite: POP.12. Related: POP.12, POP.13, POP.11, POP.10 (done, PRs #1517 and #1524).

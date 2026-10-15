@@ -75,7 +75,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings |  |  |
 | POP.12 | List every species that could live in a given environment, and give every species its environment limits | DB.30, POP.9 |  |
 | POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | POP.12 |  |
 | DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
