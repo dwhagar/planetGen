@@ -494,6 +494,20 @@ P-type planets see the combined luminosity with a flux that varies with the inne
 pair's period. GEN.84's score needs a `flux_variation` input; GEN.86 (activity and
 flares) is per star and the flux is summed.
 
+**As built (GEN.148).** `physics/insolation.py` sets `flux_variation` on every planet
+and moon (a gas giant keeps none, its moons take its value): the peak-to-peak swing of
+the planet's total light as a fraction of its mean, 0 for a lone star. For a planet of
+one star of a wide pair it is the companion's `L_c (1/periapsis^2 - 1/apoapsis^2)` over
+the mean total `L_h/d^2 + L_c/(a^2 sqrt(1 - e^2))`; for a circumbinary planet it is
+`4 delta / d` with `delta = |L1 r1 - L2 r2| / (L1 + L2)` the luminosity centroid's offset
+from the barycentre (`r1 = a m2/M`, `r2 = a m1/M`). The Temperature domain scores the
+worse of the cold and hot extremes `T (1 -+ f/2)^(1/4)` of the cycle, and the wet-bulb
+test reads the hot one. The equilibrium temperature itself still comes from the host star's
+light alone: the companion's mean share is at most a few percent of a planet's light
+(under 0.1% for a companion beyond 100 AU) and a planetGen simplification kept for now.
+Over 200 generated systems the median swing of a wide pair's planet is about 5e-7 (the
+largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 0.46).
+
 ### 6.6 Placement by population (GEN.103)
 
 Multiplicity depends on the stellar population: the close-binary fraction rises

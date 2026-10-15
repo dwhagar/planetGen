@@ -1,0 +1,93 @@
+# planetgen/physics/insolation.py
+
+"""
+Summed insolation of a planet in a multi-star system (GEN.148).
+
+A planet's light is a sum, `S = sum(L_i / d_i^2)`, over every star. For a planet of one star of a wide
+(S-type) pair the companion adds `L_c <1/d^2>` with the time-average over its eccentric orbit
+`<1/d^2> = 1 / (a^2 sqrt(1 - e^2))`, and the total swings between the companion's periapsis and apoapsis.
+For a circumbinary (P-type) planet the two stars' lights are summed at the barycentre and the total
+varies with the pair's period because the brighter star is not at the barycentre
+(`docs/design/multistar-and-compact-systems.md` 6.5).
+
+`flux_variation` is the fractional peak-to-peak swing of a planet's total insolation, 0 for a lone
+star. Luminosities may be in any one unit and distances in AU.
+"""
+
+import math
+
+
+def mean_inverse_square(semi_major_axis_au, eccentricity):
+    """`<1/d^2>` over an eccentric orbit, 1/AU^2."""
+    return 1.0 / (semi_major_axis_au ** 2 * math.sqrt(1.0 - eccentricity ** 2))
+
+
+def companion_swing(host_luminosity, distance_au, companion_luminosity, periapsis_au, apoapsis_au):
+    """
+    The peak-to-peak swing, as a fraction of the mean total, of the light a planet of one star of a wide
+    pair gets over the companion's orbit: the host's `L / d^2` is steady, the companion's
+    runs from `L_c / apoapsis^2` to `L_c / periapsis^2`.
+
+    Args:
+        host_luminosity: The planet's star.
+        distance_au: The planet's distance from that star.
+        companion_luminosity: The other star.
+        periapsis_au, apoapsis_au: The companion's closest and farthest separation.
+    """
+    if distance_au <= 0.0 or periapsis_au <= 0.0 or apoapsis_au < periapsis_au:
+        return 0.0
+    semi_major = (periapsis_au + apoapsis_au) / 2.0
+    eccentricity = (apoapsis_au - periapsis_au) / (apoapsis_au + periapsis_au)
+    host = host_luminosity / distance_au ** 2
+    mean_total = host + companion_luminosity * mean_inverse_square(semi_major, eccentricity)
+    swing = companion_luminosity * (1.0 / periapsis_au ** 2 - 1.0 / apoapsis_au ** 2)
+    return swing / mean_total if mean_total > 0.0 else 0.0
+
+
+def circumbinary_swing(luminosity_1, luminosity_2, mass_1, mass_2, separation_au, distance_au):
+    """
+    The peak-to-peak swing of the light a circumbinary planet gets as the pair turns. Star 1 sits `a m2 / M`
+    from the barycentre and star 2 `a m1 / M` on the other side, so along the line to the planet the
+    luminosity-weighted centroid is `delta = |L1 r1 - L2 r2| / (L1 + L2)` off the barycentre, and
+    `S ~ 1/d^2` swings by `4 delta / d` peak to peak (first order, a planet at least a few separations out).
+    """
+    total_mass = mass_1 + mass_2
+    if distance_au <= 0.0 or total_mass <= 0.0 or luminosity_1 + luminosity_2 <= 0.0:
+        return 0.0
+    r1 = separation_au * mass_2 / total_mass
+    r2 = separation_au * mass_1 / total_mass
+    offset = abs(luminosity_1 * r1 - luminosity_2 * r2) / (luminosity_1 + luminosity_2)
+    return min(4.0 * offset / distance_au, 1.0)
+
+
+def refresh_system(system):
+    """
+    Sets `flux_variation` on every planet and moon of `system` (a moon shares its planet's), 0.0 for a
+    lone star. Runs once the planets' final orbits are set.
+    """
+    binary = getattr(system, "binary_type", None)
+    for planet in system.planets:
+        _set(planet, _variation(system, binary, planet, system.star, getattr(system, "secondary_star", None)))
+    for planet in getattr(system, "secondary_planets", ()):
+        _set(planet, _variation(system, binary, planet, system.secondary_star, system.primary_star))
+
+
+def _set(planet, value):
+    """A gas giant has no habitability fields (its own stay None), but its moons are scored in its light."""
+    planet.flux_variation = None if getattr(planet, "body_type", None) == "g" else value
+    for moon in getattr(planet, "moons", ()):
+        moon.flux_variation = value
+
+
+def _variation(system, binary, planet, host, other):
+    if getattr(planet, "body_type", None) == "a" or not hasattr(planet, "moons"):
+        return None
+    if binary == "close":
+        proxy = system.star
+        first, second = proxy.stars
+        return circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass,
+                                  proxy.binary_separation_au, planet.distance)
+    if binary == "wide" and other is not None and system.wide_binary is not None:
+        pair = system.wide_binary
+        return companion_swing(host.luminosity, planet.distance, other.luminosity, pair.periapsis_au, pair.apoapsis_au)
+    return 0.0
