@@ -3242,14 +3242,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
-- [ ] **GEN.178 Magnetic fields: the induced field of an ocean moon**
-  Left over from GEN.86 (PR #908): the induced magnetic field of a moon
-  with a subsurface ocean in its parent's changing field is not
-  modelled. Done: the induced field is computed for ocean moons and
-  stored beside the intrinsic field, with a test on a known case (a
-  Europa-like moon of a gas giant).
-  Prerequisites: DB.26 (done, PR #1423; the induced_moment_a_m2 column), GEN.88 merged (PR #963). Related: GEN.86.
-
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
   Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
   directive a sector was generated under and the record of its attempts
@@ -4012,21 +4004,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.27 One migration for the species tech-level columns: six indices, tech level and tech source**
-  Asked for by Foundations Generation through the coordinator
-  (2026-10-15 02:23Z): POP.9 needs one migration and Foundations
-  Database is the only lane adding migrations. Add to `species` the
-  columns `energy_index`, `materials_index`, `information_index`,
-  `medical_index`, `propulsion_index` and `defense_index` (TINYINT
-  UNSIGNED, CHECK 0..7, NULL until drawn), `tech_level` DECIMAL(3,2)
-  with an index for range search, and `tech_source` ('generated' or
-  'admin'), as listed under "Planned columns (POP.9, POP.10)" in
-  docs/design/population-and-politics.md. Done: the migration (next
-  number after 0087, schema v88) with its old-schema fixture and tests,
-  merged so Foundations Generation can build POP.9 on it. Owner:
-  Foundations Database, first in its queue after DB.26.
-  Prerequisites: none. Related: POP.9, POP.10, DB.28.
-
 - [ ] **DB.28 One migration for the facility type tables and the new facility columns**
   Needed by POP.10 (Foundations Generation), same rule as DB.27: only
   Foundations Database adds migrations. Add `facility_types`,
@@ -4037,7 +4014,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration (next after DB.27's) with its old-schema fixture and tests,
   merged so POP.10 can be built on it. Owner: Foundations Database,
   right after DB.27.
-  Prerequisite: DB.27. Related: POP.10, DB.27.
+  Prerequisite: DB.27 (done, PR #1446). Related: POP.10, DB.27 (done, PR #1446).
 
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
   Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
@@ -4075,7 +4052,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   old work tables with a migration) must pass through this check too.
   Owner: Foundations Database, after DB.28 and before PERF.100.
   Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
-  OPS.48, DB.18, DB.27, DB.28.
+  OPS.48, DB.18, DB.27 (done, PR #1446), DB.28.
 
 ## API: The JSON API
 
@@ -6289,7 +6266,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
     limiting domain (lowest of E, M, I) and the lopsided flag (max minus
     min at least 3) are derived, not stored; show the tech band name
     beside the age era on the species page.
-    Prerequisite: DB.27 (the migration).
+    Prerequisite: DB.27 (the migration; done, PR #1446).
     Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**

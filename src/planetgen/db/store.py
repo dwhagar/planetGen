@@ -1509,6 +1509,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (88, _column_marker("species", "tech_level")),
     (87, _column_marker("planets", "flux_variation")),
     (86, _table_marker("galaxy_block_stats")),
     (85, _table_marker("object_timing_stats")),

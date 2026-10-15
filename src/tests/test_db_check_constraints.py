@@ -23,6 +23,7 @@ CHECK_VIOLATED = (3819, 4025)
 """MySQL's "Check constraint ... is violated", MariaDB's "CONSTRAINT ... failed"."""
 
 _IN_LIST = re.compile(r"^`?(\w+)`?\s+in\s*\(", re.IGNORECASE)
+_BETWEEN = re.compile(r"^`?(\w+)`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGNORECASE)
 _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
@@ -49,6 +50,9 @@ def _breaking_value(conn, table, clause, row):
             " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", (table, column),
         ).fetchone()["k"]
         return column, (7 if "int" in kind else "zz")
+    match = _BETWEEN.match(clause)
+    if match:
+        return match[1], int(match[3]) + 1
     match = _EQUALS_ONE.match(clause)
     if match:
         return match[1], 2
