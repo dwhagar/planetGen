@@ -2,6 +2,26 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1407] - 2026-10-15
+
+**Headline:** GEN.250 (the phenomena registry) is retired; GEN.268 and GEN.261 are unblocked.
+
+### Changed
+
+- GEN.250 (#1700) leaves the open list; DB.33 carries Quality's note that the check-db column-name case fix is merged.
+
+TODO items resolved: GEN.250 / Added: none
+
+## [8.0.1406] - 2026-10-15
+
+**Headline:** Every kind of object the generator makes is now one row in a single registry, and the lists that used to repeat the kinds read it.
+
+### Changed
+- A new phenomena registry (`planetgen/generation/phenomena/registry.py`) holds one row per kind: family, rate, gate, mode, builder, system model, what it carries, object ID code, class page and map marker. The sector roll list, the scatter list, the `--type` choices, the object ID codes, the naming key kinds and the rate scale table now read from it; nothing the generator makes changes.
+- A completeness test checks every row has every column, every builder resolves, no ID code repeats, and that the database tables, insert functions, class pages and the scatter table's constraint name exactly the registry's kinds.
+
+TODO items resolved: GEN.250 / Added: none
+
 ## [8.0.1405] - 2026-10-15
 
 **Headline:** TEST.158 and DOC.21 are retired, and the findings Quality reported are on their items.
