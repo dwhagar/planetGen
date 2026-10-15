@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1305] - 2026-10-15
+
+### Changed
+
+- TODO.md: recorded the generation paths merged into the spherical switch branch (PR #1576) and what stays open until the other switch parts land.
+
+TODO items resolved: none (GEN.227 retires when the switch reaches main) / Added: none
+
 ## [8.0.1304] - 2026-10-15
 
 ### Changed
