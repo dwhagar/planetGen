@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1207] - 2026-10-15
+
+### Fixed
+
+- **Planet and moon descriptions, their tooltips and the Habitability levels page name the index PHI-6 (GEN.214).** They still said PHI-4. The description's first line now reads "PHI-6 habitability is ...". The stored columns keep their `phi4` names.
+
 ## [8.0.1206] - 2026-10-15
 
 ### Fixed
