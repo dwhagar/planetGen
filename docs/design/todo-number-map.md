@@ -495,7 +495,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | done, PR #1376 |
 | DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings | none | done, PR #1423 |
 | DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | done, PR #1446 |
-| DB.28 | One migration for the facility type tables and the new facility columns | none | open |
+| DB.28 | One migration for the facility type tables and the new facility columns | none | done, PR #1476 |
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
 | DB.30 | One migration for the per-species environment limits | none | open |
 | DB.31 | Store structure, not prose, for life and flavour | none | open |
