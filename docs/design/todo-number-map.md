@@ -19,10 +19,10 @@ release is stamped.
 | GEN | GEN.230 |
 | PERF | PERF.102 |
 | DB | DB.33 |
-| API | API.26 |
+| API | API.27 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.158 |
+| TEST | TEST.159 |
 | USR | USR.12 |
 | OPS | OPS.51 |
 | DOC | DOC.47 |
@@ -468,6 +468,7 @@ Parents marked "new parent" had no old number of their own.
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | done, PR #1133 |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | none | open |
 | API.25 | A structured description endpoint, and Markdown and wikitext on request only | none | done, PR #1527 |
+| API.26 | Bump API_VERSION for the shell, band and wedge sector address | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -1615,6 +1616,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.155 | Wording and index agree: property test | none | open |
 | TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
 | TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | done, PR #1572 |
+| TEST.158 | The math check tests the spherical shell, band and wedge grid | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

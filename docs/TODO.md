@@ -4112,6 +4112,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   compatibility data.
   Prerequisite: GEN.199. Related: MAP.167.
 
+- [ ] **API.26 Bump API_VERSION for the shell, band and wedge sector address**
+  Found by Quality after the switch (PR #1607). `API_VERSION` is still
+  3, but the switch changed the sector address parameters of the API
+  from ring, layer and slot to shell, band and wedge, which is a
+  breaking change (`src/tests/test_api_version.py` says to bump it and
+  add its line to the change list in `docs/api.md`). Owner: Core
+  (2026-10-15). Done: `API_VERSION` is 4, `docs/api.md` lists the
+  change, and the version header tests pass. Open question for Boss
+  (default: bump to 4; there is no backward compatibility and Boss is
+  the only user, so no 3 route is kept). Not a bug.
+  Prerequisites: none. Related: API.4.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -4677,6 +4689,18 @@ clears each one.
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **TEST.158 The math check tests the spherical shell, band and wedge grid**
+  Found by Quality after the switch (PR #1607). `physics/mathcheck.py`
+  still checks the old cylinder grid through
+  `geometry.ring_sector_count` and the ring and slot helpers, so it
+  passes or fails on code the map is about to stop using. Rewrite it to
+  check the shell grid: shell radii and the 4 pc depth, the core ball,
+  the pole caps, the 6*m wedge count of every band (m only 2, 3, 5, 7),
+  that the bands and wedges of a shell cover the shell exactly, and that
+  a point maps to the sector whose bounds contain it. Owner: Quality
+  (2026-10-15), taken alongside TEST.156. Not a bug.
+  Prerequisites: none. Related: TEST.156.
 
 ## USR: User accounts
 
