@@ -11,12 +11,14 @@ import dataclasses
 import pytest
 
 from planetgen import tuning
+from planetgen.cli import species_check
 from planetgen.db import species_fit, store
 from planetgen.physics import atmosphere, habitability, species_limits
 from planetgen.physics.protection_limits import LIMIT_ROWS, limit
 from tests.publicids import pid
 from tests.test_admin_edits import _saved_system
 from tests.test_facility_types import anonymous  # noqa: F401 (fixture)
+from tests.test_population import galaxy as civilized_galaxy  # noqa: F401 (fixture)
 
 
 def _world(**changes):
@@ -312,3 +314,137 @@ def test_species_detail_carries_its_limits(mysql_config, galaxy, anonymous):
     assert rows["comfort_high_c"]["changed"] and rows["comfort_high_c"]["value"] > rows["comfort_high_c"]["human"]
     human = anonymous.get(f"/api/species/{galaxy['humans']}").get_json()
     assert not any(row["changed"] for row in human["limits"])
+
+
+# --- POP.14: a species is only placed where it can live ------------------------------------------------------------
+
+def test_a_species_on_its_own_world_is_not_judged_on_suitability():
+    abiotic = _world(life_stage="none")
+    assert species_limits.assess(abiotic, {})["failing"] == ["Suitability"]
+    assert species_limits.assess(abiotic, {}, native=True)["failing"] == []
+    assert species_limits.assess(abiotic, {}, native=True)["unaided"]
+
+
+def test_the_reasons_are_plain_words_with_no_numbers():
+    cases = [
+        (_world(pressure_kpa=1.0), "the air is too thin"), (_world(pressure_kpa=90000.0), "crushingly dense"),
+        (_world(temperature_c=-150.0), "too cold"), (_world(temperature_c=180.0), "too hot"),
+        (_world(surface_dose_sv_yr=5000.0), "radiation"), (_world(solvent=None, water_source=None), "no water"),
+    ]
+    for world, text in cases:
+        failing = species_limits.assess(world, {})["failing"]
+        reasons = " ".join(species_limits.explain(world, {}, failing))
+        assert text in reasons and not any(ch.isdigit() for ch in reasons), (text, reasons)
+
+
+def test_a_placement_is_refused_with_the_failing_conditions(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        assert species_fit.check_placement(conn, galaxy["humans"], "planet", galaxy["earth"])["unaided"]
+        with pytest.raises(species_fit.PlacementError) as refused:
+            species_fit.check_placement(conn, galaxy["humans"], "planet", galaxy["harsh"])
+        assert str(refused.value).startswith("The Terrans could not live on ")
+        assert "too hot" in str(refused.value) and set(refused.value.failing) >= {"temperature", "radiation"}
+    finally:
+        conn.close()
+
+
+def test_a_habitat_may_be_placed_where_only_equipment_lets_the_species_live(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        with pytest.raises(species_fit.PlacementError):
+            species_fit.check_placement(conn, galaxy["humans"], "planet", galaxy["hot"])
+        assert species_fit.check_placement(conn, galaxy["humans"], "planet", galaxy["hot"], habitat=True)["equipped"]
+        conn.execute("UPDATE species SET tech_level = 1.0")  # no kit for a hot world at tech 1
+        conn.commit()
+        with pytest.raises(species_fit.PlacementError):
+            species_fit.check_placement(conn, galaxy["humans"], "planet", galaxy["hot"], habitat=True)
+    finally:
+        conn.close()
+
+
+def test_a_gas_giant_a_missing_species_and_a_missing_body_are_refused_an_unscored_body_passes(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE planets SET body_type = 'g' WHERE id = ?", (galaxy["harsh"],))
+        conn.execute("UPDATE planets SET energy_flux_w_m2 = NULL WHERE id = ?", (galaxy["hot"],))
+        conn.commit()
+        with pytest.raises(species_fit.PlacementError, match="gas giant"):
+            species_fit.check_placement(conn, galaxy["humans"], "planet", galaxy["harsh"])
+        with pytest.raises(species_fit.PlacementError, match="no species"):
+            species_fit.check_placement(conn, 999999, "planet", galaxy["earth"])
+        with pytest.raises(species_fit.PlacementError, match="no planet"):
+            species_fit.check_placement(conn, galaxy["humans"], "planet", 999999)
+        assert species_fit.check_placement(conn, galaxy["humans"], "planet", galaxy["hot"]) == {}
+    finally:
+        conn.close()
+
+
+def test_the_report_lists_a_species_whose_homeworld_no_longer_fits(mysql_config, galaxy, capsys, monkeypatch):
+    # Limits made from the homeworld follow it; the report matters once they are stored (DB.30, POP.13).
+    conn = store.get_connection(mysql_config)
+    try:
+        stored = species_fit.limits_for_species(conn)
+        monkeypatch.setattr(species_fit, "stored_overrides", lambda conn, ids: {i: stored[i] for i in ids})
+        assert species_fit.inconsistencies(conn) == []
+        # Its homeworld's radiation is refreshed far past anything its limits were made for.
+        conn.execute("UPDATE planets SET surface_dose_msv_yr = 9e9 WHERE id = ?", (galaxy["earth"],))
+        conn.commit()
+        found = species_fit.inconsistencies(conn)
+        assert [(f["name"], f["failing"]) for f in found] == [("Terrans", ["radiation"])]
+        assert found[0]["id"] == galaxy["earth"] and "radiation" in found[0]["reasons"]
+    finally:
+        conn.close()
+    argv = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port), "--mysql-user",
+            mysql_config.user, "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database]
+    assert species_check.main(argv) == 1
+    out = capsys.readouterr().out
+    assert "Terrans" in out and "1 of 2 species is placed outside its limits." in out
+
+
+def test_the_report_is_clean_for_a_consistent_galaxy(mysql_config, galaxy, capsys):
+    argv = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port), "--mysql-user",
+            mysql_config.user, "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database]
+    assert species_check.main(argv) == 0
+    assert "All 2 species are placed inside their limits." in capsys.readouterr().out
+
+
+def test_a_species_whose_own_homeworld_is_an_abiotic_surface_is_still_consistent(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM planet_evolutionary_paragraphs WHERE planet_id = ?", (galaxy["earth"],))
+        conn.execute("UPDATE planets SET life_chemical = NULL WHERE id = ?", (galaxy["earth"],))
+        conn.commit()
+        assert species_fit.inconsistencies(conn) == []
+        # ...while another species placed there is judged on Suitability as well.
+        with pytest.raises(species_fit.PlacementError, match="food"):
+            species_fit.check_placement(conn, galaxy["hot_ones"], "planet", galaxy["earth"])
+    finally:
+        conn.close()
+
+
+def test_creating_a_species_checks_its_homeworld(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        species_fit.check_homeworld(conn, galaxy["earth"])
+        conn.execute("UPDATE planets SET hydrosphere = NULL, water_mass_fraction = NULL, p_h2o_kpa = 0 WHERE id = ?",
+                     (galaxy["harsh"],))
+        conn.commit()
+        with pytest.raises(species_fit.PlacementError, match="no water"):
+            species_fit.check_homeworld(conn, galaxy["harsh"])
+        assert species_fit.check_homeworld(conn, 999999) is None
+    finally:
+        conn.close()
+
+
+def test_a_generated_galaxys_species_are_all_inside_their_limits(mysql_config, civilized_galaxy):
+    """Boss's POP.14: the consistency check over a galaxy the population pass has just made."""
+    from planetgen.population import model as population
+    conn = store.get_connection(mysql_config)
+    try:
+        assert population.run_pass(conn)["new_species"] >= 2
+        assert species_fit.inconsistencies(conn) == []
+        for row in conn.execute("SELECT id, homeworld_planet_id FROM species").fetchall():
+            species_fit.check_placement(conn, row["id"], "planet", row["homeworld_planet_id"], native=True)
+    finally:
+        conn.close()

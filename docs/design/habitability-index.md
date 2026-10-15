@@ -576,3 +576,29 @@ columns, and `species_fit.stored_overrides` then returns the stored values, whic
 win over the generated ones. A species whose homeworld has no habitability score
 has the human limits. POP.13 (the species editor) will write the stored values and
 should run `species_limits.validate` on them.
+
+### 10.1 A species is only placed where it can live (POP.14)
+
+`species_fit.check_placement(conn, species_id, kind, body_id, habitat=False)` is the one check every way of putting
+a species on a planet or moon calls before it writes. It passes when the species could live there unaided (no Red
+domain against its own limits). With `habitat` true, for a placement that is a habitat or a vessel and brings its own
+kit, it also passes when the species could live there with the equipment its tech level can make (section 10).
+Otherwise it raises `PlacementError`, whose message names the failing conditions in plain words with no numbers
+("The Terrans could not live on Kepler II: it is too hot; the radiation is far beyond what it can survive.") and
+whose `failing` lists the Red domains. A gas giant fails (no surface). A body with no habitability score cannot be
+judged and passes.
+
+A species on its own homeworld is a native there: its Suitability is not judged (`assess(..., native=True)`), because
+the water and food of its world are its own. Any other placement is judged on all six domains.
+
+Today a species has one placement, its homeworld, made by the population pass (`population.scan_life_worlds`). It
+calls `species_fit.check_homeworld` first and makes no species on a world whose own limits cannot hold it (its water
+is undrinkable); the planet is passed over like any other without a civilization. A later settlement (POP.11) and the
+species editor (POP.13) call `check_placement` before they write, and the editor runs it on save and shows the failing
+domain. Facilities are not placements of a species: a facility's affiliation says who runs it, not who lives there.
+
+`python3 -m planetgen.cli.species_check` is the consistency report: it lists every species placed outside its limits
+(exit 1) or says all are inside (exit 0). While the limits are generated from the homeworld they follow it, so the
+report finds nothing; it matters once the limits are stored (DB.30, POP.13) and one is edited or its world changes.
+A species it lists is fixed by regenerating its limits or the placement; there is no tolerance flag.
+

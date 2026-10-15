@@ -388,6 +388,8 @@ def scan_life_worlds(conn):
     Returns:
         int: Species added.
     """
+    from planetgen.db import species_fit  # here: the db package imports this one
+
     added = 0
     top = conn.execute("SELECT MAX(id) AS id FROM planets").fetchone()["id"] or 0
     low = _watermark(conn)
@@ -417,6 +419,11 @@ def scan_life_worlds(conn):
             traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
             if not has_civilization(timeline, row["intelligent_life"], rng, row["prevalence_intelligent_life"]):
                 # Only a technological civilization gets a species (GEN.80).
+                continue
+            try:
+                species_fit.check_homeworld(conn, planet_id)  # POP.14: only where its own limits let it live
+            except species_fit.PlacementError as error:
+                log.debug(f"Population: no species on planet {planet_id}: {error}")
                 continue
             age = civilization_age(timeline.window_years, rng)
             era, spacefaring = era_for_age(age)

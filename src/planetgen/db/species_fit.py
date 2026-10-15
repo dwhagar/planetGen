@@ -72,6 +72,92 @@ def limits_table(overrides):
              "value": overrides.get(row.name, row.value), "changed": row.name in overrides} for row in LIMIT_ROWS]
 
 
+class PlacementError(ValueError):
+    """A species put where it could not live (POP.14). `str(error)` says why in plain words; `failing` lists the
+    domains that are Red, lower case."""
+
+    def __init__(self, message, failing=()):
+        super().__init__(message)
+        self.failing = list(failing)
+
+
+def check_placement(conn, species_id, kind, body_id, habitat=False, overrides=None, native=False):
+    """
+    POP.14: the one check every way of putting a species on a planet or moon calls before it writes. Passes when the
+    species could live on the body unaided (no Red habitability domain against its own limits); with `habitat` true
+    (the placement is a habitat or a vessel, which brings its own kit) it also passes when the species could live there
+    with the equipment its tech level can make. Otherwise raises `PlacementError` saying which conditions fail.
+
+    A body with no habitability score (saved before v76) cannot be judged and passes; a gas giant has no surface to
+    live on and fails. `overrides` are the species' limits if the caller already has them (a species being created).
+    `native` is true for the species' own homeworld, where its Suitability is not judged (`species_limits.assess`).
+
+    Returns:
+        dict: The verdict fields of `_verdict`, or `{}` for an unscored body.
+    """
+    species = conn.execute("SELECT id, name, tech_level FROM species WHERE id = ?", (species_id,)).fetchone()
+    if species is None:
+        raise PlacementError(f"There is no species {species_id}.")
+    table, row = _body_row(conn, kind, body_id)
+    if row is None:
+        raise PlacementError(f"There is no {kind} {body_id}.")
+    if row["body_type"] == "g":
+        raise PlacementError(f"The {species['name']} could not live on {row['name']}: it is a gas giant with no surface.")
+    world = store.stored_world(conn, table, row)
+    if world is None:
+        return {}
+    if overrides is None:
+        overrides = limits_for_species(conn, [species_id])[species_id]
+    tech = None if species["tech_level"] is None else float(species["tech_level"])
+    assessment = species_limits.assess(world, overrides, tech, native)
+    if assessment["unaided"] or (habitat and assessment["equipped"]):
+        return _verdict(assessment)
+    raise _refusal(f"The {species['name']}", row["name"], world, overrides, assessment)
+
+
+def _refusal(who, body_name, world, overrides, assessment):
+    reasons = species_limits.explain(world, overrides, assessment["failing"]) or ["it has no drinkable water"]
+    return PlacementError(f"{who} could not live on {body_name}: " + "; ".join(reasons) + ".",
+                          [name.lower() for name in assessment["failing"]])
+
+
+def check_homeworld(conn, planet_id):
+    """
+    POP.14: the check a species gets before it is made on planet `planet_id` as its homeworld. Its limits are the ones
+    its homeworld would give it (`species_limits.generated`), so this fails only for what a homeworld cannot fix in a
+    species' limits (undrinkable water). A planet with no score passes. Raises `PlacementError`.
+    """
+    row = conn.execute("SELECT * FROM planets WHERE id = ?", (planet_id,)).fetchone()
+    world = None if row is None else store.stored_world(conn, "planets", row)
+    if world is None:
+        return
+    overrides = species_limits.generated(world)
+    assessment = species_limits.assess(world, overrides, None, native=True)
+    if not assessment["unaided"]:
+        raise _refusal("A species", row["name"], world, overrides, assessment)
+
+
+def inconsistencies(conn):
+    """
+    POP.14: every species placed outside its limits, `[{species_id, name, kind, id, body_name, star_system_id,
+    reasons, failing}]`. The only placement a species has today is its homeworld; a later settlement (POP.11) adds
+    its own and is listed the same way. A homeworld with no score is not listed.
+    """
+    out = []
+    species = conn.execute(
+        "SELECT s.id, s.name, s.homeworld_planet_id, s.star_system_id FROM species s ORDER BY s.id").fetchall()
+    limits = limits_for_species(conn, [s["id"] for s in species])
+    for s in species:
+        try:
+            check_placement(conn, s["id"], "planet", s["homeworld_planet_id"], overrides=limits[s["id"]], native=True)
+        except PlacementError as error:
+            body = conn.execute("SELECT name FROM planets WHERE id = ?", (s["homeworld_planet_id"],)).fetchone()
+            out.append({"species_id": s["id"], "name": s["name"], "kind": "planet", "id": s["homeworld_planet_id"],
+                        "body_name": body["name"] if body else None, "star_system_id": s["star_system_id"],
+                        "reasons": str(error), "failing": error.failing})
+    return out
+
+
 def _verdict(assessment):
     """One body's `species_limits.assess` as the API's fields."""
     return {
@@ -95,12 +181,13 @@ def _all_species(conn):
     return [(s, limits[s["id"]]) for s in species]
 
 
-def _fits(world, species):
-    """`(unaided, equipped)` lists of the `species` (`_all_species`) that could live on `world`, best PHI-4 first."""
+def _fits(world, species, planet_id=None):
+    """`(unaided, equipped)` lists of the `species` (`_all_species`) that could live on `world`, best PHI-4 first.
+    `planet_id` is the row id of the world if it is a planet: its own species are judged as natives there."""
     unaided, equipped = [], []
     for s, overrides in species:
         tech = None if s["tech_level"] is None else float(s["tech_level"])
-        verdict = _verdict(species_limits.assess(world, overrides, tech))
+        verdict = _verdict(species_limits.assess(world, overrides, tech, s["homeworld_planet_id"] == planet_id))
         entry = {"id": s["id"], "name": s["name"], "homeworld_planet_id": s["homeworld_planet_id"],
                  "tech_level": tech, **verdict}
         if verdict["unaided"]:
@@ -129,7 +216,7 @@ def species_for_body(conn, kind, body_id):
     world = store.stored_world(conn, table, row)
     out = {"kind": kind, "id": body_id, "scored": world is not None, "unaided": [], "equipped": []}
     if world is not None:
-        out["unaided"], out["equipped"] = _fits(world, _all_species(conn))
+        out["unaided"], out["equipped"] = _fits(world, _all_species(conn), body_id if kind == "planet" else None)
     return out
 
 
@@ -151,7 +238,7 @@ def species_for_system(conn, system_id):
             world = store.stored_world(conn, table, row)
             if world is None:
                 continue
-            unaided, equipped = _fits(world, species)
+            unaided, equipped = _fits(world, species, row["id"] if kind == "planet" else None)
             if unaided or equipped:
                 bodies.append({"kind": kind, "id": row["id"], "name": row["name"], "unaided": unaided,
                                "equipped": equipped})
@@ -168,9 +255,11 @@ def bodies_for_species(conn, species_id, system_id=None, sector_id=None):
             first were scored), `unaided` and `equipped` lists of `{kind, id, name, star_system_id}` and the verdict
             fields of `_verdict`, best PHI-4 first.
     """
-    species = conn.execute("SELECT id, tech_level FROM species WHERE id = ?", (species_id,)).fetchone()
+    species = conn.execute("SELECT id, tech_level, homeworld_planet_id FROM species WHERE id = ?",
+                           (species_id,)).fetchone()
     if species is None:
         return None
+    home = species["homeworld_planet_id"]
     overrides = limits_for_species(conn, [species_id])[species_id]
     tech = None if species["tech_level"] is None else float(species["tech_level"])
     where, params = ("star_system_id = ?", (system_id,)) if system_id is not None else (
@@ -190,7 +279,7 @@ def bodies_for_species(conn, species_id, system_id=None, sector_id=None):
             if world is None:
                 continue
             out["scored"] += 1
-            verdict = _verdict(species_limits.assess(world, overrides, tech))
+            verdict = _verdict(species_limits.assess(world, overrides, tech, kind == "planet" and row["id"] == home))
             entry = {"kind": kind, "id": row["id"], "name": row["name"], "star_system_id": row["star_system_id"],
                      **verdict}
             if verdict["unaided"]:

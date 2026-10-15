@@ -37,7 +37,7 @@ import pytest
 
 from planetgen.db import stats as adminStats
 from planetgen.cli import render_parity
-from planetgen.cli import dedupe
+from planetgen.cli import dedupe, species_check
 from planetgen.cli import lockouts as loginLockouts
 from planetgen.cli import query
 from tests.publicids import pid
@@ -151,6 +151,7 @@ SCRIPTS = {
     "dedupeNames": (dedupe, [], []),
     "resetDb": (reset, ["--dry-run"], []),
     "updateOrbits": (orbits, [], []),
+    "speciesCheck": (species_check, [], []),
     "loginLockouts": (loginLockouts, ["--forget-devices", "admin"], []),
 }
 
