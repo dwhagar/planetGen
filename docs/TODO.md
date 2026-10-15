@@ -3393,6 +3393,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
+- [ ] **GEN.214 Planet descriptions still say PHI-4 where they should say PHI-6 (bug)**
+  Boss (2026-10-15 03:46Z): "Bug, still says PHI-4 not PHI-6 on planet
+  descriptions." The habitability description (GEN.207, GEN.208) names
+  the index PHI-4; it should read PHI-6 everywhere a planet or moon
+  description shows it. Done when no planet, moon or help text names the
+  wrong index, with a test over the generated description. Rebase on
+  main: Foundations Generation's GEN.148 flux half touches the
+  temperature rating, so keep the edit to the description text.
+  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148, UX.101.
+
+- [ ] **GEN.215 Air shows Green with 0 Air when the air pressure is 0 (bug)**
+  Boss (2026-10-15 03:46Z): "Bug, Air will say Green with 0 Air when
+  there's 0 air pressure because it's free of toxins." With no
+  atmosphere the Air domain is Green only because it has no toxins. With
+  no air (0.0 kPa) the Air rating must be Red and its value 0. Target
+  line: "**Air: Red** (0.0). There is no atmosphere (0.0 kPa)." Done
+  when a world with no atmosphere never shows Green in Air and a test
+  covers it.
+  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148.
+
+- [ ] **GEN.216 Habitability text is too wordy and the Suitability sentence is oddly worded (bug)**
+  Boss (2026-10-15 03:46Z): "Bug, Sustainability text is very oddly
+  worded: **Suitability: Red** (0.20). The food is none, what native
+  life a person could eat from. Also considered: the water within reach,
+  ice, or an ocean under ice (Yellow); the shelter, 742 mSv a year
+  (Yellow). Should say something like: **Suitability: Red** (0.20).
+  There is no food or water readily available, but there is shelter
+  available." and "Bug, All text is to wordy. Example cleanup: **PHI-4
+  habitability** is 0.00, and a visitor needs a sealed suit. /
+  **Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure
+  suit is needed. / **Temperature: Red** (0.00). The air temperature is
+  -227 C, so an environment suit is needed. / **Air: Red** (0.0). There
+  is no atmosphere (0.0 kPa). / **Water: Red** (0.00). There is no
+  liquid water to support life. / **Radiation: Yellow** (0.45). The
+  radiation dose is a mean of 742 mSv a year, inside the Yellow band (up
+  to 1 Sv a year). / **Suitability: Red** (0.20). There is no atmosphere
+  (0.0 kPa), no food or water. Shelter is potentially available." Use
+  these lines as the spec for every line of the description (index line,
+  Pressure, Temperature, Air, Water, Radiation, Suitability): short
+  sentences, the number and the consequence, no list of what else was
+  considered. The index is named PHI-6 in the text (the first line of
+  Boss's example says PHI-4 only because it is the old text). Same code
+  as the two items before it; do it after them. Done when every rating
+  line reads like the examples and tests pin the wording. Rebase on
+  main; Foundations Generation avoids the description text meanwhile.
+  Prerequisites: GEN.214, GEN.215. Related: GEN.207, GEN.208, GEN.148.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
