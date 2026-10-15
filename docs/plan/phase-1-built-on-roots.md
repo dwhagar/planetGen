@@ -134,7 +134,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |
 | UX.110 | The phenomena count on the overview page is wrong (bug) |  |  |
-| GEN.223 | The orbital update does not move the galaxy position of a star system that has no placed sector (bug) |  |  |
+| GEN.223 | The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug) |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, GEN.218, GEN.219 |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
