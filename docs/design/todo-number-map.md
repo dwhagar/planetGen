@@ -954,7 +954,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
 | MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | done, PR #1331 |
 | MAP.197 | Remove the obsolete drill container code left by the map flip | none | done, PR #1455 |
-| MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | open |
+| MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | done, PR #1470 |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) | none | open |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | none | open |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) | none | open |

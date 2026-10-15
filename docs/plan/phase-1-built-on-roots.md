@@ -114,7 +114,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | MAP.199 |  |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
-| MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) |  |  |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
 | GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) |  |  |
 | GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) |  |  |

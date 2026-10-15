@@ -1467,21 +1467,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
 
-- [ ] **MAP.198 The Galaxy Map outlines and shades the whole block a click would zoom into (bug)**
-  Boss, 2026-10-15 01:46Z: it is really unclear what region is being
-  selected from the Galaxy Map, and picking a region that holds a star
-  or group of stars is very difficult. Outline the entire block that is
-  being zoomed in on and shade the block itself a little more, so the
-  user can tell whether it contains the item they want. Done: hovering
-  shows the whole block outline and a slightly stronger shade on the
-  block, at every level, on both themes, with a browser test. Owner:
-  Bugfixes lane 2. It touches the map the flip reworked (MAP.151d part
-  2, #1382); coordinate with MAP.152 and MAP.189 (Foundations Maps).
-  GitHub issue
-  [#1414](https://github.com/dwhagar/planetGen/issues/1414).
-  Prerequisites: none. Related: MAP.199, MAP.200, MAP.152, MAP.189,
-  MAP.151.
-
 - [ ] **MAP.199 Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug)**
   Boss, 2026-10-15 01:46Z: zooming in and out with the scroll wheel is
   awkward. Zoom and rotation must be based on the same centre at all
@@ -1493,7 +1478,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finished (MAP.150, done in #1382); coordinate with MAP.152
   (Foundations Maps). GitHub issue
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
-  Prerequisites: none. Related: MAP.198, MAP.200, MAP.152, MAP.150,
+  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.200, MAP.152, MAP.150,
   MAP.146.
 
 - [ ] **MAP.200 Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug)**
@@ -1506,7 +1491,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   single shared centre of MAP.199. Owner: Bugfixes lane 2. Coordinate
   with MAP.152 (Foundations Maps). GitHub issue
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
-  Prerequisite: MAP.199. Related: MAP.198, MAP.152, MAP.146.
+  Prerequisite: MAP.199. Related: MAP.198 (done, PR #1470), MAP.152, MAP.146.
 
 - [ ] **MAP.201 A selected sector that is not filled stays highlighted on the map until something else is selected (bug)**
   Boss, 2026-10-15 01:49Z: when a sector is selected but unfilled, it
@@ -1517,7 +1502,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bugfixes lane 2, right after MAP.198 (same selection and highlight
   area). GitHub issue
   [#1416](https://github.com/dwhagar/planetGen/issues/1416).
-  Prerequisites: none. Related: MAP.198, MAP.199, MAP.152.
+  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199, MAP.152.
 
 - [ ] **MAP.202 Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug)**
   Boss, 2026-10-15 01:51Z, after his eye test of MAP.188 (done, PR
@@ -1530,7 +1515,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   highlight area; shares the outline code, avoid overlap with MAP.152).
   GitHub issue
   [#1212](https://github.com/dwhagar/planetGen/issues/1212).
-  Prerequisites: none. Related: MAP.198, MAP.201, MAP.152.
+  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.201, MAP.152.
 
 - [ ] **MAP.203 Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug)**
   Boss, 2026-10-15 02:15Z, with three screenshots: when viewing a
@@ -1545,7 +1530,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Foundations Maps changes in MAP.152 (server part merges about 02:55Z,
   client part next), so start from main after that merge. GitHub issue
   [#1420](https://github.com/dwhagar/planetGen/issues/1420).
-  Prerequisites: none. Related: MAP.152, MAP.198, MAP.146.
+  Prerequisites: none. Related: MAP.152, MAP.198 (done, PR #1470), MAP.146.
 
 ## NAV: Navigation and courses
 
@@ -6382,4 +6367,4 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   is only acceptable with equipment counts as outside the limits unless
   the placement says it is a habitat or vessel (default: only unaided
   survival counts for a planet or moon surface).
-  Prerequisites: POP.12. Related: POP.12, POP.13, POP.11, POP.10.
+  Prerequisite: POP.12. Related: POP.12, POP.13, POP.11, POP.10.
