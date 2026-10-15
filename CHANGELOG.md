@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1312] - 2026-10-15
+
+### Changed
+- **Every install and deploy guide now says Redis is required** (DOC.44, DOC.43). README Requirements, the Apache, nginx, Caddy, macOS and PaaS guides and the server checklist name Redis, what runs on it (the Generate page's jobs, the work queue behind `--workers`, rate limits, login lockouts), how to start it and `redis-cli ping` to check it; the macOS brew line includes `redis`. `docs/deployment/README.md` no longer says nothing uses Redis yet. The same false claim in `scripts/deploy-common.sh` (a comment and the warning `install.sh` and `update.sh` print when Redis does not answer) is corrected. `docs/ci-runners.md` names Python 3.12 and 3.13, not 3.9.
+
 ## [8.0.1311] - 2026-10-15
 
 ### Changed
