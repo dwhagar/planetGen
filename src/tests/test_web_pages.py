@@ -628,7 +628,7 @@ def test_the_uncharted_filter_lists_every_scattered_star_with_where_it_is(client
     html = client.get("/systems?uncharted=1").get_data(as_text=True)
     assert ("uncharted", "luminosity", True) in fake.asked, "brightest first"
     assert "Uncharted B2V star 50" in html and "6,000" in html and "B2V (Young disk)" in html
-    assert "6000100001 (ring 3, layer 0, slot 1)" in html
+    assert "6000100001 (shell 3, band 0, wedge 1)" in html
     assert "/galaxy?sector=6000100001&amp;open=1" in html
     assert "12.00, 3.00, 0.50 pc" in html and "0.40, -0.20, 0.10 pc" in html
     assert "generating the whole sector" in html or "recommended" in html

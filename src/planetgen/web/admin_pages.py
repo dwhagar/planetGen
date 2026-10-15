@@ -45,6 +45,7 @@ from urllib.parse import urlsplit
 from flask import Response, abort, current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
+from planetgen.admin import maintenance
 from planetgen.generation import steps
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
@@ -464,6 +465,17 @@ def _admin_action(cookie_header):
                 return {"error": "Days until it expires must be a number."}, "api-keys"
             new_key = apiclient.auth_create_api_key(cookie_header, label, scopes or None, expires_days)
             return {"new_key": {"label": new_key["label"], "key": new_key["key"]}}, "new-key"
+        if action in ("maintenance_on", "maintenance_off"):
+            admin = current_admin()
+            who = admin["username"] if admin else None
+            if action == "maintenance_off":
+                maintenance.turn_off(by=who)
+                return {"message": "Maintenance mode is off. The site is open to everyone."}, "maintenance"
+            try:
+                maintenance.turn_on(request.form.get("eta", ""), by=who)
+            except ValueError as exc:
+                return {"error": str(exc)}, "maintenance"
+            return {"message": "Maintenance mode is on. Only admins can use the site."}, "maintenance"
         if action == "revoke_key":
             try:
                 key_id = int(request.form.get("key_id", ""))
@@ -496,7 +508,7 @@ def admin():
     flashed = _take_flash()
     return _render(
         "admin.html", flashed=True, title="Admin", section="admin", breadcrumbs=[crumb("Admin")],
-        admin=identity, keys_table=keys_table,
+        admin=identity, keys_table=keys_table, maintenance=maintenance.read(),
         new_key=flashed.get("new_key"), message=flashed.get("message"), error=flashed.get("error"),
     )
 

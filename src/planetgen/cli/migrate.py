@@ -44,7 +44,7 @@ import argparse
 import sys
 import time
 
-from planetgen.admin import auth
+from planetgen.admin import auth, maintenance
 from planetgen.cli import stage_progress
 from planetgen.generation import run_common
 from planetgen.db.store import (
@@ -149,6 +149,37 @@ def print_initial_admin_login(username, password):
     print()
 
 
+SECTOR_SWITCH_VERSION = 91
+"""int: The schema version that converts the sector grid from the cylinder to shells, bands and wedges."""
+
+
+def close_site_for_the_sector_switch(config, write=print):
+    """
+    Turns maintenance mode on (UX.112) before a database that still has the
+    cylinder sector grid is migrated past `SECTOR_SWITCH_VERSION`, so nobody
+    but an admin sees the site while the conversion and the map rebuild run.
+    The map rebuild turns it off with `maintenance.turn_off_for(maintenance.SECTOR_SWITCH)`.
+    A fresh database (no version yet), one already past the switch, and one
+    an admin already closed are left alone; a file the web user's folder
+    won't take only warns, because the migration is what matters.
+    """
+    try:
+        version, _pending = schema_status(config)
+    except Exception:  # noqa: BLE001 -- the migration itself reports what is wrong
+        return False
+    if not 0 < version < SECTOR_SWITCH_VERSION <= SCHEMA_VERSION or maintenance.is_on():
+        return False
+    try:
+        maintenance.turn_on(by="migration", reason=maintenance.SECTOR_SWITCH_REASON,
+                            cause=maintenance.SECTOR_SWITCH)
+    except OSError as exc:
+        write(f"warning: could not turn maintenance mode on ({exc}); turn it on by hand "
+              f"(python3 -m planetgen.cli.maintenance on) if visitors should not see the site mid-conversion.")
+        return False
+    write("Maintenance mode is on: only admins can use the site until the new Galaxy Map is built.")
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Bring the configured MySQL database's schema_migrations bookkeeping up to date, "
@@ -172,6 +203,7 @@ def main():
         print(version, SCHEMA_VERSION, pending, config.database)
         return
 
+    close_site_for_the_sector_switch(config)
     try:
         version = _migrate_with_progress(config)
     except Exception as exc:

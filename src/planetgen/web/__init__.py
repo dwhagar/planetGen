@@ -40,6 +40,7 @@ from markupsafe import Markup, escape
 _STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                            "html", "static")
 
+from planetgen.admin import maintenance  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
@@ -151,6 +152,7 @@ def _template_globals():
         "icon": icon,
         "page_url": page_url,
         "current_admin": current_admin,
+        "maintenance_state": maintenance.read,
         "csrf_field": csrf.csrf_field,
         "edit_flashes": edit_flashes,
         "math_check_failures": math_check_failures,
@@ -174,6 +176,7 @@ from . import facility_type_pages  # noqa: E402,F401 -- /admin/facility-types
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
 from . import population_pages  # noqa: E402,F401 -- /species, /polities
 from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /classes/<type>/<code>
+from . import maintenance_page  # noqa: E402,F401 -- /maintenance (UX.112)
 from . import old_urls  # noqa: E402,F401 -- /<name>.py -> 301 to the page that replaced it
 
 
