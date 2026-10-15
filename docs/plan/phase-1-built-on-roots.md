@@ -116,6 +116,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | MAP.199 |  |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) |  |  |
+| MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) |  |  |
 | MAP.197 | Remove the obsolete drill container code left by the map flip |  |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |

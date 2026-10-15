@@ -1474,6 +1474,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
   Prerequisites: MAP.199. Related: MAP.198, MAP.152, MAP.146.
 
+- [ ] **MAP.201 A selected sector that is not filled stays highlighted on the map until something else is selected (bug)**
+  Boss, 2026-10-15 01:49Z: when a sector is selected but unfilled, it
+  cannot be entered, but it should then stay highlighted on the map
+  until something else is selected. Done: selecting an unfilled sector
+  keeps its highlight (same outline as MAP.198) after the refusal to
+  enter, until another selection replaces it; browser test. Owner:
+  Bugfixes lane 2, right after MAP.198 (same selection and highlight
+  area). GitHub issue
+  [#1416](https://github.com/dwhagar/planetGen/issues/1416).
+  Prerequisites: none. Related: MAP.198, MAP.199, MAP.152.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
