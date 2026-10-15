@@ -1450,6 +1450,28 @@ def test_galaxy_map_outlines_the_whole_block_a_click_would_open_and_shades_it(pa
             break
 
 
+def test_galaxy_map_an_unfilled_sector_stays_outlined_once_selected(page, map_site):
+    """MAP.201: a sector with nothing generated cannot be opened, but once
+    selected it stays outlined when the pointer leaves, until something else
+    is selected."""
+    _open_galaxy(page, map_site)
+    for _ in range(8):
+        if re.search(r"Sector .*uncharted$", (_hover_choice(page, r"^Sector .*uncharted$") or (0, 0, ""))[2]):
+            break
+        _click_choice(page, GENERATED_CHOICE)
+    spots = page.evaluate(HOVER_SCAN, [r"^Sector .*uncharted$", 48])
+    assert spots, "no unfilled sector on the map"
+    page.mouse.click(spots[0], spots[1])
+    _settle(page)
+    if "open=1" in _query(page):
+        pytest.skip("the first unfilled sector holds scattered objects and opens")
+    # Passing over another sector and leaving the map used to drop the outline.
+    assert _hover_choice(page, r"^Sector .*, charted$"), "no charted sector to pass over"
+    page.mouse.move(1, 1)
+    page.wait_for_timeout(300)
+    assert page.evaluate(LINES)["hovered"]["lines"] > 0, "the selected sector lost its outline"
+
+
 def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(page, map_site):
     """MAP.107: a click on the map while the stage just picked is still
     loading its data (the breadcrumb has moved, the drawing has not) picks

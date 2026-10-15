@@ -1424,8 +1424,8 @@ export function createStageView(host) {
   // An accent outline round the whole block a click would open (MAP.18,
   // MAP.52, MAP.198): every edge of its solid, top and bottom and up the
   // corners, and a faint shade over its faces, on top of the map.
-  function outlineOption(index) {
-    clearOutline();
+  function outlineOption(index, keep) {
+    if (!keep) clearOutline();
     const option = display.options[index];
     const mid = (option.a0 + option.a1) / 2;
     const span = spanOf(option.blocks, mid);
@@ -1472,8 +1472,13 @@ export function createStageView(host) {
       });
     });
     if (!animation) setDisplayFade(display, 1);
+    // MAP.201: the sector selected (one that is not opened, as an
+    // unfilled one cannot be) stays outlined until something else is
+    // selected, whether or not the pointer is on it.
+    const selected = selectedSector && !entered ? sectorOption(selectedSector) : -1;
     if (index >= 0 && display.options[index]) outlineOption(index);
     else clearOutline();
+    if (selected >= 0 && selected !== index) outlineOption(selected, true);
   }
 
   function showTooltip(text, clientX, clientY) {
