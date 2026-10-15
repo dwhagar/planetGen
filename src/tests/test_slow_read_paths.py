@@ -16,6 +16,7 @@ from planetgen.db import store
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
+from tests.maps_pending import MAPS_PENDING
 
 
 def _sector(config, name, count, binary_every=2):

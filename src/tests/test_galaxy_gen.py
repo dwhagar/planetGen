@@ -549,7 +549,10 @@ def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_confi
     # demanding threshold.
     _seed_skeleton(mysql_config, shells=_shells(2, 1))
 
-    first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
+    # The core's bodies fall toward the nucleus, so settling their paths takes minutes (it has its own
+    # tests), and planets add generation time this test doesn't need.
+    with forced_system_config(PLANETS=False):
+        first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config, settle=False)
     assert first["created"] is True, first
     assert first["qualifies"] is True, first
     assert first["sector_id"] is not None, first
