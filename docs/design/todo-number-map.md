@@ -758,7 +758,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | none | open |
 | GEN.213 | Mercury-like bodies never keep their magnetic field (bug) | none | done, PR #1412 |
 | GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) | none | done, PR #1472 |
-| GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) | none | open |
+| GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) | none | done, PR #1478 |
 | GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) | none | open |
 | GEN.217 | Refresh the stored habitability numbers on existing planets and moons | none | open |
 | GEN.218 | One habitability describer, in the short wording | none | open |
