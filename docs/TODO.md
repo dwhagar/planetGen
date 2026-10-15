@@ -5184,21 +5184,6 @@ clears each one.
   run's result and the guide matches.
   Prerequisite: TEST.151 (done, PR #1484). Related: TEST.148, TEST.139.
 
-- [ ] **TEST.154 A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug)**
-  Reported by Foundations Maps (2026-10-15, MAP.197 gate):
-  src/tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
-  fails 2 of 6 reruns on an idle machine. The test assumes the first
-  facility's host body is the first planet of a random system, but the
-  system is not seeded so the assumption breaks. Make the test pick its
-  host from the data (or seed the system) so it passes every time.
-  Owner: Test Suite Rebuild. Done when 20 reruns in a row pass.
-  Seen again by Foundations UX in its UX.81 and UX.22 gate (2026-10-15):
-  the same test, so two lanes now hit it. Seen a third time by
-  Foundations Generation (GEN.215 gate): about 1 failure in 12 runs on
-  unchanged main. Its finding: the fixture puts the facility on the lowest
-  planet row id, while the test expects the first planet the API lists.
-  Prerequisites: none. Related: TEST.147, TEST.149, TEST.126.
-
 - [ ] **TEST.155 Wording and index agree: property test**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code

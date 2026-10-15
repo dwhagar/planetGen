@@ -1592,7 +1592,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | done, PR #1484 |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
 | TEST.153 | A single hung test can stall a whole run (bug) | none | done, PR #1451 |
-| TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | open |
+| TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | done, PR #1486 |
 | TEST.155 | Wording and index agree: property test | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
