@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1288] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired the Galaxy Map on-map controls item (PR #1556); the stale Galaxy Map wheel unit test is fixed and no longer a known red.
+
+TODO items resolved: MAP.200 / Added: none
+
 ## [8.0.1287] - 2026-10-15
 
 ### Added
