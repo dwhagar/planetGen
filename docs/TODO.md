@@ -5503,6 +5503,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   loopback (it does today), an ACL user documented for later.
   Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
 
+- [ ] **OPS.50 Keep the pymysql login workaround and make it compatible with the upstream fix**
+  Boss, 2026-10-15 00:46Z: the caching_sha2 workaround in
+  planetgen/db/login.py (OPS.49, merged in #1387) stays; it is not
+  removed. Make it compatible with the upstream fix (PyMySQL PR 1275,
+  merged 2026-09-18, unreleased) so that once pymysql answers that step
+  itself the plugin hook steps aside or behaves identically and nothing
+  changes for users. The hook detects whether the installed pymysql
+  already answers the step; tests cover the current library and a
+  stand-in that behaves like the fix; the clear login error stays.
+  GitHub issue
+  [#1392](https://github.com/dwhagar/planetGen/issues/1392).
+  Prerequisites: none.
+
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**

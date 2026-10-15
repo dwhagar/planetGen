@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.153 |
 | USR | USR.12 |
-| OPS | OPS.50 |
+| OPS | OPS.51 |
 | DOC | DOC.45 |
 | VIEW | VIEW.11 |
 | POP | POP.12 |
@@ -1052,6 +1052,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.47 | update.sh stops at the database migrate step in the venv: cryptography is missing from the requirements (bug) | none | done, PR #1346 |
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) | none | open |
 | OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) | none | done, PR #1387 |
+| OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
