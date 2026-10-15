@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.113 |
 | MAP | MAP.207 |
 | NAV | NAV.60 |
-| GEN | GEN.231 |
+| GEN | GEN.233 |
 | PERF | PERF.103 |
 | DB | DB.33 |
 | API | API.27 |
@@ -778,6 +778,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) | none | done, PR #1610 |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule | none | open |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | none | open |
+| GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | open |
+| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -982,8 +984,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) | none | done, PR #1490 |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) | none | done, PR #1519 |
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | open |
-| MAP.205 | Galaxy Map block ladder for shells | none | open |
-| MAP.206 | Galaxy Map drawing on shells | none | open |
+| MAP.205 | Galaxy Map block ladder for shells | none | done, PR #1612 |
+| MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

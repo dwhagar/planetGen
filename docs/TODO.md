@@ -1312,46 +1312,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199 (done,
   PR #1513), MAP.200 (done, PR #1556), MAP.152.
 
-- [ ] **MAP.205 Galaxy Map block ladder for shells**
-  A design note for nested blocks on shells (master rules in longitude
-  and latitude, caps, stage keys, `galaxy_block_stats`), then
-  `drill.py`, `region.py`, `window.py`, the block stats table and its
-  migration. Boss's answer (2026-10-15 06:58Z): a block holds the cells
-  whose centre it holds, not cells cut on block edges, so the note
-  picks a block count per level; every band of every shell has 6 * m
-  wedges, m using only the primes 2, 3, 5 and 7 and nearest the 4 pc arc
-  (Boss, 07:17Z), so the ladder note works from that rule: counts
-  nest in most steps, not all. Ladder timing decided (Boss, 07:22Z,
-  "proceed with your plan"): built after the coordinates and the migration,
-  not in parallel; equal-volume bands were not adopted. Replaces the
-  cylinder 243/81/27/9/3 ladder (MAP.151, done, PR #1539). Owner: Maps,
-  after item 6. Source: item 7 of section 6 of the plan. Boss decided
-  the move (2026-10-15 06:39Z): "two meridian lines from pole to pole
-  make a wedge (vert), shell (radius), and band (horizontal), together
-  they identify a single 3D segment of the sphere". TOP PRIORITY in
-  Phase 1, ahead of every lane queue.
-  State on main after the switch (PR #1607): the Galaxy Map browser tests
-  are parked behind the MAPS_PENDING skip marker (src/tests/maps_pending.py;
-  remove it as each test is restored), geometry.py stays until the map stops
-  importing it, and /galaxy answers 500 (KeyError 'shell_index' at
-  galaxy_views.py:99), which is why the post-switch full run showed 96
-  Galaxy Map browser failures. Both are Maps' to fix with this item and
-  MAP.206; the site stays in maintenance mode until the new map lands.
-  Prerequisites: none to start (Boss released Maps, 07:31Z): built in parallel on a branch; the spherical switch (DB.32, GEN.227, UX.111, UX.112) merged in PR #1607. Clears maintenance mode when the new map lands.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
-- [ ] **MAP.206 Galaxy Map drawing on shells**
-  `galaxyprisms.js`, `galaxystageview.js`, `galaxymap3d.js`, tile cuts
-  and picking draw and pick shell cells and caps; the slab slider
-  becomes a band control. Owner: Maps, after the ladder
-  item. Source: item 8 of section 6 of the plan. Boss decided the move
-  (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
-  wedge (vert), shell (radius), and band (horizontal), together they
-  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
-  ahead of every lane queue.
-  Prerequisite: MAP.205 (built in parallel on a branch; the spherical switch merged in PR #1607). Clears maintenance mode when the new map lands, with MAP.205.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3302,6 +3262,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so it is Core's migration and is decided before more sectors are
   created in the halo. Bug.
   Prerequisites: none. Related: GEN.229.
+
+- [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
+  The Galaxy Map moved to the shell, band and wedge ladder
+  (243/81/27/9/3 shells deep, then sectors; PR #1612,
+  docs/design/spherical-block-ladder.md), and with it the old block
+  addresses went away. `planetgen generate --block` is refused with "the
+  Galaxy Map's blocks are being rebuilt on shells" (`cli/generate.py`,
+  `tests/test_gen_cli_errors.py`) and the block generate buttons
+  (`blockGenerateButtons`) were removed from `generatebuttons.js`. Done:
+  a block of the new ladder (its m, shell, band and wedge) is a region
+  the generate command and the work queue can fill, nearest sectors
+  first, with the same progress, cancel and resume as a neighbourhood
+  fill; `--block` takes the new block address; the Galaxy Map's block
+  menu offers Generate again; the refusal text and its test are gone.
+  Found by Maps (2026-10-15). Owner: Core for the region and the
+  command; the button is Interface, after Core. Order it after PERF.99
+  so the queue it uses is the new one.
+  Prerequisites: PERF.99. Related: GEN.101, MAP.120.
+
+- [ ] **GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug)**
+  A random hypervelocity star (about 350 km/s) makes
+  `sector_path.integrate_path` run for many minutes on the core sector.
+  `test_galaxy_gen.py::test_ensure_sector_generated_creates_then_reuses_the_same_sector`
+  fails about one run in three on untouched main because of it, and two
+  generation tests time out when the draw lands (found by Maps,
+  2026-10-15, running its gate against clean main). Done: the
+  integration of a path has a bounded cost whatever the body's speed (a
+  cap on the step count or a coarser step for fast bodies, whichever
+  keeps the stored Hermite path within its error budget), the cost is
+  the same for every body in a sector, and the flaky test passes
+  repeatedly. Owner: Core (2026-10-15). Quality owns the test list, so
+  the flake is not a TEST item. Bug.
+  Prerequisites: none. Related: PERF.88.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
