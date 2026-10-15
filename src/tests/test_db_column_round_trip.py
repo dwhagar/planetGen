@@ -114,11 +114,6 @@ NEVER_READ = {
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
-    # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
-    **{("facilities", column): "read once POP.10 lands" for column in (
-        "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",
-        "rating_resources", "rating_maintenance", "rating_health", "ratings_source", "ratings_note",
-        "ratings_set_at")},
     # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
     ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,
