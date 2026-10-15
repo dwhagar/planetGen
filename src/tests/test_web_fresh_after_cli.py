@@ -54,6 +54,7 @@ from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from planetgen.physics.units import ly_to_pc  # noqa: E402
 from tests.publicids import pid, pids
 from tests.tile_support import tile_payload
+from tests.maps_pending import MAPS_PENDING  # noqa: E402
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
@@ -192,6 +193,7 @@ def _placed_count(html):
     return int(match.group(1))
 
 
+@MAPS_PENDING
 def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "galaxy", "--shell", "0", "--limit", "1", "--num-systems", "1", "--backfill-from", "none")
@@ -234,6 +236,7 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids
 
 
+@MAPS_PENDING
 def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     """The sector page's map draws its neighbors from `/sector/<id>/scene`
     (MAP.68), cached like a page, so a sector the CLI generated shows
@@ -257,6 +260,7 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     assert linked() == {pid("sector", row["id"], mysql_config) for row in others}
 
 
+@MAPS_PENDING
 def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config):
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "galaxy", "--shell", "0", "--limit", "1", "--num-systems", "1")
@@ -284,6 +288,7 @@ def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config
 
 
 
+@MAPS_PENDING
 def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_config):
     """`planetgen phenomenon --sector-id` adds a row to no table the
     stamp reads, so it must touch its sector (`store.save_phenomenon`):

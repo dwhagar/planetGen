@@ -586,7 +586,7 @@ def add_galaxy_arguments(parser):
                             help="Block mode: generate every not-yet-generated sector the galaxy's outline "
                                  "allows inside one Galaxy Map drill-down block, given by its key "
                                  "(size.shell.wedge.slab, as in the map's stage links). Refused until "
-                                 "the Galaxy Map's ladder is rebuilt on shells (MAP.205).")
+                                 "the Galaxy Map's ladder is rebuilt on shells.")
     mode_group.add_argument('--center-sector', type=int, metavar='SECTOR_ID',
                             help="Local-neighborhood mode: generate every not-yet-generated sector "
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
@@ -723,7 +723,7 @@ def validate_galaxy_args(args, parser):
         except ValueError as exc:
             parser.error(f"--bright-star-min-luminosity: {exc}")
     if getattr(args, "block", None) is not None:
-        parser.error("--block: the Galaxy Map's blocks are being rebuilt on shells (MAP.205); until then fill "
+        parser.error("--block: the Galaxy Map's blocks are being rebuilt on shells; until then fill "
                      "a --shell, a --shell --band, or a span (--shells/--bands/--wedges).")
 
     course = getattr(args, "course", None)

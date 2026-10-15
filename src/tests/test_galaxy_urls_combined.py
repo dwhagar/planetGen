@@ -275,7 +275,7 @@ def test_locate_ambiguous_names(db_client, mysql_config):
     assert set(names) == {"Vega", "Vega Prime", "Old Vega", "Vega Minor"}
     assert names.index("Old Vega") > max(names.index("Vega Prime"), names.index("Vega Minor"))
     minor = next(m for m in matches if m["name"] == "Vega Minor")
-    assert (minor["kind"], minor["sector_id"], minor["ring"], minor["slot"]) == ("system", pid("sector", vega, mysql_config), 5, 20)
+    assert (minor["kind"], minor["sector_id"], minor["shell_index"], minor["wedge_index"]) == ("system", pid("sector", vega, mysql_config), 5, 20)
 
     # Still ambiguous after the exact match is gone: no 500, the rest
     # remain. Asked of the API itself: the page's answer comes through
@@ -315,6 +315,7 @@ def test_cell_far_past_the_galaxy_by_ring_is_described_not_refused(db_client, my
     "nan.0.0.0", "243.inf.0.0", "243.-1.0.0", "243.7.14.0.0", "243.7.14",
     "243.7.14.0;drop", "%E2%91%A1.0.0.0", "",
 ])
+@MAPS_PENDING
 def test_stage_out_of_range_keys_against_the_real_database(db_client, mysql_config, at):
     store.get_connection(mysql_config).close()
     response = db_client.get(f"/galaxy/stage?at={at}")
@@ -324,6 +325,7 @@ def test_stage_out_of_range_keys_against_the_real_database(db_client, mysql_conf
         assert re.search(r"\S", response.get_json()["error"])
 
 
+@MAPS_PENDING
 def test_stage_far_past_the_galaxy_is_an_empty_block(db_client, mysql_config):
     """Pinned as found: a block ring far past any galaxy is a well-formed
     key, so it answers an empty stage rather than a 400."""

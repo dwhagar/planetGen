@@ -56,7 +56,7 @@ from planetgen.galaxy.spherical import (
     provisional_sector_designation, sector_cell_vertices_pc, sector_position_pc,
 )
 
-ON_SHELLS = "rebuilt with MAP.205 and MAP.206 on shells (the cylinder's block ladder and outline are gone)"
+ON_SHELLS = "rebuilt on shells with the new Galaxy Map (the cylinder's block ladder and outline are gone)"
 """str: Why a Galaxy Map query of the cylinder's block ladder raises until Maps rebuilds it."""
 from planetgen.galaxy import keepout
 from planetgen.galaxy import objectref as object_ref

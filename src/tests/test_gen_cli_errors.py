@@ -65,8 +65,8 @@ def _error(monkeypatch, capsys, command, argv):
 # ---------------------------------------------------------------------------
 
 GALAXY_ERRORS = [
-    # --block (refused until the ladder is rebuilt on shells, MAP.205)
-    (["--block", "3.2.1.0"], "--block: the Galaxy Map's blocks are being rebuilt on shells (MAP.205)"),
+    # --block (refused until the ladder is rebuilt on shells)
+    (["--block", "3.2.1.0"], "--block: the Galaxy Map's blocks are being rebuilt on shells"),
     # --shell
     (["--shell", "-1"], "--shell must be >= 0."),
     (["--shell", MAX_SHELL + 1], f"--shell must be at most {MAX_SHELL}."),

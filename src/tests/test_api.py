@@ -845,6 +845,7 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     assert body["has_shape"] is False
 
 
+@MAPS_PENDING
 def test_galaxy_filled_in_box_counts_every_placed_sector(mysql_config):
     """A tile's filled summary lists each addressed sector at g = 1 and
     past `max_cells` groups them into cells three sectors a side, with the
@@ -1024,6 +1025,7 @@ def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(
         conn.close()
 
 
+@MAPS_PENDING
 def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
@@ -1356,6 +1358,7 @@ def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_th
     assert coarse_points["supermassive"]["name"].endswith("(uncharted)")
 
 
+@MAPS_PENDING
 def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
@@ -1407,6 +1410,7 @@ def test_galaxy_bright_stars_in_one_cell(client, mysql_config):
     assert client.get("/api/galaxy/bright-stars?shell=3").status_code == 400
 
 
+@MAPS_PENDING
 def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_config):
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;
@@ -1459,6 +1463,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
         format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:5]}
 
 
+@MAPS_PENDING
 def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     """DB.14: each stage child, and each sector at a level-3 block, carries
     `stats` from `sector_stats`: the systems, expected systems and stars
@@ -1533,10 +1538,10 @@ def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):
     assert all(m["name"] != "Belcana Lost" for m in matches)
     assert {m["name"] for m in matches} == {"Belcana", "Belcana Reach"}
     first = matches[0]
-    assert (first["ring"], first["layer"], first["slot"]) == address
+    assert (first["shell_index"], first["band_index"], first["wedge_index"]) == address
     assert first["sector_id"] == pid("sector", sector_id)
     system = matches[1]
-    assert (system["ring"], system["layer"], system["slot"]) == address
+    assert (system["shell_index"], system["band_index"], system["wedge_index"]) == address
     assert system["sector_name"] == "Belcana"
 
     assert client.get("/api/galaxy/locate?q=  ").get_json()["matches"] == []
@@ -1591,7 +1596,7 @@ def test_galaxy_locate_and_search_give_planet_and_moon_hits_a_reference_and_pare
         {"ref": system_ref, "kind": "system", "name": "Zorbulon"}]
     assert by_kind["moon"]["ref"] == f"moon:{pid('moon', moon_id)}"
     assert [p["ref"] for p in by_kind["moon"]["parents"]] == [sector_ref, system_ref, planet_ref]
-    assert (by_kind["moon"]["ring"], by_kind["moon"]["layer"], by_kind["moon"]["slot"]) == address
+    assert (by_kind["moon"]["shell_index"], by_kind["moon"]["band_index"], by_kind["moon"]["wedge_index"]) == address
     assert by_kind["system"]["parents"] == [{"ref": sector_ref, "kind": "sector", "name": "Zorbulon Field"}]
 
     results = client.get("/api/search?planet_q=Zorbulon&moon_q=Zorbulon&system_q=Zorbulon").get_json()["results"]

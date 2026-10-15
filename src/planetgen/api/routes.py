@@ -903,6 +903,7 @@ def galaxy_shape():
     and how many sectors are charted, with a row per shell (a sample past 41).
     """
     conn = get_db()
+    skeleton = get_galaxy_shape(conn)
     return jsonify({"shape": galaxy_density_shape(conn), "bright_stars": bright_star_scatter_status(conn),
                     "version_warning": version_check.galaxy_warning(conn),
                     "shells": galaxy_shell_specs(conn, skeleton.edge_pc) if skeleton else None})
