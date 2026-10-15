@@ -111,6 +111,8 @@ export function createNavPad(host, stageView, cross) {
   slider.addEventListener("pointerdown", function () { held = true; });
   ["pointerup", "pointercancel"].forEach(function (type) { slider.addEventListener(type, function () { held = false; }); });
   slider.addEventListener("input", function () { stageView.setZoomShare(Number(slider.value) / 1000); });
+  // The wheel over the controls zooms the map as it does anywhere else.
+  pad.addEventListener("wheel", function (event) { if (stageView.onWheel(event)) event.preventDefault(); }, { passive: false });
   host.appendChild(pad);
 
   function sync() {

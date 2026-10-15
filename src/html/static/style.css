@@ -820,6 +820,13 @@ tbody tr:last-child td {
   border-radius: var(--radius);
   background: var(--bg-subtle);
   opacity: 0.92;
+  /* Only the controls themselves take the pointer, so the map under the
+     gaps still hovers, picks and zooms. */
+  pointer-events: none;
+}
+
+.starmap-navpad > * {
+  pointer-events: auto;
 }
 
 .starmap-navpad.is-disabled {
