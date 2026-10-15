@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1227] - 2026-10-15
+
+### Changed
+
+- MAP.202 retired (merged in #1490: Galaxy Map sector and slab borders adjusted).
+
+TODO items resolved: MAP.202 / Added: none
+
 ## [8.0.1226] - 2026-10-15
 
 ### Fixed
