@@ -4447,8 +4447,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -4465,7 +4464,7 @@ clears each one.
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
   open for the first recurrence (with the captured seed): the test pins
   the star type, so a different stored type may be a real pin bug in the
-  product, not test luck. Owner: the Test Suite Rebuild thread.
+  product, not test luck. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -4517,8 +4516,7 @@ clears each one.
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
   into the rebuild, no separate hunt; stage 1 runs the browser tests as
   a separate phase on two workers; closed after 5 clean full runs, and
-  stage 4 gives any still timing out a state-based wait. Owner: the Test
-  Suite Rebuild thread.
+  stage 4 gives any still timing out a state-based wait. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
   tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
   failed once in the NAV.9 run under load, passed alone.
@@ -4543,8 +4541,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -4560,8 +4557,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Sighting (Foundations lane 1, 2026-10-14, full suite of 39 min 51 s
   with PERF.89): tests/test_work_queue_admin.py::
   test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
@@ -4586,7 +4582,7 @@ clears each one.
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
   implement, one small PR, number 4 in the thread's order; the stored
   last-updated time is compared the way MySQL 8.4 rounds it; the thread
-  installs MySQL 8.4 to verify. Owner: the Test Suite Rebuild thread.
+  installs MySQL 8.4 to verify. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Status (2026-10-09): Fixed by the Test Suite Rebuild thread
   (2026-10-14, #1313, suite green): the stored last-updated time is
   compared the way MySQL 8.4 rounds it. Retire this item once the
@@ -4608,8 +4604,7 @@ clears each one.
   cannot pass by luck. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
   implement, one small PR, number 5 in the thread's order; the test
-  draws a system with a comet every time. Owner: the Test Suite Rebuild
-  thread.
+  draws a system with a comet every time. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Status (2026-10-09): Test Suite Rebuild thread (2026-10-14, #1313):
   not reproducible; the test now builds comets by construction so it
   exercises the comet path every time. Stays open until the cause is
@@ -4646,8 +4641,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.111, TEST.128.
 
 - [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
@@ -4662,8 +4656,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -4678,8 +4671,7 @@ clears each one.
   the test and it passes on 2,000,000 systems. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
   implement after TEST.133 and DB.24, in the same opt-in `budget` tier;
-  Foundations lane 1 drops it from its queue. Owner: the Test Suite
-  Rebuild thread.
+  Foundations lane 1 drops it from its queue. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisite: none (TEST.133 done, #1405). Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4696,8 +4688,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
@@ -4713,7 +4704,7 @@ clears each one.
   Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
   into the rebuild, no separate hunt; same family and fix as TEST.126.
-  Owner: the Test Suite Rebuild thread.
+  Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
@@ -4733,7 +4724,7 @@ clears each one.
   (4) the full run is much shorter than the present 30 to 70 minutes,
   and (5) the flaky tests (TEST.111, TEST.116, TEST.125 to TEST.130,
   TEST.132, TEST.134, TEST.137, TEST.138) are fixed or replaced as part
-  of it. Owner: the Test Suite Rebuild thread (a dedicated thread,
+  of it. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread) (a dedicated thread,
   started 2026-10-14 12:18Z); the lanes keep running the full suite
   before they merge until it lands.
   Since 2026-10-14 14:01Z (Boss) the thread also owns every test-fix
@@ -4821,8 +4812,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -4838,8 +4828,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -4854,7 +4843,7 @@ clears each one.
   Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
   into the rebuild, no separate hunt; same family and fix as TEST.126.
-  Owner: the Test Suite Rebuild thread.
+  Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
@@ -4870,8 +4859,7 @@ clears each one.
   skips them, and what must invalidate a resume: any changed file,
   database or Redis state, the Python or library versions) with a
   recommendation, and Boss picks one; the build is then filed as its own
-  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: the Test
-  Suite Rebuild thread, part of TEST.139, not a lane.
+  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread), part of TEST.139, not a lane.
   Decided (Boss, 2026-10-15, tapped Build
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
@@ -4895,8 +4883,7 @@ clears each one.
 
 - [ ] **TEST.156 Rewrite the tests that name ring, layer and slot**
   The 79 affected test files are rewritten as each of the grid items
-  lands; a MISSED line is a selection bug. Owner: Test Suite Rebuild
-  thread. Source: item 9 of section 6 of the plan. Boss decided the
+  lands; a MISSED line is a selection bug. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread). Source: item 9 of section 6 of the plan. Boss decided the
   move (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
@@ -4910,8 +4897,7 @@ clears each one.
   merging POP.12, PR #1554), so it is flaky on its own, not only under
   load. Find the cause (likely a random system or nebula placement that
   sometimes does not contain the system) and make the test
-  deterministic, then add it to the rebuild's flake list. Owner: Test
-  Suite Rebuild thread.
+  deterministic, then add it to the rebuild's flake list. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none.
 
 ## USR: User accounts
