@@ -4868,6 +4868,9 @@ clears each one.
   full run for small changes. Baseline (12:28Z, 4 cores): 15,622 tests,
   55 min 12 s, 14 failed. Stage 1 merged (#1280, 2026-10-14): full run 56 min 24 s, quick loop
   2 min 33 s. Plan: docs/design/test-suite-rebuild.md.
+  Progress (2026-10-15): PR #1546 sped up two slow Galaxy Map browser tests
+  (203 s to 13 s and 164 s to 29 s; changed gate PASS in 19 min 20 s); the
+  rest of stage 4 and stage 5 remain.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
   Status (2026-10-09): Stage 2 merged (Test Suite Rebuild thread,
