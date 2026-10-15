@@ -1169,7 +1169,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.5 | Population pages: species, polities, dominant species, territory (unnumbered in TODO.md) | none | done after 7.58.2, PR #184 |
 | POP.6 | Territories overlay on the Galaxy Map (unnumbered in TODO.md) | none | done in 7.54.0 (PR #179) and 7.58.1 (PR #181) |
 | POP.7 | Tech levels for technological species | none | open |
-| POP.8 | A tech-level design from the six domain indices | none | open |
+| POP.8 | A tech-level design from the six domain indices | none | done, PR #1422 |
 | POP.9 | A tech level generated for every technological species | none | open |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | open |
 | POP.11 | Scatter space vessels and stations for the races in their territories | none | open |

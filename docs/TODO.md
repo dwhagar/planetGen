@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.9, POP.7, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -1472,7 +1472,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   single shared centre of MAP.199. Owner: Bugfixes lane 2. Coordinate
   with MAP.152 (Foundations Maps). GitHub issue
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
-  Prerequisites: MAP.199. Related: MAP.198, MAP.152, MAP.146.
+  Prerequisite: MAP.199. Related: MAP.198, MAP.152, MAP.146.
 
 - [ ] **MAP.201 A selected sector that is not filled stays highlighted on the map until something else is selected (bug)**
   Boss, 2026-10-15 01:49Z: when a sector is selected but unfilled, it
@@ -6318,33 +6318,11 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   "Technological Assessment.md"  Use the data to develop a method of
   generating a tech level for every technological species." Done when
   the subitems are.
-  Prerequisites: POP.8, POP.9.
+  Prerequisite: POP.9.
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
   Research (2026-10-09, population-and-politics.md): the weights barely
   matter (equal weights differ by 0.03 TL on average, 0.27 at most, same
   ranking), so no calibration work on them.
-
-  - [ ] **POP.8 A tech-level design from the six domain indices**
-    The doc scores six domains 0 to 7 (Energy, Materials, Information,
-    Medical, Propulsion, Defense) and weights them: TL = 0.25 EI + 0.20
-    MI + 0.20 II + 0.15 MeI + 0.10 PI + 0.10 DI. Done: how each index is
-    drawn from a species' age, era and world (population.py's
-    civilization age and era), written into population-and-politics.md.
-    Research (2026-10-09, population-and-politics.md): add to Done that
-    `civilization_age_years` is years since the industrial transition
-    (Energy index about 1.5 to 2), that indices are integers 0 to 7, and
-    that Earth 2026 is the calibration point (TL about 3.1; E 3.0, M
-    3.0, I 3.4, Me 3.2, P 3.0, D 3.2, a judgment for Boss to review).
-    The parameter table, band names and limiting-domain decision are in
-    the design doc, so the written-into-population-and-politics.md
-    clause is met once Boss accepts them. Decided (Boss, 2026-10-10
-    18:44Z, defaults approved; defaults taken): age zero is the
-    industrial transition; old
-    civilizations are not all near the top (the oldest median is about
-    6.1); the weighted sum is the only stored TL, with the limiting
-    domain and a lopsided flag shown; label "Tech band" and "Era" on the
-    page since both use "Industrial".
-    Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
   - [ ] **POP.9 A tech level generated for every technological species**
     Done: every technological species stores its six indices and its
@@ -6360,7 +6338,6 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
     limiting domain (lowest of E, M, I) and the lopsided flag (max minus
     min at least 3) are derived, not stored; show the tech band name
     beside the age era on the species page.
-    Prerequisite: POP.8.
     Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
@@ -6396,5 +6373,5 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   territory, as stored objects like the user objects of USR.10. Which tech
   level allows vessels and which stations is set from the tech-level
   design (docs/design/Technological Assessment.md and the "Tech levels"
-  section of population-and-politics.md, POP.8). Owner: not assigned.
+  section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
   Prerequisites: POP.7, USR.10. Related: POP.7, POP.10, USR.10.
