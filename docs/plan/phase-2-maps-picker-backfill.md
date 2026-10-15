@@ -179,21 +179,20 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | GEN.233, GEN.234 | Whole-sphere build train, Boss 2026-10-15. Step 2. Core. |
 | GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | GEN.233 | Whole-sphere build train, Boss 2026-10-15. Step 3. Core. |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | GEN.235 | Phenomena catalogue, Boss 2026-10-15. Step 2. Core. |
-| GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
+| GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
-| GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | GEN.260, GEN.261 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 17. Core. |
+| GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | GEN.260 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 17. Core. |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | GEN.269, GEN.266 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
-| GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds | GEN.260, GEN.261 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
-| GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 7. Core. |
+| GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds | GEN.260 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
+| GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 7. Core. |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | GEN.223, GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 6. Core. |
 | PERF.103 | A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night | GEN.223 | Orbital update, Boss 2026-10-15 6:26 PM EDT. Small. Core. |
-| GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.260, GEN.261, GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
+| GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.260, GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | GEN.262 | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
-| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | GEN.260, GEN.261 | Multi-star systems at scatter time, Boss 2026-10-15. Step 3. Core. |
-| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 2. Core. |
+| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 3. Core. |
 | GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | GEN.223 | Multi-star systems at scatter time, Boss 2026-10-15. Step 1. Core. |
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | GEN.230, GEN.223 | Whole-sphere build train, Boss 2026-10-15. Step 1. Core. |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
@@ -303,7 +302,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
-| GEN.129 | Multi-star systems of up to twelve stars | GEN.261 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
+| GEN.129 | Multi-star systems of up to twelve stars |  | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.251, GEN.266 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |

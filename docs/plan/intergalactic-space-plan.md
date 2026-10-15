@@ -123,7 +123,6 @@ Each row is generated from the item's own entry in TODO.md on 2026-10-15; the en
 
 | Item | What | Owner | Needs | Unlocks |
 |---|---|---|---|---|
-| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | Core | GEN.250, GEN.268 | GEN.262, GEN.264, GEN.266, GEN.267, GEN.269, GEN.273 |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | Core | GEN.223, GEN.260 | (leaf) |
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | Core | GEN.260, GEN.261 | DOC.50, GEN.263, GEN.264, TEST.162 |
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | Core | GEN.261 | DOC.50, GEN.130, GEN.272 |
