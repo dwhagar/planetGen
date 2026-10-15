@@ -35,7 +35,7 @@ def panel_rows(db, system_id):
         return []
     try:
         bodies = apiclient.get_system_habitable_species(db, system_id)
-    except apiclient.ApiError:
+    except (apiclient.ApiError, apiclient.NotFoundError):
         return []  # the panel is extra: a system page that cannot read it still opens
     return [{"name": body["name"], "kind": body["kind"], "unaided": _species_rows(body["unaided"]),
              "equipped": _species_rows(body["equipped"])} for body in bodies]

@@ -199,11 +199,11 @@ def form_context(system_id):
     """
     try:
         owner = apiclient.get_system_owner(db_name(), system_id)
-    except apiclient.ApiError:
+    except (apiclient.ApiError, apiclient.NotFoundError):
         owner = None
     try:
         types = apiclient.get_facility_types(db_name())
-    except apiclient.ApiError:
+    except (apiclient.ApiError, apiclient.NotFoundError):
         types = []
     return {"types": types, "owner": owner}
 
