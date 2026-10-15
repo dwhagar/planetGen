@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1266] - 2026-10-15
+
+### Changed
+
+- `planetgen system --output` writes plain text by default and takes `--format text|markdown|wikitext` (it used to write wikitext, or Markdown with `--markdown`; that flag is gone from `system`). The admin one-off system page passes the format it was asked for. `sector`, `galaxy` and the phenomenon commands keep `--markdown` until they are described the same way.
+
 ## [8.0.1265] - 2026-10-15
 
 ### Added
