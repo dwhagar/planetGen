@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1353] - 2026-10-15
+
+**Headline:** The plan files two follow-ups from the spherical switch: a math check for the shell grid and an API version bump.
+
+### Changed
+- Filed TEST.158 (Quality): rewrite `physics/mathcheck.py` for the shell, band and wedge grid.
+- Filed API.26 (Core): bump `API_VERSION` to 4 for the new sector address parameters, with an open question for Boss (default: bump).
+
+TODO items resolved: none / Added: TEST.158, API.26
+
 ## [8.0.1352] - 2026-10-15
 
 **Headline:** The plan no longer lists the cli.md sync (DOC.36), now done.
