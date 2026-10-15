@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1320] - 2026-10-15
+
+**Headline:** Release notes can open with a Headline line, and the stamp keeps it under the release heading.
+
+### Changed
+- A release note may start with `**Headline:** <one sentence>` above its first section; `scripts/bump_version.py` accepts it, keeps it above the sections in `CHANGELOG.md` (also when two notes share a version), and `changes/README.md` states the restored rule (DOC.39). A note without one still releases.
+- Docs: the README names `planetgen.cli.query` (not `planetgen.db.query`) and its documentation table lists the server checklist, Windows page, system file format, example systems and CI runners pages.
+
 ## [8.0.1319] - 2026-10-15
 
 ### Changed
