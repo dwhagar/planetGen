@@ -1327,6 +1327,16 @@ a.navmap-label:focus-visible {
   stroke: var(--text-muted);
 }
 
+.navmap-stone circle {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-dasharray: 3 2;
+}
+
+.nav-stone {
+  font-style: italic;
+}
+
 a:hover .navmap-point circle,
 a:focus-visible .navmap-point circle {
   stroke: var(--accent);

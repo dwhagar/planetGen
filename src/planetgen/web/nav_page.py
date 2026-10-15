@@ -288,10 +288,15 @@ def _bookmark_pick(pick, other_param, label="Bookmarks"):
 def _route_names(route, known):
     """`{node key: name}` for every stop on the route, looking up only
     intermediate systems (a phenomenon is only ever the first or last
-    stop, already in `known`)."""
+    stop, already in `known`; a stop in unknown space, NAV.47, is named
+    in the route's `stop_places`)."""
     names = dict(known)
+    stones = {place["node"]: place.get("name") for place in (route or {}).get("stop_places") or []
+              if place.get("kind")}
     for node in (route or {}).get("path") or []:
-        if node not in names and not (isinstance(node, str) and node.startswith("phenomenon:")):
+        if node in stones:  # a stop in unknown space (NAV.47) is named by the route
+            names[node] = stones[node]
+        elif node not in names and not (isinstance(node, str) and node.startswith("phenomenon:")):
             names[node] = apiclient.get_system(db_name(), node)["name"]
     return names
 
@@ -300,7 +305,9 @@ def _route_stops(route, names):
     """The route's stops as `{name, url}`, in order."""
     stops = []
     for node in route["path"]:
-        if isinstance(node, str) and node.startswith("phenomenon:"):
+        if isinstance(node, str) and node.startswith("stone:"):
+            url = None  # NAV.47: nothing has been generated there to link to
+        elif isinstance(node, str) and node.startswith("phenomenon:"):
             _, phenomenon_type, phenomenon_id = node.split(":", 2)
             url = page_url("phenomenon", phenomenon_type=phenomenon_type, phenomenon_id=int(phenomenon_id))
         else:
@@ -384,7 +391,9 @@ def _waypoints(origin, destination, result, names):
 
         points[0]["course"] = to_next(0)
         for index, node in enumerate(route["path"][1:-1], start=1):
-            points.append({"id": node, "kind": "system", "type": None, "name": names.get(node, str(node)),
+            stone = isinstance(node, str) and node.startswith("stone:")
+            points.append({"id": node, "kind": "stone" if stone else "system", "type": None,
+                           "name": names.get(node, str(node)),
                            "position": route["positions"][str(node)], "role": "hop", "course": to_next(index)})
     points.append({"id": destination["anchor_id"], "kind": destination["anchor_kind"], "type": destination["type"],
                    "name": destination["name"], "position": result["destination_position"],

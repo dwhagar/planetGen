@@ -245,6 +245,8 @@ def _place_labels(labels, fixed=()):
 
 
 def _point_url(link_url, waypoint):
+    if waypoint.get("kind") == "stone":  # NAV.47: a stop in unknown space has no page
+        return None
     # A route's own intermediate hops are always real systems (see
     # queryDb.nav_between's docstring), but the origin/destination
     # themselves can each be a standalone phenomenon instead -- linked to
@@ -260,10 +262,11 @@ def _course_note(waypoint):
 
 
 def _point_html(url, waypoint, svg_x, svg_y, css_class, radius):
+    tag, link = ("a", f' href="{esc(url)}"') if url else ("g", "")
     return (
-        f'<a class="navmap-point {css_class}" href="{esc(url)}">'
+        f'<{tag} class="navmap-point {css_class}"{link}>'
         f'<title>{esc(waypoint["name"])}{esc(_course_note(waypoint))}</title>'
-        f'<circle cx="{svg_x:.1f}" cy="{svg_y:.1f}" r="{radius:.1f}"/></a>'
+        f'<circle cx="{svg_x:.1f}" cy="{svg_y:.1f}" r="{radius:.1f}"/></{tag}>'
     )
 
 
@@ -338,7 +341,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
         css_class, radius = {
             "origin": ("navmap-origin", _ORIGIN_R),
             "destination": ("navmap-destination", _DEST_R),
-        }.get(waypoint["role"], ("navmap-hop", _HOP_R))
+        }.get(waypoint["role"], ("navmap-stone" if waypoint.get("kind") == "stone" else "navmap-hop", _HOP_R))
         url = _point_url(link_url, waypoint)
         points_html.append(_point_html(url, waypoint, svg_x, svg_y, css_class, radius))
         labels.append({

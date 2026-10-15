@@ -101,6 +101,7 @@ class FakeData:
         self.nav_error = None
         self.nav_galaxy_scope = False
         self.nav_unknown_space = False
+        self.nav_stone = False
         self.nav_chart_error = None
         self.nav_chart = {"unknown_hops": 2, "cells": [[1980, 0, 1], [1980, 0, 2]], "outside_galaxy": 1,
                           "route_distance_ly": 40.0, "confirm_over": 5000,
@@ -160,6 +161,8 @@ class FakeData:
         if self.nav_error:
             raise self.nav_error
         hops = [] if getattr(self, "nav_direct_hop", False) else [1500]
+        if self.nav_stone:  # NAV.47: a stop in unknown space, named by the route
+            hops = ["stone:black-hole:77"]
         direct = {"distance_ly": 3.25, "bearing_deg": 45.2, "mark_deg": 357.5,
                   "elevation_deg": -2.5, "frame": "sector"}
         kind, from_id = objectref.parse(from_ref)
@@ -172,7 +175,10 @@ class FakeData:
             "origin_position": (0.0, 0.0, 0.0), "destination_position": (3.0, 1.0, 0.0),
             "route": {"path": [from_id if kind == "system" else f"phenomenon:{kind}:{from_id}",
                                *hops, to_id],
-                      "distance_ly": 3.5, "positions": {"1500": (1.5, 0.5, 0.0)},
+                      "distance_ly": 3.5, "positions": {"1500": (1.5, 0.5, 0.0), "stone:black-hole:77": (1.5, 0.5, 0.0)},
+                      "stop_places": ([{"node": "stone:black-hole:77", "sector_id": None, "sector_position_ly": None,
+                                        "kind": "black-hole", "name": "Black hole in uncharted sector ABC"}]
+                                      if self.nav_stone else []),
                       "longest_hop_ly": 2.25, "stops": len(hops), "stay_minutes": stay or 0.0,
                       "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years, 2 days"}],
                       "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "5 days"}],
@@ -1254,6 +1260,17 @@ def test_nav_route_shows_the_longest_hop_and_unknown_space_jumps(client, fake):
     fake.nav_unknown_space = True
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
     assert "1 jump crosses unknown space" in html
+
+
+def test_nav_route_names_a_stop_in_unknown_space_by_its_kind_and_does_not_link_it(client, fake):
+    """NAV.47: a stepping stone in unfilled space is named from the route, is no link, and is on the map."""
+    fake.nav_stone = True
+    fake.nav_unknown_space = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert '<span class="nav-stone">Black hole in uncharted sector ABC</span>' in html
+    assert ">Black hole in uncharted sector ABC</a>" not in html
+    assert "navmap-stone" in html
+    assert "Black hole in uncharted sector ABC" in html
 
 
 def test_nav_route_shows_hop_and_total_times_and_takes_a_stay(client, fake):
