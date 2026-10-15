@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.114 |
+| UX | UX.115 |
 | MAP | MAP.208 |
 | NAV | NAV.60 |
-| GEN | GEN.260 |
+| GEN | GEN.268 |
 | PERF | PERF.103 |
 | DB | DB.33 |
 | API | API.28 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.162 |
+| TEST | TEST.163 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.50 |
+| DOC | DOC.51 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -551,6 +551,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | open |
+| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -810,6 +811,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.257 | A Fermi-bubble overlay on the Galaxy Map | none | open |
 | GEN.258 | Protostars embedded in giant molecular clouds | none | open |
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) | none | open |
+| GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | none | open |
+| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to seven members | none | open |
+| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | open |
+| GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | none | open |
+| GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | none | open |
+| GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | none | open |
+| GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | none | open |
+| GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1399,6 +1408,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.111 | Reads, API and web wording on shells | none | done, PR #1607 |
 | UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | open |
+| UX.114 | Scatter-row pages list the stored members and the map shows a system mass | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1657,6 +1667,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | open |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | open |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |
+| TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

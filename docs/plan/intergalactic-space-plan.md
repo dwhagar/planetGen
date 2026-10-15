@@ -16,6 +16,7 @@ A visitor can ask for a sector anywhere inside the reach (the Magellanic Clouds,
 6. Stellar companions of stars and star-like objects (stars, former stars, protostars, neutron stars, black holes, including neutron star and black hole pairs) are generated at scatter time, because they matter for gravity (5:51 PM EDT).
 7. "All types represented" means audited frequency, never forced: accurate probabilities and no forced representation in a sector, except a kind that landed there in a scatter before generation (5:51 PM EDT).
 8. Every nebula gets the stars it needs as real systems; Wolf-Rayet stars and ring nebulae are built (5:23 PM EDT).
+9. Multi-star plan approved (6:08 PM EDT): plan and build every observed and theoretical type of multi-star and star-like-object system into the generator throughout, matching observed probabilities best and theoretical ones where observation is silent. Compute the best path for three build lanes and one TODO lane (6:02 PM EDT): section 11.
 
 ## 3. The stages, in build order
 
@@ -25,23 +26,24 @@ A  spherical grid ──► B1 halo + profile ──► B2 components + clusters
                           ├──► B3 registry + fill machinery ──► B5 real contents (young stars, nebulae, W stars)
                           │
                           └──► B6 Interface (profile lookup, sector page, map)      B7 tests + docs beside each step
-M  multi-star definitions (research running) plugs in beside B3 and B4        C  region query (waits on research)
+M  multi-star systems at scatter time (approved; research extending it)       C  region query (waits on research)
 L  later group: nothing waits on it
 ```
 
 - **A** is first and alone on the critical path: the shared migration (GEN.230 and GEN.223 together, the 96-bit layout and the point-in-space columns) then the reach (GEN.233). GEN.232 is a bug that must land before any wide scatter.
 - **B1 to B7** are the whole sphere. B1 is a strict chain (halo, then profile, then kind factors); after the profile exists, B2, B3 and B6 can run in parallel across lanes. B4 needs the components (GEN.237). B5 needs the registry and fill stages (GEN.251) and the pre-main-sequence state. B7 is written beside each step.
-- **M** is a reserved slot (section 4). **C** is the region query (section 5). **L** is the later group (section 7).
+- **M** is the multi-star stage (section 4), partly inside A (the member tables share the migration). **C** is the region query (section 5), still reserved. **L** is the later group (section 8).
 - Core is the only lane that adds migrations and owns B1 to B5; Interface owns B6; Quality owns B7 and every TEST and DOC item.
 
-## 4. Slot M: the multi-star definitions (research still running)
+## 4. Stage M: multi-star and star-like systems at scatter time
 
-A research thread, "Research multi-star systems (2026-10-15)", is surveying how many stable multi-object systems exist, their theoretical limits and probabilities, and proposing expanded multi-star definitions (stars, former stars, protostars, neutron stars and black holes, in pairs and hierarchies up to the limit). Its items are not filed yet. They plug in here:
+Approved by Boss (2026-10-15, 5:51 PM EDT, widened 6:08 PM EDT to every observed and theoretical type of multi-star or star-like-object system, built throughout the generator). Design: [multi-star-systems.md](../design/multi-star-systems.md), which the research thread is extending into a full catalogue of system types; the items it adds are filed here and slot into the stage table below. The first eleven items are filed and approved (the defaults of the note stand: compact pairs promoted to the scatter, black hole companion 1.25%, cap 7 stars, hierarchical trees only, a row's members deleted when its sector builds it, pair rates from the middle of the evidence).
 
-- **Definitions**: GEN.129 (multi-star systems of up to seven stars) is rewritten from the research; the new object kinds and the orbit trees live in the registry (GEN.250).
-- **Scatter-time companions**: the companion roll moves out of the fill-time system pass (GEN.251) to the scatter stage, drawn from the row's own seed; each scatter row (GEN.240) carries its companions' masses and orbit, placed with the primary so a pair is one gravitational source. Planets, belts and moons stay at fill.
-- **Compact pairs**: GEN.130 carries neutron star and black hole companions and the pairs between them; GEN.252 (brown dwarfs) and GEN.247 (accreting white dwarf binaries) read the same definitions.
-- **Order**: B1 to B3 do not wait for M. B4 can start with single-object rows and add the companion field when M lands, as long as the registry reserves the field; B5 does not depend on M. When the research arrives, the TODO thread files its items here, amends GEN.129, GEN.130, GEN.240 and GEN.251, and places them in the stage tables below.
+- **Stored form** (GEN.260): a scatter row becomes a system key: barycentre point, total mass, members and orbit nodes in two child tables, one column per value, no JSON. It goes in the shared GEN.223 and GEN.230 migration, so there is one migration, not two.
+- **Generator** (GEN.261, GEN.266, GEN.267): `draw_member_tree` (GEN.129's steps a to d plus member kinds and the Peters, Kozai and wide-companion checks), the compact-binary orbit laws, the cap setting and the `--stars N` directive.
+- **Scatter and fill** (GEN.262, GEN.263, GEN.264, GEN.265): companions in the scatter passes with a rate correction so pairs are not double counted, promotion of bound compact pairs, the fill building from stored members (GEN.251's system pass shrinks to planets, moons and belts), and the nightly motion of a system with its total mass.
+- **Interface and Quality**: UX.114 lists members on a scatter row's pages; TEST.162 is the multiplicity audit; DOC.50 the docs.
+- **Order**: GEN.260 and GEN.265 go in with the migration (stage A) because the barycentre point and the system mass belong to GEN.223's design; GEN.261 follows the registry (GEN.250); GEN.262 and GEN.264 follow once GEN.251 and the member tables exist. B1 to B3 do not wait for the rest of M. GEN.240 (scatters over the whole sphere) takes members from GEN.262 once it exists and may start without them.
 
 ## 5. Stage C: the spherical-region database query
 
@@ -69,13 +71,14 @@ Open questions of the design notes; each default is a decision unless changed.
 
 Each row is generated from the item's own entry in TODO.md on 2026-10-15; the entry wins if it has changed since.
 
-### Stage A: The spherical grid finishes first
+### Stage A: The spherical grid finishes first (the shared migration also carries the scatter member tables)
 
 | Item | What | Owner | Needs | Unlocks |
 |---|---|---|---|---|
 | GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | Core | none | GEN.238, GEN.240 |
+| GEN.223 | The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug) | Core | none | GEN.233, GEN.260, GEN.265 |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | Core | none | GEN.233 |
-| GEN.223 | The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug) | Core | none | GEN.233 |
+| GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | Core | GEN.223 | DOC.50, GEN.262, GEN.264, GEN.265, UX.114 |
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | Core | GEN.230, GEN.223 | DOC.48, GEN.234, GEN.235, GEN.238, GEN.257, TEST.159 |
 | TEST.156 | Rewrite the tests that name ring, layer and slot | Quality | none | (leaf) |
 | TEST.158 | The math check tests the spherical shell, band and wedge grid | Quality | none | (leaf) |
@@ -105,10 +108,25 @@ Each row is generated from the item's own entry in TODO.md on 2026-10-15; the en
 
 | Item | What | Owner | Needs | Unlocks |
 |---|---|---|---|---|
-| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | Core | none | DOC.49, GEN.251, TEST.160 |
-| GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | Core | GEN.250, GEN.235 | DOC.49, GEN.130, GEN.241, GEN.252, TEST.160, TEST.161 |
-| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | Core | GEN.251 | DOC.49, GEN.163, GEN.247, GEN.253 |
+| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | Core | none | DOC.49, GEN.251, GEN.261, TEST.160 |
+| GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | Core | GEN.250, GEN.235 | DOC.49, GEN.130, GEN.241, GEN.252, GEN.264, TEST.160, TEST.161 |
+| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | Core | GEN.251, GEN.266 | DOC.49, GEN.163, GEN.247, GEN.253 |
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | Core | GEN.130, GEN.158, GEN.159 | (leaf) |
+
+### Stage M: Multi-star and star-like systems at scatter time (approved by Boss, 2026-10-15 5:51 and 6:08 PM EDT)
+
+| Item | What | Owner | Needs | Unlocks |
+|---|---|---|---|---|
+| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to seven members | Core | GEN.250 | GEN.262, GEN.264, GEN.266, GEN.267 |
+| GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | Core | GEN.223, GEN.260 | (leaf) |
+| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | Core | GEN.260, GEN.261 | DOC.50, GEN.263, GEN.264, TEST.162 |
+| GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | Core | GEN.261 | DOC.50, GEN.130 |
+| GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | Core | GEN.262 | (leaf) |
+| GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | Core | GEN.260, GEN.261, GEN.262, GEN.251 | DOC.50, TEST.162 |
+| GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | Core | GEN.261 | (leaf) |
+| UX.114 | Scatter-row pages list the stored members and the map shows a system mass | Interface | GEN.260 | (leaf) |
+| TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | Quality | GEN.262, GEN.264 | (leaf) |
+| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | Quality, after the code | GEN.260, GEN.262, GEN.264, GEN.266 | (leaf) |
 
 ### Stage B4: The scatters fill the whole sphere
 
@@ -179,6 +197,7 @@ Nothing in stages A to B7 waits on these; they are planned after the train. The 
 | A | TEST.156, TEST.158 (the grid names, the math check at the reach) | DOC.47 |
 | B1 to B6 | written beside each build step | none until the code lands |
 | B3 | TEST.161 (stream independence, same seed same system, the probability table, no planet or moon on a scatter row) | DOC.49 |
+| M | TEST.162 (the multiplicity audit: companion states, stability, determinism, fill reuse, motion, census anchors) | DOC.50 |
 | B5, B7 | TEST.159 (required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, pre-placed share per population) | DOC.48 |
 | B7 | TEST.160 (the representation audit: expected against observed counts per region class, the fraction with a system, required contents) | DOC.49 |
 
@@ -186,4 +205,31 @@ Gate for every step: a green `scripts/test.py changed`; `full --check` when a st
 
 ## 10. Keeping this plan true
 
-The TODO tasks thread owns this file. It amends it whenever an item in it is filed, retired or re-ordered, whenever Boss decides one of the section 6 questions, and when the multi-star or region-query research hands over its items. Merged items are retired from TODO.md and this file with their PR.
+The TODO tasks thread owns this file. It amends it whenever an item in it is filed, retired or re-ordered, whenever Boss decides one of the section 6 questions, and when the multi-star catalogue extension or the region-query research hands over its items. Merged items are retired from TODO.md and this file with their PR.
+
+## 11. Lane queues and the critical path (computed 2026-10-15, 6:10 PM EDT)
+
+Boss (6:02 PM EDT) approved the plan and asked for the best path for the three build lanes (Core, Interface, Quality) and the TODO lane. The full per-lane queues, with the first five items of each, are in the UPDATE 6:10 PM EDT block of `/mnt/project-files/reports/lane-briefs-three-threads-2026-10-15.md`; this is the summary.
+
+**Method.** All 325 open items with their prerequisites (from TODO.md) form one dependency graph. Each item has a relative effort in slots (1 is about one small PR; my estimates, 2 to 5 for the big whole-sphere items). A simulation lets each lane take the first ready item in its queue; a lane never idles while it has a ready item.
+
+**Findings.**
+- The dependency critical path is 8 items, 27 slots: GEN.223, GEN.233, GEN.234, GEN.235, GEN.251, GEN.241, GEN.243, TEST.159. Nothing else is longer; Interface and Quality items hang off it.
+- **Core is the bottleneck, not the chain.** Core's own plan queue (stages A, B and M) is 29 items and 84 slots, 3.1 times the critical path, because every plan item needs the generator or a migration. The multi-star items add 23 slots to it. The best path therefore keeps Core on the plan queue from the first minute and moves everything else off it.
+- **Moved off Core** (no migration, no generator knowledge): the admin, remote-generation API, accounts and species pages, NAV, VIEW and the visitor-facing bugs go to Interface; test tooling, determinism helpers, benchmarks, scripts and the research items go to Quality; the planet-class chain (GEN.27, GEN.28, GEN.33, GEN.90 to GEN.92, GEN.145, GEN.146, GEN.29) is Interface's overflow after its own queue, with Core consulted before generation code is touched. Moves are listed in the lane-briefs UPDATE block.
+- With these moves the whole open list finishes in about 214 slots against about 289 for the current split (26% sooner, almost all of it in the tail after the plan). The plan itself completes at about slot 84 either way, because it is Core-bound.
+- **Idle time.** Core never idles. Interface has work to about slot 142. Quality has spare capacity (about 60 slots between slot 73 and its last blocked tests); Core may hand it determinism or tooling items on request.
+
+**Handoffs** (the receiving lane keeps working its own queue until the item lands):
+
+| From | To | What | About slot |
+|---|---|---|---|
+| Core GEN.260 | Interface UX.114 | members on scatter-row pages | 9 |
+| Core GEN.235 | Interface API.27, UX.113 | profile lookup and sector page | 19 |
+| Core GEN.250, GEN.251 | Quality TEST.160, TEST.161, DOC.49 | registry and fill-stage tests | 21, 34 |
+| Core GEN.262, GEN.264 | Quality TEST.162, DOC.50 | multiplicity audit and docs | 46, 63 |
+| Core GEN.236, GEN.241, GEN.243 | Quality TEST.159, DOC.48 | whole-sphere tests and docs | 40 to 66 |
+| Core GEN.237, GEN.238 | Interface MAP.207 | satellites and wanderers on the map | 56, 72 |
+| Core migration (GEN.223, GEN.230, GEN.260) | all lanes | Interface and Quality ask Core for any schema change; nothing else waits | 9 |
+
+Stage C (the region query) stays reserved: it attaches after B1 when the research lands and never blocks.

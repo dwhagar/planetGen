@@ -514,6 +514,23 @@ with `clamp()`.
   Prerequisites: GEN.235, API.27. Related: GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
+- [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
+  Step 8 (design note 11 item 8). The sector and bright-star pages list
+  the stored members of an unbuilt scatter row and the Galaxy Map shows
+  the system mass; a `Members` column in the Phenomena table. Done: an
+  unbuilt row with companions shows them and its total mass on its page
+  and in the table. Owner: Interface (2026-10-15); asks Core for any
+  schema change. Boss (2026-10-15 5:51 PM EDT): stellar companions of
+  stars and star-like objects, including neutron star and black hole
+  pairs, are generated at scatter time because they matter for gravity;
+  planets, moons and belts stay at sector fill. Defaults taken
+  (reversible): compact pairs promoted to the scatter, black hole
+  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
+  row's members deleted when its sector builds it, pair rates from the
+  middle of the evidence.
+  Prerequisites: GEN.260.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2680,6 +2697,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   give it one; nebulae need stars and phenomena, not planets. For this
   item: multi-star systems around a scattered object appear at sector
   fill only.
+  Reworded (Boss, 2026-10-15 5:51 PM EDT;
+  docs/design/multi-star-systems.md): companions of stars and star-like
+  objects are generated at scatter time, planets, moons and belts at
+  sector fill; a scatter row is a system with a barycentre, a total mass
+  and stored members. This item's steps (a) to (d) are built as the
+  member-tree generator GEN.261 (with the scatter columns GEN.260); what
+  stays here is the scene and map work (e), the orbital update of built
+  systems (f) and the planet zones and flux sums (g). Replaces the
+  earlier "multi-star systems around a scattered object appear at sector
+  fill only".
+  Prerequisites: GEN.261.
 
 - [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -2777,7 +2805,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   companions, neutron star and black hole partners) are decided when the
   object is scattered, at the observed fractions; pulsar planets stay at
   sector fill.
-  Prerequisites: GEN.251.
+  Reworded (Boss, 2026-10-15 5:51 PM EDT;
+  docs/design/multi-star-systems.md): companions of stars and star-like
+  objects are generated at scatter time, planets, moons and belts at
+  sector fill; a scatter row is a system with a barycentre, a total mass
+  and stored members. The companion orbit laws of neutron stars and
+  black holes (including their pairs) move into GEN.266 and the
+  member-tree generator GEN.261; neutron star and black hole companions
+  are drawn at scatter time (GEN.262, GEN.263), and the black hole
+  companion fraction is 1.25%, not 10% to 30%. What stays here: the
+  white dwarf and planetary-nebula-star rows of the system pass, pulsar
+  planets at fill (0.7% for millisecond pulsars) and the radiation
+  environment.
+  Prerequisites: GEN.251, GEN.266.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
@@ -3346,6 +3386,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and GEN.230 in one shared migration, as the first of the
   spherical-grid group: the point-in-space columns and the 96-bit layout
   land together, before the reach (GEN.233) and everything after it.
+  Reworded (Boss, 2026-10-15 5:51 PM EDT;
+  docs/design/multi-star-systems.md): companions of stars and star-like
+  objects are generated at scatter time, planets, moons and belts at
+  sector fill; a scatter row is a system with a barycentre, a total mass
+  and stored members. The scatter row's point is the barycentre of a
+  system, with `system_mass_solar`; the member columns and tables
+  (GEN.260) go into this migration or immediately after it, and the
+  nightly motion of a system is GEN.265.
   Prerequisites: none.
 
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
@@ -3659,6 +3707,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its stellar companions (their masses and orbit), but never planets or
   moons; the band groups and the object-first sampler must place the
   companions with the primary so a pair is one gravitational source.
+  Reworded (Boss, 2026-10-15 5:51 PM EDT;
+  docs/design/multi-star-systems.md): companions of stars and star-like
+  objects are generated at scatter time, planets, moons and belts at
+  sector fill; a scatter row is a system with a barycentre, a total mass
+  and stored members. Each scatter row's members are drawn in the
+  scatter passes (GEN.262), the band groups and the object-first sampler
+  must treat a row as one system (`1 + p_placed` bookkeeping), and the
+  whole-sphere passes take the same member columns (GEN.260).
   Prerequisites: GEN.232, GEN.234, GEN.235, GEN.237. Related: GEN.238,
   GEN.223.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
@@ -3962,6 +4018,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only the planets, belts, moons and disks around the objects already
   there. Expect the stage list of the catalogue (section 3) to change
   accordingly.
+  Reworded (Boss, 2026-10-15 5:51 PM EDT;
+  docs/design/multi-star-systems.md): companions of stars and star-like
+  objects are generated at scatter time, planets, moons and belts at
+  sector fill; a scatter row is a system with a barycentre, a total mass
+  and stored members. Rescoped: the system pass rolls planets, moons,
+  belts and disks only for scattered objects, because their companions
+  come from the stored members (GEN.264); objects made at fill (stage D,
+  G, below-cut remnants) draw both with the same function (GEN.261). The
+  black hole system probability of 0.20 becomes a companion fraction of
+  1.25%.
   Prerequisites: GEN.250, GEN.235. Related: GEN.130, GEN.241, GEN.240.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4048,6 +4114,172 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core (2026-10-15).
   Prerequisites: none. Related: GEN.236.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.260 Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members**
+  Step 1 of the multi-star train (design note sections 5 and 11 item 1).
+  `member_count` and `system_mass_solar` on `bright_stars` and
+  `phenomenon_scatter`, and the tables `scatter_members` (one row per
+  member, the placed object as member 0, with kind, mass, initial mass
+  and seed) and `scatter_nodes` (the orbit tree, one column per value,
+  the same names as GEN.129's `orbit_nodes`), with no JSON and no
+  foreign key; the build deletes a row's child rows in its transaction
+  and `check-db` counts child rows without a parent. The row's point is
+  the barycentre. Goes in the shared GEN.223 and GEN.230 migration or
+  immediately after it. Done: the columns and tables exist, a reader
+  gets `COALESCE(system_mass_solar, mass_solar)`, and the cleanup check
+  runs. Owner: Core (2026-10-15). Boss (2026-10-15 5:51 PM EDT): stellar
+  companions of stars and star-like objects, including neutron star and
+  black hole pairs, are generated at scatter time because they matter
+  for gravity; planets, moons and belts stay at sector fill. Defaults
+  taken (reversible): compact pairs promoted to the scatter, black hole
+  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
+  row's members deleted when its sector builds it, pair rates from the
+  middle of the evidence.
+  Prerequisites: GEN.223. Related: GEN.230, GEN.129.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.261 The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to seven members**
+  Step 2 (design note 6.1 and 11 item 2). `draw_member_tree`: GEN.129's
+  steps (a) to (d) (period and mass-ratio redraw, eccentric pair orbits,
+  the hierarchy generator for N = 3 to 7 with the Mardling-Aarseth,
+  Eggleton-Kiseleva and Kozai-Lidov checks) plus the member kinds, the
+  companion-state table `MEMBER_STATE_BY_PLACED`, the pre-main-sequence
+  and brown-dwarf states, and the compact filters (Peters merger time,
+  the relativistic quench of Kozai-Lidov cycles, the direct-collapse
+  wide-companion rule). One function with two call sites: the scatter
+  passes and the fill. Takes the code half of GEN.130's slice (a). Done:
+  the function returns a stable tree for each placed kind at the table
+  odds from the row's own seed, and the examples of the note's section 9
+  pass (the double pulsar, V404 Cygni). Owner: Core (2026-10-15). Boss
+  (2026-10-15 5:51 PM EDT): stellar companions of stars and star-like
+  objects, including neutron star and black hole pairs, are generated at
+  scatter time because they matter for gravity; planets, moons and belts
+  stay at sector fill. Defaults taken (reversible): compact pairs
+  promoted to the scatter, black hole companion fraction 1.25%, cap 7
+  stars, hierarchical trees only, a row's members deleted when its
+  sector builds it, pair rates from the middle of the evidence.
+  Prerequisites: GEN.250. Related: GEN.129, GEN.130, GEN.242, GEN.252.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.262 Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted**
+  Step 3 (design note 4, 6.3, 6.4 and 11 item 3). The passes that place
+  bright stars, massive stars, black holes, intermediate-mass black
+  holes and planetary-nebula central stars draw members with the bulk
+  screening of 6.3 and the `1 + p_placed` density bookkeeping of 6.4, so
+  a row is a system and the object density per class stays right. Black
+  hole companion fraction 1.25% (star 1.0%, black hole 0.2%, neutron
+  star 0.05%), a scattered O or B star has a mean of 3.1 or 2.3 stars.
+  Done: the share of rows in each companion state is within four Poisson
+  sigma of the table, no object is both a row and a member, and the cost
+  stays near half an hour of CPU at the default galaxy. Owner: Core
+  (2026-10-15). Boss (2026-10-15 5:51 PM EDT): stellar companions of
+  stars and star-like objects, including neutron star and black hole
+  pairs, are generated at scatter time because they matter for gravity;
+  planets, moons and belts stay at sector fill. Defaults taken
+  (reversible): compact pairs promoted to the scatter, black hole
+  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
+  row's members deleted when its sector builds it, pair rates from the
+  middle of the evidence.
+  Prerequisites: GEN.260, GEN.261. Related: GEN.240, GEN.238.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.263 Promote every bound compact pair to the scatter, whatever its mass**
+  Step 4 (design note 4.5 and 11 item 4). A neutron star never passes
+  the 14 solar mass cut, so a double neutron star would be a fill-time
+  object. Scatter every bound compact pair (neutron star with neutron
+  star, with black hole, black hole with black hole) whatever its mass,
+  about 3e5 extra rows, and remove its members from the fill's below-cut
+  draws. Default on (Boss may switch it off). Done: neutron star pairs
+  exist as scatter rows with their members and the below-cut draw no
+  longer makes them twice. Owner: Core (2026-10-15). Boss (2026-10-15
+  5:51 PM EDT): stellar companions of stars and star-like objects,
+  including neutron star and black hole pairs, are generated at scatter
+  time because they matter for gravity; planets, moons and belts stay at
+  sector fill. Defaults taken (reversible): compact pairs promoted to
+  the scatter, black hole companion fraction 1.25%, cap 7 stars,
+  hierarchical trees only, a row's members deleted when its sector
+  builds it, pair rates from the middle of the evidence.
+  Prerequisites: GEN.262. Related: GEN.130.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.264 The fill builds a system from its stored members; the system pass keeps only planets, moons and belts**
+  Step 5 (design note 8 and 11 item 5). `StarSystem(member_tree=...)`
+  skips its own companion draw; stage A and B build from the stored
+  members and nodes (copied into `orbit_nodes`), stage C draws planets,
+  moons, belts and disks only (no planets under 10 Myr,
+  millisecond-pulsar planets at 0.7%, Holman-Wiegert zones from the
+  stored nodes); stages D and G call `draw_member_tree` for every object
+  they create; the build deletes the child rows. A failed build drops
+  the outermost body, then the outermost member, never the placed
+  object. Rescopes GEN.251. Done: the stars of a built system equal the
+  stored members, the nodes equal the stored nodes, and the child rows
+  are gone after the build. Owner: Core (2026-10-15). Boss (2026-10-15
+  5:51 PM EDT): stellar companions of stars and star-like objects,
+  including neutron star and black hole pairs, are generated at scatter
+  time because they matter for gravity; planets, moons and belts stay at
+  sector fill. Defaults taken (reversible): compact pairs promoted to
+  the scatter, black hole companion fraction 1.25%, cap 7 stars,
+  hierarchical trees only, a row's members deleted when its sector
+  builds it, pair rates from the middle of the evidence.
+  Prerequisites: GEN.260, GEN.261, GEN.262, GEN.251. Related: GEN.251,
+  GEN.130.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.265 Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read**
+  Step 6 (design note 7 and 11 item 6; with GEN.223). The barycentre
+  point carries the position, velocity and epoch columns and
+  `system_mass_solar` as its mass; a member's position is the barycentre
+  plus the tree's offsets, each node's mean anomaly computed at time t
+  from its stored phase, epoch and period on read, so the nightly update
+  writes no member row; GEN.109's Hill-sphere rule reads the system
+  mass. Done: after a nightly update the barycentre has moved and no
+  `scatter_nodes` row has been written, a member's position at time t
+  matches the stored phase, and a round trip of the point columns is
+  exact. Owner: Core (2026-10-15). Boss (2026-10-15 5:51 PM EDT):
+  stellar companions of stars and star-like objects, including neutron
+  star and black hole pairs, are generated at scatter time because they
+  matter for gravity; planets, moons and belts stay at sector fill.
+  Defaults taken (reversible): compact pairs promoted to the scatter,
+  black hole companion fraction 1.25%, cap 7 stars, hierarchical trees
+  only, a row's members deleted when its sector builds it, pair rates
+  from the middle of the evidence.
+  Prerequisites: GEN.223, GEN.260. Related: GEN.109.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.266 Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries**
+  Step 7 (design note 4.6 and 11 item 7; replaces GEN.130's slices (a)
+  and (b) in part). The orbit laws for a black hole or neutron star with
+  a star companion, for tight compact pairs and for their tertiaries, in
+  the generator of GEN.261; the pulsar-planet presets stay in GEN.130.
+  Done: each pairing draws separations and periods from its law, a
+  compact pair older than its Peters time is rejected, and a wide
+  companion of a non-direct-collapse hole is rejected. Owner: Core
+  (2026-10-15). Boss (2026-10-15 5:51 PM EDT): stellar companions of
+  stars and star-like objects, including neutron star and black hole
+  pairs, are generated at scatter time because they matter for gravity;
+  planets, moons and belts stay at sector fill. Defaults taken
+  (reversible): compact pairs promoted to the scatter, black hole
+  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
+  row's members deleted when its sector builds it, pair rates from the
+  middle of the evidence.
+  Prerequisites: GEN.261. Related: GEN.130.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
+- [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
+  Step 11 (design note 11 item 11; small). `MAX_STARS` (default 7) and a
+  `--stars N` directive so a user may force N members or raise the cap,
+  and a prevalence knob for the N of 5 or more columns, as GEN.129
+  already has. Done: the setting and the directive exist and a forced N
+  is honoured or refused with the reason. Owner: Core (2026-10-15). Boss
+  (2026-10-15 5:51 PM EDT): stellar companions of stars and star-like
+  objects, including neutron star and black hole pairs, are generated at
+  scatter time because they matter for gravity; planets, moons and belts
+  stay at sector fill. Defaults taken (reversible): compact pairs
+  promoted to the scatter, black hole companion fraction 1.25%, cap 7
+  stars, hierarchical trees only, a row's members deleted when its
+  sector builds it, pair rates from the middle of the evidence.
+  Prerequisites: GEN.261. Related: GEN.129, GEN.180.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -5549,6 +5781,29 @@ clears each one.
   Prerequisites: GEN.251. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
+- [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
+  Step 9 (design note section 9, tests 1 to 9). Companion states within
+  four Poisson sigma over a seeded scatter of 1e6 rows; object density
+  before and after members; every stored tree passes the stability,
+  Kozai and Peters screens; two scatters with the same seed store
+  identical members; nothing in `scatter_members` or `scatter_nodes` is
+  a planet, moon or belt; a built system equals its stored members and
+  the child rows are gone; no member row is written by the nightly
+  update; the double pulsar, V404 Cygni and the wide-companion examples;
+  black hole pairs between the gravitational-wave stock and the Lamberts
+  count. Done: each test exists and runs in the suite, and the
+  representation audit report includes them. Owner: Quality (all TEST
+  items are Quality's). Boss (2026-10-15 5:51 PM EDT): stellar
+  companions of stars and star-like objects, including neutron star and
+  black hole pairs, are generated at scatter time because they matter
+  for gravity; planets, moons and belts stay at sector fill. Defaults
+  taken (reversible): compact pairs promoted to the scatter, black hole
+  companion fraction 1.25%, cap 7 stars, hierarchical trees only, a
+  row's members deleted when its sector builds it, pair rates from the
+  middle of the evidence.
+  Prerequisites: GEN.262, GEN.264. Related: TEST.160, TEST.161.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -6227,6 +6482,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   build. Owner: Quality, after the code.
   Prerequisites: GEN.250, GEN.251, GEN.130. Related: DOC.48.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
+  Step 10 (design note 11 item 10). `database-schema.md` (the two new
+  tables and the two new columns), `multistar-and-compact-systems.md`
+  7.3 corrected (black hole companion 1.25%),
+  `phenomena-catalogue-and-fill.md` sections 3 and 5 corrected, a
+  pointer from `interstellar-object-rates.md`. Done: each says what the
+  build does. Owner: Quality, after the code.
+  Prerequisites: GEN.260, GEN.262, GEN.264, GEN.266. Related: DOC.49.
+  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 ## VIEW: The view from a planet
 
