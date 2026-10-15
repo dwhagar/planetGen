@@ -5202,6 +5202,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   passes on a healthy MySQL 8.0.46 database, the six tests pass, and a
   real drift in a foreign key's delete rule is still reported. Owner:
   Core (2026-10-15).
+  Update (Core 1 and Core 2, 2026-10-15): the owner is now Core 2 (Core
+  1 handed it over). Eight tests fail on MySQL 8.0.46, also
+  test_the_check_writes_nothing (KeyError 'table_name':
+  information_schema column names come back upper case, the test reads
+  row["table_name"]) and test_a_deep_check_off_a_terminal_needs_yes;
+  they fail on main alone, always. Regenerating models.py with
+  scripts/generate_db_models.py on that server makes the drift failures
+  vanish, so the fix may also be a regenerate plus the case-insensitive
+  read.
   Prerequisites: none.
 
 - [ ] **DB.34 Cell key and covering index on every table that holds a position, in the shared 0093 migration**
@@ -5833,6 +5842,10 @@ clears each one.
   runs past 900 s and fails alone on main, in db/sector_paths.py settle
   and physics/sector_path.py integrate_path, _simplify and hermite; it
   points at GEN.232.
+  Intermittent (Quality, 2026-10-15): it passed in the 6:13 PM EDT run
+  on the same code that timed out alone at 4:20 PM EDT, so it is not
+  deterministic; GEN.232 merged in #1660, so Quality re-checks it in the
+  next full run.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -6147,6 +6160,12 @@ clears each one.
   automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
   TEST.151 (done, PR #1484) and TEST.152 (done, PR #1520), owner the Test Suite Rebuild thread (TEST.133
   done, #1405).
+  Quality, 2026-10-15: after a container restart `scripts/test.py
+  changed --resume` refused ("packages changed since": the build id
+  includes the installed packages), so a run interrupted by a restart in
+  the cloud environment cannot be resumed; the browser phase has to be
+  rerun alone with `scripts/test.py browser`. Decide whether the build
+  id should keep the package list.
   Prerequisites: none. Related: TEST.139 (done, PR #1605).
 
 - [ ] **TEST.155 Wording and index agree: property test**
@@ -6274,6 +6293,9 @@ clears each one.
   or the heading really missing at that moment) and the test is made
   reliable without loosening it. Owner: Quality (all TEST items are
   Quality's), with TEST.126 and TEST.138.
+  Seen again (Core 1, 2026-10-15): failed once in the browser group
+  under load (2 workers, load 12.7, parallel with other suites), passed
+  alone in 1.77 s; not seen on main by Core.
   Prerequisites: none.
 
 - [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
@@ -6331,6 +6353,17 @@ clears each one.
   is live.
   Prerequisites: DB.34, GEN.223. Related: DB.35, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
+
+- [ ] **TEST.167 test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug)**
+  Reported by Interface (2026-10-15, 5:43 PM EDT gate run, relayed by
+  the coordinator): `tests/test_generate*`
+  `test_random_start_mode_respects_min_start_density` hit its 900 s
+  timeout in a `scripts/test.py changed` run and passes alone. It may be
+  the same slow fast-body path as TEST.111 (GEN.232 merged in #1660, so
+  check whether it still hangs). Done: the cause is found and the test
+  is made reliable without skipping or loosening it, or the product bug
+  it hides is fixed. Owner: Quality (2026-10-15).
+  Prerequisites: none. Related: TEST.111, GEN.232.
 
 ## USR: User accounts
 
