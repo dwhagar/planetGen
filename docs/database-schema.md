@@ -1364,12 +1364,16 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `ocean_class`, `ocean_ph`, `water_activity`, `phosphorus` | VARCHAR(16) (CHECK ice-sealed / chloride brine / acid sulfate / soda / neutral), DOUBLE, DOUBLE, VARCHAR(8) (CHECK high / limited / starved) | nullable | Added in v74 (GEN.88). The ocean's chemistry class by rule (section 5.4), its pH and water activity drawn in the class's range, and its phosphorus supply. NULL without liquid water. |
 | `surface_dose_msv_yr`, `dose_gcr_msv_yr`, `dose_sep_msv_yr`, `dose_ground_msv_yr`, `dose_helio_mult` | DOUBLE | nullable | Added in v75 (GEN.87). The yearly dose at the surface, mSv, and its parts: `surface_dose_msv_yr` = `dose_gcr_msv_yr` x `dose_helio_mult` + `dose_sep_msv_yr` + `dose_ground_msv_yr`. Cosmic rays through the air (a log-log curve through the Moon, Mars and a 100 g/cm2 point, then 164 g/cm2 attenuation) cut to 0.6 at most by a dipole; stellar particles (20 mSv/yr x sqrt(N33 / N33 of the Sun) / d_AU^2, stopped by the air and steered by the dipole); crust gamma and radon (0.48 mSv/yr x abundance x radiogenic heat at the star's age against 4.5 Gyr, plus 0.5 mSv/yr x abundance with air and land). `dose_helio_mult` is 1 to 2.5: 1 in open space, raised while a nebula or remnant presses on the star's heliosphere (`refresh_containment` and an edit update it and the total). NULL for a gas giant. |
 | `uv_surface_index`, `ozone_loss_flag` | DOUBLE, BOOLEAN | nullable | Added in v75 (GEN.87). DNA-weighted surface UV against Earth's 1 (the star's 200 to 300 nm power against the Sun's, floored at 0.1, times its flux, times the ozone shielding (O3 / O3 of Earth)^-1.6 up to 1,000 when there is none), and whether ozone is lost: the layer exists but the star's `lethal_event_rate_per_gyr` is over 10 (one per 100 Myr) or particles give 100 mSv/yr at the ozone layer. NULL for a gas giant, and `uv_surface_index` NULL without a star temperature. |
-| `phi4`, `phi4_pressure`, `phi4_temperature`, `phi4_chemistry`, `phi4_radiation` | DOUBLE | nullable | Added in v76 (GEN.89). The PHI-4 display score for a human visitor: the four domains each 0 to 1 (1 is Blue) and `phi4`, their geometric mean (0 when any domain is 0). NULL for a gas giant and on a row generated before v76. |
-| `tier_pressure`, `tier_temperature`, `tier_chemistry`, `tier_radiation` | TINYINT | nullable | Added in v76 (GEN.89). Each domain's colour: 0 Blue, 1 Green, 2 Yellow, 3 Red. |
+| `phi4`, `phi4_pressure`, `phi4_temperature`, `phi4_air`, `phi4_radiation` | DOUBLE | nullable | Added in v76 (GEN.89); `phi4_chemistry` was renamed `phi4_air` in v87. The PHI-4 display score for a human visitor: the four domains each 0 to 1 (1 is Blue) and `phi4`, their geometric mean (0 when any domain is 0). NULL for a gas giant and on a row generated before v76. |
+| `tier_pressure`, `tier_temperature`, `tier_air`, `tier_radiation` | TINYINT | nullable | Added in v76 (GEN.89); `tier_chemistry` was renamed `tier_air` in v87. Each domain's colour: 0 Blue, 1 Green, 2 Yellow, 3 Red. |
 | `equipment_tier` | TINYINT | nullable | Added in v76 (GEN.89). The kit a human needs: 0 ideal (named shirtsleeve before 2026-10-10), 1 breathing mask, 2 mask with scrubber, 3 sealed suit, 4 full life support with radiation hardening. A pulsar's, neutron star's or black hole's planet is always 4. |
 | `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The Xenobiology numbers: microbial life (the product of the four likelihoods `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation), complex life (`phi_bio` times the metazoa's gas tolerance) and human operability with equipment (`phi_tech`, the geometric mean of the pressure, temperature, water and radiation mitigation factors). |
 | `hab_note` | VARCHAR(255) | nullable | Added in v76 (GEN.89). The domains short of Blue ("Pressure Red, Radiation Yellow"), "All four domains Blue", or "Planet of a pulsar, neutron star or black hole: lethal radiation, rated as 1,000 Sv/yr at the surface". |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
+| `flux_variation` | DOUBLE | nullable | Added in v87 (DB.26, GEN.148). The relative swing of the stellar flux over the orbit or pair cycle; 0 is steady. NULL until regenerated. |
+| `induced_moment_a_m2` | DOUBLE | nullable | Added in v87 (DB.26, GEN.178), placed after `dipole_class`. The induced magnetic moment in A m2; NULL when not computed or none. |
+| `phi4_water`, `phi4_suitability` | DOUBLE | nullable | Added in v87 (DB.26, GEN.207, PHI-6), beside `phi4_air`. The water score and the suitability (the lowest of water, food and shelter). NULL until regenerated. |
+| `tier_water`, `tier_suitability` | TINYINT | nullable | Added in v87 (DB.26, GEN.207). The colour of each, 0 Blue to 3 Red like the other tiers. |
 
 ### `planet_evolutionary_paragraphs`
 
@@ -1569,6 +1573,7 @@ sector-context encounter through v17, unused (always NULL) by
 | `nebula_class` | CHAR(1) | NOT NULL | Added in v38: letter class A-Q (`program_constants.NEBULA_CLASSES`). |
 | `nebula_type` | TEXT | NOT NULL, CHECK IN ('diffuse','emission','reflection','planetary','dark') | The class's family (`diffuse` added in v38). |
 | `dominant_species`, `density_cm3`, `temperature_k`, `extinction_av` | VARCHAR(255) / DOUBLE | NOT NULL | Added in v38: what the cloud holds, its particle density nH (cm⁻³), gas temperature (K) and optical extinction (magnitudes). |
+| `age_myr`, `q_total`, `hosts` | DOUBLE, DOUBLE, VARCHAR(512) | nullable | Added in v87 (DB.26, GEN.150), after `extinction_av`. The nebula's age (Myr), the total ionizing photon rate (photons/s) and its host stars as counts by spectral type ("O5V x1, O9V x4"). NULL until regenerated and for classes with no hosts. |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
@@ -2016,6 +2021,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v87 (DB.26): habitability columns
+
+`planets` and `moons` gain `induced_moment_a_m2` (after `dipole_class`), `flux_variation` (after `energy_flux_w_m2`), `phi4_water`, `tier_water`, `phi4_suitability` and `tier_suitability`, and `phi4_chemistry` / `tier_chemistry` are renamed `phi4_air` / `tier_air` (GEN.178, GEN.148, GEN.207). `nebulae` gains `age_myr`, `q_total` (ionizing photons per second) and `hosts` (host stars as counts by spectral type) after `extinction_av` (GEN.150). All NULL on rows generated earlier; no compatibility name is kept for the old columns. The migration skips each step already done, so a stopped run can be started again.
 
 ### v86 (DB.25): `galaxy_block_stats`
 

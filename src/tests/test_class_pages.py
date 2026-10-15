@@ -362,7 +362,7 @@ def test_the_class_index_and_the_system_list_link_to_the_habitability_levels(cli
     assert 'href="/classes/habitability"' in _html(client, "/classes")
     system = _system()
     system["planets"][0].update({"equipment_tier": 0, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
-                                 "tier_chemistry": 0, "tier_radiation": 0})
+                                 "tier_air": 0, "tier_radiation": 0})
     html = system_list_html(system, _SECTIONS, habitability_url="/classes/habitability")
     assert '<a href="/classes/habitability">Habitability levels</a>' in html
     assert "Habitability levels" not in system_list_html(system, _SECTIONS)

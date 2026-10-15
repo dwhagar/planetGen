@@ -106,7 +106,7 @@ def test_comet_orbit_key():
 def test_a_scored_body_shows_each_phi4_factor_and_the_three_scores():
     """UX.90: the four factor colours and the stored scores are visible text."""
     body = _body(1, "Rocky", 1.0)
-    body.update(equipment_tier=1, phi4=0.8, tier_pressure=0, tier_temperature=1, tier_chemistry=2,
+    body.update(equipment_tier=1, phi4=0.8, tier_pressure=0, tier_temperature=1, tier_air=2,
                 tier_radiation=3, phi_bio=0.5, phi_cpx=0.25, phi_tech=0.75)
     html = _planet_row_html(body, {"planets": {}, "moons": {}})
     for text in ("Pressure: Blue", "Temperature: Green", "Chemistry: Yellow", "Radiation: Red",
