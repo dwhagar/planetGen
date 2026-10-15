@@ -62,7 +62,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.24 | Generate the galactic core on layer 0 |  | Bulk core fill runs on the parallel path; new mode on generate.html. |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) |  | Research: optional. |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs |  |  |
-| GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts |  | Research: sub-item of GEN.99. |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
