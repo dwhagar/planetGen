@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1174] - 2026-10-15
+
+### Changed
+
+- The update.sh gate item (DB.29) now also covers runs from systemd or cron and a 30-second silence at the prompt, both of which mean no.
+
 ## [8.0.1173] - 2026-10-15
 
 ### Changed
