@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1394] - 2026-10-15
+
+**Headline:** The orbital update plan gains halo and intergalactic movement scales, a sector-crossing guard, full counting and a per-night cost ceiling.
+
+### Changed
+- GEN.223 now also adds the halo (1 mpc) and intergalactic (40 mpc) scales, a guard that wakes an object before it can cross its sector's boundary unseen, and counts of everything the update moves and every sector crossing, per kind; GEN.265 points at it, and PERF.103 caps the cost of a night's run.
+
+TODO items resolved: none / Added: PERF.103
+
 ## [8.0.1393] - 2026-10-15
 
 **Headline:** Quality's confirmations that two failures fail on a clean main are recorded on their TODO items.
