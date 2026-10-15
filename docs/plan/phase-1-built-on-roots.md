@@ -126,6 +126,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) |  |  |
 | PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
+| UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
+| UX.109 | Remove the old per-class description text | UX.105, UX.106, UX.108 |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |

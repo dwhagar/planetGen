@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.108 |
+| UX | UX.110 |
 | MAP | MAP.205 |
 | NAV | NAV.60 |
 | GEN | GEN.223 |
@@ -1345,6 +1345,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | open |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | open |
 | UX.107 | Units in the description go through the ladders | none | open |
+| UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | open |
+| UX.109 | Remove the old per-class description text | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
