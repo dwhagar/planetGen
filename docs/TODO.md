@@ -503,6 +503,24 @@ with `clamp()`.
   Prerequisites: DB.32, GEN.227.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
+- [ ] **UX.112 Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt**
+  Boss, 2026-10-15 08:01Z: "Make the galaxy map redirect to a page
+  saying that a correlative update is underway and give a general ETA on
+  when it should finish if one is available, in fact make the entire
+  site and database access unavailable to anyone but admin while the
+  maps are being rebuilt." Done: a maintenance mode, off by default,
+  turned on and off by an admin command-line command and an admin page
+  toggle, with a free-text ETA the admin can set. While on, every
+  non-admin web page answers with a 503 page that says an update is
+  underway and shows the ETA if one is set (the Galaxy Map redirects to
+  it), and every API call and database read answers with 503 JSON;
+  admins see the site normally with a banner saying maintenance mode is
+  on. The mode is stored where the web workers and the queue both see
+  it. Used by the spherical switch: Maps turns it off after its map is
+  rebuilt and landed. Owner: UX lane, in progress as part of the
+  spherical switch (PR into claude/spherical-switch).
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.

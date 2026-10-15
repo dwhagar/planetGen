@@ -32,6 +32,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | GEN.226 |  |
 | GEN.227 | Generation paths on shells | GEN.226, DB.32 |  |
 | UX.111 | Reads, API and web wording on shells | DB.32, GEN.227 |  |
+| UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt |  |  |
 | MAP.205 | Galaxy Map block ladder for shells | UX.111 |  |
 | MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
