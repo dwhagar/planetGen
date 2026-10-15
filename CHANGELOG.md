@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1356] - 2026-10-15
+
+**Headline:** The API reference now matches the routes the spherical switch left.
+
+### Changed
+- `docs/api.md` names sectors by shell, band and wedge everywhere, lists the routes it was missing (`/galaxy/made`, `/galaxy/uncharted`, the admin generation-stats reset and galaxy-settings routes), documents the `503 BUSY` and `504 QUERY_TIMEOUT` answers and `phenomena_offset`, and says which Galaxy Map routes are waiting for the new map.
+
 ## [8.0.1355] - 2026-10-15
 
 **Headline:** The plan now has the nightly orbital update move every object in the galaxy, each stored as a point in space in its own columns.
