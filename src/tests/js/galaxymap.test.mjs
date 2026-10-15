@@ -351,7 +351,7 @@ test("the whole galaxy has no grid lines; a window shows the lines between its b
   const m = await start();
   assert.deepEqual(gridEdges(m), [0]);
   await drillOnce(m);
-  assert.equal(m.view.stage().win.centre.m, 27);
+  assert.equal(m.view.stage().win.centre.m, 81);
   const rest = gridEdges(m);
   assert.ok(rest.length === 1 && rest[0] > 0 && rest[0] <= 0.15, "nearly invisible at rest (MAP.202): " + rest);
   assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "chartedLines", "hovered"]);
@@ -385,7 +385,7 @@ test("each step down by keyboard pushes a history entry and a breadcrumb, a wind
     assert.equal(button(m, "back").disabled, false);
     assert.equal(button(m, "up").disabled, false);
   }
-  assert.deepEqual(seen.map((stage) => stage.win.centre.m), [27, 3, 1], "a click goes one level down; sectors are the last");
+  assert.deepEqual(seen.map((stage) => stage.win.centre.m), [81, 27, 9, 3, 1], "a click goes one level down; sectors are the last");
   assert.ok(seen.every((stage) => stage.win.g === 9));
 });
 
@@ -413,7 +413,7 @@ test("Back, Forward, Up and Reset buttons move through the stages", async () => 
   button(m, "up").click();
   await arrive(m);
   assert.deepEqual(m.view.stage(), S.parentStage(second, outline, F.edgePc), "up goes to the parent stage");
-  assert.equal(m.view.stage().win.centre.m, 243 / 9, "the window one size up, centred on the block holding the middle");
+  assert.equal(m.view.stage().win.centre.m, 243 / 3, "the window one size up, centred on the block holding the middle");
   assert.equal(button(m, "forward").disabled, true, "a new step clears Forward");
 
   button(m, "reset").click();
@@ -504,7 +504,7 @@ test("Up from a window is the window one size up, centred on the block holding i
 
 test("a stage URL opens that stage; a bad one opens the galaxy and says why", async () => {
   const deep = await start();
-  for (let n = 0; n < 4; n++) await drillOnce(deep);
+  for (let n = 0; n < 6; n++) await drillOnce(deep);
   const query = S.stageQuery(deep.view.stage());
 
   const m = await start("http://localhost/galaxy" + query);
@@ -600,7 +600,7 @@ async function freeStage() {
   const m = await start();
   // A window of blocks one size down, seen at the isometric slant while it holds several slabs.
   await drillOnce(m);
-  assert.equal(m.view.stage().win.centre.m, 27);
+  assert.equal(m.view.stage().win.centre.m, 81);
   const slabs = new Set(m.view.stage().win && lastWindowSlabs(m));
   assert.ok(Math.abs(lastCamera(m).tilt - (slabs.size > 1 ? SV.ISO_TILT : 0)) < 1e-9, "a window of several slabs is seen at a slant");
   assert.equal(button(m, "reset-view").disabled, false);
@@ -740,13 +740,13 @@ test("clicking a block on the map zooms into a window around its middle", async 
   clickAt(m, spot.x, spot.y);
   await arrive(m);
   const stage = m.view.stage();
-  assert.equal(stage.win.centre.m, 27);
+  assert.equal(stage.win.centre.m, 81);
   assert.equal(stage.win.g, 9);
   const block = /^Block (\d+)·(\d+),/.exec(spot.text);
   assert.ok(block, spot.text);
   assert.equal(P.drillParent(stage.win.centre).ring, Number(block[1]), "centred on the block clicked");
   assert.equal(P.drillParent(stage.win.centre).wedge, Number(block[2]));
-  assert.match(m.win.location.search, /^\?win=27\.\d+\.\d+\.-?\d+$/, "the URL names the window by its centre");
+  assert.match(m.win.location.search, /^\?win=81\.\d+\.\d+\.-?\d+$/, "the URL names the window by its centre");
 });
 
 test("a block the near field has faded out can't be picked (MAP.149)", async () => {
@@ -802,7 +802,7 @@ test("on touch, the first tap highlights and the second takes it", async () => {
   assert.equal(m.els.tooltip.hidden, false);
   clickAt(m, spot.x, spot.y, "touch");
   await arrive(m);
-  assert.equal(m.view.stage().win.centre.m, 27);
+  assert.equal(m.view.stage().win.centre.m, 81);
 });
 
 // Drills a fresh map down to a window of sectors.

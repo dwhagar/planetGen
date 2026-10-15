@@ -66,8 +66,10 @@ from planetgen.galaxy.viewport import (
     tile_bounds_pc,
     tile_keys_containing,
 )
+from planetgen.galaxy.window import check_width, parse_window_key, window_cells
 from planetgen.galaxy.drill import (
-    DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
+    DRILL_LEVELS, DRILL_STEP, DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key,
+    parse_drill_key,
 )
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
@@ -4641,13 +4643,13 @@ def galaxy_stage(conn, at=None):
         return {"at": None, "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
     block = parse_drill_key(at)
-    child_m = block.m // (3 if block.m == 3 else 9)
+    child_m = block.m // DRILL_STEP
     try:
         where, params = _block_where(block)
     except ValueError:
         raise ValueError(f"no such block: {at!r}") from None
     layer_params, params = params[:2], params[2:]
-    level = (243, 27, 3, 1).index(child_m)
+    level = DRILL_LEVELS.index(child_m)
 
     if child_m == 1:
         rows = conn.execute(
@@ -4748,9 +4750,10 @@ def galaxy_block_stats(conn, m, cells):
         return {}
     rows = conn.execute(
         "SELECT ring_index, wedge, slab, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
-        " luminosity_sol AS luminosity FROM galaxy_block_stats WHERE m = ? AND (ring_index, wedge, slab) IN ("
+        " luminosity_sol AS luminosity FROM galaxy_block_stats WHERE m = ? AND ladder_step = ?"
+        " AND (ring_index, wedge, slab) IN ("
         + ", ".join("(?, ?, ?)" for _ in cells) + ")",
-        [m] + [value for cell in cells for value in cell]).fetchall()
+        [m, DRILL_STEP] + [value for cell in cells for value in cell]).fetchall()
     found = {}
     for r in rows:
         counts = {}
@@ -4758,6 +4761,43 @@ def galaxy_block_stats(conn, m, cells):
         found[(int(r["ring_index"]), int(r["wedge"]), int(r["slab"]))] = {
             "generated": counts[None][0], "stats": _stage_stats(counts[None])}
     return found
+
+
+def galaxy_window(conn, at, g):
+    """
+    A Galaxy Map data window of cells bigger than a sector (MAP.151b,
+    `galaxy.window`): `g` cells across around the cell `at`, read in one
+    statement from the stored block totals (`galaxy_block_stats`), where a
+    stage-by-stage window would query the stage of each of the up to 64
+    parent blocks it touches.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        at (str): A cell key `m.ring.wedge.slab` of a level above a sector.
+        g (int): Cells across, one of `window.WINDOW_WIDTHS`.
+
+    Returns:
+        dict: The shape `window.crop_stages` makes: `at`, `g`, `child_m`,
+            `cells`, `children` (the cells that hold a generated sector, as
+            `galaxy_stage` lists them) and `sectors` (`None`).
+
+    Raises:
+        ValueError: On a malformed key or width, or a sector cell (a window
+            of sectors lists names and comes from the parents' stages).
+    """
+    centre = parse_window_key(at)
+    if centre.m == 1:
+        raise ValueError("a window of sectors is read from the stages of its parents")
+    width = check_width(g)
+    cells = window_cells(centre, width)
+    found = galaxy_block_stats(conn, centre.m, [(c.ring, c.wedge, c.slab) for c in cells])
+    children = [{"ring": ring, "wedge": wedge, "slab": slab, **value}
+                for (ring, wedge, slab), value in found.items()]
+    children.sort(key=lambda c: (c["slab"], c["ring"], c["wedge"]))
+    return {
+        "at": format_drill_key(centre), "g": width, "child_m": centre.m,
+        "cells": [[c.ring, c.wedge, c.slab] for c in cells], "children": children, "sectors": None,
+    }
 
 
 def _sector_sums(row):
@@ -4944,8 +4984,8 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
 
 def galaxy_stage_keys(ring, layer, slot):
     """The stage keys a change to sector `(ring, layer, slot)` makes stale:
-    `"galaxy"` and its level-243, 27 and 3 blocks."""
-    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(ring, layer, slot)[:3]]
+    `"galaxy"` and its blocks above level 1."""
+    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(ring, layer, slot)[:-1]]
 
 
 GALAXY_CHANGES_MAX_SECTORS = 1000

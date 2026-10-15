@@ -331,4 +331,26 @@
   {%- endif %}
 </section>
 {%- endif %}
+{%- if habitable_species %}
+<section class="panel" id="habitable-species" aria-labelledby="habitable-species-heading">
+  <h2 id="habitable-species-heading">Species that could live here</h2>
+  <p class="hint">Scored against each species' own environment limits, in the same six domains as the habitability index. &ldquo;Unaided&rdquo; means no domain is Red; &ldquo;with equipment&rdquo; means the species can make the kit its limits ask for.</p>
+  {%- for body in habitable_species %}
+  <h3>{{ body.name }} <span class="hint">({{ body.kind }})</span></h3>
+  {%- for label, rows in (("Unaided", body.unaided), ("With equipment", body.equipped)) %}
+  {%- if rows %}
+  <div class="table-scroll" tabindex="0"><table>
+    <caption>{{ label }}</caption>
+    <thead><tr><th scope="col">Species</th><th scope="col">Ratings</th><th scope="col">Equipment</th></tr></thead>
+    <tbody>
+      {%- for row in rows %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ row.chips }}</td><td>{{ row.equipment }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+  {%- endfor %}
+  {%- endfor %}
+</section>
+{%- endif %}
 {% endblock %}

@@ -22,4 +22,18 @@
   </table></div>
   <p><a href="{{ page_url('species') }}">All species</a></p>
 </section>
+{%- if limits %}
+<section class="panel" id="species-limits" aria-labelledby="species-limits-heading">
+  <h2 id="species-limits-heading">Environment Limits</h2>
+  <p class="hint">The edges of the habitability bands for this species, made from the conditions of its homeworld. Rows marked &ldquo;Yes&rdquo; differ from the human visitor's.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Limit</th><th scope="col">This species</th><th scope="col">Human</th><th scope="col">Differs</th><th scope="col">What it means</th></tr></thead>
+    <tbody>
+      {%- for row in limits %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.value }}</td><td>{{ row.human }}</td><td>{{ "Yes" if row.differs else "No" }}</td><td>{{ row.meaning }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {% endblock %}

@@ -9,8 +9,8 @@ from planetgen.galaxy.window import (
 )
 
 CENTRES = [
-    DrillBlock(243, 0, 0, 0), DrillBlock(243, 7, 14, 0), DrillBlock(27, 0, 0, 0), DrillBlock(27, 40, 11, -3),
-    DrillBlock(3, 5, 2, 1), DrillBlock(3, 300, 100, -2), DrillBlock(1, 0, 1, 0), DrillBlock(1, 25, 40, 2),
+    DrillBlock(243, 0, 0, 0), DrillBlock(243, 7, 14, 0), DrillBlock(81, 3, 5, 1), DrillBlock(27, 0, 0, 0),
+    DrillBlock(27, 40, 11, -3), DrillBlock(9, 20, 30, 2), DrillBlock(3, 5, 2, 1), DrillBlock(3, 300, 100, -2), DrillBlock(1, 0, 1, 0), DrillBlock(1, 25, 40, 2),
 ]
 
 
@@ -63,20 +63,19 @@ def test_a_window_over_the_axis_wraps_through_every_wedge():
 def test_a_window_touches_few_parents():
     for centre in CENTRES:
         parents = window_parents(window_cells(centre, 9))
-        # nine cells across touch two parents an axis when the parent is nine cells wide, four when three
-        assert 1 <= len(parents) <= (64 if centre.m == 1 else 18 if centre.ring >= 5 else 60)
-        if centre.m > 1 and centre.ring >= 5:
-            assert len(parents) <= 12
+        # Nine cells across touch up to four parents an axis on the 3-ary ladder (MAP.151b): at most 64, fewer
+        # at a ring's ends. Cells bigger than a sector no longer read their parents at all (`query.galaxy_window`).
+        assert 1 <= len(parents) <= 64
         if centre.m == 243:
             assert parents == [None]
         else:
-            assert None not in parents and all(p.m == centre.m * (3 if centre.m == 1 else 9) for p in parents)
+            assert None not in parents and all(p.m == centre.m * 3 for p in parents)
 
 
 def test_keys_and_widths_are_checked():
     assert parse_window_key("27.3.5.-2") == DrillBlock(27, 3, 5, -2)
     assert parse_window_key("1.4.7.0") == DrillBlock(1, 4, 7, 0)
-    for bad in ("", None, "27.3.5", "81.0.0.0", "27.3.999.0", "27.-1.0.0", "a.b.c.d"):
+    for bad in ("", None, "27.3.5", "729.0.0.0", "27.3.999.0", "27.-1.0.0", "a.b.c.d"):
         with pytest.raises(ValueError):
             parse_window_key(bad)
     assert check_width("7") == 7 and check_width(DEFAULT_WINDOW) == DEFAULT_WINDOW
@@ -97,7 +96,7 @@ def _stage_of(parent, sectors):
     cells = [{"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": len(v), "stats": {}}
              for b, v in children.items()]
     sector_rows = None
-    if level == 3:
+    if DRILL_LEVELS[level] == 1:
         sector_rows = [{"ring": r, "layer": ly, "slot": sl, "id": 100 * r + sl, "name": f"S{r}-{sl}"} for v in children.values()
                        for r, ly, sl in v]
     return {"child_m": DRILL_LEVELS[level], "children": cells, "sectors": sector_rows}
@@ -106,8 +105,9 @@ def _stage_of(parent, sectors):
 SECTORS = [(0, 0, 1), (0, 0, 2), (1, 0, 3), (2, 1, 5), (5, 0, 20), (30, -1, 100), (30, 0, 101), (60, 2, 3), (200, 0, 40)]
 
 
-@pytest.mark.parametrize("centre", [DrillBlock(243, 0, 0, 0), DrillBlock(27, 0, 0, 0), DrillBlock(27, 1, 0, 0),
-                                    DrillBlock(3, 0, 0, 0), DrillBlock(3, 5, 4, 0), DrillBlock(1, 0, 1, 0)])
+@pytest.mark.parametrize("centre", [DrillBlock(243, 0, 0, 0), DrillBlock(81, 0, 0, 0), DrillBlock(27, 0, 0, 0),
+                                    DrillBlock(27, 1, 0, 0), DrillBlock(9, 2, 1, 0), DrillBlock(3, 0, 0, 0),
+                                    DrillBlock(3, 5, 4, 0), DrillBlock(1, 0, 1, 0)])
 def test_cropped_stages_equal_a_direct_count_of_the_window(centre):
     g = 7
     cells = window_cells(centre, g)

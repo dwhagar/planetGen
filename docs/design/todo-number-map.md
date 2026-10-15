@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.110 |
-| MAP | MAP.205 |
+| UX | UX.112 |
+| MAP | MAP.207 |
 | NAV | NAV.60 |
-| GEN | GEN.223 |
+| GEN | GEN.228 |
 | PERF | PERF.102 |
-| DB | DB.32 |
+| DB | DB.33 |
 | API | API.26 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.156 |
+| TEST | TEST.158 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.46 |
+| DOC | DOC.47 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -499,6 +499,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
 | DB.30 | One migration for the per-species environment limits | none | open |
 | DB.31 | Store structure, not prose, for life and flavour | none | open |
+| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -544,6 +545,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | open |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | open |
 | DOC.45 | Reference docs follow the description layer | none | open |
+| DOC.46 | Docs for the spherical sector grid | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -766,6 +768,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.220 | "Habitable" means the index | none | open |
 | GEN.221 | Short plain prose for the fixed text | none | open |
 | GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) | none | done, PR #1529 |
+| GEN.223 | The orbital update does not move the galaxy position of a star system that has no placed sector (bug) | none | open |
+| GEN.224 | Spherical grid module: shells, bands, wedges, caps and the core ball | none | done, PR #1549 |
+| GEN.225 | Outline and bounds on shells | none | open |
+| GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | none | open |
+| GEN.227 | Generation paths on shells | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -916,7 +923,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | done, PR #1160 |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | done, PR #1141 |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | done, PR #1382 |
-| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | none | open |
+| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | none | done, PR #1539 |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
 | MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) | none | done, PR #998 |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | none | done, PR #1303 |
@@ -970,6 +977,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) | none | done, PR #1490 |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) | none | done, PR #1519 |
 | MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | open |
+| MAP.205 | Galaxy Map block ladder for shells | none | open |
+| MAP.206 | Galaxy Map drawing on shells | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1112,7 +1121,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | done, PR #1179 |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | done, PR #905 |
-| PERF.33 | Progress bars and ETAs from measured performance | none | open |
+| PERF.33 | Progress bars and ETAs from measured performance | none | done, PR #1553 |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
 | PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | done, PR #865 |
@@ -1174,7 +1183,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | done, PR #1364 |
 | PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | done, PR #1383 |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | done, PR #1506 |
-| PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | open |
+| PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | done, PR #1553 |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | none | open |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | open |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | none | open |
@@ -1191,7 +1200,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.9 | A tech level generated for every technological species | none | done, PR #1461 |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | done, PR #1524 |
 | POP.11 | Scatter space vessels and stations for the races in their territories | none | open |
-| POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | open |
+| POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | done, PR #1554 |
 | POP.13 | A species editor: create and edit species and their environment limits | none | open |
 | POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
@@ -1343,10 +1352,12 @@ Parents marked "new parent" had no old number of their own.
 | UX.103 | Design note for the description layer | none | done, PR #1496 |
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | done, PR #1509 |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | open |
-| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | open |
+| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | done, PR #1533 |
 | UX.107 | Units in the description go through the ladders | none | open |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | open |
 | UX.109 | Remove the old per-class description text | none | open |
+| UX.110 | The phenomena count on the overview page is wrong (bug) | none | open |
+| UX.111 | Reads, API and web wording on shells | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1599,6 +1610,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.153 | A single hung test can stall a whole run (bug) | none | done, PR #1451 |
 | TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | done, PR #1486 |
 | TEST.155 | Wording and index agree: property test | none | open |
+| TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
+| TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -415,26 +415,29 @@ export function blockSlotRange(ring, seg, m, sectorRing, wedges) {
 // --- Drill-down ladder ------------------------------------------------------
 //
 // The drill-down's nested blocks (docs/design/galaxy-drilldown-navigation.md,
-// section 3): 243, 27, 3 and 1 sectors a side, each block wholly inside one
-// block of the next size up. A block is {m, ring, wedge, slab}; at m = 1 it
+// section 3, 3-ary since MAP.151b): 243, 81, 27, 9, 3 and 1 sectors a side,
+// each block wholly inside one block of the next size up. A block is {m, ring, wedge, slab}; at m = 1 it
 // is a sector, with the slot as `wedge` and the layer as `slab`.
 // planetgen/galaxy/drill.py is the same rules for the server, and
 // tests/test_galaxydrill.py checks that the two agree.
 
-export var DRILL_LEVELS = [243, 27, 3, 1];
+export var DRILL_LEVELS = [243, 81, 27, 9, 3, 1];
+
+// How many child blocks a side one block holds, at every level.
+var DRILL_STEP = 3;
 
 function drillTarget(ring) {
   return Math.max(3, Math.round(2 * Math.PI * (ring + 0.5)));
 }
 
-// Wedges in block ring `ring` at size m. 243 keeps blockWedgeCount; 27 and
-// 3 take the parent ring's count times max(1, round(target / parent)), so
+// Wedges in block ring `ring` at size m. 243 keeps blockWedgeCount; 81, 27,
+// 9 and 3 take the parent ring's count times max(1, round(target / parent)), so
 // every parent wedge line is also a child wedge line; 1 is the ring's
 // slots.
 export function drillWedgeCount(m, ring) {
   if (m === 1) return ringSectorCount(ring);
   if (m === 243) return blockWedgeCount(ring, 243);
-  var parent = drillWedgeCount(m * 9, Math.floor(ring / 9));
+  var parent = drillWedgeCount(m * DRILL_STEP, Math.floor(ring / DRILL_STEP));
   return parent * Math.max(1, Math.round(drillTarget(ring) / parent));
 }
 
@@ -444,19 +447,19 @@ export function drillParent(block) {
   var m = block.m;
   if (m === 243) return null;
   if (m === 1) {
-    var ring3 = Math.floor(block.ring / 3);
+    var ring3 = Math.floor(block.ring / DRILL_STEP);
     return {
       m: 3, ring: ring3,
       wedge: Math.floor(((2 * block.wedge + 1) * drillWedgeCount(3, ring3)) / (2 * ringSectorCount(block.ring))),
-      slab: Math.floor((block.slab + 1) / 3),
+      slab: Math.floor((block.slab + 1) / DRILL_STEP),
     };
   }
-  var ring = Math.floor(block.ring / 9);
-  var q = drillWedgeCount(m, block.ring) / drillWedgeCount(m * 9, ring);
-  return { m: m * 9, ring: ring, wedge: Math.floor(block.wedge / q), slab: Math.floor((block.slab + 4) / 9) };
+  var ring = Math.floor(block.ring / DRILL_STEP);
+  var q = drillWedgeCount(m, block.ring) / drillWedgeCount(m * DRILL_STEP, ring);
+  return { m: m * DRILL_STEP, ring: ring, wedge: Math.floor(block.wedge / q), slab: Math.floor((block.slab + 1) / DRILL_STEP) };
 }
 
-// Sector (ring, layer, slot)'s blocks from the top: [243, 27, 3, sector].
+// Sector (ring, layer, slot)'s blocks from the top: [243, 81, 27, 9, 3, sector].
 export function drillChainOf(ring, layer, slot) {
   var chain = [{ m: 1, ring: ring, wedge: slot, slab: layer }];
   while (chain[chain.length - 1].m !== 243) chain.push(drillParent(chain[chain.length - 1]));

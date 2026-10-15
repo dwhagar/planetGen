@@ -93,7 +93,7 @@ function brute(block) {
 const checks = [];
 for (const [ring, layer, slot] of [[5, 0, 3], [300, 2, 1000], [700, -10, 4000], [1500, 30, 9000], [40, -60, 200]]) {
   const chain = P.drillChainOf(ring, layer, slot);
-  for (const block of [chain[1], chain[2]]) {
+  for (const block of [chain[1], chain[3], chain[4]]) {
     checks.push([block.m, S.drillBlockTotal(block, outline), brute(block)]);
   }
 }
@@ -133,7 +133,7 @@ console.log(JSON.stringify({
     assert out["problem"] is None and out["kind"] == "cell" and out["win"] is None
     assert out["options"] == out["blocks"] > 50
     assert out["same"] and out["bounded"] and out["picks"] and out["sameTwice"]
-    assert out["into"]["win"]["centre"]["m"] == 27 and out["into"]["win"]["g"] == 9
+    assert out["into"]["win"]["centre"]["m"] == 81 and out["into"]["win"]["g"] == 9
     assert out["query"] == ""
 
 
@@ -143,7 +143,7 @@ const centre = {m: 27, ring: 40, wedge: 11, slab: -1};
 const stages = [S.galaxyStage(), S.windowStage(centre), S.windowStage(centre, 5), S.windowStage({m: 1, ring: 5, wedge: 7, slab: 0})];
 const queries = stages.map(S.stageQuery);
 const parsed = queries.map(q => S.parseStageQuery(q));
-const bad = ["?win=81.0.0.0", "?win=27.3.99999.0", "?win=x", "?win=27.3.5.0&g=4", "?win=27.3.5.0&g=x", "?win=27.3.5.0&g=33"]
+const bad = ["?win=729.0.0.0", "?win=27.3.99999.0", "?win=x", "?win=27.3.5.0&g=4", "?win=27.3.5.0&g=x", "?win=27.3.5.0&g=33"]
   .map(q => S.parseStageQuery(q));
 console.log(JSON.stringify({queries, same: parsed.map((p, n) => S.sameStage(p.stage, stages[n]) && p.problem === null),
   bad: bad.map(p => [p.problem, p.stage])}));
@@ -210,7 +210,7 @@ console.log(JSON.stringify({code, back: S.parseSectorDesignation(code), parsed, 
     assert out["sectors"] and out["holds"]
     crumbs = out["crumbs"]
     assert crumbs[0] == "Galaxy"
-    assert [c.split(" ")[0] for c in crumbs[1:]] == ["Block", "Block", "Block", "Sector"]
+    assert [c.split(" ")[0] for c in crumbs[1:]] == ["Block"] * 5 + ["Sector"]
     assert crumbs[-1] == "Sector 1,705·-20·3,225 (1)"
 
 
@@ -229,7 +229,7 @@ for (let parent = S.parentStage(stage, outline, edge); parent; parent = S.parent
 console.log(JSON.stringify({steps, crumbs, repeated, last: stage}));
 """)
     assert not out["repeated"]
-    assert out["steps"] == out["crumbs"] - 1 == 4
+    assert out["steps"] == out["crumbs"] - 1 == 6
     assert out["last"] == {"win": None}
 
 
@@ -270,11 +270,11 @@ console.log(JSON.stringify({rows, sector: S.windowInto(sectorWindow, sectorBlock
   topWindow: S.parentStage(stage, outline, edge), fromGalaxy,
   three: S.windowChildCentre({m: 3, ring: 20, wedge: 6, slab: 2})}));
 """)
-    assert all(m == 27 and inside and back == 243 and g == 9 and into_g == 9 for m, inside, back, g, into_g in out["rows"])
+    assert all(m == 81 and inside and back == 243 and g == 9 and into_g == 9 for m, inside, back, g, into_g in out["rows"])
     assert out["sector"] is None
     assert out["top"] is None
     assert out["topWindow"] == {"win": None}
-    assert out["fromGalaxy"]["win"]["centre"]["m"] == 27
+    assert out["fromGalaxy"]["win"]["centre"]["m"] == 81
     three = out["three"]
     assert three["m"] == 1 and three["slab"] == 6
 
@@ -342,7 +342,7 @@ console.log(JSON.stringify({
 
 def test_a_window_stage_has_a_breadcrumb_down_from_the_galaxy():
     out = _run("""
-const centre = P.drillChainOf(900, 4, 2000)[2];
+const centre = P.drillChainOf(900, 4, 2000)[4];
 const stage = S.windowStage(centre);
 const crumbs = S.crumbs(stage, outline, edge);
 let steps = 0, current = stage, seen = [];
@@ -353,10 +353,10 @@ for (let parent = S.parentStage(current, outline, edge); parent; parent = S.pare
 }
 console.log(JSON.stringify({labels: crumbs.map(c => c.label), last: crumbs.map(c => c.last), seen, current}));
 """)
-    assert out["labels"][0] == "Galaxy" and len(out["labels"]) == 4
-    assert [label.split(" ")[0] for label in out["labels"][1:]] == ["Block", "Block", "Block"]
-    assert out["labels"][-1].endswith("(3)") and out["last"] == [False, False, False, True]
-    assert out["seen"] == [27, 243, "galaxy"]
+    assert out["labels"][0] == "Galaxy" and len(out["labels"]) == 6
+    assert [label.split(" ")[0] for label in out["labels"][1:]] == ["Block"] * 5
+    assert out["labels"][-1].endswith("(3)") and out["last"] == [False] * 5 + [True]
+    assert out["seen"] == [9, 27, 81, 243, "galaxy"]
     assert out["current"] == {"win": None}
 
 

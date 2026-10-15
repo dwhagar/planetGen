@@ -2,6 +2,160 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1286] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired PERF.96 (also PERF.33, PR #1553) and POP.12 (PR #1554); filed TEST.157 for a flaky nebula test; recorded the single wedge-count rule (6 * m, primes 2, 3, 5, 7) as a GEN.225 follow-up to GEN.224 and reworded MAP.205 to match.
+
+TODO items resolved: PERF.96, PERF.33, POP.12 / Added: TEST.157
+
+## [8.0.1285] - 2026-10-15
+
+### Added
+- Every species now has environment limits: the human habitability table with some rows replaced, made from its homeworld so a species always passes its own homeworld. The six habitability domains can be scored against a species' limits, and a species' limits show on its page (POP.12).
+- Lists of what could live where: the species that could live on a planet or moon (unaided, or with equipment their tech level can make), the worlds of a system or sector one species could live on, a "Species that could live here" panel on the system page, and API routes for each. The limits are generated from the homeworld until DB.30 adds the columns to store them.
+
+### Fixed
+- The system page no longer answers 404 when the API says there is no owner, facility types or species list to show; its tests now fake those calls.
+
+## [8.0.1284] - 2026-10-15
+
+### Added
+- A run now has one record in Redis: its stages, how many units each has finished, an event stream that serves as the live log, and an estimate of the time left. When a phase reports no updates, the estimate comes from earlier runs' stage timings, or from the time per task so far in this run, so the whole bar always shows a time remaining.
+- A public view of the active run (stage, percent, time left, whether the time comes from earlier runs) for pages to show.
+
+## [8.0.1283] - 2026-10-15
+
+### Changed
+
+- Plan note: wedge counts per band are 6 times a number with prime factors 2, 3, 5 and 7 only, one rule everywhere; TODO items resolved: none / Added: none.
+
+## [8.0.1282] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired the spherical grid module item (#1549); recorded that its wedge-count rule will be rewritten as one uniform rule and that the schema rename, generation paths and web wording land as one switch.
+
+TODO items resolved: GEN.224 / Added: none
+
+## [8.0.1281] - 2026-10-15
+
+### Added
+- `planetgen/galaxy/spherical.py`, the pure-geometry module for the spherical sector grid: shells (4 pc deep, shell 0 the 4 pc core ball), bands, wedges (multiples of 6) and polar caps (6 wedges at the rim, chord radius 3.82 pc), with `sector_address_at`, `sector_position_pc`, exact cell volumes, face neighbours, the sector-local frame and a cap-aware `SectorCell` sampler. Shells 1 to 3 are a hand-checked table (shell 1's caps are cut at 37.5 degrees). Nothing uses it yet; the cylinder grid stays in place until the later steps of the Spherical Sector Coordinates work.
+
+TODO items resolved: GEN.224 / Added: none
+
+## [8.0.1280] - 2026-10-15
+
+### Changed
+
+- TODO.md: recorded PR #1546 (two slow Galaxy Map browser tests sped up) as progress on the test suite stage 4 item.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1279] - 2026-10-15
+
+### Changed
+- The TODO list says GEN.224 and GEN.225 must tile all space (every point has exactly one address, inside or outside the outline) and DB.32 must leave no object without a sector, per Boss's no-undefined-space requirement.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1278] - 2026-10-15
+
+### Changed
+- **Two slow Galaxy Map browser tests find their spot in the page** (TEST.139 stage 4). `test_a_binary_picks_as_one_system_in_an_opened_sector` moved a real pointer to each of 400 bright spots (203 s on an idle machine, 340 s in the last full run) and `test_galaxy_map_buttons` did the same over a 21 x 21 grid for each choice it clicked (164 s idle). Both now send the pointer events from the page, skip any point where the map is not what a real pointer would meet, and move the real pointer only to the spots found: 13 s and 29 s on an idle machine, the same assertions.
+
+## [8.0.1277] - 2026-10-15
+
+### Changed
+- Plan note: the spherical grid must cover all space; the outline only limits generation, never which sectors exist.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1276] - 2026-10-15
+
+### Changed
+- The TODO list rewords GEN.224 (measure the window-edge step where fine wedge counts hand over to the nested chain before fixing the grid module) and MAP.205 (blocks hold the cells whose centre they hold; equator count 6 * 2^a * 3^b) to match Boss's decisions.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1275] - 2026-10-15
+
+### Changed
+- Plan note: wedge counts per band decided (fine in the disk window, nested chain above, equator count from primes 2 and 3); ladder blocks hold the cells whose centre they hold.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1274] - 2026-10-15
+
+### Added
+
+- A research note on wedge counts and shared meridians for the spherical-sector block ladder, with measured options (`docs/design/spherical-ladder-meridians.md`). No code changed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1273] - 2026-10-15
+
+### Changed
+- The TODO list now describes DB.32 as an in-place conversion of the existing galaxy to the shell grid that keeps every position, rebuilds the sector map and re-links every object to its sector, instead of deleting the galaxy.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1272] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the region data layer and 3-ary block ladder (MAP.151, parts a to d) as open work; it merged in #1539 with migration 0090 (schema v90). The per-tile origins of MAP.152 stay retired as met by MAP.102.
+
+TODO items resolved: MAP.151 / Added: none
+
+## [8.0.1271] - 2026-10-15
+
+### Changed
+- **The Galaxy Map's block ladder is now 3-ary (MAP.151b).** Blocks above a sector are 243, 81, 27, 9 and 3 sectors a side, each a third of the one above, so a click on a block opens a window a third the size instead of a ninth. A window of blocks bigger than a sector is read from the stored block totals in one query (`/api/galaxy/window`), and migration 0090 refills the totals for the new ladder.
+
+## [8.0.1270] - 2026-10-15
+
+### Added
+- The TODO list gains the spherical sector grid work at top priority: the grid module, outline, addresses, schema migration, generation paths, reads and web wording, the Galaxy Map ladder and drawing, the test rewrite and the docs (GEN.224 to GEN.227, DB.32, UX.111, MAP.205, MAP.206, TEST.156, DOC.46). MAP.151, MAP.152, GEN.101 and GEN.24 are marked held.
+
+TODO items resolved: none / Added: GEN.224, GEN.225, GEN.226, DB.32, GEN.227, UX.111, MAP.205, MAP.206, TEST.156, DOC.46
+
+## [8.0.1269] - 2026-10-15
+
+### Added
+- The TODO list gains a bug item for the orbital update skipping the galaxy position move of star systems with no placed sector (GEN.223).
+
+TODO items resolved: none / Added: GEN.223
+
+## [8.0.1268] - 2026-10-15
+
+### Added
+
+- The plan for moving the galaxy's sector grid to spherical shells, bands and wedges with a 4 pc core ball and pole caps (`docs/design/spherical-sector-coordinates.md`), with measured rules and a work-item breakdown. No code changed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1267] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the CLI text, Markdown and wikitext output option (UX.106) as open work; it merged in #1533.
+
+TODO items resolved: UX.106 / Added: none
+
+## [8.0.1266] - 2026-10-15
+
+### Changed
+
+- `planetgen system --output` writes plain text by default and takes `--format text|markdown|wikitext` (it used to write wikitext, or Markdown with `--markdown`; that flag is gone from `system`). The admin one-off system page passes the format it was asked for. `sector`, `galaxy` and the phenomenon commands keep `--markdown` until they are described the same way.
+
+## [8.0.1265] - 2026-10-15
+
+### Added
+- The TODO list gains a bug item for the wrong phenomena count on the overview page (UX.110).
+
+TODO items resolved: none / Added: UX.110
+
 ## [8.0.1264] - 2026-10-15
 
 ### Changed
