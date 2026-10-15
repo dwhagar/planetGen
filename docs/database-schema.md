@@ -1794,7 +1794,23 @@ a CHECK on a cascading column). See "Facilities (v42)" above and the API's
 | `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v64 (GEN.125). A stand-alone facility's velocity, km/s on the galactic axes: the rotation curve's tangent at its place, set when it is added and turned with its position by `advance_galactic_positions`. 0 for a facility on a body, in orbit or in a belt, whose motion is the `orbit_*` columns below, relative to its host. |
 | `orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`, `orbit_phase_deg` | DOUBLE | nullable | An orbital facility's circular orbit, from its host's mass; an asteroid facility in a belt gets one too, around its star from a random spot in the belt (no schema change). `planetgen.cli.orbits` advances both. |
 | `description` | TEXT | nullable | |
+| `type_id` | BIGINT UNSIGNED | FK -> `facility_types.id`, `ON DELETE RESTRICT`, nullable, indexed | Added in v89 (DB.28). The type that refines `kind`. |
+| `affiliation_polity_id`, `affiliation_name` | BIGINT UNSIGNED, VARCHAR(255) | FK -> `polities.id`, `ON DELETE SET NULL`, nullable | Added in v89 (DB.28). The polity it belongs to, or a free-text affiliation. |
+| `rating_crime`, `rating_housing`, `rating_resources`, `rating_maintenance`, `rating_health` | TINYINT UNSIGNED | nullable, CHECK BETWEEN 1 AND 3, each indexed | Added in v89 (DB.28). The Green (1), Yellow (2) or Red (3) rating; NULL until rated. |
+| `ratings_source`, `ratings_note`, `ratings_set_at` | VARCHAR(16), TEXT, TIMESTAMP | nullable | Added in v89 (DB.28). How the ratings were set, a note, and when. |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | |
+
+### `facility_types`, `facility_type_fields`, `facility_field_values`
+
+Added in v89 (DB.28, POP.10); design in `docs/design/population-and-politics.md`, "Data model" of the facility section. A type refines a kind.
+
+| Table | Columns |
+|---|---|
+| `facility_types` | `id`, `name` (UNIQUE), `kind` (CHECK like `facilities.kind`), `icon`, `description`, `sort_order`, `active` (0 or 1) |
+| `facility_type_fields` | `id`, `type_id` (FK `ON DELETE CASCADE`), `key`, `label`, `datatype` (CHECK IN 'int','decimal','text','bool','choice'), `unit`, `required`, `min_value`, `max_value`, `choices` (newline-separated), `default_text`, `sort_order`; UNIQUE (`type_id`, `key`) |
+| `facility_field_values` | `facility_id` (FK `ON DELETE CASCADE`), `field_id` (FK `ON DELETE RESTRICT`: retire a field, do not delete it), `value_int`, `value_dec`, `value_text`, `value_bool`; PRIMARY KEY (`facility_id`, `field_id`) |
+
+The key pattern `^[a-z][a-z0-9_]{0,31}$`, at most 24 fields per type and the value checks are made by the application, not a CHECK.
 
 ### `bright_stars`
 
@@ -2024,6 +2040,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v89 (DB.28): facility types
+
+`facility_types`, `facility_type_fields` and `facility_field_values` are new, and `facilities` gains `type_id`, `affiliation_polity_id`, `affiliation_name`, the five Green/Yellow/Red ratings (`rating_crime`, `rating_housing`, `rating_resources`, `rating_maintenance`, `rating_health`) and `ratings_source`, `ratings_note`, `ratings_set_at`. All NULL on facilities saved earlier. The migration skips each step already done, so a stopped run can be started again.
 
 ### v88 (POP.9): `species` tech level
 

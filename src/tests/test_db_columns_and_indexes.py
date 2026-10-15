@@ -24,7 +24,8 @@ from tests.db_schema_support import load_old_schema, scratch_database
 
 PROSE_TEXT_COLUMNS = {
     # Galaxy schema: generated prose and the summaries shown on pages.
-    ("facilities", "description"), ("planets", "description"), ("planets", "atmosphere"),
+    ("facilities", "description"), ("facilities", "ratings_note"), ("facility_types", "description"),
+    ("facility_type_fields", "choices"), ("planets", "description"), ("planets", "atmosphere"),
     ("planets", "composition"), ("planets", "flavor_text"), ("moons", "description"), ("moons", "atmosphere"),
     ("moons", "composition"), ("moons", "flavor_text"),
     ("planet_evolutionary_paragraphs", "paragraph"), ("moon_evolutionary_paragraphs", "paragraph"),

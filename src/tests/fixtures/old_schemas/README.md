@@ -40,3 +40,4 @@ Commit each file came from:
 - v85: 04b69361 (PERF.92 object timing, before DB.25)
 - v86: ac6330ca (ADM.54 Redis health, before DB.26)
 - v87: 9c725da0 (DB.26 habitability columns, before the POP.9 columns)
+- v88: 29f7a086 (DB.27 species tech columns, before DB.28)
