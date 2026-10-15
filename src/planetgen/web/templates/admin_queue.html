@@ -14,6 +14,16 @@
     <div class="stat-tile"><span class="stat-value">{{ queue.load }}</span><span class="stat-label">{{ queue.load_label }}</span></div>
     <div class="stat-tile"><span class="stat-value">{{ queue.runs_active }}</span><span class="stat-label">Jobs running</span></div>
   </div>
+  {%- if workers %}
+  <h3>Workers</h3>
+  <p>The bulk queue asks for <strong>{{ workers.wanted }}</strong> {{ 'worker' if workers.wanted == 1 else 'workers' }}; {{ workers.live }} running now. Workers start when work is queued and exit after a minute without any; lowering the count lets the extra ones finish their unit first.</p>
+  <form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
+    {{ csrf_field() }}
+    <label>Workers <input type="number" name="count" min="1" value="{{ workers.wanted }}"></label>
+    <button type="submit" name="action" value="workers-set" class="btn btn-secondary">Set</button>
+    <button type="submit" name="action" value="workers-ludicrous" class="btn btn-danger">Ludicrous Speed ({{ workers.ludicrous }} of {{ workers.cpus }} cores)</button>
+  </form>
+  {%- endif %}
   {%- if not available %}
   <p class="hint">Jobs aren't recorded yet: run <code>update.sh</code> to bring the control database up to date.</p>
   {%- else %}

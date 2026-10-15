@@ -31,15 +31,20 @@ from planetgen.util.settings import get_settings
 GENERATION_QUEUE = "planetgen-generation"
 """str: Sector fills, layer scatters and backfill blocks."""
 
-WEB_QUEUE = "planetgen-web"
-"""str: Generate page runs and work the API hands off."""
+BULK_QUEUE = "planetgen-bulk"
+"""str: A run's units of work (PERF.95): the scatters, sector fills and backfill blocks of the work queue
+rebuild. Its workers serve this queue and no other."""
 
-JSON_QUEUE_PREFIXES = (WEB_QUEUE, "planetgen-api-")
-"""tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the web queue and each
+INTERACTIVE_QUEUE = "planetgen-interactive"
+"""str: Work an admin or the API starts and waits for (PERF.40, PERF.78): neighborhoods, estimates, exports, the
+deep database check. Its workers serve this queue and no other, so a long run never holds one up."""
+
+JSON_QUEUE_PREFIXES = (BULK_QUEUE, INTERACTIVE_QUEUE, "planetgen-web-", "planetgen-api-")
+"""tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the two shared queues, each
 Generate page job's own (`planetgen-web-<id>`), and the API queue the tests give a name of its own."""
 
-QUEUES = (GENERATION_QUEUE, WEB_QUEUE)
-"""tuple: Every queue, in the order a worker serves them."""
+QUEUES = (GENERATION_QUEUE, BULK_QUEUE, INTERACTIVE_QUEUE)
+"""tuple: Every shared queue."""
 
 def redis_url():
     """The Redis server: `PLANETGEN_REDIS_URL`, else `config.json`'s
@@ -105,10 +110,11 @@ def fetch_job(job_id, connection=None, serializer=None):
         raise Unavailable(f"no Redis server answers: {exc}") from exc
 
 
-def worker_argv(names, url, name=None, python=None):
-    """The command line of one burst worker for queues `names`, called
-    `name` when given, run by `python` (default this interpreter)."""
-    return [python or sys.executable, "-m", "planetgen.cli.worker", "--burst", "--url", url,
+def worker_argv(names, url, name=None, python=None, burst=True):
+    """The command line of one worker for queues `names`, called `name` when given, run by `python` (default
+    this interpreter). A burst worker exits once its queues are empty; with `burst=False` it waits for work
+    and exits after its idle time (`planetgen.queue.workers.IDLE_SECONDS`)."""
+    return [python or sys.executable, "-m", "planetgen.cli.worker", *(["--burst"] if burst else []), "--url", url,
             *(["--name", name] if name else []), *names]
 
 

@@ -519,6 +519,21 @@ class WorkAction(Lenient):
         return self
 
 
+class WorkerCount(Lenient):
+    """`POST /api/admin/work/workers`: a count, or "Ludicrous Speed" (ADM.15)."""
+
+    count: Optional[StrictInt] = None
+    ludicrous: Optional[StrictBool] = None
+
+    @model_validator(mode="after")
+    def _one_of(self):
+        if (self.count is None) == (not self.ludicrous):
+            raise ValueError("send either 'count' (a whole number of at least 1) or 'ludicrous': true")
+        if self.count is not None and self.count < 1:
+            raise ValueError("'count' must be at least 1")
+        return self
+
+
 class QueueAction(Lenient):
     """`POST /api/admin/work/queue`."""
 

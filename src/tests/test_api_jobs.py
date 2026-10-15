@@ -205,7 +205,7 @@ def test_a_batch_of_jobs_starts_no_more_workers_than_the_cap(redis_server, monke
     """PERF.39: one worker process per job used to be started, each paying the imports again."""
     started = []
     monkeypatch.setattr(api_jobs.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
-    monkeypatch.setattr(api_jobs.work, "worker_count", lambda *a, **k: 2)
+    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 2)
     ids = [api_jobs.submit(math.pow, 2, n) for n in range(6)]
     assert len(started) == 2
     assert all(api_jobs.QUEUE_NAME in argv for argv in started)
@@ -217,10 +217,10 @@ def test_a_batch_of_jobs_starts_no_more_workers_than_the_cap(redis_server, monke
 def test_a_waiting_job_with_no_worker_gets_one_when_its_status_is_read(redis_server, monkeypatch):
     started = []
     monkeypatch.setattr(api_jobs.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
-    monkeypatch.setattr(api_jobs.work, "worker_count", lambda *a, **k: 1)
+    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 1)
     job_id = api_jobs.submit(math.pow, 2, 2)
     assert len(started) == 1
-    api_jobs._connection().delete(api_jobs.STARTING_KEY)  # that worker never came up
+    api_jobs._connection().delete(api_jobs.workers.STARTING_PREFIX + api_jobs.QUEUE_NAME)  # that worker never came up
     assert api_jobs.status(job_id)["state"] == "queued"
     assert len(started) == 2
 
@@ -253,11 +253,11 @@ def test_a_killed_worker_is_not_counted_and_a_replacement_runs_the_queued_job(re
     queue, worker = _register_worker_run_by(_a_process_that_has_been_killed())
     import rq
     assert rq.Worker.count(queue=queue) == 1                  # the registry still says so
-    assert api_jobs.live_worker_count(queue) == 0
+    assert api_jobs.workers.live_worker_count(queue) == 0
     assert rq.Worker.count(queue=queue) == 0 and not queue.connection.exists(worker.key)   # and is cleaned
 
     queue, worker = _register_worker_run_by(_a_process_that_has_been_killed())
-    monkeypatch.setattr(api_jobs.work, "worker_count", lambda *a, **k: 1)
+    monkeypatch.setattr(api_jobs.workers.work, "worker_count", lambda *a, **k: 1)
     job = _wait(api_jobs.submit(math.pow, 2, 5))              # a real worker is started in its place
     assert job["state"] == "succeeded" and job["result"] == 32.0
 
@@ -267,7 +267,7 @@ def test_a_live_worker_and_a_worker_whose_key_expired_are_told_apart(redis_serve
     queue, live = _register_worker_run_by(os.getpid())
     _queue, expired = _register_worker_run_by(os.getpid())
     queue.connection.delete(expired.key)                      # its key time-to-live ran out; the set still lists it
-    assert api_jobs.live_worker_count(queue) == 1
+    assert api_jobs.workers.live_worker_count(queue) == 1
     assert queue.connection.exists(live.key)
 
 

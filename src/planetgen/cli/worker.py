@@ -2,12 +2,13 @@
 
 """
 One RQ worker for planetGen's queues, at the lowered priority
-generation workers always run at. `planetgen.queue.redisqueue.
-ensure_workers` starts these in burst mode, so each exits once its
-queues are empty.
+generation workers always run at. `planetgen.queue.workers.ensure_workers`
+starts these, each serving one queue and exiting after `--idle-seconds`
+without work (a run's queue is empty for a moment at every stage barrier,
+so a burst worker would leave too soon).
 
 Usage:
-    python -m planetgen.cli.worker [--burst] [--name NAME] [--url REDIS_URL] [QUEUE ...]
+    python -m planetgen.cli.worker [--burst | --idle-seconds N] [--name NAME] [--url REDIS_URL] [QUEUE ...]
 """
 
 import argparse
@@ -18,7 +19,7 @@ import sys
 import rq
 
 from planetgen import _version
-from planetgen.queue import redisqueue, work
+from planetgen.queue import redisqueue, work, workers
 
 WARM_MODULES = (
     "planetgen.generation.run_plan",
@@ -50,7 +51,7 @@ def warm(queues=None):
     import importlib
     for name in WARM_MODULES:
         importlib.import_module(name)
-    if queues and redisqueue.GENERATION_QUEUE not in queues:
+    if queues and not {redisqueue.GENERATION_QUEUE, redisqueue.BULK_QUEUE} & set(queues):
         return
     from planetgen import tuning
     from planetgen.generation import star_population
@@ -95,9 +96,13 @@ def worker_class():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="planetgen.cli.worker", description=__doc__.strip().splitlines()[0])
-    parser.add_argument("queues", nargs="*", default=[redisqueue.WEB_QUEUE],
-                        help="the queues to serve, first one first (default: the web queue; a worker serves one kind)")
+    parser.add_argument("queues", nargs="*", default=[redisqueue.INTERACTIVE_QUEUE],
+                        help="the queues to serve, first one first (default: the interactive queue; a worker "
+                             "serves one kind)")
     parser.add_argument("--burst", action="store_true", help="exit once the queues are empty")
+    parser.add_argument("--idle-seconds", type=int, default=workers.IDLE_SECONDS,
+                        help=f"exit after this long without work (default {workers.IDLE_SECONDS}; ignored with "
+                             "--burst)")
     parser.add_argument("--name", help="the worker's name (default: RQ picks one)")
     parser.add_argument("--url", help="the Redis server (default: PLANETGEN_REDIS_URL, else config.json's redis.url)")
     args = parser.parse_args(argv)
@@ -110,7 +115,8 @@ def main(argv=None):
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]
     worker = worker_class()(queues, connection=connection, name=args.name, serializer=serializers.pop())
-    worker.work(burst=args.burst, with_scheduler=False)
+    worker.work(burst=args.burst, with_scheduler=False,
+                max_idle_time=None if args.burst else args.idle_seconds)
 
 
 if __name__ == "__main__":

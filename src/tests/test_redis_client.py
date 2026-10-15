@@ -92,7 +92,8 @@ def test_the_json_serializer_round_trips_plain_data_and_writes_decimals_and_time
 
 
 def test_web_queues_use_json_and_a_runs_own_queue_keeps_pickle():
-    assert redisqueue.serializer_for(redisqueue.WEB_QUEUE) is redisqueue.JsonSerializer
+    assert redisqueue.serializer_for(redisqueue.INTERACTIVE_QUEUE) is redisqueue.JsonSerializer
+    assert redisqueue.serializer_for(redisqueue.BULK_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.serializer_for("planetgen-web-0123") is redisqueue.JsonSerializer
     assert redisqueue.serializer_for("planetgen-api-test-0123") is redisqueue.JsonSerializer
     assert redisqueue.serializer_for("planetgen-run-0123") is None
@@ -100,7 +101,7 @@ def test_web_queues_use_json_and_a_runs_own_queue_keeps_pickle():
 
 def test_one_worker_serves_one_kind_of_queue():
     with pytest.raises(SystemExit):
-        worker.main(["planetgen-web", "planetgen-run-1", "--burst"])
+        worker.main(["planetgen-interactive", "planetgen-run-1", "--burst"])
 
 
 def test_a_job_names_its_function_and_carries_its_connection_settings_as_data():
@@ -122,7 +123,7 @@ def _noop(value):
 @pytest.mark.skipif(not os.environ.get("PLANETGEN_TEST_REDIS_URL"), reason="PLANETGEN_TEST_REDIS_URL is not set")
 def test_a_queued_api_job_is_stored_as_json_not_pickle(monkeypatch):
     monkeypatch.setenv("PLANETGEN_REDIS_URL", os.environ["PLANETGEN_TEST_REDIS_URL"])
-    monkeypatch.setattr(api_jobs, "ensure_workers", lambda *a, **k: 0)       # no worker: the job stays queued
+    monkeypatch.setattr(api_jobs.workers, "ensure_workers", lambda *a, **k: 0)       # no worker: the job stays queued
     job_id = api_jobs.submit(_noop, 5)
     connection = redisqueue.connect()
     try:
