@@ -16,16 +16,16 @@ release is stamped.
 | UX | UX.114 |
 | MAP | MAP.208 |
 | NAV | NAV.60 |
-| GEN | GEN.250 |
+| GEN | GEN.260 |
 | PERF | PERF.103 |
 | DB | DB.33 |
 | API | API.28 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.160 |
+| TEST | TEST.162 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.49 |
+| DOC | DOC.50 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -550,6 +550,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
+| DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -663,7 +664,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | none | open |
 | GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | open |
 | GEN.113 | Analyze the anomaly docs: which anomalies to add and how | none | open |
-| GEN.114 | Add the chosen anomalies to the starmap | none | open |
+| GEN.114 | Add the chosen anomalies to the starmap | none | split into GEN.254, GEN.255, GEN.256 and GEN.257 (2026-10-15) |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | closed, not reproduced (Boss 2026-10-08) |
 | GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | done, PR #600 |
@@ -679,7 +680,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | done, PR #805 |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | done, PR #1186 |
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
-| GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
+| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | none | open |
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
 | GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | done, PR #807 |
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | done, PR #807 |
@@ -799,6 +800,16 @@ Parents marked "new parent" had no old number of their own.
 | GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | none | open |
 | GEN.248 | Tidal streams as placed components of the halo (later) | none | open |
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | none | open |
+| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | none | open |
+| GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | none | open |
+| GEN.252 | Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert | none | open |
+| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | none | open |
+| GEN.254 | Superbubble field beside the nebula field (the Local Bubble cavity) | none | open |
+| GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | none | open |
+| GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | none | open |
+| GEN.257 | A Fermi-bubble overlay on the Galaxy Map | none | open |
+| GEN.258 | Protostars embedded in giant molecular clouds | none | open |
+| GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1644,6 +1655,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | done, PR #1572 |
 | TEST.158 | The math check tests the spherical shell, band and wedge grid | none | open |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | open |
+| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | open |
+| TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
