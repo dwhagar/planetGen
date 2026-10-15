@@ -3763,7 +3763,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
   and approved every default in it on 2026-10-14 21:08Z (see the
   Decided line below). Filed from the same review, independent of the
-  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48, ADM.54.
+  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48 (done, PR #1395), ADM.54.
   Decided (Boss, 2026-10-14 21:08Z): Option A of
   the Redis review, every default approved. Build steps filed as PERF.95
   (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
@@ -4580,7 +4580,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   is on, the memory policy, used_memory, the last save status and the
   worker count. Default: build it after the Redis settings item; Boss
   may drop it. Foundations lane 1, after the client module.
-  Prerequisites: none. Related: OPS.48.
+  Prerequisites: none. Related: OPS.48 (done, PR #1395).
 
 ## SEC: Security
 
@@ -5481,27 +5481,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a clear message, and the Admin pages show the state. Owner:
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
-
-- [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
-  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
-  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
-  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
-  benchmarks in research/redis-review/bench/). Redis here runs with its
-  defaults. In the review's test, the defaults lost every key on kill -9
-  and appendonly yes with appendfsync everysec kept them all. Done when:
-  examples/redis/planetgen.conf sets appendonly yes, appendfsync
-  everysec, maxmemory-policy noeviction, a maxmemory guard and a
-  loopback bind; update.sh warns, with the exact line to add, when
-  appendonly is off or the memory policy is not noeviction or Redis
-  listens beyond loopback, and never edits his Redis config; the install
-  guides say so (with DOC.44). Normal priority, behind the
-  generation-performance work. Bugfixes lane 1.
-  Decided (Boss, 2026-10-14 21:08Z): turn on the
-  append-only file (everysec), noeviction and a memory guard through a
-  documented example config and an update.sh warning; update.sh never
-  edits his Redis config. One Redis instance; no password while it binds
-  loopback (it does today), an ACL user documented for later.
-  Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
 
 - [ ] **OPS.50 Keep the pymysql login workaround and make it compatible with the upstream fix**
   Boss, 2026-10-15 00:46Z: the caching_sha2 workaround in
