@@ -607,15 +607,19 @@ def get_polity(db, polity_id, limit=None, offset=None, sort=None, descending=Fal
 
 
 def get_species_list(db, spacefaring=None, limit=None, offset=None, sort=None, descending=False, eras=(),
-                     facets=False):
+                     facets=False, tech_ranges=None):
     """Returns `GET /api/species`' paginated envelope, species by name unless
     `sort`ed; `spacefaring` (`True`/`False`) and `eras` filter, `None` lists
-    every one (the Species table, UX.41)."""
+    every one (the Species table, UX.41). `tech_ranges` maps a range name
+    (`tech` or a domain such as `energy`) to `(low, high)`, either end
+    `None` for open (POP.9)."""
     _require_db(db)
     flag = None if spacefaring is None else ("1" if spacefaring else "0")
     params = [("db", db), ("spacefaring", flag), ("limit", limit), ("offset", offset), ("sort", sort),
               ("order", "desc" if descending else None)]
     params += [("era", value) for value in eras] + [("facets", "1" if facets else None)]
+    for name, (low, high) in (tech_ranges or {}).items():
+        params += [(f"{name}_min", low), (f"{name}_max", high)]
     return _request("/species", [(key, value) for key, value in params if value is not None])
 
 

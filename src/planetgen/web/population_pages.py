@@ -60,6 +60,20 @@ def _system_url(system_id):
     return page_url("system", system_id=system_id) if system_id is not None else None
 
 
+TECH_DOMAIN_NAMES = (
+    ("energy", "Energy"), ("materials", "Materials"), ("information", "Information"), ("medical", "Medical"),
+    ("propulsion", "Propulsion"), ("defense", "Defense"),
+)
+"""tuple: The six tech domains in `tuning.TECH_DOMAINS` order, with the label each shows under."""
+
+
+def _tech_text(item):
+    """The tech level with its band name (`"3.40 Industrial"`), or `None` before the level is drawn."""
+    if item.get("tech_level") is None:
+        return None
+    return f"{item['tech_level']:.2f} {item['tech_band']}"
+
+
 def _species_row(item):
     return {
         "name": item["name"],
@@ -68,6 +82,7 @@ def _species_row(item):
         "system": item.get("system_name"),
         "system_url": _system_url(item.get("star_system_id")),
         "era": _label(item.get("era")) or _label(item.get("life_stage")),
+        "tech": _tech_text(item),
         "spacefaring": item.get("spacefaring"),
         "polity": item.get("polity_name"),
         "polity_url": page_url("polity_page", polity_id=item["polity_id"]) if item.get("polity_id") else None,
@@ -85,6 +100,7 @@ def _species_cells(item):
         {"text": row["homeworld"] or ""},
         _link_cell(row["system"] or "", row["system_url"]),
         {"text": row["era"] or "\u2013"},
+        {"text": row["tech"] or "\u2013"},
         {"text": "Yes" if row["spacefaring"] else "No"},
         _link_cell(row["polity"], row["polity_url"]) if row["polity"] else {"text": "\u2013"},
     ]
@@ -118,7 +134,7 @@ def _species_load(state, limit, offset, want_facets):
 SPECIES_TABLE = tables.register(Table(
     "species", "Species",
     [Column("name", "Name"), Column("homeworld", "Homeworld"), Column("system", "System"), Column("era", "Era"),
-     Column("spacefaring", "Spacefaring"), Column("polity", "Polity")],
+     Column("tech", "Tech level"), Column("spacefaring", "Spacefaring"), Column("polity", "Polity")],
     _species_load, facets=[Facet("spacefaring", "Spacefaring"), Facet("era", "Era")], prefix="species_",
     noun=("species", "species"),
 ))
@@ -162,7 +178,13 @@ def species_page(species_id):
         ("Era", _label(item.get("era"))),
         ("Civilization age", format_years(item.get("civilization_age_years"))),
         ("Spacefaring", "Yes" if item.get("spacefaring") else "No"),
+        ("Tech level", _tech_text(item)),
     ]
+    if item.get("tech_level") is not None:
+        facts += [(f"{label} index", f"{item[f'{domain}_index']} of 7") for domain, label in TECH_DOMAIN_NAMES]
+        facts.append(("Limited by", dict(TECH_DOMAIN_NAMES)[item["limiting_domain"]]))
+        if item.get("lopsided"):
+            facts.append(("Development", "Lopsided: its strongest and weakest fields are three or more levels apart"))
     return render_page(
         "species.html",
         title=item["name"],
