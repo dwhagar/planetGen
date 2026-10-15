@@ -1498,6 +1498,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [#1212](https://github.com/dwhagar/planetGen/issues/1212).
   Prerequisites: none. Related: MAP.198, MAP.201, MAP.152.
 
+- [ ] **MAP.203 Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug)**
+  Boss, 2026-10-15 02:15Z, with three screenshots: when viewing a
+  sector, the stars and such look too big compared to what the user just
+  saw on the Galaxy Map. The sector view should look more like the
+  Galaxy Map, and the sector map is changed at the same time to match.
+  Done: star and object sizes in the sector view follow the Galaxy Map's
+  look at the hand-off (no jump in apparent size), the sector map
+  matches, on both themes, with a browser test. Owner: Bugfixes lane 1
+  (Bug 1), right after OPS.50. It touches the shared star drawing
+  (galaxymap3d.js, starfade.js, sectorscene.js and the star shader) that
+  Foundations Maps changes in MAP.152 (server part merges about 02:55Z,
+  client part next), so start from main after that merge. GitHub issue
+  [#1420](https://github.com/dwhagar/planetGen/issues/1420).
+  Prerequisites: none. Related: MAP.152, MAP.198, MAP.146.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
