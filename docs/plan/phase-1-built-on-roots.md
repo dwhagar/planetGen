@@ -195,6 +195,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) |  |  |
 | TEST.149 | Two physics tests fail under load and pass alone (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
+| TEST.150 | Test run progress log and build id for resuming a run | TEST.133 |  |
+| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | TEST.150 |  |
+| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | TEST.151 |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |

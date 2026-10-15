@@ -5105,6 +5105,12 @@ clears each one.
   recommendation, and Boss picks one; the build is then filed as its own
   items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: the Test
   Suite Rebuild thread, part of TEST.139, not a lane.
+  Decided (2026-10-15): Decided (Boss, 2026-10-15 00:2xZ, tapped Build
+  it): option A, a per-test progress log plus an explicit
+  `scripts/test.py <command> --resume`, same build id only; not
+  automatic and not part of the merge gate. Build items TEST.150,
+  TEST.151 and TEST.152, owner the Test Suite Rebuild thread, after
+  TEST.133.
   Prerequisites: none. Related: TEST.139.
 
 - [ ] **TEST.149 Two physics tests fail under load and pass alone (bug)**
@@ -5119,6 +5125,48 @@ clears each one.
   shows no flake for these two. Owner: the Test Suite Rebuild thread,
   not a lane.
   Prerequisites: none. Related: TEST.126, TEST.139.
+
+- [ ] **TEST.150 Test run progress log and build id for resuming a run**
+  Option A of TEST.148 (Boss chose it, 2026-10-15). Every test worker
+  appends one line per finished test to .test-progress/<build-id>.jsonl
+  (test id, outcome, seconds, worker), one write per line like the
+  failure log, so a killed run loses at most the tests running at that
+  moment. The build id is a hash of the git tree of HEAD, the content of
+  every uncommitted or untracked file, the lock files and pytest.ini,
+  the test command and its selection, the Python version, the database
+  server name and version, and the UTC date. A new run without the
+  resume flag starts a new log; a log for another build is kept for a
+  day, then removed. Done when the log and the build id exist with tests
+  (the id changes when any of those inputs change and not otherwise).
+  Prerequisites: TEST.133. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
+  Option A of TEST.148. `scripts/test.py <command> --resume` computes
+  the build id, finds the progress log, and deselects the tests that
+  passed (a skip list passed to pytest on every worker at collection);
+  tests that failed, errored, were running when it stopped or never
+  started run again. It prints the build id, the time of the earlier run
+  and the counts first, and ends with a line that says the run was
+  resumed (for example PASS: N from the earlier run + M now). Each phase
+  (non-browser, then browser) resumes by its own test ids. A resumed run
+  is never automatic, and it is not the merge gate unless the PR says
+  so: a PR that used one says which build and run it continued. Done
+  when a run killed in either phase resumes and finishes with the same
+  verdict a full run gives, with tests for the skip list.
+  Prerequisites: TEST.150. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
+  Option A of TEST.148. A killed run can leave keys on the shared Redis:
+  a resume (and a normal start) clears the keys that carry a test
+  database's name prefix and the rate-limit keys before the first test.
+  The dependency record (.pytest-deps.json) merges what a resumed run
+  records into the existing one, so `full --check` after a resume still
+  refreshes it, and its MISSED check says it covers only the tests that
+  ran now. docs/testing.md documents the resume flag, the build id and
+  the labelling rule (a resumed run says so in its last line and in the
+  PR). Done when a killed run leaves nothing that changes a resumed
+  run's result and the guide matches.
+  Prerequisites: TEST.151. Related: TEST.148, TEST.139.
 
 ## USR: User accounts
 
