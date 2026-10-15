@@ -3305,18 +3305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
 
-- [ ] **GEN.222 Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug)**
-  Boss (2026-10-15 05:30Z): "BUG: Output, when generation text is
-  output, nebulae should show text showing the kinds of nebulae in each
-  slab and the layers included in each slab." When a generation run
-  prints its text output, the nebula part should say, for each slab,
-  which kinds of nebulae were made there and which layers the slab
-  holds. Found: the output prints nebulae without that per-slab
-  breakdown. Done when a run's text output lists, per slab, the nebula
-  kinds and the layers included. Owner: Foundations Generation (Boss
-  retired the bug lanes, 2026-10-15 05:39Z), next after its current item.
-  Prerequisites: none.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
