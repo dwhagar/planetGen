@@ -38,16 +38,18 @@ says Phase 1 is done, set `REVISION_HOLD = False`.
 Pick a short name nobody else is likely to use; the branch name works.
 
 The contents are exactly what goes under the release heading in
-`CHANGELOG.md`, starting with a `###` section (`Added`, `Changed`,
-`Deprecated`, `Removed`, `Fixed` or `Security`):
+`CHANGELOG.md`: a Headline line (see below), then one or more `###` sections
+(`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed` or `Security`):
 
 ```markdown
+**Headline:** The galaxy map no longer scans the whole table to draw a view.
+
 ### Fixed
 - **The galaxy map's viewport query did a full table scan.** Added an
   index on `sectors.center_*` (schema v25).
 ```
 
-**Headline.** Every release opens with a Headline (Boss, 2026-10-10; the rule lapsed at 8.0.912 and was restored on 2026-10-14): the single best feature that release brought, as one sentence. Write it as the first line of the note, above the first `###` section:
+**Headline.** Every release opens with a Headline (Boss, 2026-10-10; the rule lapsed at 8.0.912 and was restored on 2026-10-14; the script has refused a note without one since the spherical switch): the single best feature that release brought, as one sentence. It is the first line of the note, above the first `###` section:
 
 ```markdown
 **Headline:** The Galaxy Map opens on the largest group of created sectors.
@@ -56,7 +58,7 @@ The contents are exactly what goes under the release heading in
 - ...
 ```
 
-The stamp puts it directly under the release heading in `CHANGELOG.md`. Releases from 8.0.912 to the restoration have none and keep none. `bump_version.py` accepts a note with or without the line, so a note that forgets it still releases; reviewers add it.
+The stamp puts it directly under the release heading in `CHANGELOG.md`. Releases from 8.0.912 to the restoration have none and keep none. `bump_version.py` (and so `--check` and `--check-pr`) refuses a note that does not start with the line, so a PR without one fails its release-note check. A docs-only or test-only release gets a Headline too; say what a reader gains ("The test-suite notes record the five clean full runs.").
 
 Don't write the `## [x.y.z] - date` heading, and don't edit `_version.py`,
 the README badge or the top of `CHANGELOG.md`; CI fails a PR that does, and
