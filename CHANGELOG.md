@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1374] - 2026-10-15
+
+**Headline:** The whole-sphere design note now carries the one-rule-set sector profile, the scatter yields over the sphere and the build plan, with globular clusters.
+
+### Changed
+- Extended `docs/design/intergalactic-and-halo-contents.md`: the sector profile (parameters per cell), how the bright-star, mass and phenomena scatters fill the whole sphere, globular clusters and satellites as components in the same build, and a 12-step build plan. No code changed.
+
+TODO items resolved: none / Added: none (the build plan is in the note's section 9)
+
 ## [8.0.1373] - 2026-10-15
 
 **Headline:** The plan now shows the migration time-left bars as done.
