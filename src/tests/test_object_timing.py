@@ -3,7 +3,7 @@ PERF.92: the time each generated object takes, per object type: exclusive of the
 aggregates with a repeatable 1-in-1,000 sample (a row for every object only on request), and saved under the run.
 """
 
-import time
+import types
 
 import pytest
 
@@ -13,15 +13,22 @@ from planetgen.generation import object_timing, run_sector
 from tests.test_sector_gen import _real_sector_args
 
 
+_CLOCK = [0.0]    # a fake clock the toy classes move, so no timing assertion depends on how fast the machine is
+
+
+def _spend(seconds):
+    _CLOCK[0] += seconds
+
+
 class Outer:
     def __init__(self, inner=None):
-        time.sleep(0.004)
+        _spend(0.004)
         self.inner = inner() if inner else None
 
 
 class Inner:
     def __init__(self):
-        time.sleep(0.004)
+        _spend(0.004)
 
 
 class SubInner(Inner):
@@ -33,6 +40,8 @@ class SubInner(Inner):
 def toy_classes(monkeypatch):
     """`Outer`, `Inner` and `SubInner` registered as a system, a star and a binary star, for one test."""
     monkeypatch.setattr(object_timing, "_KIND_OF", {})
+    _CLOCK[0] = 0.0
+    monkeypatch.setattr(object_timing, "time", types.SimpleNamespace(perf_counter=lambda: _CLOCK[0]))
     saved = {cls: cls.__init__ for cls in (Outer, Inner, SubInner)}
     object_timing.track(Outer, "system")
     object_timing.track(Inner, "star")
@@ -69,7 +78,7 @@ def test_time_spent_in_an_inner_object_is_not_counted_twice(toy_classes):
     with object_timing.unit("a") as timings:
         Outer(Inner)
     outer, inner = timings.aggregates["system"], timings.aggregates["star"]
-    assert 0.003 < outer.total < 0.008 and 0.003 < inner.total < 0.008     # 4 ms each, not 8 ms for the outer
+    assert outer.total == pytest.approx(0.004) and inner.total == pytest.approx(0.004)    # 4 ms each, not 8 ms for the outer
 
 
 def test_a_subclass_building_through_its_base_is_one_object_of_its_own_kind(toy_classes):
