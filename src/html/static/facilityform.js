@@ -16,9 +16,7 @@
 
 // This module's own `?v=`, so the sibling loads at the same version.
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { formatDistanceKm } = await import(`./distance.js${VERSION_QUERY}`);
-const { formatDurationSeconds } = await import(`./period.js${VERSION_QUERY}`);
-const { formatSpeedKms } = await import(`./speed.js${VERSION_QUERY}`);
+const { formatDistanceKm, formatDurationSeconds, formatSpeedKms } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 const G = 6.6743e-11; // m^3 kg^-1 s^-2
 

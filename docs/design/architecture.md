@@ -376,8 +376,8 @@ Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `sr
 | `phenomenonrender.js` | The phenomenon View panel's three.js render (neutron star beams, accretion disks, rogue planet, comet), one still frame under reduced motion. |
 | `generatejobs.js` | Live progress of the current Generate job (polls `/admin/generate/status`). |
 | `mapzoom.js`, `phenomenonmap.js` | Shared SVG viewBox zoom/pan, and its use on the phenomenon diagram. |
-| `distance.js` | The browser copy of the distance ladder (`format.format_distance_m`). |
-| `numberformat.js` | The browser copy of `format.format_number` (scientific notation from the 7th whole digit, or the 5th when decimals are shown; UX.36). The planned shared unit ladders are in [units-and-number-formatting.md](units-and-number-formatting.md). |
+| `unitladder.js`, `unitladders.js` | The browser copy of the unit ladders (`format.format_quantity`, UX.23): `unitladders.js` is generated from `planetgen/util/ladders.py` by `scripts/build_unit_ladders.py`, `unitladder.js` is the one algorithm, with the distance, speed and time formatters the maps call. |
+| `numberformat.js` | The browser copy of `format.format_number` (scientific notation from the 7th whole digit, or the 5th when decimals are shown; UX.36). The shared unit ladders are in [units-and-number-formatting.md](units-and-number-formatting.md). |
 | `localtime.js` | Rewrites UTC times into the viewer's time zone. |
 | `theme.js` | Light/dark/system theme switch and header menu closing. |
 | `copycode.js` | The system page's Copy button. |

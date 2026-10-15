@@ -17,28 +17,7 @@ import re
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants
-
-
-# The distance ladder, smallest first: (label, meters). `format_distance`
-# shows a value in the largest unit it is at least 1 of.
-DISTANCE_LADDER = (
-    ("km", physical_constants.KM_M),
-    ("AU", physical_constants.AU_M),
-    ("mpc", physical_constants.MILLIPARSEC_M),
-    ("cpc", physical_constants.CENTIPARSEC_M),
-    ("ly", physical_constants.LIGHTYEAR_M),
-    ("pc", physical_constants.PARSEC_M),
-    ("kpc", physical_constants.KILOPARSEC_M),
-    ("Mpc", physical_constants.MEGAPARSEC_M),
-    ("Gpc", physical_constants.GIGAPARSEC_M),
-)
-# Units that carry a second, more familiar unit in parentheses.
-PARSEC_UNITS = frozenset({"mpc", "cpc", "pc", "kpc", "Mpc", "Gpc"})
-# A parsec value's parenthetical is in ly when the distance is at least
-# this many ly, else in AU when at least this many AU, else in km (Boss,
-# 2026-09-30: "4.2 pc (13.7 ly)", "2.4 mpc (495 AU)").
-DISTANCE_PAREN_MIN_LY = 0.01
-DISTANCE_PAREN_MIN_AU = 0.01
+from planetgen.util import ladders
 
 
 SCIENTIFIC_MIN_INTEGER_DIGITS = 7
@@ -146,11 +125,71 @@ def _three_figures(value):
     return text
 
 
-def _format_in_unit(meters, label, unit_m):
-    if label == "km" and abs(meters) >= 1e6:
-        # Whole kilometers read better than three figures ("384,400 km").
-        return f"{format_number(round(meters / unit_m))} km"
-    return f"{_three_figures(meters / unit_m)} {label}"
+def _in_rung(rung, value):
+    """`value` (in base units) shown in `rung`'s unit, with the unit's
+    symbol: three significant figures, or a whole number from the rung's
+    `whole_from`; the singular form when the number is exactly 1."""
+    number = value / rung.factor
+    if rung.whole_from is not None and abs(value) >= rung.whole_from:
+        return f"{format_number(number)} {rung.symbol}"
+    text = _three_figures(number)
+    return f"{text} {rung.singular if rung.singular and text == '1' else rung.symbol}"
+
+
+def pick_rung(ladder, value):
+    """
+    The rung `value` (in the ladder's base unit) is shown in: the largest
+    one it is at least `start` of, with a hair of tolerance so a value
+    computed as exactly 1 unit (e.g. 1 pc from ly * LY_TO_AU / AU_PER_PARSEC)
+    isn't shown as 1,000 of the one below it. Zero is in the ladder's `zero`
+    rung, the lowest when it names none.
+    """
+    size = abs(value)
+    if size == 0 and ladder.zero is not None:
+        return ladder.rung(ladder.zero)
+    rung = ladder.rungs[0]
+    for candidate in ladder.rungs:
+        start = candidate.factor if candidate.start is None else candidate.start
+        if size >= start * (1 - 1e-12):
+            rung = candidate
+    return rung
+
+
+def format_quantity(ladder, value):
+    """
+    The site's one unit formatter (UX.23): `value`, in the ladder's base
+    unit, in the most meaningful unit on `ladder` (`planetgen.util.ladders`),
+    to three significant figures in `format_number`'s style. A rung that
+    carries an aside adds one more familiar unit in parentheses.
+    `static/unitladder.js` mirrors it; tests/test_unit_ladders.py checks the
+    two against one table.
+
+    Returns:
+        str: e.g. "384,400 km", "4.2 pc (13.7 ly)", "27.3 days". `None` and
+             NaN give an en dash; an infinity "inf" or "-inf" in the
+             ladder's `nonfinite` unit.
+    """
+    if value is None:
+        return "–"
+    value = float(value)
+    if math.isnan(value):
+        return "–"
+    if math.isinf(value):
+        return f"{value:g} {ladder.nonfinite}"
+    rung = pick_rung(ladder, value)
+    text = _in_rung(rung, value)
+    if rung.with_aside:
+        text += f" ({_in_rung(ladder.rung(_aside_symbol(ladder, value)), value)})"
+    return text
+
+
+def _aside_symbol(ladder, value):
+    """The symbol of the rung a `with_aside` value's parenthetical is in."""
+    size = abs(value)
+    for start, symbol in ladder.asides:
+        if size >= start:
+            return symbol
+    return ladder.asides[-1][1]
 
 
 def format_distance_m(meters):
@@ -158,13 +197,13 @@ def format_distance_m(meters):
     Formats a distance (or a non-body radius) in the most meaningful unit on
     the ladder km < AU < mpc < cpc < ly < pc < kpc < Mpc < Gpc: the largest
     unit the value is at least 1 of. Values in a parsec unit add one
-    parenthetical: ly when the distance is at least `DISTANCE_PAREN_MIN_LY`,
-    else AU when at least `DISTANCE_PAREN_MIN_AU`, else km.
+    parenthetical: ly when the distance is at least 0.01 ly, else AU when at
+    least 0.01 AU, else km (`ladders.LENGTH`).
 
     Every page and text output passes its distances through this (or its
-    `format_distance_km`/`_au`/`_ly`/`_pc` wrappers) rather than formatting
-    them itself; `static/distance.js` mirrors it for the maps. Planet, moon
-    and star radii are the exception: see `format_body_radius_km`.
+    `format_distance_km`/`_au`/`_ly`/`_pc` variants) rather than formatting
+    them itself; `static/unitladder.js` mirrors it for the maps. Planet,
+    moon and star radii are the exception: see `format_body_radius_km`.
 
     Args:
         meters (float): The distance, in meters.
@@ -173,37 +212,7 @@ def format_distance_m(meters):
         str: e.g. "384,400 km", "1.52 AU", "4.2 pc (13.7 ly)",
              "2.4 mpc (495 AU)". `None` gives an en dash.
     """
-    if meters is None:
-        return "\u2013"
-    meters = float(meters)
-    if not math.isfinite(meters):
-        return f"{meters:g} km"
-    size = abs(meters)
-    label, unit_m = DISTANCE_LADDER[0]
-    for candidate_label, candidate_m in DISTANCE_LADDER:
-        # A hair of tolerance so a value computed as exactly 1 unit (e.g.
-        # 1 pc from ly * LY_TO_AU / AU_PER_PARSEC) isn't shown as 1,000 mpc.
-        if size >= candidate_m * (1 - 1e-12):
-            label, unit_m = candidate_label, candidate_m
-    text = _format_in_unit(meters, label, unit_m)
-    if label in PARSEC_UNITS:
-        text += f" ({distance_parenthetical(meters)})"
-    return text
-
-
-def distance_parenthetical(meters):
-    """
-    The familiar unit a parsec-family value carries in parentheses: ly when
-    the distance is at least `DISTANCE_PAREN_MIN_LY`, else AU when at least
-    `DISTANCE_PAREN_MIN_AU`, else km. (No parsec value is under 0.01 AU,
-    1 mpc being about 206 AU, but the rule is kept as Boss wrote it.)
-    """
-    size = abs(meters)
-    if size >= DISTANCE_PAREN_MIN_LY * physical_constants.LIGHTYEAR_M:
-        return _format_in_unit(meters, "ly", physical_constants.LIGHTYEAR_M)
-    if size >= DISTANCE_PAREN_MIN_AU * physical_constants.AU_M:
-        return _format_in_unit(meters, "AU", physical_constants.AU_M)
-    return _format_in_unit(meters, "km", physical_constants.KM_M)
+    return format_quantity(ladders.LENGTH, meters)
 
 
 def format_distance_km(km):
@@ -226,27 +235,16 @@ def format_distance_pc(pc):
     return format_distance_m(None if pc is None else pc * physical_constants.PARSEC_M)
 
 
-# The speed ladder (UX.13), slowest first: (label, km/s per unit, shown
-# from this many km/s up). Boss, 2026-10-01: "km/h on the low speed end to
-# Mm/s on the high speed end", then multiples of c from a tenth of light
-# speed. `static/speed.js` mirrors it.
-SPEED_LADDER = (
-    ("km/h", 1 / 3600, 0.0),
-    ("km/s", 1.0, 1.0),
-    ("Mm/s", 1e3, 1e3),
-    ("c", physical_constants.SPEED_OF_LIGHT_KMS, 0.1 * physical_constants.SPEED_OF_LIGHT_KMS),
-)
-
-
 def format_speed_kms(kms):
     """
     Formats a speed in the most meaningful unit on the ladder km/h < km/s <
-    Mm/s < c: km/h below 1 km/s, km/s up to 1,000 km/s, Mm/s up to a tenth
-    of light speed, then multiples of c. One unit, three significant
-    figures, in `format_distance_m`'s number style.
+    Mm/s < c (`ladders.SPEED`; Boss, 2026-10-01): km/h below 1 km/s, km/s up
+    to 1,000 km/s, Mm/s up to a tenth of light speed, then multiples of c.
+    One unit, three significant figures, in `format_distance_m`'s number
+    style.
 
     Every page and text output passes its plain speeds through this rather
-    than formatting them itself; `static/speed.js` mirrors it. Warp and
+    than formatting them itself; `static/unitladder.js` mirrors it. Warp and
     fold factors (`navigation.py`) keep their own "x c" columns.
 
     Args:
@@ -256,48 +254,22 @@ def format_speed_kms(kms):
         str: e.g. "36 km/h", "29.8 km/s", "4.5 Mm/s", "0.25 c". `None`
              gives an en dash.
     """
-    if kms is None:
-        return "–"
-    kms = float(kms)
-    if not math.isfinite(kms):
-        return f"{kms:g} km/s"
-    size = abs(kms)
-    label, unit_kms, _ = SPEED_LADDER[0]
-    for candidate_label, candidate_kms, threshold_kms in SPEED_LADDER:
-        if size >= threshold_kms * (1 - 1e-12):
-            label, unit_kms = candidate_label, candidate_kms
-    return f"{_three_figures(kms / unit_kms)} {label}"
+    return format_quantity(ladders.SPEED, None if kms is None else kms * physical_constants.KM_M)
 
 
 def format_speed_ms(ms):
     """`format_speed_kms` for a value in m/s."""
-    return format_speed_kms(None if ms is None else ms / physical_constants.KM_M)
-
-
-# The time-period ladder (UX.14), shortest first: (plural label, singular
-# label, seconds). A Julian year of 365.25 days, as SECONDS_PER_YEAR.
-# `static/period.js` mirrors it.
-PERIOD_LADDER = (
-    ("µs", "µs", 1e-6),
-    ("ms", "ms", 1e-3),
-    ("s", "s", 1.0),
-    ("minutes", "minute", 60.0),
-    ("hours", "hour", 3600.0),
-    ("days", "day", 86400.0),
-    ("years", "year", physical_constants.SECONDS_PER_YEAR),
-    ("ky", "ky", physical_constants.SECONDS_PER_YEAR * 1e3),
-    ("My", "My", physical_constants.SECONDS_PER_YEAR * 1e6),
-    ("Gy", "Gy", physical_constants.SECONDS_PER_YEAR * 1e9),
-)
+    return format_quantity(ladders.SPEED, ms)
 
 
 def format_duration_seconds(seconds):
     """
     Formats a time period or duration in the most meaningful unit on the
-    ladder µs < ms < s < minutes < hours < days < years < ky < My < Gy: the
-    largest unit the value is at least 1 of, as `format_distance_m` does.
-    One unit, three significant figures, singular when the shown value is
-    exactly 1 ("1 year", "1 day"). `static/period.js` mirrors it.
+    ladder µs < ms < s < minutes < hours < days < years < ky < My < Gy
+    (`ladders.TIME`): the largest unit the value is at least 1 of, as
+    `format_distance_m` does. One unit, three significant figures, singular
+    when the shown value is exactly 1 ("1 year", "1 day").
+    `static/unitladder.js` mirrors it.
 
     Args:
         seconds (float): The duration, in seconds.
@@ -306,20 +278,7 @@ def format_duration_seconds(seconds):
         str: e.g. "12.5 ms", "45 minutes", "27.3 days", "1.88 years",
              "236 My". Zero is "0 s"; `None` gives an en dash.
     """
-    if seconds is None:
-        return "–"
-    seconds = float(seconds)
-    if not math.isfinite(seconds):
-        return f"{seconds:g} years"
-    if seconds == 0:
-        return "0 s"
-    size = abs(seconds)
-    plural, singular, unit_s = PERIOD_LADDER[0]
-    for candidate in PERIOD_LADDER:
-        if size >= candidate[2] * (1 - 1e-12):
-            plural, singular, unit_s = candidate
-    number = _three_figures(seconds / unit_s)
-    return f"{number} {singular if number == '1' else plural}"
+    return format_quantity(ladders.TIME, seconds)
 
 
 def format_period_years(years):

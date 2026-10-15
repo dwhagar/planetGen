@@ -53,8 +53,7 @@ function showsTooManyDigits(text) {
 
 // Three significant figures, comma-grouped, trailing zeros dropped;
 // scientific past 6 whole digits (UX.36). The mirror of
-// planetgen/util/format.py `_three_figures`; distance.js, speed.js and
-// period.js share it.
+// planetgen/util/format.py `_three_figures`; unitladder.js uses it.
 export function threeFigures(value) {
   if (value === 0) {
     return "0";
