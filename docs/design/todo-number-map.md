@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.103 |
-| MAP | MAP.201 |
+| MAP | MAP.202 |
 | NAV | NAV.60 |
 | GEN | GEN.214 |
 | PERF | PERF.101 |
@@ -950,6 +950,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | open |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) | none | open |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | none | open |
+| MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
