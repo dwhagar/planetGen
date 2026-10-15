@@ -117,6 +117,19 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
 | GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) |  |  |
 | GEN.217 | Refresh the stored habitability numbers on existing planets and moons | GEN.216 |  |
+| UX.103 | Design note for the description layer |  |  |
+| UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | UX.103 |  |
+| UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.104, UX.23 |  |
+| API.25 | A structured description endpoint, and Markdown and wikitext on request only | UX.104 |  |
+| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | UX.104 |  |
+| GEN.218 | One habitability describer, in the short wording | UX.104, GEN.215, GEN.216 |  |
+| GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
+| GEN.220 | "Habitable" means the index | UX.104, GEN.218 |  |
+| TEST.155 | Wording and index agree: property test | GEN.218 |  |
+| GEN.221 | Short plain prose for the fixed text | UX.104 |  |
+| UX.107 | Units in the description go through the ladders | UX.23 |  |
+| DB.31 | Store structure, not prose, for life and flavour | UX.104 |  |
+| DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
 | GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) |  |  |
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) |  |  |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) |  |  |
