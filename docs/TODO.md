@@ -3229,23 +3229,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
 
-- [ ] **GEN.223 The orbital update does not move the galaxy position of a star system that has no placed sector (bug)**
+- [ ] **GEN.223 The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug)**
   Boss (2026-10-15, asked "Does our orbital update include all objects
   that are not in a charted sector?", then said "Yes" to filing it as a
-  bug): the orbital update advances the phases and the clock for a star
-  system with no placed (charted) sector but skips the move of its
-  galactic position (`db/store.py` around line 5268, `sector_id not in
-  index.info`), and the follow-up refresh (`refresh_after_motion`,
-  around line 5471) covers only placed sectors, so such a system also
-  gets no containment, nearest-systems or location refresh. Planets,
-  moons, comets, facilities and every phenomenon type are already
-  selected by due time with no sector filter. Done: a system with no
-  placed sector moves with the rest at every update and gets the same
-  containment, nearest-systems and location refresh, with a test that
-  fails when it does not. Owner: Database (suggested; the
-  sector-index code changes with the Spherical Sector Coordinates work,
-  so check it first). Queued behind the Spherical Sector Coordinates
-  stop (Boss, 2026-10-15 06:39Z).
+  bug) and then rewrote the item (2026-10-15 16:03 EDT): "Modify GEN.223
+  to update so all objects within the galaxy move, that's one of the
+  biggest reasons we built the special coordinate with vector components
+  for speed and direction and such, the point in space object should be
+  used for everything in memory and should be stored part by part in the
+  table (no serialized JSON everything has its own column to rebuild the
+  point exactly as it was). We can even store the point mass of the
+  object inside the point structure if we need to, whatever we need.
+  That's why I made the point. Every single thing that exists in the
+  galaxy needs to move and be updated as needed (algorithm exists
+  already) by the nightly orbital update." Today the orbital update
+  advances the phases and the clock for a star system with no placed
+  (charted) sector but skips the move of its galactic position
+  (`db/store.py` around line 5268, `sector_id not in index.info`), and
+  the follow-up refresh (`refresh_after_motion`, around line 5471)
+  covers only placed sectors, so such a system gets no containment,
+  nearest-systems or location refresh. The unbuilt scatter placeholders
+  (`phenomenon_scatter`, `bright_stars`) and standalone phenomena are
+  not advanced either. Planets, moons, comets and facilities are
+  already selected by due time with no sector filter. Done: (1) the
+  nightly update moves every object that exists in the galaxy: star
+  systems with no placed sector, standalone phenomena, and the scatter
+  placeholders, which get point columns plus an epoch and a
+  `next_update_due` and are advanced with the rest; (2) the point in
+  space is the one in-memory representation of position for everything,
+  and it is stored as separate columns, one per component (position,
+  velocity vector, epoch, and mass if it is needed), with no JSON, so
+  the point is rebuilt exactly as it was; the migration is Core's, and
+  existing rows are converted without changing a position; (3)
+  `refresh_after_motion` (containment, nearest-systems, location) also
+  covers objects with no placed sector; with tests that fail when any
+  kind of object is skipped, and a round-trip test that a stored point
+  rebuilds bit for bit. The sector-index code changed with the
+  Spherical Sector Coordinates work, so reread it against the shell
+  grid first. Owner: Core. Bug and feature: the missing move is the bug,
+  the column layout is the change.
   Prerequisites: none.
 
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
