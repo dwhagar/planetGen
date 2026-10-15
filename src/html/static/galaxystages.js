@@ -14,8 +14,8 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 const {
-  DEFAULT_WINDOW, WINDOW_WIDTHS, drillBlockBounds, drillChainOf, drillChildren, drillParent, drillSlotRange,
-  drillWedgeCount, formatDrillKey, ringSectorCount, sectorAddressAt, sectorDrawable, windowCells,
+  DEFAULT_WINDOW, WINDOW_WIDTHS, drillBlockBounds, drillChainOf, drillParent, drillSlotRange,
+  drillWedgeCount, formatDrillKey, galaxyBlockGroups, ringSectorCount, sectorAddressAt, sectorDrawable, windowCells,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 // The flight's zoom/pan trade-off (van Wijk and Nuij's rho), and its
@@ -144,7 +144,7 @@ export function galaxyBlocks(outline, edgePc) {
   let blocks = galaxyCache.get(outline);
   if (!blocks) {
     blocks = [];
-    drillChildren(null, outline.maxRing, outline.maxLayer).forEach(function (group) {
+    galaxyBlockGroups(outline.maxRing, outline.maxLayer).forEach(function (group) {
       group.blocks.forEach(function (block) {
         const total = outline.shapeless ? null : drillBlockTotal(block, outline);
         if (total === 0) return;

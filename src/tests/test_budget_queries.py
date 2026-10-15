@@ -22,7 +22,7 @@ from planetgen.db import query
 from tests import budget_support
 from tests.conftest import _test_server_kwargs
 
-pytestmark = [pytest.mark.budget, pytest.mark.fresh_database]
+pytestmark = [pytest.mark.budget, pytest.mark.fresh_database, pytest.mark.timeout(3600)]  # the first case builds the galaxy
 
 PAGE = 50
 STATEMENT_LIMIT_S = 30

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -225,6 +225,11 @@ with `clamp()`.
   the banner shows on every page, and it also covers command-line runs,
   so `generate.py` and the CLI must write the same lock and publish
   progress.
+  Plan change (2026-10-15): the banner and its public endpoint are built on
+  the Redis run record and ETA function of PERF.96, never on the MySQL job
+  tree that PERF.100 deletes; PERF.99 only repoints the Generate page,
+  Queue page and job log. Foundations UX starts it when PERF.96 has merged.
+  Prerequisite: PERF.96.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -290,6 +295,18 @@ with `clamp()`.
   Decided (2026-10-10): Boss (19:12Z): accept the research unit table in
   units-and-number-formatting.md (ladders, switch points, customary
   pairings).
+  Progress (2026-10-15): step 0 merged (PR #1427): one unit-ladder
+  table and algorithm for distance, speed and time, in Python and the
+  browser. Next steps follow in the migration order (UX.81 kyr/Myr/Gyr
+  and AU from 1,000,000 km, then UX.22 temperature, pressure, gravity).
+  Progress (2026-10-15, PR #1450, Foundations UX): steps 0 to 3 done:
+  distance, speed, time, temperature, pressure and gravity run through
+  the shared ladders. Remaining: mass (step 4), luminosity, power and
+  flux, density, number density, magnetic field and angles, the leftover
+  `toFixed` calls in `galaxymap3d.js` and `galaxystageview.js`
+  (coordinates, angles, luminosity; folded in from UX.81 as steps 5 to
+  7), and the JavaScript lint test that bans direct `toFixed` for unit
+  values.
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -312,6 +329,13 @@ with `clamp()`.
   Decided (2026-10-10): Boss (19:12Z): the system overview stays as
   prose.
   Prerequisite: UX.23.
+  Plan change (Boss, 2026-10-15 04:21Z): markdown is no longer the web
+  default for any planet or system text; the richer tables replace it, and
+  markdown and wikitext are generated on the fly only when the user asks.
+  The new lane Foundations Wording audits all planet and system text
+  output (wording and tables, matching the habitability index) and will
+  propose the items that carry this out; this item is reconciled with that
+  list before either is built.
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
   Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
@@ -353,20 +377,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **UX.42 In-universe wording across the interface**
-  Boss (2026-10-03 05:38Z): "Begin replacing wording to make the
-  interface in-universe (i.e. the interface and wording should not be
-  designed so they sound like they know it's for a game)." Done: a word
-  list (for example "Generate" becomes "Chart", "Generated only" became
-  "Charted only" in MAP item MAP.111) agreed with Boss, then pages,
-  buttons and messages changed page by page; admin-only tools may keep
-  plain wording.
-  Research (2026-10-09, map-ui-and-frontend-libraries.md): schedule with
-  UX.43 so each page is restyled once. Shoelace 2.20.1 is its final
-  release ("sunset"); open question for Boss (default: stay, and do the
-  `sl-` to `wa-` rename inside UX.43's restyle if it rewrites
-  `shoelace-theme.css` anyway).
-
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
   Boss (2026-10-07 11:47Z): "All design elements should be built from
   the ground up to look like, as much as possible, a starmap and
@@ -384,7 +394,6 @@ with `clamp()`.
   B612 Mono for numbers and designations only); `--line` is a new token
   beside `--border`. Selection and caution are both amber, by aviation
   custom and never in the same place (default: accept).
-  Prerequisite: UX.42.
 
 - [ ] **UX.45 Bookmark management**
   Boss (2026-10-07 11:47Z): "Bookmark management system." Today
@@ -432,7 +441,7 @@ with `clamp()`.
 - [ ] **UX.78 Unit preference: Automatic, Metric only or Customary**
   Stored in `localStorage` key `planetgen.units` and applied by
   re-rendering `.qty` spans from `data-si`; a header menu on
-  `sl-dropdown`. UX.42 is wording only; do not fold units into it.
+  `sl-dropdown`. UX.42 (done, PR #1466) was wording only; do not fold units into it.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: the
   three presets, per browser).
   Prerequisite: UX.23.
@@ -452,6 +461,13 @@ with `clamp()`.
   `galaxystageview.js` through the ladders.
   Prerequisites: none.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
+  Progress (2026-10-15, PR #1450, Foundations UX): done: the kyr, Myr
+  and Gyr symbols, AU from 1,000,000 km, scientific text for tiny
+  values, `aria-valuetext` with the unit name, and the `systemview3d.js`
+  and `galaxysystem.js` routing. Left over: the direct `toFixed` calls
+  in `galaxymap3d.js` and `galaxystageview.js` (coordinates, angles,
+  luminosity), now steps 5 to 7 of UX.22. UX.81 retires when UX.22
+  finishes those.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
@@ -497,7 +513,7 @@ with `clamp()`.
   for each category where the planet falls and why, with no extra
   information (GEN.208). Owner: Bugfixes lane 2 (interface), after the
   generation items.
-  Prerequisites: none. Related: UX.30, UX.32, UX.101, GEN.208.
+  Prerequisites: none. Related: UX.30, UX.32, UX.101, GEN.208 (done, PR #1433).
 
 - [ ] **UX.101 PHI-6 symbols in the planet and moon lists, coloured by rating**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
@@ -516,7 +532,7 @@ with `clamp()`.
   library, drawn on both themes with enough contrast, used in the planet
   and moon lists, and a test checks every rating colour. Needs the PHI-6
   model.
-  Prerequisites: GEN.207, UX.100. Related: UX.100, GEN.207.
+  Prerequisite: UX.100. Related: UX.100, GEN.207 (done, PR #1429).
 
 - [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
   (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
@@ -944,9 +960,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   green suite, in this order. MAP.151a: the round-region description
   (centre sector, width, height) as layer, ring and slot-arc ranges that
   wrap past slot 0, with an instant count (the lane starts here).
-  MAP.151b: the 3-ary block ladder 729/243/81/27/9/3/1 replacing
-  drill.py and galaxyprisms.js, with stage cache keys and one cache
-  stamp bump. MAP.151c: per-level aggregates and the window query.
+  MAP.151b: the 3-ary block ladder 243/81/27/9/3/1 (729 dropped by
+  Foundations lane 2, 2026-10-15: 729-sector blocks, about 2.9 kpc, are
+  coarser than today's 243-block home view) replacing drill.py and
+  galaxyprisms.js, with stage cache keys and one cache stamp bump. Its PR
+  also carries a data-only migration (no schema change, next free
+  revision at merge, expect 0090) that empties galaxy_block_stats and
+  refills it with block_stats.rebuild on the new ladder, because every
+  stored row (DB.25) is wrong on the new ladder and a stale m=27 row
+  would be read as a new-ladder cell without error. Foundations Maps writes it
+  under the migration rule for Maps (Boss, 2026-10-15 03:16Z: Maps may
+  build the database changes it needs after telling Foundations Database
+  first; if Database has that work in progress, Maps holds off and does
+  something else); the migration must land with or after the ladder code. MAP.151c: per-level aggregates and the window query.
   MAP.151d: the map reads the windows. None of it is visible until
   Boss's installer is fixed (issue #1211 stays open until he tests).
   Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
@@ -1030,6 +1056,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Server: drop the generated_star_floor_sol brightness floors, settle
   the 400-star cap, and choose tiles by distance. Client: the
   cross-fades with hysteresis and the per-tile origins.
+  Plan change (2026-10-15, Foundations Maps, approved by the coordinator):
+  the client part has two pieces. (1) The per-tile camera-relative
+  origins are already met by the whole-parsec target frame of MAP.102
+  (a star's error reaches a pixel only within about 0.003 pc of the
+  camera, where the system scene draws instead), so that piece is retired
+  with a note in the design doc. (2) The automatic galaxy, sector and
+  system hand-offs with hysteresis are held until Bug 2's
+  galaxystageview.js work (wheel zoom, centre, selection: MAP.198 to
+  MAP.202) has merged, to avoid conflicts. Foundations Maps order: MAP.151b,
+  MAP.197 (done, PR #1455), MAP.155 verification, then the MAP.152 hand-offs after Bug 2.
+  Progress (2026-10-15): the server part merged (PR #1439): Galaxy Map
+  tiles are picked by distance from the camera, the per-level brightness
+  floors are gone and stars fade by distance. The client part (scale
+  cross-fades, per-tile origins) is next, so this item stays open. The
+  star-drawing items MAP.198 to MAP.203 (Bug 1's MAP.203, Bug 2's
+  MAP.199 and MAP.200) are unblocked from the server side; they still
+  start from main and check the client part's branch before touching
+  the shared camera and star code.
   Prerequisites: none (MAP.150 done, #1382). Related: MAP.102, MAP.125,
   MAP.146.
   Foundations lane 2 (2026-10-10, MAP.148 first
@@ -1315,7 +1359,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   visible feature. about 590,000 at the default scale; hold until the O
   and B counts and the H II radii of GEN.150 settle. Default: do not
   build. Owner: Foundations lane 2 if Boss asks.
-  Prerequisites: none. Related: GEN.150, GEN.99.
+  Prerequisites: none. Related: GEN.150 (done, PR #1442), GEN.99.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
@@ -1423,16 +1467,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
 
-- [ ] **MAP.197 Remove the obsolete drill container code left by the map flip**
-  Foundations lane 2, 2026-10-15, after the map flip (PR #1382, MAP.151d
-  part 2). The Galaxy Map is now a plain disk of level-243 blocks with a
-  nine-block window per click, so the old drill container pieces are
-  unused: galaxyprisms.js wedgeLines and drillBlockSectors have no
-  callers, while drill.py's container rules and
-  tests/test_galaxydrill.py still use the non-null drillChildren
-  branches and drillSlabs. Remove them together with their tests.
-  Prerequisites: none. Related: MAP.151.
-
 - [ ] **MAP.198 The Galaxy Map outlines and shades the whole block a click would zoom into (bug)**
   Boss, 2026-10-15 01:46Z: it is really unclear what region is being
   selected from the Galaxy Map, and picking a region that holds a star
@@ -1472,7 +1506,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   single shared centre of MAP.199. Owner: Bugfixes lane 2. Coordinate
   with MAP.152 (Foundations Maps). GitHub issue
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
-  Prerequisites: MAP.199. Related: MAP.198, MAP.152, MAP.146.
+  Prerequisite: MAP.199. Related: MAP.198, MAP.152, MAP.146.
 
 - [ ] **MAP.201 A selected sector that is not filled stays highlighted on the map until something else is selected (bug)**
   Boss, 2026-10-15 01:49Z: when a sector is selected but unfilled, it
@@ -1484,6 +1518,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   area). GitHub issue
   [#1416](https://github.com/dwhagar/planetGen/issues/1416).
   Prerequisites: none. Related: MAP.198, MAP.199, MAP.152.
+
+- [ ] **MAP.202 Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug)**
+  Boss, 2026-10-15 01:51Z, after his eye test of MAP.188 (done, PR
+  #1289): both 187 and 188 are resolved, but the sector barriers should
+  be nearly invisible unless a block is being selected. This is the
+  remaining change of MAP.188. Done: at rest the sector and slab borders
+  are nearly invisible on both themes, and they show (with the
+  wire-frame highlight) only while a block is being selected; browser
+  test. Owner: Bugfixes lane 2, right after MAP.198 (same selection and
+  highlight area; shares the outline code, avoid overlap with MAP.152).
+  GitHub issue
+  [#1212](https://github.com/dwhagar/planetGen/issues/1212).
+  Prerequisites: none. Related: MAP.198, MAP.201, MAP.152.
+
+- [ ] **MAP.203 Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug)**
+  Boss, 2026-10-15 02:15Z, with three screenshots: when viewing a
+  sector, the stars and such look too big compared to what the user just
+  saw on the Galaxy Map. The sector view should look more like the
+  Galaxy Map, and the sector map is changed at the same time to match.
+  Done: star and object sizes in the sector view follow the Galaxy Map's
+  look at the hand-off (no jump in apparent size), the sector map
+  matches, on both themes, with a browser test. Owner: Bugfixes lane 1
+  (Bug 1), right after OPS.50 (done, PR #1425). It touches the shared star drawing
+  (galaxymap3d.js, starfade.js, sectorscene.js and the star shader) that
+  Foundations Maps changes in MAP.152 (server part merges about 02:55Z,
+  client part next), so start from main after that merge. GitHub issue
+  [#1420](https://github.com/dwhagar/planetGen/issues/1420).
+  Prerequisites: none. Related: MAP.152, MAP.198, MAP.146.
 
 ## NAV: Navigation and courses
 
@@ -3005,28 +3067,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.91.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
-- [ ] **GEN.148 Habitability index follow-ups from the research (GEN.84 built)**
-  GEN.84 is built; the research adds: record Boss's decision as PHI-4
-  domains for display plus three Xenobiology scores behind (2026-10-07
-  17:11Z, confirmed 2026-10-09 07:48Z); `PHI_bio` becomes the Liebig
-  blend (habitability-index.md 7.1; the settled product in the built
-  item contradicts it, a point for Boss to settle), the Master doc's
-  example table recomputed once the L terms exist, the display-band
-  table (2.3), the equipment-tier table (4), the 16 conflicts and
-  resolutions (3) and the constants (2.4). Numeric radiation tiers fill
-  the gap between 100 mSv/yr and 10 Gy/yr (design doc 4.6); fix the Gy
-  and Sv units in the L_rad item (Mars is 0.077 Gy/yr, 0.236 Sv/yr); use
-  D10 5 to 10 kGy for Deinococcus. A summed-insolation input with a
-  `flux_variation` term for multi-star systems. Expose a harshness
-  number (0 to 1, default 0.5, no effect until it exists) for the tech
-  draw and facility rating suggestions. The dose ladder cannot lean on
-  astropy on Python 3.9 (6.0.1 has no `Gy` or `Sv`); keep Gy/yr and
-  mSv/yr as two quantities. Decided (Boss, 2026-10-10 18:44Z, defaults
-  approved; default: 20 mSv/yr
-  for the Blue tier, 50 as the single-year limit).
-  Prerequisite (the flux_variation part only): DB.26.
-  Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
 - [ ] **GEN.149 Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K**
   Central stars are generated at 1.1 to 1.44 Msun and at most 100 Lsun;
   real ones are 0.5 to 0.7 Msun (median 0.59), 1e2 to 1e4 Lsun and up to
@@ -3035,19 +3075,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `TEMP_RANGES`, `WD_LUMINOSITY_RANGE_SOL`). Affects the
   planetary-nebula scatter and `PLANETARY_NEBULA_CENTRAL_STAR_TYPES`.
   Prerequisites: none.
-  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.150 H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts**
-  Derive the H II radius and density from the ionizing photon rate Q
-  (Stromgren radius plus Spitzer expansion), add `age_myr`, `q_total`
-  and the host list to the nebula record, and replace the
-  `NEBULA_HOST_RULES` chances with the IMF-based cluster draw; drop B0
-  to B2 as hosts of class D (keep for C and G). Today a B0 to B2 star
-  has a 50% chance of a class D nebula (3 to 30 pc) though one B2V
-  ionizes about 0.8 ly, and class radii are drawn independently of the
-  stars. The nebula age window must join the `_bright_table` cache key
-  `(threshold, population)`.
-  Prerequisites: DB.26 (the nebula age_myr, q_total and hosts columns).
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.151 Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up)**
@@ -3192,14 +3219,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
-- [ ] **GEN.178 Magnetic fields: the induced field of an ocean moon**
-  Left over from GEN.86 (PR #908): the induced magnetic field of a moon
-  with a subsurface ocean in its parent's changing field is not
-  modelled. Done: the induced field is computed for ocean moons and
-  stored beside the intrinsic field, with a test on a known case (a
-  Europa-like moon of a gas giant).
-  Prerequisites: DB.26 (the induced_moment_a_m2 column), GEN.88 merged (PR #963). Related: GEN.86.
-
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
   Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
   directive a sector was generated under and the record of its attempts
@@ -3310,96 +3329,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
-  GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
-  (Boss, 2026-10-11 03:24Z): extend PHI-4 to six dimensions: Pressure,
-  Temperature, Air Chemistry (is the air breathable), Water Chemistry
-  (is the water drinkable), Radiation, and Suitability (long-term
-  survival: enough food and water for a person to sustain themselves,
-  from the planet's evolutionary timeline and age, whether there is any
-  food at all on the surface, enough water). The first five are the core
-  (can a person survive the surface conditions); Suitability only
-  affects the long term. Importance order: Radiation, Temperature,
-  Pressure, Air Chemistry, Water Chemistry, Suitability. Rules from
-  Boss: Radiation sets the maximum of the whole score (Yellow caps at
-  Yellow, Red at Red), Temperature likewise; Pressure matters only when
-  a full suit is not needed anyway, and red pressure makes the overall
-  rating red, yellow pressure caps it at Yellow; Air Chemistry yellow or
-  red caps the score at Yellow (red air alone cannot make the overall
-  rating red); Water Chemistry yellow or red caps it at Yellow;
-  Suitability is always Red if any of the first three are Red, at most
-  Yellow if any of the first four contains a Yellow, Green only if the
-  first five are Green or Blue, Blue only if all others are Blue; a Red
-  Suitability drops any overall score to Yellow but never to Red. Done:
-  the model, the stored values, the planet pages and the API carry the
-  six dimensions with the rules above, and tests cover each rule. Decided (Boss, 2026-10-14 13:16Z): air yellow or red caps the overall
-  rating at Yellow, never lower; a world with no liquid water has Water
-  Chemistry Red, which caps the overall score at Yellow and makes
-  Suitability Red; pressure always matters but does not change the score
-  once a full suit is needed anyway, and it is still listed among the
-  reasons for the suit in the details; the overall score mixes the
-  colour gates with the geometric mean, gates first; Blue overall needs
-  all six Blue. Boss's research is now in the repository
-  ([Exoplanetary Habitability.md](design/Exoplanetary%20Habitability.md),
-  added 2026-10-14, a four-tier Red, Yellow, Green, Blue ecology and
-  survivability ladder). It does not name a Suitability score, but its
-  Table 2 gives the ladder for the long-term resources: water access
-  (perchlorate brine or deep ice, glacial ice, rivers and lakes, global
-  fresh water), native food (none, chemosynthetic mats only, algae and
-  mosses whose chemistry may not suit people, forests and animals of
-  compatible chemistry), shelter from radiation, and the survival
-  timelines of Table 3 (a person alone: seconds, minutes, 2 to 4 weeks,
-  a lifetime; a colony: finite, heavy resource use, mostly
-  self-sufficient, fully self-sufficient). Open question for Boss
-  (default: Suitability is the lowest of three rungs, water access, food
-  and shelter, each read off Table 2 with the tier names above; a world
-  with no native food is at most Yellow, a sterile world with no water
-  Red; it has a 0 to 1 number that is the same geometric-mean blend of
-  the three rungs as the other dimensions, and the numbers are tuned
-  with the lane's sample worlds). Owner: Foundations lane 2.
-  Decided (Boss, 2026-10-14 19:54Z, on a decision
-  card relayed by the coordinator): Suitability is the lowest of three,
-  water access, food and shelter, as a 0 to 1 number.
-  Prerequisite: DB.26 (the one migration for the new columns). Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
-
-- [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
-  GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
-  (Boss, 2026-10-11 01:35Z and 02:41Z): the text at the end should be a
-  paragraph saying, for each category, where the planet falls and why,
-  with no extra information; the chemistry line must be aware of the
-  rest of the score (when the temperature is Red the visitor needs a
-  thermal environment suit, so the air is moot, and the wording should
-  say that while one factor is green or blue another makes it
-  impossible). Boss wants more nuance about the protective equipment
-  needed and why: different suits rated for low radiation with high
-  temperature, or high radiation with low temperature, and so on. Boss
-  attached two research notes, now in the repository
-  ([Environmental.Extremes.and.Protection.Research.md](design/Environmental.Extremes.and.Protection.Research.md)
-  and [Thermal.Respiratory.Protection.Research.md](design/Thermal.Respiratory.Protection.Research.md),
-  added 2026-10-14). Their gear ladder (ambient pressure of 70 kPa or
-  more: masks and modular gear; 20 to 70 kPa: counterpressure or
-  Level A style suits; under 20 kPa: a full pressurised suit; above
-  0.4 MPa: intermediate, above 5 MPa: rigid diving armour; cold: modular
-  down to minus 20 C, insulated suit to minus 40 C, an active-heated
-  sealed suit below; heat: modular to wet bulb 30 C, cooled suit to 45 C,
-  an actively cooled sealed suit above; oxygen under 19.5 kPa needs
-  supplied air; skin-permeating chemicals and perchlorate dust above
-  0.1 mg per cubic metre need a sealed barrier suit; solar-storm doses
-  above 0.5 to 1 Sv need a shelter, not a suit) supply the reasons and
-  wording. They differ from the built equipment table in
-  habitability-index.md (masks from 50 kPa, 14.3 kPa for the full suit,
-  cold limit minus 50 C, wet bulb 31 and 35 C). Decided (Boss, 2026-10-14 13:58Z): where the notes and the built
-  table differ, use the more permissive value (the one that lets a person
-  go with lighter gear or a wider range), because the limits will be
-  widened later anyway: the canon has races that live in conditions
-  humans cannot. The lane lists each pair it chose from in its merge
-  note, and keeps every limit in one table so a later per-species limit
-  can replace it. Done: the description names the suit or mask
-  classes the planet needs and why, in one short paragraph per planet,
-  with tests over a sample of planets. Owner: Foundations lane 2, with
-  GEN.207.
-  Prerequisite: GEN.207. Related: GEN.207, UX.100.
-
 - [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
   GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
   (Boss, 2026-10-10 23:34Z): "Globular clusters will be a parent object
@@ -3440,6 +3369,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   identical results. Owner: the Orbital Updates builders, with GEN.105.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **GEN.214 Planet descriptions still say PHI-4 where they should say PHI-6 (bug)**
+  Boss (2026-10-15 03:46Z): "Bug, still says PHI-4 not PHI-6 on planet
+  descriptions." The habitability description (GEN.207, GEN.208) names
+  the index PHI-4; it should read PHI-6 everywhere a planet or moon
+  description shows it. Done when no planet, moon or help text names the
+  wrong index, with a test over the generated description. Rebase on
+  main: Foundations Generation's GEN.148 flux half touches the
+  temperature rating, so keep the edit to the description text.
+  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457), UX.101.
+
+- [ ] **GEN.215 Air shows Green with 0 Air when the air pressure is 0 (bug)**
+  Boss (2026-10-15 03:46Z): "Bug, Air will say Green with 0 Air when
+  there's 0 air pressure because it's free of toxins." With no
+  atmosphere the Air domain is Green only because it has no toxins. With
+  no air (0.0 kPa) the Air rating must be Red and its value 0. Target
+  line: "**Air: Red** (0.0). There is no atmosphere (0.0 kPa)." Done
+  when a world with no atmosphere never shows Green in Air and a test
+  covers it.
+  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
+
+- [ ] **GEN.216 Habitability text is too wordy and the Suitability sentence is oddly worded (bug)**
+  Boss (2026-10-15 03:46Z): "Bug, Sustainability text is very oddly
+  worded: **Suitability: Red** (0.20). The food is none, what native
+  life a person could eat from. Also considered: the water within reach,
+  ice, or an ocean under ice (Yellow); the shelter, 742 mSv a year
+  (Yellow). Should say something like: **Suitability: Red** (0.20).
+  There is no food or water readily available, but there is shelter
+  available." and "Bug, All text is to wordy. Example cleanup: **PHI-4
+  habitability** is 0.00, and a visitor needs a sealed suit. /
+  **Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure
+  suit is needed. / **Temperature: Red** (0.00). The air temperature is
+  -227 C, so an environment suit is needed. / **Air: Red** (0.0). There
+  is no atmosphere (0.0 kPa). / **Water: Red** (0.00). There is no
+  liquid water to support life. / **Radiation: Yellow** (0.45). The
+  radiation dose is a mean of 742 mSv a year, inside the Yellow band (up
+  to 1 Sv a year). / **Suitability: Red** (0.20). There is no atmosphere
+  (0.0 kPa), no food or water. Shelter is potentially available." Use
+  these lines as the spec for every line of the description (index line,
+  Pressure, Temperature, Air, Water, Radiation, Suitability): short
+  sentences, the number and the consequence, no list of what else was
+  considered. The index is named PHI-6 in the text (the first line of
+  Boss's example says PHI-4 only because it is the old text). Same code
+  as the two items before it; do it after them. Done when every rating
+  line reads like the examples and tests pin the wording. Rebase on
+  main; Foundations Generation avoids the description text meanwhile.
+  Prerequisites: GEN.214, GEN.215. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3906,7 +3882,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   executor is unused.
   Prerequisite: PERF.97. Related: PERF.86.
 
-- [ ] **PERF.99 Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command**
+- [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
   the only place a run lives; each scatter its own queue item run in
@@ -3918,14 +3894,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   completing unit; the event stream is the live log, written to the jobs
   directory at run end with the last 20 kept. Each step leaves main
   working, one PR, Foundations lane 1. Section 5.5 and 5.11 step 5. The
-  Generate page, the Queue page, the all-visitors banner (UX.3) and the
-  job log read the run record, counters and event stream; cancel sets
+  Generate page, the Queue page and the job log read the run record, counters and event stream; cancel sets
   the run to cancelling, cancels the waiting units, sends the stop
   command to the started ones and clears planetgen:run:active (about 0.5
   s); the stale-run Clear action (section 5.6) is added; the event
   stream is the live log and is written to the jobs directory at run end
   for the download link, last 20 kept. Done when: the pages need no
   MySQL job tree and cancel is measured under a second on a 75-job run.
+  The all-visitors banner is not in this step: it is UX.3 (Foundations UX),
+  built on the run record after PERF.96 (decided by the
+  coordinator, 2026-10-15).
   Prerequisite: PERF.98. Related: PERF.86, UX.3.
 
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
@@ -4052,24 +4030,69 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.26 One migration for the habitability columns: flux variation and the air, water and suitability ratings**
-  Foundations Generation, 2026-10-15, relayed by the coordinator:
-  Foundations Generation may not add migrations, so it needs this one
-  from Foundations Database. One Alembic migration on planets and moons:
-  add flux_variation (for GEN.148), add induced_moment_a_m2 after
-  dipole_class (for GEN.178, the induced field of an ocean moon), rename phi4_chemistry and
-  tier_chemistry to phi4_air and tier_air, and add phi4_water,
-  tier_water, phi4_suitability and tier_suitability (for GEN.207, which
-  splits chemistry into air and water and adds the Suitability
-  dimension), and on the nebula table add age_myr, q_total and hosts, all
-  nullable (for GEN.150, H II regions from the ionizing photon rate). The exact column types and defaults come from the spec the
-  coordinator sent to Foundations Database. It blocks GEN.207
-  (Foundations Generation's first item), the flux_variation part of
-  GEN.148, GEN.178 and GEN.150, so it goes first in the Foundations Database queue, ahead of
-  ADM.54 and the Redis rebuild (generation corrections come first; Boss,
-  2026-10-10 22:19Z). No old-column compatibility shim (Boss,
-  2026-10-07).
-  Prerequisites: none. Related: GEN.207, GEN.148, GEN.178.
+- [ ] **DB.28 One migration for the facility type tables and the new facility columns**
+  Needed by POP.10 (Foundations Generation), same rule as DB.27: only
+  Foundations Database adds migrations. Add `facility_types`,
+  `facility_type_fields` and `facility_field_values`, and the new
+  columns on `facilities` (type, affiliation, the five Green/Yellow/Red
+  ratings and the rating source), as laid out under "Data model" in the
+  facility section of docs/design/population-and-politics.md. Done: the
+  migration (next after DB.27's) with its old-schema fixture and tests,
+  merged so POP.10 can be built on it. Owner: Foundations Database,
+  right after DB.27.
+  Prerequisite: DB.27 (done, PR #1446). Related: POP.10, DB.27 (done, PR #1446).
+
+- [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
+  Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
+  to a new version, if there are active jobs, ask the user to cancel the
+  jobs first before changing anything." Widened by Boss, 02:56Z: "In
+  fact, anytime update is run, it won't start without either --yes
+  passed OR if the user specifically confirms they want to cancel all
+  jobs prior to starting the upgrade or install." Done: before it
+  changes anything, update.sh (every install and every upgrade, not only
+  runs that migrate) and the migrate command check for active jobs
+  (running or queued generation runs and other background jobs). With
+  none, they proceed as before. With any, they list them and stop until
+  either `--yes` was passed, or the user types an explicit confirmation
+  that all active jobs may be cancelled; only then are the jobs
+  cancelled, and then the install or upgrade starts. Boss, 02:59Z: "the
+  update script needs to know if it's being run either from systemd or
+  cron, and if it has, assume no unless --yes is passed. Or say 30
+  seconds of waiting for input and it assumes no and cancels the
+  update." So update.sh detects a run from systemd or cron (no person
+  at the keyboard) and then assumes "no": it changes nothing and exits
+  non-zero unless `--yes` was passed. When it does prompt, 30 seconds
+  without an answer count as "no": it changes nothing and exits
+  non-zero. Without `--yes` and without a terminal to ask on, it does
+  the same.
+  update.sh still never edits the user's Redis configuration (OPS.48).
+  A test covers each path (no jobs, jobs and `--yes`, jobs and a typed
+  confirmation, jobs and no answer within 30 seconds, jobs and a run
+  from systemd or cron), and the check is the one place every
+  migration goes through.
+  Dependency: how the active jobs are read depends on the work queue
+  steps. Until PERF.96 (run record and counters in Redis) merges, the
+  check reads the old job tables; PERF.96 supplies the library call that
+  lists active runs, and PERF.99 supplies the cancel through the stop
+  command, after which the check uses them. PERF.100 (which deletes the
+  old work tables with a migration) must pass through this check too.
+  Owner: Foundations Database, after DB.28 and before PERF.100.
+  Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
+  OPS.48, DB.18, DB.27 (done, PR #1446), DB.28.
+
+- [ ] **DB.30 One migration for the per-species environment limits**
+  Needed by POP.12 (Foundations Generation), same rule as DB.27 and
+  DB.28: only Foundations Database adds migrations. Add the columns or
+  the table that hold each species' own environment limits, one value
+  per row of `LIMIT_ROWS` in `planetgen/physics/protection_limits.py`
+  (pressure, oxygen, temperature, wet-bulb, dose and the other rows it
+  holds), NULL for the human default, as laid out in
+  docs/design/habitability-index.md section 9 ("a later per-species
+  limit replaces a row in this table and nothing else"). Done: the
+  migration (next after DB.29's if that lands first) with its old-schema
+  fixture and tests, merged so POP.12 can be built on it. Owner:
+  Foundations Database, after DB.29.
+  Prerequisite: DB.29. Related: POP.12, POP.13, DB.27.
 
 ## API: The JSON API
 
@@ -5076,24 +5099,10 @@ clears each one.
   Decided (Boss, 2026-10-15, tapped Build
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
-  automatic and not part of the merge gate. Build items TEST.150,
+  automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
   TEST.151 and TEST.152, owner the Test Suite Rebuild thread (TEST.133
   done, #1405).
   Prerequisites: none. Related: TEST.139.
-
-- [ ] **TEST.150 Test run progress log and build id for resuming a run**
-  Option A of TEST.148 (Boss chose it, 2026-10-15). Every test worker
-  appends one line per finished test to .test-progress/<build-id>.jsonl
-  (test id, outcome, seconds, worker), one write per line like the
-  failure log, so a killed run loses at most the tests running at that
-  moment. The build id is a hash of the git tree of HEAD, the content of
-  every uncommitted or untracked file, the lock files and pytest.ini,
-  the test command and its selection, the Python version, the database
-  server name and version, and the UTC date. A new run without the
-  resume flag starts a new log; a log for another build is kept for a
-  day, then removed. Done when the log and the build id exist with tests
-  (the id changes when any of those inputs change and not otherwise).
-  Prerequisite: none (TEST.133 done, #1405). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
   Option A of TEST.148. `scripts/test.py <command> --resume` computes
@@ -5108,7 +5117,7 @@ clears each one.
   so: a PR that used one says which build and run it continued. Done
   when a run killed in either phase resumes and finishes with the same
   verdict a full run gives, with tests for the skip list.
-  Prerequisite: TEST.150. Related: TEST.148, TEST.139.
+  Prerequisite: TEST.150 (done, PR #1431). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
   Option A of TEST.148. A killed run can leave keys on the shared Redis:
@@ -5122,6 +5131,18 @@ clears each one.
   PR). Done when a killed run leaves nothing that changes a resumed
   run's result and the guide matches.
   Prerequisite: TEST.151. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.154 A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug)**
+  Reported by Foundations Maps (2026-10-15, MAP.197 gate):
+  src/tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
+  fails 2 of 6 reruns on an idle machine. The test assumes the first
+  facility's host body is the first planet of a random system, but the
+  system is not seeded so the assumption breaks. Make the test pick its
+  host from the data (or seed the system) so it passes every time.
+  Owner: Test Suite Rebuild. Done when 20 reruns in a row pass.
+  Seen again by Foundations UX in its UX.81 and UX.22 gate (2026-10-15):
+  the same test, so two lanes now hit it.
+  Prerequisites: none. Related: TEST.147, TEST.149, TEST.126.
 
 ## USR: User accounts
 
@@ -5457,19 +5478,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.50 Keep the pymysql login workaround and make it compatible with the upstream fix**
-  Boss, 2026-10-15 00:46Z: the caching_sha2 workaround in
-  planetgen/db/login.py (OPS.49, merged in #1387) stays; it is not
-  removed. Make it compatible with the upstream fix (PyMySQL PR 1275,
-  merged 2026-09-18, unreleased) so that once pymysql answers that step
-  itself the plugin hook steps aside or behaves identically and nothing
-  changes for users. The hook detects whether the installed pymysql
-  already answers the step; tests cover the current library and a
-  stand-in that behaves like the fix; the clear login error stays.
-  GitHub issue
-  [#1392](https://github.com/dwhagar/planetGen/issues/1392).
-  Prerequisites: none.
-
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
@@ -5665,7 +5673,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   interface." Done: the coordinate frames (galactic, sector, system),
   the unit ladder and when a unit switches (UX.22, UX.23, UX.78, UX.81),
   sector addresses and paths, the object ID (GEN.170), the epoch and
-  time scales, and the in-universe terms (UX.42), each with a worked
+  time scales, and the in-universe terms (UX.42, done), each with a worked
   example. The page is a Markdown file in docs/help/ built into the Help
   section, linked from each page it describes, and updated by any later
   change to those features (a feature item is not done until its help
@@ -6267,57 +6275,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
 #184.
 
-- [ ] **POP.7 Tech levels for technological species**
-  Boss (2026-10-03 05:38Z): "Integrate a technolog leveling system for
-  planets that have a technological species present using the document:
-  "Technological Assessment.md"  Use the data to develop a method of
-  generating a tech level for every technological species." Done when
-  the subitems are.
-  Prerequisites: POP.8, POP.9.
-  Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
-  Research (2026-10-09, population-and-politics.md): the weights barely
-  matter (equal weights differ by 0.03 TL on average, 0.27 at most, same
-  ranking), so no calibration work on them.
-
-  - [ ] **POP.8 A tech-level design from the six domain indices**
-    The doc scores six domains 0 to 7 (Energy, Materials, Information,
-    Medical, Propulsion, Defense) and weights them: TL = 0.25 EI + 0.20
-    MI + 0.20 II + 0.15 MeI + 0.10 PI + 0.10 DI. Done: how each index is
-    drawn from a species' age, era and world (population.py's
-    civilization age and era), written into population-and-politics.md.
-    Research (2026-10-09, population-and-politics.md): add to Done that
-    `civilization_age_years` is years since the industrial transition
-    (Energy index about 1.5 to 2), that indices are integers 0 to 7, and
-    that Earth 2026 is the calibration point (TL about 3.1; E 3.0, M
-    3.0, I 3.4, Me 3.2, P 3.0, D 3.2, a judgment for Boss to review).
-    The parameter table, band names and limiting-domain decision are in
-    the design doc, so the written-into-population-and-politics.md
-    clause is met once Boss accepts them. Decided (Boss, 2026-10-10
-    18:44Z, defaults approved; defaults taken): age zero is the
-    industrial transition; old
-    civilizations are not all near the top (the oldest median is about
-    6.1); the weighted sum is the only stored TL, with the limiting
-    domain and a lopsided flag shown; label "Tech band" and "Era" on the
-    page since both use "Industrial".
-    Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
-
-  - [ ] **POP.9 A tech level generated for every technological species**
-    Done: every technological species stores its six indices and its
-    tech level (columns), shown on the species page and searchable;
-    existing species get theirs on the next population pass.
-    Research (2026-10-09, population-and-politics.md): six TINYINT
-    UNSIGNED indices with CHECK 0..7, `tech_level` DECIMAL(3,2)
-    (indexed) and `tech_source` ('generated' or 'admin'). The draw uses
-    its own seeded stream (`draw.Stream(f"tech:{planet_id}")`) so stored
-    ages do not change; `refresh_civilizations` fills NULL indices,
-    which gives "existing species get theirs on the next population
-    pass". Searchable by `tech_level` range and by each index. The
-    limiting domain (lowest of E, M, I) and the lopsided flag (max minus
-    min at least 3) are derived, not stored; show the tech band name
-    beside the age era on the species page.
-    Prerequisite: POP.8.
-    Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
-
 - [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
   Boss (2026-10-03 05:38Z): "Add facility types that are programable and
   can be selected from a dropdown when adding facilities.  Facility data
@@ -6340,6 +6297,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   types refine the five
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
+  Prerequisite: DB.28 (the migration).
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.11 Scatter space vessels and stations for the races in their territories**
@@ -6351,5 +6309,77 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   territory, as stored objects like the user objects of USR.10. Which tech
   level allows vessels and which stations is set from the tech-level
   design (docs/design/Technological Assessment.md and the "Tech levels"
-  section of population-and-politics.md, POP.8). Owner: not assigned.
-  Prerequisites: POP.7, USR.10. Related: POP.7, POP.10, USR.10.
+  section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
+  Prerequisite: USR.10. Related: POP.7 (done, PR #1461), POP.10, USR.10.
+
+- [ ] **POP.12 List every species that could live in a given environment, and give every species its environment limits**
+  Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
+  one to list all races that would be able to inhabit that environment.
+  That means all species must also have that information. Add another
+  TODO item for species editor." Today a species row carries its build,
+  climate, size, life chemical, life stage and tech fields, but no
+  environment limits, and the habitability score describes only the
+  human visitor (`LIMIT_ROWS` in
+  `planetgen/physics/protection_limits.py`). Done: (1) every species
+  stores its own limits for the same rows, generated from its life
+  chemical, build, climate and size when the species is made and
+  backfilled for the species that exist; (2) a function scores any
+  planet or moon against a species' limits through the six habitability
+  domains (GEN.207); (3) the planet and moon page has a "Species that
+  could live here" list, with each species' rating per domain, and the
+  API has an endpoint that lists the species able to live in a planet or
+  moon, and the other way round (the environments a species could live
+  in, by sector or system); (4) the species page shows its own limits.
+  Open question for Boss (default: "able to inhabit" means no Red domain
+  without equipment, with a second list of species that could live there
+  with equipment at their own tech level, so one list is unaided and one
+  is equipped). Open question for Boss (default: homeworld-only species
+  get limits from their homeworld's conditions, so every species passes
+  its own homeworld). Rebuild nothing in the human score: a per-species
+  limit replaces a row of the table and nothing else.
+  Prerequisites: DB.30, POP.9 (done, PR #1461). Related: POP.13, POP.9, POP.7, GEN.207,
+  GEN.208, DB.30, API.15.
+  Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+- [ ] **POP.13 A species editor: create and edit species and their environment limits**
+  Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
+  one to list all races that would be able to inhabit that environment.
+  That means all species must also have that information. Add another
+  TODO item for species editor." Done: an admin page lists the species
+  and edits one or creates one: name, homeworld, life chemical, build,
+  climate, size, the six tech indexes and tech level (`tech_source`
+  becomes admin, the column POP.9 added for this), and the environment
+  limits of POP.12 with the generated defaults shown beside each so an
+  admin can see what was changed; saving checks the values (ranges, a
+  homeworld that exists, a unique name) and refreshes the "could live
+  here" lists; an admin-made species is marked as such and survives a
+  reseed like other admin edits. Same shape as the facility type editor
+  (POP.10) and the same admin patterns (ADM.9). Owner: Foundations UX
+  for the page, Foundations Generation for the checks. Phase 2: nothing
+  in Phase 1 needs it once POP.12 stores the data; Boss can pull it
+  forward.
+  Prerequisite: POP.12. Related: POP.10, POP.9, ADM.9.
+
+- [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
+  Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
+  consistency that if we put a race on a planet it is within the limits
+  of what can survive there." Done: (1) one check, built on the species
+  limits and the scoring function of POP.12, that every way of putting a
+  species on a planet or moon calls before it writes: generation
+  (homeworld and any later settlement the scatter makes, POP.11), the
+  species editor (POP.13), the API and any command or import; it refuses
+  a placement outside the species' limits and says which domain fails,
+  in plain in-universe wording; (2) a consistency check over the stored
+  data (a report command and a test over a generated galaxy) that lists
+  every species placed outside its limits; any it finds are fixed by
+  regenerating the limits or the placement, with no shim and no
+  tolerance flag. How it fits: the POP.12 default takes a species'
+  limits from its homeworld, so every species passes its own homeworld
+  by construction and this check matters for every other placement; an
+  admin who edits limits in the species editor (POP.13) must not be able
+  to leave a species outside its homeworld's conditions, so the editor
+  runs this check on save and shows the failing domain. A placement that
+  is only acceptable with equipment counts as outside the limits unless
+  the placement says it is a habitat or vessel (default: only unaided
+  survival counts for a planet or moon surface).
+  Prerequisites: POP.12. Related: POP.12, POP.13, POP.11, POP.10.

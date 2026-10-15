@@ -3173,7 +3173,9 @@ def galaxy_density_shape(conn):
     Returns:
         dict or None: Every `GalaxyShape` field and
             `galaxyDensity.model_terms` entry, plus `edge_pc`,
-            `outer_ring_index`, `expected_system_count_at_density_1`.
+            `outer_ring_index`, `expected_system_count_at_density_1` and
+            `half_height_pc` (how far above and below the plane the
+            layers reach; left out before the layers are stored).
             `None` if `planetgen plan` has never been run against this
             database (no `galaxy_shape` row yet).
     """
@@ -3184,6 +3186,11 @@ def galaxy_density_shape(conn):
     shape["edge_pc"] = skeleton.edge_pc
     shape["outer_ring_index"] = skeleton.outer_ring_index
     shape["expected_system_count_at_density_1"] = skeleton.expected_system_count_at_density_1
+    extent = conn.execute("SELECT MIN(layer_index) AS lowest, MAX(layer_index) AS highest FROM galaxy_layer").fetchone()
+    if extent["lowest"] is not None:
+        from planetgen.galaxy.geometry import layer_bounds_pc
+        shape["half_height_pc"] = max(abs(layer_bounds_pc(extent["lowest"], skeleton.edge_pc)[0]),
+                                      abs(layer_bounds_pc(extent["highest"], skeleton.edge_pc)[1]))
     return shape
 
 
@@ -3567,20 +3574,13 @@ def galaxy_clouds_in_box(conn, lo, hi, max_clouds=GALAXY_TILE_MAX_CLOUDS, margin
     return clouds[:max_clouds]
 
 
-GALAXY_TILE_MAX_BRIGHT_STARS = 400
-"""int: Most pre-placed bright stars (`bright_stars`, v43) one tile lists,
-the most luminous first. The map draws each as a point of light the same
-few pixels across at every zoom, so a zoomed-out view of 27 tiles shows
-about ten thousand, tracing the spiral arms; zooming in switches to
-smaller tiles that hold the dimmer ones."""
-
 GALAXY_TILE_BRIGHTEST_SAMPLE = 100000
 """int: How many of the galaxy's most luminous bright stars `galaxy_tiles`
 reads in one go (once per request, only when a tile needs it) to answer
 tiles too big to query on their own -- see
 `GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET`. A tile of a few kiloparsecs holds a
 few hundred of them, so zoomed out every tile still fills its
-`GALAXY_TILE_MAX_BRIGHT_STARS`."""
+`GALAXY_TILE_BRIGHT_BUDGET`."""
 
 GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = 50000
 """int: Most `bright_stars` rows one tile's own query may expect to read
@@ -3909,7 +3909,7 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     return _top_by_key(picks, int(count))
 
 
-def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False,
+def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=False,
                                brightest=None):
     """
     The pre-placed bright stars (`bright_stars`) in the box `[lo, hi)` with
@@ -3932,7 +3932,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         edge_pc (float): The sector edge, parsecs.
-        limit (int): See `GALAXY_TILE_MAX_BRIGHT_STARS`.
+        limit (int or None): See `GALAXY_TILE_BRIGHT_BUDGET`; `None` is the coarsest level's.
         unfilled_only (bool): Only the stars whose sector hasn't been
             filled yet (`system_id` is `None`) -- what a page listing the
             stars still waiting in a box shows.
@@ -3950,6 +3950,8 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
             `ring_slot_index` and `system_id` (the star's system once its
             sector is filled, else `None`).
     """
+    if limit is None:
+        limit = GALAXY_TILE_BRIGHT_BUDGET[0]
     total = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM bright_stars").fetchone()["n"])
     if not total:
         return []
@@ -4038,29 +4040,15 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
     return _top_by_key([_bright_star_entry(row) for row in rows], limit)
 
 
-GALAXY_TILE_MAX_GENERATED_STARS = 1000
-"""int: Most stars of generated systems one tile lists (MAP.51), the most
-luminous first. A finest tile (16 pc, 64 sectors) of a filled region
-holds a few hundred, so up close every star shows, red dwarfs included."""
-
-GENERATED_STAR_FLOOR_SOL_AT_32_PC = 0.004
-"""float: The faintest generated star (solar luminosities) a 32 pc tile
-lists. Each coarser tile level's floor is four times the last (the floor
-grows with the square of the tile's edge, as a star's apparent
-brightness falls with the square of its distance), so zooming in shows
-fainter and fainter stars: about 1 L_sun at 512 pc tiles, 260 L_sun at
-8 kpc. The finest tiles (`TILE_MAX_LEVEL`) list every star."""
-
-GENERATED_STAR_MAX_FLOOR_SOL = 1000.0
-"""float: Tiles whose floor is past this list no generated stars at all:
-they span a good share of the galaxy, where the pre-placed bright stars
-(`galaxy_bright_stars_in_box`) already show everything that bright."""
-
-GALAXY_TILE_MAX_DETAIL_STARS = 4000
+GALAXY_TILE_MAX_DETAIL_STARS = 1200
 """int: Most stars of generated systems a finest tile (`TILE_MAX_LEVEL`,
 16 pc) lists (MAP.80): the map fetches these around a sector it is
-zoomed to, so the sector shows every star it holds. Only a tile deep in
-the bulge holds more, and then its faintest are left out."""
+zoomed to, so the sector shows every star it holds (a 16 pc tile of a
+filled region holds a few hundred). Only a tile deep in the bulge holds
+more, and then its faintest are left out."""
+
+GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS = 300
+"""int: Most pre-placed bright stars a finest tile lists."""
 
 GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET = 1500
 """int: Most generated sectors one tile reads stars from. A coarse tile
@@ -4069,27 +4057,25 @@ k-th, by a hash of the id) instead, so the request stays bounded; zooming in rea
 tiles small enough to read all of them."""
 
 
-def generated_star_floor_sol(level):
-    """
-    The faintest generated star a tile of `level` lists, in solar
-    luminosities (0 = every star), or `None` when it lists none -- see
-    `GENERATED_STAR_FLOOR_SOL_AT_32_PC`.
-    """
-    if level >= TILE_MAX_LEVEL:
-        return 0.0
-    floor = GENERATED_STAR_FLOOR_SOL_AT_32_PC * (TILE_ROOT_EDGE_PC / 2 ** level / 32.0) ** 2
-    return None if floor > GENERATED_STAR_MAX_FLOOR_SOL else floor
-
-
-GALAXY_TILE_STAR_BUDGET = {3: 150, 4: 200, 5: 250, 6: 300, 7: 350, 8: 400, 9: 500, 10: 650, 11: 850}
-"""dict: MAP.116's one table of how many generated stars a Galaxy Map tile
-lists, by tile level (the levels in `generated_star_floor_sol`'s reach and
-coarser than `TILE_MAX_LEVEL`). The map shows a roughly constant number of
-tiles at any zoom, so a coarser tile gets fewer stars: a dense filled
-region stays readable two or three zoom levels out from a sector, where
-1000 per tile used to blur into a smear. The brightest stars win; the
-brightness floor (`generated_star_floor_sol`) is the other half of the rule.
+GALAXY_TILE_STAR_BUDGET = {3: 30, 4: 40, 5: 40, 6: 60, 7: 80, 8: 100, 9: 100, 10: 130, 11: 160}
+"""dict: How many generated stars a Galaxy Map tile lists, by tile level
+(MAP.116, refit by MAP.152 for tiles chosen by distance), the brightest
+first and with no brightness floor: a tile is as sparse or as full as its
+budget says. A distance cut (`viewport.distance_cut_tiles`) holds a dozen
+or two tiles of the coarsest levels and up to about sixty of each level
+finer, so the budgets are set (nearer, finer tiles list the most) until
+the cut's caps add up to under `GALAXY_VIEW_MAX_STARS`
+(`galaxy_view_star_cap`). Tiles coarser than
+level 3 list none: the pre-placed bright stars show everything that bright.
 A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` instead."""
+
+GALAXY_TILE_BRIGHT_BUDGET = {0: 300, 1: 300, 2: 300, 3: 300, 4: 120, 5: 100, 6: 60, 7: 50, 8: 40, 9: 40, 10: 40, 11: 40}
+"""dict: Most pre-placed bright stars (`bright_stars`, v43) a tile lists by
+level, the most luminous first (MAP.152 settles the old flat 400 a tile,
+which a cut of hundreds of tiles cannot afford). The map draws each as a
+point of light the same few pixels across at every zoom, so the coarsest
+tiles, which trace the spiral arms from far out, keep the most. A finest
+tile lists up to `GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS`."""
 
 SECTOR_ALLOWANCE_FUDGE = 3
 """int: A tile's budget is shared out by sector: each generated sector may
@@ -4105,54 +4091,51 @@ of that level lists (MAP.116); a finest tile lists up to
 where the budget reaches it."""
 
 
-GALAXY_VIEW_MAX_TILES = 27
-"""int: Most tiles a view's own level needs: the view sphere is at most as
-wide as a tile (`viewport.tile_level_for_view_radius`), so it touches at
-most 3 tiles along each axis."""
-
-GALAXY_VIEW_MAX_DETAIL_TILES = 8
-"""int: Most finest tiles the map adds around the target once zoomed to a
-sector (`DETAIL_RADIUS_PC` is 8 pc, half a finest tile's edge, so the
-sphere touches at most 2 along each axis)."""
-
 GALAXY_VIEW_MAX_STARS = 70000
 """int: MAP.109's stated cap on the stars (pre-placed and generated) one
 view's tiles can carry (MAP.157: about 19 MB of JSON before compression at the
 old 270 bytes a star, about 100 bytes a star trimmed). It holds by
-construction -- every tile's lists are capped (`GALAXY_TILE_MAX_BRIGHT_STARS`,
+construction -- every tile's lists are capped (`GALAXY_TILE_BRIGHT_BUDGET`,
 `GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_DETAIL_STARS`) -- and
-`galaxy_view_star_cap` adds those caps up, so a test fails when a budget is
-raised past it. A real view carries far less: the caps are for a tile packed
-with stars, and most of the galaxy's tiles are not."""
+`galaxy_view_star_cap` adds those caps up over a view's tiles, so a test
+fails when a budget is raised past it. A real view carries far less: the
+caps are for a tile packed with stars, and most of the galaxy's tiles are not."""
 
 
-def galaxy_view_star_cap():
+def galaxy_tile_star_cap(level):
+    """The most stars (pre-placed and generated) one tile of `level` lists."""
+    if level >= TILE_MAX_LEVEL:
+        return GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS + GALAXY_TILE_MAX_DETAIL_STARS
+    return GALAXY_TILE_BRIGHT_BUDGET[level] + GALAXY_TILE_STAR_BUDGET.get(level, 0)
+
+
+def galaxy_view_star_cap(tile_keys):
     """
-    The most stars one view can fetch: `GALAXY_VIEW_MAX_TILES` tiles of its
-    own level (each with the bright-star cap and the biggest level budget)
-    plus `GALAXY_VIEW_MAX_DETAIL_TILES` finest tiles.
+    The most stars a view of `tile_keys` (a distance cut plus its detail
+    tiles) can fetch: the sum of every tile's cap, `galaxy_tile_star_cap`.
     """
-    coarse = GALAXY_VIEW_MAX_TILES * (GALAXY_TILE_MAX_BRIGHT_STARS + max(GALAXY_TILE_STAR_BUDGET.values()))
-    detail = GALAXY_VIEW_MAX_DETAIL_TILES * (GALAXY_TILE_MAX_BRIGHT_STARS + GALAXY_TILE_MAX_DETAIL_STARS)
-    return coarse + detail
+    return sum(galaxy_tile_star_cap(parse_tile_key(key)[0]) for key in tile_keys)
 
 
 def generated_star_budget(level, sector_count):
     """
     `(tile budget, per-sector allowance)` for the generated stars of a tile of
     `level` holding `sector_count` generated sectors -- `GALAXY_TILE_STAR_BUDGET`
-    shared by `SECTOR_ALLOWANCE_FUDGE`. A finest tile lists up to
-    `GALAXY_TILE_MAX_DETAIL_STARS` with no per-sector allowance.
+    shared by `SECTOR_ALLOWANCE_FUDGE`; `(0, None)` for a level with no
+    budget. A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` with no
+    per-sector allowance.
     """
     if level >= TILE_MAX_LEVEL:
         return GALAXY_TILE_MAX_DETAIL_STARS, None
-    budget = GALAXY_TILE_STAR_BUDGET.get(level, GALAXY_TILE_MAX_GENERATED_STARS)
+    budget = GALAXY_TILE_STAR_BUDGET.get(level, 0)
+    if not budget:
+        return 0, None
     allowance = max(1, int(math.ceil(SECTOR_ALLOWANCE_FUDGE * budget / float(max(1, sector_count)))))
     return budget, allowance
 
 
 def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count,
-                                  limit=GALAXY_TILE_MAX_GENERATED_STARS, per_sector=None):
+                                  limit=GALAXY_TILE_MAX_DETAIL_STARS, per_sector=None):
     """
     The most luminous stars of generated systems whose sector's center
     lies in the box `[lo, hi)`, at least `min_luminosity_sol` each, at
@@ -4174,7 +4157,7 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         min_luminosity_sol (float): The faintest star listed.
         sector_count (int): How many generated (grid-placed) sectors the
             box holds, as its `galaxy_filled_in_box` summary counts them.
-        limit (int): See `GALAXY_TILE_MAX_GENERATED_STARS`.
+        limit (int): See `GALAXY_TILE_STAR_BUDGET`.
         per_sector (int or None): Most stars one sector contributes, its
             brightest (`generated_star_budget`); `None` is no limit.
 
@@ -4242,10 +4225,9 @@ def _generated_star_entry(row):
 POINT_PHENOMENON_MIN_LEVEL = 8
 """int: The coarsest tile level (160 pc tiles) that lists the point-like
 phenomena -- black holes, neutron stars (pulsars) and quasars (MAP.80).
-Since MAP.155 that is level 8, not 10: a black hole or neutron star fades
-in with the stars around it by the same rank rule (`static/starfade.js`
-`tileRanks`, whose `POINT_RANK_MIN_LEVEL` must equal this) instead of
-appearing all at once at sector depth. Tiles coarser than this list only
+Since MAP.155 that is level 8, not 10: a black hole or neutron star comes
+in with the stars around it, through its tile's share (`static/starfade.js`),
+instead of appearing all at once at sector depth. Tiles coarser than this list only
 the biggest scattered classes (`SCATTERED_POINT_COARSE_CLASSES`)."""
 
 GALAXY_TILE_MAX_POINTS = 200
@@ -4442,8 +4424,8 @@ def galaxy_tiles(conn, tile_keys):
             `galaxyViewport.planned_slots_in_tile`, `galaxy_filled_in_box`,
             `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
             `galaxy_generated_stars_in_box` (its floor from
-            `generated_star_floor_sol`, all of them in a finest tile up
-            to `GALAXY_TILE_MAX_DETAIL_STARS`) and
+            `GALAXY_TILE_STAR_BUDGET`, a finest tile up to
+            `GALAXY_TILE_MAX_DETAIL_STARS`) and
             `galaxy_point_phenomena_in_box` (tiles of
             `POINT_PHENOMENON_MIN_LEVEL` and finer)),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
@@ -4494,14 +4476,17 @@ def galaxy_tiles(conn, tile_keys):
         filled = piece("filled", lambda: galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc),
                        {"g": 1, "cells": []})
         clouds = piece("clouds", lambda: galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins), [])
-        stars = piece("stars", lambda: galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, brightest=brightest), [])
-        floor = generated_star_floor_sol(level)
+        bright_limit = (GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS if level >= TILE_MAX_LEVEL
+                        else GALAXY_TILE_BRIGHT_BUDGET[level])
+        stars = piece("stars", lambda: galaxy_bright_stars_in_box(
+            conn, lo, hi, edge_pc, limit=bright_limit, brightest=brightest), [])
+        limit, per_sector = generated_star_budget(level, 0)
         generated = []
-        if floor is not None:
+        if limit:
             sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
             limit, per_sector = generated_star_budget(level, sector_count)
             generated = piece("generated", lambda: galaxy_generated_stars_in_box(
-                conn, lo, hi, floor, sector_count, limit=limit, per_sector=per_sector), [])
+                conn, lo, hi, 0.0, sector_count, limit=limit, per_sector=per_sector), [])
         points = (piece("points", lambda: galaxy_point_phenomena_in_box(
             conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS)), [])
             if level >= POINT_PHENOMENON_MIN_LEVEL else [])

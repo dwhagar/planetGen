@@ -67,11 +67,15 @@ NULL_IN_THIS_GALAXY = {
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
     **{("interstellar_comets", column): CHANCE for column in SECTOR_PLACEMENT},
+    # Only a lit class (C to G) has host stars (GEN.150), and the seeded galaxy's few nebulae may all be dark.
+    **{("nebulae", column): CHANCE for column in ("age_myr", "q_total", "hosts")},
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
     ("sectors", "wiki_url"): "never published", ("star_systems", "wikijs_url"): "never published",
     ("star_systems", "mediawiki_url"): "never published",
     ("system_configs", "age"): "only with --age",
+    # GEN.178: only a moon has an induced field.
+    ("planets", "induced_moment_a_m2"): "moons only",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't

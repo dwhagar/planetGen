@@ -82,31 +82,15 @@ import json
 
 import math
 
-try:
-    from planetgen.galaxy.viewport import (
-        TILE_MAX_LEVEL,
-        TILE_ROOT_EDGE_PC,
-    )
-    from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
-    from planetgen.tuning import GALAXY_RADIUS_PC
-    from planetgen.physics.units import ly_to_pc, pc_to_ly
-except ImportError:
-    TILE_ROOT_EDGE_PC = 65536.0
-    TILE_MAX_LEVEL = 12
-    # The planetGen package isn't on the import path in this deployment --
-    # duplicated fallback, matching every other lib/ module's identical
-    # pattern (see e.g. galaxymap.py's own top-of-file try/except).
-    GALAXY_RADIUS_PC = 15000.0
-    LOCAL_STELLAR_DENSITY_LY3 = 0.00284
-    def ly_to_pc(ly):
-        return ly / 3.2616
-    def pc_to_ly(pc):
-        return pc * 3.2616
-
-DEFAULT_SECTOR_EDGE_LY_FALLBACK = 13.046  # 4 pc
-"""float: Used only if `planetgen.tuning` itself isn't
-importable (see the top-of-file fallback above) -- matches that module's
-own `DEFAULT_SECTOR_EDGE_LY`."""
+from planetgen.galaxy.viewport import (
+    TILE_MAX_LEVEL,
+    TILE_ROOT_EDGE_PC,
+    fetch_cut_tiles,
+    tiles_intersecting_sphere,
+)
+from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
+from planetgen.tuning import GALAXY_RADIUS_PC
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 CLICK_ZOOM_FACTOR_MIN = 1.15
 """float: The click-to-zoom multiplicative step size once the camera is
@@ -213,71 +197,87 @@ def galaxy_edge_pc(edge_pc, galaxy_shape):
 
 FETCH_RADIUS_FACTOR = 1.6
 """float: The map fetches content out to this multiple of the camera's
-orbit radius, so what's just off-screen is already there when the camera
-turns."""
+orbit radius (it sizes the view ball: `viewRadius`), so what's just off-screen is
+already there when the camera turns."""
 
 MAX_TILES_PER_REQUEST = 128
 """int: Mirrors `queryDb.MAX_TILES_PER_REQUEST`."""
 
+CAMERA_START_THETA_DEG = -32.0
+CAMERA_START_PHI_DEG = 60.0
+"""float: The camera's starting azimuth and polar angle round its target
+(`static/galaxymap3d.js`'s `orbit`)."""
 
-def _tile_level_for_view_radius(radius_pc):
-    """Same as `galaxyViewport.tile_level_for_view_radius` (duplicated
-    so this module keeps working under its ImportError fallback)."""
-    if not radius_pc > 0:  # also NaN
-        return TILE_MAX_LEVEL
-    if math.isinf(radius_pc):
-        return 0
-    ratio = TILE_ROOT_EDGE_PC / radius_pc
-    if math.isinf(ratio):
-        return TILE_MAX_LEVEL
-    return max(0, min(TILE_MAX_LEVEL, math.floor(math.log2(ratio))))
+DETAIL_CAMERA_PC = 120.0
+DETAIL_RADIUS_PC = 8.0
+"""float: Camera orbit radius out to which, and radius round the target
+within which, the finest tiles are fetched too (the same constants as
+`static/galaxymap3d.js`)."""
 
+INITIAL_TILE_LIMIT = 64
+"""int: Most tiles the page itself carries for the first frame (the nearest
+ones); the map fetches the rest of the cut as it opens, so a page render
+never waits on hundreds of tiles."""
 
-def _tiles_intersecting_sphere(level, center_pc, radius_pc):
-    """Same as `galaxyViewport.tiles_intersecting_sphere`, duplicated for
-    the same reason as `_tile_level_for_view_radius`."""
-    edge = TILE_ROOT_EDGE_PC / (2 ** level)
-    origin = -TILE_ROOT_EDGE_PC / 2.0
-    span = 2 ** level
-    ranges = []
-    for axis in range(3):
-        first = math.floor((center_pc[axis] - radius_pc - origin) / edge)
-        last = math.floor((center_pc[axis] + radius_pc - origin) / edge)
-        ranges.append(range(max(0, first), min(span - 1, last) + 1))
-    found = []
-    for ix in ranges[0]:
-        for iy in ranges[1]:
-            for iz in ranges[2]:
-                index = (ix, iy, iz)
-                distance_sq = 0.0
-                for axis in range(3):
-                    lo = origin + index[axis] * edge
-                    nearest = min(max(center_pc[axis], lo), lo + edge)
-                    distance_sq += (center_pc[axis] - nearest) ** 2
-                if distance_sq <= radius_pc * radius_pc:
-                    found.append((distance_sq, f"{level}/{ix}/{iy}/{iz}"))
-    found.sort()
-    return [key for _distance, key in found]
+TILE_BOUNDS_FALLBACK_HEIGHT_FRACTION = 0.1
+"""float: Without stored layers, the tile bounds reach this share of the
+galaxy's radius above and below the plane."""
 
 
-def initial_tile_request(orbit_radius_pc, center_pc=(0.0, 0.0, 0.0)):
+def tile_bounds_pc(edge_pc, galaxy_shape):
+    """
+    The box the distance cut of tiles covers (MAP.152): the galaxy's
+    extent each way in the plane, and its layers' reach above and below it
+    (`half_height_pc`, a sector edge more, rounded up to a multiple of 64
+    pc so Python and the page agree), or a tenth of the radius without
+    stored layers.
+
+    Returns:
+        tuple: `((x_lo, y_lo, z_lo), (x_hi, y_hi, z_hi))`, parsecs.
+    """
+    radius = galaxy_extent_pc(edge_pc, galaxy_shape)
+    height = (galaxy_shape or {}).get("half_height_pc")
+    height = (height + edge_pc) if height is not None else radius * TILE_BOUNDS_FALLBACK_HEIGHT_FRACTION
+    height = math.ceil(height / 64.0) * 64.0
+    return (-radius, -radius, -height), (radius, radius, height)
+
+
+def camera_position_pc(orbit_radius_pc, center_pc):
+    """The camera's starting position: `orbit_radius_pc` from `center_pc`
+    at the starting angles."""
+    theta = math.radians(CAMERA_START_THETA_DEG)
+    phi = math.radians(CAMERA_START_PHI_DEG)
+    return (
+        center_pc[0] + orbit_radius_pc * math.sin(phi) * math.cos(theta),
+        center_pc[1] + orbit_radius_pc * math.sin(phi) * math.sin(theta),
+        center_pc[2] + orbit_radius_pc * math.cos(phi),
+    )
+
+
+def initial_tile_request(orbit_radius_pc, center_pc, bounds_pc):
     """
     The tiles the map's first frame needs, computed exactly the way
     `static/galaxymap3d.js`'s own `neededTiles` does for every later
     camera position, so the browser's first live fetch finds the first
-    frame's tiles already cached.
+    frame's tiles already cached: the distance cut round the starting
+    camera (`viewport.fetch_cut_tiles`), and the finest tiles round the
+    target when the camera starts that close.
 
     Args:
         orbit_radius_pc (float): The starting camera orbit radius
             (`view_radius_bounds`' max).
         center_pc (tuple): The starting camera target.
+        bounds_pc (tuple): `tile_bounds_pc`.
 
     Returns:
-        list: Tile keys, nearest first.
+        list: Tile keys, the finest ones first, then nearest first, at
+            most `INITIAL_TILE_LIMIT`.
     """
-    view_radius = orbit_radius_pc * FETCH_RADIUS_FACTOR
-    level = _tile_level_for_view_radius(view_radius)
-    return _tiles_intersecting_sphere(level, center_pc, view_radius)
+    camera = camera_position_pc(orbit_radius_pc, center_pc)
+    keys = fetch_cut_tiles(camera, center_pc, bounds_pc)
+    if orbit_radius_pc <= DETAIL_CAMERA_PC:
+        keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, center_pc, DETAIL_RADIUS_PC) + keys
+    return keys[:INITIAL_TILE_LIMIT]
 
 
 DENSITY_SHAPE_FIELDS = (
@@ -576,6 +576,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
         "fetchRadiusFactor": FETCH_RADIUS_FACTOR,
+        "tileBoundsPc": [list(bound) for bound in tile_bounds_pc(edge_pc, galaxy_shape)],
         "maxTilesPerRequest": MAX_TILES_PER_REQUEST,
         "hasShape": bool(initial_view.get("has_shape")),
         # The galaxy's density model parameters -- static/galaxyprisms.js
@@ -622,7 +623,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         )
         pick_banner = (
             '<p class="pick-banner" role="status"><strong>' + _escape(pick["banner"]) + ":</strong> drill down"
-            " to a generated sector and click it, then pick a system or phenomenon there &middot; "
+            " to a charted sector and click it, then pick a system or phenomenon there &middot; "
             '<a href="' + _escape(pick["cancel"]) + '">Cancel</a></p>\n'
         )
     course_hint = ""
@@ -658,7 +659,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         if galaxy_shape
         else (
             '<p class="hint">The galaxy\'s density skeleton hasn\'t been built yet '
-            "(<code>planetgen plan</code>) -- only generated sectors are shown, as blocks, "
+            "(<code>planetgen plan</code>) -- only charted sectors are shown, as blocks, "
             "and no density shading is shown.</p>"
         )
     )

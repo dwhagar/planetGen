@@ -1145,6 +1145,27 @@ def test_classed_phenomena_round_trip_their_contents(mysql_config):
         conn.close()
 
 
+def test_an_ionized_nebula_stores_its_age_photon_rate_and_hosts(mysql_config):
+    """GEN.150: the host stars of a class D cloud are written to `age_myr`, `q_total` and `hosts`; a dark cloud
+    stores NULL for all three."""
+    from planetgen.generation.phenomena.nebula import Nebula
+
+    hot = Nebula(SystemConfig(), nebula_class="D")
+    dark = Nebula(SystemConfig(), nebula_class="Q")
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            hot_id = store.insert_nebula(conn, hot)
+            dark_id = store.insert_nebula(conn, dark)
+        row = conn.execute("SELECT age_myr, q_total, hosts FROM nebulae WHERE id = ?", (hot_id,)).fetchone()
+        assert row["age_myr"] == pytest.approx(hot.age_myr) and row["q_total"] == pytest.approx(hot.q_total)
+        assert row["hosts"] == hot.hosts and row["hosts"]
+        row = conn.execute("SELECT age_myr, q_total, hosts FROM nebulae WHERE id = ?", (dark_id,)).fetchone()
+        assert (row["age_myr"], row["q_total"], row["hosts"]) == (None, None, None)
+    finally:
+        conn.close()
+
+
 def test_innermost_container_picks_the_smallest_cloud_holding_the_point():
     big = {"column": "inside_nebula_id", "id": 1, "center": (0.0, 0.0, 0.0), "radius_pc": 10.0}
     small = {"column": "inside_remnant_id", "id": 2, "center": (1.0, 0.0, 0.0), "radius_pc": 2.0}

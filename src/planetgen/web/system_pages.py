@@ -22,7 +22,8 @@ from flask import abort, jsonify, redirect, request
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
-    format_duration_seconds, format_number, format_period_years, format_speed_kms, runaway_text,
+    format_duration_seconds, format_gravity_g, format_number, format_period_years, format_pressure_pa, format_speed_kms,
+    format_temperature_k, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_nearest,
     nearest_systems_html,
 )
@@ -490,7 +491,7 @@ def phenomena():
         title="Phenomena",
         section="phenomena",
         breadcrumbs=[crumb("Phenomena")],
-        description="Every nebula, black hole, neutron star and other exotic phenomenon in this generated galaxy.",
+        description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.",
         table=table,
         total=table["total"],
     )
@@ -526,18 +527,13 @@ def _progenitor_text(value):
     return value if value == "Type Ia" else _title_case(value)
 
 
-def _temperature_text(value):
-    """Kelvin, with Celsius after it."""
-    return f"{format_number(value, ',.0f')} K ({format_number(value - 273.15, ',.0f')} \u00b0C)"
-
-
 def _pressure_text(value):
-    """Bar, or "None" for no air at all; a trace in pascals."""
+    """The pressure on the ladder, "None" for no air at all, a trace in its own unit alone."""
     if not value:
         return "None"
     if value < 100:
-        return f"{format_number(value, ',.3g')} Pa (a trace)"
-    return f"{format_number(value / 1e5, ',.3g')} bar"
+        return f"{format_pressure_pa(value, companions=False)} (a trace)"
+    return format_pressure_pa(value)
 
 
 def _rogue_planet_type_text(value):
@@ -608,9 +604,9 @@ FIELD_SPECS = {
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
         ("has_accretion_disk", "Accretion Disk", _bool_text),
-        ("temperature_k", "Hawking Temperature", lambda v: f"{format_number(v, '.2e')} K"),
+        ("temperature_k", "Hawking Temperature", lambda v: format_temperature_k(v, companions=False)),
         ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
-        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
@@ -620,9 +616,9 @@ FIELD_SPECS = {
         ("spin_period_ms", "Spin Period", lambda v: format_duration_seconds(v / 1000)),
         ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
         ("pulsar_type", "Pulsar Type", _title_case),
-        ("surface_temperature_k", "Surface Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
+        ("surface_temperature_k", "Surface Temperature", lambda v: format_temperature_k(v, companions=False)),
         ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
-        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
@@ -642,17 +638,17 @@ FIELD_SPECS = {
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
         ("radius_km", "Radius", _body_radius),
-        ("gravity_g", "Surface Gravity", lambda v: f"{format_number(v, ',.3g')} g"),
+        ("gravity_g", "Surface Gravity", format_gravity_g),
         ("composition", "Composition", str),
         ("has_internal_heat", "Geologically Active", _bool_text),
         ("has_moons", "Has Moons", _bool_text),
         # Surface conditions (schema v48, rogueSurface): no star, so only
         # its own heat. A giant's temperature and pressure are at 1 bar.
-        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         ("internal_heat_flux_w_m2", "Internal Heat Flow", lambda v: f"{format_number(v, ',.3g')} W/m\u00b2"),
-        ("effective_temperature_k", "Effective Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
+        ("effective_temperature_k", "Effective Temperature", lambda v: format_temperature_k(v, companions=False)),
         ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),
-        ("surface_temperature_k", "Surface Temperature", _temperature_text),
+        ("surface_temperature_k", "Surface Temperature", format_temperature_k),
         ("surface_pressure_pa", "Surface Pressure", _pressure_text),
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
@@ -799,7 +795,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         title=detail["name"],
         section="phenomena",
         breadcrumbs=[crumb("Phenomena", "phenomena"), crumb(detail["name"])],
-        description=f"{detail['name']}, a {type_label.lower()} in this generated galaxy.",
+        description=f"{detail['name']}, a {type_label.lower()} in this charted galaxy.",
         type_label=type_label,
         distance=distance,
         sector=sector,

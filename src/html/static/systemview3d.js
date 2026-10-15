@@ -30,6 +30,7 @@ const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js$
 const { navActions } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
+const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 const AU_KM = 149597870.7;
 const SPHERE_SEGMENTS = [28, 20];
@@ -410,10 +411,10 @@ export function createSystemView(options) {
     const fields = [["Kind", entry.kind]];
     if (body.planet_class) fields.push(["Class", body.planet_class]);
     if (body.star_type) fields.push(["Star type", body.star_type]);
-    if (body.radius_km) fields.push(["Radius", Math.round(body.radius_km).toLocaleString("en-US") + " km"]);
+    if (body.radius_km) fields.push(["Radius", formatBodyRadiusKm(body.radius_km)]);
     if (body.orbit && body.orbit.distance_km) {
-      fields.push(["Orbit", (body.orbit.distance_km / AU_KM).toPrecision(3) + " AU"]);
-      if (body.orbit.period_years) fields.push(["Period", body.orbit.period_years.toPrecision(3) + " years"]);
+      fields.push(["Orbit", formatDistanceKm(body.orbit.distance_km)]);
+      if (body.orbit.period_years) fields.push(["Period", formatPeriodYears(body.orbit.period_years)]);
     }
     if (entry.kind === "comet" && body.orbit && body.orbit.kepler) fields.push(...cometOrbitFields(body.orbit));
     return {

@@ -630,15 +630,6 @@ def test_tile_keys_containing_really_contain_the_point(point):
         assert all(l <= v < h for l, v, h in zip(lo, point, hi))
 
 
-@given(st.floats(allow_nan=False))
-def test_tile_level_for_view_radius_is_always_a_valid_level(radius):
-    level = gv.tile_level_for_view_radius(radius)
-    assert 0 <= level <= gv.TILE_MAX_LEVEL
-    if 0 < radius <= gv.TILE_ROOT_EDGE_PC and level < gv.TILE_MAX_LEVEL:
-        assert gv.tile_edge_pc(level) >= radius
-        assert gv.tile_edge_pc(level + 1) < radius
-
-
 @settings(max_examples=40)
 @given(
     st.integers(0, 5),

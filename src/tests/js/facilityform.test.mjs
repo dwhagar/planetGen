@@ -38,9 +38,11 @@ const fmt = {};
 async function load(placement, step) {
   installDom("http://localhost/system/4");
   if (!fmt.distance) {
-    fmt.distance = (await import(new URL("distance.js", STATIC_URL).href)).formatDistanceKm;
-    fmt.period = (await import(new URL("period.js", STATIC_URL).href)).formatDurationSeconds;
-    fmt.speed = (await import(new URL("speed.js", STATIC_URL).href)).formatSpeedKms;
+    const ladder = await import(new URL("unitladder.js", STATIC_URL).href);
+    fmt.distance = ladder.formatDistanceKm;
+    fmt.spoken = ladder.formatDistanceKmSpoken;
+    fmt.period = ladder.formatDurationSeconds;
+    fmt.speed = ladder.formatSpeedKms;
   }
   const el = form(placement, step);
   await importPage("facilityform.js");
@@ -94,7 +96,7 @@ test("the orbit slider shows only for an orbit", async () => {
 test("the readout runs from just above the surface to the edge of the sphere of influence", async () => {
   const f = await load("orbital", 0);
   assert.equal(f.readout.textContent, expectedReadout(EARTH.min, EARTH.mass));
-  assert.equal(f.slider.getAttribute("aria-valuetext"), fmt.distance(EARTH.min));
+  assert.equal(f.slider.getAttribute("aria-valuetext"), fmt.spoken(EARTH.min));
   f.slider.value = String(STEPS);
   change(f.slider, "input");
   assert.equal(f.readout.textContent, expectedReadout(EARTH.max, EARTH.mass));

@@ -190,3 +190,4 @@ src/planetgen/web/lib/**/__pycache__/
 .test-failures.jsonl
 .pytest-deps.json
 .pytest-deps-proof.json
+.test-progress/

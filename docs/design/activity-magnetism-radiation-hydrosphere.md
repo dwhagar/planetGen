@@ -295,6 +295,22 @@ a watery Earth-mass world now keeps its field about 22 times in 100 (it was 38),
 and a dry one never does.
 
 
+**Induced fields, as built (GEN.178).** Rule 6's flag became a number:
+`magnetism.generate_induced_field` gives an ocean moon (`ice-covered ocean`,
+`surface ocean` or `hycean`, with a liquid layer) the dipole its ocean
+induces in its parent's turning field. The parent's equatorial dipole field at
+the moon's orbit, `mu0 M f_dip / (4 pi a^3)` (Jupiter at Europa: 520 nT),
+reaches the moon as 0.4 of its strength at the synodic period
+(`1 / |1/P_rot - 1/P_orb|`, 11.2 h for Europa); the ocean answers as a thin
+conducting shell with `|A| = x / sqrt(1 + x^2)`, `x = omega mu0 sigma h R / 2`
+(Europa: 0.9997, Galileo's fit about 0.97), and the moment is `2 pi R^3 A B /
+mu0`: 3.9e18 A m2 for Europa, 103 nT at its equator, and 6.5e17 A m2 (4.6 nT)
+for Callisto. `sigma` is 2.75 S/m for a neutral ocean (Hand and Chyba 2007's
+Europa), 0.5 ice-sealed, 5 chloride brine, 3 soda and 10 acid sulfate. No draw
+is made. A moon whose parent turns with it (tidally locked) sees no change and
+gets 0.
+
+
 ## 4. Surface radiation dose (GEN.87)
 
 ### 4.1 Anchors

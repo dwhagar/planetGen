@@ -75,7 +75,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.30; one thread. |
 | UX.30 | Planet information without the Markdown render | UX.22, UX.32, UX.23 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
-| UX.43 | A visual design built like a pilot's starmap and navigation console | UX.42 |  |
+| UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
 
 ### Backfill
@@ -165,6 +165,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
+| POP.13 | A species editor: create and edit species and their environment limits | POP.12 |  |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
 ### Nebula planets
@@ -202,9 +203,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line |  |  |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall |  |  |
-| GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | GEN.207 |  |
-| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | DB.26 |  |
-| UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | GEN.207, UX.100 |  |
+| UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | UX.100 |  |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes |  |  |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |
 | MAP.192 | See the objects whose positions changed in the last orbital update |  |  |

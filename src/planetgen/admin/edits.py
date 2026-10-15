@@ -19,7 +19,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import validation
-from planetgen.physics import constants, planets as planetPhysics
+from planetgen.physics import constants, magnetism, planets as planetPhysics
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
@@ -96,6 +96,8 @@ def regenerate_planet(system, planet, owner):
     _name_moons(fresh)
     for body in [fresh] + fresh.moons:
         validation.reapply_life(body)
+    for moon in fresh.moons:
+        magnetism.generate_induced_field(moon, fresh)
     owner[owner.index(planet)] = fresh
     return _finish(system, f"Regenerated {planet.name}: now class {fresh.planet_class} "
                            f"with {len(fresh.moons)} moon{'' if len(fresh.moons) == 1 else 's'}.")
@@ -114,9 +116,11 @@ def make_moon(planet, distance_au, moon_class):
     ceiling = planetPhysics.moon_class_options(planet, planet.zone)[moon_class]
     low = tuning.PLANET_CLASSES[moon_class]["radius_range"][0]
     radius = planetPhysics._sample_class_radius(moon_class, low, ceiling)
-    return Planet(planet.system_config, planet.star, planet.habitable_zone, distance_au,
+    moon = Planet(planet.system_config, planet.star, planet.habitable_zone, distance_au,
                   radius=radius, planet_class=moon_class, zone_override=planet.zone,
                   distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
+    magnetism.generate_induced_field(moon, planet)
+    return moon
 
 
 def regenerate_moon(system, moon, planet):

@@ -26,7 +26,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import life as planetLife, prevalence, validation
-from planetgen.physics import constants
+from planetgen.physics import constants, insolation, magnetism
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -471,12 +471,14 @@ class StarSystem:
         # in the same pass (after life data, since it reads evolutionary_data) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
         with log.timed_phase("life data pass"):
+            insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
             for obj in self.planets + self.secondary_planets:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
                 planetLife.apply_life_data(obj)
                 planetLife.decide_flavor_text(obj)
                 for moon in obj.moons:
+                    magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
 
@@ -1011,7 +1013,7 @@ class StarSystem:
             kept.append(body)
         if len(kept) != len(planets):
             log.debug(f"Removed {len(planets) - len(kept)} bodies ruled out by the star's age or history "
-                      f"(age {star.age:.3g} Gy, engulfed inside {engulfed_au:.3g} AU)")
+                      f"(age {star.age:.3g} Gyr, engulfed inside {engulfed_au:.3g} AU)")
         planets[:] = kept
 
     def _trim_to_orbit_ceiling(self, planets, orbit_ceiling_au):

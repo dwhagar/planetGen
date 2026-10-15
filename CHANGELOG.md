@@ -2,6 +2,345 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1205] - 2026-10-15
+
+### Changed
+
+- Lane roster and plan: Foundations Wording added; UX.30 records the markdown-on-request direction.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1204] - 2026-10-15
+
+### Added
+
+- An item to ensure a race is only placed where it can survive, with a placement check and a consistency check over the data.
+
+TODO items resolved: none / Added: POP.14
+
+## [8.0.1203] - 2026-10-15
+
+### Changed
+
+- UX.42 retired (merged in #1466).
+
+TODO items resolved: UX.42 / Added: none
+
+## [8.0.1202] - 2026-10-15
+
+### Changed
+
+- The public pages and map panels say "charted" and "uncharted" where they said "generated" and "not generated yet" (the Galaxy Map's sector panel, Nearby, Search, the course chart page, page descriptions and the map hints), and the classes page says the survey records the classes. Admin pages, the admin Generate tab, logs and the command line keep their plain wording.
+
+## [8.0.1201] - 2026-10-15
+
+### Changed
+
+- DB.28 and DB.29 move from the Phase 2 table to Phase 1, with DB.27 (done) and DB.30.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1200] - 2026-10-15
+
+### Added
+
+- Items for listing the species that could live in an environment (with per-species environment limits and their migration) and a species editor.
+
+TODO items resolved: none / Added: DB.30, POP.12, POP.13
+
+## [8.0.1199] - 2026-10-15
+
+### Changed
+
+- POP.9 and POP.7 retired (merged in #1461).
+
+TODO items resolved: POP.9, POP.7 / Added: none
+
+## [8.0.1198] - 2026-10-15
+
+### Changed
+
+- GEN.214, GEN.215 and GEN.216 move from Bug 1's queue to Foundations Generation's.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1197] - 2026-10-15
+
+### Added
+
+- **Every species has a tech level (POP.9).** The population pass draws six indices from 0 to 7 (energy, materials, information, medical, propulsion and defense) and the weighted tech level, kept in the `species` columns. A species made before the columns gets its levels on the next pass, and a hand-edited one is never redrawn. The species list API sorts and filters by tech level and by each index, the Species table has a Tech level column with its band name, and a species page shows the six indices, what limits its tech and whether it is lopsided.
+
+## [8.0.1196] - 2026-10-15
+
+### Changed
+
+- UX.3 now builds the visitor banner on the PERF.96 run record; PERF.99 no longer includes the banner.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1195] - 2026-10-15
+
+### Changed
+
+- UX.22 and UX.81 progress recorded (#1450); TEST.154 second sighting.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1194] - 2026-10-15
+
+### Changed
+
+- Times in thousands, millions and billions of years now read kyr, Myr and Gyr (not ky, My and Gy, which clash with the gray), on the system pages, star ages and the Galaxy Map legend.
+- Distances switch from kilometers to AU at a million kilometers, so Mercury is "0.387 AU" and not "5.79 × 10⁷ km".
+- A value far below the lowest unit on a ladder is written in scientific notation ("2.50 × 10⁻⁷ µs") instead of a row of zeros, and crashed the browser formatter at about 100 zeros.
+- The System Map panels (and the Galaxy Map's system panel) show a body's orbit, period and radius through the shared units; the radius is scientific km as everywhere else. The facility form's distance slider reads out the unit's name to screen readers ("1.5 astronomical units").
+
+## [8.0.1193] - 2026-10-15
+
+### Changed
+
+- Surface conditions share the unit ladders: temperatures read K, °C and °F everywhere a surface temperature is shown (the rogue planet page too, which showed K and °C only), with mK, µK and nK under 1 K; pressures run nPa to TPa with atm and psi beside them, bar from 10 atm and mbar for thin atmospheres (Mars: "610 Pa (0.00602 atm, 0.0885 psi, 6.1 mbar)"); gravity reads "3.71 m/s² (0.378 g)" in property tables and rogue planet pages, and "0.378 g" alone on a list row.
+- Hawking temperatures, neutron star and effective temperatures use the temperature ladder without °C and °F.
+
+## [8.0.1192] - 2026-10-15
+
+### Changed
+
+- GEN.148 retired (flux half merged in #1457; part one was #1404).
+
+TODO items resolved: GEN.148 / Added: none
+
+## [8.0.1191] - 2026-10-15
+
+### Changed
+
+- **A swinging light counts against a planet's temperature rating (GEN.148).** A planet of one star of a wide pair, or a circumbinary planet, gets a stored `flux_variation`: how much its total starlight swings, as a fraction of the mean, because the companion's distance changes or the bright star is off the pair's centre. The Temperature rating now takes the worse of the cold and hot ends of that swing (`T` to the fourth root of the light), and the description lists the two ends. A planet of a single star is unchanged. Planets generated before this release have no swing until regenerated.
+
+## [8.0.1190] - 2026-10-15
+
+### Changed
+
+- MAP.197 retired (merged in #1455); TEST.154 added for a flaky object-id test.
+
+TODO items resolved: MAP.197 / Added: TEST.154
+
+## [8.0.1189] - 2026-10-15
+
+### Changed
+- **The Galaxy Map's page no longer carries the old drill container code (MAP.197).** The wedge-line, slab and block-sector helpers the map flip left without callers are gone from the page, and the galaxy's block list is one small function. No change to what the map shows.
+
+## [8.0.1188] - 2026-10-15
+
+### Added
+
+- Bug items for the habitability text: the index name in planet descriptions, Air at zero pressure and the wording of every line.
+
+TODO items resolved: none / Added: GEN.214, GEN.215, GEN.216
+
+## [8.0.1187] - 2026-10-15
+
+### Changed
+
+- TEST.153 retired (merged in #1451).
+
+TODO items resolved: TEST.153 / Added: none
+
+## [8.0.1186] - 2026-10-15
+
+### Fixed
+- **A single hung test can no longer stall a whole test run** (TEST.153). The paused-queue tests in `test_work_queue_admin.py` used a helper thread that stopped without resuming the queue when it timed out under load, so the test waited for ever. The helper now always resumes and the failure is raised in the test. Every test also has a 900 s limit (`pytest.ini`), and `scripts/test.py` lists the tests that hit it under "TIMED OUT" and counts them on its last line.
+
+## [8.0.1185] - 2026-10-15
+
+### Changed
+
+- DB.27 retired (merged in #1446, schema v88); the DB.26 harshness regression it fixed is noted in the PR.
+
+TODO items resolved: DB.27 / Added: none
+
+## [8.0.1184] - 2026-10-15
+
+### Added
+- Schema v88: `species` gains the six tech indexes, `tech_level` (indexed for range search) and `tech_source`, ready for the tech-level pass.
+
+## [8.0.1183] - 2026-10-15
+
+### Changed
+
+- GEN.178 retired (merged in #1447).
+
+TODO items resolved: GEN.178 / Added: none
+
+## [8.0.1182] - 2026-10-15
+
+### Added
+
+- **An ocean moon has an induced magnetic field (GEN.178).** A moon with a liquid ocean (an ocean under ice, a surface ocean or a Hycean one) now answers its parent planet's changing magnetic field with an induced dipole, the way Europa and Callisto do. The size comes from the parent's field at the moon's orbit, the period at which the moon sees it turn, and the ocean's depth and conductivity by ocean class; a Europa-like moon of a Jupiter-like planet gets about 100 nT at its equator. It is stored on the moon beside its own magnetic moment (`induced_moment_a_m2`, 0 for a moon with no ocean, a locked parent or no parent field). Moons generated before this release have none until they are regenerated.
+
+## [8.0.1181] - 2026-10-15
+
+### Changed
+
+- Plan notes and MAP.151b: Foundations Maps may build the database changes it needs after telling Foundations Database first.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1180] - 2026-10-15
+
+### Changed
+
+- MAP.151b: the ladder is 243/81/27/9/3/1 (729 dropped) and its PR carries a data-only migration that refills galaxy_block_stats.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1179] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the nebula host-star item (GEN.150) as done.
+
+## [8.0.1178] - 2026-10-15
+
+### Changed
+
+- **Nebula sizes from their stars (GEN.150).** An emission, cluster or reflection nebula (classes C to G) now has an age, a list of host stars and, when it is ionized, a photon rate, and its radius and density follow from them (a Stromgren sphere grown as the front expands for the nebula's age) instead of being drawn on their own. A star hosts a nebula only while its birth cloud lasts: the star's age must be under the class limit (1 Myr for C, 10 for D, 20 for E, 50 for F, 5 for G), so old O stars light nothing. The odds are now 0.25 for O and B0 to B2 stars, 0.05 for B3 to B9 and 0.01 for A, and B0 to B2 stars no longer make D nebulae. D and E add a cluster drawn from the IMF. Nebulae stored before this release keep their sizes.
+
+## [8.0.1177] - 2026-10-15
+
+### Changed
+
+- The TODO list records the plan change for the map hand-offs (MAP.152): per-tile origins are already met, and the hand-offs wait for the Galaxy Map selection fixes.
+
+## [8.0.1176] - 2026-10-15
+
+### Changed
+
+- The TODO list notes the server part of the fly-through map hand-off (MAP.152) as done.
+
+## [8.0.1175] - 2026-10-15
+
+### Changed
+- **The Galaxy Map fetches tiles by distance from the camera (MAP.152).** Near space comes in small tiles and far space in big ones, inside the cone you are looking along, instead of one tile size for the whole view, so a star field stays sharp close in and light far out. Stars fade in and out as the camera crosses from one tile size to the next, with no pop. The brightness floors by tile size are gone, and the per-tile star budgets were refit so a view still holds under 70,000 stars.
+
+## [8.0.1174] - 2026-10-15
+
+### Changed
+
+- The update.sh gate item (DB.29) now also covers runs from systemd or cron and a 30-second silence at the prompt, both of which mean no.
+
+## [8.0.1173] - 2026-10-15
+
+### Changed
+
+- The database item DB.29 now covers update.sh as well: it refuses to start while jobs are active unless --yes is passed or the user confirms cancelling them.
+
+## [8.0.1172] - 2026-10-15
+
+### Added
+
+- A database item is filed: a migration refuses to start while jobs are active and asks the user to cancel them first.
+
+## [8.0.1171] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the habitability description paragraph (GEN.208) as done.
+
+## [8.0.1170] - 2026-10-15
+
+### Changed
+
+- **One paragraph says where a body falls and what it needs (GEN.208).** The habitability description of a planet or moon is now one paragraph: the overall value and colour, then each of the six categories (Pressure, Temperature, Air, Water, Radiation, Suitability) with its colour, the reason and the gear it asks for, and last the kit a visitor needs overall. A category that a sealed suit makes moot says so, and a category that makes the surface impossible while the others are fine is named.
+- **Every limit is in one table (GEN.208).** The pressure, oxygen, temperature, wet-bulb and dose limits of the habitability bands and the protective gear are rows of one table that both read, so the score, the gear and the description agree. Where the earlier table and the research notes differed, the more permissive value is used: mask minimum 14.3 kPa (not 20), no-gear minimum 50 kPa (not 70), hyperbaric suit to 10,000 kPa (not 5,000), inspired oxygen minimum 8 kPa (not 19.5), insulated suit to -50 C (not -40), wet bulb 31 C (not 30). A heat-shielded suit above 140 C is new.
+
+## [8.0.1169] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the test run progress log (TEST.150) as done.
+
+## [8.0.1168] - 2026-10-15
+
+### Added
+- **A progress log and a build id for every test run** (TEST.150, the first step of resuming a run). `scripts/test.py` prints the id of the build it is running and keeps `.test-progress/<id>.jsonl`, a line for every test that finished, written as it finishes. The id covers the code, uncommitted files, installed packages, Python, MySQL and Redis versions, the command and the day. Nothing reads the log yet; `--resume` is next.
+
+### Fixed
+- **Two map browser tests wait for what they check instead of a fixed pause** (TEST.126 group). The Color by test now waits for the legend to be visible after the reload, and the IndexedDB tiles test waits (up to 20 s) for the tiles to be stored; both failed once under load and passed alone.
+
+## [8.0.1167] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the habitability domain split (GEN.207) as done.
+
+## [8.0.1166] - 2026-10-15
+
+### Changed
+
+- **Six habitability domains and Suitability (GEN.207).** The habitability colours now run over six domains: Pressure, Temperature, Air (is the air breathable), Water (is the water drinkable; a world with no liquid water is Red), Radiation and a new long-term Suitability, the lowest of water within reach, native food and shelter from radiation. The overall score is the geometric mean held under colour gates: Radiation and Temperature cap it at their own colour, Pressure in Yellow or Red caps it there unless a full suit is needed anyway, Air, Water or a Red Suitability cap it at Yellow (never lower on their own), and Blue needs all six Blue. A Red Suitability is forced when Radiation, Temperature, Pressure or Water is Red. Planet and moon rows, the Habitability levels page and the description show all six; the equipment still comes from pressure, temperature, air and radiation. Scores stored before this release change when a planet is regenerated.
+
+## [8.0.1165] - 2026-10-15
+
+### Changed
+
+- The TODO list records the first step of the shared unit ladder (UX.23) and Boss's approved in-universe word list (UX.42).
+
+## [8.0.1164] - 2026-10-15
+
+### Changed
+
+- Distances, speeds and times now share one table of units (`planetgen/util/ladders.py`) and one algorithm in Python and in the browser, so later units (mass, temperature, pressure and the rest) add a table, not a new formatter. The browser's three ladder files are replaced by `unitladder.js` and a generated `unitladders.js`. The text is the same as before except two cases that disagreed between the two languages: a half-way kilometer count ("9,999.5 km") now rounds away from zero in both, and a missing or NaN value is an en dash in the browser too.
+
+## [8.0.1163] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the habitability migration (DB.26) and the pymysql login workaround (OPS.50) as done, and adds the two migrations the tech-level and facility items need (DB.27, DB.28).
+
+## [8.0.1162] - 2026-10-15
+
+### Changed
+
+The MySQL 8 login hook (`planetgen/db/login.py`) stays in place when PyMySQL releases its fix and is tested against both the current pymysql step and a fixed one on a fake MySQL 8 server without TLS, so the login works on either release (OPS.49 follow-up).
+
+## [8.0.1161] - 2026-10-15
+
+### Changed
+
+- The TODO list marks the tech-level design (POP.8) as done.
+
+## [8.0.1160] - 2026-10-15
+
+### Added
+- Schema v87: `planets` and `moons` gain `induced_moment_a_m2`, `flux_variation`, `phi4_water`, `tier_water`, `phi4_suitability` and `tier_suitability`, and `nebulae` gains `age_myr`, `q_total` and `hosts`, ready for the Generation work.
+
+### Changed
+- `phi4_chemistry` and `tier_chemistry` are now `phi4_air` and `tier_air`. Planets and moons generated before this update show them again after they are regenerated.
+
+## [8.0.1159] - 2026-10-15
+
+### Added
+
+- **A tech level for a species can be drawn (POP.8).** The six domain indices (Energy, Materials, Information, Medical, Propulsion, Defense) are drawn from a species' age, with collapses, stagnation, a species ceiling and prerequisite limits between the domains, and the tech level is their weighted sum with a band name, a limiting domain and a lopsided flag. Nothing stores or shows it yet (POP.9).
+
+## [8.0.1158] - 2026-10-15
+
+### Added
+
+- A map bug item is filed for the Bugfixes lane: stars in the sector view look too big next to the Galaxy Map, and the sector map should match.
+
+## [8.0.1157] - 2026-10-15
+
+### Added
+
+- A test-suite bug item is filed: a single hung test can stall a whole run, so the suite needs a per-test timeout.
+
+## [8.0.1156] - 2026-10-15
+
+### Added
+
+- A Galaxy Map bug item is filed for the Bugfixes lane: sector and slab borders should be nearly invisible unless a block is being selected.
+
 ## [8.0.1155] - 2026-10-15
 
 ### Added

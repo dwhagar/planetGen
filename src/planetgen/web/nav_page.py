@@ -201,7 +201,7 @@ def _origin_pickers(from_sector_raw, to_raw):
     hidden = {"to": to_raw}
     if not from_sector_raw:
         return [_picker("Choose a starting sector", "from_sector", "Sector", _sector_options(), hidden,
-                        empty="No sectors have been generated yet.")]
+                        empty="No sectors have been charted yet.")]
     sector = apiclient.get_sector(db_name(), _sector_id(from_sector_raw))
     return [_picker(
         f"Choose a starting system in {sector['name']}", "from", "Starting system",
@@ -540,7 +540,7 @@ def nav_chart():
                                           **{"from": _param_of(origin), "to": _param_of(destination)}),
               crumb("Chart")]
     course_url = nav_url(_param_of(origin), _param_of(destination))
-    page = {"section": "nav", "description": "Generate the uncharted sectors that block a course."}
+    page = {"section": "nav", "description": "Chart the uncharted sectors that block a course."}
     try:
         plan = apiclient.get_nav_chart(db_name(), origin["ref"], destination["ref"], border=border)
     except apiclient.NotFoundError:
@@ -567,7 +567,7 @@ def _bypass_text(bypass, plan):
                 f"{format_distance_ly(plan['route_distance_ly'])} for the shortest route, so charting is optional.")
     if not bypass["checked"]:
         return "Whether a route through charted space exists could not be worked out in time."
-    return "No route through charted space exists, so these sectors have to be generated before the course can avoid unknown space."
+    return "No route through charted space exists, so these sectors have to be charted before the course can avoid unknown space."
 
 
 def _course_readout(result, direct, route, stops):

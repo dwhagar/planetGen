@@ -118,7 +118,7 @@ def format_galactic_orbit(speed_kms, period_gy):
         period_gy (float): Orbital period, billions of years.
 
     Returns:
-        str: e.g. `"206 km/s (236 My per orbit)"`, both on the shared
+        str: e.g. `"206 km/s (236 Myr per orbit)"`, both on the shared
              ladders (`format_speed_kms`, `format_period_years`).
     """
     return f"{format_speed_kms(speed_kms)} ({format_period_years(period_gy * 1e9)} per orbit)"

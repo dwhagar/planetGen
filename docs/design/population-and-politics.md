@@ -210,8 +210,35 @@ changes.
 
 ## Tech levels (POP.7, POP.8, POP.9)
 
-Not built. This section is the POP.8 design: how the six domain indices
-are drawn from a species' age, era and world. POP.9 builds it. Boss's
+As built (POP.8): `planetgen/population/tech.py` draws the six indices
+(`draw_indices`), computes the tech level (`tech_level`), the band name
+(`band_name`), the limiting domain and the lopsided flag, with every number of
+the parameter table below in `tuning.py` (`TECH_*`). Run on species aged
+log-uniformly under the shipped windows it gives the table of results
+below (medians 3.0 Industrial, 4.0 Interplanetary, 5.2 Interstellar, 6.0 to
+6.1 for the three oldest eras; p5 about 2.0 to 4.9; p95 up to 7.0 because the
+indices are rounded to integers and a lopsided species can reach 7). Two
+readings of the text that the doc leaves open: the collapse rate "per decade
+of age" is per decade of log10 age past 100 years (which gives the stated 30%
+of species with a collapse), and a species' ceiling and each domain's ceiling
+are clipped at 7.
+
+As built (POP.9): the population pass fills the `species` columns of DB.27
+(`refresh_tech_levels`, called at the start of `refresh_civilizations`). A
+species with no indices, and a `tech_source` other than `'admin'`, gets its six
+indices, `tech_level` and `tech_source = 'generated'` from
+`draw_indices(civilization_age_years, draw.Stream(f"tech:{homeworld planet id}"))`.
+Species made before the columns therefore get theirs on the next pass, a pass
+never redraws a species that has them, and a hand edit (`'admin'`) is never
+overwritten. The band name, the limiting domain and the lopsided flag are
+derived when a row is read, never stored, so tuning the bands needs no
+migration. `/api/species` returns all of them, sorts by `tech` and filters by
+`tech_min`/`tech_max` and `<domain>_min`/`<domain>_max`; the Species table has
+a Tech level column ("4.35 Fusion") and a species page lists the six indices,
+the limiting domain and the lopsided note beside its age and era.
+
+This section is the POP.8 design: how the six domain indices
+are drawn from a species' age, era and world. POP.9 builds the storage. Boss's
 source is [Technological Assessment.md](Technological%20Assessment.md)
 (uploaded, not edited); "TA" below cites its sections. Evidence tags: [S]
 seen in search results, [C] computed, [R] recalled and unconfirmed (see

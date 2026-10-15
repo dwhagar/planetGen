@@ -262,9 +262,12 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, po
 def add_star_hosted_nebulae(sector, args):
     """
     Grows emission and reflection nebulae around `sector`'s own hot
-    stars (GEN.10): each system whose primary is a main-sequence
-    star matching a `NEBULA_HOST_RULES` row rolls that row's chance, and
-    on a hit gets a nebula of one of the row's classes centered on it.
+    stars (GEN.10, GEN.150): each system whose primary is a main-sequence
+    star matching a `NEBULA_HOST_RULES` row rolls that row's chance (the star
+    is still in its natal cloud), and on a hit gets a nebula of one of the row's
+    classes centered on it, the classes the star is young enough for
+    (`NEBULA_CLASS_MAX_AGE_MYR`). The nebula's age is the star's, and the star is
+    the host that sizes it (`Nebula(host=, age_myr=)`).
 
     Returns:
         list: The new nebulae's `SectorPhenomenonEntry` instances.
@@ -279,14 +282,16 @@ def add_star_hosted_nebulae(sector, args):
         if match is None:
             continue
         letter, subclass = match.group(1), int(match.group(2))
+        age_myr = stars[0].age * 1000.0
         for rule_letter, low, high, classes, chance in program_constants.NEBULA_HOST_RULES:
             if letter != rule_letter or not (low <= subclass <= high):
                 continue
-            if draw.random() < chance:
+            young = tuple(c for c in classes if age_myr <= program_constants.NEBULA_CLASS_MAX_AGE_MYR[c])
+            if young and draw.random() < chance:
                 config = SystemConfig()
                 config.MARKDOWN = args.markdown
-                nebula_class = choose_weighted_class(classes, "Star-hosted nebula class")
-                nebula = Nebula(config, nebula_class=nebula_class)
+                nebula_class = choose_weighted_class(young, "Star-hosted nebula class")
+                nebula = Nebula(config, nebula_class=nebula_class, host=(letter, subclass), age_myr=age_myr)
                 log.debug(f"Sector {sector.name!r}: {code} star {system_entry.star_system.name!r} "
                           f"lights class {nebula_class} nebula {nebula.name!r}")
                 entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))

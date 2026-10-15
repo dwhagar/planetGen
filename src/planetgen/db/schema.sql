@@ -1200,6 +1200,23 @@
 --   each ladder level above the sector, so a Galaxy Map window reads its cells in one
 --   statement (`query.galaxy_block_stats`). Kept by `db/block_stats.py`.
 --
+-- v87: the Generation lane's columns on `planets` and `moons` (DB.26). GEN.178:
+--   `induced_moment_a_m2` (the induced magnetic moment, after `dipole_class`; NULL
+--   when not computed or none). GEN.148: `flux_variation` (the relative swing of
+--   the stellar flux over the orbit or pair cycle, after `energy_flux_w_m2`; 0 is
+--   steady). GEN.207 (PHI-6): `phi4_chemistry` and `tier_chemistry` are renamed
+--   `phi4_air` and `tier_air`, and `phi4_water`, `tier_water`, `phi4_suitability`
+--   and `tier_suitability` follow them. GEN.150: `nebulae` gains `age_myr` (Myr),
+--   `q_total` (total ionizing photons per second) and `hosts` (host stars as counts
+--   by spectral type, "O5V x1, O9V x4"), after `extinction_av`. All NULL on a row
+--   generated before v87.
+--
+-- v88: the tech-level columns of `species` (POP.9). `energy_index`, `materials_index`,
+--   `information_index`, `medical_index`, `propulsion_index` and `defense_index` (each
+--   0 to 7, NULL until drawn), `tech_level` (DECIMAL(3,2), the weighted sum, indexed
+--   for range search) and `tech_source` ('generated' or 'admin': a pass never
+--   redraws a hand-edited species). NULL on a species saved before v88.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1830,6 +1847,7 @@ CREATE TABLE IF NOT EXISTS planets (
     -- v72 (GEN.86): magnetic field and the star's XUV and flares here, see header comment.
     magnetic_moment_a_m2        DOUBLE,
     dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),
+    induced_moment_a_m2         DOUBLE,
     magnetopause_rp             DOUBLE,
     xuv_flux_earth              DOUBLE,
     xuv_exposure_index          DOUBLE,
@@ -1858,11 +1876,15 @@ CREATE TABLE IF NOT EXISTS planets (
     phi4                        DOUBLE,
     phi4_pressure               DOUBLE,
     phi4_temperature            DOUBLE,
-    phi4_chemistry              DOUBLE,
+    phi4_air                    DOUBLE,
+    phi4_water                  DOUBLE,
+    phi4_suitability            DOUBLE,
     phi4_radiation              DOUBLE,
     tier_pressure               TINYINT,
     tier_temperature            TINYINT,
-    tier_chemistry              TINYINT,
+    tier_air                    TINYINT,
+    tier_water                  TINYINT,
+    tier_suitability            TINYINT,
     tier_radiation              TINYINT,
     phi_bio                     DOUBLE,
     phi_cpx                     DOUBLE,
@@ -1874,6 +1896,7 @@ CREATE TABLE IF NOT EXISTS planets (
     equipment_tier              TINYINT,
     hab_note                    VARCHAR(255),
     energy_flux_w_m2            DOUBLE,
+    flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
@@ -2015,6 +2038,7 @@ CREATE TABLE IF NOT EXISTS moons (
     -- v72 (GEN.86): magnetic field and the star's XUV and flares here, see header comment.
     magnetic_moment_a_m2        DOUBLE,
     dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),
+    induced_moment_a_m2         DOUBLE,
     magnetopause_rp             DOUBLE,
     xuv_flux_earth              DOUBLE,
     xuv_exposure_index          DOUBLE,
@@ -2043,11 +2067,15 @@ CREATE TABLE IF NOT EXISTS moons (
     phi4                        DOUBLE,
     phi4_pressure               DOUBLE,
     phi4_temperature            DOUBLE,
-    phi4_chemistry              DOUBLE,
+    phi4_air                    DOUBLE,
+    phi4_water                  DOUBLE,
+    phi4_suitability            DOUBLE,
     phi4_radiation              DOUBLE,
     tier_pressure               TINYINT,
     tier_temperature            TINYINT,
-    tier_chemistry              TINYINT,
+    tier_air                    TINYINT,
+    tier_water                  TINYINT,
+    tier_suitability            TINYINT,
     tier_radiation              TINYINT,
     phi_bio                     DOUBLE,
     phi_cpx                     DOUBLE,
@@ -2059,6 +2087,7 @@ CREATE TABLE IF NOT EXISTS moons (
     equipment_tier              TINYINT,
     hab_note                    VARCHAR(255),
     energy_flux_w_m2            DOUBLE,
+    flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(10),
 
@@ -2451,6 +2480,10 @@ CREATE TABLE IF NOT EXISTS nebulae (
     density_cm3       DOUBLE NOT NULL,
     temperature_k     DOUBLE NOT NULL,
     extinction_av     DOUBLE NOT NULL,
+    -- v87 (DB.26, GEN.150): age, ionizing photon rate and host stars, see header comment.
+    age_myr           DOUBLE,
+    q_total           DOUBLE,
+    hosts             VARCHAR(512),
     -- v17: always populated (a nebula is always standalone). See this
     -- file's "v17" header note.
     galactic_orbital_speed_kms           DOUBLE NOT NULL,
@@ -3484,12 +3517,22 @@ CREATE TABLE IF NOT EXISTS species (
     civilization_age_years   DOUBLE,
     era                      VARCHAR(16),
     spacefaring              TINYINT(1) NOT NULL DEFAULT 0 CHECK (spacefaring IN (0, 1)),
+    -- v88 (POP.9): the six tech indexes, the level and where it came from, see header comment.
+    energy_index             TINYINT UNSIGNED CHECK (energy_index BETWEEN 0 AND 7),
+    materials_index          TINYINT UNSIGNED CHECK (materials_index BETWEEN 0 AND 7),
+    information_index        TINYINT UNSIGNED CHECK (information_index BETWEEN 0 AND 7),
+    medical_index            TINYINT UNSIGNED CHECK (medical_index BETWEEN 0 AND 7),
+    propulsion_index         TINYINT UNSIGNED CHECK (propulsion_index BETWEEN 0 AND 7),
+    defense_index            TINYINT UNSIGNED CHECK (defense_index BETWEEN 0 AND 7),
+    tech_level               DECIMAL(3,2),
+    tech_source              VARCHAR(16) CHECK (tech_source IN ('generated', 'admin')),
     created_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE KEY uq_species_name (name),
     UNIQUE KEY uq_species_homeworld (homeworld_planet_id),
     KEY idx_species_system (star_system_id),
     KEY idx_species_spacefaring (spacefaring),
+    KEY idx_species_tech_level (tech_level),
     CONSTRAINT chk_species_life_stage CHECK (life_stage IN ('multicellularity', 'technological_civilization')),
     CONSTRAINT fk_species_planet
         FOREIGN KEY (homeworld_planet_id) REFERENCES planets(id) ON DELETE CASCADE,

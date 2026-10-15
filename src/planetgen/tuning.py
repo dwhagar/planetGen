@@ -2075,22 +2075,49 @@ remnant's can have left it entirely (class V's "far off-center")."""
 
 NEBULA_HOST_RULES = (
     ("O", 0, 9, ("C", "D", "E"), 0.25),
-    ("B", 0, 2, ("C", "D", "G"), 0.1),
-    ("B", 3, 9, ("F", "G"), 0.05),
+    ("B", 0, 2, ("C", "G"), 0.25),
+    ("B", 3, 9, ("F",), 0.05),
     ("A", 0, 9, ("F",), 0.01),
 )
 """tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
 for a main-sequence primary. Only O and early-B stars put out enough
 ultraviolet below 91.2 nm to ionize hydrogen (Osterbrock & Ferland 2006),
-but a catalogued H II region is about one per four O stars: about 8,000
-are known against some 270,000 O stars, so an O star hosts one with
-chance 0.25 and a B0-B2 star 0.1 (GEN.204; the nebula density study,
-docs/design/nebula-density-vs-reality.md). They are ratios, so they stay
-right when the O and B counts change with the mass cut. Later B and A stars light dust without ionizing it, a reflection
-nebula (F, or G for the hotter ones) when a dusty cloud happens to be near
-(van den Bergh 1966, AJ 71:990 catalogs ~150 within a few kpc). The class
-is drawn among `classes` by NEBULA_CLASSES frequency."""
+and a catalogued H II region is about one per four O stars: about 8,000
+are known against some 270,000 O stars (GEN.204; the nebula density study,
+docs/design/nebula-density-vs-reality.md). The `chance` is that the star
+still sits in its natal cloud (the one number the catalogues fix, 0.25 for
+O and B0-B2 stars), and whether it hosts a class is then decided by the
+star's own age against `NEBULA_CLASS_MAX_AGE_MYR`: a B1V of 20 Myr is too
+old for a class G region, an O star always young enough. The rows used to
+carry a chance per spectral type (B0-B2 0.1); the age test now thins B0-B2
+to about 0.06 of them with no number of its own (GEN.150). A single B0-B2
+star cannot ionize 10 to 100 ly (one B2V ionizes about 0.8 ly), so class D
+is no longer one of their classes, and G needs an early-B star, so it left
+the B3-B9 row. Later B and A stars light dust without ionizing it, a
+reflection nebula (F) when a dusty cloud happens to be near (van den Bergh
+1966, AJ 71:990 catalogs ~150 within a few kpc); their chance is that of
+the cloud. The class is drawn among the classes the star is young enough
+for, by NEBULA_CLASSES frequency."""
+
+NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0}
+"""dict: The oldest a host star can be and still sit in a nebula of the class, Myr
+(design note, "Lifetimes by class": C 0.1 to 1, D 3 to 10, E 5 to 20, F 1 to 50, G 1
+to 5). Only the upper limits are used: the lower ones come out of the physics, a
+young region has not grown to the class's radius (`physics.hii`)."""
+
+NEBULA_CLUSTER_MASS_RANGE_SOL = {"D": (300.0, 1.0e4), "E": (1.0e4, 1.0e5)}
+"""dict: The mass of the cluster behind a class D or E region, solar masses, log-uniform:
+a small O/B cluster of 300 to 10,000 Msun (log Q 49.2 to 50.7) and a young massive
+cluster of 10,000 to 100,000 (50.7 to 51.7). The other ionized classes are one star's
+(design note, "Q needed by class" and the cluster mass table)."""
+
+NEBULA_SEED_MASS_RANGE_SOL = {
+    "C": (11.0, 60.0), "D": (18.0, 150.0), "E": (18.0, 150.0), "F": (2.0, 8.5), "G": (11.0, 25.0),
+}
+"""dict: The star a nebula built with no host star of its own is given (a nebula the
+phenomenon mode makes), solar masses, from the IMF: one O or early-B star for
+class C, an O star for D and E, an early B star for G, a B or A star for F."""
 
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
@@ -3168,6 +3195,66 @@ CIVILIZATION_ERAS = (
 A civilization is in the last era whose start its age has reached. Tuning
 these needs no migration: every population pass recomputes `species.era`
 and `species.spacefaring` from the stored age."""
+
+TECH_DOMAINS = ("energy", "materials", "information", "medical", "propulsion", "defense")
+"""tuple: The six tech domains of the Technological Assessment, in the order of `TECH_WEIGHTS`
+(Energy, Materials, Information, Medical, Propulsion, Defense)."""
+
+TECH_WEIGHTS = (0.25, 0.20, 0.20, 0.15, 0.10, 0.10)
+"""tuple: The weights of the six domain indices in a tech level (Boss's Technological Assessment, "Domain
+Weighting System"); they sum to 1. TL = 0.25 EI + 0.20 MI + 0.20 II + 0.15 MeI + 0.10 PI + 0.10 DI."""
+
+TECH_DOMAIN_OFFSETS = (0.066, 0.066, -0.171, -0.053, 0.066, -0.053)
+"""tuple: Each domain's shift in decades of log10 effective age (negative is earlier), solved so the median
+index vector at 266 years is Earth's 2026 (E 3.0, M 3.0, I 3.4, Me 3.2, P 3.0, D 3.2)."""
+
+TECH_CURVE_STEEPNESS = 0.97
+"""float: `k`, the index gained per decade of log10 age at the middle of a domain's logistic."""
+
+TECH_CURVE_CENTRE = 2.655
+"""float: `m`, the centre of the logistic in log10 years (about 450 years, where an index is 3.5)."""
+
+TECH_PACE_SIGMA = 0.30
+"""float: The spread of a species' shared pace, in decades (a factor of 2 in time per sigma)."""
+
+TECH_DOMAIN_SIGMA = 0.09
+"""float: The scale of each domain's own t(4) noise, in decades (standard deviation about 0.13)."""
+
+TECH_CEILING_MEAN = 6.2
+TECH_CEILING_SD = 0.6
+TECH_CEILING_DOMAIN_SD = 0.4
+TECH_CEILING_SOFTNESS = 5.0
+"""float: A species' ceiling is a normal draw of `TECH_CEILING_MEAN` and `TECH_CEILING_SD` clipped to 4 to 7,
+each domain's `TECH_CEILING_DOMAIN_SD` away from it; the index is a soft minimum of the curve and the ceiling
+with this sharpness."""
+
+TECH_STAGNATION_CHANCE = 0.12
+TECH_STAGNATION_LOG10_YEARS = (2.7, 6.0)
+"""A species freezes at a plateau age (log10 years, drawn evenly between these) with this chance."""
+
+TECH_COLLAPSE_RATE_PER_DECADE = 0.10
+TECH_COLLAPSE_KEEP = (0.01, 0.30)
+"""Collapses are a Poisson process of this rate per decade of log10 age past `CIVILIZATION_MIN_AGE_YEARS`;
+at each one the effective age is multiplied by a draw between these."""
+
+TECH_SPIKE_CHANCE = 0.03
+TECH_SPIKE_SIZE = (1.5, 3.0)
+"""A lopsided species has one domain raised by a draw between these after the prerequisite clamps."""
+
+TECH_PREREQUISITES = (
+    ("information", ("materials",), 1.5),
+    ("medical", ("information", "materials"), 1.5),
+    ("propulsion", ("energy", "materials", "information"), 1.0),
+    ("defense", ("energy", "materials"), 1.0),
+)
+"""tuple: `(domain, the domains it needs, margin)`: the domain is at most the lowest of those plus the margin,
+applied in this order."""
+
+TECH_BANDS = (
+    (0.0, "Primal"), (0.5, "Agrarian"), (1.5, "Industrial"), (2.5, "Atomic"), (3.5, "Fusion"),
+    (4.5, "Gravitic"), (5.5, "Antimatter"), (6.5, "Transcendent"),
+)
+"""tuple: `(tech level where the band starts, name)` in ascending order."""
 
 TERRITORY_BASE_REACH_LY = 5.0
 """float: A polity's territory reach (light years) the moment its species

@@ -17,28 +17,7 @@ import re
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants
-
-
-# The distance ladder, smallest first: (label, meters). `format_distance`
-# shows a value in the largest unit it is at least 1 of.
-DISTANCE_LADDER = (
-    ("km", physical_constants.KM_M),
-    ("AU", physical_constants.AU_M),
-    ("mpc", physical_constants.MILLIPARSEC_M),
-    ("cpc", physical_constants.CENTIPARSEC_M),
-    ("ly", physical_constants.LIGHTYEAR_M),
-    ("pc", physical_constants.PARSEC_M),
-    ("kpc", physical_constants.KILOPARSEC_M),
-    ("Mpc", physical_constants.MEGAPARSEC_M),
-    ("Gpc", physical_constants.GIGAPARSEC_M),
-)
-# Units that carry a second, more familiar unit in parentheses.
-PARSEC_UNITS = frozenset({"mpc", "cpc", "pc", "kpc", "Mpc", "Gpc"})
-# A parsec value's parenthetical is in ly when the distance is at least
-# this many ly, else in AU when at least this many AU, else in km (Boss,
-# 2026-09-30: "4.2 pc (13.7 ly)", "2.4 mpc (495 AU)").
-DISTANCE_PAREN_MIN_LY = 0.01
-DISTANCE_PAREN_MIN_AU = 0.01
+from planetgen.util import ladders
 
 
 SCIENTIFIC_MIN_INTEGER_DIGITS = 7
@@ -146,11 +125,92 @@ def _three_figures(value):
     return text
 
 
-def _format_in_unit(meters, label, unit_m):
-    if label == "km" and abs(meters) >= 1e6:
-        # Whole kilometers read better than three figures ("384,400 km").
-        return f"{format_number(round(meters / unit_m))} km"
-    return f"{_three_figures(meters / unit_m)} {label}"
+def _in_rung(rung, value):
+    """`value` (in base units) shown in `rung`'s unit, with the unit's
+    symbol: three significant figures, or a whole number from the rung's
+    `whole_from`; the singular form when the number is exactly 1."""
+    number = value / rung.factor
+    if rung.whole_from is not None and abs(value) >= rung.whole_from:
+        return f"{format_number(number)} {rung.symbol}"
+    text = _three_figures_or_tiny(number)
+    return f"{text} {rung.singular if rung.singular and text == '1' else rung.symbol}"
+
+
+def pick_rung(ladder, value):
+    """
+    The rung `value` (in the ladder's base unit) is shown in: the largest
+    one it is at least `start` of, with a hair of tolerance so a value
+    computed as exactly 1 unit (e.g. 1 pc from ly * LY_TO_AU / AU_PER_PARSEC)
+    isn't shown as 1,000 of the one below it. Zero is in the ladder's `zero`
+    rung, the lowest when it names none.
+    """
+    size = abs(value)
+    if size == 0 and ladder.zero is not None:
+        return ladder.rung(ladder.zero)
+    rung = ladder.rungs[0]
+    for candidate in ladder.rungs:
+        start = candidate.factor if candidate.start is None else candidate.start
+        if size >= start * (1 - 1e-12):
+            rung = candidate
+    return rung
+
+
+def format_quantity(ladder, value, companions=True):
+    """
+    The site's one unit formatter (UX.23): `value`, in the ladder's base
+    unit, in the most meaningful unit on `ladder` (`planetgen.util.ladders`),
+    to three significant figures in `format_number`'s style. A rung that
+    carries an aside adds one more familiar unit in parentheses, and the
+    ladder's companion units (°C and °F beside K, atm and psi beside Pa)
+    follow in their own parentheses unless `companions` is false.
+    `static/unitladder.js` mirrors it; tests/test_unit_ladders.py checks the
+    two against one table.
+
+    Returns:
+        str: e.g. "384,400 km", "4.2 pc (13.7 ly)", "27.3 days". `None` and
+             NaN give an en dash; an infinity "inf" or "-inf" in the
+             ladder's `nonfinite` unit.
+    """
+    if value is None:
+        return "–"
+    value = float(value)
+    if math.isnan(value):
+        return "–"
+    if math.isinf(value):
+        return f"{value:g} {ladder.nonfinite}"
+    rung = pick_rung(ladder, value)
+    text = _in_rung(rung, value)
+    if rung.with_aside:
+        text += f" ({_in_rung(ladder.rung(_aside_symbol(ladder, value)), value)})"
+    if companions:
+        shown = [f"{_companion_number(companion, value)} {companion.symbol}"
+                 for companion in ladder.companions if _companion_applies(companion, value)]
+        if shown:
+            text += f" ({', '.join(shown)})"
+    return text
+
+
+def _companion_applies(companion, value):
+    """True when a companion unit is shown beside `value`: its size is in the companion's range."""
+    size = abs(value)
+    if companion.min_size is not None and size < companion.min_size:
+        return False
+    return companion.max_size is None or size < companion.max_size
+
+
+def _companion_number(companion, value):
+    """`value` in a companion unit, without the symbol."""
+    number = (value - companion.offset) / companion.factor
+    return _whole_or_tenths(number) if companion.whole else _three_figures_or_tiny(number)
+
+
+def _aside_symbol(ladder, value):
+    """The symbol of the rung a `with_aside` value's parenthetical is in."""
+    size = abs(value)
+    for start, symbol in ladder.asides:
+        if size >= start:
+            return symbol
+    return ladder.asides[-1][1]
 
 
 def format_distance_m(meters):
@@ -158,13 +218,13 @@ def format_distance_m(meters):
     Formats a distance (or a non-body radius) in the most meaningful unit on
     the ladder km < AU < mpc < cpc < ly < pc < kpc < Mpc < Gpc: the largest
     unit the value is at least 1 of. Values in a parsec unit add one
-    parenthetical: ly when the distance is at least `DISTANCE_PAREN_MIN_LY`,
-    else AU when at least `DISTANCE_PAREN_MIN_AU`, else km.
+    parenthetical: ly when the distance is at least 0.01 ly, else AU when at
+    least 0.01 AU, else km (`ladders.LENGTH`).
 
     Every page and text output passes its distances through this (or its
-    `format_distance_km`/`_au`/`_ly`/`_pc` wrappers) rather than formatting
-    them itself; `static/distance.js` mirrors it for the maps. Planet, moon
-    and star radii are the exception: see `format_body_radius_km`.
+    `format_distance_km`/`_au`/`_ly`/`_pc` variants) rather than formatting
+    them itself; `static/unitladder.js` mirrors it for the maps. Planet,
+    moon and star radii are the exception: see `format_body_radius_km`.
 
     Args:
         meters (float): The distance, in meters.
@@ -173,37 +233,7 @@ def format_distance_m(meters):
         str: e.g. "384,400 km", "1.52 AU", "4.2 pc (13.7 ly)",
              "2.4 mpc (495 AU)". `None` gives an en dash.
     """
-    if meters is None:
-        return "\u2013"
-    meters = float(meters)
-    if not math.isfinite(meters):
-        return f"{meters:g} km"
-    size = abs(meters)
-    label, unit_m = DISTANCE_LADDER[0]
-    for candidate_label, candidate_m in DISTANCE_LADDER:
-        # A hair of tolerance so a value computed as exactly 1 unit (e.g.
-        # 1 pc from ly * LY_TO_AU / AU_PER_PARSEC) isn't shown as 1,000 mpc.
-        if size >= candidate_m * (1 - 1e-12):
-            label, unit_m = candidate_label, candidate_m
-    text = _format_in_unit(meters, label, unit_m)
-    if label in PARSEC_UNITS:
-        text += f" ({distance_parenthetical(meters)})"
-    return text
-
-
-def distance_parenthetical(meters):
-    """
-    The familiar unit a parsec-family value carries in parentheses: ly when
-    the distance is at least `DISTANCE_PAREN_MIN_LY`, else AU when at least
-    `DISTANCE_PAREN_MIN_AU`, else km. (No parsec value is under 0.01 AU,
-    1 mpc being about 206 AU, but the rule is kept as Boss wrote it.)
-    """
-    size = abs(meters)
-    if size >= DISTANCE_PAREN_MIN_LY * physical_constants.LIGHTYEAR_M:
-        return _format_in_unit(meters, "ly", physical_constants.LIGHTYEAR_M)
-    if size >= DISTANCE_PAREN_MIN_AU * physical_constants.AU_M:
-        return _format_in_unit(meters, "AU", physical_constants.AU_M)
-    return _format_in_unit(meters, "km", physical_constants.KM_M)
+    return format_quantity(ladders.LENGTH, meters)
 
 
 def format_distance_km(km):
@@ -226,27 +256,16 @@ def format_distance_pc(pc):
     return format_distance_m(None if pc is None else pc * physical_constants.PARSEC_M)
 
 
-# The speed ladder (UX.13), slowest first: (label, km/s per unit, shown
-# from this many km/s up). Boss, 2026-10-01: "km/h on the low speed end to
-# Mm/s on the high speed end", then multiples of c from a tenth of light
-# speed. `static/speed.js` mirrors it.
-SPEED_LADDER = (
-    ("km/h", 1 / 3600, 0.0),
-    ("km/s", 1.0, 1.0),
-    ("Mm/s", 1e3, 1e3),
-    ("c", physical_constants.SPEED_OF_LIGHT_KMS, 0.1 * physical_constants.SPEED_OF_LIGHT_KMS),
-)
-
-
 def format_speed_kms(kms):
     """
     Formats a speed in the most meaningful unit on the ladder km/h < km/s <
-    Mm/s < c: km/h below 1 km/s, km/s up to 1,000 km/s, Mm/s up to a tenth
-    of light speed, then multiples of c. One unit, three significant
-    figures, in `format_distance_m`'s number style.
+    Mm/s < c (`ladders.SPEED`; Boss, 2026-10-01): km/h below 1 km/s, km/s up
+    to 1,000 km/s, Mm/s up to a tenth of light speed, then multiples of c.
+    One unit, three significant figures, in `format_distance_m`'s number
+    style.
 
     Every page and text output passes its plain speeds through this rather
-    than formatting them itself; `static/speed.js` mirrors it. Warp and
+    than formatting them itself; `static/unitladder.js` mirrors it. Warp and
     fold factors (`navigation.py`) keep their own "x c" columns.
 
     Args:
@@ -256,75 +275,36 @@ def format_speed_kms(kms):
         str: e.g. "36 km/h", "29.8 km/s", "4.5 Mm/s", "0.25 c". `None`
              gives an en dash.
     """
-    if kms is None:
-        return "–"
-    kms = float(kms)
-    if not math.isfinite(kms):
-        return f"{kms:g} km/s"
-    size = abs(kms)
-    label, unit_kms, _ = SPEED_LADDER[0]
-    for candidate_label, candidate_kms, threshold_kms in SPEED_LADDER:
-        if size >= threshold_kms * (1 - 1e-12):
-            label, unit_kms = candidate_label, candidate_kms
-    return f"{_three_figures(kms / unit_kms)} {label}"
+    return format_quantity(ladders.SPEED, None if kms is None else kms * physical_constants.KM_M)
 
 
 def format_speed_ms(ms):
     """`format_speed_kms` for a value in m/s."""
-    return format_speed_kms(None if ms is None else ms / physical_constants.KM_M)
-
-
-# The time-period ladder (UX.14), shortest first: (plural label, singular
-# label, seconds). A Julian year of 365.25 days, as SECONDS_PER_YEAR.
-# `static/period.js` mirrors it.
-PERIOD_LADDER = (
-    ("µs", "µs", 1e-6),
-    ("ms", "ms", 1e-3),
-    ("s", "s", 1.0),
-    ("minutes", "minute", 60.0),
-    ("hours", "hour", 3600.0),
-    ("days", "day", 86400.0),
-    ("years", "year", physical_constants.SECONDS_PER_YEAR),
-    ("ky", "ky", physical_constants.SECONDS_PER_YEAR * 1e3),
-    ("My", "My", physical_constants.SECONDS_PER_YEAR * 1e6),
-    ("Gy", "Gy", physical_constants.SECONDS_PER_YEAR * 1e9),
-)
+    return format_quantity(ladders.SPEED, ms)
 
 
 def format_duration_seconds(seconds):
     """
     Formats a time period or duration in the most meaningful unit on the
-    ladder µs < ms < s < minutes < hours < days < years < ky < My < Gy: the
-    largest unit the value is at least 1 of, as `format_distance_m` does.
-    One unit, three significant figures, singular when the shown value is
-    exactly 1 ("1 year", "1 day"). `static/period.js` mirrors it.
+    ladder µs < ms < s < minutes < hours < days < years < kyr < Myr < Gyr
+    (`ladders.TIME`): the largest unit the value is at least 1 of, as
+    `format_distance_m` does. One unit, three significant figures, singular
+    when the shown value is exactly 1 ("1 year", "1 day").
+    `static/unitladder.js` mirrors it.
 
     Args:
         seconds (float): The duration, in seconds.
 
     Returns:
         str: e.g. "12.5 ms", "45 minutes", "27.3 days", "1.88 years",
-             "236 My". Zero is "0 s"; `None` gives an en dash.
+             "236 Myr". Zero is "0 s"; `None` gives an en dash.
     """
-    if seconds is None:
-        return "–"
-    seconds = float(seconds)
-    if not math.isfinite(seconds):
-        return f"{seconds:g} years"
-    if seconds == 0:
-        return "0 s"
-    size = abs(seconds)
-    plural, singular, unit_s = PERIOD_LADDER[0]
-    for candidate in PERIOD_LADDER:
-        if size >= candidate[2] * (1 - 1e-12):
-            plural, singular, unit_s = candidate
-    number = _three_figures(seconds / unit_s)
-    return f"{number} {singular if number == '1' else plural}"
+    return format_quantity(ladders.TIME, seconds)
 
 
 def format_period_years(years):
     """`format_duration_seconds` for a value in (Julian) years -- every
-    orbital period the generator stores is in years or Gy."""
+    orbital period the generator stores is in years or Gyr."""
     return format_duration_seconds(None if years is None else years * physical_constants.SECONDS_PER_YEAR)
 
 
@@ -337,84 +317,88 @@ def _whole_or_tenths(value):
     return "0" if text in ("-0", "+0") else text
 
 
-def format_temperature_k(kelvin):
+def format_temperature_k(kelvin, companions=True):
     """
     A surface temperature in kelvin with Celsius and Fahrenheit alongside
     (Boss, 2026-10-01: "temperatures should be reported in K, C, and F for
     surface conditions"). Kelvin to three significant figures in
-    `format_distance_m`'s number style; °C and °F to whole degrees, or one
-    decimal when under 10 in size. Star effective temperatures stay in K
-    alone and don't use this.
+    `format_distance_m`'s number style (mK, µK and nK under 1 K); °C and °F
+    to whole degrees, or one decimal when under 10 in size. A star's
+    temperature, or any that is not a surface condition, stays in K alone:
+    pass `companions=False`.
 
     Args:
         kelvin (float): The temperature, in K.
+        companions (bool, optional): Show °C and °F too. Defaults to True.
 
     Returns:
         str: e.g. "288 K (15 °C, 59 °F)", "737 K (464 °C, 867 °F)". `None`
              gives an en dash.
     """
-    if kelvin is None:
-        return "–"
-    kelvin = float(kelvin)
-    if not math.isfinite(kelvin):
-        return f"{kelvin:g} K"
-    celsius = kelvin - physical_constants.CELSIUS_ZERO_K
-    fahrenheit = celsius * 9 / 5 + 32
-    return f"{_three_figures(kelvin)} K ({_whole_or_tenths(celsius)} °C, {_whole_or_tenths(fahrenheit)} °F)"
+    return format_quantity(ladders.TEMPERATURE, kelvin, companions)
 
 
 def _three_figures_or_tiny(value):
     """`_three_figures`, but scientific below a thousandth, where a
-    secondary unit would otherwise run to a row of zeros."""
-    if value != 0 and abs(value) < 1e-3:
+    unit would otherwise run to a row of zeros (UX.81)."""
+    if value != 0 and abs(value) < ladders.TINY_NUMBER:
         return scientific_text(value)
     return _three_figures(value)
 
 
-# The pressure ladder, smallest first: (label, pascals). A pressure is
-# shown in the largest unit it is at least 1 of.
-PRESSURE_LADDER = (
-    ("Pa", 1.0),
-    ("kPa", 1e3),
-    ("MPa", 1e6),
-    ("GPa", 1e9),
-)
-
-
-def format_pressure_pa(pascals):
+def format_pressure_pa(pascals, companions=True):
     """
-    A pressure with a metric primary on the Pa < kPa < MPa < GPa ladder and
-    customary atm and psi alongside, all to three significant figures
-    (Boss, 2026-10-01: "Atmospheric pressure and surface conditions should
-    show customary units as well as a secondary to help contextualize the
-    metric values given").
+    A pressure with a metric primary on the nPa to TPa ladder and customary
+    atm and psi alongside, all to three significant figures (Boss,
+    2026-10-01: "Atmospheric pressure and surface conditions should show
+    customary units as well as a secondary to help contextualize the metric
+    values given"); bar joins them from 10 atm to 10,000 atm and mbar from 1 Pa
+    to 0.01 atm.
 
     Args:
         pascals (float): The pressure, in Pa (the schema's
             `atmospheric_pressure_pa`).
+        companions (bool, optional): Show atm, psi and the rest too.
+            Defaults to True.
 
     Returns:
         str: e.g. "101 kPa (1 atm, 14.7 psi)", "9.2 MPa (90.8 atm,
-             1,334 psi)". `None` gives an en dash.
+             1,334 psi, 92 bar)". `None` gives an en dash.
     """
-    if pascals is None:
-        return "–"
-    pascals = float(pascals)
-    if not math.isfinite(pascals):
-        return f"{pascals:g} Pa"
-    size = abs(pascals)
-    label, unit_pa = PRESSURE_LADDER[0]
-    for candidate_label, candidate_pa in PRESSURE_LADDER:
-        if size >= candidate_pa * (1 - 1e-12):
-            label, unit_pa = candidate_label, candidate_pa
-    atm = _three_figures_or_tiny(pascals / physical_constants.STANDARD_ATMOSPHERE_PA)
-    psi = _three_figures_or_tiny(pascals / physical_constants.PSI_PA)
-    return f"{_three_figures(pascals / unit_pa)} {label} ({atm} atm, {psi} psi)"
+    return format_quantity(ladders.PRESSURE, pascals, companions)
 
 
 def format_pressure_atm(atm):
     """`format_pressure_pa` for a value in standard atmospheres."""
     return format_pressure_pa(None if atm is None else atm * physical_constants.STANDARD_ATMOSPHERE_PA)
+
+
+def format_gravity_g(gravity_g):
+    """
+    A surface gravity in m/s² with standard gravity beside it, "3.71 m/s²
+    (0.378 g)", for property grids and generator text; a bare "g" would
+    collide with the gram, so it never stands alone there. A list row uses
+    `format_gravity_g_short`.
+
+    Args:
+        gravity_g (float): The gravity, in multiples of standard gravity
+            (the schema's `gravity_g`).
+
+    Returns:
+        str: `None` gives an en dash.
+    """
+    return format_quantity(ladders.GRAVITY, None if gravity_g is None else gravity_g * physical_constants.EARTH_GRAVITY)
+
+
+def format_gravity_g_short(gravity_g):
+    """`gravity_g` as "0.378 g" alone, for a list row's chip (UX.22: rows and
+    chips show the primary unit; the m/s² is in the detail panel)."""
+    if gravity_g is None:
+        return "–"
+    gravity_g = float(gravity_g)
+    if not math.isfinite(gravity_g):
+        return "–" if math.isnan(gravity_g) else f"{gravity_g:g} g"
+    return f"{_three_figures_or_tiny(gravity_g)} g"
 
 
 def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):

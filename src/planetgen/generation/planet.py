@@ -32,7 +32,7 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.format import (
-    format_body_radius_km, format_distance_au, format_distance_km, format_number, properties_to_string, to_paragraph, format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k,
+    format_body_radius_km, format_distance_au, format_distance_km, format_gravity_g, format_number, properties_to_string, to_paragraph, format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k,
 )
 
 
@@ -497,7 +497,7 @@ class Planet(HoldsOrbitPosition):
             "period": format_period_years(self.period),
             "speed": format_speed_kms(self.orbital_speed_kms),
             "radius": radius_string,
-            "gravity": f"{round(self.gravity, 3)} g",
+            "gravity": format_gravity_g(self.gravity),
         }
         # Only shown for a moon-having planet (reflex_offset_* defaults to
         # 0.0 for a moonless planet or a moon itself -- see its own
@@ -561,9 +561,9 @@ class Planet(HoldsOrbitPosition):
 
     def _habitability_paragraphs(self):
         """
-        The PHI-4 explanation of a scored rocky body (UX.91): its score and the
-        equipment a human needs, and for each of the four colour factors the
-        colour, this world's inputs and which one sets it. None for a gas
+        The habitability paragraph of a scored rocky body (UX.91, GEN.208): its
+        score, each of the six categories with its colour, why it falls there
+        and the gear it asks for, and the gear a human needs overall. Empty for a gas
         giant or a body saved without scores. A planet of a pulsar, neutron
         star or black hole is rated as a lethal dose, as its stored score was.
         """

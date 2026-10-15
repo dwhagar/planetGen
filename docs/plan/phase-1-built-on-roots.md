@@ -62,7 +62,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.24 | Generate the galactic core on layer 0 |  | Bulk core fill runs on the parallel path; new mode on generate.html. |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) |  | Research: optional. |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs |  |  |
-| GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | DB.26 | Research: sub-item of GEN.99. |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
@@ -71,17 +70,17 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | DB.26 | Research follow-up to GEN.84 (built). |
-| GEN.178 | Magnetic fields: the induced field of an ocean moon | DB.26 | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
 
 ### Tech levels and facilities
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.8 | A tech-level design from the six domain indices |  |  |
-| POP.9 | A tech level generated for every technological species | POP.8 |  |
-| POP.7 | Tech levels for technological species | POP.8, POP.9 | Parent. |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings |  |  |
+| POP.12 | List every species that could live in a given environment, and give every species its environment limits | DB.30, POP.9 |  |
+| POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | POP.12 |  |
+| DB.28 | One migration for the facility type tables and the new facility columns |  |  |
+| DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
+| DB.30 | One migration for the per-species environment limits | DB.29 |  |
 
 ### Nebula planets
 
@@ -116,8 +115,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | MAP.199 |  |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) |  |  |
+| MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
+| GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) |  |  |
+| GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) |  |  |
+| GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) |  |  |
+| MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) |  |  |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) |  |  |
-| MAP.197 | Remove the obsolete drill container code left by the map flip |  |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
@@ -157,7 +160,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.78 | Unit preference: Automatic, Metric only or Customary | UX.23 | Research: under UX.23. |
 | UX.22 | Meaningful units for every measurement | UX.23 | One quantity family per PR. |
 | UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
-| UX.42 | In-universe wording across the interface |  | After the UX sweep removes controls, so only kept wording is changed. |
 
 ### Queue
 
@@ -195,8 +197,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| TEST.150 | Test run progress log and build id for resuming a run |  |  |
-| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | TEST.150 |  |
+| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build |  |  |
+| TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) |  |  |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | TEST.151 |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
@@ -248,13 +250,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | PERF.99 | PERF.86 step 6 |
-| PERF.99 | Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command | PERF.98 | PERF.86 step 5 |
+| PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98 | PERF.86 step 5 |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.97 | PERF.86 step 4 |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | PERF.96 | PERF.86 step 3 |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | PERF.95 | PERF.86 step 2 |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count |  | PERF.86 step 1 |
-| DB.26 | One migration for the habitability columns: flux variation, the induced moment, the nebula age, photon rate and hosts, and the air, water and suitability ratings |  |  |
-| OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix |  |  |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |

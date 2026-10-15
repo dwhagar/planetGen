@@ -1120,41 +1120,77 @@ def _add_stars_to_sector(mysql_config, sector_id, luminosities):
         conn.close()
 
 
-def test_a_views_star_payload_has_a_stated_cap(client, mysql_config):
-    """MAP.109: the caps on every tile add up to under the stated figure,
-    and a full view (up to 27 tiles) of the fixture galaxy comes back well inside a
-    stated time."""
+def _cut_views():
+    """MAP.152: the tiles of a view for a spread of cameras (near the plane, high above it, at the
+    centre, out at the edge, deep in a sector, far outside) looking every way: the fetch set round
+    the camera plus the finest tiles round its target when it is close."""
+    import math
+    import random
+
+    from planetgen.galaxy.viewport import fetch_cut_tiles
+    from planetgen.web.maps.galaxymap3d import DETAIL_CAMERA_PC, DETAIL_RADIUS_PC
+
+    bounds = ((-12600.0, -12600.0, -960.0), (12600.0, 12600.0, 960.0))
+    rng = random.Random(4)
+    for _ in range(120):
+        reach = rng.choice([0, 10, 100, 1000, 5000, 10000, 14000, 40000])
+        camera = (rng.uniform(-1, 1) * reach + rng.choice([0.0, 8000.0]), rng.uniform(-1, 1) * reach,
+                  rng.uniform(-1, 1) * min(reach, 1500))
+        azimuth, tilt = rng.uniform(0, 2 * math.pi), rng.uniform(-1.5, 1.5)
+        look = (camera[0] + 50 * math.cos(tilt) * math.cos(azimuth), camera[1] + 50 * math.cos(tilt) * math.sin(azimuth),
+                camera[2] + 50 * math.sin(tilt))
+        keys = fetch_cut_tiles(camera, look, bounds)
+        distance = math.dist(camera, look)
+        if distance <= DETAIL_CAMERA_PC:
+            keys = tiles_intersecting_sphere(12, look, DETAIL_RADIUS_PC) + keys
+        yield keys
+
+
+def test_a_views_star_payload_has_a_stated_cap():
+    """MAP.109, MAP.152: the caps on every tile of a distance cut (and the finest tiles round the
+    target) add up to under the stated figure, for any camera, and a budget raised so far that the
+    worst view comes near it is noticed."""
+    worst = max(query.galaxy_view_star_cap(keys) for keys in _cut_views())
+    assert worst <= query.GALAXY_VIEW_MAX_STARS
+    assert worst > query.GALAXY_VIEW_MAX_STARS * 0.7, "tighten the stated figure"
+
+
+def test_a_cut_view_of_the_fixture_galaxy_comes_back_in_time_and_inside_the_cap(client, mysql_config):
     import time
 
-    assert query.galaxy_view_star_cap() <= query.GALAXY_VIEW_MAX_STARS
-    assert query.galaxy_view_star_cap() > query.GALAXY_VIEW_MAX_STARS * 0.9, "tighten the stated figure"
+    from planetgen.galaxy.viewport import fetch_cut_tiles
+
     _generated_sectors(mysql_config, [0.5, 5.0, 40.0])
-    keys = tiles_intersecting_sphere(9, (60.0, 60.0, 60.0), 130.0)
-    assert 8 <= len(keys) <= query.GALAXY_VIEW_MAX_TILES
+    keys = fetch_cut_tiles((60.0, 60.0, 60.0), (2.0, 2.0, 0.0), ((-400.0, -400.0, -120.0), (400.0, 400.0, 120.0)))[:64]
+    assert len(keys) >= 8
     started = time.monotonic()
     body = client.get("/api/galaxy/tiles?tiles=" + ",".join(keys)).get_json()
     elapsed = time.monotonic() - started
     assert set(body["tiles"]) == set(keys)
     stars = sum(len(t["stars"]) + len(t["generated"]) for t in body["tiles"].values())
-    assert 0 < stars <= query.GALAXY_VIEW_MAX_STARS
-    assert elapsed < 10.0, f"a 27-tile view took {elapsed:.1f} s"
+    assert 0 < stars <= query.galaxy_view_star_cap(keys)
+    assert elapsed < 10.0, f"a {len(keys)}-tile view took {elapsed:.1f} s"
 
 
-def test_generated_star_budget_shrinks_with_every_coarser_level():
-    """MAP.116: one table, each coarser level lists no more than the finer
-    one, and the per-sector allowance is the dense/sparse fudge."""
+def test_generated_star_budget_grows_with_every_finer_level():
+    """MAP.116, MAP.152: one table, each finer level lists no fewer than the coarser one, none past
+    the finest tile's own, and the per-sector allowance is the dense/sparse fudge."""
     from planetgen.galaxy.viewport import TILE_MAX_LEVEL
 
     levels = sorted(query.GALAXY_TILE_STAR_BUDGET)
     assert levels[-1] == TILE_MAX_LEVEL - 1
     assert all(query.GALAXY_TILE_STAR_BUDGET[a] <= query.GALAXY_TILE_STAR_BUDGET[b]
                for a, b in zip(levels, levels[1:]))
-    assert max(query.GALAXY_TILE_STAR_BUDGET.values()) < query.GALAXY_TILE_MAX_GENERATED_STARS
+    assert max(query.GALAXY_TILE_STAR_BUDGET.values()) < query.GALAXY_TILE_MAX_DETAIL_STARS
+    bright = [query.GALAXY_TILE_BRIGHT_BUDGET[level] for level in sorted(query.GALAXY_TILE_BRIGHT_BUDGET)]
+    assert bright == sorted(bright, reverse=True), "the coarsest tiles keep the most bright stars"
+    assert set(query.GALAXY_TILE_BRIGHT_BUDGET) == set(range(TILE_MAX_LEVEL))
     assert query.generated_star_budget(TILE_MAX_LEVEL, 500) == (query.GALAXY_TILE_MAX_DETAIL_STARS, None)
     budget, dense = query.generated_star_budget(8, 1500)
     assert budget == query.GALAXY_TILE_STAR_BUDGET[8] and dense == 1
     _budget, sparse = query.generated_star_budget(8, 4)
-    assert sparse == 300 and sparse > dense
+    assert sparse == 3 * query.GALAXY_TILE_STAR_BUDGET[8] // 4 and sparse > dense
+    assert query.generated_star_budget(2, 100) == (0, None)
 
 
 def test_generated_stars_per_sector_allowance_leaves_room_for_a_sparse_sector(mysql_config):
@@ -1173,16 +1209,6 @@ def test_generated_stars_per_sector_allowance_leaves_room_for_a_sparse_sector(my
         assert [s["luminosity_sol"] for s in one] == pytest.approx([8, 3], rel=1e-3)
     finally:
         conn.close()
-
-
-def test_generated_star_floor_drops_fourfold_per_finer_tile_level():
-    from planetgen.galaxy.viewport import TILE_MAX_LEVEL
-
-    assert query.generated_star_floor_sol(TILE_MAX_LEVEL) == 0.0
-    assert query.generated_star_floor_sol(TILE_MAX_LEVEL - 1) == pytest.approx(query.GENERATED_STAR_FLOOR_SOL_AT_32_PC)
-    for level in range(3, TILE_MAX_LEVEL - 1):
-        assert query.generated_star_floor_sol(level) == pytest.approx(4 * query.generated_star_floor_sol(level + 1))
-    assert query.generated_star_floor_sol(0) is None
 
 
 def test_galaxy_tile_counts_follow_the_level_budget_for_dense_and_sparse_sectors(client, mysql_config, monkeypatch):
@@ -1217,14 +1243,15 @@ def test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields(client, m
 
 
 def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
-    """The finest tile lists every generated star, a coarser one only the
-    brighter ones, and a galaxy-sized one none (the bright stars cover it)."""
+    """The finest tile lists every generated star, a coarser one its budget's brightest (MAP.152: no
+    brightness floor, so a sparse tile lists all it has), and a galaxy-sized one none (the bright stars
+    cover it)."""
     _sector_ids, star_ids = _generated_sectors(mysql_config, [0.001, 5.0])
     finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
     mid = tiles_intersecting_sphere(6, (2.0, 2.0, 0.0), 0.0)[0]
     tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{mid},0/0/0/0").get_json()["tiles"]
     assert [s["id"] for s in tiles[finest]["generated"]] == pids("star", [star_ids[1], star_ids[0]])
-    assert [s["id"] for s in tiles[mid]["generated"]] == pids("star", [star_ids[1]])
+    assert [s["id"] for s in tiles[mid]["generated"]] == pids("star", [star_ids[1], star_ids[0]])
     assert tiles["0/0/0/0"]["generated"] == []
 
 
@@ -1276,18 +1303,6 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     assert by_type["black_hole"]["name"]
     assert tiles[sector_level]["points"] == points
     assert tiles[coarse]["points"] == []
-
-
-def test_the_page_ranks_point_objects_from_the_level_the_server_lists_them():
-    """MAP.155: `starfade.js` ranks a tile's black holes, neutron stars and quasars like its stars from
-    `POINT_RANK_MIN_LEVEL`, which is the first level the server lists them at."""
-    import re
-    from pathlib import Path
-
-    source = (Path(__file__).resolve().parents[1] / "html" / "static" / "starfade.js").read_text(encoding="utf-8")
-    match = re.search(r"export const POINT_RANK_MIN_LEVEL = (\d+);", source)
-    assert match and int(match.group(1)) == query.POINT_PHENOMENON_MIN_LEVEL
-    assert min(query.GALAXY_TILE_POINT_BUDGET) == query.POINT_PHENOMENON_MIN_LEVEL
 
 
 def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_their_sector_is_filled(
