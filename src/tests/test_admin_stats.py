@@ -110,6 +110,7 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
     # The directory Flask is imported from, i.e. the one that holds flask/.
     assert os.path.isdir(os.path.join(body["api"]["libraries_dir"], "flask"))
     assert body["mysql"]["version"]
+    assert set(body["redis"]) >= {"url", "answering", "error"}      # ADM.54: answering or not, it is reported
 
     database = body["database"]
     assert database["reachable"] is True

@@ -571,6 +571,33 @@ def _disk_tile(disk):
     return f"{format_bytes(disk['free_bytes'])} of {format_bytes(disk['total_bytes'])} on {disk['where']}"
 
 
+def redis_text(info):
+    """
+    The Stats page's Redis row (ADM.54): whether it answers, then the settings that decide whether queued work
+    survives a restart (append-only file, memory policy), the memory used, the last save and the live workers.
+    Blank when the API sent no Redis block.
+    """
+    if not info:
+        return "unknown"
+    if not info.get("answering"):
+        return f"not answering at {info.get('url') or 'its address'}: {info.get('error') or 'no reason given'}"
+    used = info.get("used_memory_bytes")
+    limit = info.get("maxmemory_bytes")
+    ago = info.get("last_save_seconds_ago")
+    save = ("no save yet" if ago is None else
+            f"last save {'failed' if not info.get('last_save_ok') else 'ok'} {format_duration(ago)} ago")
+    parts = [
+        f"answering at {info['url']} (version {info.get('version') or 'unknown'}, up {format_duration(info.get('uptime_seconds'))})",
+        "append-only file " + ("on" if info.get("aof_enabled") else "off (a restart loses queued work)"),
+        f"memory policy {info.get('maxmemory_policy') or 'unknown'}",
+        (f"{format_bytes(used)} used" + (f" of {format_bytes(limit)}" if limit else " (no limit)")) if used is not None
+        else "memory used unknown",
+        save,
+        f"{format_count(info['workers'])} worker(s) alive" if info.get("workers") is not None else "workers unknown",
+    ]
+    return "; ".join(parts)
+
+
 def _health(stats, api_ms, cache):
     api = stats["api"]
     mysql = stats.get("mysql") or {}
@@ -608,6 +635,7 @@ def _health(stats, api_ms, cache):
             ("MySQL version", mysql.get("version") or "unknown"),
             ("MySQL uptime", format_duration(mysql.get("uptime_seconds"))),
             ("MySQL connections", format_count(mysql.get("threads_connected"))),
+            ("Redis", redis_text(stats.get("redis"))),
         ],
         "cache_text": cache_text,
         "cache_dir": cache_dir,
