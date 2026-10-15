@@ -2972,6 +2972,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mSv/yr as two quantities. Decided (Boss, 2026-10-10 18:44Z, defaults
   approved; default: 20 mSv/yr
   for the Blue tier, 50 as the single-year limit).
+  Prerequisite (the flux_variation part only): DB.26.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.149 Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K**
@@ -3319,7 +3320,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-14 19:54Z, on a decision
   card relayed by the coordinator): Suitability is the lowest of three,
   water access, food and shelter, as a 0 to 1 number.
-  Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+  Prerequisite: DB.26 (the one migration for the new columns). Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -4010,6 +4011,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
+
+- [ ] **DB.26 One migration for the habitability columns: flux variation and the air, water and suitability ratings**
+  Foundations Generation, 2026-10-15, relayed by the coordinator:
+  Foundations Generation may not add migrations, so it needs this one
+  from Foundations Database. One Alembic migration on planets and moons:
+  add flux_variation (for GEN.148), rename phi4_chemistry and
+  tier_chemistry to phi4_air and tier_air, and add phi4_water,
+  tier_water, phi4_suitability and tier_suitability (for GEN.207, which
+  splits chemistry into air and water and adds the Suitability
+  dimension). The exact column types and defaults come from the spec the
+  coordinator sent to Foundations Database. It blocks GEN.207
+  (Foundations Generation's first item) and the flux_variation part of
+  GEN.148, so it goes first in the Foundations Database queue, ahead of
+  ADM.54 and the Redis rebuild (generation corrections come first; Boss,
+  2026-10-10 22:19Z). No old-column compatibility shim (Boss,
+  2026-10-07).
+  Prerequisites: none. Related: GEN.207, GEN.148.
 
 ## API: The JSON API
 
