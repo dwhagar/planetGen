@@ -3140,18 +3140,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
-- [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
-  Left over from GEN.86 (PR #908, Foundations lane 2): the planetary
-  magnetic field model does not yet apply the stagnant-lid factor (a
-  planet with a single rigid lid and no plate tectonics cools its core
-  differently, which changes whether a dynamo runs). Done: the factor is
-  applied where the field strength is computed, with a test on a
-  stagnant-lid and a plate-tectonic planet. Decided with GEN.86 (Boss,
-  decision card, 2026-10-10): unlocked rocky planets draw their day
-  length from 8 to 48 h log-uniform ("Realistic days"), shipped as a
-  small follow-up patch without an item.
-  Prerequisites: none. Related: GEN.86, GEN.88.
-
 - [ ] **GEN.178 Magnetic fields: the induced field of an ocean moon**
   Left over from GEN.86 (PR #908): the induced magnetic field of a moon
   with a subsurface ocean in its parent's changing field is not
@@ -3402,7 +3390,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **GEN.213 Mercury-like bodies never keep their magnetic field (bug)**
-  Seen by Foundations Generation (2026-10-15) while working on GEN.177.
+  Seen by Foundations Generation (2026-10-15) while working on GEN.177
+  (done, #1410).
   Mercury-like bodies (0.05 to 0.1 Earth masses, iron-rich) never keep
   their magnetic field: 0 of 500 draws keep one at 4.5 Gyr, because the
   dynamo-lifetime check in magnetism._rocky_moment runs before the
@@ -3411,7 +3400,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mercury-like bodies keep their field, with a test on a Mercury-like
   body. GitHub issue
   [#1406](https://github.com/dwhagar/planetGen/issues/1406).
-  Prerequisites: none. Related: GEN.177.
+  Prerequisites: none. Related: GEN.177 (done, #1410).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
