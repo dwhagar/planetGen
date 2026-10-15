@@ -21,17 +21,19 @@ from planetgen.web.maps.galaxymap3d import (  # noqa: E402
     CLICK_ZOOM_FACTOR_MIN,
     DENSITY_SHAPE_FIELDS,
     MODEL_TERM_FIELDS,
-    FETCH_RADIUS_FACTOR,
+    INITIAL_TILE_LIMIT,
     MIN_VIEW_RADIUS_FLOOR_PC,
+    camera_position_pc,
     galaxy_extent_pc,
     initial_tile_request,
     render_galaxy_map3d_panel,
+    tile_bounds_pc,
     view_radius_bounds,
 )
 
 from planetgen.galaxy.viewport import (  # noqa: E402
+    fetch_cut_tiles,
     parse_tile_key,
-    tile_level_for_view_radius,
     tiles_intersecting_sphere,
 )
 from planetgen.tuning import GALAXY_RADIUS_PC  # noqa: E402
@@ -284,19 +286,30 @@ def test_panel_includes_the_initial_views_tiles():
 
 # --- initial_tile_request ----------------------------------------------------
 
-@pytest.mark.parametrize("orbit_radius", [16000.0, 900.0, 120.0, 30.0, 5.3])
-def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
+@pytest.mark.parametrize("orbit_radius", [34000.0, 16000.0, 900.0, 120.0, 30.0, 5.3])
+def test_initial_tile_request_is_the_distance_cut_round_the_starting_camera(orbit_radius):
+    """MAP.152: the first frame's tiles are the fetch set round the starting camera
+    (what the page's `neededTiles` asks for), plus the finest tiles round the target
+    when the camera starts close, at most `INITIAL_TILE_LIMIT`."""
     center = (321.0, -45.0, 6.0)
-    keys = initial_tile_request(orbit_radius, center)
-    view_radius = orbit_radius * FETCH_RADIUS_FACTOR
-    level = tile_level_for_view_radius(view_radius)
-    view_keys = tiles_intersecting_sphere(level, center, view_radius)
-    # One level only: the map no longer fetches the finest (planned) tiles.
-    assert keys == view_keys
+    bounds = tile_bounds_pc(EDGE_PC, {"outer_ring_index": 3750, "half_height_pc": 1500.0})
+    keys = initial_tile_request(orbit_radius, center, bounds)
+    cut = fetch_cut_tiles(camera_position_pc(orbit_radius, center), center, bounds)
+    detail = tiles_intersecting_sphere(12, center, 8.0) if orbit_radius <= 120.0 else []
+    assert keys == (detail + cut)[:INITIAL_TILE_LIMIT]
+    assert len(keys) <= INITIAL_TILE_LIMIT <= 128
     for key in keys:
         parse_tile_key(key)
-    assert len(keys) <= 128
 
+
+def test_the_tile_bounds_cover_the_galaxy_and_its_layers():
+    low, high = tile_bounds_pc(EDGE_PC, {"outer_ring_index": 3750, "half_height_pc": 1500.0})
+    radius = galaxy_extent_pc(EDGE_PC, {"outer_ring_index": 3750})
+    assert low == (-radius, -radius, -1536.0) and high == (radius, radius, 1536.0)
+    # Without stored layers, a tenth of the radius, rounded up to a multiple of 64.
+    no_layers = tile_bounds_pc(EDGE_PC, {"outer_ring_index": 3750})
+    assert no_layers[1][2] % 64 == 0 and 0.1 * radius <= no_layers[1][2] < 0.1 * radius + 64
+    assert tile_bounds_pc(EDGE_PC, None)[1][0] == galaxy_extent_pc(EDGE_PC, None)
 
 
 def test_stars_are_not_part_of_the_near_field():

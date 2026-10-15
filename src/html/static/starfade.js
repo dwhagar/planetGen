@@ -1,82 +1,95 @@
-// html/static/starfade.js
+// MAP.153 and MAP.152: stars fade in and out as the camera nears or leaves
+// the tile that lists them. The map fetches the distance cut of tiles
+// (static/galaxytilecut.js: near ones small, far ones big) and hands over
+// from a tile to its eight halves over a band of distance, so nothing pops.
 //
-// MAP.153: stars fade in with the zoom instead of all at once at a tile
-// level change. Boss (2026-10-09 22:30Z): "I want a very smooth transition
-// where stars and objects are slowly added as one zooms in."
-// docs/design/zoom-star-visibility.md (3.1 and 5, stage 1) has the rule and
-// the evidence; this file is its arithmetic, free of the page, so the
-// Galaxy Map's shader and its tests share one definition (the shader
-// repeats `zoomShare` and `levelGlide` in GLSL; keep them in step).
+// Every tile T has a "leaving" share from the camera's distance to its box,
 //
-// A star listed in a tile has a rank r in that tile's list (1 = most
-// luminous, the order the server sends). Its BIRTH RADIUS is the camera
-// radius at which it starts to appear,
+//     u = CUT_EDGES * distance / edge,   L(T) = smoothstep((u - 1/B) / (B - 1/B))
 //
-//     R_b = R* 2^W (N0 / r)^(1/3),   R* = edge / (2 FETCH_RADIUS_FACTOR),
+// (B = FADE_BAND): 1 while the camera is at least B edges' worth away, 0 once it
+// is within 1/B of that, so a tile gives way to its halves as the camera comes
+// in. A tile is shown for what its ancestors have left of it,
 //
-// R* being the closest camera radius that tile level serves, and it is
-// fully shown W octaves of zoom later (R_b / 2^W). The exponent 1/3 keeps
-// the count of drawn stars per view level (a tile one level finer holds an
-// eighth of the volume). Over the octave in which a level is used its
-// opacity cross-fades from the one its rank in the PARENT tile's list gives
-// it (nothing when the parent did not list it) to the one its own rank
-// gives it; the finest "detail" tiles, which list every star around the
-// target, use their own rank only. The opacity depends on the camera
-// radius alone, so a view always draws the same picture and zooming out
-// removes stars as smoothly as zooming in adds them.
+//     share(T) = L(T) * product of (1 - L(A)) over T's ancestors A,
+//
+// so across a hand-over the shares of a tile and of its halves add up to 1: a star
+// listed in both stays whole, one listed in one comes in or goes out smoothly.
+// The finest tile of the cut has nothing finer to give way to (L = 1 there). The
+// finest "detail" tiles round the target fade by distance alone, whole within
+// DETAIL_FULL_PC and gone at DETAIL_GONE_PC. docs/design/fly-through-view-distance.md
+// sections 4.5 and 4.7.
+//
+// A star's `fade` is its tile: `{ parts: [level, ix, iy, iz], detail }`, or
+// `null` for a star in no tile (carried over while its tile loads, or a
+// landmark), which is whole.
 
-export const FADE_OCTAVES = 1;
-export const REFERENCE_RANK_COUNT = 400;
-export const FETCH_RADIUS_FACTOR = 1.6;
-// A point object (black hole, neutron star, quasar) is not ranked in
-// stage 1: a birth radius past any camera radius shows it fully.
-export const ALWAYS_SHOWN = 1e12;
+// Equal to planetgen.galaxy.viewport.DISTANCE_CUT_EDGES and DISTANCE_CUT_FADE_BAND
+// (a test holds them equal).
+export const CUT_EDGES = 2;
+export const FADE_BAND = 1.15;
+export const DETAIL_FULL_PC = 60;
+export const DETAIL_GONE_PC = 120;
 
 export function smoothstep(x) {
   const t = Math.min(1, Math.max(0, x));
   return t * t * (3 - 2 * t);
 }
 
-// The camera radius (pc) at which a star ranked `rank` (1 = first) in the
-// list of a tile `edgePc` across starts to appear.
-export function birthRadius(edgePc, rank, factor = FETCH_RADIUS_FACTOR) {
-  const closest = edgePc / (2 * factor);
-  return closest * Math.pow(2, FADE_OCTAVES) * Math.pow(REFERENCE_RANK_COUNT / rank, 1 / 3);
-}
-
-// How much of a star with birth radius `birth` shows at camera radius
-// `radius`: 0 at or beyond `birth`, 1 FADE_OCTAVES of zoom closer. A
-// birth of 0 (not listed) shows nothing.
-export function zoomShare(birth, radius) {
-  return birth > 0 ? smoothstep(Math.log2(birth / radius) / FADE_OCTAVES) : 0;
-}
-
-// 0 at the zoomed-out end of the octave a tile level serves
-// (radius = edge / factor) to 1 at the zoomed-in end (edge / 2 factor).
-export function levelGlide(edgePc, radius, factor = FETCH_RADIUS_FACTOR) {
-  const far = edgePc / factor;
-  return smoothstep((far - radius) / (far - far / 2));
-}
-
-// A star's opacity from zoom alone. `fade` is [own birth radius, parent
-// birth radius (0 = not listed there), tile edge, detail (0 or 1)].
-export function starZoomOpacity(fade, radius, factor = FETCH_RADIUS_FACTOR) {
-  const own = zoomShare(fade[0], radius);
-  if (fade[3] > 0.5) {
-    return own;
+// How far `point` is from the box of the tile `parts`.
+export function boxDistance(parts, point, rootEdge) {
+  const edge = rootEdge / 2 ** parts[0];
+  let sum = 0;
+  for (let axis = 0; axis < 3; axis++) {
+    const lo = -rootEdge / 2 + parts[axis + 1] * edge;
+    const gap = Math.max(lo - point[axis], point[axis] - (lo + edge), 0);
+    sum += gap * gap;
   }
-  const glide = levelGlide(fade[2], radius, factor);
-  return (1 - glide) * zoomShare(fade[1], radius) + glide * own;
+  return Math.sqrt(sum);
 }
 
-// A point object that is not ranked (tiles coarser than POINT_RANK_MIN_LEVEL
-// list only the biggest scattered classes, which stay whole).
-export const POINT_FADE = [ALWAYS_SHOWN, ALWAYS_SHOWN, 0, 1];
+// The leaving share of the tile `parts` with the camera `distance` from its box.
+export function leavingShare(distance, edge) {
+  const u = CUT_EDGES * distance / edge;
+  return smoothstep((u - 1 / FADE_BAND) / (FADE_BAND - 1 / FADE_BAND));
+}
 
-// MAP.155: the coarsest tile level that ranks its black holes, neutron stars
-// and quasars like its stars (planetgen.db.query.POINT_PHENOMENON_MIN_LEVEL,
-// which a test holds equal).
-export const POINT_RANK_MIN_LEVEL = 8;
+// A tile's share (0..1) with the camera at `camera`. `rootEdge` is the root
+// tile's edge and `finestLevel` the finest level the cut itself reaches.
+export function tileShare(parts, camera, rootEdge, finestLevel) {
+  let share = 1;
+  let [level, ix, iy, iz] = parts;
+  while (level > 0 && share > 0) {
+    level -= 1;
+    ix >>= 1;
+    iy >>= 1;
+    iz >>= 1;
+    const edge = rootEdge / 2 ** level;
+    share *= 1 - leavingShare(boxDistance([level, ix, iy, iz], camera, rootEdge), edge);
+  }
+  if (share > 0 && parts[0] < finestLevel) {
+    share *= leavingShare(boxDistance(parts, camera, rootEdge), rootEdge / 2 ** parts[0]);
+  }
+  return share;
+}
+
+// A detail tile's share: whole while the camera is within DETAIL_FULL_PC.
+export function detailShare(distance) {
+  return smoothstep((DETAIL_GONE_PC - distance) / (DETAIL_GONE_PC - DETAIL_FULL_PC));
+}
+
+// A star's opacity from the tile that lists it (`fade`, see above), with the
+// camera at `camera` = [x, y, z].
+export function starShare(fade, camera, rootEdge, finestLevel) {
+  if (!fade) {
+    return 1;
+  }
+  return fade.detail ? detailShare(boxDistance(fade.parts, camera, rootEdge))
+    : tileShare(fade.parts, camera, rootEdge, finestLevel);
+}
+
+// A star that is in no tile (carried over, or a landmark) is whole.
+export const POINT_FADE = null;
 
 // MAP.155: a cloud sprite fades in between CLOUD_RAMP_PX[0] and
 // CLOUD_RAMP_PX[1] pixels of radius instead of switching on at 2 px.
@@ -95,24 +108,11 @@ export function arrivingStarSize(sizePx, arrive) {
   return STAR_DOT_PX + (Math.max(sizePx, STAR_DOT_PX) - STAR_DOT_PX) * t;
 }
 
-// The 1-based ranks of a tile's stars, `{ b<id>: rank, s<id>: rank }`,
-// from its bright list (`stars`) and its generated list (`generated`),
-// each in the order the server sent them (most luminous first), and (MAP.155)
-// its point objects, `{ <type><id>: rank }` ("black_hole12": the key the page
-// draws them under), in the order sent.
-export function tileRanks(tile) {
-  const ranks = new Map();
-  (tile.stars || []).forEach((star, i) => ranks.set(`b${star.id}`, i + 1));
-  (tile.generated || []).forEach((star, i) => ranks.set(`s${star.id}`, i + 1));
-  (tile.points || []).forEach((point, i) => ranks.set(`${point.type}${point.id}`, i + 1));
-  return ranks;
-}
-
-// The sum of `starZoomOpacity` over `fades` at `radius`.
-export function opacitySum(fades, radius, factor = FETCH_RADIUS_FACTOR) {
+// The sum of `starShare` over `fades` for a camera at `camera`.
+export function opacitySum(fades, camera, rootEdge, finestLevel) {
   let total = 0;
   for (const fade of fades) {
-    total += starZoomOpacity(fade, radius, factor);
+    total += starShare(fade, camera, rootEdge, finestLevel);
   }
   return total;
 }
