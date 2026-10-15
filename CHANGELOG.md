@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1210] - 2026-10-15
+
+### Added
+
+- GEN.217: `plan --fill-habitability` refreshes the stored habitability numbers on existing planets and moons (plan entry only).
+
+TODO items resolved: none / Added: GEN.217
+
 ## [8.0.1209] - 2026-10-15
 
 ### Changed
