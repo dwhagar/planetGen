@@ -303,10 +303,11 @@ with `clamp()`.
   distance, speed, time, temperature, pressure and gravity run through
   the shared ladders. Step 4 done (PR #1480): masses run through the
   ladder (kg, lunar, Earth, Jupiter, solar). Step 5 done (PR #1488):
-  luminosity, power and heat flow run through ladders. Remaining (step 6):
-  density, number density, magnetic field and angles; (step 7) the
-  leftover `toFixed` calls in `galaxymap3d.js` and `galaxystageview.js`
-  (coordinates, angles; folded in from UX.81), and the JavaScript lint test that bans direct `toFixed` for unit
+  luminosity, power and heat flow run through ladders. Step 6 done
+  (PR #1497): density and magnetic field units.
+  Remaining (step 7): the leftover `toFixed` calls in `galaxymap3d.js`
+  and `galaxystageview.js` (coordinates, angles; folded in from UX.81),
+  and the JavaScript lint test that bans direct `toFixed` for unit
   values.
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
