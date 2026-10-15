@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1324] - 2026-10-15
+
+### Changed
+- Docs: every decision in `design-decisions.md` now opens with a status (in force, reversed, built or being replaced) and the TODO item behind it, including system Python reversed by OPS.45 and the cylindrical grid being replaced by the spherical one; the deployment guide's gunicorn line names the virtual environment (DOC.25, DOC.37).
+
 ## [8.0.1323] - 2026-10-15
 
 ### Changed
