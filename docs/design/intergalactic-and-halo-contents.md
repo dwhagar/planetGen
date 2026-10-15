@@ -363,9 +363,9 @@ So a remnant is a special `Star` subclass on a separate path. A Wolf-Rayet star 
 
 This also covers a question Boss did not ask: a **planetary nebula's central white dwarf** already is an ordinary system (`_add_planetary_nebula` builds it with the normal draw), so planets there are possible but engulfment removes the inner ones.
 
-**Build-order note (Boss, 2026-10-15):** if the nebula, Wolf-Rayet and pre-main-sequence steps (11 to 13 of section 9) are not researched and planned by the time the spherical layout is ready, they are skipped and picked up after it. Nothing in steps 1 to 10 depends on them: the profile's `kind_factors` simply has no entry for the new kinds until they exist.
+**Build order:** steps 11 to 13 of section 9 (pre-main-sequence state, required stars per nebula, Wolf-Rayet stars and ring nebulae) are wanted and are filed as GEN.241 to GEN.243, after the whole-sphere group (steps 1 to 10). Nothing in steps 1 to 10 depends on them: the profile's `kind_factors` simply has no entry for the new kinds until they exist. (Boss's "skip it if it is not ready" applies only to the spherical region-query research, not to these steps.)
 
-**Further phenomenon types the whole-sphere design lacks.** None is needed for the layout; each is a rule to plan later. Counts are not researched here:
+**Plan later: further phenomenon types the whole-sphere design lacks.** These are not filed and not scheduled. None is needed for the layout; each row is a rule to plan when someone picks it up. Counts are not researched here:
 
 | Missing | Rule I would use |
 |---|---|
