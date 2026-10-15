@@ -83,6 +83,9 @@ REVISION_HOLD = True
 
 # The section headings CHANGELOG.md already uses (Keep a Changelog's set).
 SECTIONS = ("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security")
+# A release's Headline (Boss, 2026-10-10; restored 2026-10-14): one line, the best feature the release
+# brought, written as the first line of a note and kept above the sections in CHANGELOG.md.
+HEADLINE_RE = re.compile(r"^\*\*Headline:\*\* \S")
 
 FRAGMENT_RE = re.compile(r"^(?P<slug>[A-Za-z0-9][A-Za-z0-9_-]*)\.(?P<level>patch|minor|major)\.md$")
 VERSION_RE = re.compile(r"^__version__\s*=\s*(['\"])(?P<version>[^'\"]+)\1", re.M)
@@ -219,8 +222,12 @@ def validate_fragment_body(filename, body):
     lines = [line for line in body.splitlines() if line.strip()]
     if not lines:
         return [f"{CHANGES_DIR}/{filename} is empty"]
-    first = lines[0].strip()
     allowed = ", ".join(f"'### {s}'" for s in SECTIONS)
+    if HEADLINE_RE.match(lines[0]):
+        lines = lines[1:]
+        if not lines:
+            return [f"{CHANGES_DIR}/{filename} has a Headline but no section"]
+    first = lines[0].strip()
     if not first.startswith("### "):
         problems.append(f"{CHANGES_DIR}/{filename} must start with a section heading ({allowed})")
     for line in lines:
@@ -290,6 +297,9 @@ def merge_bodies(new, old):
     Joins two release bodies section by section (`### Added` and so on),
     the new bullets above the old ones in each section.
     """
+    def headline(body):
+        return next((line for line in body.splitlines() if HEADLINE_RE.match(line)), None)
+
     def sections(body):
         order, found, name = [], {}, None
         for line in body.strip().splitlines():
@@ -309,7 +319,8 @@ def merge_bodies(new, old):
         lines = [l for l in new_found.get(name, []) + old_found.get(name, []) if l.strip()]
         if lines:
             parts.append(f"### {name}\n" + "\n".join(lines))
-    return "\n\n".join(parts)
+    top = headline(new) or headline(old)
+    return "\n\n".join(([top] if top else []) + parts)
 
 
 def apply_release(root, version, date, body):

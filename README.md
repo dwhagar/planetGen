@@ -225,7 +225,7 @@ its options:
   and update scripts run it for you.
 - **`planetgen.cli.reset`** deletes all generated galaxy data (asks for the
   database name first) so you can start a new galaxy.
-- **`planetgen.db.query`** searches the database from the terminal.
+- **`planetgen.cli.query`** searches the database from the terminal.
 
 ## Documentation
 
@@ -235,8 +235,12 @@ its options:
 | [docs/cli.md](docs/cli.md) | Every command-line option |
 | [docs/config.md](docs/config.md) | Every `config.json` setting |
 | [docs/deployment/](docs/deployment/README.md) | Hosting guides per platform |
+| [docs/server-checklist.md](docs/server-checklist.md) | Confirming the site loads after a deploy or update |
+| [docs/WINDOWS.md](docs/WINDOWS.md) | Windows is unsupported; the simplest setup, WSL2 |
 | [docs/html-interface.md](docs/html-interface.md) | How the website works |
 | [docs/api.md](docs/api.md) | The JSON API |
+| [docs/system-file-format.md](docs/system-file-format.md) | The JSON file that describes one star system for `planetgen system` |
+| [docs/example-systems.md](docs/example-systems.md) | The example system files and what each one tests |
 | [docs/database-schema.md](docs/database-schema.md) | The database tables and migrations |
 | [docs/design/architecture.md](docs/design/architecture.md) | How the program fits together: every file and the main flows |
 | [docs/design/architecture.html](docs/design/architecture.html) | The same as an illustrated page to open in a browser: modules, flows, data and deployment (a 2026-10-07 snapshot from before the package move) |
@@ -247,6 +251,7 @@ its options:
 | [docs/plan/todo-tree.html](docs/plan/todo-tree.html) | Every open item as a tree, each under the prerequisite that finishes last, with search and phase and bug filters |
 | [docs/plan/todo-reference.html](docs/plan/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (all three pages are rebuilt by `python scripts/build_todo_docs.py`) |
 | [docs/testing.md](docs/testing.md) | Running the tests |
+| [docs/ci-runners.md](docs/ci-runners.md) | Running the scheduled CI on your own computers (optional) |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |
 
 ## A note on accuracy
