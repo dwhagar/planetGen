@@ -1,9 +1,10 @@
 """
 examples/apache/deploy-paths.py
 
-Prints the two runtime directories create-cache-dir.sh makes for Apache,
-one per line: the Galaxy Map tile cache (empty when the disk cache is off)
-and the Generate page's jobs directory.
+Prints the three runtime directories create-cache-dir.sh makes for Apache,
+one per line: the Galaxy Map tile cache (empty when the disk cache is off),
+the Generate page's jobs directory and the state directory (the maintenance
+switch).
 
 create-cache-dir.sh runs this as root, so it deliberately imports nothing
 from the repo: it is run with `python3 -I` (no script directory, current
@@ -29,6 +30,9 @@ import sys
 
 DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
 DEFAULT_JOBS_DIR = "/var/lib/planetGen/jobs"
+DEFAULT_STATE_DIR = "/var/lib/planetGen/state"
+"""The folder for what the web app writes about the site itself, now the maintenance switch
+(`planetgen.admin.maintenance.DEFAULT_STATE_DIR`): the install folder above it is root's."""
 OLD_JOBS_DIR = "/var/lib/planetgen/jobs"
 """The jobs default before OPS.19: `/var/lib/planetgen` differs from the
 checkout's `/var/lib/planetGen` only by case, so a default install had
@@ -70,6 +74,10 @@ def tile_cache_dir(config):
 
 def jobs_dir(config):
     return os.environ.get("PLANETGEN_JOBS_DIR") or _section(config, "jobs").get("dir") or DEFAULT_JOBS_DIR
+
+
+def state_dir():
+    return os.environ.get("PLANETGEN_STATE_DIR") or DEFAULT_STATE_DIR
 
 
 def _finished(job_dir):
@@ -148,6 +156,7 @@ def main(argv):
     config = load_config(argv[1])
     print(tile_cache_dir(config))
     print(jobs_dir(config))
+    print(state_dir())
     return 0
 
 

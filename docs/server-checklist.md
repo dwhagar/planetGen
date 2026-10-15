@@ -93,10 +93,14 @@ rate-limit budget.
 The Galaxy Map caches tiles on disk, in `/var/cache/planetgen/tiles` by
 default (see `tile_cache` in [`config.md`](config.md)).
 
-    ls -ld /var/cache/planetgen/tiles /var/lib/planetGen/jobs
+    ls -ld /var/cache/planetgen/tiles /var/lib/planetGen/jobs /var/lib/planetGen/state
 
-Pass: both folders exist and are owned by the **web user**. The tile
-cache fills up after you open the Galaxy Map.
+Pass: all three folders exist and are owned by the **web user**. The tile
+cache fills up after you open the Galaxy Map. The `state` folder holds the
+maintenance switch (`maintenance.json`), which the admin page and the map
+rebuild after `update.sh` write as the web user; if it is root's, the admin
+page says it can't write the switch and the site stays closed. `sudo
+./update.sh` (or `sudo examples/apache/create-cache-dir.sh`) fixes it.
 
 ## 5a. Are the code and config.json locked down?
 

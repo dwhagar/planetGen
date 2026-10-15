@@ -8,7 +8,14 @@ but an admin. The gate tests build the real app but need no database: a
 refused visitor never reaches one, and the admin check is faked.
 """
 
+import contextlib
+import grp
 import json
+import os
+import pwd
+import shutil
+import subprocess
+import tempfile
 
 import pytest
 
@@ -106,6 +113,131 @@ def test_the_command_switches_it(state_file, capsys):
     assert maintenance_cli.main(["off"]) == 0
     assert not maintenance.is_on()
     assert maintenance_cli.main(["on", "--eta", "x" * 300]) == 1
+
+
+# --- The web user writes the switch (the Permission denied on /var/lib/planetGen, 2026-10-15) --------------------
+
+APACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "examples", "apache")
+
+
+def _web_user():
+    try:
+        return pwd.getpwnam("www-data").pw_uid, grp.getgrnam("www-data").gr_gid
+    except KeyError:
+        return None
+
+
+needs_root = pytest.mark.skipif(os.geteuid() != 0 or _web_user() is None,
+                                reason="needs root and a www-data user to act as the web server's user")
+
+
+@contextlib.contextmanager
+def _as_web_user():
+    """Everything inside runs with the web user's file permissions (not root's, which ignore them)."""
+    uid, gid = _web_user()
+    os.setegid(gid)
+    os.seteuid(uid)
+    try:
+        yield
+    finally:
+        os.seteuid(0)
+        os.setegid(0)
+
+
+@pytest.fixture
+def install_root():
+    """A root-owned folder the web user can enter, like /var/lib/planetGen."""
+    base = tempfile.mkdtemp(prefix="pg-maint-")
+    os.chmod(base, 0o755)
+    yield base
+    shutil.rmtree(base, ignore_errors=True)
+
+
+def test_the_default_state_file_is_in_the_state_folder_not_the_install_folder(monkeypatch):
+    monkeypatch.delenv(maintenance.FILE_ENV, raising=False)
+    monkeypatch.delenv(maintenance.STATE_DIR_ENV, raising=False)
+    assert maintenance.state_path() == "/var/lib/planetGen/state/maintenance.json"
+    monkeypatch.setenv(maintenance.STATE_DIR_ENV, "/srv/state")
+    assert maintenance.state_path() == "/srv/state/maintenance.json"
+
+
+@needs_root
+def test_a_switch_in_a_root_owned_folder_says_what_to_do_and_the_admin_page_warns(install_root, monkeypatch):
+    monkeypatch.delenv(maintenance.FILE_ENV, raising=False)
+    monkeypatch.setenv(maintenance.STATE_DIR_ENV, install_root)
+    maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)  # root: the migration
+    with _as_web_user():
+        assert maintenance.is_on(), "the web user can read it"
+        assert "not writable" in maintenance.write_problem()
+        with pytest.raises(maintenance.MaintenanceWriteError, match="update.sh") as raised:
+            maintenance.turn_off(by="boss")
+        assert install_root in str(raised.value) and "Permission denied" in str(raised.value)
+        with pytest.raises(maintenance.MaintenanceWriteError):
+            maintenance.turn_off_for(maintenance.SECTOR_SWITCH, by="map rebuild")
+    assert maintenance.is_on()
+
+
+@needs_root
+def test_the_web_user_turns_it_on_and_off_in_the_folder_create_cache_dir_makes(install_root, monkeypatch):
+    """What `update.sh` does: the migration (root) switches it on, `create-cache-dir.sh` gives the folder to
+    Apache's user, then the admin page and `warm_map` (the web user) switch it off."""
+    state = os.path.join(install_root, "state")
+    monkeypatch.delenv(maintenance.FILE_ENV, raising=False)
+    monkeypatch.setenv(maintenance.STATE_DIR_ENV, state)
+    maintenance.turn_on(by="migration", reason=maintenance.SECTOR_SWITCH_REASON, cause=maintenance.SECTOR_SWITCH)
+    assert os.stat(state).st_uid == 0, "the migration, run as root, made the folder"
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    env.update(PLANETGEN_STATE_DIR=state, PLANETGEN_TILE_CACHE_DIR=os.path.join(install_root, "tiles"),
+               PLANETGEN_JOBS_DIR=os.path.join(install_root, "jobs"))
+    subprocess.run([os.path.join(APACHE_DIR, "create-cache-dir.sh")], env=env, check=True, capture_output=True)
+    with _as_web_user():
+        assert maintenance.write_problem() is None
+        assert maintenance.turn_off_for(maintenance.SECTOR_SWITCH, by="map rebuild")
+        assert not maintenance.is_on()
+        maintenance.turn_on("about an hour", by="boss")
+        maintenance.turn_off(by="boss")
+    assert not maintenance.is_on()
+
+
+def test_the_command_says_when_it_cannot_write_the_switch(state_file, monkeypatch, capsys):
+    monkeypatch.setattr(maintenance.tempfile, "mkstemp", _denied)
+    assert maintenance_cli.main(["on"]) == 1
+    assert "update.sh" in capsys.readouterr().err
+
+
+def _denied(*args, **kwargs):
+    raise PermissionError(13, "Permission denied")
+
+
+def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, monkeypatch, capsys):
+    from planetgen.cli import warm_map
+
+    maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
+    monkeypatch.setattr(maintenance.tempfile, "mkstemp", _denied)
+
+    class _Bar:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def update(self, **kwargs):
+            pass
+
+    from planetgen.web.app import create_app
+
+    monkeypatch.setattr(warm_map, "create_app", lambda: create_app(_Config))
+    monkeypatch.setattr(warm_map, "_stats", lambda: None)
+    monkeypatch.setattr(warm_map.steps, "Step", lambda *a, **k: _Bar())
+    monkeypatch.setattr(warm_map, "db_name", lambda: "x")
+    monkeypatch.setattr(warm_map, "warm_opening_view", lambda name: {"tiles": 1, "cached": 0, "seconds": 0.1})
+    with pytest.raises(SystemExit) as exit_info:
+        warm_map.main()
+    assert exit_info.value.code == 1
+    err = capsys.readouterr().err
+    assert "still in maintenance mode" in err and "update.sh" in err
+    assert maintenance.is_on()
 
 
 class _Config(Config):

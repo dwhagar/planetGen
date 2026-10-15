@@ -78,21 +78,22 @@ def _deploy_paths(repo_dir, env=None, script=DEPLOY_PATHS, cwd=None):
 
 
 def test_deploy_paths_defaults_without_a_config(tmp_path):
-    assert _deploy_paths(tmp_path) == ["/var/cache/planetgen/tiles", "/var/lib/planetGen/jobs"]
+    assert _deploy_paths(tmp_path) == ["/var/cache/planetgen/tiles", "/var/lib/planetGen/jobs", "/var/lib/planetGen/state"]
 
 
 def test_deploy_paths_reads_config_json(tmp_path):
     (tmp_path / "config.json").write_text(json.dumps({
         "tile_cache": {"dir": "/srv/tiles"}, "jobs": {"dir": "/srv/jobs"},
     }))
-    assert _deploy_paths(tmp_path) == ["/srv/tiles", "/srv/jobs"]
+    assert _deploy_paths(tmp_path) == ["/srv/tiles", "/srv/jobs", "/var/lib/planetGen/state"]
 
 
 def test_deploy_paths_env_wins_and_max_mb_0_turns_the_cache_off(tmp_path):
     (tmp_path / "config.json").write_text(json.dumps({"tile_cache": {"dir": "/srv/tiles", "max_mb": 0}}))
-    assert _deploy_paths(tmp_path, {"PLANETGEN_JOBS_DIR": "/env/jobs"}) == ["", "/env/jobs"]
-    assert _deploy_paths(tmp_path, {"PLANETGEN_TILE_CACHE_MAX_MB": "5", "PLANETGEN_TILE_CACHE_DIR": "/env/t"}) == [
-        "/env/t", "/var/lib/planetGen/jobs"]
+    assert _deploy_paths(tmp_path, {"PLANETGEN_JOBS_DIR": "/env/jobs"}) == ["", "/env/jobs", "/var/lib/planetGen/state"]
+    assert _deploy_paths(tmp_path, {"PLANETGEN_TILE_CACHE_MAX_MB": "5", "PLANETGEN_TILE_CACHE_DIR": "/env/t",
+                                    "PLANETGEN_STATE_DIR": "/env/state"}) == [
+        "/env/t", "/var/lib/planetGen/jobs", "/env/state"]
 
 
 def test_deploy_paths_matches_the_web_apps_own_answer(tmp_path, monkeypatch):
@@ -106,7 +107,9 @@ def test_deploy_paths_matches_the_web_apps_own_answer(tmp_path, monkeypatch):
     monkeypatch.setattr(logpaths, "CONFIG_PATH", str(tmp_path / "config.json"))
     for var in ("PLANETGEN_TILE_CACHE_DIR", "PLANETGEN_TILE_CACHE_MAX_MB", "PLANETGEN_JOBS_DIR"):
         monkeypatch.delenv(var, raising=False)
-    assert _deploy_paths(tmp_path) == [tilecache.configured_cache_dir(), jobs.configured_jobs_dir()]
+    from planetgen.admin import maintenance
+    monkeypatch.delenv("PLANETGEN_STATE_DIR", raising=False)
+    assert _deploy_paths(tmp_path) == [tilecache.configured_cache_dir(), jobs.configured_jobs_dir(), maintenance.state_dir()]
 
 
 def test_deploy_paths_imports_nothing_planted_beside_it(tmp_path):
@@ -120,7 +123,7 @@ def test_deploy_paths_imports_nothing_planted_beside_it(tmp_path):
     marker = tmp_path / "imported"
     (planted / "json.py").write_text(f"open({str(marker)!r}, 'w').close()\nraise SystemExit(9)\n")
     assert _deploy_paths(tmp_path, script=str(script), cwd=str(planted)) == [
-        "/var/cache/planetgen/tiles", "/var/lib/planetGen/jobs"]
+        "/var/cache/planetgen/tiles", "/var/lib/planetGen/jobs", "/var/lib/planetGen/state"]
     assert not marker.exists()
 
 
@@ -531,11 +534,15 @@ def test_create_cache_dir_gives_apache_only_the_runtime_dirs(tmp_path):
     uid, gid = _www_data()
     env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
     env.update(PLANETGEN_TILE_CACHE_DIR=str(tmp_path / "cache" / "tiles"),
-               PLANETGEN_JOBS_DIR=str(tmp_path / "lib" / "jobs"))
+               PLANETGEN_JOBS_DIR=str(tmp_path / "lib" / "jobs"),
+               PLANETGEN_STATE_DIR=str(tmp_path / "lib" / "state"))
     subprocess.run([os.path.join(APACHE_DIR, "create-cache-dir.sh")], env=env, check=True, capture_output=True)
     for path in (tmp_path / "cache" / "tiles", tmp_path / "lib" / "jobs"):
         info = os.stat(path)
         assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o750)
+    # The state folder (the maintenance switch) is the web user's to write, the group's too, never the world's.
+    info = os.stat(tmp_path / "lib" / "state")
+    assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o770)
     assert os.stat(tmp_path / "cache").st_uid == 0
 
 
