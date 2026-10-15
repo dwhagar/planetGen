@@ -14,7 +14,7 @@ from planetgen.cli import benchmark, generate
 
 
 def _args(**kw):
-    values = dict(sectors=2, ring=12, max_ring=12, seed="ab" * 16)
+    values = dict(sectors=2, shell=12, max_shell=12, seed="ab" * 16)
     values.update(kw)
     return argparse.Namespace(**values)
 
@@ -56,4 +56,4 @@ def test_the_command_is_known_to_the_cli():
     parser = argparse.ArgumentParser()
     benchmark.add_benchmark_arguments(parser)
     got = parser.parse_args([])
-    assert got.sectors == benchmark.DEFAULT_SECTORS and got.ring == benchmark.DEFAULT_RING
+    assert got.sectors == benchmark.DEFAULT_SECTORS and got.shell == benchmark.DEFAULT_SHELL

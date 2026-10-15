@@ -31,9 +31,10 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.galaxy.density import arm_terms, build_galaxy_shape, relative_density
-from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
+from planetgen.galaxy import spherical
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.skeleton import (
-    build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
+    build_shell_extents, expected_system_count_at_density_1, shell_candidate_sector_count,
 )
 from planetgen.generation import run_common
 from planetgen.generation import stages, steps
@@ -214,13 +215,11 @@ def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed,
 def build_skeleton(args):
     """
     Builds and persists the galaxy's skeleton: `galaxy_shape` (the shape
-    parameters, calibration constant, edge length and outer ring -- one
-    singleton row) and `galaxy_layer` (the galaxy's outline: one row per
-    layer, highest to lowest, holding the last ring that layer reaches --
-    see `galaxySkeleton.build_layer_extents`), plus `galaxy_column` (the
-    same outline per ring: the highest and lowest layer each ring
-    reaches). Together they are the bounds every generation path checks
-    first. The edge is always the standard
+    parameters, calibration constant, edge length and outer shell -- one
+    singleton row) and `galaxy_shell` (the galaxy's outline: one row per
+    shell, from the core out, holding the highest band that shell reaches --
+    see `galaxySkeleton.build_shell_extents`). Together they are the bounds
+    every generation path checks first. The edge is always the standard
     `program_constants.DEFAULT_SECTOR_EDGE_PC`.
 
     No sector content or individual addresses are stored -- that stays
@@ -231,8 +230,8 @@ def build_skeleton(args):
         args (argparse.Namespace): Parsed arguments.
 
     Returns:
-        dict: `outer_shell_index`, `layer_count`, `top_layer_index`,
-              `total_candidate_sectors`, `elapsed_s`, `edge_confirmed`.
+        dict: `outer_shell_index`, `shell_count`, `total_candidate_sectors`,
+              `elapsed_s`, `edge_confirmed`.
     """
     edge_pc = run_common._edge_pc()
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
@@ -261,8 +260,8 @@ def build_skeleton(args):
     )
 
     t0 = time.perf_counter()
-    extents, outer_shell_index, edge_confirmed = build_layer_extents(
-        shape, edge_pc, threshold_rho, max_ring=args.max_ring,
+    extents, outer_shell_index, edge_confirmed = build_shell_extents(
+        shape, edge_pc, threshold_rho, max_shell=args.max_shell,
     )
     elapsed = time.perf_counter() - t0
 
@@ -280,7 +279,7 @@ def build_skeleton(args):
         store.clear_bright_stars(conn)
     finally:
         conn.close()
-    store.replace_galaxy_layers(extents, config=mysql_config)
+    store.replace_galaxy_shells(extents, config=mysql_config)
     galaxy_seed = store.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
         expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=requested_seed,
@@ -297,9 +296,8 @@ def build_skeleton(args):
 
     return {
         "outer_shell_index": outer_shell_index,
-        "layer_count": len(extents),
-        "top_layer_index": extents[0][0] if extents else None,
-        "total_candidate_sectors": candidate_sector_count(extents),
+        "shell_count": len(extents),
+        "total_candidate_sectors": shell_candidate_sector_count(extents),
         "elapsed_s": elapsed,
         "edge_confirmed": edge_confirmed,
     }
@@ -1488,23 +1486,23 @@ def run_plan(args):
     stages.enter("skeleton")
     with workQueue.job_node("skeleton", "Galaxy skeleton"):
         summary = build_skeleton(args)
-    if summary["layer_count"]:
-        layers = f"{summary['layer_count']} layers ({summary['top_layer_index']} to {-summary['top_layer_index']})"
+    if summary["shell_count"]:
+        shells = f"{summary['shell_count']:,} shells"
     else:
-        layers = "no layers (nothing clears the one-star-per-sector threshold)"
+        shells = "no shells (nothing clears the one-star-per-sector threshold)"
     log.normal(
-        f"Skeleton built in {summary['elapsed_s']:.2f}s: {layers}, outer edge = ring "
+        f"Skeleton built in {summary['elapsed_s']:.2f}s: {shells}, outer edge = shell "
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
         log.normal(
-            f"WARNING: the galactic plane still qualified at --max-ring ({args.max_ring}) -- the "
-            f"galaxy's true edge was not reached. Re-run with a larger --max-ring if these shape "
+            f"WARNING: the galactic plane still qualified at --max-shell ({args.max_shell}) -- the "
+            f"galaxy's true edge was not reached. Re-run with a larger --max-shell if these shape "
             f"parameters really do produce a galaxy this large."
         )
-    if summary["layer_count"] and not getattr(args, "no_bright_stars", False):
+    if summary["shell_count"] and not getattr(args, "no_bright_stars", False):
         with workQueue.job_node("phenomena", "Phenomena"):
             scatter_phenomena(args)
         with workQueue.job_node("bright-stars", "Bright stars"):
             scatter_bright_stars(args)
-    stages.finish("the galaxy has no layers" if not summary["layer_count"] else None)
+    stages.finish("the galaxy has no shells" if not summary["shell_count"] else None)

@@ -25,7 +25,7 @@ import time
 from planetgen.queue import progress_file
 from planetgen.util import log, stagemark
 
-SECTOR_MODES = ("block", "span", "course", "column", "shell", "slot", "ring", "center_sector")
+SECTOR_MODES = ("block", "span", "course", "shell", "center_sector")
 
 STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
 """str: Set by a web job's runner to the number of stages the job's earlier steps hold, so this run's stages
@@ -147,7 +147,7 @@ def stage_settings(key, args):
     floor = tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL if floor is None else float(floor)
     settings = {"workers": int(workers)}
     if key in ("start", "neighborhood", "sectors"):
-        for name in ("radius_pc", "neighborhoods", "max_ring", "min_start_density"):
+        for name in ("radius_pc", "neighborhoods", "max_shell", "min_start_density"):
             value = getattr(args, name, None)
             if value is not None:
                 settings[name] = value
@@ -163,7 +163,7 @@ def stage_settings(key, args):
     elif key == "backfill":
         settings["backfill_from"] = getattr(args, "backfill_from", "edge") or "edge"
     elif key == "skeleton":
-        for name in ("max_ring", "seed"):
+        for name in ("max_shell", "seed"):
             value = getattr(args, name, None)
             if value is not None:
                 settings[name] = str(value) if name == "seed" else value

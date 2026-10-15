@@ -246,14 +246,21 @@ TABLE_CLASSES = ("M", "N")
 cannot be seen beyond about 250 pc, stay seeded and implicit."""
 
 
-def field_extent_pc(edge_pc, outer_ring, top_layer):
+def field_extent_pc(edge_pc, extents):
     """
     `(radius, half_height)` in parsecs of the cylinder whose field cells hold every cloud that can reach a sector of
-    a galaxy with outer ring `outer_ring` and highest layer `top_layer`: the sectors, their half diagonal and the
-    largest cloud's radius.
+    a galaxy with the outline `extents` (`(shell_index, high_band)` per shell): the sectors, their half diagonal and
+    the largest cloud's radius. The cylinder is the outline's own bounding one: the outer shell's reach across, and
+    the highest point of any band the outline holds up.
     """
     margin = edge_pc * math.sqrt(3.0) / 2 + MAX_CLOUD_RADIUS_PC
-    return (outer_ring + 1) * edge_pc + margin, (abs(top_layer) + 0.5) * edge_pc + margin
+    rows = list(extents)
+    radius = max(shell for shell, _high in rows) + 0.5
+    height = 0.0
+    for shell, high in rows:
+        north = galaxySpherical.band_colatitude_bounds(shell, high)[0]
+        height = max(height, (shell + 0.5) * math.cos(north))
+    return radius * edge_pc + margin, height * edge_pc + margin
 
 
 def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):

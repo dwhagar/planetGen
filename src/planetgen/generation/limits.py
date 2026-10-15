@@ -13,8 +13,8 @@ instead of a job that runs for days or exhausts memory.
 """
 
 from planetgen import tuning
-from planetgen.galaxy.geometry import ring_sector_count
-from planetgen.galaxy.skeleton import DEFAULT_MAX_RING
+from planetgen.galaxy import spherical
+from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL
 from planetgen.physics.units import pc_to_ly
 
 MAX_GENERATE_RADIUS_PC = 200.0
@@ -27,14 +27,15 @@ MAX_GENERATE_RADIUS_LY = pc_to_ly(MAX_GENERATE_RADIUS_PC)
 """float: `MAX_GENERATE_RADIUS_PC` in light years (about 652 ly), for
 the API's generate-neighborhood `radius_ly`."""
 
-MAX_GENERATE_RING = DEFAULT_MAX_RING
-"""int: The highest ring index (`--ring`, `--max-ring`) -- the same cap
+MAX_GENERATE_SHELL = DEFAULT_MAX_SHELL
+"""int: The highest shell index (`--shell`, `--max-shell`) -- the same cap
 the density skeleton walks out to (real Milky-Way-scale galaxies end
-around ring 3,900)."""
+around shell 3,800)."""
 
-MAX_GENERATE_LIMIT = ring_sector_count(MAX_GENERATE_RING)
-"""int: The largest `--limit` for a ring batch: no ring up to
-`MAX_GENERATE_RING` holds more slots than this."""
+MAX_GENERATE_LIMIT = spherical.cells_in_band_range(MAX_GENERATE_SHELL, spherical.band_range(MAX_GENERATE_SHELL)[1])
+"""int: The largest `--limit` for a shell batch: no shell up to
+`MAX_GENERATE_SHELL` holds more cells than this (the cells grow with the
+shell's surface, so the last one is the largest)."""
 
 MAX_GENERATE_NEIGHBORHOODS = 100
 """int: The most random neighborhoods one run may ask for (`--neighborhoods`, GEN.97)."""

@@ -6,11 +6,11 @@ the plan to a finished fill.
 
 It makes a scratch database and control database, runs the real commands in
 child processes with a fixed galaxy seed (`plan`, then `galaxy` over a small
-ring with the scatter on), and prints for each worker count asked:
+shell with the scatter on), and prints for each worker count asked:
 
 - every stage's wall time and share of the run (the numbered stages every
   generation command records in `generation_stage_runs`, UX.89), with what
-  the stage reports it did (layers, sectors, objects);
+  the stage reports it did (shells, sectors, objects);
 - the database's share: the statements and rows the server counted while the
   run went (`Com_*` and `Innodb_rows_*`), per second of the run;
 - with `--profile`, the functions the fill spent most time in, by
@@ -37,7 +37,7 @@ from planetgen.db import login, store
 
 DEFAULT_SEED = "0000000000000000000000000000BEEF"
 DEFAULT_SECTORS = 2
-DEFAULT_RING = 12
+DEFAULT_SHELL = 12
 
 STATUS_VARIABLES = ("Questions", "Com_select", "Com_insert", "Com_update", "Com_delete", "Com_commit",
                     "Innodb_rows_read", "Innodb_rows_inserted", "Innodb_rows_updated", "Innodb_rows_deleted",
@@ -51,13 +51,13 @@ PROFILE_TOP = 25
 def add_benchmark_arguments(parser):
     parser.add_argument("--sectors", type=int, default=DEFAULT_SECTORS, metavar="N",
                         help=f"Sectors the fill makes (default {DEFAULT_SECTORS}).")
-    parser.add_argument("--ring", type=int, default=DEFAULT_RING, metavar="I",
-                        help=f"The ring the fill starts in (default {DEFAULT_RING}); a lower one is denser.")
+    parser.add_argument("--shell", type=int, default=DEFAULT_SHELL, metavar="I",
+                        help=f"The shell the fill starts in (default {DEFAULT_SHELL}); a lower one is denser.")
     parser.add_argument("--workers", default="1", metavar="N[,N...]",
                         help="Worker counts to run at, one run each (default 1).")
     parser.add_argument("--seed", default=DEFAULT_SEED, metavar="HEX", help="The galaxy seed (32 hex digits).")
-    parser.add_argument("--max-ring", type=int, default=12, metavar="I",
-                        help="The plan's outermost ring (default 12, a small galaxy).")
+    parser.add_argument("--max-shell", type=int, default=12, metavar="I",
+                        help="The plan's outermost shell (default 12, a small galaxy).")
     parser.add_argument("--profile", action="store_true",
                         help="Also profile one single-worker fill and list its costliest functions.")
     parser.add_argument("--keep", action="store_true", help="Leave the scratch databases in place.")
@@ -168,11 +168,11 @@ def _profile(config, control, args, workdir):
 
 
 def _plan_args(args):
-    return ["plan", "--seed", args.seed, "--max-ring", str(args.max_ring), "--bright-star-min-luminosity", "100000"]
+    return ["plan", "--seed", args.seed, "--max-shell", str(args.max_shell), "--bright-star-min-luminosity", "100000"]
 
 
 def _fill_args(args):
-    return ["galaxy", "--ring", str(args.ring), "--limit", str(args.sectors), "--yes"]
+    return ["galaxy", "--shell", str(args.shell), "--limit", str(args.sectors), "--yes"]
 
 
 def run_benchmark(args):
@@ -222,14 +222,14 @@ def run_benchmark(args):
     print(format_report(args, results, profile))
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
-            json.dump({"sectors": args.sectors, "ring": args.ring, "seed": args.seed, "runs": results,
+            json.dump({"sectors": args.sectors, "shell": args.shell, "seed": args.seed, "runs": results,
                        "profile": None if profile is None else {"seconds": profile[0], "top": profile[1]}},
                       f, indent=2)
 
 
 def format_report(args, results, profile):
     """The report as text (see this module's docstring)."""
-    lines = [f"Benchmark: plan to ring {args.max_ring}, then {args.sectors} sector(s) from ring {args.ring}, "
+    lines = [f"Benchmark: plan to shell {args.max_shell}, then {args.sectors} sector(s) from shell {args.shell}, "
              f"seed {args.seed}."]
     for run in results:
         total = run["total_seconds"] or 1.0
