@@ -265,7 +265,50 @@ class NeighborhoodRequest(Body):
     estimate_only: StrictBool = False
 
 
-class FacilityCreate(Body):
+class FacilityRatings(Body):
+    """The ratings of a facility: a colour word each (`green`, `yellow`, `red`), or `null` to clear one."""
+
+    crime: Optional[StrictStr] = None
+    housing: Optional[StrictStr] = None
+    resources: Optional[StrictStr] = None
+    maintenance: Optional[StrictStr] = None
+    health: Optional[StrictStr] = None
+
+
+FieldValue = Union[StrictBool, StrictInt, StrictFloat, StrictStr, None]
+"""A value of a facility type's field (`population.facility_types.parse_value` checks it against the field)."""
+
+
+class FacilityExtras(Body):
+    """What a facility carries beyond its place (POP.10): shared by the create and change bodies."""
+
+    type_id: Optional[StrictInt] = None
+    affiliation_polity_id: Optional[StrictInt] = None
+    affiliation_name: Optional[StrictStr] = None
+    ratings: Optional[FacilityRatings] = None
+    ratings_note: Optional[StrictStr] = None
+    fields: Optional[dict[str, FieldValue]] = None
+
+
+class FacilityUpdate(FacilityExtras):
+    """`PATCH /api/facilities/<id>`: its place never changes."""
+
+    name: Optional[StrictStr] = None
+    description: Optional[StrictStr] = Field(default=None, max_length=4000)
+
+    @field_validator("name")
+    @classmethod
+    def _checked_name(cls, value):
+        return None if value is None else _name(value)
+
+    @model_validator(mode="after")
+    def _something(self):
+        if not self.model_fields_set:
+            raise ValueError("send at least one field to change")
+        return self
+
+
+class FacilityCreate(FacilityExtras):
     """`POST /api/facilities`."""
 
     name: StrictStr

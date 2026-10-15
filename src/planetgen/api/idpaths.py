@@ -98,6 +98,8 @@ ID_PATHS = {
     "api.system_facilities": {"items[].id": "facility", "facilities[].id": "facility"},
     "api.facility": {"id": "facility"},
     "api.create_facility": {"id": "facility"},
+    "api.update_facility": {"id": "facility"},
+    "api.facility_list": {"items[].id": "facility"},
     "api.galaxy_cell": {},
     "api.galaxy_uncharted_sector": {},
     "api.rename_star": {"id": "star"},

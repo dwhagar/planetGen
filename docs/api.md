@@ -1297,6 +1297,44 @@ moon's do (a close binary's pair is orbited as one); a gas giant takes
 orbital facilities only. A facility reads back with every column of its
 `facilities` row plus `host_id` and `host_name`.
 
+**Type, affiliation and ratings (POP.10).** `POST /api/facilities` and
+`PATCH /api/facilities/<id>` also take:
+
+- `type_id` — a facility type of the facility's own kind that is not
+  retired. `fields` — `{key: value}` for that type's fields, each checked
+  against its definition (a whole number for `int`, one of the options for
+  a `choice`, and so on). A field left out takes its default; a required
+  field with neither is a `400`. Changing the type drops the old type's
+  values.
+- `affiliation_polity_id` (a polity; the facility keeps the polity's name
+  in `affiliation_name`, so a rescan that renumbers polities loses nothing)
+  or `affiliation_name` (free text, no polity); not both.
+- `ratings` — `{crime, housing, resources, maintenance, health}`, each
+  `green`, `yellow`, `red` or `null`. Saving ratings sets `ratings_source`
+  to `admin` and stamps `ratings_set_at`. `ratings_note` is free text.
+
+`PATCH` changes only what it names, and `null` clears a value (a required
+field cannot be cleared). A facility's place never changes. It returns the
+facility.
+
+A facility reads back with every column of its `facilities` row plus
+`host_id` and `host_name`, and `type_id`, `type_name`, `type_icon`,
+`affiliation_polity_id`, `affiliation_name`, `fields` (`{key: value}`),
+`ratings` (a colour or `null` for each of the five), `rating_words` (what
+the colour means for that dimension: Crime Low, Elevated, High; Housing
+Ample, Tight, Overcrowded; Resources Sufficient, Strained, Critical;
+Maintenance Sound, Deferred, Failing; Health Healthy, At risk, Crisis),
+`overall` (the worst assessed rating), `ratings_source`, `ratings_note` and
+`ratings_set_at`.
+
+`GET /api/facilities` lists facilities, a page at a time (`limit`, `offset`;
+`total` counts what passes the filters). Filters: `kind`, `type_id`,
+`affiliation_polity_id`, `affiliation_name`, `rating_crime`,
+`rating_housing`, `rating_resources`, `rating_maintenance`, `rating_health`
+(each `green`, `yellow` or `red`) and `overall`. `sort` is `name` (the
+default), `kind`, `type` or `worst`, which lists the worst overall rating
+first and the unassessed last; `order=desc` reverses the ratings.
+
 ### Facility types
 
 A facility type refines a kind ("Agricultural colony" is a `colony`) and

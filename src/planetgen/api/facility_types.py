@@ -85,9 +85,13 @@ def update_facility_type(type_id):
     """`PATCH /api/facility-types/<id>` -- any of `name`, `kind`, `icon`, `description`, `sort_order`, `active`.
     409 for a name already taken, and for a new `kind` while facilities use the type."""
     body = given(parse_body(FacilityTypeUpdate, require_json_body()))
-    _write(lambda conn: types.update_type(conn, type_id, body))
+    def change(conn):
+        types.update_type(conn, type_id, body)
+        return types.get_type(conn, type_id)
+
+    found = _write(change)
     audit("facility_type.update", target=f"facility_type:{type_id}", detail=str(sorted(body)))
-    return jsonify(types.get_type(get_db(), type_id))
+    return jsonify(found)
 
 
 @bp.route("/facility-types/<int:type_id>", methods=["DELETE"])
@@ -120,9 +124,13 @@ def update_facility_type_field(type_id, field_id):
     """`PATCH /api/facility-types/<id>/fields/<field_id>` -- any field definition column but `key`. 409 when a
     change would orphan a value a facility already holds."""
     body = given(parse_body(FacilityFieldUpdate, require_json_body()))
-    _write(lambda conn: types.update_field(conn, type_id, field_id, body))
+    def change(conn):
+        types.update_field(conn, type_id, field_id, body)
+        return types.get_type(conn, type_id)
+
+    found = _write(change)
     audit("facility_type.field_update", target=f"facility_type:{type_id}", detail=f"{field_id}: {sorted(body)}")
-    return jsonify(types.get_type(get_db(), type_id))
+    return jsonify(found)
 
 
 @bp.route("/facility-types/<int:type_id>/fields/<int:field_id>", methods=["DELETE"])

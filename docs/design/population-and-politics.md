@@ -744,6 +744,14 @@ allowlist is `population/facility_icons.py`. Facilities taking a type,
 affiliation, ratings and field values, the rating suggestion and the web
 form follow in later parts.
 
+**Part 2** (facilities taking a type, affiliation, ratings and field
+values): `population/facility_attrs.py` checks and stores them
+(`store.add_facility`/`update_facility`), `population/facility_ratings.py`
+holds the colour words and the per-dimension wording, and `GET
+/api/facilities` filters and sorts by them (`db/query.list_facilities`).
+Saving ratings by hand marks them `admin`; the suggestion that fills unset
+ones as `generated` is part 3.
+
 ### API and UI sketch
 
 `/api/facility-types` (admin CRUD, public read). `POST /api/facilities`
