@@ -38,7 +38,9 @@ addresses that keep guessing admin passwords.
   not buffer the stream (the response sends `X-Accel-Buffering: no` for
   nginx).
 - **The same entry point.** Every app server loads `src/html/wsgi.py`
-  and its `application` object. gunicorn: `--pythonpath
+  and its `application` object. gunicorn, from planetGen's own virtual environment
+  (`/usr/local/planetgen/venv`, [apache.md](apache.md#planetgens-own-python)):
+  `/usr/local/planetgen/venv/bin/gunicorn --pythonpath
   <checkout>/src/html wsgi:application`.
 - **Static files from the web server.** `/static/` maps to
   `src/html/static/`, with `X-Content-Type-Options: nosniff`. A URL with
