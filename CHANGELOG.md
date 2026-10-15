@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1165] - 2026-10-15
+
+### Changed
+
+- The TODO list records the first step of the shared unit ladder (UX.23) and Boss's approved in-universe word list (UX.42).
+
 ## [8.0.1164] - 2026-10-15
 
 ### Changed
