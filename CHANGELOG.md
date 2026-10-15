@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1191] - 2026-10-15
+
+### Changed
+
+- **A swinging light counts against a planet's temperature rating (GEN.148).** A planet of one star of a wide pair, or a circumbinary planet, gets a stored `flux_variation`: how much its total starlight swings, as a fraction of the mean, because the companion's distance changes or the bright star is off the pair's centre. The Temperature rating now takes the worse of the cold and hot ends of that swing (`T` to the fourth root of the light), and the description lists the two ends. A planet of a single star is unchanged. Planets generated before this release have no swing until regenerated.
+
 ## [8.0.1190] - 2026-10-15
 
 ### Changed
