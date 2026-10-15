@@ -1337,7 +1337,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
 | UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | none | open |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
-| UX.103 | Design note for the description layer | none | open |
+| UX.103 | Design note for the description layer | none | done, PR #1496 |
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | open |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | open |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | open |

@@ -535,19 +535,6 @@ with `clamp()`.
   a Phase 2 item for the interface builders.
   Prerequisites: none. Related: PERF.66.
 
-- [ ] **UX.103 Design note for the description layer**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Write docs/design/system-description.md: the document
-  model (per body a heading, a facts table of typed quantities, a rating
-  table of the six PHI-6 rows with colour, score and one short sentence,
-  and a few short sentences), the HTML, Markdown, wikitext and
-  plain-text renderers, what is stored versus computed, the migration
-  list for Foundations Database, and a map of every field now written by
-  a to_paragraph_list(). Reconciles with UX.30 (now absorbed). Docs-only
-  PR.
-  Prerequisites: none.
-
 - [ ] **UX.104 Build the document model for stars, pairs, planets, moons, belts, comets and the overview**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -561,7 +548,6 @@ with `clamp()`.
   compare field coverage against the old tables so nothing is dropped. A
   quantity not yet on a unit ladder is carried as a plain number with
   its unit and converted when UX.22/UX.23 land.
-  Prerequisite: UX.103.
 
 - [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
