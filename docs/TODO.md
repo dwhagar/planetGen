@@ -1485,6 +1485,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [#1416](https://github.com/dwhagar/planetGen/issues/1416).
   Prerequisites: none. Related: MAP.198, MAP.199, MAP.152.
 
+- [ ] **MAP.202 Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug)**
+  Boss, 2026-10-15 01:51Z, after his eye test of MAP.188 (done, PR
+  #1289): both 187 and 188 are resolved, but the sector barriers should
+  be nearly invisible unless a block is being selected. This is the
+  remaining change of MAP.188. Done: at rest the sector and slab borders
+  are nearly invisible on both themes, and they show (with the
+  wire-frame highlight) only while a block is being selected; browser
+  test. Owner: Bugfixes lane 2, right after MAP.198 (same selection and
+  highlight area; shares the outline code, avoid overlap with MAP.152).
+  GitHub issue
+  [#1212](https://github.com/dwhagar/planetGen/issues/1212).
+  Prerequisites: none. Related: MAP.198, MAP.201, MAP.152.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
