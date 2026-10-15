@@ -959,9 +959,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   revision at merge, expect 0090) that empties galaxy_block_stats and
   refills it with block_stats.rebuild on the new ladder, because every
   stored row (DB.25) is wrong on the new ladder and a stale m=27 row
-  would be read as a new-ladder cell without error. One-time exception to
-  "only Foundations Database adds migrations" (coordinator, 2026-10-15);
-  the migration must land with or after the ladder code. MAP.151c: per-level aggregates and the window query.
+  would be read as a new-ladder cell without error. Foundations Maps writes it
+  under the migration rule for Maps (Boss, 2026-10-15 03:16Z: Maps may
+  build the database changes it needs after telling Foundations Database
+  first; if Database has that work in progress, Maps holds off and does
+  something else); the migration must land with or after the ladder code. MAP.151c: per-level aggregates and the window query.
   MAP.151d: the map reads the windows. None of it is visible until
   Boss's installer is fixed (issue #1211 stays open until he tests).
   Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
