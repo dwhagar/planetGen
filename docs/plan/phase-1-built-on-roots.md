@@ -206,9 +206,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build |  |  |
 | TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) |  |  |
-| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | TEST.151 |  |
+| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming |  |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |

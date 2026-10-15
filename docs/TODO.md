@@ -5167,24 +5167,9 @@ clears each one.
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
   automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
-  TEST.151 and TEST.152, owner the Test Suite Rebuild thread (TEST.133
+  TEST.151 (done, PR #1484) and TEST.152, owner the Test Suite Rebuild thread (TEST.133
   done, #1405).
   Prerequisites: none. Related: TEST.139.
-
-- [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
-  Option A of TEST.148. `scripts/test.py <command> --resume` computes
-  the build id, finds the progress log, and deselects the tests that
-  passed (a skip list passed to pytest on every worker at collection);
-  tests that failed, errored, were running when it stopped or never
-  started run again. It prints the build id, the time of the earlier run
-  and the counts first, and ends with a line that says the run was
-  resumed (for example PASS: N from the earlier run + M now). Each phase
-  (non-browser, then browser) resumes by its own test ids. A resumed run
-  is never automatic, and it is not the merge gate unless the PR says
-  so: a PR that used one says which build and run it continued. Done
-  when a run killed in either phase resumes and finishes with the same
-  verdict a full run gives, with tests for the skip list.
-  Prerequisite: TEST.150 (done, PR #1431). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
   Option A of TEST.148. A killed run can leave keys on the shared Redis:
@@ -5197,7 +5182,7 @@ clears each one.
   the labelling rule (a resumed run says so in its last line and in the
   PR). Done when a killed run leaves nothing that changes a resumed
   run's result and the guide matches.
-  Prerequisite: TEST.151. Related: TEST.148, TEST.139.
+  Prerequisite: TEST.151 (done, PR #1484). Related: TEST.148, TEST.139.
 
 - [ ] **TEST.154 A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug)**
   Reported by Foundations Maps (2026-10-15, MAP.197 gate):
