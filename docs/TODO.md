@@ -2586,14 +2586,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   subspace and other fiction anomalies wanted? Tier 3 only through a
   default-off `lore-anomaly` kind with `K_lore` 0.
 
-- [ ] **GEN.114 Add the chosen anomalies to the starmap**
-  Done: the anomalies GEN.113 chose are generated, stored, shown on the
-  maps and searchable, one kind per PR.
-  Research (2026-10-09, anomalies.md): split into one PR per kind in the
-  order of the ranked list; add prerequisites GEN.104 (jets) and GEN.128
-  to GEN.130 (symbiotic binaries).
-  Prerequisite: GEN.113.
-
 - [ ] **GEN.129 Multi-star systems of up to seven stars**
   Boss (GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777)): "We need to add scientifically accurate star
   systems with up to 7 stars, this is going to be complex but that is
@@ -2687,7 +2679,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item: multi-star systems around a scattered object appear at sector
   fill only.
 
-- [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
+- [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
   have black holes, neutron stars, or similar as the central star for
   systems, binary systems." Done as GEN.128's design says: generation
@@ -2759,6 +2751,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   applies. Boss has ordered the phenomena catalogue and fill rules
   (docs/design/phenomena-catalogue-and-fill.md, in research); items
   follow from it.
+  Rescoped (catalogue section 8 item 3, Boss's rules of 2026-10-15):
+  this is now the compact-remnant content of the system pass of the
+  fill-stages item, not a scatter-time promotion. Slices (a) to (c)
+  above become what the pass builds for neutron stars, millisecond
+  pulsars and stellar black holes at the probabilities of catalogue
+  section 5: the companion, the kick-and-survival check, the
+  Holman-Wiegert zones, pulsar planets at 0.7%. Done: a filled sector
+  holding a black hole or neutron star gives it a system at those odds,
+  and a scattered one never has one before the fill. The white-dwarf and
+  planetary-nebula-star rows belong to the fill-stages item. Owner: Core
+  (2026-10-15).
+  Prerequisites: GEN.251.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
@@ -3541,13 +3545,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cluster core cell is a queued job with an ETA, and the Clouds' and
   Sagittarius's star counts match their masses. Owner: Core
   (2026-10-15).
-  Prerequisites: GEN.235, GEN.159, GEN.160. Related: GEN.9, GEN.161,
-  GEN.164.
   Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
   database schema is not a constraint. Redesign tables, columns and
   layouts as the work needs, with one migration or a fresh galaxy;
   nothing is kept for the sake of production data. The component table
   is designed for what it holds, not squeezed into existing tables.
+  Prerequisites: GEN.235, GEN.159, GEN.160. Related: GEN.9, GEN.161,
+  GEN.164.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.238 Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population**
@@ -3608,8 +3612,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   IDs, one rule set everywhere with per-sector parameters, nothing
   generated unless asked, and an asked sector always generated and
   saved.
-  Prerequisites: GEN.232, GEN.234, GEN.235, GEN.237. Related: GEN.238,
-  GEN.223.
   Decided (Boss, 2026-10-15 5:27 PM EDT): the scatter from the origin
   keeps the banded, layered approach it has now, because the bands of a
   shell have fixed slices (Boss's recollection; Core checks it against
@@ -3619,17 +3621,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PM EDT): early alpha, so the current database schema is not a
   constraint. Redesign tables, columns and layouts as the work needs,
   with one migration or a fresh galaxy; nothing is kept for the sake of
-  production data.
-  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
-  no systems, planets or moons, so bright stars, massive stars, neutron
-  stars, black holes and the other scattered objects are bare rows;
-  planets and moons are made only when a sector is being filled with
-  everything; a sector fill must represent every kind of object, and
-  when a fill meets a phenomenon that can have a system (or makes one
-  that can) it generates that system if the real-world probabilities
-  give it one; nebulae need stars and phenomena, not planets. For this
-  item: the three scatters write bare rows and never build a system; the
-  system is built when the sector fills.
+  production data. Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and
+  backscatters get no systems, planets or moons, so bright stars,
+  massive stars, neutron stars, black holes and the other scattered
+  objects are bare rows; planets and moons are made only when a sector
+  is being filled with everything; a sector fill must represent every
+  kind of object, and when a fill meets a phenomenon that can have a
+  system (or makes one that can) it generates that system if the
+  real-world probabilities give it one; nebulae need stars and
+  phenomena, not planets. For this item: the three scatters write bare
+  rows and never build a system; the system is built when the sector
+  fills.
+  Prerequisites: GEN.232, GEN.234, GEN.235, GEN.237. Related: GEN.238,
+  GEN.223.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
@@ -3683,8 +3687,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   IDs, one rule set everywhere with per-sector parameters, nothing
   generated unless asked, and an asked sector always generated and
   saved.
-  Prerequisites: GEN.235, GEN.236, GEN.242. Related: MAP.172, GEN.150,
-  GEN.202, GEN.99.
   Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
   no systems, planets or moons, so bright stars, massive stars, neutron
   stars, black holes and the other scattered objects are bare rows;
@@ -3696,6 +3698,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item: the stars and phenomena a nebula needs are real objects made
   with it; they get planets and moons only when the nebula's sector is
   being filled, never in a scatter.
+  Prerequisites: GEN.235, GEN.236, GEN.242, GEN.251. Related: MAP.172,
+  GEN.150, GEN.202, GEN.99.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.242 A pre-main-sequence state for young stars, so protostars can exist as real stars**
@@ -3770,8 +3774,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (65,535 shells), 96-bit object IDs, one rule set everywhere with
   per-sector parameters, nothing generated unless asked, and an asked
   sector always generated and saved.
-  Prerequisites: GEN.235, GEN.158, GEN.241. Related: GEN.113, MAP.132,
-  MAP.176.
   Systems around Wolf-Rayet stars (design note section 5.12, answering
   Boss's 2026-10-15 question). A W star is a state of an ordinary star,
   so it gets an ordinary system with no special path. No planets (the
@@ -3784,17 +3786,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nebula's central white dwarf is already an ordinary system, so planets
   there are possible and engulfment removes the inner ones. Done also
   means: a W star's system carries its companions at those fractions and
-  no planets.
-  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
-  no systems, planets or moons, so bright stars, massive stars, neutron
-  stars, black holes and the other scattered objects are bare rows;
-  planets and moons are made only when a sector is being filled with
-  everything; a sector fill must represent every kind of object, and
-  when a fill meets a phenomenon that can have a system (or makes one
-  that can) it generates that system if the real-world probabilities
-  give it one; nebulae need stars and phenomena, not planets. For this
-  item: a Wolf-Rayet star's companions and belts come when its sector
-  fills; the pre-placed or scattered row carries none.
+  no planets. Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and
+  backscatters get no systems, planets or moons, so bright stars,
+  massive stars, neutron stars, black holes and the other scattered
+  objects are bare rows; planets and moons are made only when a sector
+  is being filled with everything; a sector fill must represent every
+  kind of object, and when a fill meets a phenomenon that can have a
+  system (or makes one that can) it generates that system if the
+  real-world probabilities give it one; nebulae need stars and
+  phenomena, not planets. For this item: a Wolf-Rayet star's companions
+  and belts come when its sector fills; the pre-placed or scattered row
+  carries none.
+  Prerequisites: GEN.235, GEN.158, GEN.241. Related: GEN.113, MAP.132,
+  MAP.176.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.244 Young open clusters and OB associations as components (later)**
@@ -3862,6 +3866,146 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on this; plan after it. Owner: Core, later (2026-10-15).
   Prerequisites: GEN.235.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.250 A phenomena registry: one table for every kind of object, with a completeness test**
+  Step 1 of the phenomena train (catalogue section 6). A kind is defined
+  in five places today (`SECTOR_PHENOMENON_KINDS`, `SCATTERED_KINDS`,
+  `PHENOMENON_DENSITY_PC3`, `KIND_CODES`, the class pages) plus the map
+  marker list. Add `phenomena/registry.py`, one row per kind with the
+  columns `kind`, `family`, `status`, `rate`, `gate`, `mode` (scatter,
+  fill, field, flag, component), `builder`, `system_model`, `carries`,
+  `id_code`, `page_class`, `marker`, `evidence_note`, and generate the
+  scatter lists, fill stages, rate tables, ID codes and class pages from
+  it. No change in behaviour. Done: every kind reads from the registry
+  and a test checks that every row has every column, every `builder`,
+  `system_model` and `carries` resolves, no ID code repeats, and no code
+  path makes an object of a kind that is not in the table; adding a kind
+  is one row, a builder and a test. Owner: Core (2026-10-15); the
+  completeness test is part of this item, the wider audit is TEST.
+  Boss's rules (2026-10-15 5:39 PM EDT): scatters and backscatters carry
+  no systems, planets or moons; nebulae need stars and phenomena, not
+  planets; planets and moons only when a sector is filled with
+  everything; a fill represents every kind and builds the systems
+  phenomena can have at real-world odds.
+  Prerequisites: none. Related: GEN.235, GEN.236, GEN.241.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.251 Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one**
+  Step 2 of the phenomena train (catalogue sections 3 and 5). Split
+  `generate_sector` into stages A to I, each on its own stream
+  (`seed(sector)` plus the stage name), so adding a kind never moves
+  another stage's draws: A pre-placed stars, B scattered rows become
+  objects, C the new system pass, D the cell's other systems, E per-star
+  kinds, F field and hosted nebulae with their required stars, G
+  below-cut remnants, H flags and the nucleus, I audit counters per kind
+  per stage. The system pass: at fill every object from A and B whose
+  kind has a system model rolls once, on its own seed
+  (`draw.bound(row.seed)` with a stage suffix), and gets the system
+  (companions, planets, belts, moons, disk) with the observed odds in
+  one tuning dict: white dwarf 30%, young neutron star 2%, millisecond
+  pulsar 78% (planets 0.7%), stellar black hole 20%, planetary-nebula
+  central star 20%, ordinary stars as now, a rogue planet's moon 20%,
+  nothing for magnetars, intermediate-mass and supermassive holes, brown
+  dwarfs, comets and asteroid fields. Order inside the pass: stars, then
+  compact remnants, then the rest. A system that does not fit drops its
+  outermost body, then its companion; the object stays. Scatter rows
+  store a point and a seed only: no planet or moon exists before the
+  sector is filled. Cost: about 0.002 extra systems per local sector
+  against 6.3. Done: the same seed gives the same system in any fill
+  order, each kind's share with a system matches the table within
+  Poisson bounds, a scattered black hole or neutron star gets its system
+  only at fill, and no draw of any other stage moves when a kind is
+  added. Owner: Core (2026-10-15). Boss's rules (2026-10-15 5:39 PM
+  EDT): scatters and backscatters carry no systems, planets or moons;
+  nebulae need stars and phenomena, not planets; planets and moons only
+  when a sector is filled with everything; a fill represents every kind
+  and builds the systems phenomena can have at real-world odds.
+  Prerequisites: GEN.250, GEN.235. Related: GEN.130, GEN.241, GEN.240.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.252 Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert**
+  Step 5 of the phenomena train (catalogue section 8 item 5). An L/T/Y
+  state from the `ROGUE_BROWN_DWARF_*` cooling tables, so a brown dwarf
+  can be a companion or primary of a system, with the brown-dwarf-desert
+  rule for close companions. Done: a system can hold a brown dwarf star
+  at the observed rate, shown as one on its page. Later; nothing in the
+  whole-sphere train waits on it. Owner: Core, later (2026-10-15).
+  Prerequisites: GEN.251. Related: GEN.129.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.253 White-dwarf pollution flag and cool white dwarf presets**
+  Step 6 of the phenomena train (catalogue section 8 item 6). 25% to 50%
+  of cool white dwarfs are polluted by accreted rocky debris [S]; add
+  the flag and the presets, part of the white-dwarf row of GEN.130.
+  Done: a cool white dwarf shows a pollution flag at that share and its
+  system presets are the cool-white-dwarf ones. Later. Owner: Core,
+  later (2026-10-15).
+  Prerequisites: GEN.130.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.254 Superbubble field beside the nebula field (the Local Bubble cavity)**
+  Split from GEN.114 (catalogue section 8 item 7; `anomalies.md` Tier
+  2). A superbubble cavity field of about 12% filling beside
+  `nebula_field`, 100 to 200 pc across like the Local Bubble, hot and
+  thin, that zeroes the molecular clouds inside it. Done: the field
+  exists, is deterministic from the seed, appears on the map and the
+  sector page, and the clouds inside it are gone. Later. Owner: Core,
+  later (2026-10-15).
+  Prerequisites: GEN.235. Related: GEN.113.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
+  Split from GEN.114 (catalogue section 8 item 7). GEN.104 gave every
+  rotating object a spin axis; draw the jets of protostars in class Q
+  cores (up to 1.5e5 in the Galaxy), microquasars and pulsars along it,
+  on the object pages and the maps. Done: each of the three kinds shows
+  a jet along its spin axis at its own rate. Later. Owner: Core then
+  Interface, later (2026-10-15).
+  Prerequisites: GEN.242. Related: GEN.104, GEN.247.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.256 A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars**
+  Split from GEN.114 (catalogue section 8 item 7). A derived value, not
+  an object: the dose at a point from the O and B stars, Wolf-Rayet
+  stars, remnants and active magnetars near it (a giant flare of 1e46
+  erg delivers 8.4e7 erg/cm2 at 1 pc), feeding the habitability
+  radiation term; a flag within 10 pc of an active magnetar. Done: a
+  system page shows its score and the terms behind it. Later. Owner:
+  Core, later (2026-10-15).
+  Prerequisites: GEN.243, GEN.153. Related: GEN.113.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.257 A Fermi-bubble overlay on the Galaxy Map**
+  Split from GEN.114 (catalogue section 8 item 7). The two lobes of
+  about 50 degrees and 8 kpc above and below the nucleus, drawn as an
+  overlay on the Galaxy Map, no objects. Done: the overlay can be shown
+  and hidden and sits where the data puts it. Later. Owner: Interface,
+  later (2026-10-15).
+  Prerequisites: GEN.233. Related: GEN.113.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.258 Protostars embedded in giant molecular clouds**
+  Step 8 of the phenomena train (catalogue section 8 item 8). The class
+  P and Q cores give 2.6e5 protostars against 1.4e6 expected; embedded
+  Q-type groups inside M clouds make up the rest. Default: accept the 5x
+  shortfall for the first release, as GEN.241 and GEN.242 stand. Done: a
+  giant molecular cloud holds embedded Q-type groups of protostars and
+  the count reaches the expectation, or Boss accepts the shortfall.
+  Later. Owner: Core, later (2026-10-15).
+  Prerequisites: GEN.241, GEN.242. Related: GEN.242.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **GEN.259 Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug)**
+  `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE` = 0.1% of black holes gives
+  about 1e5 intermediate-mass holes in the Galaxy, four orders above the
+  few candidates and none confirmed in the field (catalogue section
+  4.2). It was kept on purpose (Boss's "smattering") and is left alone
+  until Boss says. Question for Boss: keep it, or cut the chance so the
+  Galaxy holds hundreds. Default: left alone. Done: Boss's answer is
+  recorded and, if he cuts it, the chance and its tests change. Owner:
+  Core (2026-10-15).
+  Prerequisites: none. Related: GEN.236.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -5323,6 +5467,41 @@ clears each one.
   TEST.156.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
+- [ ] **TEST.160 Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked**
+  Step 4 of the phenomena train (catalogue section 7). The registry
+  gives the expected count of each kind per sector for each region class
+  (core, bar, thin disk arm and interarm, thick disk, halo,
+  Magellanic-type satellite, globular cluster core, intergalactic
+  floor); fill a fixed set of seeded sectors in each, count by stage,
+  and compare: each kind within four sigma of its expectation, any kind
+  expected 20 or more times appears at least once, none appears where
+  its gate forbids it, the fraction with a system matches the system
+  table, and every hosted nebula, planetary nebula, core-collapse
+  remnant, D or E region and Wolf-Rayet nebula holds its required
+  contents. Also an admin report. Audited, not forced: Boss's reading of
+  "all types represented" is pending; default is audited frequency.
+  Done: the audit runs in the suite in a few minutes and as a report.
+  Owner: Quality (all TEST items are Quality's). Boss's rules
+  (2026-10-15 5:39 PM EDT): scatters and backscatters carry no systems,
+  planets or moons; nebulae need stars and phenomena, not planets;
+  planets and moons only when a sector is filled with everything; a fill
+  represents every kind and builds the systems phenomena can have at
+  real-world odds.
+  Prerequisites: GEN.250, GEN.251. Related: TEST.159.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
+- [ ] **TEST.161 Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table**
+  Tests beside the fill-stages item (catalogue sections 3 and 5): adding
+  a kind to a stage moves no draw of another stage; the same object
+  gives the same system in any sector fill order; each kind's system
+  share matches the table within Poisson bounds; a scatter row carries
+  no planet or moon before its sector fills; no room drops the outermost
+  body first. Done: each test exists and runs in the normal suite.
+  Owner: Quality (all TEST items are Quality's), written beside the
+  build step.
+  Prerequisites: GEN.251. Related: TEST.159.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -5990,6 +6169,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 96-bit layout as built. Owner: Quality, after the code.
   Prerequisites: GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **DOC.49 Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue**
+  Step 9 of the phenomena train. `interstellar-object-rates.md`,
+  `anomalies.md`, `multistar-and-compact-systems.md` and
+  `nebula-and-asteroid-field-classes.md` say where each kind now lives
+  (`phenomena-catalogue-and-fill.md` and the registry). Done: each of
+  the four names the catalogue section and the registry row for its
+  kinds, and the Wolf-Rayet and compact-remnant rules agree with the
+  build. Owner: Quality, after the code.
+  Prerequisites: GEN.250, GEN.251, GEN.130. Related: DOC.48.
+  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 ## VIEW: The view from a planet
 
