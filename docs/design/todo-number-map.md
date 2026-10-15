@@ -745,7 +745,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | done, PR #1239 |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | done, PR #1325 |
 | GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | done, PR #1278 |
-| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
+| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | done, PR #1429 |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
 | GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall | none | open |

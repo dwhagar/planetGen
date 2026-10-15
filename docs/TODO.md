@@ -523,7 +523,7 @@ with `clamp()`.
   library, drawn on both themes with enough contrast, used in the planet
   and moon lists, and a test checks every rating colour. Needs the PHI-6
   model.
-  Prerequisites: GEN.207, UX.100. Related: UX.100, GEN.207.
+  Prerequisite: UX.100. Related: UX.100, GEN.207 (done, PR #1429).
 
 - [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
   (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
@@ -3345,58 +3345,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
-  GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
-  (Boss, 2026-10-11 03:24Z): extend PHI-4 to six dimensions: Pressure,
-  Temperature, Air Chemistry (is the air breathable), Water Chemistry
-  (is the water drinkable), Radiation, and Suitability (long-term
-  survival: enough food and water for a person to sustain themselves,
-  from the planet's evolutionary timeline and age, whether there is any
-  food at all on the surface, enough water). The first five are the core
-  (can a person survive the surface conditions); Suitability only
-  affects the long term. Importance order: Radiation, Temperature,
-  Pressure, Air Chemistry, Water Chemistry, Suitability. Rules from
-  Boss: Radiation sets the maximum of the whole score (Yellow caps at
-  Yellow, Red at Red), Temperature likewise; Pressure matters only when
-  a full suit is not needed anyway, and red pressure makes the overall
-  rating red, yellow pressure caps it at Yellow; Air Chemistry yellow or
-  red caps the score at Yellow (red air alone cannot make the overall
-  rating red); Water Chemistry yellow or red caps it at Yellow;
-  Suitability is always Red if any of the first three are Red, at most
-  Yellow if any of the first four contains a Yellow, Green only if the
-  first five are Green or Blue, Blue only if all others are Blue; a Red
-  Suitability drops any overall score to Yellow but never to Red. Done:
-  the model, the stored values, the planet pages and the API carry the
-  six dimensions with the rules above, and tests cover each rule. Decided (Boss, 2026-10-14 13:16Z): air yellow or red caps the overall
-  rating at Yellow, never lower; a world with no liquid water has Water
-  Chemistry Red, which caps the overall score at Yellow and makes
-  Suitability Red; pressure always matters but does not change the score
-  once a full suit is needed anyway, and it is still listed among the
-  reasons for the suit in the details; the overall score mixes the
-  colour gates with the geometric mean, gates first; Blue overall needs
-  all six Blue. Boss's research is now in the repository
-  ([Exoplanetary Habitability.md](design/Exoplanetary%20Habitability.md),
-  added 2026-10-14, a four-tier Red, Yellow, Green, Blue ecology and
-  survivability ladder). It does not name a Suitability score, but its
-  Table 2 gives the ladder for the long-term resources: water access
-  (perchlorate brine or deep ice, glacial ice, rivers and lakes, global
-  fresh water), native food (none, chemosynthetic mats only, algae and
-  mosses whose chemistry may not suit people, forests and animals of
-  compatible chemistry), shelter from radiation, and the survival
-  timelines of Table 3 (a person alone: seconds, minutes, 2 to 4 weeks,
-  a lifetime; a colony: finite, heavy resource use, mostly
-  self-sufficient, fully self-sufficient). Open question for Boss
-  (default: Suitability is the lowest of three rungs, water access, food
-  and shelter, each read off Table 2 with the tier names above; a world
-  with no native food is at most Yellow, a sterile world with no water
-  Red; it has a 0 to 1 number that is the same geometric-mean blend of
-  the three rungs as the other dimensions, and the numbers are tuned
-  with the lane's sample worlds). Owner: Foundations lane 2.
-  Decided (Boss, 2026-10-14 19:54Z, on a decision
-  card relayed by the coordinator): Suitability is the lowest of three,
-  water access, food and shelter, as a 0 to 1 number.
-  Prerequisite: DB.26 (done, PR #1423; the one migration for the new columns). Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
-
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
   (Boss, 2026-10-11 01:35Z and 02:41Z): the text at the end should be a
@@ -3432,8 +3380,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can replace it. Done: the description names the suit or mask
   classes the planet needs and why, in one short paragraph per planet,
   with tests over a sample of planets. Owner: Foundations lane 2, with
-  GEN.207.
-  Prerequisite: GEN.207. Related: GEN.207, UX.100.
+  GEN.207 (done, PR #1429).
+  Prerequisite: GEN.207 (done, PR #1429). Related: GEN.207, UX.100.
 
 - [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
   GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
@@ -4112,7 +4060,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration (next after DB.27's) with its old-schema fixture and tests,
   merged so POP.10 can be built on it. Owner: Foundations Database,
   right after DB.27.
-  Prerequisites: DB.27. Related: POP.10, DB.27.
+  Prerequisite: DB.27. Related: POP.10, DB.27.
 
 ## API: The JSON API
 
