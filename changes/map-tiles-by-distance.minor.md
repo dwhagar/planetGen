@@ -1,2 +1,0 @@
-### Changed
-- **The Galaxy Map fetches tiles by distance from the camera (MAP.152).** Near space comes in small tiles and far space in big ones, inside the cone you are looking along, instead of one tile size for the whole view, so a star field stays sharp close in and light far out. Stars fade in and out as the camera crosses from one tile size to the next, with no pop. The brightness floors by tile size are gone, and the per-tile star budgets were refit so a view still holds under 70,000 stars.

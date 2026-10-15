@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1175] - 2026-10-15
+
+### Changed
+- **The Galaxy Map fetches tiles by distance from the camera (MAP.152).** Near space comes in small tiles and far space in big ones, inside the cone you are looking along, instead of one tile size for the whole view, so a star field stays sharp close in and light far out. Stars fade in and out as the camera crosses from one tile size to the next, with no pop. The brightness floors by tile size are gone, and the per-tile star budgets were refit so a view still holds under 70,000 stars.
+
 ## [8.0.1174] - 2026-10-15
 
 ### Changed
