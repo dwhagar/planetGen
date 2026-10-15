@@ -328,23 +328,22 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     steps = [("", ["Galaxy"])]
     reached_sector = False
     for _ in range(16):
-        text = _click_choice(page)
+        _click_choice(page)
         crumbs = _crumbs(page)
         query = _query(page)
-        assert crumbs[-1] == _label_of(text), f"clicked {text!r}, breadcrumb now {crumbs}"
         if crumbs[-1].startswith("Sector "):
             reached_sector = True
             break
-        assert len(crumbs) == len(steps[-1][1]) + 1 or crumbs[-1].startswith("Block "), crumbs
-        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[asL0-9.~,-]+)?", query), query
+        # MAP.150: each click opens a window centred on the cell clicked, one size down.
+        assert crumbs[-1].startswith("Block "), crumbs
+        assert re.fullmatch(r"win=(27|3|1)\.\d+\.\d+\.-?\d+", query), query
         assert query != steps[-1][0], "the URL names the new stage"
         steps.append((query, crumbs))
     assert reached_sector, f"never reached a sector: {steps[-1]}"
     kinds = " ".join(q for q, _ in steps)
-    # MAP.56: arc, slab, segment, slab, ... down to a sector; no regions.
-    for marker in ("p=a", "L", "at=243.", "at=27.", "at=3."):
+    for marker in ("win=27.", "win=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
-    assert not re.search(r"[=,]r\d", kinds), kinds
+    assert not re.search(r"[=,]r\d|p=", kinds), kinds
 
     # Back and Forward (the browser's) walk the same stages, in order.
     # (Picking the sector may or may not add an entry of its own, so the
@@ -352,7 +351,7 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     steps.append((_query(page), _crumbs(page)))
     queries = [q for q, _ in steps]
     at = len(steps) - 1
-    for _ in range(3):
+    for _ in range(2):  # (three would reach the galaxy, where the map's own Back is off)
         before = _state(page)
         page.go_back()
         _wait_settled(page, before)
@@ -400,7 +399,7 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     else:
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
     _wait_settled(page)
-    assert _crumbs(page) == steps[1][1]
+    assert _crumbs(page) == steps[1][1][:2], "the second step is the window of its first block"
     before = _state(page)
     page.click('#galaxymap3d-controls [data-action="reset"]')
     _wait_settled(page, before)
@@ -414,12 +413,12 @@ def _scale_text(page):
     return page.locator("#galaxymap3d-scale").inner_html()
 
 
-def test_galaxy_map_free_camera_from_an_arc_down(page, base_url):
+def test_galaxy_map_free_camera_from_a_window_down(page, base_url):
     _open_galaxy(page, base_url)
     reset_view = page.locator('#galaxymap3d-controls [data-action="reset-view"]')
     assert not reset_view.is_disabled(), "the whole galaxy turns (MAP.85)"
     _click_choice(page)
-    assert parse_qs(_query(page))["p"][0].startswith("a"), "the galaxy's first pick is an arc"
+    assert parse_qs(_query(page))["win"][0].startswith("27."), "the galaxy's first pick is a window of 27-blocks"
 
     canvas = "#galaxymap3d-canvas"
     box = page.locator(canvas).bounding_box()

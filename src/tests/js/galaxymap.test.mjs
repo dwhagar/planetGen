@@ -20,6 +20,7 @@ if (!F) throw new Error("run through test_js_unit.py (PLANETGEN_JS_FIXTURES is n
 installDom("http://localhost/galaxy");
 const THREE = await import(new URL("vendor/three.module.min.js", STATIC_URL).href);
 const S = await import(new URL("galaxystages.js", STATIC_URL).href);
+const P = await import(new URL("galaxyprisms.js", STATIC_URL).href);
 const GB = await import(new URL("galaxyblocks.js", STATIC_URL).href);
 // Without a query, so they share one three.js with this file (the
 // stage view gets it from the host anyway).
@@ -70,11 +71,11 @@ function open(href, options) {
   const viewport = h("div", { class: "starmap-viewport" }, [canvasEl, tooltip]);
   viewport.rect = canvasEl.rect;
   const els = {
-    crumbs: h("nav"), slabs: h("div"), tooltip: tooltip, notice: h("p", { hidden: true }),
+    crumbs: h("nav"), tooltip: tooltip, notice: h("p", { hidden: true }),
     address: h("form", {}, [h("input", { type: "search" })]), matches: h("div", { hidden: true }),
     controls: h("div", { id: "galaxymap3d-controls" }, controlButtons()),
   };
-  document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.slabs, els.notice,
+  document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.notice,
     els.address, els.matches, els.controls);
   const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [], pages: [], uncharted: [] };
   const server = options.server || (() => ({ children: [], sectors: [] }));
@@ -103,6 +104,15 @@ function open(href, options) {
     },
     fetchStage(query) {
       calls.fetches.push(query);
+      try {
+        return Promise.resolve(server(query));
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    },
+    // A window of blocks (MAP.151): the server answers it as it does a stage.
+    fetchWindow(query) {
+      calls.fetches.push("window" + query);
       try {
         return Promise.resolve(server(query));
       } catch (err) {
@@ -315,7 +325,7 @@ test("the toggle buttons flip aria-pressed and what they control", () => {
 
 test("opens on the whole galaxy with nothing to go back to", async () => {
   const m = await start();
-  assert.deepEqual(m.view.stage(), { at: null, picks: [] });
+  assert.deepEqual(m.view.stage(), { win: null });
   assert.deepEqual(crumbLabels(m), ["Galaxy"]);
   assert.equal(button(m, "back").disabled, true);
   assert.equal(button(m, "forward").disabled, true);
@@ -337,17 +347,13 @@ function gridEdges(m) {
   return Array.from(new Set(values));
 }
 
-test("the whole galaxy has no grid lines; an arc shows only its slabs' lines (MAP.85, MAP.77)", async () => {
+test("the whole galaxy has no grid lines; a window shows the lines between its blocks (MAP.85)", async () => {
   const m = await start();
   assert.deepEqual(gridEdges(m), [0]);
   await drillOnce(m);
-  assert.equal(m.view.stage().picks[0].kind, "arc");
-  // Picking a slab: no lines between the blocks inside the slabs, only
-  // the boundaries between slabs.
-  assert.deepEqual(gridEdges(m), [0]);
-  const lines = m.host.canvasEl.galaxyLines();
-  assert.equal(lines.kind, "layer");
-  assert.ok(lines.slabLines > 0, "the slabs' boundaries are drawn");
+  assert.equal(m.view.stage().win.centre.m, 27);
+  assert.deepEqual(gridEdges(m), [1]);
+  assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "chartedLines"]);
 });
 
 test("the whole galaxy turns and zooms in to half its fit, never out past it", async () => {
@@ -363,26 +369,23 @@ test("the whole galaxy turns and zooms in to half its fit, never out past it", a
   m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 480, clientY: 260, pointerId: 1, button: 0, pointerType: "mouse" }));
   const turned = lastCamera(m);
   assert.ok(Math.abs(turned.heading - fit.heading) > 0.05 && turned.tilt > 0.05, "dragging turns and tilts it");
-  assert.deepEqual(m.view.stage(), { at: null, picks: [] }, "a drag picks nothing");
+  assert.deepEqual(m.view.stage(), { win: null }, "a drag picks nothing");
 });
 
-test("each step down by keyboard pushes a history entry and a breadcrumb", async () => {
+test("each step down by keyboard pushes a history entry and a breadcrumb, a window one size down each time", async () => {
   const m = await start();
   const seen = [];
   for (let n = 0; n < 12; n++) {
     if (!(await drillOnce(m))) break;
     seen.push(m.view.stage());
     assert.equal(m.win.location.search, S.stageQuery(m.view.stage()), "the URL names the stage");
-    // A sector picked in a cube of them is selected too, after the stage.
-    const labels = crumbLabels(m);
-    if (labels[labels.length - 1].startsWith("Sector ")) labels.pop();
-    assert.deepEqual(labels, expectedCrumbs(m));
+    assert.deepEqual(crumbLabels(m), expectedCrumbs(m));
     assert.equal(m.win.history.length, seen.length + 1);
     assert.equal(button(m, "back").disabled, false);
     assert.equal(button(m, "up").disabled, false);
   }
-  assert.ok(seen.length >= 5, `only ${seen.length} steps down`);
-  assert.ok(seen.some((s) => s.at && s.at.m === 3), "reached a level-3 block of sectors");
+  assert.deepEqual(seen.map((stage) => stage.win.centre.m), [27, 3, 1], "a click goes one level down; sectors are the last");
+  assert.ok(seen.every((stage) => stage.win.g === 9));
 });
 
 test("Back, Forward, Up and Reset buttons move through the stages", async () => {
@@ -405,14 +408,16 @@ test("Back, Forward, Up and Reset buttons move through the stages", async () => 
   assert.deepEqual(m.view.stage(), second);
   assert.equal(button(m, "forward").disabled, true);
 
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
   button(m, "up").click();
   await arrive(m);
-  assert.deepEqual(m.view.stage(), first, "up goes to the parent stage");
+  assert.deepEqual(m.view.stage(), S.parentStage(second, outline, F.edgePc), "up goes to the parent stage");
+  assert.equal(m.view.stage().win.centre.m, 243 / 9, "the window one size up, centred on the block holding the middle");
   assert.equal(button(m, "forward").disabled, true, "a new step clears Forward");
 
   button(m, "reset").click();
   await arrive(m);
-  assert.deepEqual(m.view.stage(), { at: null, picks: [] });
+  assert.deepEqual(m.view.stage(), { win: null });
   assert.deepEqual(crumbLabels(m), ["Galaxy"]);
 });
 
@@ -451,25 +456,49 @@ test("a breadcrumb button goes back to that stage", async () => {
   await drillOnce(m);
   await drillOnce(m);
   const crumbButtons = m.els.crumbs.querySelectorAll("button.crumb");
-  assert.equal(crumbButtons.length, 3);
+  assert.equal(crumbButtons.length, 4, "the galaxy and a window at each level down to the sectors");
   crumbButtons[0].click();
   await arrive(m);
-  assert.deepEqual(m.view.stage(), { at: null, picks: [] });
+  assert.deepEqual(m.view.stage(), { win: null });
   assert.equal(m.els.crumbs.querySelectorAll('[aria-current="location"]').length, 1);
 });
 
 test("Escape goes up and Home goes back to the galaxy", async () => {
   const m = await start();
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
   await drillOnce(m);
-  const first = m.view.stage();
   await drillOnce(m);
+  const second = m.view.stage();
   assert.ok(key(m, "Escape").defaultPrevented);
   await arrive(m);
-  assert.deepEqual(m.view.stage(), first);
+  assert.deepEqual(m.view.stage(), S.parentStage(second, outline, F.edgePc));
   await drillOnce(m);
   key(m, "Home");
   await arrive(m);
-  assert.deepEqual(m.view.stage(), { at: null, picks: [] });
+  assert.deepEqual(m.view.stage(), { win: null });
+});
+
+test("Up from a window is the window one size up, centred on the block holding its middle (MAP.150)", async () => {
+  const m = await start();
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
+  await drillOnce(m);
+  const window27 = m.view.stage();
+  await drillOnce(m);
+  const window3 = m.view.stage();
+  m.view.up();
+  await arrive(m);
+  const up = m.view.stage();
+  assert.deepEqual(up.win.centre, S.stripBlock(P.drillParent(window3.win.centre)));
+  assert.equal(up.win.g, 9);
+  assert.notDeepEqual(up, window27, "recentred on where the click was, not back where the window was");
+  m.view.up();
+  await arrive(m);
+  assert.equal(m.view.stage().win.centre.m, 243);
+  m.view.up();
+  await arrive(m);
+  assert.deepEqual(m.view.stage(), { win: null });
+  assert.equal(button(m, "up").disabled, true, "nothing above the galaxy");
+  assert.equal(S.parentStage(m.view.stage(), outline, F.edgePc), null);
 });
 
 test("a stage URL opens that stage; a bad one opens the galaxy and says why", async () => {
@@ -479,12 +508,13 @@ test("a stage URL opens that stage; a bad one opens the galaxy and says why", as
 
   const m = await start("http://localhost/galaxy" + query);
   assert.deepEqual(m.view.stage(), deep.view.stage());
-  assert.deepEqual(crumbLabels(m), crumbLabels(deep));
+  // The deep map has a sector selected in its window of sectors too.
+  assert.deepEqual(crumbLabels(m), crumbLabels(deep).slice(0, -1));
 
-  const bad = await start("http://localhost/galaxy?at=nonsense");
-  assert.deepEqual(bad.view.stage(), { at: null, picks: [] });
+  const bad = await start("http://localhost/galaxy?win=nonsense");
+  assert.deepEqual(bad.view.stage(), { win: null });
   assert.equal(bad.els.notice.hidden, false);
-  assert.match(bad.els.notice.textContent, /There is no block nonsense/);
+  assert.match(bad.els.notice.textContent, /There is no cell nonsense/);
 });
 
 test("?sector= opens the stage around that sector with it selected", async () => {
@@ -494,7 +524,7 @@ test("?sector= opens the stage around that sector with it selected", async () =>
   const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
   assert.deepEqual(m.view.stage(), S.sectorStage(d.ring, d.layer, d.slot, outline, F.edgePc));
   const crumbs = crumbLabels(m);
-  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel({ m: 1, ring: d.ring, wedge: d.slot, slab: d.layer }));
+  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel({ m: 1, ring: d.ring, wedge: d.slot, slab: d.layer }) + " (1)");
   assert.equal(m.calls.cells.length, 1, "the sector's panel is shown");
   assert.deepEqual(m.calls.cells[0].address, d);
 });
@@ -567,12 +597,19 @@ test("the address bar looks names up: one match flies there, several are listed"
 
 async function freeStage() {
   const m = await start();
-  // An arc of the galaxy, seen at the isometric slant.
+  // A window of blocks one size down, seen at the isometric slant while it holds several slabs.
   await drillOnce(m);
-  assert.equal(m.view.stage().picks[0].kind, "arc");
-  assert.ok(Math.abs(lastCamera(m).tilt - SV.ISO_TILT) < 1e-9, "an arc is seen at a slant");
+  assert.equal(m.view.stage().win.centre.m, 27);
+  const slabs = new Set(m.view.stage().win && lastWindowSlabs(m));
+  assert.ok(Math.abs(lastCamera(m).tilt - (slabs.size > 1 ? SV.ISO_TILT : 0)) < 1e-9, "a window of several slabs is seen at a slant");
   assert.equal(button(m, "reset-view").disabled, false);
   return m;
+}
+
+// The slabs of the blocks in the window drawn now.
+function lastWindowSlabs(m) {
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
+  return S.resolveStage(m.view.stage(), outline, F.edgePc).view.blocks.map((b) => b.slab);
 }
 
 test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () => {
@@ -687,71 +724,6 @@ test("a pinch zooms a free stage within the same limits", async () => {
   touch("Up", 1, 300, 300);
 });
 
-// --- Slab buttons (MAP.110) -----------------------------------------------------
-
-test("slabOrder sorts by slab number, either way, whatever order it is given", () => {
-  const rows = [3, -1, 0, 7, 2].map((lo) => ({ pick: { lo: lo, hi: lo } }));
-  const los = (list) => list.map((r) => r.pick.lo);
-  assert.deepEqual(los(S.slabOrder(rows, true, (r) => r.pick)), [7, 3, 2, 0, -1]);
-  assert.deepEqual(los(S.slabOrder(rows, false, (r) => r.pick)), [-1, 0, 2, 3, 7]);
-  assert.deepEqual(los(rows), [3, -1, 0, 7, 2], "the rows given are left alone");
-});
-
-test("nearestOnPieces keeps a line's end at or below the one above it", () => {
-  // An outline slanting up to the right: its point nearest a button at
-  // the right is high up, above where the line above it ended.
-  const pieces = [[[0, 100], [200, 20]]];
-  const free = S.nearestOnPieces(pieces, [300, 30], null);
-  assert.ok(free.y < 60, `nearest is high (${free.y})`);
-  const kept = S.nearestOnPieces(pieces, [300, 30], null, 60);
-  assert.ok(Math.abs(kept.y - 60) < 1e-9 && Math.abs(kept.x - 100) < 1e-9, JSON.stringify(kept));
-  // Nothing of the outline reaches below: the nearest point of it all.
-  assert.deepEqual(S.nearestOnPieces(pieces, [300, 30], null, 500), free);
-  assert.equal(S.nearestOnPieces([], [0, 0], null), null);
-});
-
-// The slab buttons' numbers, top first, in each column.
-function slabColumns(m) {
-  const lists = [m.els.slabs, m.els.slabs.parentElement.querySelector("#galaxymap3d-slabs-side")].filter(Boolean)
-    .map((box) => box.querySelector("ol.galaxy-slab-buttons")).filter(Boolean);
-  return lists.map((list) => list.querySelectorAll(".galaxy-slab-button").map((b) => Number(b.dataset.slab)))
-    .filter((column) => column.length);
-}
-
-function inNumberOrder(column) {
-  const up = column.every((n, i) => i === 0 || n > column[i - 1]);
-  const down = column.every((n, i) => i === 0 || n < column[i - 1]);
-  return up ? "up" : down ? "down" : null;
-}
-
-test("the slab buttons stay in slab-number order however the view turns (MAP.110)", async () => {
-  const m = await freeStage();
-  // The map's row has a size, so the lines are drawn (and the buttons
-  // ordered) as the view turns.
-  m.els.slabs.parentElement.rect = { left: 0, top: 0, width: 1200, height: 700 };
-  m.view.step(performance.now() + 1e9);
-  let columns = slabColumns(m);
-  assert.ok(columns.flat().length >= 2, `slab buttons drawn: ${JSON.stringify(columns)}`);
-  columns.forEach((column) => assert.equal(inNumberOrder(column), "down", `top slab first from above: ${column}`));
-  const seen = new Set();
-  let most = 0;
-  m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 0, pointerType: "mouse" }));
-  for (let n = 1; n <= 40; n++) {
-    m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 400 + 7 * n, clientY: 300 - 20 * n, pointerId: 1, pointerType: "mouse" }));
-    m.view.step(performance.now() + 1e9);
-    most = Math.max(most, lastCamera(m).tilt);
-    columns = slabColumns(m);
-    columns.forEach((column) => {
-      const way = inNumberOrder(column);
-      assert.ok(way, `out of number order after turn ${n}: ${column}`);
-      seen.add(way);
-    });
-  }
-  m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 680, clientY: -500, pointerId: 1, button: 0, pointerType: "mouse" }));
-  assert.ok(most > Math.PI / 2 + 0.1, `the view turned under the plane (${most})`);
-  assert.ok(seen.has("up"), "seen from below, the bottom slab (lowest number) shows on top and leads");
-});
-
 // --- Picking by pointer --------------------------------------------------------
 
 // A screen point over a choice, found by moving the pointer over a grid
@@ -773,27 +745,30 @@ function clickAt(m, x, y, pointerType) {
   m.view.onPointerUp(new FakeEvent("pointerup", base));
 }
 
-test("clicking an arc on the map drills into it", async () => {
+test("clicking a block on the map zooms into a window around its middle", async () => {
   const m = await start();
-  const spot = pointOver(m, /^Arc /);
-  assert.ok(spot, "some arc shows a tooltip under the pointer");
+  const spot = pointOver(m, /^Block /);
+  assert.ok(spot, "some block shows a tooltip under the pointer");
   clickAt(m, spot.x, spot.y);
   await arrive(m);
   const stage = m.view.stage();
-  assert.equal(stage.picks.length, 1);
-  assert.equal(stage.picks[0].kind, "arc");
-  assert.ok(spot.text.startsWith(crumbLabels(m)[1]), `${spot.text} vs ${crumbLabels(m)}`);
-  assert.match(m.win.location.search, /^\?p=a[0-2]\.\d+$/, "the URL names the arc by band and bearing");
+  assert.equal(stage.win.centre.m, 27);
+  assert.equal(stage.win.g, 9);
+  const block = /^Block (\d+)·(\d+),/.exec(spot.text);
+  assert.ok(block, spot.text);
+  assert.equal(P.drillParent(stage.win.centre).ring, Number(block[1]), "centred on the block clicked");
+  assert.equal(P.drillParent(stage.win.centre).wedge, Number(block[2]));
+  assert.match(m.win.location.search, /^\?win=27\.\d+\.\d+\.-?\d+$/, "the URL names the window by its centre");
 });
 
 test("a block the near field has faded out can't be picked (MAP.149)", async () => {
   const m = await start();
-  assert.ok(pointOver(m, /^Arc /), "arcs show their tooltip while the near field lets them");
+  assert.ok(pointOver(m, /^Block /), "blocks show their tooltip while the near field lets them");
   m.view.onPointerLeave();
   m.host.nearFieldAt = () => 0.2;
-  assert.equal(pointOver(m, /^Arc /), null, "nothing is picked below a share of 0.35");
+  assert.equal(pointOver(m, /^Block /), null, "nothing is picked below a share of 0.35");
   m.host.nearFieldAt = () => 0.35;
-  assert.ok(pointOver(m, /^Arc /), "a share of 0.35 can be picked");
+  assert.ok(pointOver(m, /^Block /), "a share of 0.35 can be picked");
 });
 
 // The outline lines drawn over the map: [opacity, line count].
@@ -805,32 +780,48 @@ function outlines(m) {
   return found.sort((p, q) => q - p);
 }
 
-test("hovering an arc outlines it, its neighbors faintly, and nothing else (MAP.85)", async () => {
+test("hovering a block outlines it, and nothing else (MAP.52)", async () => {
   const m = await start();
-  assert.deepEqual(outlines(m), [], "nothing is outlined until the pointer is over an arc");
-  const spot = pointOver(m, / \(middle\),/);
-  assert.ok(spot, "a middle arc under the pointer");
-  const lines = outlines(m);
-  assert.equal(lines[0], 1, "the arc itself in full");
-  // Either side in its band, and the arcs in and out of it.
-  assert.equal(lines.length, 5, String(lines));
-  assert.ok(lines.slice(1).every((opacity) => opacity > 0 && opacity < 1), "its neighbors faintly");
+  assert.deepEqual(outlines(m), [], "nothing is outlined until the pointer is over a block");
+  const spot = pointOver(m, /^Block /);
+  assert.ok(spot, "a block under the pointer");
+  assert.deepEqual(outlines(m), [1], "the block itself in full, no neighbours");
   m.view.onPointerLeave();
   assert.deepEqual(outlines(m), []);
 });
 
+test("the galaxy's thousands of blocks are one mesh; a window's are one each, the hovered one lit (MAP.150)", async () => {
+  const m = await start();
+  const meshes = () => {
+    const found = [];
+    m.host.scene.traverse((object) => { if (object.isMesh) found.push(object); });
+    return found.length;
+  };
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
+  assert.ok(S.resolveStage({ win: null }, outline, F.edgePc).options.length > 800, "more blocks than a mesh each");
+  assert.ok(meshes() <= 2, `the galaxy is one solid and one glass mesh (${meshes()})`);
+  await drillOnce(m);
+  assert.ok(meshes() > 20, "a window has a mesh or two for each block");
+});
+
 test("on touch, the first tap highlights and the second takes it", async () => {
   const m = await start();
-  const spot = pointOver(m, /^Arc /);
+  const spot = pointOver(m, /^Block /);
   m.view.onPointerLeave();
   clickAt(m, spot.x, spot.y, "touch");
   await arrive(m);
-  assert.deepEqual(m.view.stage(), { at: null, picks: [] }, "one tap only shows what it would pick");
+  assert.deepEqual(m.view.stage(), { win: null }, "one tap only shows what it would pick");
   assert.equal(m.els.tooltip.hidden, false);
   clickAt(m, spot.x, spot.y, "touch");
   await arrive(m);
-  assert.equal(m.view.stage().picks.length, 1);
+  assert.equal(m.view.stage().win.centre.m, 27);
 });
+
+// Drills a fresh map down to a window of sectors.
+async function toSectors(m) {
+  for (let n = 0; n < 6 && !(m.view.stage().win && m.view.stage().win.centre.m === 1); n++) await drillOnce(m);
+  assert.equal(m.view.stage().win.centre.m, 1, "down to sectors");
+}
 
 test("a generated sector opens in place; one uncharted is selected", async () => {
   let known = null;
@@ -839,14 +830,7 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
     return { children: [], sectors: [Object.assign({ id: 42, name: "Bead", system_count: 3 }, known)] };
   };
   const m = await start(undefined, { server });
-  for (let n = 0; n < 12; n++) {
-    if (S.parseStageQuery(m.win.location.search).stage.at?.m === 3 && !(await drillOnce(m))) break;
-    if (!S.parseStageQuery(m.win.location.search).stage.at || S.parseStageQuery(m.win.location.search).stage.at.m !== 3) {
-      await drillOnce(m);
-    }
-  }
-  // In a level-3 block, down to one layer of sectors.
-  for (let n = 0; n < 3; n++) await drillOnce(m);
+  await toSectors(m);
   key(m, "ArrowRight");
   const tip = m.els.tooltip.textContent;
   const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*uncharted$/.exec(tip);
@@ -884,13 +868,7 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
 // the pointer is on next (not generated: the server lists no sectors). Taking a choice
 // on the way down already opens the first sector, so the calls are cleared first.
 async function toAnUnchartedSector(m) {
-  for (let n = 0; n < 12; n++) {
-    if (S.parseStageQuery(m.win.location.search).stage.at?.m === 3 && !(await drillOnce(m))) break;
-    if (!S.parseStageQuery(m.win.location.search).stage.at || S.parseStageQuery(m.win.location.search).stage.at.m !== 3) {
-      await drillOnce(m);
-    }
-  }
-  for (let n = 0; n < 3; n++) await drillOnce(m);
+  await toSectors(m);
   key(m, "ArrowRight");
   const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*uncharted$/.exec(m.els.tooltip.textContent);
   assert.ok(match, "the tooltip names a sector: " + m.els.tooltip.textContent);

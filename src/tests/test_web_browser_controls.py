@@ -37,8 +37,10 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
 )
 from tests.test_web_browser_layout import CONTROLS, POPOVER_MENUS, WIDTHS  # noqa: E402
 
-PLAIN_BUTTONS = ("css:light=button:not([type=submit]):not([disabled]):not(.starmap-btn), "
+PLAIN_BUTTONS = ("css:light=button:not([type=submit]):not([disabled]):not(.starmap-btn):not(.sr-only button), "
                  "sl-button:not([disabled]):not([type=submit])")
+"""str: The buttons the test presses by pointer: not the screen-reader list under a map (`.sr-only`, one pixel
+big, with the canvas over it), which a sector page's map now has as soon as its sector opens."""
 
 WATCH = """() => {
   window.__changes = 0;

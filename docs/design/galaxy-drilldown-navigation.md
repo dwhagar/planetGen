@@ -2,7 +2,7 @@
 
 Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 
-**Planned change (Boss, 2026-10-09 22:24Z and 22:56Z, MAP.146):** the fixed block ladder in section 3 and the arc, slab and segment picks are to be replaced by a free camera with scroll-zoom, double-click flight and distance-based visibility, with region data as aligned cells described by ranges of layers, rings and slots (MAP.146 and MAP.148 to MAP.152; designs in [fly-through-view-distance.md](fly-through-view-distance.md) and [drilldown-region-sizes.md](drilldown-region-sizes.md)). This note is superseded in part when that ships and stays as the record of what is built today.
+**Built (MAP.150 and MAP.151d, 2026-10-14):** the arc, slab and segment picks, the slab buttons with their lines, and the container stages of the fixed ladder are gone. The galaxy is a plain disk of level-243 blocks; a click on a block opens a *window* (`?win=m.ring.wedge.slab[&g=n]`, `g` cells across, 3 to 11, default 9) centred on it one size down (243, 27, 3, then sectors), Up recentres on the parent block, and the galaxy is the top of the chain. The window is a round region over the block lattice (`planetgen/galaxy/region.py`, `planetgen/galaxy/window.py`, `windowCells` in `static/galaxystages.js`); the server crops the parent stage files and needs no migration. Older `at=`, `p=` and `slab=` links open the galaxy. Sections 4, 5 and 15 below describe the pick stages that this replaced and stay as the record of how the map got here. Still to come from MAP.146: the 3-ary ladder (MAP.151b, needs a per-level aggregate table) and the scale hand-offs (MAP.152). Designs in [fly-through-view-distance.md](fly-through-view-distance.md) and [drilldown-region-sizes.md](drilldown-region-sizes.md).
 
 **Status (2026-10-02):** built. The arc pick (MAP.85) has replaced the
 galaxy's first pick (section 4); section 15's later steps (slab, then
@@ -570,8 +570,8 @@ one: `{ring, layer, slot, id, name, system_count}`.
 | Stage | URL |
 | --- | --- |
 | The galaxy | `/galaxy` |
-| Picks at the galaxy | `/galaxy?p=a1.90,L0,r4` |
-| A block, and picks inside it | `/galaxy?at=243.7.14.0&p=L-4~-2,r4` (`m.ring.wedge.slab`) |
+| A window of blocks, centred on one | `/galaxy?win=243.7.14.0` (`m.ring.wedge.slab`; `m` is 243, 27, 3 or 1; `&g=5` sets the cells across) (MAP.150) |
+| Older links (`at=`, `p=`, `slab=`) | open the galaxy, with no notice |
 | A sector, selected | `/galaxy?sector=<designation>` |
 | A sector, opened in place | `/galaxy?sector=<designation>&open=1` (MAP.66) |
 | A sector's page | `/sector/<id>`: the same engine locked to the sector, no query of its own (MAP.68) |
