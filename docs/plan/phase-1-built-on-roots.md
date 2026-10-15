@@ -114,8 +114,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | MAP.199 |  |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
-| UX.103 | Design note for the description layer |  |  |
-| UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | UX.103 |  |
+| UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview |  |  |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.104, UX.23 |  |
 | API.25 | A structured description endpoint, and Markdown and wikitext on request only | UX.104 |  |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request | UX.104 |  |
