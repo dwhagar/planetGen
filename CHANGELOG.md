@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1160] - 2026-10-15
+
+### Added
+- Schema v87: `planets` and `moons` gain `induced_moment_a_m2`, `flux_variation`, `phi4_water`, `tier_water`, `phi4_suitability` and `tier_suitability`, and `nebulae` gains `age_myr`, `q_total` and `hosts`, ready for the Generation work.
+
+### Changed
+- `phi4_chemistry` and `tier_chemistry` are now `phi4_air` and `tier_air`. Planets and moons generated before this update show them again after they are regenerated.
+
 ## [8.0.1159] - 2026-10-15
 
 ### Added
