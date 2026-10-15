@@ -22,8 +22,8 @@ figure, a paper, or an exact identity). There are three groups:
 - **invariant** (TEST.65): things true for any input -- unit conversions
   round-trip, the constants agree with each other, luminosity rises and
   lifetime falls with mass, a Kepler orbit conserves energy and angular
-  momentum, the sector grid tiles each ring exactly and finds every cell
-  again from its own center, density is 1 at its calibration point, and
+  momentum, the sector grid (shells, bands and wedges) tiles each shell exactly
+  and finds every cell again from its own center, density is 1 at its calibration point, and
   nothing returns NaN or infinity over a fixed sweep.
 - **distribution** (TEST.66): a few thousand seeded draws from each
   sampler (initial mass function, star ages, Poisson sector counts, the
@@ -39,6 +39,7 @@ report and exits 1 if anything failed.
 
 import logging
 import math
+import random
 import sys
 import time
 from contextlib import contextmanager
@@ -51,7 +52,7 @@ from planetgen.physics import orbits
 from planetgen.physics import units
 from planetgen.util import draw
 from planetgen.util import random as sampling
-from planetgen.galaxy import density as galaxyDensity, geometry, sector as spaceSector
+from planetgen.galaxy import density as galaxyDensity, sector as spaceSector, spherical
 from planetgen.physics import constants as pc, kepler, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
@@ -493,51 +494,140 @@ def _kepler_equation_residual():
     return worst
 
 
-def _ring_volume_error():
-    """Sum of a ring's cell volumes against the annulus they tile."""
+def _grid_shells(dense, step):
+    """The shells the grid checks sweep: every one below `dense`, then every
+    `step`-th out to 4,000, and the last."""
+    return list(range(0, dense)) + list(range(dense, 4000, step)) + [3999]
+
+
+def _grid_bands(shell, every):
+    """The bands of a shell to test: all of them when it has few, else every
+    `every`-th plus the equator, its neighbours, the caps and the bands next to them."""
+    low, high = spherical.band_range(shell)
+    bands = list(range(low, high + 1))
+    if len(bands) <= 60:
+        return bands
+    return sorted(set(bands[::every] + [low, low + 1, -1, 0, 1, high - 1, high]))
+
+
+def _shell_volume_error():
+    """Sum of a shell's cell volumes against the spherical shell they tile."""
     edge = tuning.DEFAULT_SECTOR_EDGE_PC
     worst = 0.0
-    for ring in list(range(0, 200)) + list(range(200, 4000, 97)):
-        cell = geometry.SectorCell.for_ring(ring, edge)
-        total = cell.volume * geometry.ring_sector_count(ring)
-        annulus = math.pi * ((ring + 1) ** 2 - ring ** 2) * edge ** 2 * edge
-        worst = max(worst, _rel_err(total, annulus))
+    for shell in _grid_shells(40, 401):
+        inner, outer = spherical.shell_bounds_pc(shell, edge)
+        exact = 4 / 3 * math.pi * (outer ** 3 - inner ** 3)
+        low, high = spherical.band_range(shell)
+        total = sum(spherical.wedge_count(shell, band) * spherical.cell_volume(shell, band, 0, edge)
+                    for band in range(low, high + 1))
+        worst = max(worst, _rel_err(total, exact))
     return worst
 
 
-def _sector_address_round_trip_failures():
-    """Cells whose own center is not found again by `sector_address_at`,
-    or whose slots don't cover `ring_sector_count` exactly."""
+def _shell_layout_failures():
+    """Shells that are not 4 pc deep and edge to edge (the core a 2 pc ball), and shells whose
+    bands are not an odd count, do not start at the north pole and end at the south pole, or
+    leave a gap or overlap between two bands."""
     edge = tuning.DEFAULT_SECTOR_EDGE_PC
     failures = 0
-    for ring in list(range(0, 60)) + list(range(60, 4000, 211)):
-        n = geometry.ring_sector_count(ring)
-        slots = range(n) if n <= 400 else list(range(0, n, max(1, n // 97))) + [n - 1]
-        for layer in (-7, -1, 0, 1, 7):
-            for slot in slots:
-                center = geometry.sector_position_pc(ring, layer, slot, edge)
-                if geometry.sector_address_at(center, edge) != (ring, layer, slot):
-                    failures += 1
-        try:
-            geometry.sector_position_pc(ring, 0, n, edge)
-            failures += 1  # slot n must be out of range
-        except ValueError:
-            pass
+    previous_outer = 0.0
+    for shell in range(0, 4000):
+        inner, outer = spherical.shell_bounds_pc(shell, edge)
+        depth = outer if shell == 0 else outer - inner
+        if abs(depth - (edge / 2 if shell == 0 else edge)) > 1e-9 or abs(inner - previous_outer) > 1e-9:
+            failures += 1
+        previous_outer = outer
+    for shell in _grid_shells(40, 401)[1:]:
+        low, high = spherical.band_range(shell)
+        if low + high != 0 or (high - low + 1) % 2 == 0:
+            failures += 1    # signed bands, an odd count with the plane through band 0
+        if spherical.band_colatitude_bounds(shell, high)[0] != 0.0:
+            failures += 1
+        if spherical.band_colatitude_bounds(shell, low)[1] != math.pi:
+            failures += 1
+        for band in range(low + 1, high + 1):    # band `band` lies north of band `band - 1`
+            if spherical.band_colatitude_bounds(shell, band)[1] != spherical.band_colatitude_bounds(shell, band - 1)[0]:
+                failures += 1
     return failures
 
 
-def _ring_count_rule_violations():
-    """Rings whose slot count is not a multiple of the master wedge count,
-    or whose centerline arc strays outside 0.94-1.065 edges."""
-    bad = 0
-    for ring in range(0, 4000):
-        n = geometry.ring_sector_count(ring)
-        if n % geometry.ring_master_count(ring):
-            bad += 1
-        arc = 2 * math.pi * (ring + 0.5) / n
-        if not 0.94 <= arc <= 1.065:
-            bad += 1
-    return bad
+def _wedge_rule_violations():
+    """Bands whose wedge count is not 6*m with m a product of 2, 3, 5 and 7 only, caps and the
+    core that are not one cell, bands that do not match their mirror image, and bands whose
+    wedge arc at the band's centre strays outside 0.7-1.4 edges (shell 1 is hand cut)."""
+    violations = 0
+    for shell in _grid_shells(40, 211)[1:]:
+        for band in _grid_bands(shell, 11):
+            count = spherical.wedge_count(shell, band)
+            if count != spherical.wedge_count(shell, -band):
+                violations += 1
+            if spherical.is_cap(shell, band):
+                violations += count != 1
+                continue
+            if count % 6:
+                violations += 1
+                continue
+            m = count // 6
+            for prime in (2, 3, 5, 7):
+                while m % prime == 0:
+                    m //= prime
+            violations += m != 1
+            if shell >= 2:
+                north, south = spherical.band_colatitude_bounds(shell, band)
+                arc = 2 * math.pi * shell * math.sin((north + south) / 2) / count
+                violations += not 0.7 <= arc <= 1.4
+    violations += spherical.wedge_count(0, 0) != 1
+    return violations
+
+
+def _sector_address_round_trip_failures():
+    """Cells whose own center is not found again by `sector_address_at` (or is outside
+    `sector_cell_test`'s cell), or whose wedges don't end at the band's count."""
+    edge = tuning.DEFAULT_SECTOR_EDGE_PC
+    failures = 0
+    for shell in _grid_shells(30, 401):
+        for band in _grid_bands(shell, 61):
+            count = spherical.wedge_count(shell, band)
+            wedges = range(count) if count <= 50 else sorted(set(range(0, count, max(1, count // 23))) | {count - 1})
+            for wedge in wedges:
+                center = spherical.sector_position_pc(shell, band, wedge, edge)
+                failures += spherical.sector_address_at(center, edge) != (shell, band, wedge)
+                failures += not spherical.sector_cell_test((shell, band, wedge), edge)(center)
+            try:
+                spherical.sector_position_pc(shell, band, count, edge)
+                failures += 1  # wedge N must be out of range
+            except ValueError:
+                pass
+    return failures
+
+
+def _point_in_cell_failures():
+    """Seeded random points whose sector (`sector_address_at`) does not hold them: radius within
+    the shell, colatitude within the band, longitude within the wedge."""
+    edge = tuning.DEFAULT_SECTOR_EDGE_PC
+    rng = random.Random(SEED)
+    failures = 0
+    for _ in range(20000):
+        radius = edge * 10 ** rng.uniform(-1, 3.5)
+        z = rng.uniform(-1, 1)
+        lon = rng.uniform(0, 2 * math.pi)
+        planar = math.sqrt(1 - z * z)
+        point = (radius * planar * math.cos(lon), radius * planar * math.sin(lon), radius * z)
+        shell, band, wedge = spherical.sector_address_at(point, edge)
+        inner, outer = spherical.shell_bounds_pc(shell, edge)
+        if not inner <= radius < outer:
+            failures += 1
+            continue
+        if shell == 0:
+            continue
+        north, south = spherical.band_colatitude_bounds(shell, band)
+        if not north - 1e-12 <= math.acos(z) <= south + 1e-12:
+            failures += 1
+            continue
+        start, end = spherical.wedge_longitude_bounds(shell, band, wedge)
+        failures += spherical.wedge_count(shell, band) > 1 and not start - 1e-12 <= lon <= end + 1e-12
+        failures += not spherical.sector_cell_test((shell, band, wedge), edge)(point)
+    return failures
 
 
 def _default_galaxy_shape():
@@ -643,18 +733,26 @@ def _invariant_checks():
         Check("kepler_equation_residual", "invariant", "kepler.solve_eccentric_anomaly",
               _kepler_equation_residual, 1e-9, 0.0, f"{exact}: the solution satisfies M = E - e sin E",
               mode="max", unit="rad"),
-        Check("ring_cells_fill_annulus", "invariant", "geometry.SectorCell.volume x ring_sector_count",
-              _ring_volume_error, 1e-12, 0.0, f"{exact}: a ring's cells tile its annulus with no gap or overlap",
+        Check("shell_cells_fill_shell", "invariant", "spherical.cell_volume x wedge_count over a shell's bands",
+              _shell_volume_error, 1e-12, 0.0, f"{exact}: a shell's cells tile its spherical shell with no gap or overlap",
               mode="max", unit="relative error"),
+        Check("shell_layout", "invariant", "spherical.shell_bounds_pc, band_range, band_colatitude_bounds",
+              _shell_layout_failures, 0, 0.0,
+              "design (docs/design/galaxy-coordinate-system.md): shells 4 pc deep from a 2 pc core ball, "
+              "an odd count of signed bands from pole to pole", mode="max", unit="failures"),
+        Check("wedge_count_rule", "invariant", "spherical.wedge_count",
+              _wedge_rule_violations, 0, 0.0,
+              "design (docs/design/galaxy-coordinate-system.md): 6*m wedges, m only 2, 3, 5 and 7, "
+              "arc about one edge, caps one cell", mode="max", unit="violations"),
         Check("sector_address_round_trip", "invariant",
-              "geometry.sector_address_at(sector_position_pc(...))",
+              "spherical.sector_address_at(sector_position_pc(...))",
               _sector_address_round_trip_failures, 0, 0.0,
-              f"{exact}: every cell's own center lies in that cell, and slot N is out of range",
+              f"{exact}: every cell's own center lies in that cell, and wedge N is out of range",
               mode="max", unit="failures"),
-        Check("ring_sector_count_rule", "invariant", "geometry.ring_sector_count",
-              _ring_count_rule_violations, 0, 0.0,
-              "design (docs/design/galaxy-coordinate-system.md): a multiple of the master wedges, "
-              "arc about one edge", mode="max", unit="violations"),
+        Check("point_lies_in_its_sector", "invariant", "spherical.sector_address_at",
+              _point_in_cell_failures, 0, 0.0,
+              f"{exact}: a point's radius, colatitude and longitude lie in its shell, band and wedge bounds",
+              mode="max", unit="failures"),
         Check("density_is_1_at_calibration", "invariant", "galaxyDensity.relative_density at the calibration point",
               _density_at_calibration, 1.0, 1e-12,
               "definition (galaxyDensity.build_galaxy_shape): 1.0 at the inter-arm calibration point"),
