@@ -12,6 +12,7 @@ or not. `test_web_browser_maps.py` covers the same maps against a
 generated database.
 """
 
+import time
 import io
 import math
 import re
@@ -1969,6 +1970,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     assert page.input_value("#galaxymap3d-color-by") == "stars"
+    legend.wait_for(state="visible", timeout=15000)  # drawn once the tiles are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()
     page.select_option("#galaxymap3d-color-by", "default")
@@ -2132,6 +2134,10 @@ def test_galaxy_map_keeps_its_tiles_in_indexeddb_for_a_revisit(page, map_site):
     page.wait_for_timeout(2500)
     asked = {key for _at, keys in first for key in keys}
     assert asked, "the first visit fetched tiles"
+    # The tiles are written to IndexedDB after they arrive; under load the fixed wait above is not always enough (TEST.126).
+    deadline = time.monotonic() + 20
+    while page.evaluate(STORED_TILES) < len(asked) and time.monotonic() < deadline:
+        page.wait_for_timeout(250)
     assert page.evaluate(STORED_TILES) >= len(asked)
     assert not page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('planetgen:tile:') && !k.endsWith('@stamp'))"), \
         "no tile is kept in localStorage any more"
