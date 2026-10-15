@@ -4713,109 +4713,6 @@ clears each one.
   Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
-- [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
-  GitHub issue [#1230](https://github.com/dwhagar/planetGen/issues/1230)
-  (Boss, 2026-10-13 02:43Z): the testing scripts "have been cobbled
-  together every step of the way like a never ending set of additions on
-  a house"; a full run takes well over an hour; "I want to make sure
-  we're not wasting time or if we can make 1 test say more". Boss,
-  2026-10-14 12:17Z: a dedicated thread (Test Suite Rebuild) reworks,
-  optimises and rebuilds the entire suite from the ground up so it runs
-  faster and is modular, so a run can test only the things that changed
-  since the last run. Done: a plan and then a rebuilt suite where (1)
-  each module of the code has its own tests and a run can select the
-  modules a change touches (by changed files or by the last run), (2)
-  the time per test is measured and the slow ones are cut, merged or
-  made cheaper, (3) overlapping tests become one test that checks more,
-  (4) the full run is much shorter than the present 30 to 70 minutes,
-  and (5) the flaky tests (TEST.111, TEST.116, TEST.125 to TEST.130,
-  TEST.132, TEST.134, TEST.137, TEST.138) are fixed or replaced as part
-  of it. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread) (a dedicated thread,
-  started 2026-10-14 12:18Z); the lanes keep running the full suite
-  before they merge until it lands.
-  Since 2026-10-14 14:01Z (Boss) the thread also owns every test-fix
-  item and decided which to implement (14:04Z): implement TEST.125,
-  142, 143, 129, 130 in that order, one small PR each; fold TEST.126,
-  138, 144 and TEST.111, 116, 127, 128, 132, 134, 137, 140, 141 into the
-  rebuild with no separate hunt; keep TEST.133 then TEST.135 as an
-  opt-in `budget` tier after stage 3; TEST.131 stays with the gravity
-  evaluator's builder. New test failures keep being filed as TEST items
-  for the thread. Stages: 1 markers and areas, scripts/test.py (quick,
-  area, browser, full in two phases, browser on two workers), and
-  failure capture with an automatic serial re-run (the `db` marker
-  missed 2,210 of 3,681 MySQL-needing tests and is fixed here; the
-  playwright version is pinned to 1.56.0 in docs/testing.md because 1.64
-  needs a newer Chromium than the cloud image has); 2 change-based test
-  selection (record dependencies, run only what changed, with a proof
-  period); 3 one database per worker with a reset (about 10 to 13% of
-  the time); 4 browser page-load sharing and the heavy generation test
-  files, one PR per file with the owning lane's word; 5 Boss decides
-  after the proof period whether the changed-only run may replace the
-  full run for small changes. Baseline (12:28Z, 4 cores): 15,622 tests,
-  55 min 12 s, 14 failed. Stage 1 merged (#1280, 2026-10-14): full run 56 min 24 s, quick loop
-  2 min 33 s. Plan: docs/design/test-suite-rebuild.md.
-  Progress (2026-10-15): PR #1546 sped up two slow Galaxy Map browser tests
-  (203 s to 13 s and 164 s to 29 s; changed gate PASS in 19 min 20 s); the
-  rest of stage 4 and stage 5 remain.
-  Progress (2026-10-15, Quality, PR #1572): the browser phase runs in 19 min
-  12 s on an idle 4-core machine, the unfilled-sector test went from 109 s
-  to 21 s, and a 2-minute default Playwright wait is set for every browser
-  context (tests/browser_waits.py); the map-help dialog load flake is
-  fixed; the 5-clean-run proof for TEST.126, TEST.138 and TEST.144
-  continues. Known red: test_redis_health fails once in the widened
-  changed run and passes alone.
-  Progress (2026-10-15, Quality, PR #1578): TEST.111, TEST.116, TEST.127,
-  TEST.128, TEST.134 and TEST.140 each looped 60 times on an idle machine
-  with no failures, TEST.137 and TEST.141 40 times per case with no
-  failures (details in docs/design/test-suite-rebuild.md section 22); they
-  stay open for the 5-clean-full-runs proof. TEST.129 was fixed earlier
-  (PR #1313) but is unverified on MySQL 8.4 (Quality only has MariaDB
-  10.11), so it waits for the scheduled 8.4 run on main.
-  Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
-  TEST.133, TEST.137, TEST.138, OPS.31.
-  Status (2026-10-09): Stage 2 merged (Test Suite Rebuild thread,
-  2026-10-14, #1323): scripts/test.py changed runs only the tests a
-  change can affect, and scripts/test.py full --check lists any failing
-  test the selection would have missed. 'changed' is a fast loop, not a
-  gate: the full suite stays the merge gate until Boss decides after a
-  proof period, which starts now. Gate run 17:04Z took 60 min 54 s with
-  one failure (a heading missing from its own release note, fixed);
-  first complete map 15,861 tests. Stage 2 of 5 done.
-  Flake (2026-10-09): Flake sighting (Foundations lane 1, 2026-10-14,
-  GEN.205 suite, 26 min):
-  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
-  failed once under full-suite load and passes alone. For the rebuild's
-  flake list.
-  Flake (2026-10-09): Flake sighting (Bugfixes lane 2, 2026-10-14,
-  MAP.196 suite, 49 min):
-  tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
-  failed under load twice (12:00Z and 17:03Z), passes alone; not checked
-  on main. Also tests/test_web_browser_maps.py::test_galaxy_map_buttons
-  again (TEST.126). For the rebuild's flake list.
-  Stage 3 merged (#1339, 2026-10-14): one database per worker, emptied
-  between tests; docs/testing.md and docs/design/test-suite-rebuild.md
-  sections 11 to 13 carry it. Boss (2026-10-14 19:44Z, in the Test Suite
-  Rebuild thread): "yes changed can replace a full run for small changes
-  also changes in a workflow, I don't want to do a full chain test every
-  time we merge, but when a sequence is finished of related items." So a
-  green `scripts/test.py changed` run is the merge gate for small changes
-  and for steps inside a sequence of related items, and a full run
-  (`scripts/test.py full --check`) happens when a sequence is finished
-  (whether "changes in a workflow" also covers CI workflow files is
-  asked of Boss in that thread). Docs-only PRs still merge at once.
-  Stage 4 (2026-10-14): Stage 4 first part merged (#1357, 2026-10-14):
-  the browser phase of a full run fell from about 40 minutes to 25, so a
-  full run is now about 45 minutes. TEST.145 and TEST.146 merged (#1367,
-  2026-10-14): TEST.146's real cause was the between-test rate-limit
-  reset wiping every limiter key on the shared Redis, and 200 of 200
-  copies now pass at 4 workers. The next full run took 49 min 14 s (was
-  59 min 43 s): 15,392 non-browser tests passed and the browser tests had
-  2 failures, both System Map tests that failed under load, since fixed
-  under TEST.126. Next in the rebuild thread: TEST.147, TEST.133, the
-  rest of stage 4, then the flake list. The flake sightings from
-  Bugfixes lane 2 (System Map selection, galaxy breadcrumb tests) were
-  folded into the flake group TEST.126.
-
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
   min):
@@ -4879,14 +4776,14 @@ clears each one.
   skips them, and what must invalidate a resume: any changed file,
   database or Redis state, the Python or library versions) with a
   recommendation, and Boss picks one; the build is then filed as its own
-  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread), part of TEST.139, not a lane.
+  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread), part of TEST.139 (done, PR #1605), not a lane.
   Decided (Boss, 2026-10-15, tapped Build
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
   automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
   TEST.151 (done, PR #1484) and TEST.152 (done, PR #1520), owner the Test Suite Rebuild thread (TEST.133
   done, #1405).
-  Prerequisites: none. Related: TEST.139.
+  Prerequisites: none. Related: TEST.139 (done, PR #1605).
 
 - [ ] **TEST.155 Wording and index agree: property test**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
