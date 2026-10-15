@@ -3281,35 +3281,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stop (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **GEN.224 Spherical grid module: shells, bands, wedges, caps and the core ball**
-  First, measure (Boss's wedge-count answer, 2026-10-15 06:57Z: fine
-  counts of 6 times a whole number inside the populated window, a
-  nested chain above it, and an equator count of 6 * 2^a * 3^b, primes 2
-  and 3 only): the arc error above the window and the one non-nested
-  step per shell where the fine counts hand over to the chain; fix the
-  exact window edge and chain from that measurement before the module
-  is fixed. Then the new `planetgen/galaxy/spherical.py` (pure
-  geometry) with the rules in section 2 of the plan: the layout per
-  shell, cell bounds, volume, `address_at` and `cell_center`, face
-  neighbours, the local frame, a cap-aware `SectorCell` sampler, and a
-  hand-checked table for shells 1 to 3. Done: the measurement is
-  recorded in the plan; tests for exact tiling (cell volumes sum to the
-  ball), round trip, counts near 23.93 billion and the measured arcs.
-  No undefined space (Boss, 2026-10-15 06:59Z): the core, every shell,
-  cap, band and wedge tile all of space, so every point has exactly one
-  address with no gap and no overlap, generated or not; `address_at`
-  answers for any point, inside or outside the outline, as far as the
-  40-bit birth-sector field reaches (shell below 4,096); a tiling test
-  draws random points inside and outside the outline and each lands in
-  exactly one cell, including shells 1 to 3, the caps, the window-edge
-  step and the nested chain. Owner: Spherical Sector Coordinates thread. Source: item 1 of section 6 of
-  the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
-  lines from pole to pole make a wedge (vert), shell (radius), and band
-  (horizontal), together they identify a single 3D segment of the
-  sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: none.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
 - [ ] **GEN.225 Outline and bounds on shells**
   `skeleton.py` builds the outline as a band range per shell (and the
   column view); `GalaxyBounds.contains` and `random_address` use it.
@@ -3323,7 +3294,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pole make a wedge (vert), shell (radius), and band (horizontal),
   together they identify a single 3D segment of the sphere". TOP
   PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisite: GEN.224.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **GEN.226 Addresses on shells: designation, sector ID, seeds and object ID**
@@ -3336,7 +3306,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisite: GEN.224.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **GEN.227 Generation paths on shells**
@@ -3348,7 +3317,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   meridian lines from pole to pole make a wedge (vert), shell (radius),
   and band (horizontal), together they identify a single 3D segment of
   the sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: GEN.224, GEN.225, GEN.226, DB.32.
+  Prerequisites: GEN.225, GEN.226, DB.32.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -3985,6 +3954,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   rename to phi6* is not planned.
 
 - [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything**
+  Switch (2026-10-15): DB.32, GEN.227 and UX.111 must land as one switch,
+  because the schema rename breaks the store, queries, generation and the
+  Galaxy Map code at once; the Galaxy Map's state in between is a question
+  with Boss. GEN.224 (PR #1549) is merged; its wedge-count rule will be
+  rewritten: Boss wants one uniform rule for every band of every shell
+  (caps excepted), no window or nested-chain special case, prime limit
+  pending his answer.
   A new Alembic revision renames `ring_index`, `layer_index` and
   `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` in
   the seven address-keyed tables, and adds the old-schema fixture. It
@@ -4012,7 +3988,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   lines from pole to pole make a wedge (vert), shell (radius), and band
   (horizontal), together they identify a single 3D segment of the
   sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: GEN.224, GEN.225, GEN.226.
+  Prerequisites: GEN.225, GEN.226.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## API: The JSON API
@@ -5012,7 +4988,6 @@ clears each one.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisite: GEN.224.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## USR: User accounts
