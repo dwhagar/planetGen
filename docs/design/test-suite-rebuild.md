@@ -271,3 +271,12 @@ Boss's rule: a run must never be cut by the 30-minute background limit, and it m
 - `scripts/test.py <command>: INTERRUPTED (<signal>) in the <phase> phase after <time>; not finished, <counts> so far` on Ctrl-C or a SIGTERM; the child pytest is stopped first.
 
 A run whose output ends with none of the three was killed (SIGKILL or the background limit, which cannot be caught) and counts as not run.
+
+## 16. Flakes that were not load (2026-10-15)
+
+The first capture with full reports (`/mnt/project-files/test-suite-rebuild/failure-records/2026-10-15-0103Z-changed.jsonl`) showed two "load" failures were random data. Both reproduce on an idle machine in a loop:
+
+- TEST.149 `test_only_due_planets_and_moons_move_and_count`: 4 of 150 random systems have a slow, distant moon whose 100,000 km takes longer than a year, so it is correctly not due. Fixed in the test (expects the due count it computes, checks the rest did not move); 0 failures in 400.
+- TEST.147 the nebula field table tests: the galaxy seed was random per database and 5 of 80 seeds had no class M or N cloud reaching the sampled sectors. Fixed with a fixed seed.
+
+Lesson for the rest of the flake list: before calling a failure load, run it in a loop on an idle machine; a test that builds random data without a seed can fail at any load.

@@ -22,9 +22,14 @@ pytestmark = pytest.mark.db
 REACH_PC = EDGE_PC * math.sqrt(3) / 2
 
 
+GALAXY_SEED = bytes(range(16))
+"""bytes: The test galaxy's seed, fixed. A new database drew a random one, and about one in sixteen drew a field with
+no class M or N cloud reaching any of the sampled sectors, so the tests that need one failed on those (TEST.147)."""
+
+
 def _seed_galaxy(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, galaxy_seed=GALAXY_SEED)
     store.replace_galaxy_layers(EXTENTS, config=mysql_config)
 
 
