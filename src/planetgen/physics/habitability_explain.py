@@ -1,8 +1,8 @@
 # planetgen/physics/habitability_explain.py
 
 """
-The words behind a body's PHI-4 colours (UX.91): for each of the four
-factors (pressure, temperature, chemistry, radiation) its colour and score,
+The words behind a body's PHI-4 colours (UX.91): for each of the six
+factors (pressure, temperature, air, water, radiation, suitability) its colour and score,
 the inputs that make it up with this world's value for each, and which input
 sets the colour. It reads the same `habitability.World` the stored numbers
 come from (`habitability_world.world_from`) and the same band edges
@@ -16,8 +16,8 @@ from planetgen.physics.habitability import (
     ARMSTRONG_KPA, DOSE_BAND, GAS_LIMITS_KPA, INSPIRED_O2_MIN_KPA, O2_HIGH_BAND, PRESSURE_BAND, TEMPERATURE_BAND,
     WET_BULB_CRIT_C, band_score, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
 
-DOMAIN_ORDER = ("Pressure", "Temperature", "Chemistry", "Radiation")
-"""tuple: The four factors, in the order the description lists them."""
+DOMAIN_ORDER = habitability.DOMAINS
+"""tuple: The six factors, in the order the description lists them."""
 
 GAS_NAMES = {"CO2": "carbon dioxide", "CO": "carbon monoxide", "H2S": "hydrogen sulfide", "SO2": "sulfur dioxide"}
 """dict: What each filtered gas is called in a sentence."""
@@ -144,7 +144,7 @@ def _temperature_items(world):
     return items
 
 
-def _chemistry_items(world):
+def _air_items(world):
     items = [_oxygen_item(world)]
     for gas, kpa, band in gas_inputs(world):
         item = _banded(GAS_NAMES[gas], kpa, band, _kpa, log=True)
@@ -152,10 +152,32 @@ def _chemistry_items(world):
         if item["tier"] == "Blue":
             item["phrase"] = f"under its long-term limit of {_kpa(chronic)}"
         items.append(item)
+    return items
+
+
+def _water_items(world):
+    if world.solvent != "water":
+        return [_item("liquid water", "none", 0.0, "there is no liquid water to drink, which is Red")]
+    items = []
     for label, value, band in water_inputs(world):
         name = {"pH": "ocean pH", "water activity": "water activity", "chaotropicity": "chaotropicity"}[label]
         items.append(_banded(name, value, band, _plain))
-    return items
+    return items or [_item("liquid water", "present", 1.0, "liquid water with no chemistry recorded counts as drinkable")]
+
+
+def _suitability_items(world):
+    life = world.life_stage if world.life_on_surface else "none"
+    water_text = {"liquid": "liquid water at the surface", "ice": "ice, or an ocean under ice",
+                  "hydrated": "water held in minerals", "vapour": "water vapour only", None: "none"}
+    return [
+        _item("water within reach", water_text.get(world.water_source, "none"), habitability.water_access_score(world),
+              "the best the water can be reached (liquid, then ice, then minerals or vapour)"),
+        _item("food", {"none": "none", "microbial": "microbes only", "macroscopic": "the first plants and animals",
+                       "biosphere": "a full biosphere"}[life], habitability.food_score(world),
+              "what native life a person could eat from"),
+        _item("shelter", _sv(world.dose_sv_yr), habitability.shelter_score(world),
+              "shelter follows the radiation dose at the surface"),
+    ]
 
 
 def _radiation_items(world, compact_host=None):
@@ -167,14 +189,15 @@ def _radiation_items(world, compact_host=None):
 
 def factors(world, compact_host=None):
     """
-    The four factors of `world` as dicts, in `DOMAIN_ORDER`: `domain`,
+    The six factors of `world` as dicts, in `DOMAIN_ORDER`: `domain`,
     `score`, `tier`, `items` (each `label`, `value`, `score`, `tier`,
     `phrase`) and `limiting`, the item that sets the colour (the lowest
     score, the first of equals).
     """
     scores = habitability.phi4(world)
-    builders = {"Pressure": _pressure_items, "Temperature": _temperature_items, "Chemistry": _chemistry_items,
-                "Radiation": lambda w: _radiation_items(w, compact_host)}
+    builders = {"Pressure": _pressure_items, "Temperature": _temperature_items, "Air": _air_items,
+                "Water": _water_items, "Radiation": lambda w: _radiation_items(w, compact_host),
+                "Suitability": _suitability_items}
     out = []
     for domain in DOMAIN_ORDER:
         score, colour = scores[domain]
@@ -196,9 +219,9 @@ def paragraphs(world, bold, compact_host=None):
     kit = world_scores["equipment"]
     lead = (f"{bold('PHI-4 habitability')} is {world_scores['PHI-4']:.2f}, and a human visitor needs "
             f"{KIT_TEXT[kit]}. "
-            "The score is the geometric mean of four colour factors, pressure, temperature, chemistry and "
-            "radiation; each factor takes the colour of its worst input, from Blue (best) through Green and "
-            "Yellow to Red.")
+            "The score is the geometric mean of six colour factors, pressure, temperature, air, water, "
+            "radiation and suitability, held under their colour gates; each factor takes the colour of its "
+            "worst input, from Blue (best) through Green and Yellow to Red.")
     out = [lead]
     for factor in factors(world, compact_host):
         limiting = factor["limiting"]

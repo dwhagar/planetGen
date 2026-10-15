@@ -342,14 +342,14 @@ def test_stars_table_hides_role_for_a_single_star(app):
 
 # --- UX.90: the habitability levels page --------------------------------------------
 
-def test_habitability_levels_page_explains_the_five_levels_and_the_four_domains(client):
+def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(client):
     from planetgen.physics.habitability_world import EQUIPMENT_LABELS
 
     html = _html(client, "/classes/habitability")
     for label in EQUIPMENT_LABELS:
         assert label in html
     assert EQUIPMENT_LABELS[0] == "Ideal" and "Shirtsleeve" not in html
-    for domain in ("Pressure", "Temperature", "Chemistry", "Radiation"):
+    for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"<h3>{domain}</h3>" in html
     for colour in ("Blue", "Green", "Yellow", "Red"):
         assert f"<dt>{colour}</dt>" in html
@@ -362,7 +362,8 @@ def test_the_class_index_and_the_system_list_link_to_the_habitability_levels(cli
     assert 'href="/classes/habitability"' in _html(client, "/classes")
     system = _system()
     system["planets"][0].update({"equipment_tier": 0, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
-                                 "tier_air": 0, "tier_radiation": 0})
+                                 "tier_air": 0, "tier_water": 0, "tier_radiation": 0,
+                                 "tier_suitability": 0})
     html = system_list_html(system, _SECTIONS, habitability_url="/classes/habitability")
     assert '<a href="/classes/habitability">Habitability levels</a>' in html
     assert "Habitability levels" not in system_list_html(system, _SECTIONS)

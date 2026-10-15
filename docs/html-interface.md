@@ -43,8 +43,8 @@ Each rocky planet's and moon's description also carries the full PHI-4 explanati
 Planet and moon rows carry habitability chips (GEN.89, design in
 `docs/design/habitability-index.md`): an equipment label (Ideal, formerly Shirtsleeve;
 Mask, Mask and scrubber, Sealed suit, Full life support), a colour chip
-that is the worst of the four PHI-4 domains (pressure, temperature,
-chemistry, radiation; Blue, Green, Yellow, Red), and the Habitable,
+that comes from the six PHI-4 domains (pressure, temperature, air, water,
+radiation, suitability; Blue, Green, Yellow, Red) under the gates of GEN.207, and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
 and black holes follow a host rule. The Equipment search has a facet for
 the labels. The explanation page is /classes/habitability under Classes (UX.90, PR

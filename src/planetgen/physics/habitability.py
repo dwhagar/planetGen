@@ -4,10 +4,12 @@
 The planetary habitability index (GEN.84): the reference maths of
 docs/design/habitability-index.md section 7, every constant with its source.
 
-Two layers, as Boss chose (2026-10-07 17:11Z): the PHI-4 display -- four
-domains (Pressure, Temperature, Chemistry, Radiation), each a score in
-[0, 1] and a colour tier (Blue, Green, Yellow, Red) for a human visitor --
-and the three numbers behind it from the Xenobiology document: PHI_bio
+Two layers, as Boss chose (2026-10-07 17:11Z): the PHI-4 display -- since
+GEN.207 six domains (Pressure, Temperature, Air, Water, Radiation and
+Suitability, the long-term one), each a score in [0, 1] and a colour tier
+(Blue, Green, Yellow, Red) for a human visitor, and an overall score that
+mixes the colour gates with their geometric mean (`phi4`) -- and the three
+numbers behind it from the Xenobiology document: PHI_bio
 (microbial life), PHI_cpx (complex, animal life) and Phi_tech (human
 operability with equipment). `equipment` names the kit a human needs.
 
@@ -264,6 +266,8 @@ class World:
     surface_dose_sv_yr: float = None
     habitat_dose_sv_yr: float = None
     water_source: str = "liquid"
+    life_stage: str = "none"
+    life_on_surface: bool = True
 
     def partial_kpa(self, gas):
         return self.gases.get(gas, 0.0) * self.pressure_kpa
@@ -391,40 +395,165 @@ def water_inputs(world):
               CHAOTROPICITY_CRIT_KJ_KG, CHAOTROPICITY_CRIT_KJ_KG * 2))]
 
 
-def _water_score(world):
+def water_score(world):
+    """Water Chemistry: is the water drinkable. A world with no liquid water has none, which is Red
+    (Boss, 2026-10-14); a liquid water body scores its worst of pH, water activity and chaotropicity."""
+    if world.solvent != "water":
+        return 0.0
     inputs = water_inputs(world)
     if not inputs:
         return 1.0
     return min(band_score(value, band) for _label, value, band in inputs)
 
 
-def chemistry_score(world):
-    return min(min(_gas_scores(world).values()), _water_score(world))
+def air_score(world):
+    """Air Chemistry: is the air breathable, the worst of oxygen and the filtered gases."""
+    return min(_gas_scores(world).values())
 
 
 def radiation_score(world):
     return band_score(world.dose_sv_yr, DOSE_BAND, log=True)
 
 
+# --- Suitability (GEN.207) --------------------------------------------------------------------
+# Long-term survival: enough water, food and shelter for a person to live on the
+# surface (Exoplanetary Habitability.md, Table 2). The number is the lowest of three
+# rungs, then held under the colour ceiling the other five domains set.
+
+LIFE_STAGES = ("none", "microbial", "macroscopic", "biosphere")
+"""tuple: The native life a person could eat from, least to most: nothing (an abiotic
+surface), microbes only (chemosynthetic mats, plankton), multicellular algae, mosses and
+the first land plants, a full biosphere of forests and animals."""
+
+FOOD_SCORE = {"none": 0.2, "microbial": 0.5, "macroscopic": 0.85, "biosphere": 1.0}
+"""dict: The food rung by `World.life_stage`: Table 2's Red (completely abiotic), Yellow
+(chemosynthetic mats), Green (bryophytes, invertebrates; whose chemistry may not suit a
+person) and Blue (forest canopies, complex food webs). planetGen's numbers, one per tier."""
+
+WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "hydrated": 0.25, "vapour": 0.2, None: 0.0}
+"""dict: The water rung by the most accessible water (`World.water_source`): Table 2's Green
+(rivers, lakes and rain), Yellow (glacial ice, subglacial liquid), Red (perchlorate brine,
+hydrated minerals, vapour). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
+
+YELLOW_FLOOR = 0.4
+"""float: The lowest score of Yellow: where a domain that cannot make the overall Red is held in the mean."""
+
+CEILING_SCORE = {"Blue": 1.0, "Green": 0.9999, "Yellow": 0.7499, "Red": 0.3999}
+"""dict: The highest score of each colour, the clamp a gate puts on a score."""
+
+
+def water_access_score(world):
+    """The water rung: how reachable the water is. Only a world with liquid water has any
+    (the Water domain is Red without it)."""
+    score = WATER_ACCESS_SCORE.get(world.water_source, 0.0)
+    if world.water_source == "liquid" and water_score(world) >= 1.0:
+        return 1.0
+    return score
+
+
+def food_score(world):
+    """The food rung from the native life; life that lives only in an ocean under ice is
+    out of reach, so it counts as none."""
+    stage = world.life_stage if world.life_on_surface else "none"
+    return FOOD_SCORE[stage]
+
+
+def shelter_score(world):
+    """The shelter rung: shelter from radiation and the open sky, which is the surface dose's
+    colour (Table 2: on Red worlds only deep lava tubes or buried habitats, on Blue ones open ground)."""
+    return radiation_score(world)
+
+
+def suitability_ceiling(core):
+    """The best colour Suitability can have, from the five core domains' scores (`core`, a dict
+    by name): Red if Radiation, Temperature or Pressure is Red or there is no liquid water (Water
+    Red); Yellow if any of the five is Yellow, or Air is Red; Green if any is Green; else Blue."""
+    colours = {name: tier(score) for name, score in core.items()}
+    if any(colours[name] == "Red" for name in ("Radiation", "Temperature", "Pressure", "Water")):
+        return "Red"
+    if any(colour in ("Yellow", "Red") for colour in colours.values()):
+        return "Yellow"
+    if any(colour == "Green" for colour in colours.values()):
+        return "Green"
+    return "Blue"
+
+
+def suitability_score(world, core=None):
+    """Suitability: the lowest of the water, food and shelter rungs, held under `suitability_ceiling`."""
+    core = core if core is not None else core_scores(world)
+    lowest = min(water_access_score(world), food_score(world), shelter_score(world))
+    return min(lowest, CEILING_SCORE[suitability_ceiling(core)])
+
+
+CORE_DOMAINS = ("Pressure", "Temperature", "Air", "Water", "Radiation")
+"""tuple: The five domains of whether a person survives the surface, in the order the page lists them."""
+
+DOMAINS = (*CORE_DOMAINS, "Suitability")
+"""tuple: The six domains, in the order the page lists them."""
+
+
+def core_scores(world):
+    """The five core domains' scores by name."""
+    return {"Pressure": pressure_score(world), "Temperature": temperature_score(world),
+            "Air": air_score(world), "Water": water_score(world), "Radiation": radiation_score(world)}
+
+
+def overall_score(scores):
+    """
+    The overall score from the six domains' scores (`scores`, by name): their geometric mean
+    with the colour gates applied first (Boss, 2026-10-11 and 2026-10-14):
+
+    * Radiation and Temperature cap the overall colour at their own (Yellow caps at Yellow,
+      Red at Red).
+    * Pressure: Red makes the overall Red and Yellow caps it at Yellow, unless a full suit is
+      needed anyway (Temperature or Radiation Red, or Air Red), when it changes nothing.
+    * Air or Water at Yellow or Red caps the overall at Yellow (never lower on their own).
+    * Suitability Red drops the overall to Yellow, never to Red.
+    * Blue needs all six Blue.
+
+    The ones that cannot make the overall Red (Air, Water, Suitability, and Pressure when a full
+    suit is needed anyway) enter the mean no lower than the Yellow edge (`YELLOW_FLOOR`), so a
+    zero among them does not drag the mean to 0.
+    """
+    colours = {name: tier(score) for name, score in scores.items()}
+    suit_anyway = any(colours[name] == "Red" for name in ("Temperature", "Radiation", "Air"))
+    soft = {"Air", "Water", "Suitability"} | ({"Pressure"} if suit_anyway else set())
+    terms = [max(score, YELLOW_FLOOR) if name in soft else score for name, score in scores.items()]
+    product = math.prod(terms)
+    mean = product ** (1.0 / len(terms)) if product > 0 else 0.0
+    caps = [colours["Radiation"], colours["Temperature"]]
+    if not suit_anyway and colours["Pressure"] in ("Red", "Yellow"):
+        caps.append(colours["Pressure"])
+    for name in ("Air", "Water"):
+        if colours[name] in ("Yellow", "Red"):
+            caps.append("Yellow")
+    if colours["Suitability"] == "Red":
+        caps.append("Yellow")
+    if any(colour != "Blue" for colour in colours.values()):
+        caps.append("Green")
+    return min(mean, CEILING_SCORE[max(caps, key=TIERS.index)])
+
+
 def phi4(world):
-    """`{domain: (score, tier)}` and `"PHI-4"`: the geometric mean of the four
-    (equal weights; any domain at 0 makes it 0, the doc's gates)."""
-    domains = {"Pressure": pressure_score(world), "Temperature": temperature_score(world),
-               "Chemistry": chemistry_score(world), "Radiation": radiation_score(world)}
+    """`{domain: (score, tier)}` for the six domains and `"PHI-4"`, the overall score
+    (`overall_score`; stored as `phi4`, the name it had with four domains)."""
+    core = core_scores(world)
+    domains = {**core, "Suitability": suitability_score(world, core)}
     result = {name: (round(score, 4), tier(score)) for name, score in domains.items()}
-    product = math.prod(domains.values())
-    result["PHI-4"] = round(product ** 0.25, 4) if product > 0 else 0.0
+    overall = overall_score(domains)
+    result["PHI-4"] = round(overall, 4)
     return result
 
 
 def equipment(world):
     """The kit a human visitor needs: "ideal", "breathing mask", "mask
     with scrubber", "sealed suit" (a pressure suit, or a sealed suit
-    against a Red temperature or chemistry) or "full life support with
-    radiation hardening", from the worst of the four domains and what made
-    it so."""
+    against a Red temperature or air) or "full life support with
+    radiation hardening", from the worst of Pressure, Temperature, Air and
+    Radiation and what made it so. (Water chemistry and Suitability are
+    about drinking and eating, not the kit.)"""
     scores = {"Pressure": pressure_score(world), "Temperature": temperature_score(world),
-              "Chemistry": chemistry_score(world), "Radiation": radiation_score(world)}
+              "Air": air_score(world), "Radiation": radiation_score(world)}
     gases = _gas_scores(world)
     if scores["Radiation"] < 0.4:
         return "full life support with radiation hardening"

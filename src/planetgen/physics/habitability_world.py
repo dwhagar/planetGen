@@ -35,6 +35,12 @@ section 8):
 * **Water source** (for the base): "liquid" at a surface ocean, "ice" for
   an icy surface or shell, "vapour" for a steam world, "hydrated" for a dry
   body with water in its rock, else vapour in the air or none.
+* **Life** (GEN.207). The food rung of Suitability reads the most advanced native
+  life as `life_stage` (`life_stage`): none, microbial, macroscopic (the first
+  flora and fauna) or a full biosphere, from the body's life chemistry and the
+  milestone its evolutionary timeline reached. Life that lives only in an ocean
+  under ice is out of reach of a person (`life_on_surface` false). Life is drawn after
+  the score, so `rescore` runs again once it is known.
 * **Compact hosts.** A pulsar, neutron star or black hole's planet is rated
   as if the surface took 1000 Sv/yr (`LETHAL_DOSE_SV_YR`): Red radiation,
   the lowest equipment tier and a note naming the host. No X-ray binaries
@@ -45,6 +51,7 @@ A gas giant has no surface and no score (every field `None`).
 
 import math
 
+from planetgen import tuning
 from planetgen.physics import atmosphere, constants, habitability
 
 TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
@@ -61,15 +68,14 @@ EQUIPMENT_LABELS = (
 )
 """tuple: The same tiers as the page and the search show them."""
 
-DOMAINS = ("pressure", "temperature", "chemistry", "radiation")
-
-STORED_AS = {"pressure": "pressure", "temperature": "temperature", "chemistry": "air", "radiation": "radiation"}
-"""dict: The suffix of a domain's `phi4_<suffix>` and `tier_<suffix>` columns (v87 renamed chemistry to air,
-    GEN.207 / PHI-6; the page keeps the name "Chemistry" until GEN.207 relabels it)."""
+DOMAINS = tuple(name.lower() for name in habitability.DOMAINS)
+"""tuple: The six domains as stored (`phi4_<domain>`, `tier_<domain>`): pressure, temperature, air, water,
+radiation, suitability."""
+CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
+"""tuple: The five that say whether a person survives the surface (Suitability is the long-term sixth)."""
 
 BODY_FIELDS = (
-    "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_radiation",
-    "tier_pressure", "tier_temperature", "tier_air", "tier_radiation",
+    "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
     "equipment_tier", "hab_note", "energy_flux_w_m2",
 )
@@ -150,10 +156,37 @@ def values_from_body(body):
         "surface_dose_msv_yr": getattr(body, "surface_dose_msv_yr", None),
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
+        "life_stage": life_stage(getattr(body, "life_chemical", None), getattr(body, "evolutionary_data", None)),
     }
     for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
         values[field] = getattr(body, field, None)
     return values
+
+
+_STAGE_OF_MILESTONE = (
+    ("technological_civilization", "biosphere"), ("multicellularity", "macroscopic"),
+    ("complex_cells", "microbial"), ("photosynthesis", "microbial"), ("abiogenesis", "microbial"),
+)
+"""tuple: `(evolutionary milestone, life stage)`, most advanced first."""
+
+
+def life_stage(life_chemical, paragraphs):
+    """
+    The `habitability.LIFE_STAGES` stage of a body's native life, from its life
+    chemistry (`None` for none) and the paragraphs of its evolutionary timeline
+    (the text of the latest milestone reached, `tuning.EVOLUTIONARY_TEXT`). Life
+    with no timeline (a moon, or a world outside the habitable zone) is microbial;
+    a timeline that has reached no milestone yet is none.
+    """
+    if not life_chemical:
+        return "none"
+    text = " ".join(paragraphs or ())
+    if not text:
+        return "microbial"
+    for milestone, stage in _STAGE_OF_MILESTONE:
+        if tuning.EVOLUTIONARY_TEXT[milestone] in text:
+            return stage
+    return "none"
 
 
 def saturation_kpa(temperature_c):
@@ -270,6 +303,8 @@ def world_from(values, lethal_host=None):
         surface_dose_sv_yr=surface_dose,
         habitat_dose_sv_yr=habitat_dose,
         water_source=water_source(values),
+        life_stage=values.get("life_stage") or "none",
+        life_on_surface=values.get("hydrosphere") != "ice-covered ocean",
     )
 
 
@@ -292,8 +327,8 @@ def compute(values, compact_host=None):
     limits = []
     for domain in DOMAINS:
         score, colour = result[domain.capitalize()]
-        out[f"phi4_{STORED_AS[domain]}"] = score
-        out[f"tier_{STORED_AS[domain]}"] = TIER_INDEX[colour]
+        out[f"phi4_{domain}"] = score
+        out[f"tier_{domain}"] = TIER_INDEX[colour]
         if colour != "Blue":
             limits.append(f"{domain.capitalize()} {colour}")
     out["equipment_tier"] = EQUIPMENT_NAMES.index(result["equipment"])
@@ -302,7 +337,7 @@ def compute(values, compact_host=None):
                            f"Sv/yr at the surface")
         out["equipment_tier"] = len(EQUIPMENT_NAMES) - 1
     else:
-        out["hab_note"] = ", ".join(limits) if limits else "All four domains Blue"
+        out["hab_note"] = ", ".join(limits) if limits else "All six domains Blue"
     return out
 
 
@@ -319,15 +354,30 @@ def harshness(values):
     """
     How hard a world is on the people living on it, 0 (every domain Blue) to
     1 (a domain at 0), for the tech draw and facility ratings: one minus the
-    worst domain score (`phi4_<domain>`), so it follows the colour tier of
-    the worst domain. `DEFAULT_HARSHNESS` for a body with no score. `values`
+    worst of the five core domain scores (`phi4_<domain>`, not Suitability, which
+    reads the life that the tech draw comes after), so it follows the colour tier
+    of the worst domain. `DEFAULT_HARSHNESS` for a body with no score. `values`
     is a body or a `planets`/`moons` row, read by column name.
     """
     get = values.get if hasattr(values, "get") else (lambda name: getattr(values, name, None))
-    scores = [get(f"phi4_{domain}") for domain in DOMAINS]
+    scores = [get(f"phi4_{domain}") for domain in CORE_DOMAINS]
     if any(score is None for score in scores):
         return DEFAULT_HARSHNESS
     return round(1.0 - min(scores), 4)
+
+
+def rescore(body):
+    """Recomputes a scored body's `SCORE_FIELDS` once its life is known (`life_stage`
+    is part of the score's inputs and life is drawn after it). A gas giant, or a body
+    that was not scored, is left alone."""
+    if body.body_type == "g" or getattr(body, "surface_temperature", None) is None:
+        return
+    if getattr(body, "phi4", None) is None:
+        return
+    values = values_from_body(body)
+    star = getattr(body, "star", None)
+    for name, value in compute(values, compact_host_name(star)).items():
+        setattr(body, name, value)
 
 
 def _clear(body):
