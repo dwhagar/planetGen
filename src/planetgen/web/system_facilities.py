@@ -42,12 +42,12 @@ from planetgen.web.lib.systempage import facility_kind_label, facility_row
 from planetgen.web.lib.tabledisplay import format_period
 
 from planetgen.admin import activity_log
-from planetgen.population import facilities as facility_rules
+from planetgen.population import facilities as facility_rules, facility_ratings
 from planetgen.tuning import FACILITY_KINDS, FACILITY_ORBIT_STEPS
 
 from .helpers import current_admin, db_name, page_url, trusted_html
 
-ACTIONS = ("preview", "save", "remove")
+ACTIONS = ("preview", "save", "remove", "edit", "suggest")
 """tuple: The `facility_action` values the system page's POST accepts."""
 
 PLACEMENT_OPTIONS = (
@@ -63,11 +63,17 @@ ORBIT_STEP_DEFAULT = FACILITY_ORBIT_STEPS // 2
 geometric mean of the host's surface and the edge of its sphere of
 influence."""
 
+RATING_CHOICES = (("", "Not assessed"), ("green", "Green"), ("yellow", "Yellow"), ("red", "Red"))
+"""tuple: `(value, label)` for a rating's `<select>`."""
+
 MESSAGES = {
     # ?facility=<code> after a save or remove -> (is_error, message)
     "added": (False, "Facility added."),
     "removed": (False, "Facility removed."),
     "gone": (True, "That facility was already removed."),
+    "edited": (False, "Facility changed."),
+    "suggested": (False, "Ratings suggested for the ones that were not set."),
+    "nothing": (False, "Every rating was already set, so nothing was suggested."),
 }
 """dict: Fixed messages for the redirect after a save or remove, so
 nothing from the query string reaches the page as text."""
@@ -172,8 +178,98 @@ def facility_rows(facilities):
         row["affiliation"] = facility_display.affiliation_text(facility)
         row["chips"] = trusted_html(facility_display.rating_chips(facility))
         row["fields"] = facility_display.fields_text(facility)
+        # What the edit form starts from.
+        row["edit"] = {
+            "affiliation": f"polity:{facility['affiliation_polity_id']}" if facility.get("affiliation_polity_id") else "",
+            "affiliation_name": None if facility.get("affiliation_polity_id") else facility.get("affiliation_name"),
+            "ratings_note": facility.get("ratings_note"),
+            **{f"rating_{name}": facility["ratings"][name] or "" for name in facility_ratings.RATINGS},
+        }
+        row["polity"] = ({"id": facility["affiliation_polity_id"], "name": facility["affiliation_name"]}
+                         if facility.get("affiliation_polity_id") else None)
         rows.append(row)
     return rows
+
+
+def form_context(system_id):
+    """
+    What the placement and edit forms need beyond the system itself: `types` (the active facility types with their
+    fields, `GET /api/facility-types`) and `owner` (the polity that owns the system, whose name a new facility is
+    affiliated with by default, or `None`).
+    """
+    try:
+        owner = apiclient.get_system_owner(db_name(), system_id)
+    except apiclient.ApiError:
+        owner = None
+    return {"types": apiclient.get_facility_types(db_name()), "owner": owner}
+
+
+def _convert_field(field, raw):
+    """One field's text from the form as the API takes it, or raises `ValueError` with the problem."""
+    if field["datatype"] == "int":
+        try:
+            return int(raw)
+        except ValueError:
+            raise ValueError(f"{field['label']} must be a whole number.") from None
+    if field["datatype"] == "decimal":
+        try:
+            return float(raw)
+        except ValueError:
+            raise ValueError(f"{field['label']} must be a number.") from None
+    if field["datatype"] == "bool":
+        if raw not in ("yes", "no"):
+            raise ValueError(f"{field['label']} must be yes or no.")
+        return raw == "yes"
+    return raw
+
+
+def read_extras(types):
+    """
+    The type, field values, affiliation and ratings of a submitted facility form.
+
+    Args:
+        types (list): The active types, as `form_context` returns them.
+
+    Returns:
+        tuple: `(values, body, errors)` -- the raw values to show the form again, the keys to add to the API body,
+            and the problems found before asking the API anything.
+    """
+    form = request.form
+    values = {key: (form.get(key) or "").strip()
+              for key in ("type_id", "affiliation", "affiliation_name", "ratings_note")}
+    values.update({f"rating_{name}": (form.get(f"rating_{name}") or "").strip() for name in facility_ratings.RATINGS})
+    values.update({key: value.strip() for key, value in form.items() if key.startswith("field_")})
+    body, errors = {}, []
+    chosen = None
+    if values["type_id"]:
+        chosen = next((t for t in types if str(t["id"]) == values["type_id"]), None)
+        if chosen is None:
+            errors.append("Choose one of the listed facility types.")
+        else:
+            body["type_id"] = chosen["id"]
+            fields = {}
+            for field in chosen["fields"]:
+                raw = values.get(f"field_{field['key']}", "")
+                if raw == "":
+                    continue
+                try:
+                    fields[field["key"]] = _convert_field(field, raw)
+                except ValueError as exc:
+                    errors.append(str(exc))
+            if fields:
+                body["fields"] = fields
+    if values["affiliation_name"]:
+        body["affiliation_name"] = values["affiliation_name"]
+    elif values["affiliation"].startswith("polity:") and values["affiliation"][7:].isdigit():
+        body["affiliation_polity_id"] = int(values["affiliation"][7:])
+    ratings = {name: values[f"rating_{name}"] for name in facility_ratings.RATINGS if values[f"rating_{name}"]}
+    if any(color not in facility_ratings.COLORS for color in ratings.values()):
+        errors.append("A rating is Green, Yellow or Red.")
+    elif ratings:
+        body["ratings"] = ratings
+    if values["ratings_note"]:
+        body["ratings_note"] = values["ratings_note"]
+    return values, body, errors
 
 
 def _read_form(system):
@@ -231,12 +327,28 @@ def _preview_orbit(host, distance_km):
     }, None
 
 
-def handle_post(system_id, system, facilities):
+def _edit_body():
+    """The `PATCH /api/facilities/<id>` body of the edit form: the affiliation, the five ratings (a blank one
+    clears it) and the note, replaced as a set."""
+    form = request.form
+    body = {"affiliation_polity_id": None, "affiliation_name": None,
+            "ratings": {name: (form.get(f"rating_{name}") or "").strip() or None
+                        for name in facility_ratings.RATINGS},
+            "ratings_note": (form.get("ratings_note") or "").strip() or None}
+    name, chosen = (form.get("affiliation_name") or "").strip(), (form.get("affiliation") or "").strip()
+    if name:
+        body["affiliation_name"] = name
+    elif chosen.startswith("polity:") and chosen[7:].isdigit():
+        body["affiliation_polity_id"] = int(chosen[7:])
+    return body
+
+
+def handle_post(system_id, system, facilities, context):
     """
     Runs one `facility_action` POST (the CSRF token was already checked
-    app-wide). Returns a redirect response after a save or remove, else
-    the form state for the page to show: `{"fields", "errors",
-    "preview"}`.
+    app-wide). Returns a redirect response after a save, remove, edit or
+    suggestion, else the form state for the page to show: `{"fields",
+    "errors", "preview"}`. `context` is `form_context`'s answer.
     """
     if current_admin() is None:
         activity_log.event("AUTHZ", "admin.required", path=request.path)
@@ -258,7 +370,25 @@ def handle_post(system_id, system, facilities):
             return {"fields": {}, "errors": [_api_message(exc)], "preview": None}
         return done("removed")
 
+    if action in ("edit", "suggest"):
+        facility_id = request.form.get("facility_id", "").strip().upper()
+        if facility_id not in {str(facility["id"]) for facility in facilities}:
+            return {"fields": {}, "errors": ["That facility is not in this system."], "preview": None}
+        try:
+            if action == "suggest":
+                return done("suggested" if apiclient.suggest_facility_ratings(cookie_header, db_name(), facility_id)
+                            else "nothing")
+            apiclient.update_facility(cookie_header, db_name(), facility_id, _edit_body())
+        except apiclient.NotFoundError:
+            return done("gone")
+        except apiclient.ApiError as exc:
+            return {"fields": {}, "errors": [_api_message(exc)], "preview": None}
+        return done("edited")
+
     values, host, distance_km, errors = _read_form(system)
+    extras, extra_body, extra_errors = read_extras(context["types"])
+    values.update(extras)
+    errors.extend(extra_errors)
     if action == "save" and not values["name"]:
         errors.insert(0, "Give the facility a name.")
     state = {"fields": values, "errors": errors, "preview": None}
@@ -284,6 +414,7 @@ def handle_post(system_id, system, facilities):
         body["distance_km"] = distance_km
     if values["description"]:
         body["description"] = values["description"]
+    body.update(extra_body)
     try:
         apiclient.create_facility(cookie_header, db_name(), body)
     except (apiclient.NotFoundError, apiclient.ApiError) as exc:

@@ -20,7 +20,7 @@ every link is a plain GET link (`page_url`).
 
 from flask import abort, jsonify, redirect, request
 from planetgen.galaxy import objectref
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.fmt import (
     format_duration_seconds, format_gravity_g, format_flux_w_m2, format_magnetic_field_gauss, format_mass_kg, format_number_density_cm3, format_mass_solar, format_number, format_power_w, format_period_years, format_pressure_pa, format_speed_kms,
     format_temperature_k, runaway_text,
@@ -279,8 +279,11 @@ def system(system_id):
     detail = apiclient.get_system(db, system_id)
     facilities = apiclient.get_system_facilities(db, system_id)
     facility_form = None
+    facility_context = {"types": [], "owner": None}
+    if facility_action or current_admin() is not None:
+        facility_context = system_facilities.form_context(system_id)
     if facility_action:
-        facility_form = system_facilities.handle_post(system_id, detail, facilities)
+        facility_form = system_facilities.handle_post(system_id, detail, facilities, facility_context)
         if not isinstance(facility_form, dict):
             return facility_form
     sections = apiclient.get_system_sections(db, system_id)
@@ -338,6 +341,9 @@ def system(system_id):
         facility_status=system_facilities.MESSAGES.get(request.args.get("facility")) if admin else None,
         facility_form=facility_form or {"fields": {}, "errors": [], "preview": None},
         facility_hosts=system_facilities.host_options(detail) if admin else [],
+        facility_context=facility_context if admin else {"types": [], "owner": None},
+        facility_ratings=system_facilities.RATING_CHOICES,
+        facility_dimensions=facility_display.DIMENSION_LABELS,
         facility_placements=system_facilities.PLACEMENT_OPTIONS,
         facility_kinds=system_facilities.kind_options(),
         facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,
