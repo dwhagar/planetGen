@@ -113,7 +113,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
 
@@ -158,7 +158,7 @@ became these items:
 | 10 | Icons instead of words on buttons (investigate) | UX.28 (done, PR #490) |
 | 11 | Star names at most two words | GEN.46 (done, PR #370) |
 | 12 | Every comet's type shown with a link | UX.29 (done, PR #487) |
-| 13 | Planet information without the Markdown render | UX.30 |
+| 13 | Planet information without the Markdown render | UX.30 (absorbed into UX.105) |
 | 14 | System edit as a quick menu, not a long panel | UX.31 |
 | 15 | Planet rows show class only | UX.32 |
 | 16 | Filter phenomena by type and class | UX.33 |
@@ -307,35 +307,6 @@ with `clamp()`.
   (coordinates, angles, luminosity; folded in from UX.81 as steps 5 to
   7), and the JavaScript lint test that bans direct `toFixed` for unit
   values.
-
-- [ ] **UX.30 Planet information without the Markdown render**
-  Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
-  away from the markdown render and instead fits with the modern web UI
-  as we've seen it so far." Today each body's expanded row on the
-  system page is the generator's Markdown (`systemRender.render_system_sections`)
-  turned into HTML by `lib/mdrender.py` (`systempage._row_html`), and
-  so is the system overview; only the stat chips are built as HTML.
-  Done: the system page builds each body's details from its stored
-  values as structured HTML (property grids, atmosphere composition
-  bars, orbit figures, moons, life), styled like the rest of the site in
-  both themes and every size class, using the unit ladders (UX.22);
-  `mdconvert` is no longer used for them. The wikitext and Markdown
-  views (the Wikitext/Markdown toggle and wiki upload) keep using the
-  text render. Question (decided below): does the overview text stay as
-  prose?
-  Research (2026-10-09, units-and-number-formatting.md): prerequisite
-  UX.23 step 0, so the new property grids emit `<span class="qty" data-q
-  data-si>` from the start.
-  Decided (2026-10-10): Boss (19:12Z): the system overview stays as
-  prose.
-  Prerequisite: UX.23.
-  Plan change (Boss, 2026-10-15 04:21Z): markdown is no longer the web
-  default for any planet or system text; the richer tables replace it, and
-  markdown and wikitext are generated on the fly only when the user asks.
-  The new lane Foundations Wording audits all planet and system text
-  output (wording and tables, matching the habitability index) and will
-  propose the items that carry this out; this item is reconciled with that
-  list before either is built.
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
   Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
@@ -513,7 +484,7 @@ with `clamp()`.
   for each category where the planet falls and why, with no extra
   information (GEN.208). Owner: Bugfixes lane 2 (interface), after the
   generation items.
-  Prerequisites: none. Related: UX.30, UX.32, UX.101, GEN.208 (done, PR #1433).
+  Prerequisites: none. Related: UX.30 (absorbed into UX.105), UX.32, UX.101, GEN.208 (done, PR #1433).
 
 - [ ] **UX.101 PHI-6 symbols in the planet and moon lists, coloured by rating**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
@@ -562,6 +533,78 @@ with `clamp()`.
   UX.98 as the first slice (done, #1369: one stage formatter); the rest is
   a Phase 2 item for the interface builders.
   Prerequisites: none. Related: PERF.66.
+
+- [ ] **UX.103 Design note for the description layer**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. Write docs/design/system-description.md: the document
+  model (per body a heading, a facts table of typed quantities, a rating
+  table of the six PHI-6 rows with colour, score and one short sentence,
+  and a few short sentences), the HTML, Markdown, wikitext and
+  plain-text renderers, what is stored versus computed, the migration
+  list for Foundations Database, and a map of every field now written by
+  a to_paragraph_list(). Reconciles with UX.30 (now absorbed). Docs-only
+  PR.
+  Prerequisites: none.
+
+- [ ] **UX.104 Build the document model for stars, pairs, planets, moons, belts, comets and the overview**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. Pure functions (package name provisional,
+  planetgen/describe/) from a loaded or freshly generated system to the
+  document model; no format flag, no Markdown, no HTML in it. Facts
+  tables carry typed quantities (kind, SI value, ladder name, or plain
+  text). The planet and moon model includes the habitability rating rows
+  by calling the existing protection and habitability functions
+  unchanged (the wording is replaced in the describer item). Tests
+  compare field coverage against the old tables so nothing is dropped. A
+  quantity not yet on a unit ladder is carried as a plain number with
+  its unit and converted when UX.22/UX.23 land.
+  Prerequisite: UX.103.
+
+- [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. Facts table, rating table (with the six symbols UX.101
+  draws), life, orbit and moons, styled like the rest of the site in
+  both themes and every size class, quantities as qty spans so the unit
+  preference applies. Removes web/lib/mdrender.py, GET
+  /api/systems/<id>/sections, render_system_sections, the markdown
+  dependency from the web lock file, and the Markdown tests. The
+  overview stays prose (Boss, 2026-10-10). The one-off system page
+  previews the same HTML for a system that is never saved. This is the
+  build of UX.30, absorbed here; UX.30's text and Boss's 2026-10-01
+  quote are kept below.
+    UX.30, Boss (2026-10-01 23:53Z): "Rework planet information displays
+  to pull away from the markdown render and instead fits with the modern
+  web UI as we've seen it so far." Plan change (Boss, 2026-10-15
+  04:21Z): markdown is no longer the web default for any planet or
+  system text; the richer tables replace it, and markdown and wikitext
+  are generated on the fly only when the user asks.
+  Prerequisites: UX.104, UX.23. Related: UX.30 (absorbed into this
+  item), UX.32, UX.101.
+
+- [ ] **UX.106 CLI output as plain text by default, Markdown and wikitext on request**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. planetgen system, sector and galaxy --markdown becomes
+  --format text|markdown|wikitext; default text (the plain tables;
+  decided default, stands unless Boss says otherwise). The one-line
+  lists in cli/query.py go through the unit ladders. Updates docs/cli.md
+  in the same PR.
+  Prerequisite: UX.104.
+
+- [ ] **UX.107 Units in the description go through the ladders**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. The describer, the map side panel (gravity, star
+  temperature, pressure of an airless body as 0 kPa in line with the
+  habitability text), the CLI query lines, the class page radius ranges,
+  and the wide-binary, comet, nebula and quasar numbers. The ladders
+  themselves (mass, temperature, pressure, Gyr rename) are UX.22, UX.23
+  and UX.81 (Foundations UX); this item is the call sites outside the
+  files they edit.
+  Prerequisite: UX.23. Related: UX.22, UX.81.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3405,8 +3448,57 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life pass uses, and UPDATE only the habitability columns of planets
   and moons. Resumable per system. No migration, no shim. Found by
   Foundations Generation (no new Boss message).
-  Prerequisites: GEN.216. Related: GEN.214 (done, PR #1472), GEN.215,
+  Prerequisite: GEN.216. Related: GEN.214 (done, PR #1472), GEN.215,
   GEN.216.
+
+- [ ] **GEN.218 One habitability describer, in the short wording**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. Fold physics/protection.paragraph and
+  physics/habitability_explain into one module that returns the rating
+  rows (domain, colour, score, sentence) in Boss's wording from GEN.216
+  (his example lines are the spec): one number formatter on the ladders,
+  one gas-name table, PHI-6 everywhere, dead code deleted
+  (habitability_explain.factors and helpers unless a row sentence needs
+  them). Keeps GEN.148's temperature behaviour.
+  Prerequisites: UX.104, GEN.215, GEN.216, GEN.214 (done, PR #1472).
+
+- [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. web/lib/habitability_ref.py reads the protection_limits
+  and habitability constants (adds the chaotropicity, oxygen-high and
+  heat-shielded rows; oxygen is listed under Pressure but scored in Air,
+  fix the page to match the code), a test fails when a number on the
+  page differs from the constant, and the page, chips, tooltips,
+  class_pages.py and docs name PHI-6.
+  Prerequisites: GEN.214 (done, PR #1472).
+
+- [ ] **GEN.220 "Habitable" means the index**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. The system overview counts worlds by their PHI-6 rating
+  (default: potentially habitable = overall Green or Blue; Boss can move
+  the line), the row chip and search facet say what they mean (the
+  rating, or "Habitable class" where it is the class flag), and the
+  class pages label the flag "Habitable class". Touches Foundations UX
+  (UX.32 chip decision, UX.101 symbols): coordinate before editing
+  systempage.py.
+  Prerequisites: UX.104, GEN.218. Related: UX.32, UX.101.
+
+- [ ] **GEN.221 Short plain prose for the fixed text**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. One pass, with Boss's example lines as the model: the
+  planet and moon paragraph (class description, atmosphere, composition;
+  the "of a mix of" run-ons), the gas giant depth sentences (keep the
+  data, drop the jargon), the star age and lifespan sentence and the
+  STAR_EVOLUTION notes (split into a sentence about lifespan and one
+  about life), comet, belt, wide and close binary sentences, the planet
+  class descriptions that claim life or water (tuning.PLANET_CLASSES,
+  class pages), and the phenomenon prose. In-universe wording per UX.42
+  on public pages. Wording moves into the describer as it is rewritten.
+  Prerequisite: UX.104.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -4085,6 +4177,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations Database, after DB.29.
   Prerequisite: DB.29. Related: POP.12, POP.13, DB.27.
 
+- [ ] **DB.31 Store structure, not prose, for life and flavour**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. Replace planet_evolutionary_paragraphs and
+  moon_evolutionary_paragraphs text with the stage, the pace and the
+  ages; flavor_text with a flavour key; drop hab_note (computed) and the
+  run-config markdown column. Then life_stage_from_paragraphs and the
+  string searches in decide_flavor_text go. Changes what generation
+  stores, not the galaxy (draws are unchanged). Foundations Database
+  owns the migration and agrees its timing; Foundations Wording writes
+  the code against it. The phi4* column names stay (decided default); a
+  rename to phi6* is not planned.
+  Prerequisite: UX.104.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -4397,6 +4503,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   when the grid has to be built; documented in the API docs and the
   compatibility data.
   Prerequisite: GEN.199. Related: MAP.167.
+
+- [ ] **API.25 A structured description endpoint, and Markdown and wikitext on request only**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. GET /api/systems/<id>/description returns the document
+  model as JSON; /text?format=markdown|wikitext stays and is rendered
+  from the model; the page's Wikitext and Markdown buttons and the wiki
+  upload work unchanged from the user's side. Removes
+  SystemConfig.MARKDOWN and its global flipping (db/render.py _format,
+  render_star_system). The run-config markdown column goes with the
+  storage item. Updates docs/api.md in the same PR.
+  Prerequisite: UX.104.
 
 ## ADM: Admin tools
 
@@ -5134,6 +5252,19 @@ clears each one.
   Seen again by Foundations UX in its UX.81 and UX.22 gate (2026-10-15):
   the same test, so two lanes now hit it.
   Prerequisites: none. Related: TEST.147, TEST.149, TEST.126.
+
+- [ ] **TEST.155 Wording and index agree: property test**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. A property test over random worlds and the sample
+  systems that fails when a domain's colour, score, the band its
+  sentence names, the gear and the equipment label disagree; when a body
+  has life text but the index gives it no life (check the 130 C case
+  first); when an airless body shows Air as anything but Red (shared
+  with GEN.215); and when any quantity in the describer is formatted
+  with a raw :.Nf. Test items are owned by Test Suite Rebuild: that
+  thread approves, Foundations Wording writes it.
+  Prerequisite: GEN.218.
 
 ## USR: User accounts
 
@@ -6096,6 +6227,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is unused. Done: each guide names the Redis package, how to start it
   and check it, and PLANETGEN_WORKERS; the false comment is corrected.
   Prerequisites: none.
+
+- [ ] **DOC.45 Reference docs follow the description layer**
+  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
+  Owner lane: Foundations Wording (2026-10-15), which writes the code
+  for this item. Leftover sweep for docs/html-interface.md, api.md
+  (/sections removed, /description added), cli.md (--format),
+  system-file-format.md, example-systems.md,
+  design/habitability-index.md (PHI-6 naming) and testing.md. Each build
+  item updates the page it changes in its own PR; this is what is left,
+  part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
+  Prerequisites: UX.105, API.25, UX.106, GEN.218, GEN.219.
 
 ## VIEW: The view from a planet
 

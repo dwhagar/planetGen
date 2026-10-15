@@ -72,8 +72,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.30; one thread. |
-| UX.30 | Planet information without the Markdown render | UX.22, UX.32, UX.23 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
+| UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
@@ -254,4 +253,3 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 - NAV.24: A keep-out radius for every kind of object, see its entry in TODO.md.
 - UX.32: Planet rows show the class only, without the type and moon labels, see its entry in TODO.md.
-- UX.30: Planet information without the Markdown render, see its entry in TODO.md.
