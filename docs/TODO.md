@@ -1433,6 +1433,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   branches and drillSlabs. Remove them together with their tests.
   Prerequisites: none. Related: MAP.151.
 
+- [ ] **MAP.198 The Galaxy Map outlines and shades the whole block a click would zoom into (bug)**
+  Boss, 2026-10-15 01:46Z: it is really unclear what region is being
+  selected from the Galaxy Map, and picking a region that holds a star
+  or group of stars is very difficult. Outline the entire block that is
+  being zoomed in on and shade the block itself a little more, so the
+  user can tell whether it contains the item they want. Done: hovering
+  shows the whole block outline and a slightly stronger shade on the
+  block, at every level, on both themes, with a browser test. Owner:
+  Bugfixes lane 2. It touches the map the flip reworked (MAP.151d part
+  2, #1382); coordinate with MAP.152 and MAP.189 (Foundations Maps).
+  GitHub issue
+  [#1414](https://github.com/dwhagar/planetGen/issues/1414).
+  Prerequisites: none. Related: MAP.199, MAP.200, MAP.152, MAP.189,
+  MAP.151.
+
+- [ ] **MAP.199 Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug)**
+  Boss, 2026-10-15 01:46Z: zooming in and out with the scroll wheel is
+  awkward. Zoom and rotation must be based on the same centre at all
+  times, and there must be a better way to choose the new centre for
+  both. Done: one centre drives wheel zoom and rotation together;
+  choosing a new centre is clear and the current centre is always known;
+  browser test. Owner: Bugfixes lane 2. MAP.200 supplies the on-map
+  controls for moving the centre. It touches the free camera the flip
+  finished (MAP.150, done in #1382); coordinate with MAP.152
+  (Foundations Maps). GitHub issue
+  [#1414](https://github.com/dwhagar/planetGen/issues/1414).
+  Prerequisites: none. Related: MAP.198, MAP.200, MAP.152, MAP.150,
+  MAP.146.
+
+- [ ] **MAP.200 Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug)**
+  Boss, 2026-10-15 01:46Z: add on-map zoom controls. A slider for zoom.
+  A direction star (four arrows and a middle button) that moves the map
+  centre. An indicator on the map, while the centre is being moved that
+  way, showing where the centre is. The middle button resets the focus
+  to the centre of the region being viewed. Done: the three controls on
+  the Galaxy Map with keyboard paths and a browser test, using the
+  single shared centre of MAP.199. Owner: Bugfixes lane 2. Coordinate
+  with MAP.152 (Foundations Maps). GitHub issue
+  [#1414](https://github.com/dwhagar/planetGen/issues/1414).
+  Prerequisites: MAP.199. Related: MAP.198, MAP.152, MAP.146.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
