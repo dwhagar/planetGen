@@ -318,8 +318,8 @@ def sample_job_tree(admin_token, site_db):
     work queue and a task under it."""
     from planetgen.queue import work as workQueue
 
-    with workQueue.job_node("galaxy", "planetgen galaxy --shells=1", site_db,
-                            argv=["galaxy", "--shells=1"]) as root:
+    with workQueue.job_node("galaxy", "planetgen galaxy --shell 1", site_db,
+                            argv=["galaxy", "--shell", "1"]) as root:
         with workQueue.WorkQueue("Sectors (shell 1)", workers=1) as queue:
             queue.submit("sector", "1,0,0", int, "7")
     return root.id

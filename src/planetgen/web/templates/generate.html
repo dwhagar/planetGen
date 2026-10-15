@@ -307,7 +307,7 @@
         <label class="search-field generate-check"><span><input type="checkbox" name="avoid_filled_space" value="1"{% if form and form.get("avoid_filled_space") %} checked{% endif %}> Keep away from filled space: drop any start whose neighborhood touches sectors already generated</span></label>
       {%- elif mode == "shell" %}
         {{ field("shell_index", "Shell", step="1", min=0, max=max_shell) }}
-        {{ field("shell_bands", "Bands", kind="text", placeholder="all, e.g. -2:2") }}
+        {{ field("shell_band", "Band", placeholder="every band", step="1") }}
         {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
       {%- elif mode == "center" %}

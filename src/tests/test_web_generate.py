@@ -323,10 +323,10 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
      ["--shell", "3", "--band", "1", "--wedge", "17"]),
     ({"mode": "address", "address_shell": "3", "address_wedge": "17", "address_radius_pc": "12"},
      ["--shell", "3", "--band", "0", "--wedge", "17", "--radius-pc", "12.0"]),
-    ({"mode": "shell", "shell_index": "5"}, ["--shells=5"]),
-    ({"mode": "shell", "shell_index": "5", "shell_bands": "-2:2"}, ["--shells=5", "--bands=-2:2"]),
-    ({"mode": "shell", "shell_index": "5", "shell_limit": "40", "whole_shell": "1"}, ["--shells=5", "--limit", "40"]),
-    ({"mode": "shell", "shell_index": "5", "whole_shell": "1"}, ["--shells=5", "--yes"]),
+    ({"mode": "shell", "shell_index": "5"}, ["--shell", "5"]),
+    ({"mode": "shell", "shell_index": "5", "shell_band": "-2"}, ["--shell", "5", "--band", "-2"]),
+    ({"mode": "shell", "shell_index": "5", "shell_limit": "40", "whole_shell": "1"}, ["--shell", "5", "--limit", "40"]),
+    ({"mode": "shell", "shell_index": "5", "whole_shell": "1"}, ["--shell", "5", "--yes"]),
     ({"mode": "address", "address_shell": "3", "address_wedge": "17", "address_radius_ly": "100"},
      ["--shell", "3", "--band", "0", "--wedge", "17", "--radius-pc", "30.7"]),
     ({"mode": "address", "address_shell": "3", "address_wedge": "17", "address_radius_ly": "652"},
@@ -356,7 +356,7 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "shell", "shell_index": "100001"}, "Shell must be at most 100000."),
     ({"mode": "shell", "shell_index": "3", "shell_limit": "1e30"}, "Limit must be a whole number."),
     ({"mode": "shell", "shell_index": "3", "shell_limit": "9999999"}, "Limit must be at most"),
-    ({"mode": "shell", "shell_index": "3", "shell_bands": "x"}, "Bands"),
+    ({"mode": "shell", "shell_index": "3", "shell_band": "x"}, "Band must be a whole number."),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "1e9"}, "Radius (pc) must be at most 200."),
     ({"mode": "center", "center_by": "address", "center_wedge": "1", "center_radius_pc": "5"}, "Shell is required."),
     ({"mode": "center", "center_by": "position", "center_x_pc": "1", "center_radius_pc": "5"}, "y (pc) is required."),
@@ -398,7 +398,7 @@ def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn,
     resp = _post(client, action="galaxy", mode="shell", shell_index="40")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200 and no_spawn == []
-    assert _argv({"argv": asked[0]}) == ["galaxy", "--shells=40"]
+    assert _argv({"argv": asked[0]}) == ["galaxy", "--shell", "40"]
     assert "About 8.4 MB" in html and "1 m 15 s" in html and "400 GB free of 1.0 TB" in html
     form = html[html.index('id="estimate"'):]
     form = form[:form.index("</section>")]
@@ -468,7 +468,7 @@ def test_map_buttons_get_json(site, client, no_spawn, monkeypatch):
     job's links back instead of following a redirect."""
     monkeypatch.setattr(jobs, "start_job", lambda *args, **kwargs: "job123")
     resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="shell",
-                 shell_index="40", shell_bands="0", estimate_ok="1")
+                 shell_index="40", shell_band="0", estimate_ok="1")
     assert resp.status_code == 202
     assert resp.get_json() == {"job": "job123", "url": "/admin/generate/jobs/job123",
                                "status_url": "/admin/generate/status?job=job123"}
@@ -1202,7 +1202,7 @@ def test_largest_allowed_values_pass_the_page_and_generate_py(site, no_spawn, mo
     ["galaxy", "--radius-pc", "200.1"],
     ["galaxy", "--max-shell", "100001"],
     ["galaxy", "--shell", "100001", "--band", "0", "--wedge", "0", "--limit", "1"],
-    ["galaxy", "--shells=3", "--limit", str(generationLimits.MAX_GENERATE_LIMIT + 1)],
+    ["galaxy", "--shell", "3", "--limit", str(generationLimits.MAX_GENERATE_LIMIT + 1)],
     ["galaxy", "--center-sector", "9", "--radius-pc", "1e9"],
     ["system", "--num-orbits", str(generationLimits.MAX_NUM_ORBITS + 1)],
     ["phenomenon", "--anchor-system", "--num-orbits", "9" * 25],

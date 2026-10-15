@@ -126,7 +126,7 @@ GALAXY_MODES = (
      f"generated one get their heavier stars either way, {BACKFILL_TEXT})."),
     ("shell", "A whole shell",
      "Every not-yet-generated sector in one shell, the 4 pc deep sphere of cells at one distance from the "
-     "center (shell 0 is the core ball), optionally only some bands. A shell holds up to thousands of "
+     "center (shell 0 is the core ball), optionally only one band of it. A shell holds up to thousands of "
      "sectors, so it needs a limit or the confirmation box past 2,000."),
     ("center", "Around a sector",
      "Every not-yet-generated sector within a radius of a center: an existing filled sector "
@@ -473,16 +473,12 @@ def galaxy_argv(form, edge_pc=None):
         return course_argv(form)
     if mode == "shell":
         shell = _number(form, "shell_index", "Shell", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
-        argv = [f"--shells={shell}"]
+        argv = ["--shell", str(shell)]
         description = f"in shell {shell}"
-        text = (form.get("shell_bands") or "").strip()
-        if text:
-            try:
-                parse_range(text, "Bands")
-            except SpanError as exc:
-                raise FormError(str(exc)) from None
-            argv.append(f"--bands={text}")
-            description += f" bands {text}"
+        band = _number(form, "shell_band", "Band", int)
+        if band is not None:
+            argv += ["--band", str(band)]
+            description += f" band {band}"
         limit = _number(form, "shell_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
         if limit is not None:
             argv += ["--limit", str(limit)]
