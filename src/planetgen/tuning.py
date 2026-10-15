@@ -3169,6 +3169,66 @@ A civilization is in the last era whose start its age has reached. Tuning
 these needs no migration: every population pass recomputes `species.era`
 and `species.spacefaring` from the stored age."""
 
+TECH_DOMAINS = ("energy", "materials", "information", "medical", "propulsion", "defense")
+"""tuple: The six tech domains of the Technological Assessment, in the order of `TECH_WEIGHTS`
+(Energy, Materials, Information, Medical, Propulsion, Defense)."""
+
+TECH_WEIGHTS = (0.25, 0.20, 0.20, 0.15, 0.10, 0.10)
+"""tuple: The weights of the six domain indices in a tech level (Boss's Technological Assessment, "Domain
+Weighting System"); they sum to 1. TL = 0.25 EI + 0.20 MI + 0.20 II + 0.15 MeI + 0.10 PI + 0.10 DI."""
+
+TECH_DOMAIN_OFFSETS = (0.066, 0.066, -0.171, -0.053, 0.066, -0.053)
+"""tuple: Each domain's shift in decades of log10 effective age (negative is earlier), solved so the median
+index vector at 266 years is Earth's 2026 (E 3.0, M 3.0, I 3.4, Me 3.2, P 3.0, D 3.2)."""
+
+TECH_CURVE_STEEPNESS = 0.97
+"""float: `k`, the index gained per decade of log10 age at the middle of a domain's logistic."""
+
+TECH_CURVE_CENTRE = 2.655
+"""float: `m`, the centre of the logistic in log10 years (about 450 years, where an index is 3.5)."""
+
+TECH_PACE_SIGMA = 0.30
+"""float: The spread of a species' shared pace, in decades (a factor of 2 in time per sigma)."""
+
+TECH_DOMAIN_SIGMA = 0.09
+"""float: The scale of each domain's own t(4) noise, in decades (standard deviation about 0.13)."""
+
+TECH_CEILING_MEAN = 6.2
+TECH_CEILING_SD = 0.6
+TECH_CEILING_DOMAIN_SD = 0.4
+TECH_CEILING_SOFTNESS = 5.0
+"""float: A species' ceiling is a normal draw of `TECH_CEILING_MEAN` and `TECH_CEILING_SD` clipped to 4 to 7,
+each domain's `TECH_CEILING_DOMAIN_SD` away from it; the index is a soft minimum of the curve and the ceiling
+with this sharpness."""
+
+TECH_STAGNATION_CHANCE = 0.12
+TECH_STAGNATION_LOG10_YEARS = (2.7, 6.0)
+"""A species freezes at a plateau age (log10 years, drawn evenly between these) with this chance."""
+
+TECH_COLLAPSE_RATE_PER_DECADE = 0.10
+TECH_COLLAPSE_KEEP = (0.01, 0.30)
+"""Collapses are a Poisson process of this rate per decade of log10 age past `CIVILIZATION_MIN_AGE_YEARS`;
+at each one the effective age is multiplied by a draw between these."""
+
+TECH_SPIKE_CHANCE = 0.03
+TECH_SPIKE_SIZE = (1.5, 3.0)
+"""A lopsided species has one domain raised by a draw between these after the prerequisite clamps."""
+
+TECH_PREREQUISITES = (
+    ("information", ("materials",), 1.5),
+    ("medical", ("information", "materials"), 1.5),
+    ("propulsion", ("energy", "materials", "information"), 1.0),
+    ("defense", ("energy", "materials"), 1.0),
+)
+"""tuple: `(domain, the domains it needs, margin)`: the domain is at most the lowest of those plus the margin,
+applied in this order."""
+
+TECH_BANDS = (
+    (0.0, "Primal"), (0.5, "Agrarian"), (1.5, "Industrial"), (2.5, "Atomic"), (3.5, "Fusion"),
+    (4.5, "Gravitic"), (5.5, "Antimatter"), (6.5, "Transcendent"),
+)
+"""tuple: `(tech level where the band starts, name)` in ascending order."""
+
 TERRITORY_BASE_REACH_LY = 5.0
 """float: A polity's territory reach (light years) the moment its species
 goes interstellar. Reach grows with the square root of age from there:
