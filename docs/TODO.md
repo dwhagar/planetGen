@@ -3860,6 +3860,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   rename to phi6* is not planned.
 
 - [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything**
+  Progress (2026-10-15): merged into the integration branch
+  `claude/spherical-switch` as PR #1574 (not yet on main; it retires when
+  the final switch PR merges). Left for the others on that branch: Maps
+  (MAP.205, MAP.206) replaces the Galaxy Map queries that now raise
+  NotImplementedError (galaxy_bright_stars_in_box,
+  galaxy_scattered_points_in_box, galaxy_filled_in_box, galaxy_stage,
+  galaxy_block_sums, galaxy_block_stats, galaxy_window,
+  galaxy_stage_keys); Generate (GEN.227) moves run_plan.py off
+  store.get_galaxy_layers and fill_block_stats, and the test helpers in
+  tests/test_galaxy_gen.py off outer_ring_index. Sector-less star systems
+  stay unplaced with their IDs until GEN.223.
   Switch (2026-10-15): DB.32, GEN.227 and UX.111 land as one switch,
   because the schema rename breaks the store, queries, generation and the
   Galaxy Map code at once. Structure: a shared integration branch
