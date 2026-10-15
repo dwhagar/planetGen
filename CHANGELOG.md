@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1345] - 2026-10-15
+
+### Changed
+
+- TODO: the execution plan now has a Core (2026-10-15) lane section with its 46 open items; the Database and Generate lanes are marked retired. Interface waits for Maps.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1344] - 2026-10-15
 
 ### Changed
