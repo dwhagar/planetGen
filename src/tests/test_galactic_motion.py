@@ -350,3 +350,38 @@ def test_a_hypervelocity_scatter_point_flies_a_straight_line(mysql_config):
     assert (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0,
             row["position_z_mpc"] / 1000.0) == pytest.approx(expected, abs=1e-3)
     assert (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) == pytest.approx(velocity)
+
+
+def test_a_systems_galaxy_point_and_cell_key_follow_every_save_and_move(mysql_config):
+    """DB.34: `star_systems.galaxy_*_pc` is the sector's center plus the offset, and `cell_key` (MySQL's) follows it."""
+    from planetgen.galaxy import cellkey
+    sector, position = _place(3, [(0.0, 0.0, 0.0), (0.3, -0.2, 0.1)], "Keyed")
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=position)
+    center = (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
+
+    def check(conn):
+        rows = conn.execute("SELECT sector_id, position_x_mpc, position_y_mpc, position_z_mpc, galaxy_x_pc, galaxy_y_pc,"
+                            " galaxy_z_pc, cell_key FROM star_systems").fetchall()
+        assert len(rows) == 2
+        for row in rows:
+            owner = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id = ?",
+                                 (row["sector_id"],)).fetchone()
+            expected = local_to_galaxy_pc((owner["center_x_pc"], owner["center_y_pc"], owner["center_z_pc"]),
+                                          tuple(row[f"position_{a}_mpc"] / 1000.0 for a in "xyz"))
+            point = (row["galaxy_x_pc"], row["galaxy_y_pc"], row["galaxy_z_pc"])
+            assert point == pytest.approx(expected, abs=1e-6)
+            assert row["cell_key"] == cellkey.cell_key(*point)
+
+    conn = store.get_connection(mysql_config)
+    try:
+        check(conn)
+        before = conn.execute("SELECT galaxy_x_pc FROM star_systems ORDER BY id").fetchall()
+        with conn:
+            conn.execute("UPDATE stars SET galactic_orbital_period_gy = 1.0")
+            store.advance_galactic_positions(conn, store.orbit_clock(conn, 1e6))
+        check(conn)
+        after = conn.execute("SELECT galaxy_x_pc FROM star_systems ORDER BY id").fetchall()
+        assert [r["galaxy_x_pc"] for r in after] != pytest.approx([r["galaxy_x_pc"] for r in before], abs=1e-9)
+    finally:
+        conn.close()
+    assert center  # the sector was placed
