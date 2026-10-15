@@ -106,3 +106,38 @@ def test_a_recorded_run_lists_the_files_the_test_used(tmp_path):
     data = json.loads(out.read_text())
     assert data["format"] == depmap.FORMAT
     assert sorted(name.split("::")[1] for name in data["tests"]) == ["test_calls_the_helper", "test_reads_a_file"]
+
+
+def test_a_resumed_run_keeps_the_map_entries_of_the_tests_it_skipped():
+    """TEST.152: a resumed run runs only the tests that had not passed, so the map it writes holds the old entries of the
+    rest and the fresh entry of what ran now."""
+    old = _map({"src/tests/test_a.py::test_one": (["src/planetgen/a.py"], False),
+                "src/tests/test_a.py::test_two": (["src/planetgen/a.py"], False),
+                "src/tests/test_b.py::test_two": (["src/planetgen/b.py"], False)}, FILES)
+    merged = depmap.merge_map(old, {"src/tests/test_b.py::test_two": ({"src/planetgen/a.py"}, False, 3.0)}, lambda name: True)
+    assert set(merged["tests"]) == set(old["tests"])
+    assert merged["tests"]["src/tests/test_a.py::test_one"] == old["tests"]["src/tests/test_a.py::test_one"]
+    assert [merged["files"][i] for i in merged["tests"]["src/tests/test_b.py::test_two"]["f"]] == ["src/planetgen/a.py"]
+
+
+def test_the_check_of_a_resumed_run_says_it_covers_only_the_tests_that_ran(tmp_path, monkeypatch):
+    skip = tmp_path / "x.skip"
+    skip.write_text(json.dumps(["a::one", "a::two", "b::three"]))
+
+    class Config:
+        def __init__(self, path):
+            self.path = path
+
+        def getoption(self, name, default=None):
+            return self.path if name == "--skip-passed" else default
+
+    assert depmap._resumed_count(Config(str(skip))) == 3
+    assert depmap._resumed_count(Config(None)) == 0
+    assert depmap._resumed_count(Config(str(tmp_path / "missing.skip"))) == 0
+    note = depmap.resumed_note(3)
+    assert "resumed" in note and "3 tests" in note and "only the tests that ran now" in note
+    monkeypatch.setattr(depmap, "PROOF_PATH", str(tmp_path / "proof.json"))
+    depmap._record_proof(10, 1, ["a::one"], resumed=True)
+    depmap._record_proof(10, 0, [])
+    runs = json.loads((tmp_path / "proof.json").read_text())["runs"]
+    assert runs[0]["resumed"] is True and "resumed" not in runs[1]

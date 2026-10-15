@@ -1,0 +1,2 @@
+### Added
+- **`scripts/test.py` clears what earlier runs left on the test Redis** (TEST.152). Job, result and registry keys of test queues never expire, so the test server gained a few hundred keys a run (4,065 had piled up). Every run, a resumed one too, now removes the keys a test makes (by name, only on `PLANETGEN_TEST_REDIS_URL`, not the rate-limit keys) before it starts, and does nothing while a worker's heartbeat is under 90 s old. A resumed run's `--check` output says it covers only the tests that ran now.

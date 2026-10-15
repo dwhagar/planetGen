@@ -200,6 +200,7 @@ def test_the_runner_starts_a_log_for_the_build_and_hands_its_path_to_pytest(tmp_
     runner = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runner)
     monkeypatch.setattr(runner, "PROGRESS_DIR", str(tmp_path / "progress"))
+    monkeypatch.setattr(runner, "clear_test_redis", lambda: "")  # the test Redis is in use by the tests beside this one (TEST.152)
     seen = []
     monkeypatch.setattr(runner, "run_phase", lambda command, environment: seen.append(environment) or (0, {"passed": 1}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
@@ -231,6 +232,7 @@ def _runner(tmp_path, monkeypatch):
     runner = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(runner)
     monkeypatch.setattr(runner, "PROGRESS_DIR", str(tmp_path / "progress"))
+    monkeypatch.setattr(runner, "clear_test_redis", lambda: "")  # the test Redis is in use by the tests beside this one (TEST.152)
     monkeypatch.setattr(runner, "save_run", lambda *args: pytest.fail("a resumed run must not store its time"))
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)

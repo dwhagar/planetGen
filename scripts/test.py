@@ -134,10 +134,15 @@ def describe_counts(counts):
 def _progress_modules():
     sys.path.insert(0, os.path.join(ROOT, "src"))
     try:
-        from tests import buildid, progress_log
+        from tests import buildid, progress_log, redis_cleanup
     finally:
         sys.path.pop(0)
-    return buildid, progress_log
+    return buildid, progress_log, redis_cleanup
+
+
+def clear_test_redis():
+    """Removes what earlier runs left on the test Redis (TEST.152, src/tests/redis_cleanup.py); the sentence to print, or ""."""
+    return _progress_modules()[2].clean()[1]
 
 
 def explain_no_resume(buildid, progress_log, directory, command_key, parts):
@@ -176,7 +181,7 @@ def start_progress_log(command_key, extra, base, directory=None, now=None, resum
     With `resume`, the log of the same build is kept and added to, and the node ids it records as passed are
     written to a skip list for pytest (`--skip-passed`). When the build has no log with a passed test, the result's
     `problem` says why and nothing is written."""
-    buildid, progress_log = _progress_modules()
+    buildid, progress_log, _ = _progress_modules()
     directory = directory or PROGRESS_DIR
     now = now or datetime.datetime.now(datetime.timezone.utc)
     parts = buildid.build_parts(ROOT, command_key, extra, base, now=now)
@@ -328,6 +333,9 @@ def main(argv=None):
         extra_for_pytest = extra + ["--skip-passed", progress.skip_file]
     else:
         extra_for_pytest = extra
+    said = clear_test_redis()
+    if said:
+        print(f"scripts/test.py {key}: {said}", flush=True)
 
     status = 0
     totals = {}
