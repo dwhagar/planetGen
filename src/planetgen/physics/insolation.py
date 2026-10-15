@@ -73,7 +73,10 @@ def refresh_system(system):
 
 
 def _set(planet, value):
-    """A gas giant has no habitability fields (its own stay None), but its moons are scored in its light."""
+    """A gas giant has no habitability fields (its own stay None), but its moons are scored in its light. A belt
+    has no such attribute at all."""
+    if getattr(planet, "body_type", None) == "a":
+        return
     planet.flux_variation = None if getattr(planet, "body_type", None) == "g" else value
     for moon in getattr(planet, "moons", ()):
         moon.flux_variation = value
