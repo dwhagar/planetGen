@@ -340,11 +340,7 @@ def _json_script(data):
 
 GALAXY_MAP_HELP = """<h3>Moving</h3>
   <ul>
-<<<<<<< HEAD
     <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom. Turning and zooming go about the cross in the middle of the map; Shift-click (or right-click) a spot to make it the new center, or use the direction star on the map (its middle button puts the center back at the middle of the region you are viewing) and the zoom slider beside it.</li>
-=======
-    <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom. Turning and zooming go about the cross in the middle of the map; Shift-click (or right-click) a spot to make it the new center.</li>
->>>>>>> origin/main
     <li>Hover over the galaxy to see its blocks and click one to zoom into it: the map then shows the blocks
     one size down around the spot you clicked, and a click on one of those centres on that, and so on down
     to single sectors.</li>
@@ -730,11 +726,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
      one; Escape or Backspace goes one step back out
-<<<<<<< HEAD
      and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms, both about the center marked in the middle of the map; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected."></canvas>
-=======
-     and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms, both about the center marked in the middle of the map; Shift-click or right-click makes the point you click the new center, and C centers the view on what is selected."></canvas>
->>>>>>> origin/main
 <div class="starmap-centre" id="galaxymap3d-centre" aria-hidden="true" title="The center the view turns and zooms about"></div>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 {legend_block}
