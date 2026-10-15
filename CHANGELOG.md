@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1141] - 2026-10-15
+
+### Added
+
+- The TODO list adds DB.26: one migration for the habitability columns (flux variation and the air, water and suitability ratings).
+
 ## [8.0.1140] - 2026-10-15
 
 ### Changed
