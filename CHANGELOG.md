@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1395] - 2026-10-15
+
+**Headline:** The plan and the lane briefs show two Core lanes and each lane's list.
+
+### Changed
+- The intergalactic plan, the lane briefs and the execution plan page record the Core 1 and Core 2 split (migrations stay with Core 1) approved by the TODO lane, with DB.33 and the sphere_runs() part of GEN.276 on Core 2.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1394] - 2026-10-15
 
 **Headline:** The orbital update plan gains halo and intergalactic movement scales, a sector-crossing guard, full counting and a per-night cost ceiling.
