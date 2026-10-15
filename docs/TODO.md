@@ -579,6 +579,22 @@ with `clamp()`.
   files they edit.
   Prerequisite: UX.23. Related: UX.22, UX.81.
 
+- [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
+  Nebulae, remnants, quasar, rogue planets, asteroid fields, sector
+  summaries and facilities are still described by their own per-class
+  text. Build them into the same document model as UX.104 so one set of
+  renderers (text, HTML tables, Markdown, wikitext) covers everything
+  the program describes. Foundations Wording (filed 05:50Z, split out of
+  API.25, which was too big for one PR).
+  Prerequisites: UX.104 (done, PR #1509).
+
+- [ ] **UX.109 Remove the old per-class description text**
+  Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
+  __str__ text, db/render.py render_system_sections, the /sections
+  endpoint and mdrender, once nothing reads them. Foundations Wording
+  (filed 05:50Z, split out of API.25).
+  Prerequisites: UX.105, UX.106, UX.108.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
