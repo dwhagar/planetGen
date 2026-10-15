@@ -79,6 +79,28 @@ export function panInScreenPlane(THREE, camera, target, dx, dy, perPx) {
 
 // --- Pointer, wheel and pinch ------------------------------------------------------
 
+// The gate on the wheel's moves from one stage to the next (MAP.125, MAP.152): a move across takes one
+// gesture, so the view never flips between two scales. `tick(now)` is called on every wheel tick (ms) and
+// says whether this one may move across: not within `cooldownMs` of the last move, and not before the wheel
+// has been quiet for `pauseMs` since it (a long scroll carries across one stage and stops there). `spend(now)`
+// records a move.
+export function createAcrossGate(cooldownMs, pauseMs) {
+  let movedAt = -Infinity;
+  let lastTick = -Infinity;
+  let spent = false;
+  return {
+    tick: function (now) {
+      if (now - lastTick >= pauseMs) spent = false;
+      lastTick = now;
+      return !spent && now - movedAt >= cooldownMs;
+    },
+    spend: function (now) {
+      movedAt = now;
+      spent = true;
+    },
+  };
+}
+
 // A wheel event's travel in pixels, lines and pages turned into pixels
 // and the whole held to +-`limitPx`.
 export function wheelPixels(event, pageHeightPx, limitPx) {
