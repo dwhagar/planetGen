@@ -39,3 +39,4 @@ Commit each file came from:
 - v84: 380bdc3e (DB.23 map luminosity, before PERF.92)
 - v85: 04b69361 (PERF.92 object timing, before DB.25)
 - v86: ac6330ca (ADM.54 Redis health, before DB.26)
+- v87: 9c725da0 (DB.26 habitability columns, before the POP.9 columns)

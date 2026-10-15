@@ -1211,6 +1211,12 @@
 --   by spectral type, "O5V x1, O9V x4"), after `extinction_av`. All NULL on a row
 --   generated before v87.
 --
+-- v88: the tech-level columns of `species` (POP.9). `energy_index`, `materials_index`,
+--   `information_index`, `medical_index`, `propulsion_index` and `defense_index` (each
+--   0 to 7, NULL until drawn), `tech_level` (DECIMAL(3,2), the weighted sum, indexed
+--   for range search) and `tech_source` ('generated' or 'admin': a pass never
+--   redraws a hand-edited species). NULL on a species saved before v88.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3511,12 +3517,22 @@ CREATE TABLE IF NOT EXISTS species (
     civilization_age_years   DOUBLE,
     era                      VARCHAR(16),
     spacefaring              TINYINT(1) NOT NULL DEFAULT 0 CHECK (spacefaring IN (0, 1)),
+    -- v88 (POP.9): the six tech indexes, the level and where it came from, see header comment.
+    energy_index             TINYINT UNSIGNED CHECK (energy_index BETWEEN 0 AND 7),
+    materials_index          TINYINT UNSIGNED CHECK (materials_index BETWEEN 0 AND 7),
+    information_index        TINYINT UNSIGNED CHECK (information_index BETWEEN 0 AND 7),
+    medical_index            TINYINT UNSIGNED CHECK (medical_index BETWEEN 0 AND 7),
+    propulsion_index         TINYINT UNSIGNED CHECK (propulsion_index BETWEEN 0 AND 7),
+    defense_index            TINYINT UNSIGNED CHECK (defense_index BETWEEN 0 AND 7),
+    tech_level               DECIMAL(3,2),
+    tech_source              VARCHAR(16) CHECK (tech_source IN ('generated', 'admin')),
     created_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE KEY uq_species_name (name),
     UNIQUE KEY uq_species_homeworld (homeworld_planet_id),
     KEY idx_species_system (star_system_id),
     KEY idx_species_spacefaring (spacefaring),
+    KEY idx_species_tech_level (tech_level),
     CONSTRAINT chk_species_life_stage CHECK (life_stage IN ('multicellularity', 'technological_civilization')),
     CONSTRAINT fk_species_planet
         FOREIGN KEY (homeworld_planet_id) REFERENCES planets(id) ON DELETE CASCADE,

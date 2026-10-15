@@ -1917,6 +1917,9 @@ above and `docs/design/population-and-politics.md`.
 | `build`, `climate`, `size` | VARCHAR(16) | NOT NULL | |
 | `civilization_age_years`, `era` | DOUBLE, VARCHAR(16) | nullable | NULL without a civilization. |
 | `spacefaring` | TINYINT(1) | NOT NULL, default 0 | Era Interstellar or later. Indexed. |
+| `energy_index`, `materials_index`, `information_index`, `medical_index`, `propulsion_index`, `defense_index` | TINYINT UNSIGNED | nullable, CHECK 0 to 7 | Added in v88 (POP.9). The six tech indexes; NULL until drawn. |
+| `tech_level` | DECIMAL(3,2) | nullable | Added in v88 (POP.9). The weighted sum of the indexes. Indexed (`idx_species_tech_level`) for range search. |
+| `tech_source` | VARCHAR(16) | nullable, CHECK IN ('generated','admin') | Added in v88 (POP.9). 'admin' marks a hand-edited species so a pass never redraws it. |
 | `created_at` | TIMESTAMP | NOT NULL | |
 
 **`polities`**: one government per spacefaring species.
@@ -2021,6 +2024,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v88 (POP.9): `species` tech level
+
+`species` gains the six tech indexes (`energy_index` to `defense_index`, each 0 to 7), `tech_level` (DECIMAL(3,2), indexed) and `tech_source` ('generated' or 'admin'). All NULL for species saved earlier. The migration skips each step already done, so a stopped run can be started again.
 
 ### v87 (DB.26): habitability columns
 
