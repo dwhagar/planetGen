@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1262] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the structured description endpoint and text renderers (API.25) as open work; it merged in #1527.
+
+TODO items resolved: API.25 / Added: none
+
 ## [8.0.1261] - 2026-10-15
 
 ### Added
