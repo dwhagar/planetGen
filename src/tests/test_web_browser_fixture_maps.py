@@ -251,7 +251,10 @@ def test_sector_map_scale_line_follows_the_zoom(page, map_site):
 
     page.locator("#galaxymap3d-menu > summary").click()
     page.locator('#galaxymap3d-controls [data-action="reset-view"]').click()
-    page.wait_for_timeout(300)
+    for _ in range(40):  # the view eases back; a loaded machine takes longer than a fixed pause
+        page.wait_for_timeout(250)
+        if _scale_line(page) == (label, width):
+            break
     assert _scale_line(page) == (label, width), "Reset view goes back to the opening zoom"
 
 
@@ -416,12 +419,49 @@ HOVER_SCAN = """([wanted, steps]) => {
 HOVER_RETRIES = 20
 
 
+def _charted_spot(page):
+    """Where the fixture's charted space (Fixture Prime) falls on the page now:
+    a click or a hover there lands on the cell holding generated sectors, at
+    every size of window (a block of 243 sectors is too big to find them by
+    scanning: the window it opens is round the point clicked)."""
+    from planetgen.galaxy.geometry import sector_position_pc
+    ring, layer, slot = next((r, l, s) for _id, r, l, s, name in SECTORS if name == "Fixture Prime")
+    x, y, z = sector_position_pc(ring, layer, slot, 4.0)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    # What the pointer meets is the first block of its ray, the top face of the
+    # cell under the sector in a slanted view: aim a little under the top of
+    # the cell at each size (1, 3, 27 and 243 sectors tall), the midplane too.
+    heights = [z, z + 2 - 0.01, z + 6 - 0.01, z + 54 - 0.01, z + 486 - 0.01,
+               z - 2 + 0.01, z - 6 + 0.01, z - 54 + 0.01, z - 486 + 0.01]  # and the bottoms, seen from under the plane
+    for _ in range(HOVER_RETRIES):
+        for height in heights:
+            spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [x, y, height])
+            if not spot:
+                continue
+            page.mouse.move(spot["x"], spot["y"])
+            page.wait_for_timeout(120)
+            tip = page.locator("#galaxymap3d-tooltip")
+            text = tip.inner_text() if tip.is_visible() else ""
+            if re.search(GENERATED_CHOICE, text):
+                return spot["x"], spot["y"], text
+        page.wait_for_timeout(250)
+    return None
+
+
+def _screen_of(page, point):
+    """Where a point of the scene (parsecs) falls on the page now, or None."""
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+    return (spot["x"], spot["y"]) if spot else None
+
+
 def _hover_choice(page, wanted=None, steps=32):
     """Moves the pointer over the map (as pointer events, for speed) until
     the tooltip names a choice matching `wanted` (a regex, JavaScript
     syntax); returns (x, y, text) or None, the pointer left there. The
     map ignores the pointer while a stage's flight runs, which takes longer
     on a busy machine, so the scan is tried again for a few seconds."""
+    if wanted == GENERATED_CHOICE:
+        return _charted_spot(page)
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     found = page.evaluate(HOVER_SCAN, [wanted, steps])
     for _ in range(HOVER_RETRIES):
@@ -460,7 +500,7 @@ def _click_choice(page, wanted=None):
     assert found, f"nothing to click on the Galaxy Map ({wanted}); at {_crumbs(page)}"
     x, y, text = found
     before = (page.url, _crumbs(page))
-    if re.match(r"Sector .*, generated$", text):
+    if re.match(r"Sector .*, charted$", text):
         # A generated sector opens in the map itself (MAP.66).
         page.mouse.click(x, y)
         page.wait_for_function("() => location.search.includes('open=1')", timeout=15000)
@@ -493,12 +533,10 @@ def _walk_down(page, stages=16):
     entry then, its crumbs); returns the stages seen, [(query, crumbs)]."""
     steps = [(_query(page), _crumbs(page))]
     for _ in range(stages):
-        text = _click_choice(page, GENERATED_CHOICE)
-        if "open=1" in _query(page):
-            steps.append((_query(page), _crumbs(page)))
-            return steps
+        _click_choice(page, GENERATED_CHOICE)
         steps.append((_query(page), _crumbs(page)))
-        assert _crumbs(page)[-1] == _label_of(text), f"clicked {text!r}, breadcrumb now {_crumbs(page)}"
+        if "open=1" in _query(page):
+            return steps
     return steps
 
 
@@ -514,20 +552,22 @@ def test_galaxy_map_hover_names_a_choice_and_leaving_hides_it(page, map_site):
 
 
 def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
+    """MAP.150: each click opens a window centred on the block clicked, one
+    size down, from the galaxy to a block of 243 sectors, 27, 3, a sector, and
+    the sector itself opens in place."""
     _open_galaxy(page, map_site)
     assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
     steps = _walk_down(page)
     query, crumbs = steps[-1]
     assert re.fullmatch(r"sector=[0-9A-F]+&open=1", query), f"never opened a sector: {steps[-2:]}"
     assert _on_galaxy(page) and crumbs[-1].startswith("Sector "), crumbs
+    sizes = []
     for query, _crumbs_seen in steps[1:-1]:
-        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[asL0-9.~,-]+)?", query), query
-    # MAP.56: arc, slab, segment (entering each block), slab, ... down to
-    # a sector; never a 3 x 3 region.
-    kinds = " ".join(q for q, _ in steps[:-1])
-    for marker in ("p=a", "L", "at=243.", "at=27.", "at=3."):
-        assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
-    assert not re.search(r"[=,]r\d", kinds), kinds
+        match = re.fullmatch(r"win=(27|3|1)\.\d+\.\d+\.-?\d+", query)
+        assert match, query
+        sizes.append(int(match.group(1)))
+    # A block of 243 opens the window of its 27-blocks, and so on down.
+    assert sizes == sorted(sizes, reverse=True) and set(sizes) == {27, 3, 1}, sizes
 
 
 def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
@@ -558,24 +598,6 @@ def test_galaxy_map_window_stage_reaches_a_sector_and_opens_it(page, map_site):
     assert _crumbs(page)[-1].startswith("Sector ") and _crumbs(page)[-1].endswith("(1)")
     _click_choice(page, r"^Sector .*, charted$")
     assert "open=1" in _query(page) and "sector=" in _query(page), _query(page)
-
-
-def test_galaxy_map_arc_and_first_slab_show_their_bounds(page, map_site):
-    """MAP.135: picking an arc of the galaxy, then its first slab, fills the
-    info panel with where each lies and how many sectors it holds, as a
-    picked block does."""
-    _open_galaxy(page, map_site)
-    info = page.locator("#galaxymap3d-info")
-    assert "Distance from core" not in info.inner_text(), "the whole galaxy has no bounds panel"
-    seen = []
-    for _ in range(2):
-        _click_choice(page, GENERATED_CHOICE)
-        _settle(page)
-        text = info.inner_text()
-        seen.append(text)
-        for label in ("Distance from core", "Bearing", "Height", "Sectors", "Generated"):
-            assert label in text, f"{_crumbs(page)[-1]!r} shows no {label!r}: {text!r}"
-    assert seen[0].startswith("Arc ") and seen[1].startswith("Slab "), seen
 
 
 OPEN_PRIME = "?sector=100000001&open=1"
@@ -644,17 +666,15 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
     assert "Uncharted: not generated yet" in info.inner_text()
     assert _query(page) == OPEN_UNCHARTED[1:]
     page.wait_for_timeout(500)
-    tip = page.locator("#galaxymap3d-tooltip")
+    from planetgen.galaxy.geometry import sector_position_pc
+    cx, cy, cz = sector_position_pc(0, 0, 0, 4.0)
     picked = None
-    found = _bright_spots(page, GALAXY_CANVAS)
-    tag = badge.bounding_box()  # after the shot, which may scroll
-    # The badge's own lettering shows up as bright spots over the canvas.
-    spots = [(x, y) for x, y in found
-             if not (tag["x"] - 24 <= x <= tag["x"] + tag["width"] + 24 and tag["y"] - 24 <= y <= tag["y"] + tag["height"] + 24)]
-    for x, y in spots:
-        page.mouse.move(x, y)
-        page.wait_for_timeout(120)
-        page.mouse.click(x, y)
+    # Its bright star, black hole and nebula, each by where it sits.
+    for point in ((cx + 0.5, cy + 0.4, cz), (cx - 0.6, cy, cz + 0.3), (cx, cy - 0.7, cz - 0.2)):
+        spot = _screen_of(page, point)
+        assert spot, point
+        page.mouse.click(*spot)
+        page.wait_for_timeout(150)
         heading = info.locator("h3").inner_text() if info.locator("h3").count() else None
         if heading and "(uncharted)" in heading:
             picked = heading
@@ -678,13 +698,21 @@ def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     page.wait_for_timeout(500)
     info = page.locator("#galaxymap3d-info")
+    tip = page.locator("#galaxymap3d-tooltip")
     headings = set()
-    for x, y in _bright_spots(page, GALAXY_CANVAS):
+    # Only dots whose tooltip names a system are clicked: a click on the
+    # opened cell's outline, among the brightest spots, would open another sector.
+    for x, y in _bright_spots(page, GALAXY_CANVAS, limit=400):
+        page.mouse.move(x, y)
+        text = tip.inner_text() if tip.is_visible() else ""
+        if not any(text.startswith(name) for name in SYSTEM_NAMES):
+            continue
         page.mouse.click(x, y)
+        page.wait_for_timeout(100)
         if info.locator("h3").count():
             headings.add(info.locator("h3").inner_text())
     assert "Twin Lamps" in headings, headings
-    assert headings - {"Fixture Prime"} <= SYSTEM_NAMES, headings
+    assert headings <= SYSTEM_NAMES | {"Fixture Prime"}, headings
 
 
 def _camera(page):
@@ -767,15 +795,11 @@ def test_galaxy_map_keys_pick_go_up_and_home(page, map_site):
     assert tooltip.inner_text() != first, "the next arrow moves to the next choice"
     page.keyboard.press("Enter")
     _settle(page)
-    assert len(_crumbs(page)) == 2, "Enter takes the marked choice"
+    assert len(_crumbs(page)) > 1, "Enter takes the marked choice"
     one_down = _crumbs(page)
     page.keyboard.press("ArrowRight")
     page.keyboard.press("Enter")
     _settle(page)
-    if len(_crumbs(page)) == 2:  # a slab choice first: Enter on a layer
-        page.keyboard.press("ArrowRight")
-        page.keyboard.press("Enter")
-        _settle(page)
     assert len(_crumbs(page)) > 2
     page.keyboard.press("Escape")
     _settle(page)
@@ -783,53 +807,6 @@ def test_galaxy_map_keys_pick_go_up_and_home(page, map_site):
     page.keyboard.press("Home")
     _settle(page)
     assert _crumbs(page) == ["Galaxy"]
-
-
-SLAB_TIP = r"^(Slab|Layer)s? -?\d+( to -?\d+)?: "
-"""A tooltip naming a whole slab (or a layer of sectors), not one block."""
-
-
-def test_galaxy_map_hover_while_picking_a_slab_lights_the_whole_slab(page, map_site):
-    """MAP.91: whenever the next pick is a slab, at every level and in the
-    3 by 3 by 3 view of sectors too, hovering any cube names (and the
-    slab's button and line light up for) its whole slab, and a click picks
-    that slab."""
-    _open_galaxy(page, map_site)
-    slab_stages = []
-    for _ in range(16):
-        if not _on_galaxy(page) or "open=1" in _query(page):
-            break
-        if page.locator(".galaxy-slab-button").count():
-            heading = page.locator("#galaxymap3d-slabs-heading").inner_text()
-            found = _hover_choice(page, GENERATED_CHOICE)
-            assert found, f"no slab to hover at {_crumbs(page)}"
-            text = found[2]
-            assert re.match(SLAB_TIP, text), f"hovering a {heading} pick named {text!r}, not a slab"
-            lit = page.locator(".galaxy-slab-button.is-lit")
-            assert lit.count() == 1, "one slab button lights"
-            named = lit.get_attribute("title").split(":")[0]
-            assert named == _label_of(text), f"the buttons mark {named!r}, the map {text!r}"
-            assert page.locator(".galaxy-slab-leader.is-lit").count() == 1
-            # Every cube of the slab names that same slab.
-            names = set()
-            for fx in (0.3, 0.5, 0.7):
-                for fy in (0.3, 0.5, 0.7):
-                    box = page.locator(GALAXY_CANVAS).bounding_box()
-                    page.mouse.move(box["x"] + fx * box["width"], box["y"] + fy * box["height"])
-                    tip = page.locator("#galaxymap3d-tooltip")
-                    if tip.is_visible():
-                        names.add(tip.inner_text())
-            assert all(re.match(SLAB_TIP, name) for name in names), names
-            page.mouse.move(found[0], found[1])
-            slab_stages.append(heading)
-            label = _label_of(text)
-            page.mouse.click(found[0], found[1])
-            _settle(page)
-            assert _crumbs(page)[-1] == label, f"clicking {text!r} led to {_crumbs(page)}"
-            continue
-        _click_choice(page, GENERATED_CHOICE)
-    assert "Layers" in slab_stages, f"never met the 3 by 3 by 3 view of sectors: {slab_stages}"
-    assert any(h != "Layers" for h in slab_stages), f"never met a slab pick of blocks: {slab_stages}"
 
 
 def _galaxy_scale(page):
@@ -1007,21 +984,18 @@ def _click_galaxy_stars(page, count=5):
 
 def test_galaxy_map_stars_never_take_the_click(page, map_site):
     """MAP.101: in a block thick with stars (the fixture's star field),
-    a click on a star picks the slab, then the sector, under it, as if
-    the star weren't there; no star panel ever opens."""
-    _open_galaxy(page, map_site, "?at=3.250.0.0")
+    a click on a star picks the block under it, as if the star weren't
+    there; no star panel ever opens."""
+    _open_galaxy(page, map_site, "?win=3.250.0.0")
     page.wait_for_timeout(1000)
-    assert "p" not in parse_qs(_query(page))
+    assert _query(page) == "win=3.250.0.0"
     # MAP.153 fades the block's dimmer stars in near sector zoom; this test
     # is about picking, so it draws them all.
     page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarZoomFade(false)")
     first = _click_galaxy_stars(page, count=1)
-    slab = parse_qs(_query(page)).get("p", [""])[0]
-    assert slab.startswith("L"), f"the click on a star picked its slab, not {first}"
+    assert re.fullmatch(r"win=1\.\d+\.\d+\.-?\d+", _query(page)), f"the click on a star picked {first}: {_query(page)}"
     later = _click_galaxy_stars(page, count=3)
     assert "Bright star" not in first + later, first + later
-    assert later[0] == "Sector cell", later
-    assert page.locator("#galaxymap3d-info", has_text="Address").count() == 1
 
 
 def test_sector_map_draws_its_nebula_from_the_shape_mesh(page, map_site):
@@ -1039,7 +1013,7 @@ def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
     (fetched from the site), not only as a sprite; far out it stays a sprite."""
     shape_requests = []
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
-    _open_galaxy(page, map_site, "?at=27.27.0.0")
+    _open_galaxy(page, map_site, "?win=27.27.0.0&g=3")
     # A locator, not wait_for_function: the page's CSP forbids evaluating strings.
     page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)
     assert any("/galaxy/nebula/801/shape?lod=low" in url for url in shape_requests), shape_requests
@@ -1049,7 +1023,7 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     """MAP.104: a nebula is drawn over space where no sector is generated
     (the fixture's generated sectors are all in the core, thousands of
     parsecs away), in a close view of the block as well as a far one."""
-    _open_galaxy(page, map_site, "?at=3.250.0.0")
+    _open_galaxy(page, map_site, "?win=3.250.0.0&g=3")
     page.locator("#galaxymap3d-canvas[data-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
 
 
@@ -1061,7 +1035,7 @@ SEED_BOOKMARKS = """(entries) => {
 }"""
 
 PICK_BOOKMARKS = [
-    {"name": "Saved view", "kind": "stage", "value": "/galaxy?at=27.27.0.0", "created": 1},
+    {"name": "Saved view", "kind": "stage", "value": "/galaxy?win=27.27.0.0", "created": 1},
     {"name": "Middling Sun", "kind": "system", "value": "system:702", "url": "/system/702", "created": 2},
     {"name": "Fixture Second", "kind": "sector", "value": "0·0·2", "url": "/sector/8", "sectorId": 8, "created": 3},
 ]
@@ -1077,7 +1051,7 @@ def _assert_pick_links(links):
     assert links["Middling Sun"] == "/nav?from=system:701&to=system:702", links
     assert links["Fixture Second"] == "/sector/8?pick=to&from=system:701", links
     view = parse_qs(urlparse(links["Saved view"]).query)
-    assert view == {"at": ["27.27.0.0"], "pick": ["to"], "from": ["system:701"]}, links
+    assert view == {"win": ["27.27.0.0"], "pick": ["to"], "from": ["system:701"]}, links
 
 
 def test_bookmarks_keep_a_course_pick_on_the_galaxy_map(page, map_site):
@@ -1096,12 +1070,12 @@ def test_bookmarks_keep_a_course_pick_on_the_galaxy_map(page, map_site):
         page.keyboard.press("1")
     _settle(page)
     params = parse_qs(_query(page))
-    assert params["pick"] == ["to"] and params["from"] == ["system:701"] and params["at"] == ["27.27.0.0"]
+    assert params["pick"] == ["to"] and params["from"] == ["system:701"] and params["win"] == ["27.27.0.0"]
     assert page.locator(".pick-banner").count() == 1
     # A step on the map keeps the pick in the URL.
     page.click('#galaxymap3d-controls [data-action="up"]')
     _settle(page)
-    assert "at" not in parse_qs(_query(page)) or parse_qs(_query(page))["at"] != ["27.27.0.0"]
+    assert "win" not in parse_qs(_query(page)) or parse_qs(_query(page))["win"] != ["27.27.0.0"]
     params = parse_qs(_query(page))
     assert params.get("pick") == ["to"] and params.get("from") == ["system:701"], params
 
@@ -1160,7 +1134,7 @@ def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
     it fits again on resize, and "…" lists the folded steps."""
     page.set_viewport_size({"width": 1280, "height": 900})
     full = _open_deep_galaxy(page, map_site)
-    assert len(full) >= 8, full
+    assert len(full) >= 5, full
     for width in (1280, 900, 700, 600):
         page.set_viewport_size({"width": width, "height": 900})
         line = _crumb_line_settled(page)
@@ -1324,245 +1298,6 @@ def test_galaxy_map_charted_only_works_while_picking_a_course(page, map_site):
     assert (page.url, _crumbs(page)) == before
 
 
-LEADERS = """() => {
-    const canvas = document.querySelector("#galaxymap3d-canvas").getBoundingClientRect();
-    const svg = document.querySelector(".galaxy-slab-leaders");
-    const base = svg.getBoundingClientRect();
-    return Array.from(document.querySelectorAll(".galaxy-slab-button")).map(button => {
-        const line = svg.querySelector('.galaxy-slab-leader[data-slab="' + button.dataset.slab + '"]');
-        const points = line.getAttribute("points").trim().split(" ").map(p => p.split(",").map(Number));
-        const at = points.map(p => [p[0] + base.left, p[1] + base.top]);
-        const b = button.getBoundingClientRect();
-        return {
-            slab: button.dataset.slab,
-            points: at,
-            start: at[0],
-            end: at[at.length - 1],
-            button: [b.left, b.top, b.right, b.bottom],
-            canvas: [canvas.left, canvas.top, canvas.right, canvas.bottom],
-            off: line.classList.contains("is-off"),
-        };
-    });
-}"""
-
-
-def _cross(a, b, c, d):
-    """Whether segments ab and cd cross (touching ends don't count)."""
-    def side(p, q, r):
-        return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
-    return (side(a, b, c) * side(a, b, d) < 0) and (side(c, d, a) * side(c, d, b) < 0)
-
-
-def _check_leaders(leaders):
-    assert len(leaders) >= 2, leaders
-    for line in leaders:
-        x0, y0, x1, y1 = line["button"]
-        # Each line leaves its own button ...
-        assert x0 - 1 <= line["start"][0] <= x1 + 1 and y0 - 1 <= line["start"][1] <= y1 + 1, line
-        # ... and ends on the map.
-        cx0, cy0, cx1, cy1 = line["canvas"]
-        assert cx0 <= line["end"][0] <= cx1 and cy0 <= line["end"][1] <= cy1, line
-    # Each column in slab-number order (MAP.110) ...
-    columns = {}
-    for line in leaders:
-        columns.setdefault(round(line["button"][0]), []).append(line)
-    for column in columns.values():
-        numbers = [int(line["slab"]) for line in sorted(column, key=lambda line: line["button"][1])]
-        assert numbers in (sorted(numbers), sorted(numbers, reverse=True)), numbers
-    # ... running the way the slabs do on screen, so no two lines cross.
-    for n, a in enumerate(leaders):
-        for b in leaders[n + 1:]:
-            for p, q in zip(a["points"], a["points"][1:]):
-                for r, t in zip(b["points"], b["points"][1:]):
-                    assert not _cross(p, q, r, t), (a, b)
-
-
-def test_galaxy_map_slab_buttons_have_lines_that_follow_the_view(page, map_site):
-    """MAP.54 and MAP.76: no slab slider; one button per slab, each with a
-    line from it to its slab on the map that is redrawn when the view
-    turns; hovering a button lights its slab and line, and clicking it
-    picks the slab."""
-    _open_galaxy(page, map_site)
-    for _ in range(4):
-        if page.locator(".galaxy-slab-button").count():
-            break
-        _click_choice(page, GENERATED_CHOICE)
-    assert page.locator(".galaxy-slab-button").count() >= 2, _crumbs(page)
-    assert not page.locator("input[type=range]:not(#galaxymap3d-lum)").count(), "the slab slider is gone"
-    before = page.evaluate(LEADERS)
-    _check_leaders(before)
-    # Turning the view moves the lines' ends with their slabs.
-    page.locator(GALAXY_CANVAS).scroll_into_view_if_needed()
-    box = page.locator(GALAXY_CANVAS).bounding_box()
-    page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
-    page.mouse.down()
-    page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + box["height"] * 0.5 + 20, steps=8)
-    page.mouse.up()
-    page.wait_for_timeout(200)
-    after = page.evaluate(LEADERS)
-    _check_leaders(after)
-    ends = {line["slab"]: line["end"] for line in before}
-    assert any(abs(line["end"][0] - ends[line["slab"]][0]) + abs(line["end"][1] - ends[line["slab"]][1]) > 2
-               for line in after), f"the lines didn't follow the turn: {before} {after}"
-    # A button lights its slab and line, and picks it. The midplane's slab:
-    # one far above or below can hold a single block, which the map opens
-    # straight away.
-    button = page.locator('.galaxy-slab-button[data-slab="0"]')
-    label = button.get_attribute("title").split(":")[0]
-    button.hover()
-    assert "is-lit" in button.get_attribute("class")
-    lit = page.locator(".galaxy-slab-leader.is-lit")
-    assert lit.count() == 1 and lit.get_attribute("data-slab") == button.get_attribute("data-slab")
-    button.click()
-    _settle(page)
-    assert _crumbs(page)[-1] == label
-
-
-def test_galaxy_map_slab_lines_on_a_phone_leave_the_buttons_below_the_map(gl_browser, map_site):
-    """MAP.76: at phone width the buttons sit in one column below the map
-    and their lines still reach their slabs without crossing."""
-    context = gl_browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1,
-                                     reduced_motion="reduce")
-    page = context.new_page()
-    try:
-        _open_galaxy(page, map_site)
-        for _ in range(4):
-            if page.locator(".galaxy-slab-button").count():
-                break
-            _click_choice(page, GENERATED_CHOICE)
-        leaders = page.evaluate(LEADERS)
-        _check_leaders(leaders)
-        assert all(line["button"][1] >= line["canvas"][3] for line in leaders), "buttons below the map"
-        lefts = {round(line["button"][0]) for line in leaders}
-        assert len(lefts) == 1, "one column"
-    finally:
-        context.close()
-
-
-SLAB_LABEL = r"^#-?\d+(–-?\d+)? (Unknown|< 0\.01% charted|≈ \d+\.\d\d% charted|100% charted)$"
-OUTLINES = "() => document.querySelector('#galaxymap3d-canvas').galaxySlabOutlines()"
-STRIP = """() => {
-    const canvas = document.querySelector("#galaxymap3d-canvas").getBoundingClientRect();
-    const box = (el) => { const b = el.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; };
-    const shown = (el) => !!el.offsetParent;
-    return {
-        canvas: [canvas.left, canvas.top, canvas.right, canvas.bottom],
-        buttons: Array.from(document.querySelectorAll(".galaxy-slab-button")).filter(shown).map(b => ({
-            slab: b.dataset.slab, text: b.innerText.replace(/\\s+/g, " ").trim(), box: box(b), title: b.title,
-            count: shown(b.querySelector(".galaxy-slab-count")),
-        })),
-        note: Array.from(document.querySelectorAll(".galaxy-slab-none-note")).some(shown),
-        lines: !document.querySelector(".galaxy-slab-leaders").hidden,
-    };
-}"""
-
-
-def _open_block_slabs(page, map_site):
-    """Walks down to an entered block: nine slabs to pick from."""
-    _open_galaxy(page, map_site, "?at=243.0.1.0")
-    page.wait_for_selector(".galaxy-slab-button", state="attached")
-    page.wait_for_timeout(200)
-
-
-def _near_outline(point, pieces):
-    """How far `point` is from the nearest of the outline `pieces`."""
-    def dist(p, a, b):
-        dx, dy = b[0] - a[0], b[1] - a[1]
-        length = dx * dx + dy * dy
-        t = 0 if not length else max(0, min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / length))
-        return math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dy * t)
-    return min(dist(point, a, b) for a, b in pieces)
-
-
-def test_galaxy_map_slab_buttons_read_on_one_line(page, map_site):
-    """MAP.100: each slab button is one line, "#N" and how much of the
-    slab is charted ("Unknown" with nothing), with no "generated" and no
-    "x / total"; its title and screen-reader label keep the full name."""
-    _open_block_slabs(page, map_site)
-    state = page.evaluate(STRIP)
-    assert len(state["buttons"]) == 9, state
-    for button in state["buttons"]:
-        assert re.match(SLAB_LABEL, button["text"]), button
-        assert button["text"].startswith("#" + button["slab"] + " "), button
-        assert button["title"].startswith("Slab " + button["slab"] + ":"), button
-        assert button["box"][3] - button["box"][1] < 30, f"more than one line: {button}"
-    texts = {b["slab"]: b["text"] for b in state["buttons"]}
-    assert texts["0"] == "#0 < 0.01% charted" and texts["1"] == "#1 Unknown", texts
-    label = page.locator('.galaxy-slab-button[data-slab="0"]').get_attribute("aria-label")
-    assert "sectors charted" in label, label
-
-
-def test_galaxy_map_slab_lines_end_on_the_nearest_edge_of_their_slab(page, map_site):
-    """MAP.98: each line ends on its slab's outline as drawn on the map,
-    at the outline's point nearest the line's last bend, and still does
-    after the view turns."""
-    _open_galaxy(page, map_site, "?p=a0.180")
-    page.wait_for_selector(".galaxy-slab-button", state="attached")
-    for turn in (False, True):
-        if turn:
-            box = page.locator(GALAXY_CANVAS).bounding_box()
-            page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + 30)
-            page.mouse.down()
-            page.mouse.move(box["x"] + box["width"] * 0.65, box["y"] + 60, steps=8)
-            page.mouse.up()
-            page.wait_for_timeout(200)
-        outlines = page.evaluate(OUTLINES)
-        leaders = page.evaluate(LEADERS)
-        _check_leaders(leaders)
-        for line in leaders:
-            pieces = outlines["slabs"][line["slab"]]
-            assert pieces, line
-            if line["off"]:
-                continue
-            assert _near_outline(line["end"], pieces) < 1.5, f"the line doesn't end on its slab: {line}"
-            bend = line["points"][-2]
-            nearest = min(_near_outline(bend, [piece]) for piece in pieces)
-            reach = math.hypot(line["end"][0] - bend[0], line["end"][1] - bend[1])
-            assert reach <= nearest + 1.5, f"not the nearest edge: {reach} > {nearest} ({line})"
-
-
-@pytest.mark.parametrize("size, mode", [((900, 430), "split"), ((640, 330), "small"), ((640, 230), "none")])
-def test_galaxy_map_slab_buttons_fit_the_window(gl_browser, map_site, size, mode):
-    """MAP.99: when one column of slab buttons is taller than the map they
-    split, one column each side of it; smaller still, the buttons show
-    their number alone; and when even that won't fit there are no buttons
-    and the box says to pick on the map. Each column is no taller than the
-    map, and each line leaves its own button for its slab."""
-    context = gl_browser.new_context(viewport={"width": size[0], "height": size[1]}, device_scale_factor=1,
-                                     reduced_motion="reduce")
-    page = context.new_page()
-    try:
-        _open_block_slabs(page, map_site)
-        assert page.evaluate(OUTLINES)["mode"] == mode
-        state = page.evaluate(STRIP)
-        if mode == "none":
-            assert not state["buttons"] and state["note"] and not state["lines"], state
-            return
-        assert len(state["buttons"]) == 9 and not state["note"], state
-        left, top, right, bottom = state["canvas"]
-        sides = {"left": [b for b in state["buttons"] if b["box"][2] <= left + 1],
-                 "right": [b for b in state["buttons"] if b["box"][0] >= right - 1]}
-        assert len(sides["left"]) == 4 and len(sides["right"]) == 5, state
-        for column in sides.values():
-            assert column[-1]["box"][3] - column[0]["box"][1] <= bottom - top + 1, f"a column taller than the map: {state}"
-        for button in state["buttons"]:
-            assert button["count"] == (mode == "split"), button
-            assert re.match(r"^#-?\d+$" if mode == "small" else SLAB_LABEL, button["text"]), button
-        leaders = page.evaluate(LEADERS)
-        for line in leaders:
-            x0, y0, x1, y1 = line["button"]
-            assert x0 - 1 <= line["start"][0] <= x1 + 1 and y0 - 1 <= line["start"][1] <= y1 + 1, line
-            assert left <= line["end"][0] <= right and top <= line["end"][1] <= bottom, line
-        for column in sides.values():
-            slabs = {b["slab"] for b in column}
-            mine = [line for line in leaders if line["slab"] in slabs]
-            for n, a in enumerate(mine):
-                for b in mine[n + 1:]:
-                    assert not _cross(a["start"], a["end"], b["start"], b["end"]), (a, b)
-    finally:
-        context.close()
-
-
 FRAME = "() => document.querySelector('#galaxymap3d-canvas').galaxyFrame()"
 
 
@@ -1576,9 +1311,9 @@ def _framed(frame, least=0.75):
     return fill
 
 
-@pytest.mark.parametrize("query", ["", "?p=a0.180", "?p=a0.180,L0"])
+@pytest.mark.parametrize("query", ["", "?win=243.0.1.0", "?win=27.27.0.0"])
 def test_galaxy_map_frames_the_whole_stage_at_any_size_and_turn(page, map_site, query):
-    """MAP.53 and MAP.78: every stage (the galaxy, an arc, a slab of it) is
+    """MAP.53 and MAP.78: every stage (the galaxy, a window of blocks, a window of smaller ones) is
     framed whole on the map, fitted to the map's own size, so a bigger
     window shows it bigger; it refits when the window is resized, and
     stays whole while Shift and the arrow keys turn it about its middle."""
@@ -1609,27 +1344,21 @@ def test_galaxy_map_frames_the_whole_stage_at_any_size_and_turn(page, map_site, 
 LINES = "() => document.querySelector('#galaxymap3d-canvas').galaxyLines()"
 
 
-def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
-    """MAP.77: while a slab is picked the map draws only the boundaries
-    between slabs, no lines between the blocks inside them; on one slab it
-    draws the divisions between its blocks; the whole galaxy draws none.
-    At every level of the ladder."""
+def test_galaxy_map_draws_block_lines_only_in_a_window(page, map_site):
+    """MAP.77: the whole galaxy draws no lines between its blocks (hovering
+    one outlines it); a window draws the divisions between its blocks, at
+    every size down the ladder."""
     _open_galaxy(page, map_site)
     seen = []
     for _ in range(12):
         if not _on_galaxy(page) or "open=1" in _query(page):
             break
         lines = page.evaluate(LINES)
-        seen.append(lines)
-        if lines["kind"] == "arc":
-            assert lines == {"blockEdges": 0, "slabLines": 0, "chartedLines": 0, "kind": "arc"}
-        elif lines["kind"] == "layer":
-            assert lines["blockEdges"] == 0 and lines["slabLines"] > 0, lines
-        elif lines["kind"] == "segment":
-            assert lines["blockEdges"] == 1 and lines["slabLines"] == 0, lines
+        seen.append((bool(parse_qs(_query(page)).get("win")), lines["blockEdges"]))
         _click_choice(page, GENERATED_CHOICE)
-    kinds = [s["kind"] for s in seen]
-    assert kinds.count("layer") >= 2 and kinds.count("segment") >= 2, kinds
+    assert seen[0] == (False, 0), seen
+    windows = [edges for is_window, edges in seen if is_window]
+    assert len(windows) >= 2 and all(edges == 1 for edges in windows), seen
 
 
 def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):
@@ -1682,7 +1411,7 @@ def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(pa
         route.continue_()
 
     _open_galaxy(page, map_site)
-    page.route(re.compile(r"/galaxy/stage\?.*at="), slow)
+    page.route(re.compile(r"/galaxy/window\?"), slow)
     for _ in range(6):
         found = _hover_choice(page, GENERATED_CHOICE)
         if not found:
@@ -1697,50 +1426,14 @@ def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(pa
         assert "There is no" not in notice, (notice, _crumbs(page))
 
 
-COVERED_POINTS = """() => {
-    const canvas = document.querySelector("#galaxymap3d-canvas");
-    const box = canvas.getBoundingClientRect();
-    const covered = [];
-    let tried = 0;
-    for (let j = 1; j < 12; j++) {
-        for (let i = 1; i < 12; i++) {
-            const x = box.left + (i / 12) * box.width, y = box.top + (j / 12) * box.height;
-            if (y < 0 || y > window.innerHeight || x < 0 || x > window.innerWidth) continue;
-            tried += 1;
-            const top = document.elementFromPoint(x, y);
-            if (top !== canvas) covered.push([Math.round(x), Math.round(y), top ? (top.id || top.className || top.tagName) : null]);
-        }
-    }
-    return {tried: tried, covered: covered};
-}"""
-
-
-def test_galaxy_map_slab_buttons_never_cover_the_map(page, map_site):
-    """MAP.108: with the slab buttons showing, nothing but the map is under
-    the pointer anywhere on it, at any width and in any button layout."""
-    _open_galaxy(page, map_site)
-    for _ in range(6):
-        if page.locator(".galaxy-slab-button").count():
-            break
-        _click_choice(page, GENERATED_CHOICE)
-    assert page.locator(".galaxy-slab-button").count(), "a stage with slab buttons"
-    for width in (1280, 1000, 760, 600, 390):
-        page.set_viewport_size({"width": width, "height": 900})
-        page.wait_for_timeout(300)
-        page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
-        found = page.evaluate(COVERED_POINTS)
-        assert found["tried"] > 20, (width, found)
-        assert not found["covered"], (width, found["covered"][:5])
-
-
 CAMERA = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
 
 
 def test_galaxy_map_turns_past_edge_on_and_under_the_plane_and_still_picks(page, map_site):
     """MAP.96: the view turns any way by any amount: past 80 degrees,
-    through edge-on and under the plane, and hovering and picking a slab
+    through edge-on and under the plane, and hovering and picking a block
     still work there."""
-    _open_galaxy(page, map_site, "?p=a0.180")
+    _open_galaxy(page, map_site, "?win=243.0.1.0")
     canvas = page.locator(GALAXY_CANVAS)
     canvas.focus()
     tilts = []
@@ -1751,44 +1444,43 @@ def test_galaxy_map_turns_past_edge_on_and_under_the_plane_and_still_picks(page,
     assert any(80 < t < 100 for t in tilts), "turned through edge-on"
     assert page.evaluate(CAMERA)["tilt"] > 120, "seen from under the plane"
     _framed(page.evaluate(FRAME), 0.4)
-    found = _hover_choice(page, SLAB_TIP)
-    assert found, "no slab to hover from under the plane"
-    label = _label_of(found[2])
+    before = _crumbs(page)
+    found = _hover_choice(page)
+    assert found, "no block to hover from under the plane"
     page.mouse.click(found[0], found[1])
     _settle(page)
-    assert _crumbs(page)[-1] == label
+    assert len(_crumbs(page)) == len(before) + 1
 
 
 def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
-    """MAP.97: the whole galaxy and a slab are seen straight down, a block
-    (an arc, an entered block, the cube) at the isometric slant, going in
-    and coming back out; a manual turn holds only within its step."""
+    """MAP.97: the whole galaxy is seen straight down, a window of blocks
+    at the isometric slant, going in and coming back out; a manual turn
+    holds only within its step."""
     iso = math.degrees(math.atan(math.sqrt(2)))
     _open_galaxy(page, map_site)
     seen = []
     for _ in range(12):
         if "open=1" in _query(page):
             break  # a sector opened in place (MAP.66): the walk is done
-        kind = page.evaluate(LINES)["kind"]
         tilt = page.evaluate(CAMERA)["tilt"]
-        seen.append((kind, round(tilt, 1)))
-        expected = iso if kind == "layer" else 0
-        assert tilt == pytest.approx(expected, abs=0.5), (kind, tilt, seen)
-        if kind == "layer":
+        windowed = "win=" in _query(page)
+        seen.append((windowed, round(tilt, 1)))
+        assert tilt == pytest.approx(iso if windowed else 0, abs=0.5), (tilt, seen)
+        if windowed:
             # A manual turn doesn't carry over to the next step.
             page.locator(GALAXY_CANVAS).focus()
             page.keyboard.press("Shift+ArrowDown")
         _click_choice(page, GENERATED_CHOICE)
-    kinds = [k for k, _ in seen]
-    assert "arc" in kinds and kinds.count("layer") >= 2 and "segment" in kinds, seen
+    assert seen[0][0] is False and sum(1 for windowed, _ in seen if windowed) >= 2, seen
     # Back out: each step flies back to its own preset.
-    _open_galaxy(page, map_site, "?p=a0.180,L0")
-    assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)
-    page.click('#galaxymap3d-controls [data-action="up"]')
-    _settle(page)
+    _open_galaxy(page, map_site, "?win=27.27.0.0")
     assert page.evaluate(CAMERA)["tilt"] == pytest.approx(iso, abs=0.5)
-    page.click('#galaxymap3d-controls [data-action="up"]')
+    page.locator(GALAXY_CANVAS).focus()
+    page.keyboard.press("Escape")
     _settle(page)
+    page.keyboard.press("Escape")
+    _settle(page)
+    assert _crumbs(page) == ["Galaxy"]
     assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)
 
 
@@ -1803,13 +1495,14 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     # Straight to the sector: a visit to its page first would leave the
     # tiles in the browser's cache.
     _open_galaxy(page, map_site, "?sector=100000001")
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(2500)
     requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
                 for url in urls]
-    # The sector stage's own fetch (its view's tiles are level 10; the
-    # prefetches around it are 12 and 9) leads with the finest tiles.
-    view = next(levels for levels in requests if 10 in levels)
-    assert view[0] == 12 and set(view) == {10, 12}, requests
+    # The sector window's view is level 11 (nine sectors across); the finest
+    # tiles (12) around the sector are asked for first.
+    assert requests[0][0] == 12, requests
+    assert any(11 in levels for levels in requests), requests
+    assert not any(10 in levels for levels in requests), requests
 
 
 def _point_colored_spots(page, selector, limit=80):
@@ -1844,7 +1537,7 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     """MAP.80: black holes, neutron stars and quasars are drawn among the
     stars in their own colors, and a click on one names it and links to
     its phenomenon page."""
-    _open_galaxy(page, map_site, "?at=27.27.0.0")
+    _open_galaxy(page, map_site, "?win=27.27.0.0&g=3")
     page.wait_for_timeout(1000)
     names = {point["name"]: point for point in POINT_FIELD}
     found = {}
@@ -1870,7 +1563,7 @@ def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     """MAP.65: a black hole, neutron star or quasar shows a tooltip with its
     name under the pointer, and its panel offers Start Here, End Here
     and a ☆, as the Sector Map's does."""
-    _open_galaxy(page, map_site, "?at=27.27.0.0")
+    _open_galaxy(page, map_site, "?win=27.27.0.0&g=3")
     page.wait_for_timeout(1000)
     names = {point["name"]: point for point in POINT_FIELD}
     tip = page.locator("#galaxymap3d-tooltip")
@@ -1901,7 +1594,7 @@ def test_galaxy_map_pick_mode_clicks_down_through_every_stage(page, map_site):
     for _ in range(8):
         before = (page.url, _crumbs(page))
         text = _click_choice(page, GENERATED_CHOICE)
-        if re.match(r"Sector .*, generated$", text):
+        if re.match(r"Sector .*, charted$", text):
             break
         assert _crumbs(page) != seen[-1], (text, _crumbs(page))
         seen.append(_crumbs(page))
@@ -1912,11 +1605,7 @@ def test_galaxy_map_stars_are_drawn_camera_relative(page, map_site):
     """MAP.102: the stars' positions are offsets from where the camera
     looks (the points object sits there), so zoomed in they stay small
     and exact rather than hundreds or thousands of parsecs out."""
-    _open_galaxy(page, map_site)
-    for _ in range(4):
-        text = _click_choice(page, GENERATED_CHOICE)
-        if re.match(r"Sector .*, generated$", text):
-            break
+    _open_galaxy(page, map_site, "?win=3.250.0.0")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
     drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame()")
     assert drawn["at"] == drawn["frame"], drawn
@@ -2122,14 +1811,6 @@ def test_the_galaxy_toolbar_says_whole_galaxy_and_the_menu_re_center(page, map_s
     assert page.locator('#galaxymap3d-controls [data-action="reset-view"]').text_content() == "Re-center"
 
 
-def test_the_slab_rail_shows_only_while_the_stage_has_slab_buttons(page, map_site):
-    """UX.60: nothing at the whole-galaxy level; the buttons once an arc is in."""
-    _open_galaxy(page, map_site)
-    assert not page.locator("#galaxymap3d-slabs").is_visible()
-    _open_galaxy(page, map_site, "?at=3.250.0.0")
-    assert not page.locator("#galaxymap3d-slabs h3").count() or page.locator("#galaxymap3d-slabs").is_visible()
-
-
 @pytest.mark.viewport(1280, 900)
 def test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge(page, map_site):
     """UX.62: the Galaxy page's title and crumb sit where every other page's do."""
@@ -2308,7 +1989,7 @@ def test_galaxy_map_opens_zoomed_in_on_the_charted_space(page, map_site):
     _settle(page)
     assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
     # A view the address names is not moved.
-    _open_galaxy(page, map_site, "?at=3.250.0.0")
+    _open_galaxy(page, map_site, "?win=3.250.0.0")
     assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
 
 
@@ -2468,10 +2149,10 @@ def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_sit
     a moment, the tiles one zoom step IN are fetched; nothing for the way out."""
     requests = _tile_requests(page)
     _open_galaxy(page, map_site, "?sector=100000001")
-    view = next(keys for _at, keys in requests if any(key.startswith("10/") for key in keys))
     page.wait_for_timeout(3500)
+    view = next(keys for _at, keys in requests if any(key.startswith("11/") for key in keys))
     levels = {int(key.split("/")[0]) for _at, keys in requests for key in keys}
-    assert min(levels) >= 10, f"no zoom-out prefetch (the view is level 10): {sorted(levels)}"
+    assert 10 not in levels, f"no zoom-out prefetch (the view is level 11): {sorted(levels)}"
     assert view
 
 

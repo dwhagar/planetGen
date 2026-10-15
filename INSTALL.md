@@ -144,6 +144,13 @@ seconds). `sudo POPULATION=1 ./install.sh` runs it without asking, and
 `planetgen population` runs it any time later. A new galaxy has no
 worlds yet, so there is nothing for it to do on a first install.
 
+The installer also checks the Redis server's settings and prints a
+warning, with the exact line to add, for the append-only file, the memory
+policy and limit, and the bind address; copy the lines from
+[`examples/redis/planetgen.conf`](examples/redis/planetgen.conf) into your
+Redis config and restart Redis (it never edits that file; see
+[deployment](docs/deployment/README.md)).
+
 `sudo ./install.sh --skip-database` leaves out step 2 and the population
 question when the database
 isn't ready yet; run `sudo ./update.sh` once it is. The installer never
@@ -189,6 +196,7 @@ Where the examples live:
 | [`examples/caddy/`](examples/caddy/) | Caddyfile | [caddy.md](docs/deployment/caddy.md) |
 | [`examples/systemd/`](examples/systemd/) | gunicorn service for nginx or Caddy | [nginx.md](docs/deployment/nginx.md) |
 | [`examples/macos/`](examples/macos/) | nginx config and launchd plists (gunicorn, orbit update, `update.sh`) | [macos.md](docs/deployment/macos.md) |
+| [`examples/redis/`](examples/redis/) | Redis settings (append-only file, noeviction, memory guard, loopback) | [deployment](docs/deployment/README.md) |
 | [`examples/maintenance/`](examples/maintenance/) | Monthly maintenance: systemd timers or launchd daemons (`install-maintenance-timer.sh`) | [below](#scheduled-maintenance) |
 | [`examples/systems/`](examples/systems/) | Example system files for `planetgen system --system-file` | [system-file-format.md](docs/system-file-format.md) |
 

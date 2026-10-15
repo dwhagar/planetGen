@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -871,9 +871,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
   MAP.159 (packed binary tiles; needs MAP.158; one cache stamp bump with
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
-  and MAP.150); this umbrella closes last.
+  and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.150, MAP.151, MAP.152, MAP.153,
+  Prerequisites: MAP.151, MAP.152, MAP.153,
   MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -918,54 +918,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
   2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: one free camera from the whole galaxy to a star system. The
-  wheel zooms toward the point under the cursor with clearance from what
-  is in front; double-click flies to the thing clicked (MAP.140's go-to
-  extended); the observer is always in the 3D galaxy, also when looking
-  at a sector; the container is named from the camera position and the
-  breadcrumb is derived from it; URLs and bookmarks hold the camera. The
-  arc, slab and segment picks (MAP.85, MAP.56 and MAP.17 flow) stop
-  being the way to move, and old stage URLs stop working (no backward
-  compatibility).
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default yes):
-  retire the arc, slab and segment
-  picks as the navigation flow?
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: keep the
-  slab strip as an optional
-  section plane, not a stage): or drop it?
-  Prerequisites: none. Related: MAP.140, MAP.85, MAP.59, NAV.13,
-  NAV.14, MAP.146.
-  Dependency (2026-10-09, fly-through-view-distance.md): If the camera
-  radius R used by MAP.153's rank rule is redefined for a free camera
-  (for example distance to the nearest sector instead of to the target),
-  keep it continuous in the camera position: a jump in R is a pop for
-  every star at once.
-  Built (2026-10-09): MAP.149 is built (PR #1141): the near-field rules
-  (depth fade, see-through tube, pick rule on the near-field share,
-  blocker fade from MAP.121 and the faint-context rule from MAP.141) are
-  in static/nearfield.js and tested; nothing draws neighbouring regions
-  yet, so MAP.150, MAP.148 and MAP.155 use them. MAP.121 and MAP.141
-  stay open for the drawing and stepping parts.
-  Built (2026-10-09): MAP.149 deviations from the design (recorded in
-  docs/design/fly-through-view-distance.md section 4.6): the tube eases
-  in with a smooth ramp; the 0.35 pick rule applies to the near-field
-  share, not the fill alpha; there is no dithered discard (blocks are
-  sorted at build time).
-  Built in part (Foundations lane 2, 2026-10-10, PR #1182): the wheel
-  zooms toward the cursor. Still open: select-with-click and
-  double-click-to-go (this changes the click-drills-in flow that most
-  Galaxy Map browser tests lean on), the camera in URLs and bookmarks,
-  the breadcrumb from position, and retiring the arc, slab and segment
-  picks. These need MAP.151's region data layer first, because the stage
-  query is the only source of block data today; the lane returns to them
-  after MAP.151.
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1055,6 +1007,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (done, #1376: galaxy_block_stats, read by query.galaxy_block_stats;
   add the new levels to drill.DRILL_LEVELS and a rebuild fills them), so
   MAP.151b is unblocked.
+  MAP.151d part 2 done (Foundations lane 2, 2026-10-15, #1382): the galaxy is
+  a plain disk of level-243 blocks; a click opens a window of nine blocks
+  round the clicked cell, one size down; Up zooms out one step; the arc,
+  slab and segment picks, the slab buttons and the 3x3x3 view are gone.
+  This unlocks MAP.189 and MAP.190. Left: MAP.151b (the 3-ary ladder).
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1073,7 +1030,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Server: drop the generated_star_floor_sol brightness floors, settle
   the 400-star cap, and choose tiles by distance. Client: the
   cross-fades with hysteresis and the per-tile origins.
-  Prerequisite: MAP.150. Related: MAP.102, MAP.125,
+  Prerequisites: none (MAP.150 done, #1382). Related: MAP.102, MAP.125,
   MAP.146.
   Foundations lane 2 (2026-10-10, MAP.148 first
   stage, PR #1160): MAP.148 is retired as built. The client-side law
@@ -1100,7 +1057,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   layer range in the "Show" menu, top-down camera with the same
   vertical-fade rules as the rest of the map, stars and sectors outside
   the range hidden.
-  Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
+  Prerequisites: none. Related: MAP.146, MAP.150 (done, #1382), MAP.141, MAP.122,
   ADM.29.
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -1333,7 +1290,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   click flies to the zoom at which it splits (no page change), with a
   keyboard path. Done: hover, click and keyboard paths with browser
   tests. Owner: Foundations lane 2.
-  Prerequisite: MAP.176. Related: MAP.150.
+  Prerequisite: MAP.176. Related: MAP.150 (done, #1382).
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.181 Dust colour for the dark nebula family on both themes**
@@ -1387,8 +1344,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only that region at the start; the user can still zoom out to the
   whole galaxy. A browser test loads a galaxy with one neighbourhood and
   finds the camera framed on it. Owner: Foundations lane 2, after
-  MAP.150 and MAP.152; part of the fly-through headline.
-  Prerequisites: MAP.150, MAP.152. Related: MAP.146, MAP.151, MAP.190.
+  MAP.152 (MAP.150 done, #1382); part of the fly-through headline.
+  Prerequisite: MAP.152. Related: MAP.146, MAP.151, MAP.190.
 
 - [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
   GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
@@ -1465,6 +1422,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache and the browser's IndexedDB. Leaving out stars a parent tile
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
+
+- [ ] **MAP.197 Remove the obsolete drill container code left by the map flip**
+  Foundations lane 2, 2026-10-15, after the map flip (PR #1382, MAP.151d
+  part 2). The Galaxy Map is now a plain disk of level-243 blocks with a
+  nine-block window per click, so the old drill container pieces are
+  unused: galaxyprisms.js wedgeLines and drillBlockSectors have no
+  callers, while drill.py's container rules and
+  tests/test_galaxydrill.py still use the non-null drillChildren
+  branches and drillSlabs. Remove them together with their tests.
+  Prerequisites: none. Related: MAP.151.
 
 ## NAV: Navigation and courses
 
@@ -1718,29 +1685,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unfilled cells. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
   default yes): list those as
   "not generated yet" rows.
-
-- [ ] **NAV.47 Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars**
-  Boss (2026-10-03 05:38Z): "navigational jump path (system to system)
-  should use scattered stars in unfilled sectors as potential stops
-  along the path.  Same for black holes, neutron stars, quasars, but the
-  by far preference is system-to-system, only if a jump crosses unknown
-  space should it start looking for other things." Done as he says; such
-  stops are marked as their kind in the route.
-  GEN.100 now also scatters hypervelocity stars and supernova remnants;
-  the list of stops should include hypervelocity stars.
-  Research (2026-10-09, course-routing.md): refine only flagged hops;
-  stones come from unfilled cells only (filled-cell black holes are not
-  stops); reach starts at twice the local stone spacing and doubles;
-  define "position at the time" once (`p0 + v (t - t_plan)`) and add
-  `galaxy_shape.phenomenon_scatter_at`; add a sub-item for the `kind`
-  lookup (a small `phenomenon_scatter_special` side table, preferred
-  over a `kind` index on about 5e8 rows). Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default: no): do planetary nebulae and
-  supernova remnants count as
-  stops?
-  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
-  1 by the coordinator, 2026-10-10).
-  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
   Boss (2026-10-07 11:47Z): "Then you can go find another location
@@ -3028,6 +2972,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mSv/yr as two quantities. Decided (Boss, 2026-10-10 18:44Z, defaults
   approved; default: 20 mSv/yr
   for the Blue tier, 50 as the single-year limit).
+  Prerequisite (the flux_variation part only): DB.26.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.149 Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K**
@@ -3375,7 +3320,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-14 19:54Z, on a decision
   card relayed by the coordinator): Suitability is the lowest of three,
   water access, food and shelter, as a 0 to 1 number.
-  Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+  Prerequisite: DB.26 (the one migration for the new columns). Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -3786,14 +3731,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
   and approved every default in it on 2026-10-14 21:08Z (see the
   Decided line below). Filed from the same review, independent of the
-  rebuild: PERF.93 (bug, done, PR #1364), OPS.48, PERF.94, ADM.54.
+  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48 (done, PR #1395), ADM.54.
   Decided (Boss, 2026-10-14 21:08Z): Option A of
   the Redis review, every default approved. Build steps filed as PERF.95
   (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
   scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
   cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
   when they are; it follows the dead-worker bug PERF.93 (done) and the client
-  module PERF.94 in Foundations lane 1. DOC.20 rewrites the notes after
+  module PERF.94 (done) in Foundations lane 1. DOC.20 rewrites the notes after
   step 6.
 
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
@@ -3829,19 +3774,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
-  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
-  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
-  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
-  benchmarks in research/redis-review/bench/). Redis is opened in
-  several places with different settings (finding F9) and RQ arguments
-  are pickled (F8). Done when: one module owns the connection (timeouts,
-  retry, health check, a cached pool), every connect() call site uses
-  it, and task arguments travel as plain JSON where the old path pickled
-  them. Normal priority; PERF.86 builds on it. Foundations lane 1,
-  before PERF.40.
-  Prerequisites: none. Related: PERF.86, PERF.40.
-
 - [ ] **PERF.95 Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -3865,7 +3797,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   count from the Queue page, Ludicrous Speed as a number). Done when:
   those items' behaviours work on the new spine and a test kills a
   worker and a replacement starts.
-  Prerequisite: PERF.94. Related: PERF.86, PERF.40, PERF.78,
+  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78,
   ADM.15.
 
 - [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
@@ -4079,6 +4011,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
+
+- [ ] **DB.26 One migration for the habitability columns: flux variation and the air, water and suitability ratings**
+  Foundations Generation, 2026-10-15, relayed by the coordinator:
+  Foundations Generation may not add migrations, so it needs this one
+  from Foundations Database. One Alembic migration on planets and moons:
+  add flux_variation (for GEN.148), rename phi4_chemistry and
+  tier_chemistry to phi4_air and tier_air, and add phi4_water,
+  tier_water, phi4_suitability and tier_suitability (for GEN.207, which
+  splits chemistry into air and water and adds the Suitability
+  dimension). The exact column types and defaults come from the spec the
+  coordinator sent to Foundations Database. It blocks GEN.207
+  (Foundations Generation's first item) and the flux_variation part of
+  GEN.148, so it goes first in the Foundations Database queue, ahead of
+  ADM.54 and the Redis rebuild (generation corrections come first; Boss,
+  2026-10-10 22:19Z). No old-column compatibility shim (Boss,
+  2026-10-07).
+  Prerequisites: none. Related: GEN.207, GEN.148.
 
 ## API: The JSON API
 
@@ -4616,7 +4565,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   is on, the memory policy, used_memory, the last save status and the
   worker count. Default: build it after the Redis settings item; Boss
   may drop it. Foundations lane 1, after the client module.
-  Prerequisites: none. Related: OPS.48, PERF.94.
+  Prerequisites: none. Related: OPS.48 (done, PR #1395).
 
 ## SEC: Security
 
@@ -4694,6 +4643,9 @@ clears each one.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
   Two System Map browser tests that failed under load (seen by Foundations lane 2 and the rebuild thread) were fixed on 2026-10-14 (#1367).
+  Seen again on 2026-10-15 (Bugfixes lane 2, NAV.47 suite, load 8.9, call 40.6 s on
+  gw0): src/tests/test_web_browser_controls.py::test_every_plain_button_does_something[web.sector];
+  passed alone, main not checked.
   Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
   test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
   playwright error), test_bookmarks_keep_a_course_pick_on_the_galaxy_map and
@@ -5116,9 +5068,70 @@ clears each one.
   skips them, and what must invalidate a resume: any changed file,
   database or Redis state, the Python or library versions) with a
   recommendation, and Boss picks one; the build is then filed as its own
-  items. Options are pending until the thread reports. Owner: the Test
+  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: the Test
   Suite Rebuild thread, part of TEST.139, not a lane.
+  Decided (Boss, 2026-10-15, tapped Build
+  it): option A, a per-test progress log plus an explicit
+  `scripts/test.py <command> --resume`, same build id only; not
+  automatic and not part of the merge gate. Build items TEST.150,
+  TEST.151 and TEST.152, owner the Test Suite Rebuild thread, after
+  TEST.133.
   Prerequisites: none. Related: TEST.139.
+
+- [ ] **TEST.149 Two physics tests fail under load and pass alone (bug)**
+  Reported by Foundations lane 1 (2026-10-15 00:18Z) in a
+  scripts/test.py changed run that selected the whole suite (15,433
+  passed):
+  tests/test_update_due.py::test_only_due_planets_and_moons_move_and_count
+  and
+  tests/test_planet_physics_fixes.py::test_atmospheric_pressure_correlates_positively_with_gravity
+  failed under load and passed alone. Done when the cause is found (a
+  shared-state or time assumption, or an unseeded draw) and the suite
+  shows no flake for these two. Owner: the Test Suite Rebuild thread,
+  not a lane.
+  Prerequisites: none. Related: TEST.126, TEST.139.
+
+- [ ] **TEST.150 Test run progress log and build id for resuming a run**
+  Option A of TEST.148 (Boss chose it, 2026-10-15). Every test worker
+  appends one line per finished test to .test-progress/<build-id>.jsonl
+  (test id, outcome, seconds, worker), one write per line like the
+  failure log, so a killed run loses at most the tests running at that
+  moment. The build id is a hash of the git tree of HEAD, the content of
+  every uncommitted or untracked file, the lock files and pytest.ini,
+  the test command and its selection, the Python version, the database
+  server name and version, and the UTC date. A new run without the
+  resume flag starts a new log; a log for another build is kept for a
+  day, then removed. Done when the log and the build id exist with tests
+  (the id changes when any of those inputs change and not otherwise).
+  Prerequisite: TEST.133. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
+  Option A of TEST.148. `scripts/test.py <command> --resume` computes
+  the build id, finds the progress log, and deselects the tests that
+  passed (a skip list passed to pytest on every worker at collection);
+  tests that failed, errored, were running when it stopped or never
+  started run again. It prints the build id, the time of the earlier run
+  and the counts first, and ends with a line that says the run was
+  resumed (for example PASS: N from the earlier run + M now). Each phase
+  (non-browser, then browser) resumes by its own test ids. A resumed run
+  is never automatic, and it is not the merge gate unless the PR says
+  so: a PR that used one says which build and run it continued. Done
+  when a run killed in either phase resumes and finishes with the same
+  verdict a full run gives, with tests for the skip list.
+  Prerequisite: TEST.150. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
+  Option A of TEST.148. A killed run can leave keys on the shared Redis:
+  a resume (and a normal start) clears the keys that carry a test
+  database's name prefix and the rate-limit keys before the first test.
+  The dependency record (.pytest-deps.json) merges what a resumed run
+  records into the existing one, so `full --check` after a resume still
+  refreshes it, and its MISSED check says it covers only the tests that
+  ran now. docs/testing.md documents the resume flag, the build id and
+  the labelling rule (a resumed run says so in its last line and in the
+  PR). Done when a killed run leaves nothing that changes a resumed
+  run's result and the guide matches.
+  Prerequisite: TEST.151. Related: TEST.148, TEST.139.
 
 ## USR: User accounts
 
@@ -5454,46 +5467,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
-  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
-  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
-  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
-  benchmarks in research/redis-review/bench/). Redis here runs with its
-  defaults. In the review's test, the defaults lost every key on kill -9
-  and appendonly yes with appendfsync everysec kept them all. Done when:
-  examples/redis/planetgen.conf sets appendonly yes, appendfsync
-  everysec, maxmemory-policy noeviction, a maxmemory guard and a
-  loopback bind; update.sh warns, with the exact line to add, when
-  appendonly is off or the memory policy is not noeviction or Redis
-  listens beyond loopback, and never edits his Redis config; the install
-  guides say so (with DOC.44). Normal priority, behind the
-  generation-performance work. Bugfixes lane 1.
-  Decided (Boss, 2026-10-14 21:08Z): turn on the
-  append-only file (everysec), noeviction and a memory guard through a
-  documented example config and an update.sh warning; update.sh never
-  edits his Redis config. One Redis instance; no password while it binds
-  loopback (it does today), an ACL user documented for later.
-  Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
-
-- [ ] **OPS.49 update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug)**
-  Boss, 2026-10-14 21:36Z: after the OPS.47 fix, update.sh runs steps 1
-  to 4 on the rebuilt venv (cryptography 50.0.2, pymysql 1.2.3,
-  SQLAlchemy 2.1.3, alembic 1.20.0, math check passed) and then fails at
-  step 5, Migrating the configured MySQL database, with: error:
-  'NoneType' object has no attribute 'is_auth_switch_request'. That text
-  comes from pymysql's login handshake, so the cause is probably the
-  auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
-  version, not the schema. Reproduce it against MySQL 8 and the lock
-  file, check the locked versions against ones known to work with that
-  plugin, fix the cause by adapting to the current library, and make the update
-  print a clear error naming the login problem instead of the bare
-  exception.
-  Cause found by Bugfixes lane 1 (2026-10-14 22:41Z, reproduced on a real
-  MySQL 8.0): pymysql 1.2.1 to 1.2.3 return nothing from the caching_sha2
-  full login on a connection without TLS. Decided (Boss, 2026-10-14
-  22:46Z): no pin below 1.2.1; keep the current pymysql and adapt our
-  connection code to it, and make every database login failure name the
-  server and account.
+- [ ] **OPS.50 Keep the pymysql login workaround and make it compatible with the upstream fix**
+  Boss, 2026-10-15 00:46Z: the caching_sha2 workaround in
+  planetgen/db/login.py (OPS.49, merged in #1387) stays; it is not
+  removed. Make it compatible with the upstream fix (PyMySQL PR 1275,
+  merged 2026-09-18, unreleased) so that once pymysql answers that step
+  itself the plugin hook steps aside or behaves identically and nothing
+  changes for users. The hook detects whether the installed pymysql
+  already answers the step; tests cover the current library and a
+  stand-in that behaves like the fix; the clear login error stays.
+  GitHub issue
+  [#1392](https://github.com/dwhagar/planetGen/issues/1392).
   Prerequisites: none.
 
 ## DOC: Documentation

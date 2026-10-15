@@ -18,7 +18,7 @@ import os
 import sys
 import uuid
 
-import pymysql
+from planetgen.db import login
 import sqlalchemy as sa
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -120,7 +120,7 @@ def reflect_schema(config):
     store.get_connection(config).close()
     engine = sa.create_engine(
         "mysql+pymysql://",
-        creator=lambda: pymysql.connect(host=config.host, port=config.port, user=config.user,
+        creator=lambda: login.connect(host=config.host, port=config.port, user=config.user,
                                          password=config.password, database=config.database),
     )
     try:
@@ -137,7 +137,7 @@ def main():
     from planetgen.db import store
     base = store.DEFAULT_MYSQL_CONFIG
     name = f"planetgen_models_{uuid.uuid4().hex[:12]}"
-    admin = pymysql.connect(host=base.host, port=base.port, user=base.user, password=base.password)
+    admin = login.connect(host=base.host, port=base.port, user=base.user, password=base.password)
     try:
         admin.cursor().execute(f"CREATE DATABASE `{name}`")
         config = store.MySQLConfig(host=base.host, port=base.port, user=base.user, password=base.password,

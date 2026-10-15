@@ -24,8 +24,9 @@
 //
 // The galaxy's sector grid is drawn as blocks of whole sectors, one
 // drill-down stage at a time (./galaxystageview.js, rules in
-// ./galaxystages.js): the visitor picks an arc of the disk (MAP.85), a
-// slab, a segment (block) of it, a slab, ... down to a sector (MAP.56). Every view can be
+// ./galaxystages.js): the whole galaxy's blocks, then for each block
+// clicked the window of blocks one size down centred on it, ... down to a
+// window of sectors (MAP.150, MAP.151). Every view can be
 // turned and zoomed within limits; the whole galaxy has no grid lines
 // drawn on it, so its stars and spiral show through. Density is computed right here from the galaxy's own
 // analytic shape, not fetched, and colors each block.
@@ -345,27 +346,6 @@ function showBlockInfo(info, edgePc) {
     generate: info.generate && sceneData.generate ? blockGenerateButtons(sceneData.generate, info.generate) : null,
     hint: info.hint,
   });
-}
-
-// A drill-down stage that isn't one block (an arc, or a slab of one;
-// MAP.135): what it covers in the plane and in height, and how many
-// sectors it holds and has generated. `info.span` is {r0, r1, t0, t1,
-// z0, z1} (pc and radians); `info.hint` goes under it.
-function showRegionInfo(info) {
-  var span = info.span;
-  var fields = [
-    ["Distance from core", Math.round(span.r0) + "–" + Math.round(span.r1) + " pc"],
-    ["Bearing", Math.round(span.t0 * 180 / Math.PI) + "° to " + Math.round(span.t1 * 180 / Math.PI) + "°"],
-    ["Height", Math.round(span.z0) + " to " + Math.round(span.z1) + " pc"],
-  ];
-  if (info.total != null) {
-    fields.push(["Sectors", formatNumber(info.total)]);
-  }
-  if (info.generated != null) {
-    fields.push(["Generated", formatNumber(info.generated)
-      + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : "")]);
-  }
-  showInfo({ title: info.title, fields: fields, hint: info.hint });
 }
 
 // A hint paragraph in the info panel: replacing what's there, or (keep)
@@ -2763,9 +2743,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Drill-down stages ------------------------------------------------------
   //
   // The map opens on the drill-down (galaxystageview.js): the whole
-  // galaxy in 3D, an arc of it (MAP.85), a slab of the arc, a block's
-  // level-27 children, and so on down to a sector. Pointer and key input
-  // goes to the stage view; tiles (stars, clouds) follow the camera.
+  // galaxy in 3D, a window of level-27 blocks around the block clicked, and
+  // so on down to a window of sectors. Pointer and key input goes to the
+  // stage view; tiles (stars, clouds) follow the camera.
   var picker = createPicker(camera, canvasEl);
 
   // The sector page's Contents "Show on map" buttons (MAP.46) name a
@@ -3029,7 +3009,6 @@ function initGalaxyMap3d(canvasEl, data) {
         });
     },
     showBlockInfo: function (info) { showBlockInfo(info, edgePc); },
-    showRegionInfo: showRegionInfo,
     showPlacedInfo: showPlacedInfo,
     showCellInfo: showCellInfo,
     showHint: function (text) { showHint(text, false); },
@@ -3100,7 +3079,6 @@ function initGalaxyMap3d(canvasEl, data) {
     els: {
       crumbs: document.getElementById("galaxymap3d-crumbs"),
       pageCrumb: document.querySelector("nav.breadcrumbs"),
-      slabs: document.getElementById("galaxymap3d-slabs"),
       tooltip: document.getElementById("galaxymap3d-tooltip"),
       notice: document.getElementById("galaxymap3d-notice"),
       address: document.getElementById("galaxymap3d-address"),

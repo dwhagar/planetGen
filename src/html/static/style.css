@@ -1327,6 +1327,16 @@ a.navmap-label:focus-visible {
   stroke: var(--text-muted);
 }
 
+.navmap-stone circle {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-dasharray: 3 2;
+}
+
+.nav-stone {
+  font-style: italic;
+}
+
 a:hover .navmap-point circle,
 a:focus-visible .navmap-point circle {
   stroke: var(--accent);
@@ -1846,8 +1856,8 @@ a.btn.btn-secondary.btn-active:visited {
    `--btn-gap` across and between wrapped lines, and wraps rather than
    squeezing. It outranks a group's own `gap`, so every button group
    matches; the lists below hold their buttons one per item. Menus (the
-   gear and crumb drop-downs) and the Galaxy Map's slab rows are lists
-   of entries, not button groups, and keep their own spacing. Nothing
+   gear and crumb drop-downs) are lists of entries, not button groups,
+   and keep their own spacing. Nothing
    needs this rule on purpose: a new button group gets it for free. */
 :is(div, p, span, form, nav, aside, section, footer, li, td, dd):has(
     > :is(button, .btn, .starmap-btn) ~ :is(button, .btn, .starmap-btn),
@@ -2349,11 +2359,9 @@ code {
 }
 
 /* MAP.30: the map is 4:3 (wider than tall) and no taller than the window
-   under the header; 1:1 on a phone. The slab slider sits to its right in
-   a narrow column of fixed width, so the map doesn't move as stages
-   change. MAP.55: the info panel (a picked sector's address and
-   designation) sits beside the slab slider when the row has room for it,
-   and wraps below the map when it hasn't. */
+   under the header; 1:1 on a phone. MAP.55: the info panel (a picked
+   sector's address and designation) sits beside the map when the row has
+   room for it, and wraps below the map when it hasn't. */
 .galaxymap3d-panel .galaxy-map-row {
   display: flex;
   flex-wrap: wrap;
@@ -2363,25 +2371,12 @@ code {
   min-width: 0;
 }
 
-/* MAP.99: the slab column's width (--slab-col) and how many there are
-   (--slab-cols: two when the buttons split across both sides of the map)
-   come from galaxystageview.js's classes on .galaxy-map-main. */
 .galaxymap3d-panel .galaxy-map-main {
-  --slab-col: 9.5rem;
-  --slab-cols: 1;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   min-width: 0;
-  flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3 + var(--slab-cols) * (var(--slab-col) + 0.75rem)));
-}
-
-.galaxymap3d-panel .galaxy-map-main.is-slab-split {
-  --slab-cols: 2;
-}
-
-.galaxymap3d-panel .galaxy-map-main.is-slab-small {
-  --slab-col: 3.5rem;
+  flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3));
 }
 
 @media (max-width: 599px) {
@@ -3334,7 +3329,7 @@ body.app {
 
 /* The Galaxy Map drill-down (static/galaxystageview.js): the path from
    the galaxy to the shown stage, each step with a menu of its siblings;
-   the slab strip beside the map; the hover tooltip. */
+   the hover tooltip. */
 .galaxymap3d-panel [hidden] {
   display: none !important;
 }
@@ -3448,170 +3443,8 @@ body.app {
   color: var(--text);
 }
 
-.galaxy-slabs {
-  flex: 0 0 var(--slab-col, 9.5rem);
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 12rem;
-  font-size: 0.8rem;
-  text-align: center;
-}
-
-.galaxy-slabs h3 {
-  font-size: 0.95rem;
-  margin: 0;
-}
-
-.galaxy-slab-note {
-  margin: 0;
-  color: var(--text-muted);
-}
-
-/* The slab buttons (MAP.54, MAP.76): one per slab, ordered by the
-   slab's height on screen; galaxystageview.js draws a line from each to
-   its slab on the SVG laid over the map's row. */
-.galaxy-slab-buttons {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.3rem;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* One line each (MAP.100): "#4" and how much of the slab is charted. */
-.galaxy-slab-button {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.35em;
-  width: 100%;
-  padding: 0.2rem 0.35rem;
-  white-space: nowrap;
-  overflow: hidden;
-  font: inherit;
-  color: var(--text);
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.galaxy-slab-button:hover,
-.galaxy-slab-button:focus-visible,
-.galaxy-slab-button.is-lit {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-.galaxy-slab-button[aria-disabled="true"] {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.galaxy-slab-name {
-  font-weight: 600;
-}
-
-.galaxy-slab-count {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text-muted);
-  font-size: 0.72rem;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Small buttons (MAP.99): the number alone, the rest in the title and
-   the screen-reader label. */
-.is-slab-small .galaxy-slab-count {
-  display: none;
-}
-
-.is-slab-small .galaxy-slab-buttons {
-  gap: 0.15rem;
-}
-
-.is-slab-small .galaxy-slab-button {
-  padding: 0.1rem 0.2rem;
-  font-size: 0.72rem;
-}
-
-.is-slab-small .galaxy-slabs h3 {
-  font-size: 0.8rem;
-}
-
-/* The left column of split buttons has no heading of its own; it lines
-   up with the right one's buttons. */
-.galaxy-slabs-side {
-  padding-top: 1.6rem;
-}
-
-.is-slab-small .galaxy-slabs-side {
-  padding-top: 1.35rem;
-}
-
 .galaxymap3d-panel .galaxy-map-main {
   position: relative;
-}
-
-/* The leader lines: over the map, under the buttons, never in the way
-   of the pointer. Faint, the lit slab's bright. */
-.galaxy-slab-leaders {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  overflow: visible;
-  pointer-events: none;
-  color: var(--accent);
-}
-
-.galaxy-slab-leader {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1;
-  stroke-opacity: 0.4;
-}
-
-.galaxy-slab-leader.is-lit {
-  stroke-width: 2;
-  stroke-opacity: 1;
-}
-
-@media (max-width: 599px) {
-  .galaxymap3d-panel .galaxy-map-row {
-    gap: 0.5rem;
-  }
-
-  /* On a phone the buttons go in one column below the map, each line
-     leaving its button's right end along a lane of its own. */
-  .galaxymap3d-panel .galaxy-map-main {
-    flex-wrap: wrap;
-  }
-
-  .galaxy-slabs {
-    flex-basis: 100%;
-    min-height: 0;
-    align-items: flex-start;
-    font-size: 0.75rem;
-  }
-
-  .galaxy-slabs .galaxy-slab-buttons {
-    width: 11rem;
-  }
-
-  .is-slab-small .galaxy-slabs .galaxy-slab-buttons {
-    width: 3.5rem;
-  }
 }
 
 /* The Galaxy Map's address bar (drill-down section 9.3). */

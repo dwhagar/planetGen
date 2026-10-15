@@ -14,12 +14,13 @@ calls `upgrade` once those have run, and `record` writes the
 
 import os
 
-import pymysql
 import sqlalchemy
 from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
+
+from planetgen.db import login
 
 MIGRATIONS_DIR = os.environ.get("PLANETGEN_MIGRATIONS_DIR") or os.path.join(os.path.dirname(__file__), "migrations")
 """str: The directory holding `env.py` and `versions/`. `PLANETGEN_MIGRATIONS_DIR`
@@ -97,7 +98,7 @@ def pending(version, scripts_dir=None):
 def _engine(config):
     return sqlalchemy.create_engine(
         "mysql+pymysql://",
-        creator=lambda: pymysql.connect(
+        creator=lambda: login.connect(
             host=config.host, port=config.port, user=config.user, password=config.password,
             database=config.database, charset="utf8mb4", autocommit=False,
             init_command=f"SET time_zone = '+00:00', SESSION lock_wait_timeout = {DDL_LOCK_WAIT_S}",

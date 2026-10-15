@@ -70,6 +70,18 @@ addresses that keep guessing admin passwords.
   On Linux `install.sh` and `update.sh` set all of this
   (`set-permissions.sh`, `setup-debug-log.sh`); the macOS
   guide gives the manual equivalent.
+- **Redis settings.** Redis holds the work queue, rate limits and
+  login lockouts, and out of the box keeps nothing on disk between
+  saves, so a crash loses all of it. [`examples/redis/planetgen.conf`](../../examples/redis/planetgen.conf)
+  turns on the append-only file (`appendonly yes`, `appendfsync
+  everysec`), `maxmemory-policy noeviction`, a `maxmemory 512mb` guard and
+  a loopback-only `bind`. Add those lines to your Redis config (on Debian
+  and Ubuntu `/etc/redis/redis.conf`, or end it with `include
+  /path/to/planetgen.conf`) and restart Redis. `install.sh` and
+  `update.sh` check the running server and, for each setting that is off,
+  print the exact line to add; they never edit your Redis config. One
+  Redis serves everything. It needs no password while it binds loopback;
+  the example shows the ACL user to add later.
 - **The NLTK `words` corpus** somewhere the app's account can read:
   `/usr/local/share/nltk_data` on Linux and macOS, or a folder named by
   `NLTK_DATA`.

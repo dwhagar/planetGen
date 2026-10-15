@@ -2,6 +2,114 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1141] - 2026-10-15
+
+### Added
+
+- The TODO list adds DB.26: one migration for the habitability columns (flux variation and the air, water and suitability ratings).
+
+## [8.0.1140] - 2026-10-15
+
+### Changed
+
+- The TODO plans add two build lanes, Foundations Generation and Foundations UX, and leave the map lane with map items only.
+
+## [8.0.1139] - 2026-10-15
+
+### Changed
+
+- The TODO list retires MAP.150 (the free camera, finished by the map flip in #1382) and adds MAP.197 (remove the unused drill code).
+
+## [8.0.1138] - 2026-10-15
+
+### Changed
+- **The Galaxy Map zooms where you click (MAP.150, MAP.151d).** The whole galaxy is now a plain disk of blocks; a click opens a window of nine blocks round the cell under the pointer, one size down (blocks of 243 sectors, 27, 3, then single sectors), and Up zooms back out one step at a time to the galaxy. The arc, slab and segment picks, the slab buttons with their lines and the 3 by 3 by 3 view are gone, and `?win=` (with `&g=` for the width) is the address of every step. Older `at=` and `p=` links open the whole galaxy.
+
+## [8.0.1137] - 2026-10-15
+
+### Changed
+
+- The TODO plans take PERF.33 off the first bugfix lane: it folds into PERF.96 and bug lanes take bugs only.
+
+## [8.0.1136] - 2026-10-15
+
+### Changed
+
+- The TODO list retires OPS.48 (Redis server settings example and warnings, merged in #1395).
+
+## [8.0.1135] - 2026-10-15
+
+### Added
+
+Added `examples/redis/planetgen.conf` (append-only file with `appendfsync everysec`, `noeviction`, a `maxmemory` guard and a loopback bind), and `install.sh` and `update.sh` now warn, with the exact line to add, when the running Redis server's append-only file is off, its memory policy evicts, it has no memory limit or it listens beyond loopback. They never edit your Redis config. The install guides describe it (OPS.48).
+
+## [8.0.1134] - 2026-10-15
+
+### Changed
+
+- The TODO plans keep the habitability and interface blocks in the map lane; the second bugfix lane takes bugs only.
+
+## [8.0.1133] - 2026-10-15
+
+### Added
+
+- The TODO list adds OPS.50: keep the database login workaround and make it compatible with the upstream pymysql fix.
+
+## [8.0.1132] - 2026-10-15
+
+### Changed
+
+- The TODO list records one more load flake in the browser-map test group.
+
+## [8.0.1131] - 2026-10-15
+
+### Changed
+
+- The TODO list retires NAV.47 (unknown-space jumps and the stops on their way, merged in #1389).
+
+## [8.0.1130] - 2026-10-15
+
+### Added
+- A jump through unknown space now stops at scattered bright stars, black holes, neutron stars, quasars and hypervelocity stars in the uncharted sectors beside it, when a chain of them is not much longer than the jump. They are marked in the route by their kind and the uncharted sector they lie in, shown on the NAV map, and not stayed at. System-to-system routes are unchanged.
+
+## [8.0.1129] - 2026-10-15
+
+### Fixed
+- No internal TODO code (such as GEN.96 or PERF.56) shows in the command-line help, the admin Stats page hint or any other text a user reads, and the help no longer names an internal constant. A test now scans the templates, static files, the strings the code shows and every command's `--help`, and fails if one comes back.
+
+## [8.0.1128] - 2026-10-15
+
+### Changed
+
+- The TODO list retires OPS.49 (update.sh database login, merged in #1387).
+
+## [8.0.1127] - 2026-10-15
+
+### Fixed
+
+update.sh no longer stops at "Migrating the configured MySQL database" with "'NoneType' object has no attribute 'is_auth_switch_request'". pymysql 1.2.3, the current release, fails that way when a MySQL 8 account (caching_sha2_password) logs in the first time after a server start on a server without TLS; the fix is merged upstream but not yet released, so planetGen now logs in through pymysql's own step with the one-line difference described in `planetgen/db/login.py`. The library check now requires pymysql 1.2.3 or newer, and a failed login prints "Couldn't log in to the database server at host:port as 'user'" with what to check, from every command (OPS.49).
+
+## [8.0.1126] - 2026-10-15
+
+### Added
+- The TODO list records Boss's choice for TEST.148 (a test progress log with an explicit resume flag) and files its build items TEST.150 to TEST.152.
+
+## [8.0.1125] - 2026-10-15
+
+### Changed
+- The TODO list records the Test Suite Rebuild thread's options for resuming a test run (TEST.148); the recommendation is a progress log with an explicit resume flag.
+
+## [8.0.1124] - 2026-10-15
+
+### Changed
+- The TODO list drops PERF.94 (one Redis client module, merged in #1383) and files TEST.149, two physics tests that fail under load.
+
+## [8.0.1123] - 2026-10-15
+
+### Changed
+- Every Redis connection (the web pages, the API's queued jobs, the tile locks, the login lockout store and the work queue) now comes from one client module with a connect and read timeout, a retry after a dropped connection, a health check and keepalive, so a hung Redis fails a call instead of hanging the web thread that made it.
+- The Generate page's jobs, the API's queued jobs and the scatter's progress messages travel through Redis as JSON instead of pickle. A run's own task queue still uses pickle until the work queue rebuild. `planetgen.cli.worker` now serves the web queue by default and refuses to mix the two kinds of queue in one worker.
+
 ## [8.0.1122] - 2026-10-15
 
 ### Added

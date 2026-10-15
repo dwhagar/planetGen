@@ -188,7 +188,7 @@
     {%- for stop in items %}
     <li{% if stop.gap_before %} class="nav-gap"{% endif %}>
       {%- if stop.gap_before %}<span class="nav-skip" aria-hidden="true">&hellip;</span>{% endif %}
-      <a href="{{ stop.url }}">{{ stop.name }}</a>
+      {% if stop.url %}<a href="{{ stop.url }}">{{ stop.name }}</a>{% else %}<span class="nav-stone">{{ stop.name }}</span>{% endif %}
       {%- if stop.hop_text and not loop.last and not loop.nextitem.gap_before %}
       <span class="nav-hop{% if stop.hop_unknown %} nav-hop-unknown{% endif %}"><span aria-hidden="true">&rarr;</span><span class="sr-only"> then </span> {% if stop.hop_course %}{{ stop.hop_course }}, {% endif %}{{ stop.hop_text }}{% if stop.hop_times %} ({{ stop.hop_times|join(", ") }}){% endif %}{% if stop.hop_unknown %} <span class="nav-unknown">unknown space</span>{% endif %}</span>
       {%- endif %}

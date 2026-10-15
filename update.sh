@@ -191,6 +191,7 @@ check_app_imports
 echo
 echo "Checking the Redis server (config.json's redis.url):"
 ensure_redis
+check_redis_settings
 
 echo
 warm_galaxy_map

@@ -266,10 +266,10 @@ def test_cryptography_is_a_requirement_for_mysql_8_logins():
 
 def test_the_library_check_fails_a_pymysql_that_cannot_use_cryptography():
     """A venv with pymysql but no cryptography is "broken" at the library step, not at the migration."""
-    code = ("import sys; sys.modules['cryptography'] = None; sys.argv = ['probe', 'pymysql>=1.1.1']\n"
+    code = ("import sys; sys.modules['cryptography'] = None; sys.argv = ['probe', 'pymysql>=1.2.3']\n"
             f"exec(open({os.path.join(ROOT, 'scripts', 'probe_requirements.py')!r}).read())\n")
     done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
-    assert done.stdout.startswith("broken pymysql>=1.1.1 ImportError:pymysql_has_no_cryptography"), done.stdout + done.stderr
+    assert done.stdout.startswith("broken pymysql>=1.2.3 ImportError:pymysql_has_no_cryptography"), done.stdout + done.stderr
 
 
 def test_every_library_the_code_imports_is_in_the_lock():
