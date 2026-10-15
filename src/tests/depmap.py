@@ -438,6 +438,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         return
     notes = [state.note] if state.note else []
     notes += [n for n in state.worker_notes if n not in notes]
+    resumed = _resumed_count(config)
     if config.getoption("--deps-check") is not None and state.would_select is not None:
         stats = terminalreporter.stats
         failed = {report.nodeid for key in ("failed", "error") for report in stats.get(key, [])}
@@ -445,24 +446,44 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         terminalreporter.write_sep("-", "depmap check")
         for note in notes:
             terminalreporter.write_line(note)
+        if resumed:
+            terminalreporter.write_line(resumed_note(resumed))
         terminalreporter.write_line(f"{len(failed)} tests failed; {len(missed)} of them would not have been selected")
         for nodeid in missed:
             terminalreporter.write_line(f"  MISSED: {nodeid}")
-        _record_proof(len(state.would_select), len(failed), missed)
+        _record_proof(len(state.would_select), len(failed), missed, resumed=bool(resumed))
     elif notes:
         terminalreporter.write_sep("-", "depmap")
         for note in notes:
             terminalreporter.write_line(note)
 
 
-def _record_proof(selected, failed, missed):
-    """Appends this run to `.pytest-deps-proof.json`, the running record of whether the selection ever missed a failure."""
+def _resumed_count(config):
+    """How many tests a resumed run left out (`--skip-passed`, TEST.151); 0 when this run is not a resumed one."""
+    path = config.getoption("--skip-passed", default=None)
+    if not path:
+        return 0
+    try:
+        with open(path, encoding="utf-8") as f:
+            return len(json.load(f))
+    except (OSError, ValueError):
+        return 0
+
+
+def resumed_note(skipped):
+    return (f"depmap: this run was resumed: {skipped} tests passed in the earlier run of the same build and were not run "
+            "again, so this check covers only the tests that ran now")
+
+
+def _record_proof(selected, failed, missed, resumed=False):
+    """Appends this run to `.pytest-deps-proof.json`, the running record of whether the selection ever missed a failure.
+    A resumed run says so: it checked only the tests that ran in it (TEST.152)."""
     try:
         with open(PROOF_PATH, encoding="utf-8") as f:
             proof = json.load(f)
     except (OSError, ValueError):
         proof = {"runs": []}
-    proof["runs"].append({"selected": selected, "failed": failed, "missed": missed})
+    proof["runs"].append({"selected": selected, "failed": failed, "missed": missed, **({"resumed": True} if resumed else {})})
     try:
         with open(PROOF_PATH, "w", encoding="utf-8") as f:
             json.dump(proof, f, indent=1)

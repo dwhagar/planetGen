@@ -236,6 +236,22 @@ run says which build and run it continued. Tests that failed, errored, were runn
 started run again; a test that passed earlier is not run again, so a test that only passes after another test
 ran before it is not checked again either.
 
+#### What a run clears first, and what a resumed run records
+
+Before pytest starts (every command, a resumed run too) `scripts/test.py` clears what earlier runs left on the test
+Redis (`src/tests/redis_cleanup.py`). A queued job leaves its job record, result and a place in the queue's finished,
+failed or canceled registry, none of which expire, so the server gained a few hundred keys a run. The clean-up uses
+only `PLANETGEN_TEST_REDIS_URL` (never `PLANETGEN_REDIS_URL`) and removes only keys a test makes: `planetgen-test:*`,
+the API test queues `planetgen-api-test-*`, the run queues `planetgen-run-*` and queues `test-*`, with the job
+records those queues list. It does not flush the database and leaves the rate-limit keys (`LIMITS:*`, which expire on
+their own and are shared by every running test). A run queue of the application is named like a test's, so if any
+worker has sent a heartbeat in the last 90 seconds the clean-up does nothing and says so. It prints
+`removed N keys earlier test runs left on the test Redis` when it cleared something.
+
+A resumed run with `--record-deps` or `--check` keeps the dependency-map entries of the tests it skipped and
+replaces those of the tests that ran. Its `--check` output says it was resumed and that the check covers only the
+tests that ran now, and the record in `.pytest-deps-proof.json` carries `"resumed": true`.
+
 ### Only the tests a change touches, `scripts/test.py changed`
 
 `scripts/test.py full` also records, for every test that passed, which
