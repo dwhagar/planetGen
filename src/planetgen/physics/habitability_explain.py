@@ -11,7 +11,7 @@ the chip on the system list; the wording matches the Habitability levels page
 (`web/lib/habitability_ref.py`, UX.90).
 """
 
-from planetgen.physics import habitability
+from planetgen.physics import habitability, protection
 from planetgen.physics.habitability import (
     ARMSTRONG_KPA, DOSE_BAND, GAS_LIMITS_KPA, INSPIRED_O2_MIN_KPA, O2_HIGH_BAND, PRESSURE_BAND, TEMPERATURE_BAND,
     WET_BULB_CRIT_C, band_score, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
@@ -166,6 +166,7 @@ def _water_items(world):
 
 
 def _suitability_items(world):
+    ceiling = habitability.suitability_ceiling(habitability.core_scores(world))
     life = world.life_stage if world.life_on_surface else "none"
     water_text = {"liquid": "liquid water at the surface", "ice": "ice, or an ocean under ice",
                   "hydrated": "water held in minerals", "vapour": "water vapour only", None: "none"}
@@ -177,6 +178,8 @@ def _suitability_items(world):
               "what native life a person could eat from"),
         _item("shelter", _sv(world.dose_sv_yr), habitability.shelter_score(world),
               "shelter follows the radiation dose at the surface"),
+        _item("limit from the other categories", ceiling, habitability.CEILING_SCORE[ceiling],
+              "Suitability is never better than the colour the five core categories allow"),
     ]
 
 
@@ -209,27 +212,9 @@ def factors(world, compact_host=None):
 
 def paragraphs(world, bold, compact_host=None):
     """
-    The explanation as paragraphs of text for a planet or moon's description
-    (UX.91): one introducing the score and the equipment, then one per factor
-    naming its colour, the input that sets it with this world's value, and
-    the other inputs with their colours. `bold` wraps a phrase in the page
-    format's emphasis (Markdown or wikitext).
+    The description of a planet or moon's habitability (UX.91, GEN.208): one paragraph
+    (`protection.paragraph`) that says where the body falls in each of the six categories and
+    why, and the gear a visitor needs. `bold` wraps a phrase in the page format's emphasis.
+    `factors` is the per-input detail behind it.
     """
-    world_scores = habitability.scores(world)
-    kit = world_scores["equipment"]
-    lead = (f"{bold('PHI-4 habitability')} is {world_scores['PHI-4']:.2f}, and a human visitor needs "
-            f"{KIT_TEXT[kit]}. "
-            "The score is the geometric mean of six colour factors, pressure, temperature, air, water, "
-            "radiation and suitability, held under their colour gates; each factor takes the colour of its "
-            "worst input, from Blue (best) through Green and Yellow to Red.")
-    out = [lead]
-    for factor in factors(world, compact_host):
-        limiting = factor["limiting"]
-        text = (f"{bold(factor['domain'] + ': ' + factor['tier'])} ({factor['score']:.2f}). "
-                f"The {limiting['label']} is {limiting['value']}, {limiting['phrase']}.")
-        others = [entry for entry in factor["items"] if entry is not limiting]
-        if others:
-            text += " Also considered: " + "; ".join(
-                f"the {entry['label']}, {entry['value']} ({entry['tier']})" for entry in others) + "."
-        out.append(text)
-    return out
+    return [protection.paragraph(world, bold, compact_host)]

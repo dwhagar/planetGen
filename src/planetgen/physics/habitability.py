@@ -23,21 +23,23 @@ phosphate umol/L, inventories in Earth units.
 import math
 from dataclasses import dataclass, field
 
+from planetgen.physics.protection_limits import limit
+
 # --- Physiology (human visitor) ----------------------------------------------------------
 
-ARMSTRONG_KPA = 6.3
+ARMSTRONG_KPA = limit("armstrong_kpa")
 """float: Water boils at body temperature below this (Armstrong, 1939), and
 the saturated water vapour in the lungs takes this much of any breath."""
 
-INSPIRED_O2_MIN_KPA = 8.0
+INSPIRED_O2_MIN_KPA = limit("inspired_o2_min_kpa")
 """float: Least inspired O2 for consciousness (SaO2 above 75%; West, 2012)."""
 
-INSPIRED_O2_CHRONIC_KPA = 50.0
+INSPIRED_O2_CHRONIC_KPA = limit("inspired_o2_chronic_kpa")
 """float: Most inspired O2 for months without lung damage (Lorrain Smith
 effect, 40 to 53 kPa, Lambertsen 1971; 50 as in the Xenobiology doc's
 f(pO2))."""
 
-INSPIRED_O2_ACUTE_KPA = 160.0
+INSPIRED_O2_ACUTE_KPA = limit("inspired_o2_acute_kpa")
 """float: Acute CNS oxygen toxicity (1.6 bar; Lambertsen, 1971)."""
 
 MASK_MIN_KPA = ARMSTRONG_KPA + INSPIRED_O2_MIN_KPA
@@ -45,7 +47,7 @@ MASK_MIN_KPA = ARMSTRONG_KPA + INSPIRED_O2_MIN_KPA
 still gives 8.0 kPa inspired O2 (the inspired-gas equation with F = 1);
 below it a pressure suit has to add the rest."""
 
-WET_BULB_CRIT_C = 31.0
+WET_BULB_CRIT_C = limit("wet_bulb_c")
 """float: Uncompensable wet-bulb temperature for people (Vecellio et al., 2022)."""
 
 # --- Tier bands ---------------------------------------------------------------------------
@@ -58,7 +60,9 @@ WET_BULB_CRIT_C = 31.0
 
 TIERS = ("Blue", "Green", "Yellow", "Red")
 
-PRESSURE_BAND = (0.63, ARMSTRONG_KPA, MASK_MIN_KPA, 50.0, 250.0, 400.0, 10_000.0, 100_000.0)
+PRESSURE_BAND = (limit("pressure_low_outer_kpa"), ARMSTRONG_KPA, limit("mask_min_kpa"), limit("pressure_no_gear_kpa"),
+                 limit("pressure_blue_max_kpa"), limit("pressure_narcosis_kpa"), limit("pressure_hyperbaric_max_kpa"),
+                 limit("pressure_outer_kpa"))
 """Total pressure, kPa (log). Blue 50 to 250 (no ebullism, no extra work of
 breathing: the PHI-4 doc and Atmospheric Toxicity agree); Green down to the
 14.3 kPa pure-O2 mask limit and up to 400 kPa, where nitrogen narcosis
@@ -67,14 +71,16 @@ Armstrong limit (counterpressure suit) and up to 10 MPa (the PHI-4 doc's
 hyperbaric edge, past the 7 MPa COMEX Hydra X record); Red beyond, falling to
 0 a decade further out."""
 
-TEMPERATURE_BAND = (-120.0, -50.0, -20.0, 0.0, 31.0, 45.0, 122.0, 200.0)
+TEMPERATURE_BAND = (limit("cold_outer_c"), limit("cold_suit_c"), limit("cold_clothing_c"), limit("comfort_low_c"),
+                    limit("comfort_high_c"), limit("heat_garment_c"), limit("heat_max_c"), limit("hot_outer_c"))
 """Dry-bulb temperature, deg C (linear). Blue 0 to 31, Green -20 to 45
 (ordinary clothing or cooling garments), Yellow -50 (eutectic brines) to
 122 (the limit of carbon-based life, Takai et al. 2008; the PHI-4 doc's Red
 edge), Red beyond. A wet bulb at or above 31 deg C makes Blue or Green
 Yellow (see `temperature_score`)."""
 
-DOSE_BAND = (None, None, None, None, 0.02, 0.1, 1.0, 1000.0)
+DOSE_BAND = (None, None, None, None, limit("dose_blue_sv_yr"), limit("dose_green_sv_yr"), limit("dose_yellow_sv_yr"),
+             limit("dose_outer_sv_yr"))
 """Surface dose, Sv/yr (log), for a person. Blue to 20 mSv/yr (the ICRP
 occupational limit averaged over five years), Green to 100 mSv/yr (past the
 50 mSv single-year limit, `SINGLE_YEAR_DOSE_SV`, a visit is still allowed),
@@ -85,7 +91,7 @@ the PHI-4 doc leaves between 100 mSv/yr and 10 Gy/yr (the Eigen threshold of
 hydrosphere.md 4.6, Boss's defaults of 2026-10-10 (Blue 20 mSv/yr, 50 as the
 single-year limit)."""
 
-SINGLE_YEAR_DOSE_SV = 0.05
+SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
 """float: ICRP's limit for any one year, 50 mSv: where `m_rad` starts
 charging for shielding."""
 
@@ -190,7 +196,7 @@ SIGMA_P_KPA = 2500.0
 K_T_PER_K = 0.5
 """float: M_therm's wet-bulb steepness (Vecellio et al., 2022; the doc)."""
 
-COLD_LIMIT_C = -50.0
+COLD_LIMIT_C = limit("cold_suit_c")
 K_COLD_PER_K = 0.2
 COLD_FLOOR = 0.3
 """float: M_therm's cold side, which the doc leaves out: a logistic at -50

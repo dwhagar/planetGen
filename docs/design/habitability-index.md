@@ -496,3 +496,36 @@ find the host. The dose refresh leaves such a system's scores alone.
 **Open question for Boss (default stands).** GEN.89's note asks whether to
 store the two flare numbers or derive the rest; GEN.86 already stores them on
 the star, and everything else the note lists is stored per planet.
+
+## 9. One table of limits and one paragraph of description (GEN.208, built)
+
+`planetgen/physics/protection_limits.py` holds every limit of the human visitor in
+one table (`LIMIT_ROWS`): the pressure, oxygen, temperature, wet-bulb and dose edges
+that the score's bands (`habitability.PRESSURE_BAND`, `TEMPERATURE_BAND`,
+`DOSE_BAND`, `ARMSTRONG_KPA`, `INSPIRED_O2_*`, `WET_BULB_CRIT_C`, `COLD_LIMIT_C`)
+are built from, and that the gear logic in `planetgen/physics/protection.py` reads.
+A later per-species limit replaces a row in this table and nothing else; the score,
+the gear and the description cannot disagree.
+
+Where the table the code had (`built`) and the research notes (`notes`) gave two
+values, Boss's rule (2026-10-14) is that the more permissive one wins. The six pairs
+decided, the value in use first:
+
+| Limit | In use | Other | Reading |
+|---|---|---|---|
+| Mask minimum pressure | 14.3 kPa | 20 kPa | A pure-oxygen mask still gives 8 kPa inspired O2 down to it. |
+| No-gear minimum pressure | 50 kPa | 70 kPa | Lower edge of gear-free air. |
+| Hyperbaric suit maximum | 10,000 kPa | 5,000 kPa | Higher edge of a hyperbaric suit. |
+| Inspired O2 minimum | 8 kPa | 19.5 kPa | The consciousness limit, not the 19.5 kPa working limit. |
+| Cold, insulated suit to | -50 C | -40 C | Colder edge of an insulated suit. |
+| Wet-bulb limit | 31 C | 30 C | The higher uncompensable wet-bulb value. |
+
+The one new row, a heat-shielded suit past 140 C, comes from the notes alone. The
+Armstrong limit (6.3 kPa against 6.27) is the same number to the notes' rounding.
+
+`protection.paragraph` writes the description of a rocky body as one paragraph: the
+overall value and colour, then each of the six categories with its colour, why, and
+the gear it asks for, then what a visitor needs overall. A category that a heavier
+suit makes moot (air when a sealed suit is needed anyway) says so, and a category
+that makes the surface impossible while the others are fine is named. A planet of a
+pulsar, a neutron star or a black hole says its dose is rated lethal.
