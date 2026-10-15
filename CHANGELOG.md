@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1350] - 2026-10-15
+
+**Headline:** The plan now records what the spherical switch left for the Galaxy Map (the 500 on /galaxy and the parked browser tests).
+
+### Changed
+
+- TODO: MAP.205 records the post-switch state of the Galaxy Map: tests parked behind MAPS_PENDING, geometry.py kept, /galaxy answering 500, the 96 browser failures in the post-switch full run.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1349] - 2026-10-15
 
 **Headline:** The object-timing test no longer fails when the machine is busy.
