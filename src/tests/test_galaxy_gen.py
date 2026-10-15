@@ -1471,7 +1471,10 @@ def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, m
             rogue_planets += entry["type"] == "rogue_planet"
             if entry["type"] in ("black_hole", "neutron_star"):
                 continue  # a supernova core drifts off by its kick; the nucleus sits on the axis
-            local = tuple(ly_to_pc(entry[f"offset_{axis}_ly"]) for axis in "xyz")
+            # The offsets are along the galaxy's axes; the cell's are the sector's own.
+            point = tuple(center + ly_to_pc(entry[f"offset_{axis}_ly"])
+                          for center, axis in zip(ctx["center_pc"], "xyz"))
+            local = galaxy_to_local_pc(ctx["center_pc"], point)
             violation = _bounds_violation(ctx, local, f"{entry['type']} {entry['id']}")
             if violation:
                 violations.append(violation)

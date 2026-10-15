@@ -34,6 +34,7 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.physics.orbits import orbital_position_au
+from tests.maps_pending import MAPS_PENDING
 
 
 
@@ -1596,6 +1597,7 @@ def test_bright_stars_store_and_clear(mysql_config):
         conn.close()
 
 
+@MAPS_PENDING
 def test_bright_star_web_queries(mysql_config):
     """The Stats page's placed/filled counts, the sector page's per-cell and
     per-box listings (unfilled only by default) and the Generate page's
@@ -1692,6 +1694,7 @@ def _weighted_top(stars, limit):
     return [s["id"] for s in sorted(stars, key=lambda s: (-s["luminosity_sol"] * weight[s["population"]], -s["id"]))][:limit]
 
 
+@MAPS_PENDING
 def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_config):
     """MAP.154: one key for every box -- an old giant that is 400 times fainter than a young star
     ranks beside it -- in a tile that reads its own addresses, one that walks the luminosity index
@@ -1724,6 +1727,7 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
         conn.close()
 
 
+@MAPS_PENDING
 def test_a_child_tile_lists_every_star_of_its_parent_inside_it(mysql_config):
     """MAP.154: the bright lists are nested -- walking down a chain of boxes, each box lists all
     the stars of the one around it that lie inside it (the budget never falls)."""

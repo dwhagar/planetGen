@@ -95,11 +95,11 @@ def test_cli_refuses_a_bad_span(argv):
 
 
 def test_page_builds_span_argv():
-    argv, description = generate_page.span_argv({"span_rings": "3:5", "span_layers": "-1:1", "span_limit": "40"})
-    assert argv == ["--rings=3:5", "--layers=-1:1", "--limit", "40"]
-    assert "rings 3 to 5" in description and "layers -1 to 1" in description
-    assert generate_page.span_argv({"span_layers": "0", "whole_span": "1"})[0] == ["--layers=0", "--yes"]
-    for bad in ({}, {"span_slots": "1:2"}, {"span_rings": "x"}):
+    argv, description = generate_page.span_argv({"span_shells": "3:5", "span_bands": "-1:1", "span_limit": "40"})
+    assert argv == ["--shells=3:5", "--bands=-1:1", "--limit", "40"]
+    assert "shells 3 to 5" in description and "bands -1 to 1" in description
+    assert generate_page.span_argv({"span_bands": "0", "whole_span": "1"})[0] == ["--bands=0", "--yes"]
+    for bad in ({}, {"span_wedges": "1:2"}, {"span_shells": "x"}):
         with pytest.raises(generate_page.FormError):
             generate_page.span_argv(bad)
 
@@ -118,8 +118,10 @@ def test_ball_extent_holds_the_face_neighbours_at_one_sector():
         assert all(math.dist(center, spherical.sector_position_pc(*a, edge)) <= radius for a in face)
 
 
-def test_page_center_argv_takes_a_radius_in_sectors():
+def test_page_center_argv_takes_a_radius_in_parsecs():
     argv, description = generate_page.center_argv({"center_by": "sector", "center_sector": "7",
-                                                   "center_cylinder_sectors": "3", "center_cylinder_layers": "1"})
-    assert argv == ["--center-sector", "7", "--cylinder-sectors", "3", "--cylinder-layers", "1"]
-    assert "3 sectors across" in description
+                                                   "center_radius_pc": "12"})
+    assert argv == ["--center-sector", "7", "--radius-pc", "12.0"]
+    assert "around sector 7" in description
+    with pytest.raises(generate_page.FormError):
+        generate_page.center_argv({"center_by": "sector", "center_sector": "7"})

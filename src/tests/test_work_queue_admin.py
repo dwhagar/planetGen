@@ -330,7 +330,7 @@ def test_the_api_needs_an_admin(web_app):
 
 
 def test_the_api_lists_trees_and_controls_them(admin_client, control_config):
-    with workQueue.job_node("galaxy", "Live run", control_config, argv=["galaxy", "--ring", "1"]) as root:
+    with workQueue.job_node("galaxy", "Live run", control_config, argv=["galaxy", "--shell", "1"]) as root:
         with workQueue.WorkQueue("Batch", workers=1, control_config=control_config) as queue:
             queue.expect(3)
             queue.submit("sector", "1,0,0", _square, 1)
@@ -356,22 +356,22 @@ def test_the_api_lists_trees_and_controls_them(admin_client, control_config):
 
 
 def test_the_queue_page_shows_workers_load_and_jobs(admin_client, control_config):
-    with workQueue.job_node("galaxy", "Fill ring 1", control_config):
-        with workQueue.WorkQueue("Sectors (ring 1)", workers=2, control_config=control_config):
+    with workQueue.job_node("galaxy", "Fill shell 1", control_config):
+        with workQueue.WorkQueue("Sectors (shell 1)", workers=2, control_config=control_config):
             html = admin_client.get("/admin/queue").get_data(as_text=True)
     assert "Workers active" in html and "Load average" in html
-    assert "Fill ring 1" in html and "Pause the queue" in html
+    assert "Fill shell 1" in html and "Pause the queue" in html
     assert 'href="/admin/queue/confirm/pause?node=' in html
 
 
 def test_the_jobs_table_route_lists_jobs_with_their_controls(web_app, admin_client, control_config):
     assert web_app.test_client().get("/table/queue-jobs").status_code == 403
-    with workQueue.job_node("galaxy", "Fill ring 1", control_config) as root:
-        with workQueue.WorkQueue("Sectors (ring 1)", workers=1, control_config=control_config):
+    with workQueue.job_node("galaxy", "Fill shell 1", control_config) as root:
+        with workQueue.WorkQueue("Sectors (shell 1)", workers=1, control_config=control_config):
             data = admin_client.get("/table/queue-jobs").get_json()
     assert data["total"] == 1
     title, status, started, _duration, left, _progress, actions = data["rows"][0]
-    assert title["text"] == "Fill ring 1" and title["href"].startswith(f"/admin/queue/{root.id}")
+    assert title["text"] == "Fill shell 1" and title["href"].startswith(f"/admin/queue/{root.id}")
     labels = {part["text"]: part["href"] for part in actions["parts"] if isinstance(part, dict)}
     assert labels["Cancel"].startswith("/admin/queue/confirm/cancel?node=")
 
@@ -417,8 +417,8 @@ def test_a_running_job_shows_its_time_left_when_it_can_be_told(monkeypatch):
 
 
 def test_the_tree_page_expands_down_to_tasks(admin_client, control_config):
-    with workQueue.job_node("galaxy", "Fill ring 1", control_config) as root:
-        with workQueue.WorkQueue("Sectors (ring 1)", workers=1, control_config=control_config) as queue:
+    with workQueue.job_node("galaxy", "Fill shell 1", control_config) as root:
+        with workQueue.WorkQueue("Sectors (shell 1)", workers=1, control_config=control_config) as queue:
             queue.submit("sector", "1,0,0", _square, 1)
     html = admin_client.get(f"/admin/queue/{queue.job_id}").get_data(as_text=True)
     assert f'id="node-{root.id}"' in html and f'id="node-{queue.job_id}"' in html
@@ -427,9 +427,9 @@ def test_the_tree_page_expands_down_to_tasks(admin_client, control_config):
 
 
 def test_every_control_is_confirmed_first(web_app, admin_client, control_config):
-    with workQueue.job_node("galaxy", "Fill ring 1", control_config) as root:
+    with workQueue.job_node("galaxy", "Fill shell 1", control_config) as root:
         page = admin_client.get(f"/admin/queue/confirm/pause?node={root.id}").get_data(as_text=True)
-        assert "Pause “Fill ring 1” and everything under it?" in page
+        assert "Pause “Fill shell 1” and everything under it?" in page
         assert 'name="action" value="pause"' in page
         assert _call(control_config, workQueue.get_node, root.id)["control"] is None
         response = _post(web_app, admin_client, action="pause", node=root.id)
@@ -454,27 +454,27 @@ def test_retry_reruns_a_cli_run_and_a_failed_sector(web_app, admin_client, contr
     monkeypatch.setattr(jobs, "start_job", lambda kind, title, steps, **kw: started.append((kind, title, steps, kw))
                         or "20261001-000000-abcd")
     with pytest.raises(ValueError):
-        with workQueue.job_node("galaxy", "planetgen galaxy --ring 2", control_config,
-                                argv=["galaxy", "--ring", "2"], database=control_config.database) as root:
+        with workQueue.job_node("galaxy", "planetgen galaxy --shell 2", control_config,
+                                argv=["galaxy", "--shell", "2"], database=control_config.database) as root:
             with workQueue.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
                 queue.submit("sector", "2,0,5", _broken, 0)
     page = admin_client.get(f"/admin/queue/{root.id}").get_data(as_text=True)
     assert "/admin/queue/confirm/retry?node=" in page
     _post(web_app, admin_client, action="retry", node=root.id)
     kind, title, steps, kw = started[-1]
-    assert kind == "galaxy" and steps[0]["argv"][-3:] == ["galaxy", "--ring", "2"]
+    assert kind == "galaxy" and steps[0]["argv"][-3:] == ["galaxy", "--shell", "2"]
     assert kw["database"] == control_config.database
     task_id = _call(control_config, workQueue.load_tree, root.id)["children"][0]["tasks"][0]["id"]
     confirm = admin_client.get(f"/admin/queue/confirm/retry?node={queue.job_id}&task={task_id}")
     assert "Retry sector 2,0,5?" in confirm.get_data(as_text=True)
     _post(web_app, admin_client, action="retry", node=queue.job_id, task=str(task_id))
-    assert started[-1][2][0]["argv"][-7:] == ["galaxy", "--ring", "2", "--layer", "0", "--slot", "5"]
+    assert started[-1][2][0]["argv"][-7:] == ["galaxy", "--shell", "2", "--band", "0", "--wedge", "5"]
 
 
 def test_retry_refuses_another_database(web_app, admin_client, control_config, monkeypatch):
     monkeypatch.setattr(jobs, "start_job", lambda *a, **k: pytest.fail("should not start"))
     with pytest.raises(ValueError):
-        with workQueue.job_node("galaxy", "Elsewhere", control_config, argv=["galaxy", "--ring", "2"],
+        with workQueue.job_node("galaxy", "Elsewhere", control_config, argv=["galaxy", "--shell", "2"],
                                 database="some_other_galaxy") as root:
             raise ValueError("boom")
     response = _post(web_app, admin_client, action="retry", node=root.id)

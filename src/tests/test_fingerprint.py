@@ -57,7 +57,7 @@ def _generate(config, monkeypatch, seed=GALAXY_SEED, shift_ids=False):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", config.database)
     for counter in run_common.RUN_COUNTS:
         run_common.RUN_COUNTS[counter] = 0
-    _cli(["galaxy", "--ring", "1", "--num-systems", "4", "--workers", "1"], config)
+    _cli(["galaxy", "--shell", "1", "--num-systems", "4", "--workers", "1"], config)
 
 
 def _cli(argv, config):
@@ -105,9 +105,9 @@ def test_another_seed_gives_another_fingerprint(make_database, monkeypatch):
     _generate(first, monkeypatch)
     _generate(second, monkeypatch, seed=bytes([GALAXY_SEED[0] ^ 0x80]) + GALAXY_SEED[1:])
     assert _region(first).region != _region(second).region
-    a, b = _region(first, rings=[1]), _region(second, rings=[1])
+    a, b = _region(first, shells=[1]), _region(second, shells=[1])
     common = dict(a.sectors).keys() & dict(b.sectors).keys()
-    assert len(common) >= 8  # the ring's sectors; the scatter's cells off them differ too
+    assert len(common) >= 8  # the shell's sectors; the scatter's cells off them differ too
     assert all(dict(a.sectors)[label] != dict(b.sectors)[label] for label in common)
 
 

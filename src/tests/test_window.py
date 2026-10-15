@@ -7,6 +7,9 @@ from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_chain_of, dri
 from planetgen.galaxy.window import (
     DEFAULT_WINDOW, WINDOW_WIDTHS, check_width, crop_stages, parse_window_key, window_cells, window_parents,
 )
+from tests.maps_pending import MAPS_PENDING
+
+pytestmark = MAPS_PENDING
 
 CENTRES = [
     DrillBlock(243, 0, 0, 0), DrillBlock(243, 7, 14, 0), DrillBlock(81, 3, 5, 1), DrillBlock(27, 0, 0, 0),

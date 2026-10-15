@@ -18,7 +18,7 @@ import time
 import pytest
 
 from planetgen.cli import generate as generate_cli
-from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.galaxy.spherical import cell_count
 from planetgen.web import job_runner as jobRunner
 from planetgen.queue import work
 from planetgen.db import store as _db
@@ -284,9 +284,9 @@ def test_timing_by_kind(control_config):
 # ---------------------------------------------------------------------------
 
 def test_the_run_argv_leaves_out_the_database_and_debug_options():
-    argv = ["galaxy", "--ring", "3", "--mysql-password", "secret", "--debug", "f.log", "--layer=1",
+    argv = ["galaxy", "--shell", "3", "--mysql-password", "secret", "--debug", "f.log", "--band=1",
             "--mysql-user=u", "--mysql-database", "db", "--debug", "--yes"]
-    assert generate_cli._run_argv(argv) == ["galaxy", "--ring", "3", "--layer=1", "--yes"]
+    assert generate_cli._run_argv(argv) == ["galaxy", "--shell", "3", "--band=1", "--yes"]
 
 
 def _run(argv):
@@ -300,15 +300,15 @@ def _run(argv):
 
 def test_a_galaxy_run_is_a_tree_down_to_its_sectors(control_config):
     _plan_wide_galaxy(control_config)
-    _run(["galaxy", "--ring", "1", "--num-systems", "2"] + _mysql_argv(control_config))
+    _run(["galaxy", "--shell", "1", "--num-systems", "2"] + _mysql_argv(control_config))
     root_id = _rows(control_config, "SELECT id FROM work_jobs WHERE parent_id IS NULL")[0]["id"]
     tree = _tree(control_config, root_id)
     assert tree["kind"] == "galaxy" and tree["state"] == "done"
-    assert tree["argv"] == ["galaxy", "--ring", "1", "--num-systems", "2"]
+    assert tree["argv"] == ["galaxy", "--shell", "1", "--num-systems", "2"]
     assert "secret" not in tree["title"] and control_config.database not in tree["title"]
     assert tree["database_name"] == control_config.database
     queue = tree["children"][0]
-    expected = ring_sector_count(1)
+    expected = cell_count(1)
     assert queue["kind"] == "queue" and queue["tasks_total"] == expected
     assert tree["totals"]["done"] == expected and {task["kind"] for task in queue["tasks"]} == {"sector"}
 

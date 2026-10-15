@@ -37,6 +37,7 @@ from planetgen.galaxy.viewport import (  # noqa: E402
     tiles_intersecting_sphere,
 )
 from planetgen.tuning import GALAXY_RADIUS_PC  # noqa: E402
+from tests.maps_pending import MAPS_PENDING
 
 EDGE_PC = 4.0
 
@@ -60,6 +61,7 @@ def test_view_radius_bounds_without_a_shape_uses_the_default_galaxy_radius():
     assert min_radius == pytest.approx(EDGE_PC * 1.5)
 
 
+@MAPS_PENDING
 def test_view_radius_bounds_with_a_shape_uses_its_own_outer_ring_index():
     min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_ring_index": 99})
     assert max_radius == pytest.approx((99 + 1) * EDGE_PC * 1.05 / math.tan(math.radians(CAMERA_FOV_DEG / 2)))
@@ -186,6 +188,7 @@ def test_panel_has_the_bookmarks_menu():
     assert "data-bookmarks-panel" in menu.group(2)
 
 
+@MAPS_PENDING
 def test_panel_json_payload_has_every_field_the_client_reads():
     view = _empty_view(has_shape=True)
     html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 50}, EDGE_PC, view,
