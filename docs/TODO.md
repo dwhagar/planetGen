@@ -3786,14 +3786,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
   and approved every default in it on 2026-10-14 21:08Z (see the
   Decided line below). Filed from the same review, independent of the
-  rebuild: PERF.93 (bug, done, PR #1364), OPS.48, PERF.94, ADM.54.
+  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48, ADM.54.
   Decided (Boss, 2026-10-14 21:08Z): Option A of
   the Redis review, every default approved. Build steps filed as PERF.95
   (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
   scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
   cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
   when they are; it follows the dead-worker bug PERF.93 (done) and the client
-  module PERF.94 in Foundations lane 1. DOC.20 rewrites the notes after
+  module PERF.94 (done) in Foundations lane 1. DOC.20 rewrites the notes after
   step 6.
 
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
@@ -3829,19 +3829,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
-  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
-  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
-  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
-  benchmarks in research/redis-review/bench/). Redis is opened in
-  several places with different settings (finding F9) and RQ arguments
-  are pickled (F8). Done when: one module owns the connection (timeouts,
-  retry, health check, a cached pool), every connect() call site uses
-  it, and task arguments travel as plain JSON where the old path pickled
-  them. Normal priority; PERF.86 builds on it. Foundations lane 1,
-  before PERF.40.
-  Prerequisites: none. Related: PERF.86, PERF.40.
-
 - [ ] **PERF.95 Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -3865,7 +3852,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   count from the Queue page, Ludicrous Speed as a number). Done when:
   those items' behaviours work on the new spine and a test kills a
   worker and a replacement starts.
-  Prerequisite: PERF.94. Related: PERF.86, PERF.40, PERF.78,
+  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78,
   ADM.15.
 
 - [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
@@ -4616,7 +4603,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   is on, the memory policy, used_memory, the last save status and the
   worker count. Default: build it after the Redis settings item; Boss
   may drop it. Foundations lane 1, after the client module.
-  Prerequisites: none. Related: OPS.48, PERF.94.
+  Prerequisites: none. Related: OPS.48.
 
 ## SEC: Security
 
@@ -5119,6 +5106,19 @@ clears each one.
   items. Options are pending until the thread reports. Owner: the Test
   Suite Rebuild thread, part of TEST.139, not a lane.
   Prerequisites: none. Related: TEST.139.
+
+- [ ] **TEST.149 Two physics tests fail under load and pass alone (bug)**
+  Reported by Foundations lane 1 (2026-10-15 00:18Z) in a
+  scripts/test.py changed run that selected the whole suite (15,433
+  passed):
+  tests/test_update_due.py::test_only_due_planets_and_moons_move_and_count
+  and
+  tests/test_planet_physics_fixes.py::test_atmospheric_pressure_correlates_positively_with_gravity
+  failed under load and passed alone. Done when the cause is found (a
+  shared-state or time assumption, or an unseeded draw) and the suite
+  shows no flake for these two. Owner: the Test Suite Rebuild thread,
+  not a lane.
+  Prerequisites: none. Related: TEST.126, TEST.139.
 
 ## USR: User accounts
 
