@@ -523,9 +523,11 @@ decided, the value in use first:
 The one new row, a heat-shielded suit past 140 C, comes from the notes alone. The
 Armstrong limit (6.3 kPa against 6.27) is the same number to the notes' rounding.
 
-`protection.paragraph` writes the description of a rocky body as one paragraph: the
-overall value and colour, then each of the six categories with its colour, why, and
-the gear it asks for, then what a visitor needs overall. A category that a heavier
-suit makes moot (air when a sealed suit is needed anyway) says so, and a category
-that makes the surface impossible while the others are fine is named. A planet of a
-pulsar, a neutron star or a black hole says its dose is rated lethal.
+`protection.paragraph` writes the description of a rocky body as one paragraph (GEN.216).
+It opens "PHI-6 habitability is 0.00, and a visitor needs a sealed suit." The six
+categories follow, each as "Name: Colour (value)." and one short sentence with the number and
+its consequence ("The air pressure is 0 kPa, so a pressure suit is needed."). Air with no
+atmosphere reads "There is no atmosphere (0.0 kPa)." (GEN.215), Radiation names its band,
+and Suitability says which of food, water and shelter are readily available. Gear is named in
+short words (`SHORT_GEAR`); the first line gives the heaviest class any stressor asks for. A
+planet of a pulsar, a neutron star or a black hole says its dose is rated lethal.
