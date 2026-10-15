@@ -290,28 +290,57 @@ Computed from the address, not stored, like the interstellar debris count alread
 - Pages and API: the sector page shows the profile; a read-only profile lookup for an uncharted address.
 - Tests: tiling and ID round trip at the widest shell of the reach; determinism of a profile and of an empty sector; the pre-placed share of every population; King solver against the textbook concentrations; no double count of a cluster star.
 
-### 5.10 Nebulae that need a star
+### 5.10 Nebulae get the stars they need, as real objects
 
-Boss asked whether the required objects are generated when a nebula is made. Answer, from the code at this checkout [S]: for planetary nebulae and supernova remnants, yes, always; for emission and reflection nebulae, only when the host star already exists in the sector; otherwise the nebula carries the host as text; molecular clouds need none; there is no Wolf-Rayet class. The table says what each kind requires, what the code does, and what the sphere-wide design adds.
+Boss (2026-10-15): all nebulae get the stars they need, within their bounds. State of the code at this checkout [S]: planetary nebulae always get a real hot white dwarf (`_add_planetary_nebula`); supernova remnants embed their neutron star or black hole (except Type Ia and the 40% of core-collapse remnants with no visible core); emission and reflection nebulae get a real host only through `add_star_hosted_nebulae`, around a hot star the sector already holds; the other cluster members of classes D and E, and the whole of class G's and C's company, are a text list in `Nebula.hosts`; a nebula made any other way has no star; molecular clouds come from `nebula_field` and class P and Q cores get no protostar object; there is no Wolf-Rayet star or nebula.
 
-| Nebula | Required inside | Today | Gap | Far from the disk (the design) |
-|---|---|---|---|---|
-| Planetary, H to L | exactly one hot central star (exposed core 0.55 to 0.9 solar masses, 30,000 to 200,000 K), often with a close companion | **real, always.** `_add_planetary_nebula` builds a new system whose only star is a white dwarf drawn from `PLANETARY_NEBULA_CENTRAL_STAR_TYPES`; the scatter rows take the same path (`_build_scattered`). The sector can refuse it when full (the nebula is then dropped) | the draw has no companion; central stars are O3VII to B0VII, heavier than the real 0.59 solar masses (the correction table already notes this) | **kept everywhere**: old stars make them, so halo, cluster and old-satellite cells keep them at the old-star rate (a few halo ones are known [R]) |
-| Supernova remnant, core collapse (R, S, T, U, V) | a neutron star (about 85%) or black hole (15%), offset by its kick, or none | **real.** `SupernovaRemnant.__init__` embeds one in 60% of core-collapse remnants (75% of all remnants); the scatter uses the same constructor | none for the hidden 40%: that is the intended "no detectable core" case | **zero in old populations** (no progenitor); needs the young share |
-| Supernova remnant, Type Ia (W) | no compact object | **real**: none embedded (25% of remnants) | the Type Ia share is a constant (`SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE = 0.25`), right for the disk, wrong for old populations | **share 1 in old populations**, the only remnant they make |
-| Emission (H II), C, D, E | one O or early-B star (C), a small cluster (D), a massive young cluster (E); G an early-B star | **real only through `add_star_hosted_nebulae`**: it grows the nebula around a hot main-sequence star the sector already holds (O at 0.25, B0 to B2 at 0.25; class age limits 1, 10, 20, 5 Myr). A nebula made any other way has the host in its `hosts` text only, with **no star object**; the cluster members of C, D, E, G are text only | the scatter does not place emission or reflection nebulae; a host star that is not in the sector (pre-placed before its sector exists) gets no nebula (open MAP.182, default do not build) | **none unless the cell is young**: halo, cluster and old-satellite populations have no O or B stars [C], so the host rule yields nothing; the Magellanic mix can |
-| Reflection, F | a B or A star, too cool to ionize (B3 to B9 at 0.05, A at 0.01; age limit 50 Myr) | the same host-first rule; text-only host otherwise | same | same |
-| Molecular and dark clouds, M, N, P, Q | none illuminating; P none or one protostar, Q embedded protostars | clouds come from the seeded `nebula_field`; **no protostar objects are generated** | embedded protostars are text only | needs the cell's `gas`; none in halo, clusters or old satellites; the Magellanic mix can |
-| Wolf-Rayet bubble | a Wolf-Rayet star | **no class exists** (`anomalies.md`, Tier 2) | whole feature | young cells only |
+**The rule (replaces the text-only hosts and the "do not build" default of MAP.182):** a nebula's required stars are real star systems, made in the same step as the nebula, placed inside its bounds, and which kinds a nebula needs depends on its class and not on where it is. A nebula that cannot get its stars (the sector is full) is not made.
 
-The rule to build, one for every cell: **a nebula's required objects are decided by its kind, not by where it is, and they are made when the nebula is made.** Concretely:
+| Nebula | Required stars (real systems) | Placement inside the bounds | Far from the disk |
+|---|---|---|---|
+| Emission C | the one O or early-B star | at the centre | zero in old populations (none exists) |
+| Emission D, E | the seed star plus the cluster's ionizing members (stars of at least 5.5 solar masses that are still alive: mean 42 for D, 549 for E, up to about 1,600 [C]) | a Plummer sphere of half-mass radius 1 pc (D) and 2 pc (E), clipped to the nebula radius | young cells only |
+| Emission-reflection G | the early-B star | at the centre | young cells only |
+| Reflection F | the B3 to A9 star | at the centre | young and intermediate cells |
+| Planetary H to L | the hot white dwarf (already real) | at the centre; add the close companion the class table says is "often" there (20% [I]) | everywhere old stars live, halo and clusters included |
+| Supernova remnant R to V | a neutron star or black hole at 60% of core-collapse remnants (already real) | offset by the kick (already real) | none in old populations; Type Ia only |
+| Wolf-Rayet ring X (new, 5.11) | one W star | at the centre | young cells only |
+| Bok globule P | one protostar in 30% of globules [R] | within the radius | gas cells only |
+| Star-forming core Q | 1 to 4 protostars (Poisson mean 2, at least 1) [I] | within the radius, clumped near the centre | gas cells only |
+| Giant molecular cloud M, dark cloud N | none | none | gas cells only |
 
-1. Kinds with a point rate (planetary, supernova remnant) keep building their core (white dwarf, neutron star, black hole) at creation, in any cell.
-2. Emission, reflection and Wolf-Rayet nebulae are *hosted*: the host star is chosen first, from the cell's young population, and the nebula is grown around it. The hot-star scatters (bright and mass passes) are the sphere-wide host supply: where they place nothing (halo, old clusters), no hosted nebula exists. The text-only `hosts` list for the cluster classes (D, E, G) becomes real member stars drawn from the cell's young `mix` when the nebula is created, or the class is not offered in that cell.
-3. Which kinds a cell can have follows from the profile (section 5.3): `kind_factors` scale hosted nebulae and core-collapse remnants with the young share, planetary nebulae and Type Ia remnants with the old share, molecular clouds with `gas`; the Type Ia share becomes a profile field (1 where there is no young population).
-4. An asked halo cell therefore never shows an H II region or a pulsar-bearing remnant, and may show a planetary nebula with its white dwarf or a Type Ia remnant with nothing inside. A Magellanic cell can show all of them, hosts included.
+A protostar is a pre-main-sequence star: the star model has no such state (`evolve_star` goes from the main sequence on), so the build adds one (age under 1 Myr for stars below 8 solar masses, drawn from the IMF's low end for P and Q) before the cores can hold one.
 
-What I did not check: what `nebula_field` returns beyond the disk today; the build must make it read the cell's `gas`, not the disk position alone.
+**Where the stars are made.** Hosted nebulae are host-first. The hosted roll (`NEBULA_HOST_RULES`: O 25%, B0 to B2 25%, B3 to B9 5%, A 1%) is decided from the star's own seed, so it is the same whether the star was pre-placed by the bright or mass passes before its sector existed (MAP.182's case: the roll is on the scatter row, and the page and the map show the nebula from the row) or is made during a fill. Cluster members and protostars are derived from the nebula's own seed and placed by position; each sector generates only the members whose positions fall in its cube, the way `nebula_field` already hands each sector its clouds, so a nebula that spans sectors needs no coordination between them. Any code path that creates a nebula of a hosted class without a host calls one function, `build_nebula_with_contents`, which makes the host (as `_add_planetary_nebula` already does for the white dwarf).
+
+**What it costs** [C for counts, S for the 25 ms and about 20 rows per system of the performance study]:
+
+| Item | Systems per nebula | Galaxy-wide at the default scale if every sector were filled | Time at 25 ms per system |
+|---|---|---|---|
+| D members | 42 on average | 38,000 nebulae x 42 = 1.6e6 | 11 hours in one process |
+| E members | 549 on average | 9,600 x 549 = 5.3e6 | 37 hours |
+| P protostars | 0.3 | 192,000 x 0.3 = 5.8e4 | 24 minutes |
+| Q protostars | 2 | 99,000 x 2 = 2.0e5 | 1.4 hours |
+| Total | | about 7e6 systems, 1.4e8 rows | about 50 hours |
+
+(Nebula counts: 270,000 O stars [R, scaled from a quarter-scale test galaxy] x the 25% rule gives 67,500 hosted nebulae, split by the class weights 1 : 2 : 0.5 into C, D, E.) Nothing is filled galaxy-wide, so what matters is the cost of the sectors someone asks for: a sector holding the core of a massive complex gets about 270 extra systems, 7 seconds and 5,000 rows; a D region adds a second or two; a P or Q core adds under a second. The galaxy-wide total is a ceiling that is reached only if every sector is filled, which nothing does. **Default chosen:** only the ionizing members (5.5 solar masses and up) are real, because they are what the nebula's text lists and what lights it; the rest of the cluster (a 10,000 solar mass E cluster holds about 2e4 stars) stays the sector's ordinary background density, which undercounts the cluster's low-mass stars. Filling the whole cluster would add about 8 minutes of generation per E complex and is the alternative if Boss wants it.
+
+Consequences for the profile (section 5.3): emission, reflection, Wolf-Rayet and core-collapse remnants scale with the young share of `mix`, planetary nebulae and Type Ia remnants with the old share, molecular clouds and protostars with `gas`; the Type Ia share of remnants (`SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE = 0.25` today) becomes a profile field that is 1 where there is no young population. An asked halo cell never shows an H II region, a Wolf-Rayet nebula or a pulsar; it may show a planetary nebula with its white dwarf or a Type Ia remnant with nothing inside. I did not check what `nebula_field` returns beyond the disk today; the build must make it read the cell's `gas`.
+
+### 5.11 Wolf-Rayet stars and nebulae
+
+**Why they do not exist.** They were never built, and nothing in the repository or its history decides against them. They appear first in the anomalies research of 2026-10-09 (`anomalies.md`, GEN.113's output) as Tier 2 item 3, "Wolf-Rayet class and ring bubble", with the note "needs a W spectral class in the star model"; GEN.113's Done clause was the list, no build item was filed from it, and MAP.132 only mentions a Wolf-Rayet marker. The star model is the blocker: `evolve_star` has main-sequence, supergiant, subgiant, giant and remnant states and no W state, `SPECTRAL_PROBABILITIES_LARGE_STAR` stops at O, and `NEBULA_CLASSES` has no wind-blown class [S].
+
+**The star: a state of massive stars, not a new scatter.** A Wolf-Rayet star is a very massive star in the last stretch of its life, stripped to a hot helium core with a dense wind (temperature 30,000 to 200,000 K, luminosity 1e5 to 1e6 solar [R]). The model:
+
+- A star of initial mass at least `WR_MIN_INITIAL_MASS_SOL = 25` (solar metallicity) is Wolf-Rayet during the last 0.3 Myr of its life (`WR_PHASE_MYR`, at most half the life for the heaviest, which live 0.12 Myr at 100 solar masses), instead of a supergiant. Its present mass is 40% to 60% of the initial mass. Subtype by phase: WN for the first 60%, WC for the next 30%, WO for the last 10% (the heaviest only); spectral text `WN6`, `WC8`, Yerkes class `W` in the type string.
+- The threshold rises as metallicity falls (about 35 at half solar, 56 at a fifth [I], from the winds' metallicity dependence [R]), so it is a population parameter in the profile's per-population table, not a constant.
+- The bright and mass passes already place the massive stars; they then draw the state through `evolve_star`, so Wolf-Rayet stars come out of the passes without a new rate. A check that the rate is right without tuning [C]: a star formation rate of 1.65 solar masses per year [R] with the repository's IMF gives 4.0e-3 stars per year born at 25 solar masses or more, times 0.3 Myr is **1,180 Wolf-Rayet stars in the Milky Way**, against the 1,200 +- 100 expected [S]. The same arithmetic for the Large Cloud (0.2 solar masses per year, threshold 35) gives 87 against about 150 known, and for the Small Cloud (0.04, threshold 56) 8 against about 12 [R]; the catalogue figures are recalled, so only the Milky Way match is firm.
+- Where they sit follows from the age window: none in any population older than about 10 Myr (so none in the halo, clusters, old satellites or the bulge), and in the thin disk along the arms with the other massive stars.
+
+**The nebula: class X, a Wolf-Rayet ring.** A star blows a thin shell of swept-up gas or ejected material; about 40% of Galactic Wolf-Rayet stars show one [R, I]. New class `X` in `NEBULA_CLASSES`, family `emission` (ionized by the star), radius 2 to 35 pc (anomalies.md; NGC 6888 is 7.6 x 5.0 pc [S]), a thin shell with a hollow interior drawn with the existing `nebula_shape` mesh, with a host rule `("W", 0, 9, ("X",), 0.4)` in `NEBULA_HOST_RULES` and an age limit near the star's age (`NEBULA_CLASS_MAX_AGE_MYR["X"] = 5.0`). Its one required star is the W star at the centre (a real system, section 5.10). A nebula that spans sectors follows the same cube-by-cube rule as the clusters. After the phase ends the star collapses and the shell becomes the core-collapse remnants the generator already makes.
+
+**In the sphere profile** (section 5.3): `kind_factors["wolf-rayet"]` is not a number to tune but the massive-star density the profile already carries; the metallicity-dependent threshold is the only new per-population field. Disk and Magellanic-type cells get them; halo, old clusters, old satellites, the bulge and implicit uncharted far cells do not. Counts in the sphere at the default floors [C]: about 1,200 in the Milky Way disk, none beyond it except the Cloud estimates above if the Cloud population is built.
 
 ## 6. What it costs
 
@@ -341,13 +370,15 @@ What I did not check: what `nebula_field` returns beyond the disk today; the bui
 
 ## 8. Decisions
 
-Decided (Boss, 2026-10-15): the 262 kpc reach with 96-bit IDs; the same rules everywhere with per-sector parameters; nothing generated unless asked, an asked sector always generated; the first neighbourhood pull in the galactic region; globular clusters in this build. Still open, with defaults the build proceeds on:
+Decided (Boss, 2026-10-15): the 262 kpc reach with 96-bit IDs; the same rules everywhere with per-sector parameters; nothing generated unless asked, an asked sector always generated; the first neighbourhood pull in the galactic region; globular clusters in this build; every nebula gets its required stars as real systems; Wolf-Rayet stars and ring nebulae are built. Still open, with defaults the build proceeds on:
 
 1. **Catalogue file** for the Milky Way's clusters (section 5.5): supply the Harris table, or allow its host for a one-time ingestion script. Default: the synthetic generator first, real catalogue when it arrives.
 2. **Satellites.** Real Milky Way satellites at their real places for the default shape, seeded fictional ones for other shapes later. Default: as stated.
 3. **The floor.** Deleted; the halo and components replace it with no setting. Default: delete.
 4. **Normalisation.** The 1.5e9 solar mass anchor, with the local density (about 2.7 times higher) kept as the stated alternative. Default: mass anchor.
 5. **Magellanic mix.** 1% young and 9% intermediate until a better source is found. Default: as stated.
+6. **How much of an H II cluster is real.** Default: the ionizing members only (5.5 solar masses and up); the whole cluster is the dearer alternative (about 8 minutes per giant complex).
+7. **Protostar rates.** 30% of globules, 1 to 4 per core: recalled and inferred, no source found. Default: as stated.
 
 ## 9. Build plan for TODO
 
@@ -363,9 +394,11 @@ One train, in build order. Titles only; the TODO thread numbers them and assigns
 8. **Sector page and API** (Interface): the profile on the page, a read-only profile lookup for an uncharted address, gas and dark-matter lines, the heavy-cell queue warning with ETA, the neighbourhood request's expected-count line.
 9. **Galaxy Map** (Interface): components and wanderers as points beyond the outline; shading unchanged.
 10. **High-velocity clouds and the Magellanic Stream** as placed gas clouds (Core; later).
-11. **Required contents per nebula kind** (Core; section 5.10; touches MAP.182, whose default stays "do not build" unless Boss asks): hosts made with the nebula (real member stars for classes D, E, G and embedded protostars for P and Q, or the class withheld), Type Ia share and kind rates read from the profile, `nebula_field` gated by the cell's `gas`, Wolf-Rayet class with the anomalies lane.
-12. **Docs** (Quality): `galaxy-disk-density.md`, `galaxy-coordinate-system.md` (reach and outline), `globular-clusters.md` (status), `interstellar-object-rates.md` (populations and factors).
-13. **Tests** (Quality): no emission, reflection or core-collapse remnant in a halo or old cluster cell; a planetary nebula always has its white dwarf; a core-collapse remnant has a compact core at the stated share; every hosted nebula holds its host star; tiling at the reach, ID round trip at the widest shell, profile and empty-sector determinism, the pre-placed share per population.
+11. **Pre-main-sequence state** (Core): a young-star state in `evolve_star` (age under 1 Myr, below 8 solar masses) for the protostars, shown as such on the page.
+12. **Required stars per nebula** (Core; section 5.10; reverses the "do not build" default of MAP.182 and the text-only `hosts`): `build_nebula_with_contents` for every creation path; the hosted roll decided from the star's seed, on scatter rows as well (MAP.182); real cluster members for D and E (Plummer, cube-by-cube); protostars for P and Q; the companion for planetary-nebula central stars; Type Ia share and kind rates read from the profile; `nebula_field` gated by the cell's `gas`; the full-cluster option behind a setting.
+13. **Wolf-Rayet stars and ring nebulae** (Core; section 5.11; GEN.113's Tier 2 item 3): the W state and subtypes in `evolve_star`, the metallicity threshold as a population field, spectral text and the star pages, class X with its host rule and mesh, tests for the Milky Way count (1,200 +- 300) and none in old populations. Anomalies.md's Wolf-Rayet row becomes a pointer here.
+14. **Docs** (Quality): `galaxy-disk-density.md`, `galaxy-coordinate-system.md` (reach and outline), `globular-clusters.md` (status), `interstellar-object-rates.md` (populations and factors).
+15. **Tests** (Quality): no emission, reflection or core-collapse remnant in a halo or old cluster cell; a planetary nebula always has its white dwarf; a core-collapse remnant has a compact core at the stated share; every hosted nebula holds its host star and every D or E region its members inside its radius; a Wolf-Rayet nebula holds a W star; tiling at the reach, ID round trip at the widest shell, profile and empty-sector determinism, the pre-placed share per population.
 
 ## Sources
 
