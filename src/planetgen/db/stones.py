@@ -16,7 +16,7 @@ single jump stays.
   rows are built into real systems and phenomena, which the route already
   uses, so `bright_stars.star_system_id` and `phenomenon_scatter.built_at`
   must be empty.
-- The cells are the ones the straight jump crosses, widened by a ring of
+- The cells are the ones the straight jump crosses, widened by a shell of
   neighbours or two, read through the tables' address indexes (the scatter
   table holds hundreds of millions of rows and has no index on `kind`; the
   corridor read is a few hundred of them).
@@ -36,7 +36,7 @@ from scipy.spatial import cKDTree
 from planetgen import tuning
 from planetgen.db.corridor import _CHUNK, _sector_edge_pc, generated_cells, segment_distance
 from planetgen.db.store import get_orbit_epoch_unix
-from planetgen.galaxy.geometry import neighbor_addresses, provisional_sector_designation
+from planetgen.galaxy.spherical import neighbor_addresses, provisional_sector_designation
 from planetgen.galaxy.straight_line import scatter_position_mpc
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
 
@@ -75,8 +75,8 @@ def parse_stone_key(node):
 
 def _by_band(cells):
     bands = {}
-    for ring, layer, slot in cells:
-        bands.setdefault((ring, layer), []).append(slot)
+    for shell, band, wedge in cells:
+        bands.setdefault((shell, band), []).append(wedge)
     return bands
 
 
@@ -99,7 +99,7 @@ def _cells_for(conn, crossed, width_pc):
 
 def stones_in_cells(conn, cells):
     """
-    The stepping stones in `cells` (`(ring, layer, slot)` addresses of uncharted cells).
+    The stepping stones in `cells` (`(shell, band, wedge)` addresses of uncharted cells).
 
     Returns:
         dict: `{key: {"kind", "id", "position_ly", "cell"}}`, `position_ly` in the galaxy frame.
@@ -110,25 +110,25 @@ def stones_in_cells(conn, cells):
         epoch = float(conn.execute("SELECT UNIX_TIMESTAMP(NOW(6)) AS now").fetchone()["now"])
     kinds = tuple(tuning.NAV_STONE_KINDS)
     kind_marks = ",".join("?" * len(kinds))
-    for (ring, layer), slots in _by_band(cells).items():
-        for start in range(0, len(slots), _CHUNK):
-            chunk = slots[start:start + _CHUNK]
+    for (shell, band), wedges in _by_band(cells).items():
+        for start in range(0, len(wedges), _CHUNK):
+            chunk = wedges[start:start + _CHUNK]
             marks = ",".join("?" * len(chunk))
             for row in conn.execute(
                     "SELECT id, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc FROM bright_stars"
                     f" WHERE shell_index = ? AND band_index = ? AND wedge_index IN ({marks})"
-                    " AND star_system_id IS NULL", (ring, layer, *chunk)).fetchall():
+                    " AND star_system_id IS NULL", (shell, band, *chunk)).fetchall():
                 stones[stone_key(BRIGHT_STAR, row["id"])] = {
-                    "kind": BRIGHT_STAR, "id": row["id"], "cell": (ring, layer, row["wedge_index"]),
+                    "kind": BRIGHT_STAR, "id": row["id"], "cell": (shell, band, row["wedge_index"]),
                     "position_ly": tuple(pc_to_ly(mpc_to_pc(row[f"position_{axis}_mpc"])) for axis in "xyz")}
             for row in conn.execute(
                     "SELECT id, wedge_index, kind, position_x_mpc, position_y_mpc, position_z_mpc,"
                     " velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix FROM phenomenon_scatter"
                     f" WHERE shell_index = ? AND band_index = ? AND wedge_index IN ({marks})"
-                    f" AND built_at IS NULL AND kind IN ({kind_marks})", (ring, layer, *chunk, *kinds)).fetchall():
+                    f" AND built_at IS NULL AND kind IN ({kind_marks})", (shell, band, *chunk, *kinds)).fetchall():
                 point = scatter_position_mpc(row, epoch)
                 stones[stone_key(row["kind"], row["id"])] = {
-                    "kind": row["kind"], "id": row["id"], "cell": (ring, layer, row["wedge_index"]),
+                    "kind": row["kind"], "id": row["id"], "cell": (shell, band, row["wedge_index"]),
                     "position_ly": tuple(pc_to_ly(mpc_to_pc(value)) for value in point)}
     return stones
 

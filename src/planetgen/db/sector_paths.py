@@ -29,7 +29,7 @@ comet follows the galaxy's rotation at its own `galactic_orbital_speed_kms`.
 import concurrent.futures
 import multiprocessing
 
-from planetgen.galaxy import geometry
+from planetgen.galaxy import spherical as geometry
 from planetgen.galaxy.system_position import galactic_velocity_ms
 from planetgen.physics import constants
 from planetgen.physics import sector_path as sp
