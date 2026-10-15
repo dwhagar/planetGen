@@ -308,25 +308,6 @@ def tile_keys_containing(point_pc):
     return keys
 
 
-def tile_level_for_view_radius(radius_pc):
-    """
-    The level whose tiles are the smallest still at least `radius_pc` on
-    a side, so a view sphere of that radius touches at most 3 tiles along
-    each axis (27 in all). `static/galaxymap3d.js` computes the same thing
-    client-side; this is the Python twin the `/galaxy` page uses for the
-    first frame.
-    """
-    if not radius_pc > 0:  # also NaN
-        return TILE_MAX_LEVEL
-    if math.isinf(radius_pc):
-        return 0
-    ratio = TILE_ROOT_EDGE_PC / radius_pc
-    if math.isinf(ratio):  # a subnormal radius (MAP.90): the finest level
-        return TILE_MAX_LEVEL
-    level = math.floor(math.log2(ratio))
-    return max(0, min(TILE_MAX_LEVEL, level))
-
-
 def tiles_intersecting_sphere(level, center_pc, radius_pc):
     """
     Every tile key at `level` whose box comes within `radius_pc` of
@@ -358,6 +339,129 @@ def tiles_intersecting_sphere(level, center_pc, radius_pc):
                     found.append((distance_sq, tile_key(level, ix, iy, iz)))
     found.sort()
     return [key for _distance, key in found]
+
+
+DISTANCE_CUT_EDGES = 2.0
+"""float: A tile of the distance cut is split while its edge is more than
+this many times its distance from the camera (MAP.152,
+docs/design/fly-through-view-distance.md section 4.5). A tile is never
+more than about half an edge from the camera before it is replaced by its
+eight halves, so near space is fine and far space coarse."""
+
+DISTANCE_CUT_FINEST_LEVEL = TILE_MAX_LEVEL - 1
+"""int: The finest level the distance cut itself reaches. The finest tiles
+(`TILE_MAX_LEVEL`, every star of a sector) are the detail tiles the map
+adds only around its target."""
+
+DISTANCE_CUT_HALF_ANGLE_DEG = 70.0
+"""float: Half the angle of the cone the cut covers, round the direction the
+camera looks in. The screen's own half-diagonal is about 45 degrees; the
+rest is room to turn before the next tiles arrive."""
+
+DISTANCE_CUT_MAX_TILES = 512
+"""int: Most tiles one distance cut returns, the nearest first."""
+
+_SQRT3_HALF = math.sqrt(3.0) / 2.0
+
+
+def distance_cut_tiles(camera_pc, look_pc, bounds_pc=None, k=DISTANCE_CUT_EDGES,
+                       half_angle_deg=DISTANCE_CUT_HALF_ANGLE_DEG, max_tiles=DISTANCE_CUT_MAX_TILES):
+    """
+    The tiles the camera needs, chosen by distance: start from the root
+    cube and split a tile into its eight halves while its edge is more
+    than `k` times the distance from the camera to its box (and it is not
+    yet `DISTANCE_CUT_FINEST_LEVEL`); the tiles left are the cut. They
+    cover the box of `bounds_pc` once, near ones small and far ones big.
+    Only tiles the cone round the camera's look direction (`look_pc` is
+    the point it looks at) touches are kept. `static/galaxytilecut.js`
+    computes the same thing in the browser.
+
+    Args:
+        camera_pc (tuple): `(x, y, z)` camera position, parsecs.
+        look_pc (tuple): `(x, y, z)` the point the camera looks at.
+        bounds_pc (tuple or None): `((x_lo, y_lo, z_lo), (x_hi, y_hi, z_hi))`,
+            the box worth covering (the galaxy's bounds, say); tiles
+            outside it are left out. `None` covers the root cube.
+        k (float): See `DISTANCE_CUT_EDGES`.
+        half_angle_deg (float): See `DISTANCE_CUT_HALF_ANGLE_DEG`; 180
+            keeps every tile round the camera.
+        max_tiles (int): See `DISTANCE_CUT_MAX_TILES`.
+
+    Returns:
+        list[str]: Tile keys, nearest first (ties by key).
+    """
+    if bounds_pc is None:
+        half = TILE_ROOT_EDGE_PC / 2.0
+        bounds_pc = ((-half,) * 3, (half,) * 3)
+    lo_bound, hi_bound = bounds_pc
+    axis = [look_pc[i] - camera_pc[i] for i in range(3)]
+    length = math.sqrt(sum(v * v for v in axis))
+    cone = half_angle_deg < 180.0 and length > 0.0
+    if cone:
+        axis = [v / length for v in axis]
+    half_angle = math.radians(half_angle_deg)
+    found = []
+    pending = [(0, 0, 0, 0)]
+    while pending:
+        level, ix, iy, iz = pending.pop()
+        lo, hi = tile_bounds_pc(level, ix, iy, iz)
+        if any(hi[a] <= lo_bound[a] or lo[a] > hi_bound[a] for a in range(3)):
+            continue
+        distance_sq = 0.0
+        for a in range(3):
+            nearest = min(max(camera_pc[a], lo[a]), hi[a])
+            distance_sq += (camera_pc[a] - nearest) ** 2
+        edge = tile_edge_pc(level)
+        if cone and distance_sq > 0.0:
+            # The tile's bounding sphere against the cone.
+            centre = [(lo[a] + hi[a]) / 2.0 for a in range(3)]
+            offset = [centre[a] - camera_pc[a] for a in range(3)]
+            reach = math.sqrt(sum(v * v for v in offset))
+            radius = edge * _SQRT3_HALF
+            if reach > radius:
+                along = sum(offset[a] * axis[a] for a in range(3)) / reach
+                if math.acos(max(-1.0, min(1.0, along))) > half_angle + math.asin(radius / reach):
+                    continue
+        if level < DISTANCE_CUT_FINEST_LEVEL and edge * edge > k * k * distance_sq:
+            for dx in (0, 1):
+                for dy in (0, 1):
+                    for dz in (0, 1):
+                        pending.append((level + 1, 2 * ix + dx, 2 * iy + dy, 2 * iz + dz))
+        else:
+            found.append((distance_sq, tile_key(level, ix, iy, iz)))
+    found.sort()
+    return [key for _distance, key in found[:max_tiles]]
+
+
+DISTANCE_CUT_FADE_BAND = 1.15
+"""float: The map cross-fades a tile with its halves over a band of
+distance (`static/galaxytilecut.js`), so both the tiles of the cut and of
+the cuts just inside and outside it are fetched: `fetch_cut_tiles`."""
+
+
+def fetch_cut_tiles(camera_pc, look_pc, bounds_pc=None, k=DISTANCE_CUT_EDGES,
+                    half_angle_deg=DISTANCE_CUT_HALF_ANGLE_DEG, max_tiles=DISTANCE_CUT_MAX_TILES):
+    """
+    The tiles to fetch for a camera: the distance cuts at `k` times and
+    `k` over `DISTANCE_CUT_FADE_BAND`, together. A tile is in the cut
+    while the camera is between one and two (`k`) edges from it; the
+    two cuts hold every tile from 0.87 to 2.3 edges, the range the map
+    fades a tile in and out over.
+
+    Returns:
+        list[str]: Tile keys, nearest first, each once.
+    """
+    keys = {}
+    for factor in (DISTANCE_CUT_FADE_BAND, 1.0 / DISTANCE_CUT_FADE_BAND):
+        for key in distance_cut_tiles(camera_pc, look_pc, bounds_pc, k * factor, half_angle_deg, max_tiles):
+            keys[key] = None
+    ordered = sorted(keys, key=lambda key: (_box_distance_sq(key, camera_pc), key))
+    return ordered[:max_tiles]
+
+
+def _box_distance_sq(key, point_pc):
+    lo, hi = tile_bounds_pc(*parse_tile_key(key))
+    return sum((point_pc[a] - min(max(point_pc[a], lo[a]), hi[a])) ** 2 for a in range(3))
 
 
 def _in_box(point, lo, hi):

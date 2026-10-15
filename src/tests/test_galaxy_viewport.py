@@ -9,7 +9,6 @@ covers the pure, database-free "planned" half of, plus the cube tiles.
 
 import math
 import random
-import sys
 
 import pytest
 
@@ -27,7 +26,6 @@ from planetgen.galaxy.viewport import (
     tile_edge_pc,
     tile_key,
     tile_keys_containing,
-    tile_level_for_view_radius,
     tiles_intersecting_sphere,
     planned_slots_in_view,
     qualifying_threshold_star_count,
@@ -180,14 +178,10 @@ def test_tile_levels_halve_the_edge_and_tile_the_root_cube():
     assert hi == (TILE_ROOT_EDGE_PC / 2, 0.0, TILE_ROOT_EDGE_PC / 2)
 
 
-@pytest.mark.parametrize("radius", [5.0, 16.0, 100.0, 777.0, 24000.0, 80000.0])
-def test_view_level_tiles_are_at_least_the_view_radius_and_few(radius):
-    level = tile_level_for_view_radius(radius)
-    if level > 0:
-        assert tile_edge_pc(level) >= radius or level == TILE_MAX_LEVEL
-    assert level == TILE_MAX_LEVEL or tile_edge_pc(level + 1) < radius
-    center = (1234.5, -987.6, 12.3)
-    keys = tiles_intersecting_sphere(level, center, radius)
+@pytest.mark.parametrize("level", [0, 3, 8, 12])
+def test_a_ball_no_wider_than_a_tile_touches_at_most_27_tiles(level):
+    radius = tile_edge_pc(level)
+    keys = tiles_intersecting_sphere(level, (1234.5, -987.6, 12.3), radius)
     assert 1 <= len(keys) <= 27
 
 
@@ -275,11 +269,77 @@ def test_planned_slots_skip_big_tiles_and_tiny_sectors():
     assert planned_slots_in_tile(TILE_MAX_LEVEL, 2048, 2048, 2048, 0.5, None, None, set()) == []
 
 
-@pytest.mark.parametrize("radius", [5e-324, 2.2e-311, 1e-308, sys.float_info.min])
-def test_tile_level_for_a_tiny_positive_radius_is_the_finest(radius):
-    """MAP.90: a subnormal radius used to overflow log2; any tiny positive
-    radius gets the finest level, here and in the page module's copy."""
-    from planetgen.web.maps.galaxymap3d import _tile_level_for_view_radius
+# --- The distance cut (MAP.152) ---------------------------------------------
 
-    assert tile_level_for_view_radius(radius) == TILE_MAX_LEVEL
-    assert _tile_level_for_view_radius(radius) == TILE_MAX_LEVEL
+CUT_BOUNDS = ((-12600.0, -12600.0, -960.0), (12600.0, 12600.0, 960.0))
+
+
+def _box_distance(key, point):
+    lo, hi = tile_bounds_pc(*parse_tile_key(key))
+    return math.sqrt(sum((point[a] - min(max(point[a], lo[a]), hi[a])) ** 2 for a in range(3)))
+
+
+def test_the_distance_cut_covers_the_bounds_once_with_smaller_tiles_nearer():
+    from planetgen.galaxy.viewport import DISTANCE_CUT_EDGES, DISTANCE_CUT_FINEST_LEVEL, distance_cut_tiles
+
+    camera = (8000.0, 0.0, 0.0)
+    keys = distance_cut_tiles(camera, camera, CUT_BOUNDS, half_angle_deg=180.0, max_tiles=10 ** 6)
+    parsed = [parse_tile_key(key) for key in keys]
+    # No tile lies inside another: the cut covers its space once.
+    boxes = [tile_bounds_pc(*p) for p in parsed]
+    for i, (lo_a, hi_a) in enumerate(boxes):
+        for lo_b, hi_b in boxes[i + 1:]:
+            assert not all(lo_a[a] < hi_b[a] and lo_b[a] < hi_a[a] for a in range(3))
+    for key, (level, *_index) in zip(keys, parsed):
+        edge = tile_edge_pc(level)
+        if level < DISTANCE_CUT_FINEST_LEVEL:
+            assert edge <= DISTANCE_CUT_EDGES * _box_distance(key, camera) + 1e-9, key
+        else:
+            assert level == DISTANCE_CUT_FINEST_LEVEL
+    levels = [p[0] for p in parsed]
+    assert max(levels) == DISTANCE_CUT_FINEST_LEVEL and min(levels) <= 3
+
+
+def test_the_distance_cut_is_nearest_first_and_capped():
+    from planetgen.galaxy.viewport import distance_cut_tiles
+
+    camera = (8000.0, 0.0, 0.0)
+    keys = distance_cut_tiles(camera, camera, CUT_BOUNDS, half_angle_deg=180.0, max_tiles=40)
+    assert len(keys) == 40
+    distances = [_box_distance(key, camera) for key in keys]
+    assert distances == sorted(distances)
+
+
+def test_the_cone_leaves_out_tiles_behind_the_camera():
+    from planetgen.galaxy.viewport import distance_cut_tiles
+
+    camera = (8000.0, 0.0, 0.0)
+    ahead = distance_cut_tiles(camera, (8001.0, 0.0, 0.0), CUT_BOUNDS)
+    everywhere = distance_cut_tiles(camera, (8001.0, 0.0, 0.0), CUT_BOUNDS, half_angle_deg=180.0)
+    assert set(ahead) < set(everywhere)
+    assert len(ahead) < 0.6 * len(everywhere)
+    # Nothing behind: every kept tile touches the half space in front (its far corner is ahead).
+    for key in ahead:
+        assert tile_bounds_pc(*parse_tile_key(key))[1][0] > camera[0] - 1e-9
+
+
+def test_the_fetch_set_holds_the_cut_and_the_cuts_either_side():
+    from planetgen.galaxy.viewport import (
+        DISTANCE_CUT_EDGES, DISTANCE_CUT_FADE_BAND, distance_cut_tiles, fetch_cut_tiles,
+    )
+
+    camera, look = (8012.0, 21.0, 9.0), (8000.0, 4.0, 4.0)
+    fetch = fetch_cut_tiles(camera, look, CUT_BOUNDS)
+    assert len(fetch) == len(set(fetch))
+    for factor in (DISTANCE_CUT_FADE_BAND, 1.0 / DISTANCE_CUT_FADE_BAND):
+        assert set(distance_cut_tiles(camera, look, CUT_BOUNDS, k=DISTANCE_CUT_EDGES * factor)) <= set(fetch)
+    distances = [_box_distance(key, camera) for key in fetch]
+    assert distances == sorted(distances)
+
+
+def test_a_camera_far_out_needs_a_handful_of_coarse_tiles():
+    from planetgen.galaxy.viewport import distance_cut_tiles
+
+    keys = distance_cut_tiles((34000.0, -20000.0, 28000.0), (0.0, 0.0, 0.0), CUT_BOUNDS)
+    assert 1 <= len(keys) <= 20
+    assert max(parse_tile_key(key)[0] for key in keys) <= 4

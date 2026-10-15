@@ -47,7 +47,9 @@ from planetgen.web.lib.fmt import (
 from planetgen.web.maps.galaxymap import sector_quadrant
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, parts_of, plain
 from planetgen.web.lib.tilecache import fetch_tiles
-from planetgen.web.maps.galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
+from planetgen.web.maps.galaxymap3d import (
+    initial_tile_request, render_galaxy_map3d_panel, tile_bounds_pc, view_radius_bounds,
+)
 from planetgen.web.maps.starmap import map_scene_data
 from planetgen.web.lib.systempage import facility_kind_label
 
@@ -555,7 +557,8 @@ def _sector_map_html(detail, pick, admin):
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
     center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
-    initial_view = fetch_tiles(db, initial_tile_request(min(max_radius, max(min_radius, 6 * edge_pc)), center))
+    initial_view = fetch_tiles(db, initial_tile_request(
+        min(max_radius, max(min_radius, 6 * edge_pc)), center, tile_bounds_pc(edge_pc, galaxy_shape)))
     return render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),

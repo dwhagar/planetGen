@@ -4,7 +4,7 @@ How stars (and the other objects drawn as points) come and go as the camera zoom
 
 Informs: MAP.147 (the wire format; nothing here depends on its answer), MAP.146 (it changes the tile keys; the rule below is written against "a list of stars per tile, most luminous first", whatever the tile shapes are). Builds on MAP.48, MAP.51, MAP.80, MAP.87, MAP.109, MAP.116 and MAP.123 (all done).
 
-Status: research, 2026-10-09; the recommendation is mine. Stage 1 (section 5, MAP.153) is built: `static/starfade.js` holds the arithmetic, `galaxymap3d.js` ranks each tile's stars and the star shader applies the fade; stages 2 and 3 are not. Evidence tags: [S] seen in the repo's code or data, [C] computed in this research, [R] recalled and not confirmed (listed at the end).
+Status: research, 2026-10-09; the recommendation is mine. **Superseded in part by MAP.152 (2026-10-15):** tiles are now chosen by distance and a star's fade comes from its tile's share, not from a birth radius by rank (see `fly-through-view-distance.md`, "The fade under the cut"); the rank rule below describes what MAP.153 built before that. Stage 1 (section 5, MAP.153) was built: `static/starfade.js` holds the arithmetic, `galaxymap3d.js` ranks each tile's stars and the star shader applies the fade; stages 2 and 3 are not. Evidence tags: [S] seen in the repo's code or data, [C] computed in this research, [R] recalled and not confirmed (listed at the end).
 
 ## Summary
 
