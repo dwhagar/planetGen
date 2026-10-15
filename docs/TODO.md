@@ -1539,6 +1539,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [#1420](https://github.com/dwhagar/planetGen/issues/1420).
   Prerequisites: none. Related: MAP.152, MAP.198 (done, PR #1470), MAP.146.
 
+- [ ] **MAP.204 Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug)**
+  Boss (2026-10-15 05:33Z): "BUG: Attempting to select a region under
+  the galactic plane on the galaxy map is exceedingly difficult and the
+  system doesn't want to highlight or allow selecing anything on the
+  underside unless positioning is just right." Selecting and
+  highlighting a sector, slab or block on the underside of the galactic
+  plane (below the mid-plane, seen from above or at an angle) should
+  work as easily as above it. Find why the pick and the highlight miss
+  the underside (the picking ray, the plane or box tests, or the
+  highlight drawn only for the upper side) and fix it so the underside
+  is picked and highlighted wherever the cursor is over it. Done when a
+  browser test selects and highlights regions below the plane from
+  several camera angles. Owner: Bugfixes lane 2 (galaxystageview.js
+  selection work), queued after MAP.199 and MAP.200; it touches the same
+  selection and camera code as MAP.198 (done), MAP.199, MAP.200 and the
+  MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
+  to follow.
+  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199,
+  MAP.200, MAP.152.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
