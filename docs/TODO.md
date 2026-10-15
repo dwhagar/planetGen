@@ -3884,9 +3884,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   compares every position before and after (zero difference) and counts
   objects per sector, and no object is left without a sector (an object
   outside the old outline gets the address its position falls in,
-  because no space is undefined: Boss, 2026-10-15 06:59Z). Nothing is
-  regenerated and nothing is deleted
-  except sector rows. Merged only with Boss's go-ahead (it rewrites the
+  because no space is undefined: Boss, 2026-10-15 06:59Z). Object IDs
+  are renumbered (Decided, Boss, 2026-10-15 07:32Z): every object gets a
+  new ID built from its new sector in the conversion, and every table
+  that stores an object ID is rewritten with it; positions are
+  unchanged. Nothing is regenerated and nothing is deleted except sector
+  rows. Merged only with Boss's go-ahead (it rewrites the
   whole sector map). Owner: Spherical Sector Coordinates thread (the
   only migration lane while this runs). Source: item 4 of section 6 of
   the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
