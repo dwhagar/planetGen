@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1291] - 2026-10-15
+
+### Changed
+
+- TODO.md and the spherical sector plan: recorded that objects are renumbered from their new sector in the DB.32 conversion (Decided by Boss).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1290] - 2026-10-15
 
 ### Changed
