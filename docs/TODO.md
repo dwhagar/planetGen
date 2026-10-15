@@ -5614,18 +5614,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (the architecture artifact) is rebuilt from it.
   Prerequisites: none.
 
-- [ ] **DOC.30 Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  44 to 47. The class table omits class S; the moon blacklist is Q, S
-  and V; class Q is marked non-habitable but is in
-  HABITABLE_PLANET_CLASSES; line 3 has a broken link; starData.py no
-  longer exists. Done: the tables match the code constants and every
-  link resolves.
-  Prerequisites: none. Related: DOC.4.
-
 - [ ] **DOC.31 Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
@@ -5742,19 +5730,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   WSGIDaemonProcess planetgen-api line of his Apache site, so every Apache guide says so. Done: every
   one of them describes the venv, how mod_wsgi, the CGI scripts and the
   services use it, and how to rebuild it.
-
-- [ ] **DOC.38 Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  28 to 30. config.md says page_cache is not in config.json.example
-  although it is now, with stored_counts; PLANETGEN_WORKERS is in
-  neither the options table nor the environment-variable section; the
-  planetgen-gunicorn.service comment still describes memory://
-  rate-limit storage. Done: the prose matches config.json.example and
-  the code, and the service comment is corrected.
-  Prerequisites: none.
 
 - [ ] **DOC.39 Fix the README facts, the documentation table and the headline rule (Boss decision)**
   Found by the full documentation sweep Boss asked for (2026-10-14
