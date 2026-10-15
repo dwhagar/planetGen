@@ -4556,17 +4556,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18.
 
-- [ ] **ADM.54 A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional)**
-  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
-  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
-  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
-  benchmarks in research/redis-review/bench/). Optional monitoring: the
-  admin page shows whether Redis answers, whether the append-only file
-  is on, the memory policy, used_memory, the last save status and the
-  worker count. Default: build it after the Redis settings item; Boss
-  may drop it. Foundations lane 1, after the client module.
-  Prerequisites: none. Related: OPS.48 (done, PR #1395).
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
