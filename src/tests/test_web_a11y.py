@@ -219,7 +219,7 @@ def site_db(_mysql_server_available):
             run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
             _add_bright_stars(config)
             with forced_system_config(PLANETS=True):
-                run_cli("galaxy", ["--shell", "0", "--band", "0", "--wedge", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
+                run_cli("galaxy", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
             run_cli("system", ["--quiet"] + target)
             for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
