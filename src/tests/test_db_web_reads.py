@@ -77,7 +77,7 @@ def test_galaxy_locate_matches_the_start_of_the_last_word(mysql_config):
         with conn:
             conn.execute(
                 "INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,"
-                " ring_index, layer_index, ring_slot_index) VALUES ('Vashti Corrow', 4000, 1, 1, 1, 1.7, 1, 1, 1)"
+                " shell_index, band_index, wedge_index) VALUES ('Vashti Corrow', 4000, 1, 1, 1, 1.7, 1, 1, 1)"
             )
     finally:
         conn.close()

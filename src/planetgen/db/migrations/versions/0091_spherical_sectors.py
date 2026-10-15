@@ -292,6 +292,9 @@ class _Conversion:
 
     def cover_old_sectors(self):
         """Every cell whose centre lies in an old sector is a sector too, with that old sector as its container."""
+        self.sql("CREATE TEMPORARY TABLE IF NOT EXISTS cover_cell ("
+                 " shell INT NOT NULL, band INT NOT NULL, wedge INT NOT NULL, container BIGINT UNSIGNED NULL,"
+                 " PRIMARY KEY (shell, band, wedge)) ENGINE=InnoDB")
         last = 0
         while True:
             rows = self.sql("SELECT id, x, y, z, ring, layer, slot FROM old_sector WHERE id > :last ORDER BY id"
@@ -305,8 +308,12 @@ class _Conversion:
                     if _old_address_at((cx, cy, cz), self.edge) == (ring, layer, slot):
                         cells.append({"a": shell, "b": band, "w": wedge, "c": old_id})
             if cells:
-                self.sql("INSERT INTO new_cell (shell, band, wedge, container) VALUES (:a, :b, :w, :c)"
-                         " ON DUPLICATE KEY UPDATE container = VALUES(container)", cells)
+                self.sql("TRUNCATE TABLE cover_cell")
+                self.sql("INSERT INTO cover_cell (shell, band, wedge, container) VALUES (:a, :b, :w, :c)", cells)
+                self.sql("UPDATE new_cell n JOIN cover_cell c ON c.shell = n.shell AND c.band = n.band"
+                         " AND c.wedge = n.wedge SET n.container = c.container")
+                self.sql("INSERT IGNORE INTO new_cell (shell, band, wedge, container)"
+                         " SELECT shell, band, wedge, container FROM cover_cell")
             last = rows[-1][0]
 
     # -- the new sectors --------------------------------------------------------------------------------------------

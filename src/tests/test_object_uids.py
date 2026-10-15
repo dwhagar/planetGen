@@ -37,7 +37,7 @@ def _sector(name, count, rogue):
 
 
 PLACE = {"center_x_pc": 1000.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 1000.0,
-         "ring_index": 250, "layer_index": 0, "ring_slot_index": 5}
+         "shell_index": 250, "band_index": 0, "wedge_index": 5}
 
 
 def _rows(config, sql):
@@ -279,7 +279,7 @@ def test_a_run_time_number_is_not_given_again_after_its_object_is_deleted(mysql_
 
 def test_a_facility_is_a_run_time_birth_in_its_hosts_sector(mysql_config):
     sector = SpaceSector("Uid Harbor", edge_ly=13.0)
-    place = dict(PLACE, ring_slot_index=9)
+    place = dict(PLACE, wedge_index=9)
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=place)
     conn = store.get_connection(mysql_config)
     try:

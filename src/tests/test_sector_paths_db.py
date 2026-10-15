@@ -36,7 +36,7 @@ def _save(mysql_config, with_black_hole=True, systems=2):
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": math.sqrt(sum(c * c for c in center_pc)),
-        "ring_index": ADDRESS[0], "layer_index": ADDRESS[1], "ring_slot_index": ADDRESS[2],
+        "shell_index": ADDRESS[0], "band_index": ADDRESS[1], "wedge_index": ADDRESS[2],
     })
     return sector_id, center_pc
 

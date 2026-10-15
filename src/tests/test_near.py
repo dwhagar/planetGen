@@ -33,7 +33,7 @@ ADDRESSES = [(2, 0, 0), (2, 0, 1), (3, 0, 4)]
 
 @pytest.fixture
 def galaxy(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=E_VALUE, config=mysql_config)
     store.replace_galaxy_layers(EXTENTS, config=mysql_config)
     args = run_galaxy._default_generation_args(config=mysql_config)
