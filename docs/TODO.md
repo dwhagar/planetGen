@@ -951,9 +951,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   green suite, in this order. MAP.151a: the round-region description
   (centre sector, width, height) as layer, ring and slot-arc ranges that
   wrap past slot 0, with an instant count (the lane starts here).
-  MAP.151b: the 3-ary block ladder 729/243/81/27/9/3/1 replacing
-  drill.py and galaxyprisms.js, with stage cache keys and one cache
-  stamp bump. MAP.151c: per-level aggregates and the window query.
+  MAP.151b: the 3-ary block ladder 243/81/27/9/3/1 (729 dropped by
+  Foundations lane 2, 2026-10-15: 729-sector blocks, about 2.9 kpc, are
+  coarser than today's 243-block home view) replacing drill.py and
+  galaxyprisms.js, with stage cache keys and one cache stamp bump. Its PR
+  also carries a data-only migration (no schema change, next free
+  revision at merge, expect 0090) that empties galaxy_block_stats and
+  refills it with block_stats.rebuild on the new ladder, because every
+  stored row (DB.25) is wrong on the new ladder and a stale m=27 row
+  would be read as a new-ladder cell without error. One-time exception to
+  "only Foundations Database adds migrations" (coordinator, 2026-10-15);
+  the migration must land with or after the ladder code. MAP.151c: per-level aggregates and the window query.
   MAP.151d: the map reads the windows. None of it is visible until
   Boss's installer is fixed (issue #1211 stays open until he tests).
   Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
