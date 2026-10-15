@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1315] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.41, DOC.42, DOC.43 and DOC.44 (done in PRs #1583 and #1584) from the execution plan and the phase file.
+
+TODO items resolved: DOC.41, DOC.42, DOC.43, DOC.44 / Added: none
+
 ## [8.0.1314] - 2026-10-15
 
 ### Changed
