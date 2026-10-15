@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [collisions-and-mergers](collisions-and-mergers.md), [multistar-and-compact-systems](multistar-and-compact-systems.md), [orbital-solvers-and-integrators](orbital-solvers-and-integrators.md), [orbital-updates](orbital-updates.md).
+
 ### Simulation Architecture & Data Structures
 
 ```

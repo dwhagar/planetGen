@@ -36,7 +36,7 @@ by `planetgen.util.logpaths`, which needs only the standard library (the
 installers run it as root before any virtual environment exists); their
 defaults come from there, and a test checks the two agree.
 
-Python 3.9: annotations are `Optional[...]`/`List[...]`, never `X | None`.
+Annotations here are `Optional[...]`/`List[...]`, as in most of the package.
 """
 
 import hashlib

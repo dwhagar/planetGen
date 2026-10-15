@@ -42,6 +42,20 @@ def test_a_live_redis_reports_its_settings():
     assert isinstance(info["workers"], int) and info["workers"] >= 0
 
 
+def test_workers_are_counted_when_one_is_registered_here_and_one_is_dead(monkeypatch):
+    """A worker whose process is gone is not counted, one on another host is (the health check once named a
+    helper that had moved, so any registered worker made the Stats page say Redis was not answering)."""
+    import socket
+    import types
+
+    here = socket.gethostname()
+    registered = [types.SimpleNamespace(hostname=here, pid=os.getpid()),
+                  types.SimpleNamespace(hostname=here, pid=2 ** 22 + 12345),
+                  types.SimpleNamespace(hostname="elsewhere.example", pid=1)]
+    monkeypatch.setattr(redishealth.rq.Worker, "all", staticmethod(lambda connection=None, **_: registered))
+    assert redishealth._live_workers(object()) == 2
+
+
 def test_the_page_row_says_what_matters():
     live = {"url": "redis://127.0.0.1:6379/0", "answering": True, "version": "7.2.4", "uptime_seconds": 90000,
             "aof_enabled": False, "maxmemory_policy": "noeviction", "used_memory_bytes": 2 * 1024 * 1024,

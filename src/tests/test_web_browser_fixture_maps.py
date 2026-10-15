@@ -435,6 +435,23 @@ NAMED_SPOTS = """([spots, names]) => {
 HOVER_RETRIES = 20
 
 
+CHARTED_SCAN = """([point, heights, wanted]) => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    const re = new RegExp(wanted);
+    for (const height of heights) {
+        const spot = canvas.galaxyScreenOf(point[0], point[1], height);
+        if (!spot || document.elementFromPoint(spot.x, spot.y) !== canvas) continue;  // a real pointer there would not be on the map
+        canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: spot.x, clientY: spot.y, bubbles: true, pointerType: "mouse"}));
+        const text = tip.hidden ? "" : tip.textContent;
+        if (re.test(text)) return [spot.x, spot.y, text];
+    }
+    return null;
+}"""
+"""str: The first of `heights` (scene z, parsecs) above the scene point (x, y) where a hover names a choice
+matching `wanted`: [x, y, tooltip], or None. One round trip for all of them."""
+
+
 def _charted_spot(page):
     """Where the fixture's charted space (Fixture Prime) falls on the page now:
     a click or a hover there lands on the cell holding generated sectors, at
@@ -450,16 +467,15 @@ def _charted_spot(page):
     heights = [z, z + 2 - 0.01, z + 6 - 0.01, z + 18 - 0.01, z + 54 - 0.01, z + 162 - 0.01, z + 486 - 0.01,
                z - 2 + 0.01, z - 6 + 0.01, z - 18 + 0.01, z - 54 + 0.01, z - 162 + 0.01, z - 486 + 0.01]  # and the bottoms, seen from under the plane
     for _ in range(HOVER_RETRIES):
-        for height in heights:
-            spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [x, y, height])
-            if not spot:
-                continue
-            page.mouse.move(spot["x"], spot["y"])
+        found = page.evaluate(CHARTED_SCAN, [[x, y], heights, GENERATED_CHOICE])
+        if found:
+            # The scan used synthetic pointer events, which are quick; confirm with the real pointer (TEST.109).
+            page.mouse.move(found[0], found[1])
             page.wait_for_timeout(120)
             tip = page.locator("#galaxymap3d-tooltip")
             text = tip.inner_text() if tip.is_visible() else ""
             if re.search(GENERATED_CHOICE, text):
-                return spot["x"], spot["y"], text
+                return found[0], found[1], text
         page.wait_for_timeout(250)
     return None
 
@@ -470,17 +486,20 @@ def _screen_of(page, point):
     return (spot["x"], spot["y"]) if spot else None
 
 
-def _hover_choice(page, wanted=None, steps=32):
+def _hover_choice(page, wanted=None, steps=32, retries=HOVER_RETRIES):
     """Moves the pointer over the map (as pointer events, for speed) until
     the tooltip names a choice matching `wanted` (a regex, JavaScript
     syntax); returns (x, y, text) or None, the pointer left there. The
     map ignores the pointer while a stage's flight runs, which takes longer
-    on a busy machine, so the scan is tried again for a few seconds."""
+    on a busy machine, so the scan is tried again for a few seconds. A scan
+    of the whole map costs about 2.5 s, so a test asking whether a choice
+    exists at all (where "no" is an answer) settles the map first and gives
+    `retries=1`."""
     if wanted == GENERATED_CHOICE:
         return _charted_spot(page)
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     found = page.evaluate(HOVER_SCAN, [wanted, steps])
-    for _ in range(HOVER_RETRIES):
+    for _ in range(retries):
         if found:
             break
         page.wait_for_timeout(250)
@@ -1548,7 +1567,8 @@ def test_galaxy_map_an_unfilled_sector_stays_outlined_once_selected(page, map_si
     is selected."""
     _open_galaxy(page, map_site)
     for _ in range(8):
-        if re.search(r"Sector .*uncharted$", (_hover_choice(page, r"^Sector .*uncharted$") or (0, 0, ""))[2]):
+        _settle(page)
+        if re.search(r"Sector .*uncharted$", (_hover_choice(page, r"^Sector .*uncharted$", retries=1) or (0, 0, ""))[2]):
             break
         _click_choice(page, GENERATED_CHOICE)
     spots = page.evaluate(HOVER_SCAN, [r"^Sector .*uncharted$", 48])
@@ -1971,6 +1991,9 @@ def test_the_map_help_is_a_menu_item_that_opens_a_dialog(page, map_site):
         assert page.locator("#map > .panel-header .hint").count() == 0, name
         dialog = page.locator("#galaxymap3d-help")
         assert not dialog.evaluate("d => d.open"), name
+        # The dialog is a Shoelace element; before it is upgraded it has no show() and the item does
+        # nothing, which a loaded machine reaches before the click (TEST.126).
+        page.wait_for_function("() => typeof document.querySelector('#galaxymap3d-help').show === 'function'")
         _open_menu(page)
         page.locator('#galaxymap3d-controls [data-action="map-help"]').click()
         page.wait_for_function("() => document.querySelector('#galaxymap3d-help').open")

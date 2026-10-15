@@ -106,7 +106,7 @@ def crop_stages(centre, g, stages):
         g (int): Cells across.
         stages (dict): `{key: stage}` for each of `window_parents`, `key` the
             parent's `format_drill_key`, or `"galaxy"`; each a
-            `queryDb.galaxy_stage` result.
+            `planetgen.db.query.galaxy_stage` result.
 
     Returns:
         dict: `at` (the centre's key), `g`, `child_m` (the cells' size),

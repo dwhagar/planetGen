@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.1291 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.1336 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -108,6 +108,7 @@ build order).
 
 - Python 3.12 or later, with numba (the compiled numeric kernels; `install.sh` and `update.sh` install it, and there is no fallback without it). This replaced the old Python 3.9 minimum with numba (OPS.42).
 - MySQL 8.0.16+ or MariaDB 10.4+.
+- Redis (any recent version): the Generate page's jobs, the work queue behind `--workers` above 1, the rate limits and the login lockouts run on it. `install.sh` and `update.sh` install and start it on Debian and Ubuntu and check its settings.
 - For the website, a web server: Apache2 with mod_wsgi on Debian or
   Ubuntu (the reference setup), nginx or Caddy on Linux, or nginx on
   macOS.
@@ -224,7 +225,7 @@ its options:
   and update scripts run it for you.
 - **`planetgen.cli.reset`** deletes all generated galaxy data (asks for the
   database name first) so you can start a new galaxy.
-- **`planetgen.db.query`** searches the database from the terminal.
+- **`planetgen.cli.query`** searches the database from the terminal.
 
 ## Documentation
 
@@ -234,8 +235,12 @@ its options:
 | [docs/cli.md](docs/cli.md) | Every command-line option |
 | [docs/config.md](docs/config.md) | Every `config.json` setting |
 | [docs/deployment/](docs/deployment/README.md) | Hosting guides per platform |
+| [docs/server-checklist.md](docs/server-checklist.md) | Confirming the site loads after a deploy or update |
+| [docs/WINDOWS.md](docs/WINDOWS.md) | Windows is unsupported; the simplest setup, WSL2 |
 | [docs/html-interface.md](docs/html-interface.md) | How the website works |
 | [docs/api.md](docs/api.md) | The JSON API |
+| [docs/system-file-format.md](docs/system-file-format.md) | The JSON file that describes one star system for `planetgen system` |
+| [docs/example-systems.md](docs/example-systems.md) | The example system files and what each one tests |
 | [docs/database-schema.md](docs/database-schema.md) | The database tables and migrations |
 | [docs/design/architecture.md](docs/design/architecture.md) | How the program fits together: every file and the main flows |
 | [docs/design/architecture.html](docs/design/architecture.html) | The same as an illustrated page to open in a browser: modules, flows, data and deployment (a 2026-10-07 snapshot from before the package move) |
@@ -246,6 +251,7 @@ its options:
 | [docs/plan/todo-tree.html](docs/plan/todo-tree.html) | Every open item as a tree, each under the prerequisite that finishes last, with search and phase and bug filters |
 | [docs/plan/todo-reference.html](docs/plan/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (all three pages are rebuilt by `python scripts/build_todo_docs.py`) |
 | [docs/testing.md](docs/testing.md) | Running the tests |
+| [docs/ci-runners.md](docs/ci-runners.md) | Running the scheduled CI on your own computers (optional) |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |
 
 ## A note on accuracy
@@ -258,7 +264,9 @@ with worlds thousands of AU out; edit those by hand before using them.
 
 Every pull request adds a release note under [`changes/`](changes/README.md)
 instead of bumping the version; a workflow stamps the version after
-merge. Run the tests with `pytest` ([`docs/testing.md`](docs/testing.md)).
+merge. Run the tests with `scripts/test.py changed` while you work and `scripts/test.py full --check` before
+merging a finished piece of work; both need MySQL or MariaDB and Redis ([`docs/testing.md`](docs/testing.md)).
+Plain `pytest -n auto` still works.
 
 ## License
 

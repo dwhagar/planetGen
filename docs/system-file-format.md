@@ -1,6 +1,6 @@
 # System Specification Files
 
-[`.planetgen`](.planetgen)'s `system` subcommand can load a full
+[`planetgen`](../src/planetgen/cli/generate.py)'s `system` subcommand can load a full
 (or partial) star system specification from a JSON file with
 `--system-file` / `-f`:
 
@@ -142,13 +142,14 @@ a "class M world".
 | `N` | Hot world with a dense, reducing atmosphere | terrestrial | e | no |
 | `O` | Pelagic (ocean) world, >90% liquid water | terrestrial | e | yes |
 | `P` | Cold, glaciated world | terrestrial | e | yes |
-| `Q` | Eccentric orbit, extreme temperature swings | terrestrial | e | no |
+| `Q` | Eccentric orbit, extreme temperature swings | terrestrial | e | yes |
+| `S` | Barren, rocky Super-Earth | terrestrial | h, e, c | no |
 | `T` | Gas dwarf with a thick atmosphere | gas giant | c | no |
 | `V` | Super-Earth with high gravity | terrestrial | e | yes |
 
-Classes `Q` and `V` can't be generated as **moons**
+Classes `Q`, `S` and `V` can't be generated as **moons**
 (they're too large or physically implausible as satellites,
-`program_constants.MOON_BLACKLIST`) — this only matters for random moon
+`tuning.MOON_BLACKLIST`) — this only matters for random moon
 generation, since a slot's own `planet_class` always describes the planet
 itself, never its moons.
 

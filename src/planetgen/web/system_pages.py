@@ -19,13 +19,13 @@ every link is a plain GET link (`page_url`).
 """
 
 from flask import abort, jsonify, redirect, request
+from markupsafe import Markup
 from planetgen.galaxy import objectref
+from planetgen.physics import constants as physical_constants
 from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.fmt import (
-    format_duration_seconds, format_gravity_g, format_flux_w_m2, format_magnetic_field_gauss, format_mass_kg, format_number_density_cm3, format_mass_solar, format_number, format_power_w, format_period_years, format_pressure_pa, format_speed_kms,
-    format_temperature_k, runaway_text,
-    format_distance_km, format_distance_ly, format_distance_pc, linkify_nearest,
-    nearest_systems_html,
+    distance_km_html, distance_ly_html, format_distance_km, format_number, linkify_nearest,
+    nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
@@ -443,7 +443,7 @@ TYPE_LABELS = {
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
     "quasar": "Quasar", "hypervelocity_star": "Hypervelocity Star",
 }
-"""dict: Every phenomenon type (`queryDb._PHENOMENON_TABLES`) and its label."""
+"""dict: Every phenomenon type (`planetgen.db.query._PHENOMENON_TABLES`) and its label."""
 
 
 def _title_case(value):
@@ -461,7 +461,7 @@ def _phenomena_load(state, limit, offset, want_facets):
         {"text": row["name"], "href": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])},
         {"text": TYPE_LABELS.get(row["type"], row["type"])},
         {"text": _title_case(row["descriptor"])},
-        {"text": format_distance_ly(row["radius_ly"])} if row["radius_ly"] else {"text": "\u2013"},
+        {"text": distance_ly_html(row["radius_ly"])} if row["radius_ly"] else {"text": "\u2013"},
         {"text": row["sector_name"], "href": page_url("sector", sector_id=row["sector_id"])}
         if row["sector_id"] is not None else {"text": "None", "muted": True},
         {"text": "Yes" if row["placed"] else "No"},
@@ -507,11 +507,20 @@ def phenomena():
 # Every distance and non-body radius goes through the distance ladder
 # (fmt.format_distance_*); a rogue planet's radius is a body radius, so it
 # is km in scientific notation like every planet's.
-_ly = format_distance_ly
+_ly = distance_ly_html
+_km = distance_km_html
 
 
-def _km(value):
-    return format_distance_km(value)
+def _quantity(quantity, scale=1.0, companions=True):
+    """A field formatter for a measurement (UX.78): the value, converted to
+    the ladder's SI base unit by `scale`, in a span the reader's unit system
+    re-renders (`fmt.quantity_html`)."""
+    return lambda value: quantity_html(quantity, value, scale, companions)
+
+
+_solar_mass = _quantity("mass", physical_constants.SOLAR_MASS_TO_KG)
+_power = _quantity("power")
+_kelvin = _quantity("temperature", companions=False)
 
 
 def _body_radius(value):
@@ -522,7 +531,7 @@ _DAYS_PER_YEAR = 365.25
 
 
 def _light_days(value):
-    return format_distance_ly(value / _DAYS_PER_YEAR)
+    return distance_ly_html(value / _DAYS_PER_YEAR)
 
 
 def _bool_text(value):
@@ -539,8 +548,8 @@ def _pressure_text(value):
     if not value:
         return "None"
     if value < 100:
-        return f"{format_pressure_pa(value, companions=False)} (a trace)"
-    return format_pressure_pa(value)
+        return Markup(f"{quantity_html('pressure', value, companions=False)} (a trace)")
+    return quantity_html("pressure", value)
 
 
 def _rogue_planet_type_text(value):
@@ -558,7 +567,7 @@ def _cloud_class_text(value):
 # unset value is stored as 0 or ''; those rows are left out.
 _CLOUD_CONTENTS = [
     ("dominant_species", "Dominant Species", lambda v: v or None),
-    ("density_cm3", "Density", lambda v: format_number_density_cm3(v) if v else None),
+    ("density_cm3", "Density", lambda v: quantity_html("number density", v, 1e6) if v else None),
     ("temperature_k", "Gas Temperature", lambda v: f"{format_number(v, ',.0f')} K" if v else None),
     ("extinction_av", "Extinction", lambda v: f"{format_number(v, ',.2f')} magnitudes (visual)" if v else None),
 ]
@@ -584,8 +593,8 @@ def _comet_composition_text(components):
     return format_comet_composition_summary(components) if components else None
 
 
-_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", format_speed_kms)
-_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: format_period_years(v * 1e9))
+_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", speed_kms_html)
+_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: period_years_html(v * 1e9))
 
 FIELD_SPECS = {
     "nebula": [
@@ -607,24 +616,24 @@ FIELD_SPECS = {
     ],
     "black_hole": [
         ("mass_class", "Class", _title_case),
-        ("mass_solar", "Mass", format_mass_solar),
+        ("mass_solar", "Mass", _solar_mass),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
         ("has_accretion_disk", "Accretion Disk", _bool_text),
-        ("temperature_k", "Hawking Temperature", lambda v: format_temperature_k(v, companions=False)),
-        ("luminosity_w", "Luminosity", format_power_w),
+        ("temperature_k", "Hawking Temperature", _kelvin),
+        ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
     "neutron_star": [
-        ("mass_solar", "Mass", format_mass_solar),
+        ("mass_solar", "Mass", _solar_mass),
         ("radius_km", "Radius", _km),
-        ("spin_period_ms", "Spin Period", lambda v: format_duration_seconds(v / 1000)),
-        ("magnetic_field_gauss", "Magnetic Field", format_magnetic_field_gauss),
+        ("spin_period_ms", "Spin Period", _quantity("time", 1e-3)),
+        ("magnetic_field_gauss", "Magnetic Field", _quantity("magnetic field", 1e-4)),
         ("pulsar_type", "Pulsar Type", _title_case),
-        ("surface_temperature_k", "Surface Temperature", lambda v: format_temperature_k(v, companions=False)),
-        ("luminosity_w", "Luminosity", format_power_w),
+        ("surface_temperature_k", "Surface Temperature", _kelvin),
+        ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
@@ -643,19 +652,19 @@ FIELD_SPECS = {
         ("planet_type", "Type", _rogue_planet_type_text),
         ("planet_class", "Planet Class", str),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
-        ("mass_kg", "Mass", format_mass_kg),
+        ("mass_kg", "Mass", _quantity("mass")),
         ("radius_km", "Radius", _body_radius),
-        ("gravity_g", "Surface Gravity", format_gravity_g),
+        ("gravity_g", "Surface Gravity", _quantity("gravity", physical_constants.EARTH_GRAVITY)),
         ("composition", "Composition", str),
         ("has_internal_heat", "Geologically Active", _bool_text),
         ("has_moons", "Has Moons", _bool_text),
         # Surface conditions (schema v48, rogueSurface): no star, so only
         # its own heat. A giant's temperature and pressure are at 1 bar.
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
-        ("internal_heat_flux_w_m2", "Internal Heat Flow", format_flux_w_m2),
-        ("effective_temperature_k", "Effective Temperature", lambda v: format_temperature_k(v, companions=False)),
+        ("internal_heat_flux_w_m2", "Internal Heat Flow", _quantity("flux")),
+        ("effective_temperature_k", "Effective Temperature", _kelvin),
         ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),
-        ("surface_temperature_k", "Surface Temperature", format_temperature_k),
+        ("surface_temperature_k", "Surface Temperature", _quantity("temperature")),
         ("surface_pressure_pa", "Surface Pressure", _pressure_text),
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
@@ -664,16 +673,16 @@ FIELD_SPECS = {
     ],
     "interstellar_comet": [
         ("nucleus_diameter_km", "Nucleus Diameter", _km),
-        ("velocity_kms", "Velocity", format_speed_kms),
+        ("velocity_kms", "Velocity", speed_kms_html),
         ("is_active", "Active", _bool_text),
         ("composition", "Composition", _comet_composition_text),
         _SPEED, _PERIOD,
     ],
     # No galactic-orbit rows: a quasar sits at the galactic center.
     "quasar": [
-        ("black_hole_mass_solar", "Black Hole Mass", format_mass_solar),
+        ("black_hole_mass_solar", "Black Hole Mass", _solar_mass),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
-        ("luminosity_w", "Luminosity", format_power_w),
+        ("luminosity_w", "Luminosity", _power),
         ("eddington_ratio", "Eddington Ratio", lambda v: f"{v:.0%}"),
         ("accretion_rate_solar_per_year", "Accretion Rate", lambda v: f"{format_number(v, ',.2f')} solar masses/year"),
         ("broad_line_region_light_days", "Broad-Line Region Radius", _light_days),
@@ -779,7 +788,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
     distance = None
     radius_pc = detail.get("galactic_radius_pc")
     if radius_pc is not None:
-        distance = format_distance_pc(radius_pc)
+        distance = quantity_html("length", radius_pc, physical_constants.PARSEC_M)
     sector = None
     if detail.get("sector_id") is not None:
         sector = {"name": detail.get("sector_name") or "Sector",

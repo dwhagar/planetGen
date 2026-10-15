@@ -17,7 +17,9 @@ fits in one short file. gunicorn runs the app exactly as in the
 1. Follow the [nginx guide](nginx.md#install), steps 1 to 3: the
    database, the checkout, `config.json` with
    `"proxy_fix": {"x_for": 1, "x_proto": 1, "x_host": 0}`,
-   `sudo ./install.sh`, and the `planetgen-gunicorn` service. Skip nginx.
+   `sudo ./install.sh` (which installs and starts Redis, needed by the
+   Generate page's jobs and the work queue), and the `planetgen-gunicorn`
+   service. Skip nginx.
 
 2. Install Caddy from its own apt repository (the steps are at
    caddyserver.com/docs/install). It comes with a `caddy` systemd service

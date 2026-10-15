@@ -11,6 +11,8 @@ Informs: UX.23, UX.22, UX.36, UX.30, UX.32, GEN.66 (and, only where relevant, UX
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+**Update (2026-10-15).** Astropy is no longer a runtime dependency (GEN.211, #1310): `physics/constants.py` is a literal table, so "the ladder module imports from `physics/constants.py`, which reads astropy" is out of date and the lock-file reproducibility gap in finding 3 is closed. The recommendation (a custom table) stands and is easier. The project floor is Python 3.12 (OPS.42), so the Python 3.9 rows and the "Python 3.9 compatible" module header are history.
+
 Evidence tags: [S] seen in a search result or a fetched primary file (URL in
 Sources), [C] computed or measured in the research sandbox, [R] recalled and
 unconfirmed. The research environment could only read search-result text and
@@ -148,6 +150,8 @@ Inconsistencies worth fixing in the same PRs:
 **Where to store it:** `localStorage` key `planetgen.units`, the same pattern as `theme.js`, `bookmarks.js` and `generatefolds.js` (try/catch around every access, page works without it). Account sync later if bookmarks (UX.45) get an account store.
 
 **How to apply it without a flash and without breaking caches:** the server always renders the default (Automatic) inside `<span class="qty" data-q="length" data-si="384400000">384,400 km</span>`; a small script reads the preference at load and re-renders each `.qty` from `data-si` with the shared JS ladder. This needs no cookie and no per-preference server render, and the page cache (`web/lib/pagecache.py`) keeps one variant. A script that runs in the head before first paint avoids layout shift for Customary users.
+
+**What shipped for the control (built).** The Units button sits in the settings (gear) menu beside the theme button and cycles Automatic, Metric only and Customary, rather than a nested `sl-dropdown` inside the gear's own dropdown; it is hidden until the script runs. `static/unitpreference.js` reads and writes the preference; `unitladder.js` uses it as the default for `formatQuantity`, so panels the scripts build follow it when they render; `static/units.js` re-renders the server's `<span class="qty">` cells from `data-si` and fires `planetgen:units`. A panel already open does not change until it is next built. Server side, `fmt.quantity_html` writes the span; the system page's star table, body, belt and comet rows and the phenomenon property grids use it, while map titles, attributes and JSON stay plain text.
 
 **Toggle patterns:** a global header menu built on `sl-dropdown` and `sl-menu-item` with checkable items (both already vendored in `components.js`; `sl-tooltip` and `sl-radio-group` are not) is the primary control. Per-value click-to-cycle costs many tab stops in tables. A tooltip showing the same value in other units ("384,400 km = 0.00257 AU = 1.28 light-seconds") serves the "contextualize" request in UX.22 without a toggle [R: pattern, not a cited source].
 

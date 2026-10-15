@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [activity-magnetism-radiation-hydrosphere](activity-magnetism-radiation-hydrosphere.md), [habitability-index](habitability-index.md), [units-and-number-formatting](units-and-number-formatting.md).
+
 Chemical Habitability, Geochemical Toxicity, and Environmental Margins of Terrestrial Exoplanets
 ================================================================================================
 

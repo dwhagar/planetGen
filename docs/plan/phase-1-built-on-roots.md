@@ -28,15 +28,16 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.225 | Outline and bounds on shells |  |  |
 | GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID |  |  |
-| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | GEN.225, GEN.226 |  |
-| GEN.227 | Generation paths on shells | GEN.225, GEN.226, DB.32 |  |
+| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | GEN.226 |  |
+| GEN.227 | Generation paths on shells | GEN.226, DB.32 |  |
 | UX.111 | Reads, API and web wording on shells | DB.32, GEN.227 |  |
+| UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt |  |  |
 | MAP.205 | Galaxy Map block ladder for shells | UX.111 |  |
 | MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
 | DOC.46 | Docs for the spherical sector grid | UX.111 |  |
+| GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) |  |  |
 
 ### References
 
@@ -174,7 +175,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.23 | A shared unit-ladder module |  | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 (done, PR #1504) then UX.30 build on it. |
-| UX.78 | Unit preference: Automatic, Metric only or Customary | UX.23 | Research: under UX.23. |
 | UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
 
 ### Queue
@@ -208,33 +208,17 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
-| TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
-| DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
-| DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |
-| DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail |  |  |
-| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py |  |  |
-| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) |  |  |
-| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS |  |  |
-| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 |  |  |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults |  |  |
-| DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config |  |  |
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list |  |  |
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 |  |  |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names |  |  |
 | DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits |  |  |
-| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names |  |  |
-| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet |  |  |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages |  |  |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md |  |  |
-| DOC.26 | Give every design note a status line and refresh the stale ones |  |  |
-| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
-| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged |  |  |
-| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state |  |  |
 | DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions |  |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
@@ -246,7 +230,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  |  |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.152 |  |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules |  |  |
-| TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) |  | Flaky under load. Bugfixes lane 1. |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |

@@ -185,3 +185,11 @@ Still open: the password hash is PBKDF2-SHA256 (OWASP lists it last) and
 user accounts add reset and invite flows that need the same throttles;
 both are planned in [settings-seo-and-accounts.md](settings-seo-and-accounts.md)
 (parts B2, B3 and B5).
+
+## 6. When a long job holds a lock (ADM.53)
+
+A long generation job can hold a control-schema row (an account, a session, the audit log) locked for many seconds, and the app has five threads. Without a limit, a few sign-ins queued behind one lock would stop every page. Since ADM.53 (#1318):
+
+- **A short wait.** The web's connections wait `WEB_LOCK_WAIT_SECONDS` (5 s, `tuning.py`) for a locked row, not the server's 50 s.
+- **Informational writes are skipped.** A sign-in's last-login time and a session's last-seen time (written at most every `LAST_SEEN_REFRESH_SECONDS`, 60 s) go through `admin/auth.py`'s `_write_if_not_locked`: when the row is locked past the wait, the write is dropped with a line in the activity log, and the sign-in or request carries on. The login itself does not fail or hang for a note about itself.
+- **The 503 Busy page.** A request that needed a locked row and could not get it answers 503 with `Retry-After` (`web/errors.py`'s `busy_page`, shown by `web/app.py`): a page that says the database is busy with another job, changes nothing, and asks again by itself; an API request gets `BUSY` as JSON. A statement that ran past `mysql.statement_timeout_seconds` is the separate 504 page.

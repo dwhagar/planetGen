@@ -52,10 +52,11 @@ EnvironmentFile=-/etc/planetgen/web.env
 RuntimeDirectory=planetgen
 RuntimeDirectoryMode=0750
 
-# One process, five threads: the same shape as the Apache daemon. One
-# process keeps the in-memory rate limiter correct (ratelimit.storage_uri
-# "memory://"); for more workers set ratelimit.storage_uri to a shared
-# backend such as redis:// first (docs/api.md, "Rate limiting").
+# One process, five threads: the same shape as the Apache daemon. The rate
+# limits and login lockouts count on the Redis server in redis.url
+# (ratelimit.storage_uri empty, the default), so they stay correct with
+# more than one worker; "memory://" counts per process and is right only
+# with exactly one (docs/api.md, "Rate limiting").
 #
 # --timeout is gunicorn's worker heartbeat, not a per-request limit: with
 # threads, one slow request does not trip it. The per-request limit is

@@ -1,5 +1,7 @@
 # Orbital updates, positions and spin
 
+**Status (2026-10-15):** partly built. Done: the per-object clocks `epoch_unix` and `next_update_due` (GEN.106, #802), GEN.107 (#817), GEN.108 (#815) and starting velocities (GEN.121, #735). Open: the umbrella GEN.105, the influence set and collisions (GEN.109, GEN.110) and the galactic potential (GEN.115).
+
 How planetGen will move things: one position object for every body, a
 positional update that only touches what has visibly moved, gravity from
 nearby masses, collisions, spin, and the limits where the math stops
@@ -19,7 +21,7 @@ being trusted. This condenses Boss's documents in this folder:
 - "Computational Astrodynamics.md" (Boss's research of 2026-10-07: the
   galaxy's own gravity, the three frames, the orbit solvers, nonsingular
   elements, the time step and epoch, and collisions)
-- `spacial-position.py` at the repo root (Boss's prototype position class)
+- `spacial-position.py` (Boss's prototype position class; now removed, its class lives on as `planetgen/physics/position.py`'s `SpatialPosition3D`)
 
 Where the documents are wrong, superseded or already implemented differently,
 [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
@@ -33,16 +35,17 @@ collision detection, mergers, Roche limits and Hill-sphere warnings) and
 [galactic-potential.md](galactic-potential.md) (the galaxy's smooth potential,
 GEN.115).
 
-Where the code is today: `planetgen orbits` (`src/planetgen/cli/orbits.py`) is
+Where the code is today: `python3 -m planetgen.cli.orbits` (`src/planetgen/cli/orbits.py`, see [cli.md](../cli.md#orbits)) is
 the positional update, run "once a month or so"; the work is in `db/store.py`
 (`advance_galactic_positions`, `advance_orbital_phases`, `advance_comet_orbits`)
 with `physics/kepler.py` (Kepler and Barker solvers), `physics/state_vectors.py`,
 `physics/position.py`, `physics/sector_path.py` and `galaxy/geometry.py`. There
 is no `updateOrbits.py` or `keplerMotion.py` file; those names survive only in an
 import alias in `tests/test_galactic_motion.py` and a docstring in
-`physics/mathcheck.py`. Nothing yet implements the thresholds' `next_update_due`
-column, the influence set, collisions or the galactic potential (GEN.106, GEN.109,
-GEN.110, GEN.115).
+`physics/mathcheck.py`. The thresholds' `next_update_due` column and the per-object
+`epoch_unix` clock are built (GEN.106, #802; `db/store.py`'s `orbit_clock`). The
+influence set, collisions and the galactic potential are not (GEN.109, GEN.110,
+GEN.115, under the umbrella GEN.105).
 
 ## 1. What Boss asked for
 
@@ -304,7 +307,7 @@ guard. Built in GEN.108; `src/tests/test_orbital_limits.py` hits each one.
 
 The full checklist, with the numbers behind each guard, is also in [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md) section 7.
 
-## 8. Light-travel positions## 8. Light-travel positions
+## 8. Light-travel positions
 
 What an observer sees is where an object was, not where it is: its
 apparent position is its position at (now - distance / c), solved by

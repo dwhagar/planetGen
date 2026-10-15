@@ -1,5 +1,7 @@
 # Navigation reference frames
 
+**Status (2026-10-15):** built: the warp curve (NAV.2, 7.8.0, #121), bearing and mark on nested frames (NAV.1, 7.14.0, #130) and the squeezed heliopause (7.39.0).
+
 Boss's design for nested navigation frames, recorded 2026-09-30 (NAV.1
 and NAV.2). Built in versions 7.8.0 (warp curve) and 7.14.0 (bearing
 and mark on nested frames), plus the squeezed heliopause in 7.39.0.

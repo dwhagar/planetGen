@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [collisions-and-mergers](collisions-and-mergers.md), [course-avoidance](course-avoidance.md), [course-routing](course-routing.md), [fill-order-curves-and-core](fill-order-curves-and-core.md), [galactic-potential](galactic-potential.md), [orbital-solvers-and-integrators](orbital-solvers-and-integrators.md), [orbital-updates](orbital-updates.md).
+
 # Computational Astrodynamics and Numerical Architecture for Galactic-Scale Orbital Simulations
 
 ## Galactic Potential Modeling and Rotation Curve Equilibrium

@@ -1,5 +1,7 @@
 # Star types against distance from the galactic core (GEN.133)
 
+**Status (2026-10-15):** analysis (GEN.133, #807). The proposals at the end are for Boss to choose from; no code changed.
+
 Analysis of 2026-10-09 for Boss: how the generator's star-type rates change with
 galactocentric radius, set against what is observed. Method: `scripts/star_type_by_radius.py`
 draws 30,000 stars per population from the generator's own model

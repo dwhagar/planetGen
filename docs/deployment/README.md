@@ -3,8 +3,8 @@
 planetGen's web interface is one Flask app: every page and the JSON API
 (`/api`). It runs from a git checkout, reads `config.json` at the repo
 root, and talks to one MySQL or MariaDB server and one Redis server
-(`redis.url` in [`config.json`](../config.md); the work queue and rate
-limits move to it, and nothing uses it yet). This page compares the
+(`redis.url` in [`config.json`](../config.md); the Generate page's jobs,
+the work queue, the rate limits and the login lockouts run on it). This page compares the
 supported ways to host it and covers what they share. Each guide has the
 full steps for its platform.
 
@@ -38,7 +38,9 @@ addresses that keep guessing admin passwords.
   not buffer the stream (the response sends `X-Accel-Buffering: no` for
   nginx).
 - **The same entry point.** Every app server loads `src/html/wsgi.py`
-  and its `application` object. gunicorn: `--pythonpath
+  and its `application` object. gunicorn, from planetGen's own virtual environment
+  (`/usr/local/planetgen/venv`, [apache.md](apache.md#planetgens-own-python)):
+  `/usr/local/planetgen/venv/bin/gunicorn --pythonpath
   <checkout>/src/html wsgi:application`.
 - **Static files from the web server.** `/static/` maps to
   `src/html/static/`, with `X-Content-Type-Options: nosniff`. A URL with

@@ -8,6 +8,8 @@ and Job Management Guide.md") and records where this plan departs from them. Mea
 health of the front-end libraries are in
 [map-ui-and-frontend-libraries.md](map-ui-and-frontend-libraries.md).
 
+**Status (2026-10-15).** Built: OPS.20 to OPS.24, DB.11, PERF.24, UX.39 to UX.41, ADM.22 and MAP.102. The work queue of section 3 is being redone under PERF.86 (Redis is the only place a run lives; the MySQL job tree is retired). Astropy was dropped by GEN.211 (#1310), the Python floor is 3.12 and numba is required (OPS.42, #1291). Section 6 is the plan from before the move (its "where things live today" names, such as `stellarObjects` and the single `generate.py`, are history); the packages that exist now are in [architecture.md](architecture.md).
+
 ## 1. What Boss asked for
 
 Boss (2026-10-03 05:38Z): "Transition the code to open source 3rd party
@@ -44,7 +46,7 @@ by the new libraries rather than patched in the old code.
 | Caches | `pagecache.py`, `tilecache.py` | cachetools for `pagecache.py` only (done: a `TTLCache` sized by body length, `max_entries` held on top; PERF.25) | Boss agreed (2026-10-07 13:27Z): `tilecache.py` stays (JSON only, never unpickles, prunes by size, checks its folder is private). Out: diskcache and sqlitedict (unfixed advisories PYSEC-2026-2447 and PYSEC-2026-1939, rejected by pip-audit), cachelib and Flask-Caching (pickle by default, count items not bytes). Fallback if disk caching proves slow: an optional Redis backend through redis-py storing JSON, on its own instance or with TTL'd keys so tile eviction can't evict rate-limit counters. |
 | Database | `store.py` (9,800 lines), `planetgen.cli.migrate` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
 | Validation | `validation.py` | Pydantic | The same limits; errors list every field. |
-| Physics | `keplerMotion.py`, `physical_constants.py`, replaced (GEN.66, PR #767) by `physics/kepler.py` on scipy and constants from astropy | scipy, astropy | Results checked against the old values within stated tolerances (`tests/test_astropy_constants.py`). Barker keeps its exact closed form. |
+| Physics | `keplerMotion.py`, `physical_constants.py`, replaced (GEN.66, PR #767) by `physics/kepler.py` on scipy and a literal constants table (GEN.211, #1310; astropy now only in the `test` extra, where `tests/test_astropy_constants.py` holds the table against astropy's own values) | scipy | Results checked against the old values within stated tolerances. | Barker keeps its exact closed form. |
 | Job logs and progress | `generatejobs.js`, `generatefolds.js`, `jobs.py`, `progressRate.py` | Xterm.js over Server-Sent Events, native `<progress>` | Done (ADM.22). See section 4. |
 | Buttons, menus, dialogs | hand-written HTML and CSS | Shoelace web components | Done (UX.40). Uses the approved icon set. Shoelace 2.20.1 is its final release; see section 5. |
 | Tables | `tabledisplay.py` | TanStack Table and TanStack Virtual | Done (UX.41, PR #606). The server still pages 50 rows. |

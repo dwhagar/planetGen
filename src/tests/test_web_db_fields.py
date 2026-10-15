@@ -9,6 +9,9 @@ rogue planets folded into one Contents row, plus the nebula or remnant
 a system or phenomenon sits inside (schema v39).
 """
 
+import html
+import re
+
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
@@ -21,10 +24,15 @@ class _Config(Config):
     SECRET_KEY = "test-secret"
 
 
+def _plain(text):
+    """A field's text without the measurement span around it (UX.78)."""
+    return html.unescape(re.sub(r"<[^>]*>", "", str(text)))
+
+
 def _fields(kind, detail):
     """label -> text (the class links are checked in test_class_pages.py)."""
     with create_app(_Config).test_request_context("/"):
-        return {label: text for label, text, _url in system_pages.phenomenon_fields(kind, detail)}
+        return {label: _plain(text) for label, text, _url in system_pages.phenomenon_fields(kind, detail)}
 
 
 def test_black_hole_class_and_rogue_mass_class_rows():
@@ -144,7 +152,7 @@ def test_phenomenon_inside_links_its_cloud(monkeypatch):
 def test_system_detail_names_the_containing_nebula(mysql_config):
     from planetgen.db import query
     from planetgen.db import store
-    from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
+    from tests.test_db_persistence import _placed_nebula, _sector_with_one_system, _system_point_pc
 
     sector_id = store.save_sector(_sector_with_one_system("Misty"), config=mysql_config, galaxy_position={
         "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
@@ -152,7 +160,10 @@ def test_system_detail_names_the_containing_nebula(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         with conn:
-            nebula_id = _placed_nebula(conn, sector_id, (101.0, 0.0, 0.0), radius_ly=100.0, nebula_class="E")
+            # The system's own point, not one near it: the shape is random, and a point a parsec off can be
+            # outside it (TEST.157).
+            nebula_id = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=100.0,
+                                       nebula_class="E")
         system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
         inside = query.system_detail(conn, system_id)["inside"]
         assert (inside["type"], inside["id"]) == ("nebula", nebula_id)

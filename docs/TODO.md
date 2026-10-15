@@ -331,19 +331,6 @@ with `clamp()`.
     the outline is the coplanar-merged edge set.
     Prerequisite: UX.47.
 
-- [ ] **UX.78 Unit preference: Automatic, Metric only or Customary**
-  Stored in `localStorage` key `planetgen.units` and applied by
-  re-rendering `.qty` spans from `data-si`; a header menu on
-  `sl-dropdown`. UX.42 (done, PR #1466) was wording only; do not fold units into it.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: the
-  three presets, per browser).
-  Progress (2026-10-15): part 1 merged in PR #1523 (the shared unit
-  ladders in Python and the browser know Automatic, Metric only and
-  Customary, parity-tested). Part 2 (the header menu and the page
-  spans) remains; the item retires with it.
-  Prerequisite: UX.23.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
   `vendor/shoelace/assets` and `icons.svg` uses `currentColor`; recheck
@@ -513,8 +500,28 @@ with `clamp()`.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
+  Progress: merged into the switch branch claude/spherical-switch with
+  UX.112 (PR #1601, 13:46Z). The item retires when the final switch PR
+  reaches main. Docs wording UX left behind is under DOC.46.
   Prerequisites: DB.32, GEN.227.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **UX.112 Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt**
+  Boss, 2026-10-15 08:01Z: "Make the galaxy map redirect to a page
+  saying that a correlative update is underway and give a general ETA on
+  when it should finish if one is available, in fact make the entire
+  site and database access unavailable to anyone but admin while the
+  maps are being rebuilt." Done: a maintenance mode that closes the site ONLY while the maps are being updated and leaves it open otherwise (Boss, 08:03Z: not "off by default"). It comes on automatically when the spherical switch is applied (the migration, or the update step right after it) and goes off automatically when Maps' new map lands; an admin command-line command and an admin page toggle stay as manual overrides, with a free-text ETA the admin can set. While on, every
+  non-admin web page answers with a 503 page that says an update is
+  underway and shows the ETA if one is set (the Galaxy Map redirects to
+  it), and every API call and database read answers with 503 JSON;
+  admins see the site normally with a banner saying maintenance mode is
+  on. The mode is stored where the web workers and the queue both see
+  it. Used by the spherical switch: MAP.205 and MAP.206 clear it when the new map lands. Owner: UX lane, in progress as part of the
+  spherical switch (PR into claude/spherical-switch).
+  Progress: merged into claude/spherical-switch with UX.111 (PR #1601,
+  13:46Z); the item retires when the final switch PR reaches main.
+  Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1358,8 +1365,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
-  Prerequisites: none to start (Boss released Maps, 07:31Z): build in
-  parallel on a branch and merge after the DB.32 + GEN.227 + UX.111 switch.
+  Prerequisites: none to start (Boss released Maps, 07:31Z): build in parallel on a branch and merge after the DB.32 + GEN.227 + UX.111 switch. Clears maintenance mode (UX.112) when the new map lands.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **MAP.206 Galaxy Map drawing on shells**
@@ -1371,8 +1377,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisite: MAP.205 (build in parallel on a branch, merge after the
-  DB.32 + GEN.227 + UX.111 switch).
+  Prerequisite: MAP.205 (build in parallel on a branch, merge after the DB.32 + GEN.227 + UX.111 switch). Clears maintenance mode (UX.112) when the new map lands, with MAP.205.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## NAV: Navigation and courses
@@ -3273,29 +3278,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stop (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **GEN.225 Outline and bounds on shells**
-  Follow-up to GEN.224 (merged, PR #1549), done in the same PR: swap the
-  wedge-count rule in `planetgen/galaxy/spherical.py` for Boss's single
-  rule (07:17Z): every band of every shell has 6 * m wedges, m using
-  only the primes 2, 3, 5 and 7 and nearest the 4 pc arc, caps stay at
-  6, no window or outline dependence, wedge 0 starts at the +X meridian;
-  the thread decides whether the shell 1 to 3 hand table is still needed
-  and removes it if the rule alone covers those shells.
-  `skeleton.py` builds the outline as a band range per shell (and the
-  column view); `GalaxyBounds.contains` and `random_address` use it.
-  The outline only limits what may be generated: it never decides which
-  cells exist, and `address_at` (GEN.224) still answers outside it
-  (Boss, 2026-10-15 06:59Z, no undefined space). Done: cells counted
-  against the cylinder's; a test shows a point outside the outline has
-  an address and is refused by `contains` only for generation. Owner: Spherical Sector
-  Coordinates thread. Source: item 2 of section 6 of the plan. Boss
-  decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
-  pole make a wedge (vert), shell (radius), and band (horizontal),
-  together they identify a single 3D segment of the sphere". TOP
-  PRIORITY in Phase 1, ahead of every lane queue.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
 - [ ] **GEN.226 Addresses on shells: designation, sector ID, seeds and object ID**
+  Progress (2026-10-15): PR #1551 did the designation, the object-ID
+  shell, band and wedge fields and the geometry extras; the sector ID
+  function and the stored rows ride DB.32, so this item stays open until
+  they land.
   `provisional_sector_designation`, `sector_uid`, the 40-bit
   birth-sector field and the per-sector seed string use shell, band and
   wedge; width checks are added to the plan step; the GEN.69 and GEN.170
@@ -3308,6 +3295,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **GEN.227 Generation paths on shells**
+  Progress (2026-10-15): merged into the integration branch
+  `claude/spherical-switch` as PR #1576 (part 1 PR #1570); it retires when
+  the final switch PR reaches main. ADM.30's old "cylinder height = X
+  layers" no longer applies: `--radius-pc` is a pure ball. The block-totals
+  step and `--fill-block-stats` are gone until MAP.205. Three tests stay
+  red until other work lands: the Sector Map bounds test (Maps, MAP.205/
+  206), the Generate page span test (UX, UX.111) and a sandbox-only
+  migration test.
   `run_plan`, `run_galaxy`, `bright_stars`, `phenomenon_scatter`,
   regions, spans and fills use the new grid: GEN.24 core by whole
   shells, ADM.29 and ADM.30 as shell and band ranges, GEN.101 fill
@@ -3316,8 +3311,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   meridian lines from pole to pole make a wedge (vert), shell (radius),
   and band (horizontal), together they identify a single 3D segment of
   the sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: GEN.225, GEN.226, DB.32.
+  Prerequisites: GEN.226, DB.32.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+
+- [ ] **GEN.228 Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug)**
+  Boss, 2026-10-15 07:44Z: binary star systems must be stable. Check the
+  Hill sphere of not only the two stars but of the farther orbit on
+  each, so the orbital paths of a wide binary never intersect. Boss has
+  seen two systems in his last generated galaxy whose wide-binary paths
+  overlap significantly and would eventually cause planetary collisions
+  and chaos, and does not want to deal with that. Done: generating a
+  binary rejects or moves any layout where the outermost stable orbit of
+  either star (limited by its Hill sphere in the pair) reaches the other
+  star's orbit region or planet paths; a test generates many wide
+  binaries and finds none whose orbital paths overlap. Follow-up check,
+  in this item: do the already generated wide binaries need a repair or
+  re-roll pass? Report how many break the rule; the repair itself needs
+  Boss's word. Owner: Generate lane, queued after the sector remapping
+  (after the DB.32 + GEN.227 + UX.111 switch merges).
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3861,11 +3873,26 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   rename to phi6* is not planned.
 
 - [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything**
-  Switch (2026-10-15): DB.32, GEN.227 and UX.111 must land as one switch,
+  Progress (2026-10-15): merged into the integration branch
+  `claude/spherical-switch` as PR #1574 (not yet on main; it retires when
+  the final switch PR merges). Left for the others on that branch: Maps
+  (MAP.205, MAP.206) replaces the Galaxy Map queries that now raise
+  NotImplementedError (galaxy_bright_stars_in_box,
+  galaxy_scattered_points_in_box, galaxy_filled_in_box, galaxy_stage,
+  galaxy_block_sums, galaxy_block_stats, galaxy_window,
+  galaxy_stage_keys); Generate (GEN.227) moves run_plan.py off
+  store.get_galaxy_layers and fill_block_stats, and the test helpers in
+  tests/test_galaxy_gen.py off outer_ring_index. Sector-less star systems
+  stay unplaced with their IDs until GEN.223.
+  Switch (2026-10-15): DB.32, GEN.227 and UX.111 land as one switch,
   because the schema rename breaks the store, queries, generation and the
-  Galaxy Map code at once; the Galaxy Map's state in between is a question
-  with Boss. GEN.224 (PR #1549) is merged; its wedge-count rule is replaced by
-  the one Boss decided at 07:17Z (see GEN.225).
+  Galaxy Map code at once. Structure: a shared integration branch
+  `claude/spherical-switch`, owned by the Spherical Sector Coordinates
+  thread; Database (DB.32), Generate (GEN.227) and UX (UX.111) each open
+  their PR into it, and one final PR goes to main after Boss's word.
+  GEN.224 (PR #1549) and GEN.225 (PR #1551) are merged; the wedge-count
+  rule is Boss's 07:17Z one (6 * m, primes 2, 3, 5, 7; shell 1 stays
+  hand-cut: 12 wedges, cap 37.5 degrees).
   A new Alembic revision renames `ring_index`, `layer_index` and
   `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` in
   the seven address-keyed tables, and adds the old-schema fixture. It
@@ -3889,14 +3916,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   new ID built from its new sector in the conversion, and every table
   that stores an object ID is rewritten with it; positions are
   unchanged. Nothing is regenerated and nothing is deleted except sector
-  rows. Merged only with Boss's go-ahead (it rewrites the
-  whole sector map). Owner: Spherical Sector Coordinates thread (the
+  rows. The final PR to main merges on a green gate without waiting for
+  Boss's word (Boss, 07:56Z: "Do not wait for my word to merge unless
+  there becomes an outstanding question that you do not have a reasonable
+  default for"), even though it rewrites the whole sector map. Owner: Spherical Sector Coordinates thread (the
   only migration lane while this runs). Source: item 4 of section 6 of
   the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
   lines from pole to pole make a wedge (vert), shell (radius), and band
   (horizontal), together they identify a single 3D segment of the
   sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: GEN.225, GEN.226.
+  Prerequisite: GEN.226.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## API: The JSON API
@@ -4442,8 +4471,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -4460,7 +4488,7 @@ clears each one.
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
   open for the first recurrence (with the captured seed): the test pins
   the star type, so a different stored type may be a real pin bug in the
-  product, not test luck. Owner: the Test Suite Rebuild thread.
+  product, not test luck. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -4512,8 +4540,7 @@ clears each one.
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
   into the rebuild, no separate hunt; stage 1 runs the browser tests as
   a separate phase on two workers; closed after 5 clean full runs, and
-  stage 4 gives any still timing out a state-based wait. Owner: the Test
-  Suite Rebuild thread.
+  stage 4 gives any still timing out a state-based wait. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
   tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
   failed once in the NAV.9 run under load, passed alone.
@@ -4538,8 +4565,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -4555,8 +4581,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Sighting (Foundations lane 1, 2026-10-14, full suite of 39 min 51 s
   with PERF.89): tests/test_work_queue_admin.py::
   test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
@@ -4581,7 +4606,7 @@ clears each one.
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
   implement, one small PR, number 4 in the thread's order; the stored
   last-updated time is compared the way MySQL 8.4 rounds it; the thread
-  installs MySQL 8.4 to verify. Owner: the Test Suite Rebuild thread.
+  installs MySQL 8.4 to verify. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Status (2026-10-09): Fixed by the Test Suite Rebuild thread
   (2026-10-14, #1313, suite green): the stored last-updated time is
   compared the way MySQL 8.4 rounds it. Retire this item once the
@@ -4603,8 +4628,7 @@ clears each one.
   cannot pass by luck. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
   implement, one small PR, number 5 in the thread's order; the test
-  draws a system with a comet every time. Owner: the Test Suite Rebuild
-  thread.
+  draws a system with a comet every time. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Status (2026-10-09): Test Suite Rebuild thread (2026-10-14, #1313):
   not reproducible; the test now builds comets by construction so it
   exercises the comet path every time. Stays open until the cause is
@@ -4626,25 +4650,6 @@ clears each one.
   builder.
   Prerequisite: GEN.198. Related: GEN.198, GEN.115.
 
-- [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
-  Reported by Bugfixes lane 2 (2026-10-10 21:06Z):
-  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
-  failed once in the NAV.42 full run (`-n 4`, about 4 parallel workers
-  on one box, started 19:21Z) and passed on both of 2 re-runs alone; it
-  was not run on main while failing and the failure message was not
-  kept. Done: the next failure's traceback is captured (or a loaded run
-  reproduces it), the cause is found (a shared scatter table or marker
-  between workers, a draw that sometimes leaves a star, or a real
-  leftover-star bug in the failed-layer path) and the test is made
-  reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
-  Prerequisites: none. Related: TEST.111, TEST.128.
-
 - [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
   Bugfixes lane 1 (2026-10-10, full local suite 19:41Z to 20:54Z, -n 4):
   src/tests/test_web_jobs_damage.py::test_many_processes_starting_at_once_start_one_job
@@ -4657,8 +4662,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -4673,8 +4677,7 @@ clears each one.
   the test and it passes on 2,000,000 systems. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
   implement after TEST.133 and DB.24, in the same opt-in `budget` tier;
-  Foundations lane 1 drops it from its queue. Owner: the Test Suite
-  Rebuild thread.
+  Foundations lane 1 drops it from its queue. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisite: none (TEST.133 done, #1405). Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4691,9 +4694,8 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
-  Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
+  Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-10 23:33Z):
@@ -4708,7 +4710,7 @@ clears each one.
   Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
   into the rebuild, no separate hunt; same family and fix as TEST.126.
-  Owner: the Test Suite Rebuild thread.
+  Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
@@ -4728,7 +4730,7 @@ clears each one.
   (4) the full run is much shorter than the present 30 to 70 minutes,
   and (5) the flaky tests (TEST.111, TEST.116, TEST.125 to TEST.130,
   TEST.132, TEST.134, TEST.137, TEST.138) are fixed or replaced as part
-  of it. Owner: the Test Suite Rebuild thread (a dedicated thread,
+  of it. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread) (a dedicated thread,
   started 2026-10-14 12:18Z); the lanes keep running the full suite
   before they merge until it lands.
   Since 2026-10-14 14:01Z (Boss) the thread also owns every test-fix
@@ -4755,6 +4757,20 @@ clears each one.
   Progress (2026-10-15): PR #1546 sped up two slow Galaxy Map browser tests
   (203 s to 13 s and 164 s to 29 s; changed gate PASS in 19 min 20 s); the
   rest of stage 4 and stage 5 remain.
+  Progress (2026-10-15, Quality, PR #1572): the browser phase runs in 19 min
+  12 s on an idle 4-core machine, the unfilled-sector test went from 109 s
+  to 21 s, and a 2-minute default Playwright wait is set for every browser
+  context (tests/browser_waits.py); the map-help dialog load flake is
+  fixed; the 5-clean-run proof for TEST.126, TEST.138 and TEST.144
+  continues. Known red: test_redis_health fails once in the widened
+  changed run and passes alone.
+  Progress (2026-10-15, Quality, PR #1578): TEST.111, TEST.116, TEST.127,
+  TEST.128, TEST.134 and TEST.140 each looped 60 times on an idle machine
+  with no failures, TEST.137 and TEST.141 40 times per case with no
+  failures (details in docs/design/test-suite-rebuild.md section 22); they
+  stay open for the 5-clean-full-runs proof. TEST.129 was fixed earlier
+  (PR #1313) but is unverified on MySQL 8.4 (Quality only has MariaDB
+  10.11), so it waits for the scheduled 8.4 run on main.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
   Status (2026-10-09): Stage 2 merged (Test Suite Rebuild thread,
@@ -4816,8 +4832,7 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -4833,9 +4848,8 @@ clears each one.
   into the rebuild, no separate hunt; stage 1 keeps each failure's
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: the Test Suite Rebuild
-  thread.
-  Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
+  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
+  Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite -n 4,
@@ -4849,7 +4863,7 @@ clears each one.
   Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
   /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
   into the rebuild, no separate hunt; same family and fix as TEST.126.
-  Owner: the Test Suite Rebuild thread.
+  Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
@@ -4865,8 +4879,7 @@ clears each one.
   skips them, and what must invalidate a resume: any changed file,
   database or Redis state, the Python or library versions) with a
   recommendation, and Boss picks one; the build is then filed as its own
-  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: the Test
-  Suite Rebuild thread, part of TEST.139, not a lane.
+  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread), part of TEST.139, not a lane.
   Decided (Boss, 2026-10-15, tapped Build
   it): option A, a per-test progress log plus an explicit
   `scripts/test.py <command> --resume`, same build id only; not
@@ -4890,24 +4903,12 @@ clears each one.
 
 - [ ] **TEST.156 Rewrite the tests that name ring, layer and slot**
   The 79 affected test files are rewritten as each of the grid items
-  lands; a MISSED line is a selection bug. Owner: Test Suite Rebuild
-  thread. Source: item 9 of section 6 of the plan. Boss decided the
+  lands; a MISSED line is a selection bug. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread). Source: item 9 of section 6 of the plan. Boss decided the
   move (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
-- [ ] **TEST.157 A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug)**
-  Generate saw
-  tests/test_web_system_phen.py::test_system_detail_names_the_containing_nebula
-  fail once in a full run and in 1 of 16 solo reruns (found while
-  merging POP.12, PR #1554), so it is flaky on its own, not only under
-  load. Find the cause (likely a random system or nebula placement that
-  sometimes does not contain the system) and make the test
-  deterministic, then add it to the rebuild's flake list. Owner: Test
-  Suite Rebuild thread.
-  Prerequisites: none.
 
 ## USR: User accounts
 
@@ -5436,7 +5437,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
   interface." Done: the coordinate frames (galactic, sector, system),
-  the unit ladder and when a unit switches (UX.22, UX.23, UX.78, UX.81),
+  the unit ladder and when a unit switches (UX.22, UX.23, UX.78 (done, PR #1562), UX.81),
   sector addresses and paths, the object ID (GEN.170), the epoch and
   time scales, and the in-universe terms (UX.42, done), each with a worked
   example. The page is a Markdown file in docs/help/ built into the Help
@@ -5505,44 +5506,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   cli/generate.py, generation/run_*.py). Done: each package docstring
   lists its modules and every queryDb mention names the real module; no
   behaviour changes.
+  Plan (Quality): files the spherical switch does not touch go first (the
+  queryDb rename and package docstrings); api/routes.py, apiclient.py,
+  store.py and the rest of the switch files follow after it merges.
+  This item stays open until then.
+  Part 1 done (PR #1602, Quality): the package module lists for api, queue,
+  db, cli, physics, util, names and generation, the queryDb names in 13
+  files, and the create_app location. Left: the files the spherical
+  switch changes (api/routes.py, web/lib/apiclient.py, db/store.py,
+  galaxy/__init__.py and about 50 more), after it merges.
   Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.22 Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  34 to 40 and 51. orbital-updates.md says nothing implements
-  next_update_due (GEN.106 to GEN.108 built it), has a duplicated
-  heading and points to a file that is not in the repo;
-  slow-reads-and-timeouts.md says nothing is built (PERF.68, 69, 70, 74,
-  76, 77, UX.96 and UX.97 are done); login-brute-force-protection.md
-  lacks the 503 Busy page (ADM.53); ops-scheduling-and-rotation.md is
-  behind on OPS.8 (built), OPS.18, ADM.19 and ADM.20 (dropped) and
-  OPS.39 (Windows removed); test-suite-rebuild.md says stage 1 is not
-  built (stages 1 and 2 merged, #1280 and #1323);
-  db-check-and-parity-repair.md is headed research although DB.8 is
-  built; population-and-politics.md says the web pages are not built
-  (POP.5 is done); course-routing.md's checked-at line needs
-  re-verifying. Done: each note says what is built.
-  Prerequisites: none. Related: TEST.139.
-
-- [ ] **DOC.23 Update the nebula, object ID and map-data-layer notes to what merged**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  24 to 28 and 32. nebula-map-visibility.md and
-  nebula-density-vs-reality.md still say nothing is built although DB.24
-  built nebula_field (classes M and N only, no object id until a sector
-  stores the cloud) and GEN.205 built --redo-nebula-field; the
-  nebula_field.py docstring does not mention the table;
-  object-id-options.md still opens research only (decided and built:
-  GEN.170 to 172, GEN.176, DB.20, API.23); object-ids.md says GEN.172,
-  GEN.176 and API.23 follow (all done); galaxy-drilldown-navigation.md
-  lists MAP.56 as planned (done, #408). The top banner of the drilldown
-  note is blocked on MAP.151d. Done: each note says what is built.
-  Prerequisites: none. Related: MAP.151 (done, PR #1539).
 
 - [ ] **DOC.24 Bring Python 3.12, numba and astropy into the research notes and three source comments**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5558,38 +5531,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   queue/work.py (247) and cli/generate.py (1376). PERF.88 (the numba
   sector-path integrator) is still open, so say so. Done: the notes and
   comments match OPS.42 and GEN.211.
+  Progress (PR #1592, Quality): the notes and two of the comments are
+  done. One leftover: the Python 3.9 docstring and workaround
+  `reject_lost_option_values` in cli/generate.py is dead on 3.12; Quality
+  removes it after the spherical switch merges, because generate.py is in
+  the switch.
   Prerequisites: none. Related: PERF.88.
-
-- [ ] **DOC.25 Refresh docs/design/design-decisions.md: mark the reversed and built decisions**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  41 to 45. Decision 7 (system Python) is reversed by OPS.45 (merged, #1333,
-  so say reversed); decision 10 (drill-down instead of a free camera) is
-  being replaced by MAP.146; decisions 11 to 13 say planned but are
-  built or largely built; section 5 still describes DBUtils.PooledDB and
-  schema v43 (it is now SQLAlchemy QueuePool and v83); the file has no
-  status line. Done: each decision says in force, reversed or built,
-  with the item.
-  Prerequisites: none. Related: OPS.45, MAP.146.
-
-- [ ] **DOC.26 Give every design note a status line and refresh the stale ones**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, the
-  status list and findings 13, 16, 17, 29 to 31, 33 and 50. Sixteen
-  written notes lack a status (decided, built, partly built, superseded)
-  and the 22 imported research files carry no header at all (they need a
-  one-line banner: imported research, not edited);
-  scatter-queue-feasibility.md, generation-performance-study.md,
-  math-and-library-efficiency.md, galaxy-map-wire-format.md,
-  fly-through-view-distance.md, drilldown-region-sizes.md,
-  gravity-map.md and population-and-politics.md open with research only
-  or not built although parts are built. Done: each note says what is
-  built and what is not, with the PR.
-  Prerequisites: none.
 
 - [ ] **DOC.27 Update the architecture.md flows and add a design-notes index at docs/design/README.md**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5601,6 +5548,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   note is listed in architecture.md or any index, and three imported
   notes have no inbound link. Done: the flows match the code and
   docs/design/README.md lists every note with its status line.
+  Progress (PR #1598, Quality): the design-notes index at docs/design/README.md
+  is done. The architecture.md flows wait for the spherical switch,
+  because they name the ring, layer and slot modules.
   Prerequisites: none.
 
 - [ ] **DOC.28 Rewrite the code map in docs/design/architecture.md for the planetgen packages**
@@ -5617,31 +5567,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   line per real module, no dead link, and docs/design/architecture.html
   (the architecture artifact) is rebuilt from it.
   Prerequisites: none.
-
-- [ ] **DOC.29 A docs link check in the test suite, and a note that the web interface has no help or about page yet**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, finding
-  48, with 30 and 46. Broken relative paths (mdconvert.py, the
-  .planetgen link) and 11 dead links in architecture.md went unnoticed.
-  Done: a test fails when a relative link or anchor in any docs markdown
-  file does not resolve (the sweep's links.py and anch.py helpers are a
-  start); html-interface.md says that DOC.6 is what adds the help
-  section.
-  Prerequisites: none. Related: DOC.6, TEST.139.
-
-- [ ] **DOC.30 Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  44 to 47. The class table omits class S; the moon blacklist is Q, S
-  and V; class Q is marked non-habitable but is in
-  HABITABLE_PLANET_CLASSES; line 3 has a broken link; starData.py no
-  longer exists. Done: the tables match the code constants and every
-  link resolves.
-  Prerequisites: none. Related: DOC.4.
 
 - [ ] **DOC.31 Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5714,17 +5639,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/design/api-design-standards.md.
   Prerequisites: none.
 
-- [ ] **DOC.35 Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, finding
-  7. These modules have no reference; the doc also implies an
-  update-orbits command, but the real one is planetgen.cli.orbits. Done:
-  a section in cli.md, or a page linked from it, gives each tool's
-  purpose, usage and a safe example.
-  Prerequisites: none. Related: DOC.4.
-
 - [ ] **DOC.36 Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
@@ -5745,131 +5659,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   matches planetgen --help for every subcommand; any star count or run
   time quoted is measured, not copied. Covers the cli.md part of DOC.4.
   Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.37 Rewrite the install docs for the venv install (OPS.45 merged, #1333)**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, finding
-  17. OPS.45 merged (#1333, 2026-10-14): the venv is at /usr/local/planetgen/venv and install.sh and update.sh were rewritten, so the install paths, the Python the services use
-  and where packages live all change: INSTALL.md,
-  docs/deployment/apache.md, nginx.md, caddy.md, macos.md, paas.md,
-  docs/server-checklist.md, README.md and the header comments of
-  install.sh, update.sh and scripts/install-python-deps.sh. Boss must add python-home=/usr/local/planetgen/venv to the
-  WSGIDaemonProcess planetgen-api line of his Apache site, so every Apache guide says so. Done: every
-  one of them describes the venv, how mod_wsgi, the CGI scripts and the
-  services use it, and how to rebuild it.
-
-- [ ] **DOC.38 Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  28 to 30. config.md says page_cache is not in config.json.example
-  although it is now, with stored_counts; PLANETGEN_WORKERS is in
-  neither the options table nor the environment-variable section; the
-  planetgen-gunicorn.service comment still describes memory://
-  rate-limit storage. Done: the prose matches config.json.example and
-  the code, and the service comment is corrected.
-  Prerequisites: none.
-
-- [ ] **DOC.39 Fix the README facts, the documentation table and the headline rule (Boss decision)**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  25 to 27. README names planetgen.db.query, which has no main; the
-  command is planetgen.cli.query. The README docs table omits
-  WINDOWS.md, server-checklist.md, ci-runners.md, system-file-format.md
-  and others. The rule that every release opens with a Headline has not
-  been followed since 8.0.912 (157 releases). Default: restore the rule
-  from the next release on and say so in changes/README.md, leaving the
-  earlier releases without one; Boss may instead drop the rule. Done:
-  README facts and table are correct, and the headline rule text matches
-  what is done.
-  Decided (Boss, 2026-10-14 19:54Z, on a decision
-  card relayed by the coordinator): restore the rule. Every release from
-  the next one on opens with a Headline line, and changes/README says
-  so.
-  Prerequisites: none.
-
-- [ ] **DOC.40 Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  8 and 19 to 24. The test job has five legs, not three runs on 3.12;
-  testing.md omits scripts/test.py changed and full --check (TEST.139,
-  #1323), PLANETGEN_TEST_REDIS_URL and how to start Redis; ci-runners.md
-  omits the Redis container and the dependency-audit job; README
-  Contributing and INSTALL Development setup present plain pytest as the
-  way to run. Done: both docs match the workflow file and the runner,
-  say that the full suite stays the merge gate and changed is a fast
-  loop, and give the Redis setup.
-  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 49
-  minutes (49 min 14 s measured after #1367, 59 min 43 s before); any
-  figure for the full run's length in docs/testing.md or the rebuild
-  note should say about 50 minutes, not 60.
-  Prerequisites: none. Related: TEST.139.
-
-- [ ] **DOC.41 Fix the activity-log file name in the fail2ban guide and the shipped jail**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, finding
-  18. docs/deployment/fail2ban.md and
-  examples/fail2ban/planetgen.jail.conf (lines 19 to 21) name the
-  activity log planetgen-log, but the real file is planetgen.log, so the
-  shipped jail does not match the log as written. Small; can go first.
-  Done: the guide, the jail and the apache.md wording name the real
-  file, checked against what install.sh creates.
-  Prerequisites: none.
-
-- [ ] **DOC.42 Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  14 to 16. INSTALL.md leaves out the math check, the version key, the
-  Redis check and the background warm_map step; INSTALL.md and
-  docs/deployment/apache.md tell the reader to reload Apache by hand
-  although update.sh reloads it when it is running (OPS.8); INSTALL.md
-  says the debug log is only set up when debug is on, but it is always
-  set up along with the activity log. Done: the step lists match the
-  scripts line by line.
-  Prerequisites: none.
-
-- [ ] **DOC.43 Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  9 to 13. setup.py requires Python 3.12 (OPS.42), but
-  docs/deployment/macos.md says 3.10 or later and
-  scripts/install-python-deps.sh still checks for 3.10 (lines 531 to
-  534), docs/ci-runners.md talks about Python 3.9, INSTALL.md and
-  docs/deployment/apache.md name Debian 12 and Ubuntu 22.04 as supported
-  although Debian 12 ships Python 3.11, the apt package list in
-  apache.md is incomplete, and numba is never mentioned; nginx.md and
-  macos.md use an unhashed pip install. Done: every guide states the
-  real minimum and how to get it on each supported system, and the
-  installer's check matches setup.py (a small code change, with a test).
-  Prerequisites: none.
-
-- [ ] **DOC.44 Add Redis to the install and deploy docs: it is required, and no guide lists it**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  1 to 7, 29 and 30. Redis is a hard requirement (PERF.24, OPS.21) for
-  the Generate page and for more than one worker, but README, INSTALL,
-  the macOS brew lines, every deployment guide and
-  docs/server-checklist.md omit it, docs/deployment/README.md still says
-  nothing uses it yet, docs/deployment/paas.md omits Redis and the burst
-  workers, and scripts/deploy-common.sh carries a comment that says it
-  is unused. Done: each guide names the Redis package, how to start it
-  and check it, and PLANETGEN_WORKERS; the false comment is corrected.
-  Prerequisites: none.
 
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -6094,6 +5883,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Prerequisite: none (POP.12 done, PR #1554). Related: POP.10 (done, PRs #1517 and #1524), POP.9, ADM.9.
 
 - [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
+  Progress (2026-10-15): Generate built it and saved it on the branch
+  `claude/pop14-held` (not merged, not started on main); the Core lane
+  starts from that branch. It waits on DB.30 for storage.
   Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
   consistency that if we put a race on a planet it is within the limits
   of what can survive there." Done: (1) one check, built on the species

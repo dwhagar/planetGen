@@ -20,7 +20,7 @@ bookmarkable URL:
 - `<panel>_page`: each result panel's page (`sectors_page`, ...,
   `belts_page`).
 
-The query logic itself lives in `queryDb.search`, behind `GET /api/search`
+The query logic itself lives in `planetgen.db.query.search`, behind `GET /api/search`
 (`apiclient.get_search`, called in-process).
 """
 
@@ -40,7 +40,7 @@ from .helpers import db_name, page_url
 from .sector_page import PHENOMENON_TYPE_LABELS
 from .system_pages import object_url
 
-# Mirrors queryDb.SEARCH_TAG_FACETS (this layer talks to the database only
+# Mirrors planetgen.db.query.SEARCH_TAG_FACETS (this layer talks to the database only
 # through the API, so it doesn't import planetgen.db.query).
 TAG_FACETS = (
     "type", "spectral", "luminosity",
@@ -102,7 +102,7 @@ SIZE_ENTITIES = (
 SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity, _l, _p in SIZE_ENTITIES for bound in ("min", "max"))
 
 RESULT_PANELS = (
-    # (panel, heading) -- mirrors queryDb.SEARCH_RESULT_PANELS
+    # (panel, heading) -- mirrors planetgen.db.query.SEARCH_RESULT_PANELS
     ("sectors", "Sectors"),
     ("systems", "Systems"),
     ("stars", "Stars"),

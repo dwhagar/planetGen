@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [library-migration](library-migration.md), [map-ui-and-frontend-libraries](map-ui-and-frontend-libraries.md), [ops-scheduling-and-rotation](ops-scheduling-and-rotation.md), [settings-seo-and-accounts](settings-seo-and-accounts.md), [units-and-number-formatting](units-and-number-formatting.md).
+
 # Architectural Improvements & Simplification via Open-Source UX Libraries
 
 This proposal evaluates refactoring custom infrastructure within the `planetGen` codebase using production-ready open-source libraries across five distinct subsystems.

@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.112 |
+| UX | UX.113 |
 | MAP | MAP.207 |
 | NAV | NAV.60 |
-| GEN | GEN.228 |
+| GEN | GEN.229 |
 | PERF | PERF.102 |
 | DB | DB.33 |
 | API | API.26 |
@@ -521,29 +521,29 @@ Parents marked "new parent" had no old number of their own.
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | open |
 | DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | open |
-| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | open |
-| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | open |
+| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
+| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | done, PR #1599 |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
-| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | open |
-| DOC.26 | Give every design note a status line and refresh the stale ones | none | open |
+| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | done, PR #1594 |
+| DOC.26 | Give every design note a status line and refresh the stale ones | none | done, PR #1596 |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
-| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | open |
-| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | open |
+| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | done, PR #1581 |
+| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | done, PR #1586 |
 | DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | open |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | open |
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 | none | open |
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list | none | open |
-| DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | open |
+| DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | done, PR #1588 |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | open |
-| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | open |
-| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | open |
-| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | open |
-| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | open |
-| DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail | none | open |
-| DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | open |
-| DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | open |
-| DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | open |
+| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | done, PR #1594 |
+| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | done, PR #1586 |
+| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | done, PR #1590 |
+| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | done, PR #1581 |
+| DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail | none | done, PR #1584 |
+| DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | done, PR #1584 |
+| DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | done, PR #1584 |
+| DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | done, PR #1584 |
 | DOC.45 | Reference docs follow the description layer | none | open |
 | DOC.46 | Docs for the spherical sector grid | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
@@ -770,9 +770,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) | none | done, PR #1529 |
 | GEN.223 | The orbital update does not move the galaxy position of a star system that has no placed sector (bug) | none | open |
 | GEN.224 | Spherical grid module: shells, bands, wedges, caps and the core ball | none | done, PR #1549 |
-| GEN.225 | Outline and bounds on shells | none | open |
+| GEN.225 | Outline and bounds on shells | none | done, PR #1551 |
 | GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | none | open |
 | GEN.227 | Generation paths on shells | none | open |
+| GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1324,7 +1325,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
 | UX.76 | Icons and highlights follow the light and dark theme (bug) | none | done, PR #800 |
 | UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
-| UX.78 | Unit preference: Automatic, Metric only or Customary | none | open |
+| UX.78 | Unit preference: Automatic, Metric only or Customary | none | done, PR #1562 |
 | UX.79 | Python and JS round half-way values differently (bug) | none | done, PR #843 |
 | UX.80 | Negative values that round to zero print "-0" (bug) | none | done, PR #843 |
 | UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | done, PR #1504 |
@@ -1358,6 +1359,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.109 | Remove the old per-class description text | none | open |
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | open |
 | UX.111 | Reads, API and web wording on shells | none | open |
+| UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1586,7 +1588,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | open |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
-| TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
+| TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | done, PR #1578 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | done, PR #1405 |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
@@ -1611,7 +1613,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | done, PR #1486 |
 | TEST.155 | Wording and index agree: property test | none | open |
 | TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
-| TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | open |
+| TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | done, PR #1572 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

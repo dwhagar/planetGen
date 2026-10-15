@@ -2,6 +2,312 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1336] - 2026-10-15
+
+### Changed
+
+- TODO: recorded DOC.21 part 1 (PR #1602); the files the spherical switch changes remain.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1335] - 2026-10-15
+
+### Changed
+
+- TODO: recorded UX.111 and UX.112 as merged into the spherical switch branch (#1601); both stay open until the switch reaches main.
+
+TODO items resolved: none (UX.111 and UX.112 retire when the switch reaches main) / Added: none
+
+## [8.0.1334] - 2026-10-15
+
+### Changed
+- Docstrings: the api, queue, db and cli packages (which had none or a wrong one) and the physics, util, names and generation packages now list the modules they hold, `queryDb` names became `planetgen.db.query` in 13 files, and web docstrings name `web/app.py` for `create_app`. No behaviour changes. The files the spherical switch is changing are left for after it (DOC.21).
+
+## [8.0.1333] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.22 and DOC.23 (done in PR #1599); recorded progress on DOC.21 and DOC.27, which wait for the spherical switch.
+
+TODO items resolved: DOC.22, DOC.23 / Added: none
+
+## [8.0.1332] - 2026-10-15
+
+### Changed
+- Docs: the orbital, slow-reads, login, scheduling, test-suite, database-check, course-routing, nebula, object-ID and drill-down notes now say what is built and what is open, the login note gains a section on the 503 Busy page and skipped writes (ADM.53), and the orbital note names the real positional-update command (DOC.22, DOC.23).
+
+## [8.0.1331] - 2026-10-15
+
+### Changed
+- Docs: `docs/design/README.md` lists every design note and imported research file with what it covers and where it stands, and a test fails when a note is missing from it (DOC.27, the index part).
+
+## [8.0.1330] - 2026-10-15
+
+### Changed
+- Docs: the 14 design notes that had no status now open with one saying what is built (with the PR) and what is not, six stale statuses were corrected (including population and politics, whose pages and tech levels are built), and the 23 imported research files carry a banner saying they are Boss's documents kept as received and linking the design notes that use them (DOC.26).
+
+## [8.0.1329] - 2026-10-15
+
+### Changed
+- Docs: every decision in `design-decisions.md` now opens with a status (in force, reversed, built or being replaced) and the TODO item behind it, including system Python reversed by OPS.45 and the cylindrical grid being replaced by the spherical one; the deployment guide's gunicorn line names the virtual environment (DOC.25, DOC.37).
+
+## [8.0.1328] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.26 (done in PR #1596) from the execution plan and the phase file.
+
+TODO items resolved: DOC.26 / Added: none
+
+## [8.0.1327] - 2026-10-15
+
+### Changed
+- Docs: the 14 design notes that had no status now open with one saying what is built (with the PR) and what is not, six stale statuses were corrected (including population and politics, whose pages and tech levels are built), and the 23 imported research files carry a banner saying they are Boss's documents kept as received and linking the design notes that use them (DOC.26).
+
+## [8.0.1326] - 2026-10-15
+
+### Changed
+- Docs: every decision in `design-decisions.md` now opens with a status (in force, reversed, built or being replaced) and the TODO item behind it, including system Python reversed by OPS.45 and the cylindrical grid being replaced by the spherical one; the deployment guide's gunicorn line names the virtual environment (DOC.25, DOC.37).
+
+## [8.0.1325] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.25 and DOC.37 (done in PR #1594) from the execution plan and the phase file.
+
+TODO items resolved: DOC.25, DOC.37 / Added: none
+
+## [8.0.1324] - 2026-10-15
+
+### Changed
+- Docs: every decision in `design-decisions.md` now opens with a status (in force, reversed, built or being replaced) and the TODO item behind it, including system Python reversed by OPS.45 and the cylindrical grid being replaced by the spherical one; the deployment guide's gunicorn line names the virtual environment (DOC.25, DOC.37).
+
+## [8.0.1323] - 2026-10-15
+
+### Changed
+
+- TODO: recorded DOC.24 progress (PR #1592); one leftover waits for the spherical switch.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1322] - 2026-10-15
+
+### Changed
+- Docs: the research notes that still treated Python 3.9 and astropy as live (determinism, reproducible galaxies, units, library migration, galactic potential, orbital solvers, database check, API standards, scheduling) now carry a dated status line saying what OPS.42 and GEN.211 changed and what is still open (DOC.24). `queue/work.py` uses `add_note` and a `settings.py` comment no longer cites Python 3.9.
+
+## [8.0.1321] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.39 (done in PR #1590) from the execution plan and the phase file.
+
+TODO items resolved: DOC.39 / Added: none
+
+## [8.0.1320] - 2026-10-15
+
+**Headline:** Release notes can open with a Headline line, and the stamp keeps it under the release heading.
+
+### Changed
+- A release note may start with `**Headline:** <one sentence>` above its first section; `scripts/bump_version.py` accepts it, keeps it above the sections in `CHANGELOG.md` (also when two notes share a version), and `changes/README.md` states the restored rule (DOC.39). A note without one still releases.
+- Docs: the README names `planetgen.cli.query` (not `planetgen.db.query`) and its documentation table lists the server checklist, Windows page, system file format, example systems and CI runners pages.
+
+## [8.0.1319] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.35 (done in PR #1588) from the execution plan and the phase file.
+
+TODO items resolved: DOC.35 / Added: none
+
+## [8.0.1318] - 2026-10-15
+
+### Changed
+- Docs: `docs/cli.md` now has a Helper tools section giving the purpose, options and a safe example of `orbits`, `warm_map`, `worker`, `query`, `migrate`, `reset`, `lockouts`, `dedupe` and `config` (DOC.35).
+
+## [8.0.1317] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.30 and DOC.38 (done in PR #1586) from the execution plan and the phase file.
+
+TODO items resolved: DOC.30, DOC.38 / Added: none
+
+## [8.0.1316] - 2026-10-15
+
+### Changed
+- Docs: config.md now describes the page cache's stored counts and `PLANETGEN_WORKERS`, the gunicorn unit comment says rate limits count on the Redis server, and the planet class table in the system file format guide lists class S and Q's habitable flag as the code has them.
+
+## [8.0.1315] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.41, DOC.42, DOC.43 and DOC.44 (done in PRs #1583 and #1584) from the execution plan and the phase file.
+
+TODO items resolved: DOC.41, DOC.42, DOC.43, DOC.44 / Added: none
+
+## [8.0.1314] - 2026-10-15
+
+### Changed
+- **INSTALL.md and the Apache guide describe what `install.sh` and `update.sh` really do** (DOC.42). The update section now lists the NLTK check, the math check (a failure only warns), the version key, the Redis check and the background warm-up of the Galaxy Map tiles; Apache is reloaded by `update.sh` itself when it is running, so the guides no longer tell the reader to do it by hand; install step 8 says the debug log is made whether or not `debug` is on, with the activity log's folder, and the Redis install is described.
+
+## [8.0.1313] - 2026-10-15
+
+### Fixed
+- **The fail2ban jail and its guide named the wrong log file** (DOC.41). Both said `/var/log/planetgen/planetgen-log`, which is the logrotate file's name; the activity log is `planetgen.log`, so the shipped jail watched a file that does not exist and the guide's `tail` and `fail2ban-regex` commands failed. A test now checks the jail's `logpath` against the name the program writes.
+
+## [8.0.1312] - 2026-10-15
+
+### Changed
+- **Every install and deploy guide now says Redis is required** (DOC.44, DOC.43). README Requirements, the Apache, nginx, Caddy, macOS and PaaS guides and the server checklist name Redis, what runs on it (the Generate page's jobs, the work queue behind `--workers`, rate limits, login lockouts), how to start it and `redis-cli ping` to check it; the macOS brew line includes `redis`. `docs/deployment/README.md` no longer says nothing uses Redis yet. The same false claim in `scripts/deploy-common.sh` (a comment and the warning `install.sh` and `update.sh` print when Redis does not answer) is corrected. `docs/ci-runners.md` names Python 3.12 and 3.13, not 3.9.
+
+## [8.0.1311] - 2026-10-15
+
+### Changed
+
+- TODO: retired DOC.29 and DOC.40 (done in PR #1581) from the execution plan and the phase file.
+
+TODO items resolved: DOC.29, DOC.40 / Added: none
+
+## [8.0.1310] - 2026-10-15
+
+### Changed
+- **A test now fails when a relative link or anchor in the Markdown docs does not resolve** (DOC.29), and the testing and CI docs match the workflow (DOC.40). `test_docs_links.py` reads README.md, INSTALL.md and every `.md` under `docs/`; it found and I fixed 13 dead links (the code map of `docs/design/architecture.md` still named `src/stellarObjects/`, two pages linked a `.planetgen` file and a renamed heading). `docs/testing.md` and `docs/ci-runners.md` now describe the five CI test legs and their Redis containers, how to start Redis for a local run, and a full run of about 35 to 50 minutes; README and INSTALL point contributors to `scripts/test.py changed` and `full --check`. `docs/html-interface.md` says the site has no help page yet (DOC.6).
+
+## [8.0.1309] - 2026-10-15
+
+### Fixed
+- **The admin Stats page said Redis was not answering whenever a work-queue worker was registered** (found by `test_a_live_redis_reports_its_settings` in two full test runs). The Redis health check counted live workers with a helper that PERF.96 moved from `api_jobs` to `workers`, so it raised `AttributeError` as soon as one worker existed and the page showed the error text instead of the figures. It now calls `workers.process_exists` (the helper lost its leading underscore, as another module uses it), and a test registers one live, one dead and one remote worker.
+
+## [8.0.1308] - 2026-10-15
+
+### Changed
+- **`test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star` fills a cell that the backfill gave stars to** (TEST.132). The test filled the nearest cell the backfill reached, but the backfill draws each sector's stars from its mass and drew none for that cell in about 1 run in 20 (3 of 60 on an idle machine), so the fill found nothing preplaced. It now fills the nearest cell that did get stars; 100 of 100 runs pass. Test only.
+
+## [8.0.1307] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired the scatter test flake item (PR #1578) and recorded the clean loop runs of the other flaky tests as progress on the test suite rebuild item.
+
+TODO items resolved: TEST.132 / Added: none
+
+## [8.0.1306] - 2026-10-15
+
+### Changed
+- **`test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star` fills a cell that the backfill gave stars to** (TEST.132). The test filled the nearest cell the backfill reached, but the backfill draws each sector's stars from its mass and drew none for that cell in about 1 run in 20 (3 of 60 on an idle machine), so the fill found nothing preplaced. It now fills the nearest cell that did get stars; 100 of 100 runs pass. Test only.
+
+## [8.0.1305] - 2026-10-15
+
+### Changed
+
+- TODO.md: recorded the generation paths merged into the spherical switch branch (PR #1576) and what stays open until the other switch parts land.
+
+TODO items resolved: none (GEN.227 retires when the switch reaches main) / Added: none
+
+## [8.0.1304] - 2026-10-15
+
+### Changed
+
+- TODO.md: recorded the schema change merged into the spherical switch branch (PR #1574) and what it leaves for the generation and map work.
+
+TODO items resolved: none (DB.32 retires when the switch reaches main) / Added: none
+
+## [8.0.1303] - 2026-10-15
+
+### Changed
+
+- TODO.md: recorded the Quality lane's test speed-ups (PR #1572) as progress on the test suite rebuild item.
+
+TODO items resolved: TEST.157 (retired earlier) / Added: none
+
+## [8.0.1302] - 2026-10-15
+
+### Changed
+- **Browser tests wait longer before giving up, and four slow or flaky ones are fixed** (TEST.126, TEST.138, TEST.139 stage 4, TEST.157). Every browser context the tests make now has a 2-minute default wait instead of Playwright's 30 s, so a Galaxy Map test on a busy machine no longer fails with a timeout that passes alone (a wait still returns as soon as its condition holds). `test_the_map_help_is_a_menu_item_that_opens_a_dialog` now waits for the dialog element to be upgraded before it clicks (it failed once at 39 s under load and passed alone). `test_galaxy_map_an_unfilled_sector_stays_outlined_once_selected` asked "is there an uncharted sector here" with 20 full-map scans when the answer was no (109 s idle); it settles the map and scans once (21 s). `test_system_detail_names_the_containing_nebula` put its nebula at a point one parsec from the system, which the random nebula shape sometimes did not contain (failed in 1 of 16 solo runs, and in several of 300 loop runs before; 300 of 300 now pass).
+
+## [8.0.1301] - 2026-10-15
+
+### Changed
+
+- TODO.md: POP.14 notes that its finished work is saved on a held branch for the Core lane.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1300] - 2026-10-15
+
+### Changed
+
+- TODO.md and the lane report: test items are now owned by the Quality lane, which took over from the Test Suite Rebuild thread; new lane structure noted.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1299] - 2026-10-15
+
+### Changed
+
+- TODO.md: the maintenance mode closes the site only while the maps are being updated (on automatically with the spherical switch, off when the new map lands); MAP.205 and MAP.206 clear it.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1298] - 2026-10-15
+
+### Added
+
+- TODO.md: filed UX.112, a maintenance mode that closes the site and database access to everyone but admin while the maps are rebuilt, as part of the spherical switch.
+
+TODO items resolved: none / Added: UX.112
+
+## [8.0.1297] - 2026-10-15
+
+### Changed
+
+- TODO.md and the spherical sector plan: the switch to main merges on a green gate without waiting for Boss's word (Boss decided).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1296] - 2026-10-15
+
+### Added
+
+- TODO.md: filed GEN.228 (bug): wide binary star systems must be stable, with a check of the Hill sphere of the far orbit on each star, queued for the Generate lane after the sector remapping switch.
+
+TODO items resolved: none / Added: GEN.228
+
+## [8.0.1295] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired the unit preference item (PR #1562, both parts); the all-visitors banner item no longer waits on the run record.
+
+TODO items resolved: UX.78 / Added: none
+
+## [8.0.1294] - 2026-10-15
+
+### Added
+
+- A "Units" button in the settings menu switches measurements between Automatic (as before), Metric only and Customary (feet, miles, pounds, mph, psi, °F). The choice is remembered in your browser and applies to the star, planet, moon, belt and comet rows of a system page, the property tables of a phenomenon page, and the values the map panels show when they open.
+
+## [8.0.1293] - 2026-10-15
+
+### Changed
+
+- TODO.md and the spherical sector plan: recorded the uniform wedge rule as merged (PR #1551, GEN.225 done), GEN.226 as partly done, and the integration branch structure for the DB.32, GEN.227 and UX.111 switch.
+
+TODO items resolved: GEN.225 / Added: none
+
+## [8.0.1292] - 2026-10-15
+
+### Added
+- The galaxy outline on spherical shells (`skeleton.build_shell_extents`, `ShellBounds`): one band range per shell, built by bisection from the density bound; the default galaxy is 3,765 shells and about 24.20 billion candidate cells (the cylinder's 23.92 billion plus 1.2% in shells 928 to 1020, where the bound dips between the equator and the pole). Nothing stores or reads it yet.
+- Sector designations on the shell grid (`spherical.provisional_sector_designation`): shell, band and wedge in 12, 12 and 16 bits, the same 40 bits as the birth-sector field of an object ID, so a designation is the first group of every ID born in the sector. `skeleton.outline_object_id_layout` is the plan step's width check.
+- Sphere enumeration, the sectors along a segment, and cell description for the shell grid, for the generation paths and pages that move to it.
+
+### Changed
+- `object_uid` names its fields shell, band and wedge (the widths and the packing are unchanged).
+
+TODO items resolved: GEN.225, GEN.226 (the designation, ID fields and width check; the sector ID and stored rows switch with DB.32) / Added: none
+- The wedge count of a band is Boss's uniform rule (2026-10-15 07:17Z): `6 * m`, `m` a number with no prime factor above 7 nearest (in ratio) to the 4 pc arc, in every band of every shell from 4 out (caps stay 6 at the rim, shells 1 to 3 stay the hand table). Shell 4 now has 206 cells, the default outline 24.20 billion.
+
 ## [8.0.1291] - 2026-10-15
 
 ### Changed

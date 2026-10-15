@@ -37,7 +37,7 @@ import pytest
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
-from tests import areas, dbpool, failure_capture, publicids
+from tests import areas, browser_waits, dbpool, failure_capture, publicids
 
 # Every program a test starts (the generate CLI, a worker, a stand-in script) imports `planetgen` from this
 # checkout, not from whichever checkout the editable install points at (TEST.143, TEST.145): from a git
@@ -108,6 +108,7 @@ os.environ[_db.CONTROL_DB_ENV_VAR] = SESSION_CONTROL_DATABASE
 def pytest_configure(config):
     """Failure capture (TEST.139): with PLANETGEN_FAILURE_LOG set (scripts/test.py does), every failure's full report is kept."""
     failure_capture.register(config)
+    browser_waits.install()  # a longer default wait for every browser context (TEST.126)
 
 
 def _test_server_kwargs():

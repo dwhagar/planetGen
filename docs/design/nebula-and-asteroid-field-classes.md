@@ -186,6 +186,12 @@ generated. Now they belong to the galaxy (`planetgen/galaxy/nebula_field.py`):
   the neighbor lock unless a nebula is already stored at its center: the
   first sector saved that it reaches is its home sector, and containment
   is refreshed in every stored sector it reaches.
+- Since DB.24 (#1317, schema v83) the plan also writes the whole class M
+  and N field to the `nebula_field` table (`run_plan.build_nebula_field`),
+  and a sector that reaches a cloud the galaxy already holds links to it
+  instead of storing a copy; classes P and Q stay seed-only. The redo of a
+  galaxy's field is `plan --redo-nebula-field` (GEN.205, #1325). The
+  paragraph above is how a sector stores a cloud that is not in the table.
 - Result at the solar circle: about 13% of arm sectors and 4% of
   between-arm sectors sit inside a dark cloud. Emission, reflection and
   planetary nebulae still come with their stars.

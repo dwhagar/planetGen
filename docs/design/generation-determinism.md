@@ -6,6 +6,8 @@ Informs: GEN.55, GEN.57, GEN.58, TEST.77, OPS.12, OPS.13, OPS.14, OPS.15, DB.7, 
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. Finding 1 of the summary (a seed gives different galaxies on the 3.9 leg, because of `math.hypot` and `math.dist`) and rule 5 (freeze astropy-derived constants as literals) are resolved by dropping 3.9 and astropy; rules 2 (`util/detmath.py`, which does not exist) and 4 are still open. The environment record in section 5 and the golden file's `env` list no longer need an astropy entry.
+
 Evidence tags: [S] seen in a search result, [C] computed by the research run against `main` at c30d74a, [R] recalled and unconfirmed. The research environment could only read search-result text, not the papers or documentation themselves, and its web-search budget ran out before the first search, so there are no [S] items here and every prior-art claim is [R]. Code paths are under `src/planetgen/`.
 
 ## 1. Summary

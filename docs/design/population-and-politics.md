@@ -8,7 +8,7 @@ ratings.
 
 Informs: POP.7, POP.8, POP.9, POP.10 (new sections); POP.1 to POP.6 are built.
 
-**Status (2026-10-01, checked against 7.58.2):**
+**Status (2026-10-15, checked against the number map):** everything in the table below is built. The first rows are the original pass (7.49.0 to 7.58.2); the web pages (POP.5) and the later items are built since.
 
 | Part | Built in |
 |---|---|
@@ -17,8 +17,8 @@ Informs: POP.7, POP.8, POP.9, POP.10 (new sections); POP.1 to POP.6 are built.
 | Galaxy Map Territories overlay | 7.54.0, PR #179 |
 | Overlay hidden until a polity exists | 7.58.1, PR #181 |
 | Optional and off by default; `GET /api/population` | 7.58.2, PR #180 |
-| Web pages (Species list and page, polity page, "Dominant species", "Territory of ...") | not built yet |
-| Tech levels (POP.7 to POP.9) and facility types (POP.10) | designed here (2026-10-09), not built |
+| Web pages (Species list and page, polity page, "Dominant species", "Territory of ...") | POP.5, PR #184 (`web/population_pages.py`) |
+| Tech levels (POP.7 to POP.9) and facility types (POP.10) | designed here (2026-10-09); POP.7 and POP.9 PR #1461, POP.8 PR #1422, POP.10 PR #1524 |
 
 Boss's decisions are recorded in "Decisions", and the reasons for the main
 choices in "Why it works this way".

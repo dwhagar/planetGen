@@ -6,6 +6,8 @@ Informs: API.3, API.4, API.5, API.6, API.7, API.8, API.9, API.10, API.11, API.12
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. Library pins named for Python 3.9 (Flask-Limiter 3.11.0, pydantic 2.13.5) describe the old lock; re-check them against the 3.12 lock.
+
 Evidence tags: [S] seen in a source (URL in section 11), [C] computed or measured in the research environment, [R] recalled and unconfirmed (listed in section 11). The research environment could only read search-result text and raw files from GitHub and PyPI, not papers or RFCs, so every outside-standards claim is [S] from raw IETF, Apache, tus, Pydantic or oasdiff source text, or [R]. Absolute MB/s and millisecond figures came from a slow sandbox CPU and MariaDB 10.11 (CI targets 11.4); treat them as relative.
 
 Related: [reproducible-galaxies.md](reproducible-galaxies.md) (seed, version key, API.16 and API.17), [login-brute-force-protection.md](login-brute-force-protection.md) (lockouts, two-factor), [work-queue-audit.md](work-queue-audit.md) (which API paths run on the queue), [library-migration.md](library-migration.md), [object-ids.md](object-ids.md), [../api.md](../api.md) (the API as built).

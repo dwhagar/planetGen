@@ -30,7 +30,7 @@ PHENOMENON_KINDS = (
     "quasar",
 )
 """tuple: The standalone phenomenon kinds, matching the `type` values
-`queryDb.list_phenomena` returns."""
+`planetgen.db.query.list_phenomena` returns."""
 
 BODY_KINDS = ("star", "planet", "moon", "belt", "comet")
 """tuple: The kinds that live inside a system."""
@@ -48,7 +48,7 @@ TABLES = {
     "comet": "comets",
 }
 """dict: Each non-phenomenon kind's table (phenomena use
-`queryDb._PHENOMENON_TYPE_TO_TABLE`)."""
+`planetgen.db.query._PHENOMENON_TYPE_TO_TABLE`)."""
 
 _REF_RE = re.compile(r"^(?:([a-z_]+):)?(\d+)$")
 _PUBLIC_RE = re.compile(r"^(?:([a-z_]+):)?([0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2})$")

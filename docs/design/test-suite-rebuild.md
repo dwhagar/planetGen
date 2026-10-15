@@ -2,7 +2,7 @@
 
 Boss (2026-10-14 12:17Z): "rework, optimize, and rebuild our entire test suite from the ground up so that it runs faster and is modular (so we can if we choose only test the things that we changed in the last run)."
 
-Status: measurement and plan, 2026-10-14. Stage 1 onward is not built yet. Evidence tags: [M] measured in this work (numbers below), [S] seen in the repo, [E] estimated from a measurement.
+Status: stages 1 to 3 built and stage 4 mostly built (2026-10-15). Stage 1 (#1280: markers, `src/tests/areas.py`, `scripts/test.py`, failure capture), stage 2 (#1323: `src/tests/depmap.py`, `--changed`) and stage 3 (one database per worker) are merged, and stage 4's browser work is in (sections 21 and 22); the heavy generation files wait for their owning lanes' word. Stage 5, five clean full runs before `changed` replaces the full run as the merge gate, is in progress. TEST.139 stays open until then. The measurement below is the baseline of 2026-10-14. Evidence tags: [M] measured in this work (numbers below), [S] seen in the repo, [E] estimated from a measurement.
 
 ## Summary
 
@@ -297,3 +297,32 @@ A `scripts/test.py changed` run stood at 99% for over an hour: `test_a_paused_qu
 ## 20. TEST.152: the Redis clean-up and the map of a resumed run (2026-10-15)
 
 `src/tests/redis_cleanup.py`, called by `scripts/test.py` before the first phase of every command, removes the keys earlier runs left on the test Redis: 4,065 had piled up on the development server (job, result and registry keys of `planetgen-api-test-*`, `planetgen-run-*` and `test-*` queues; none has an expiry). It reads `PLANETGEN_TEST_REDIS_URL` only. The choice was between flushing the database (simple, destroys anything else on a shared server), deleting by key pattern (chosen), and giving the tests their own database number (does not stop the keys piling up). The limiter keys (`LIMITS:*`) are not touched: they expire, and a delete would take counts from tests running at that moment (TEST.146). A run queue of the real application is called `planetgen-run-<random>` like a test's, so the clean-up holds back whenever a worker's heartbeat is under 90 s old. `runner.clear_test_redis` is the one hook the runner tests replace, so no test in a suite run clears the Redis its neighbours use. The dependency map needed no change: `merge_map` already keeps the entries of tests that did not run, which is what a resumed run is; the `--check` output now says a resumed run covers only the tests that ran, and the proof record marks it. After the clean-up, the 4,065 keys became 15 (14 limiter keys and `rq:queues`).
+
+## 21. Stage 4, second part (Quality lane, 2026-10-15)
+
+- **Browser phase on an idle 4-core machine: 19 min 12 s** (534 passed, 52 skipped, 1 failed; MariaDB 10.11), down from 39 to 40 minutes before stage 4. The slowest calls: unfilled-sector outline 119 s, plain buttons on the sector and galaxy pages 86 s and 67 s, wheel zoom 55 s, breadcrumb 55 s.
+- **Where a browser test's time goes** (a profile that times every Playwright call, kept out of the tree): one `HOVER_SCAN` of the whole map costs about 2.5 s, and `_hover_choice` repeated it 20 times, 250 ms apart, when the answer was "no such choice". A test asking whether a choice exists settles the map first and passes `retries=1`; the scan keeps its 20 tries where the choice must exist.
+- **A 2-minute default wait** (`tests/browser_waits.py`, installed by `conftest.py`) on every context. No test depends on Playwright's 30 s, and a wait with its own `timeout=` keeps it.
+- **`test_the_map_help_is_a_menu_item_that_opens_a_dialog`** (the one failure above, "passes alone", 39.5 s under load 8.4): the Menu item calls `dialog.show()` only once Shoelace has upgraded the element, so the test waits for `show` first.
+- **TEST.157** was a point one parsec from the system placed inside a random nebula shape; it now uses the system's own point, like its sibling test (300 of 300 loop runs pass; the old form failed several of 300).
+
+## 22. The folded flake list, looped on an idle machine (Quality lane, 2026-10-15)
+
+Each test run 60 times (`-n 2`, a fresh random draw each time, nothing else on the machine) before anyone calls it load:
+
+| Item | Test | Result |
+|---|---|---|
+| TEST.132 | `test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star` | **3 of 60 failed**: the backfill drew no stars for the neighbour cell the test fills next. Fixed (the test fills the nearest cell given stars); 100 of 100 pass |
+| TEST.157 | `test_system_detail_names_the_containing_nebula` | reproduced and fixed (section 21) |
+| TEST.111 | `test_ensure_sector_generated_creates_then_reuses_the_same_sector` | 0 of 60 |
+| TEST.116 | `test_bughunt_end_to_end` (both tests) | 0 of 60 |
+| TEST.127 | `test_nebula_shape_endpoint_serves_a_mesh` | 0 of 60 |
+| TEST.128 | `test_spatial_position_db.py` | 0 of 60 (the shared-database cause went with stage 3) |
+| TEST.134 | `test_many_processes_starting_at_once_start_one_job` | 0 of 60 |
+| TEST.140 | `test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing` | 0 of 60 |
+| TEST.137 | `test_a_neighborhood_from_the_generate_page` (all cases) | 0 of 40 each |
+| TEST.141 | `test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector` (all cases) | 0 of 40 each |
+| (sibling of TEST.132) | `test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers` | 0 of 40 |
+
+A test with 0 failures in 60 has a failure rate under about 5% at 95% confidence, so these stay on the list for the five-clean-full-runs proof; none has a reproducer. The loop used a small plugin that repeats a test through a parametrized fixture; the 60-run loop of the six slowest takes about 27 minutes on 2 workers.
+

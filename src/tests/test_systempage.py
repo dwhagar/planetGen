@@ -8,6 +8,8 @@ axis. Plain dicts in the `queryDb.system_detail` shape; no database.
 """
 
 
+import re
+
 from planetgen.web.lib.systempage import _planet_row_html, comet_orbit_key_km, system_list_html  # noqa: E402
 
 AU_KM = 149_597_870.7
@@ -68,8 +70,9 @@ def test_belt_row_shows_density_range_and_top_minerals():
     belt = {"id": 5, "density": "sparse", "distance_km": 2.7 * AU_KM, "lower_limit_km": 2.1 * AU_KM,
             "upper_limit_km": 3.3 * AU_KM, "orbital_index": 0, "star_id": 1, "composition": composition}
     html = system_list_html(_system(belts=[belt]), _SECTIONS)
-    assert "Sparse" in html and "2.1 AU to 3.3 AU" in html
-    assert "2.7 AU" not in html  # the nominal distance isn't repeated next to the range
+    plain = re.sub(r"<[^>]*>", "", html)
+    assert "Sparse" in plain and "2.1 AU to 3.3 AU" in plain
+    assert "2.7 AU" not in plain  # the nominal distance isn't repeated next to the range
     assert "Iron, nickel, olivine" in html and "gold" not in html
 
 

@@ -13,7 +13,9 @@ connection, so the app already sees the real address and scheme.
 2. Clone the repo to `/var/lib/planetGen`, copy `config.json.example` to
    `config.json` and fill in `mysql.*` and `secret_key`
    ([`config.md`](../config.md)).
-3. `sudo ./install.sh` from the checkout. Note the admin password it
+3. `sudo ./install.sh` from the checkout (it also installs and starts
+   `redis-server`; the Generate page cannot start a job without Redis, so
+   check it with `redis-cli ping`, which answers `PONG`). Note the admin password it
    prints in step 2/8. After the NLTK step it asks whether to run the
    optional population pass (y/N, default N; see
    [below](#migrating-or-deleting-the-database)).
@@ -26,7 +28,8 @@ connection, so the app already sees the real address and scheme.
    [`examples/maintenance/`](../../examples/maintenance/).
 7. Run the [server checklist](../server-checklist.md).
 
-Later updates: `sudo ./update.sh`, then `sudo systemctl reload apache2`.
+Later updates: `sudo ./update.sh`. It reloads Apache itself when Apache is running (and restarts it after enabling a
+module); it prints `sudo systemctl reload apache2` only when Apache is not running.
 
 ## Deployment files
 

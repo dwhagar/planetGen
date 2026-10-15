@@ -7,7 +7,7 @@ prototyped outside the repository and run end to end. No code in the repository 
 
 Informs: GEN.105, GEN.106, GEN.115, PERF.31, PERF.46, PERF.72, GEN.198, GEN.199, OPS.20
 
-Status: research, 2026-10-14; no generator code was changed. Everything marked "recommend" is a proposal for Boss.
+Status: decided; the study itself changed no generator code. Built: Python 3.12 and numba required (OPS.42, #1291) and astropy dropped (GEN.211, #1310). Open: the numba sector-path integrator (PERF.88). Any other "recommend" is a proposal for Boss.
 
 Evidence tags: [C] measured in this research (scripts under `/mnt/project-files/research/scripts/mathperf/`);
 [S] read in the repository or on a package page; [R] recalled and unconfirmed.

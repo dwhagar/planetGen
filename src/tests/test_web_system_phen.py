@@ -493,7 +493,7 @@ def test_phenomenon_detail(app, client, fake):
     assert '<a href="/phenomena">Phenomena</a>' in html
     assert _section_current(html, "Phenomena")
     assert '<span class="badge">Nebula</span>' in html
-    assert "1 kpc (3,262 ly) from Galactic Center" in html
+    assert re.search(r'<span class="badge"><span class="qty" data-q="length" data-si="[^"]+">1 kpc \(3,262 ly\)</span> from Galactic Center', html)
     assert f'<a href="{_url(app, "sector", sector_id=3)}">Crab &lt;Sector&gt;</a>' in html
     links = _nav_links(app, "nebula", 4)
     assert f'href="{links["from"]}">Navigate from here</a>' in html
@@ -514,7 +514,7 @@ def test_rogue_planet_detail_shows_its_surface_gravity(client, fake):
     fake.phenomenon = {"id": 1, "name": "Drifter", "planet_type": "t", "planet_class": "C", "mass_kg": 5.0e24,
                        "radius_km": 6200.0, "gravity_g": 0.9123, "galactic_radius_pc": 7000.0, "sector_id": None}
     html = client.get("/phenomenon/rogue_planet/1").get_data(as_text=True)
-    assert '<th scope="row">Surface Gravity</th><td>8.95 m/s² (0.912 g)</td>' in html
+    assert re.search(r'<th scope="row">Surface Gravity</th><td><span class="qty" data-q="gravity" data-si="[^"]+">8.95 m/s² \(0.912 g\)</span></td>', html)
 
 
 def test_remnant_page_keeps_the_au_diagram(client, fake):

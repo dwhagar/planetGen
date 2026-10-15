@@ -1,3 +1,5 @@
+> **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [habitability-index](habitability-index.md).
+
 # Environmental Extremes and Protective Ensembles: Physiological Boundaries, Respiratory Systems, and Advanced Life Support Architectures
 
 Human survival across extraterrestrial surfaces and extreme terrestrial operational domains depends on maintaining homeostatic equilibrium against hostile thermodynamic, mechanical, chemical, and radiological gradients. The unassisted human body tolerates only an exceptionally narrow physiological envelope: ambient pressures between 70 kPa and 120 kPa, oxygen partial pressures ($P_{\text{O}_2}$) between 16 kPa and 23 kPa, core temperatures maintained near 37 °C within an environmental envelope of 18 °C to 27 °C, negligible concentrations of toxic or corrosive volatiles, and acute ionizing radiation exposure below deterministic injury thresholds (National Aeronautics and Space Administration [NASA], 2016; U.S. Navy, 2016; Wikipedia, 2026b).
