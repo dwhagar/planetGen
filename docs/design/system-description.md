@@ -4,8 +4,8 @@ How planetGen turns a star system, a planet, a moon, a belt or a comet into the 
 the web page, the API, the command line and the wiki exports all say the same thing from one place.
 
 Status: design, 2026-10-15. Decisions marked "Boss" are his; everything else is a recommendation. Written by the
-Foundations Wording lane. Informs: UX.30, the work list in `/mnt/project-files/wording/text-output-audit-2026-10-15.md`
-(W2 to W12).
+Foundations Wording lane. Informs: UX.103 (this note), UX.104 (the model), UX.105 (the web page; absorbs UX.30), API.25,
+UX.106, GEN.218 to GEN.221, UX.107, TEST.155, DB.31, DOC.45.
 
 Boss (2026-10-15 04:21Z): "sweep all planet and system text output ... Make sure wording matches the habitability index
 and vice versa ... we're stripping out the markdown from the web site display in favor of more advanced tables like we're
@@ -109,9 +109,9 @@ Rules:
 | belt | inner and outer edge, density | `Composition` |
 | comet | type, perihelion, eccentricity, period, current distance and speed, nucleus size, activity | `Composition` |
 
-The table rows and prose are the ones the old text carried; W2 adds a coverage test that every old fact key and every
+The table rows and prose are the ones the old text carried; UX.104 adds a coverage test that every old fact key and every
 old sentence topic has a home, so nothing is lost silently. Phenomena (nebula, quasar, rogue planet, asteroid field,
-compact remnant, supernova remnant) are described by the same model from W10; the web's phenomenon page already shows
+compact remnant, supernova remnant) are described by the same model from GEN.221; the web's phenomenon page already shows
 their facts as tables (`FIELD_SPECS`) and only the CLI shows their prose.
 
 ### 3.2 The rating table
@@ -132,8 +132,8 @@ These rows are Boss's text (GEN.216, 2026-10-15 03:46Z). The colour is a chip, u
 never the only signal (the word is in the cell). Markdown and wikitext render the same rows as lines of bold text, as
 GEN.216's examples do, because a table is not needed there. One module builds the rows from `physics/habitability` and
 `physics/protection_limits` (the single limits table), so the colour, the score, the band the sentence names and the gear
-come from one calculation. Until GEN.215 and GEN.216 merge, W2 calls the existing functions and the rows carry the
-current wording; W6 replaces the wording.
+come from one calculation. Until GEN.215 and GEN.216 merge, UX.104 calls the existing functions and the rows carry the
+current wording; GEN.218 replaces the wording.
 
 ## 4. Renderers
 
@@ -174,7 +174,7 @@ Document is not cached in the database; the page cache (`web/lib/pagecache.py`) 
 - The index is PHI-6 everywhere a person reads it. Stored column names (`phi4`, `phi4_<domain>`) are internal and stay
   (default; renaming is an optional migration).
 
-W10 rewrites the fixed text (class descriptions, star notes, flavour) to these rules; this note does not.
+GEN.221 rewrites the fixed text (class descriptions, star notes, flavour) to these rules; this note does not.
 
 ## 7. Stored prose becomes structure (needs a migration)
 
@@ -186,9 +186,9 @@ W10 rewrites the fixed text (class descriptions, star notes, flavour) to these r
 | run-config `markdown` flag | removed | A presentation choice made per request |
 
 Generation draws are unchanged, so galaxies stay reproducible; only what is stored for the text changes. Only Foundations
-Database adds migrations, so this is a request to that lane (work-list item W12); the describer reads the structured
-fields when they exist. Until W12, W2 reads the stored paragraphs and `flavor_text` as they are and carries them as
-`Prose` blocks. Because there is no backward compatibility to keep, W12 changes the schema in one step and deletes the
+Database adds migrations, so this is a request to that lane (DB.31); the describer reads the structured
+fields when they exist. Until DB.31, UX.104 reads the stored paragraphs and `flavor_text` as they are and carries them as
+`Prose` blocks. Because there is no backward compatibility to keep, DB.31 changes the schema in one step and deletes the
 old columns, tables and the parsing helpers with it.
 
 ## 8. API and command line
@@ -209,7 +209,7 @@ old columns, tables and the parsing helpers with it.
 - No-format rule: nothing in `describe/model` or the builders contains Markdown, wikitext or HTML (a scan test), and no raw
   numeric formatting (`:.Nf`, `toFixed`) in `describe/`.
 - Web: the system page contains no output of `markdown` and no `<sup>`; every quantity is a `.qty` span with `data-si`.
-- Index and wording agree (W9): colour, score, band named, gear and equipment label from the same world, for random worlds
+- Index and wording agree (TEST.155): colour, score, band named, gear and equipment label from the same world, for random worlds
   and the example systems; an airless body is never better than Red in Air; text that claims life agrees with the life
   guard.
 - The Markdown tests (`test_mdrender.py`, `test_fuzz_text_rendering.py`, `test_system_render.py`,
@@ -217,14 +217,14 @@ old columns, tables and the parsing helpers with it.
 
 ## 10. Order of work
 
-1. This note (W1).
+1. This note (UX.103).
 2. `describe/` builds the Document for every section kind from a `StarSystem`, with the coverage test; the old
-   renderers still exist (W2). Quantities not yet on a ladder (mass, temperature, pressure: UX.22 and UX.23, Foundations UX)
+   renderers still exist (UX.104). Quantities not yet on a ladder (mass, temperature, pressure: UX.22 and UX.23, Foundations UX)
    are carried as a plain number with a unit symbol until their ladders land, then switched by changing one table.
-3. The three consumers move over and the old code is deleted in the same PR as each move: the web page and one-off page (W3,
-   which is UX.30), the API and exporters with the removal of `SystemConfig.MARKDOWN` (W4), the CLI (W5).
-4. Wording (W6, W8, W10) and units at the remaining call sites (W11), after GEN.215 and GEN.216 for the habitability text.
-5. The stored-prose migration (W12), when Foundations Database has room.
+3. The three consumers move over and the old code is deleted in the same PR as each move: the web page and one-off page (UX.105,
+   which is UX.30), the API and exporters with the removal of `SystemConfig.MARKDOWN` (API.25), the CLI (UX.106).
+4. Wording (GEN.218, GEN.220, GEN.221) and units at the remaining call sites (UX.107), after GEN.215 and GEN.216 for the habitability text.
+5. The stored-prose migration (DB.31), when Foundations Database has room.
 
 ## Open questions (defaults apply unless Boss says otherwise)
 
