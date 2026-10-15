@@ -38,6 +38,7 @@ from planetgen.cli import forget_devices
 from planetgen.cli import lift_lockout
 from planetgen.cli import lockouts
 from planetgen.cli import reset_two_factor
+from planetgen.cli import species_check
 from planetgen.cli import query
 from tests.publicids import pid
 from planetgen.cli import reset
@@ -148,6 +149,7 @@ SCRIPTS = {
     "updateOrbits": (orbits, [], []),
     "forgetDevices": (forget_devices, ["admin"], []),
     "resetTwoFactor": (reset_two_factor, ["admin"], []),
+    "speciesCheck": (species_check, [], []),
 }
 
 
