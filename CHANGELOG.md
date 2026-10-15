@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1269] - 2026-10-15
+
+### Added
+- The TODO list gains a bug item for the orbital update skipping the galaxy position move of star systems with no placed sector (GEN.223).
+
+TODO items resolved: none / Added: GEN.223
+
 ## [8.0.1268] - 2026-10-15
 
 ### Added
