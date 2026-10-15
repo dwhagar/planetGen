@@ -1189,7 +1189,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.7 | Tech levels for technological species | none | done, PR #1461 |
 | POP.8 | A tech-level design from the six domain indices | none | done, PR #1422 |
 | POP.9 | A tech level generated for every technological species | none | done, PR #1461 |
-| POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | open |
+| POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | done, PR #1524 |
 | POP.11 | Scatter space vessels and stations for the races in their territories | none | open |
 | POP.12 | List every species that could live in a given environment, and give every species its environment limits | none | open |
 | POP.13 | A species editor: create and edit species and their environment limits | none | open |
