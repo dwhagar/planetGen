@@ -258,14 +258,14 @@ class SpatialPosition3D:
         self._sector_address = None
         self._sync()
 
-    def set_sector_address(self, ring_index, layer_index, slot_index):
+    def set_sector_address(self, shell_index, band_index, slot_index):
         """Moves the body to the sector cell `(ring, layer, slot)`, keeping
         its offset from the sector's center (`carry_sector_center` to that
         cell's center). Raises `ValueError` without a sector edge or for a
         slot the ring does not have."""
         if self._sector_edge_pc is None:
             raise ValueError("the sector edge is not known, so there is no sector address to set")
-        center_pc = geometry.sector_position_pc(ring_index, layer_index, slot_index, self._sector_edge_pc)
+        center_pc = geometry.sector_position_pc(shell_index, band_index, slot_index, self._sector_edge_pc)
         from_pc = physical_constants.PARSEC_M / self.length_unit_m
         self.carry_sector_center(tuple(c * from_pc for c in center_pc))
 

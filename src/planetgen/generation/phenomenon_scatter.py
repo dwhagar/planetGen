@@ -82,7 +82,7 @@ NUCLEUS_SUBTYPE = "supermassive"
 """str: The `subtype` of a nucleus black hole."""
 
 PHENOMENON_SCATTER_COLUMNS = (
-    "ring_index", "layer_index", "ring_slot_index", "kind", "subtype",
+    "shell_index", "band_index", "wedge_index", "kind", "subtype",
     "position_x_mpc", "position_y_mpc", "position_z_mpc",
     "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar", "map_luminosity_sol",
 )
@@ -93,10 +93,10 @@ HYPERVELOCITY_STREAM = "hypervelocity"
 NUCLEUS_STREAM = "nucleus"
 
 
-def _row(ring_index, layer_index, slot, kind, point, rng, subtype=None, velocity=(None, None, None),
+def _row(shell_index, band_index, slot, kind, point, rng, subtype=None, velocity=(None, None, None),
          mass_solar=None):
     """One object in `PHENOMENON_SCATTER_COLUMNS` order."""
-    return (ring_index, layer_index, slot, kind, subtype, point[0], point[1], point[2],
+    return (shell_index, band_index, slot, kind, subtype, point[0], point[1], point[2],
             velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar, map_luminosity(mass_solar))
 
 
@@ -200,13 +200,13 @@ def _scattered_rates(min_mass_solar):
     return rates
 
 
-def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, seed, skip_addresses=None,
+def scatter_layer(shape, band_index, outer_ring, edge_pc, expected_at_density_1, seed, skip_addresses=None,
                   min_mass_solar=None):
     """
     One layer of the scatter: every black hole and neutron star at or
     above `min_mass_solar` (default `tuning.PHENOMENON_MIN_MASS_SOLAR`),
     and every planetary nebula and supernova remnant, from ring 0 out to
-    `outer_ring` at `layer_index`. Each layer draws from its own stream
+    `outer_ring` at `band_index`. Each layer draws from its own stream
     (the seed and the layer index), so layers can be drawn in any order,
     or in worker processes, and give the same objects.
 
@@ -224,30 +224,30 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     rates = _scattered_rates(min_mass_solar)
     if not rates or outer_ring < 0:
         return
-    rng = draw.Stream(f"{seed}:phenomena:{layer_index}")
+    rng = draw.Stream(f"{seed}:phenomena:{band_index}")
     skip_addresses = skip_addresses or set()
     first_vector_ring = _first_full_ring()
-    for ring_index in range(min(outer_ring, first_vector_ring - 1) + 1):
-        yield from _ring_rows(shape, ring_index, layer_index, edge_pc, expected_at_density_1, rng, rates,
+    for shell_index in range(min(outer_ring, first_vector_ring - 1) + 1):
+        yield from _ring_rows(shape, shell_index, band_index, edge_pc, expected_at_density_1, rng, rates,
                               skip_addresses, min_mass_solar)
     if outer_ring >= first_vector_ring:
-        yield from _vector_rows(shape, layer_index, first_vector_ring, outer_ring, edge_pc, expected_at_density_1,
+        yield from _vector_rows(shape, band_index, first_vector_ring, outer_ring, edge_pc, expected_at_density_1,
                                 rng, rates, skip_addresses, min_mass_solar)
 
 
 def _first_full_ring():
     """The first ring with at least `bright_stars.ANGLE_BINS` slots, from which a ring has all its bins."""
-    ring_index = 0
-    while ring_sector_count(ring_index) < bright_stars.ANGLE_BINS:
-        ring_index += 1
-    return ring_index
+    shell_index = 0
+    while ring_sector_count(shell_index) < bright_stars.ANGLE_BINS:
+        shell_index += 1
+    return shell_index
 
 
-def _ring_rows(shape, ring_index, layer_index, edge_pc, expected_at_density_1, rng, rates, skip_addresses,
+def _ring_rows(shape, shell_index, band_index, edge_pc, expected_at_density_1, rng, rates, skip_addresses,
                min_mass_solar):
     """One ring walked on its own: a Poisson count per class, each object in a bin picked in proportion to
     the density there (the walk of `bright_stars`)."""
-    slots, bins = bright_stars._ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
+    slots, bins = bright_stars._ring_bins(shell_index, band_index, shape, expected_at_density_1, edge_pc)
     base = [sum(densities.values()) for densities in bins]
     if sum(base) <= 0.0:
         return
@@ -255,15 +255,15 @@ def _ring_rows(shape, ring_index, layer_index, edge_pc, expected_at_density_1, r
     weights_by_kind = {}
     for kind, subtype, rate in rates:
         if kind not in weights_by_kind:
-            weights = _kind_weights(kind, base, ring_index, layer_index, edge_pc, shape.disk_scale_height_pc)
+            weights = _kind_weights(kind, base, shell_index, band_index, edge_pc, shape.disk_scale_height_pc)
             weights_by_kind[kind] = (weights, sum(weights))
         weights, weight_sum = weights_by_kind[kind]
         count = poisson_count(rate * expected_at_density_1 * slots_per_bin * weight_sum, rng)
         for _ in range(count):
-            spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
-            if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
+            spot = _place_one(rng, weights, shell_index, band_index, slots, edge_pc)
+            if spot is None or (shell_index, band_index, spot[0]) in skip_addresses:
                 continue
-            yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype,
+            yield _row(shell_index, band_index, spot[0], kind, spot[1], rng, subtype=subtype,
                        mass_solar=draw_mass(kind, subtype, min_mass_solar, rng))
 
 
@@ -273,7 +273,7 @@ def _uniforms(rng, count):
     return np.fromiter((random() for _ in range(count)), dtype=float, count=count)
 
 
-def _vector_rows(shape, layer_index, first_ring, outer_ring, edge_pc, expected_at_density_1, rng, rates,
+def _vector_rows(shape, band_index, first_ring, outer_ring, edge_pc, expected_at_density_1, rng, rates,
                  skip_addresses, min_mass_solar):
     """
     Rings `first_ring` to `outer_ring` of a layer, all at once. Per class each ring's Poisson count
@@ -288,10 +288,10 @@ def _vector_rows(shape, layer_index, first_ring, outer_ring, edge_pc, expected_a
     slots = np.array([ring_sector_count(int(ring)) for ring in rings], dtype=np.int64)
     radius = (rings + 0.5) * edge_pc
     bin_angle = (np.arange(bins) + 0.5) * (2.0 * math.pi / bins)
-    z_mid = layer_center_z_pc(layer_index, edge_pc)
+    z_mid = layer_center_z_pc(band_index, edge_pc)
     base = density.total_density_array(radius[:, None] * np.cos(bin_angle)[None, :],
                                        radius[:, None] * np.sin(bin_angle)[None, :], z_mid, shape)
-    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
+    z_low, z_high = layer_bounds_pc(band_index, edge_pc)
     r_low, r_high = rings * edge_pc, (rings + 1) * edge_pc
     row_of_ring = np.arange(ring_count)
     tables = {}
@@ -327,15 +327,15 @@ def _vector_rows(shape, layer_index, first_ring, outer_ring, edge_pc, expected_a
         cylinder = np.sqrt(inner * inner + uniform[3] * (outer * outer - inner * inner))
         mpc = np.stack([np.rint(cylinder * np.cos(theta) * MPC_PER_PC), np.rint(cylinder * np.sin(theta) * MPC_PER_PC),
                         np.rint((z_low + uniform[4] * (z_high - z_low)) * MPC_PER_PC)]).astype(np.int64)
-        ring_index = rings[ring_row]
-        kept = _stored_in_cells(mpc, ring_index, layer_index, slot, slot_count, edge_pc)
+        shell_index = rings[ring_row]
+        kept = _stored_in_cells(mpc, shell_index, band_index, slot, slot_count, edge_pc)
         masses = _masses(kind, subtype, min_mass_solar, uniform[5])
         seeds = [rng.getrandbits(63) for _ in range(total)]
-        columns = [ring_index.tolist(), slot.tolist(), kept.tolist(), seeds, *mpc.tolist(),
+        columns = [shell_index.tolist(), slot.tolist(), kept.tolist(), seeds, *mpc.tolist(),
                    masses.tolist() if masses is not None else [None] * total]
         for ring, slot_here, in_cell, seed, x, y, z, mass in zip(*columns):
-            if in_cell and (ring, layer_index, slot_here) not in skip_addresses:
-                yield (ring, layer_index, slot_here, kind, subtype, x, y, z, None, None, None, seed, mass, map_luminosity(mass))
+            if in_cell and (ring, band_index, slot_here) not in skip_addresses:
+                yield (ring, band_index, slot_here, kind, subtype, x, y, z, None, None, None, seed, mass, map_luminosity(mass))
 
 
 def _masses(kind, subtype, min_mass_solar, uniform):
@@ -352,7 +352,7 @@ def _masses(kind, subtype, min_mass_solar, uniform):
     return low + uniform * (high - low)
 
 
-def _stored_in_cells(mpc, ring_index, layer_index, slot, slot_count, edge_pc):
+def _stored_in_cells(mpc, shell_index, band_index, slot, slot_count, edge_pc):
     """Whether each stored point (whole milliparsecs, one column each of `mpc`) is still in its cell after
     rounding: a float test with a margin of a few milliparsecs, and the exact `sector_address_at` for the
     few points within the margin of a face."""
@@ -362,13 +362,13 @@ def _stored_in_cells(mpc, ring_index, layer_index, slot, slot_count, edge_pc):
     width = 2.0 * math.pi / slot_count
     theta = np.arctan2(y, x) % (2.0 * math.pi)
     angle_margin = margin / np.maximum(cylinder, 1e-9)
-    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
-    inside = ((cylinder > ring_index * edge_pc + margin) & (cylinder < (ring_index + 1) * edge_pc - margin)
+    z_low, z_high = layer_bounds_pc(band_index, edge_pc)
+    inside = ((cylinder > shell_index * edge_pc + margin) & (cylinder < (shell_index + 1) * edge_pc - margin)
               & (z > z_low + margin) & (z < z_high - margin)
               & (theta > slot * width + angle_margin) & (theta < (slot + 1) * width - angle_margin))
     for i in np.nonzero(~inside)[0].tolist():
         inside[i] = (sector_address_at((x[i], y[i], z[i]), edge_pc)
-                     == (int(ring_index[i]), layer_index, int(slot[i])))
+                     == (int(shell_index[i]), band_index, int(slot[i])))
     return inside
 
 
@@ -403,14 +403,14 @@ def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, s
     return draws, rng
 
 
-def _kind_weights(kind, base, ring_index, layer_index, edge_pc, thin_height_pc):
+def _kind_weights(kind, base, shell_index, band_index, edge_pc, thin_height_pc):
     """The per-bin weights for `kind`: the stellar density of each bin times
     the kind's regional factor at the bin's centerline point (GEN.132; a
     kind with no research stays flat)."""
     if kind not in tuning.REMNANT_SCALE_HEIGHT_RATIO:
         return base
-    radius = ring_radius_pc(ring_index, edge_pc)
-    z = layer_center_z_pc(layer_index, edge_pc)
+    radius = ring_radius_pc(shell_index, edge_pc)
+    z = layer_center_z_pc(band_index, edge_pc)
     count = len(base)
     weights = []
     for k, weight in enumerate(base):
@@ -420,17 +420,17 @@ def _kind_weights(kind, base, ring_index, layer_index, edge_pc, thin_height_pc):
     return weights
 
 
-def layer_expected(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_mass_solar=None):
+def layer_expected(shape, band_index, outer_ring, edge_pc, expected_at_density_1, min_mass_solar=None):
     """About how many objects `scatter_layer` places in one layer (the
     progress bar's weight): the same per-ring means on evenly spaced
     sample rings, as `bright_stars.layer_expected_stars` does for stars."""
     if min_mass_solar is None:
         min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
     fractions = {population: 1.0 for population in bright_stars.POPULATIONS}
-    stars = bright_stars.layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
+    stars = bright_stars.layer_expected_stars(shape, band_index, outer_ring, edge_pc, expected_at_density_1,
                                               fractions)
     # The layer-centre vertical factor stands in for each ring's regional one.
-    z = layer_center_z_pc(layer_index, edge_pc)
+    z = layer_center_z_pc(band_index, edge_pc)
     return stars * sum(
         rate * remnant_distribution.vertical_factor(kind, z, shape.disk_scale_height_pc)
         for kind, _subtype, rate in _scattered_rates(min_mass_solar))
@@ -459,7 +459,7 @@ def hypervelocity_rows(extents, edge_pc, seed):
     the outline is redrawn nearer in.
 
     Args:
-        extents (list): `(layer_index, outer_ring_index)` per layer.
+        extents (list): `(band_index, outer_shell_index)` per layer.
         edge_pc (float): The sector edge.
         seed (int): The scatter's seed.
 

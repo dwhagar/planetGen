@@ -488,7 +488,7 @@ def _with_bright_stars(neighbors):
             neighbor = dict(neighbor)
             try:
                 neighbor["bright_stars"] = apiclient.get_bright_stars_in_cell(
-                    db_name(), neighbor["ring_index"], neighbor["layer_index"], neighbor["ring_slot_index"])
+                    db_name(), neighbor["shell_index"], neighbor["band_index"], neighbor["wedge_index"])
             except apiclient.ApiError:
                 neighbor["bright_stars"] = []
         result.append(neighbor)
@@ -548,7 +548,7 @@ def _sector_map_html(detail, pick, admin):
     """
     from .galaxy_views import phenomenon_url_template, sector_url_template, system_url_template  # galaxy_views imports this module
 
-    address = (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index"))
+    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
     if not detail["placed"] or None in address:
         return ('<section class="panel" id="map"><h2>Sector Map</h2>'
                 '<p class="hint">This sector has no place in the galaxy, so it has no map.</p></section>')
@@ -578,7 +578,7 @@ def _sector_map_html(detail, pick, admin):
 def sector_designation(sector):
     """A sector's galaxy designation (`provisional_sector_designation`),
     or `None` for a sector with no galaxy address."""
-    address = (sector.get("ring_index"), sector.get("layer_index"), sector.get("ring_slot_index"))
+    address = (sector.get("shell_index"), sector.get("band_index"), sector.get("wedge_index"))
     if None in address:
         return None
     try:
@@ -646,7 +646,7 @@ def sector_scene(sector_id):
     )
     scene = map_scene_data(
         page_url, detail["edge_mpc"],
-        (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
+        (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index")),
         center_pc, map_systems, phenomena=detail.get("phenomena"),
         neighbors=_with_bright_stars(detail.get("neighbors")),
         generate=generate_target(current_admin()),

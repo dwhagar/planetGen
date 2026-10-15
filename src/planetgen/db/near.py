@@ -177,12 +177,12 @@ def _sector_counts(conn, center, distance, margin):
     reach = distance + margin
     rows = conn.execute(
         """
-        SELECT ring_index, layer_index, ring_slot_index FROM sectors
+        SELECT shell_index, band_index, wedge_index FROM sectors
         WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?
         """,
         (center[0] - reach, center[0] + reach, center[1] - reach, center[1] + reach,
          center[2] - reach, center[2] + reach)).fetchall()
-    made = {(row["ring_index"], row["layer_index"], row["ring_slot_index"]) for row in rows}
+    made = {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows}
     return len(reached), len(reached & made)
 
 

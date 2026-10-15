@@ -532,23 +532,23 @@ def get_version_warning(db):
     return _request("/galaxy/shape", {"db": db}).get("version_warning")
 
 
-def get_bright_stars_in_cell(db, ring_index, layer_index, ring_slot_index):
+def get_bright_stars_in_cell(db, shell_index, band_index, wedge_index):
     """`GET /api/galaxy/bright-stars`'s `items`: the pre-placed bright
     stars in one sector cell not yet built into a system, brightest
     first."""
     _require_db(db)
     return _request("/galaxy/bright-stars", {
-        "db": db, "ring": ring_index, "layer": layer_index, "slot": ring_slot_index,
+        "db": db, "ring": shell_index, "layer": band_index, "slot": wedge_index,
     })["items"]
 
 
-def get_uncharted_sector(db, ring_index, layer_index, ring_slot_index):
+def get_uncharted_sector(db, shell_index, band_index, wedge_index):
     """`GET /api/galaxy/uncharted`'s payload (MAP.162): one sector cell's
     place (`designation`, `center_pc`, `edge_pc`, `sector_id`) and what the
     scatters left in it (`stars`, `scattered`)."""
     _require_db(db)
     return _request("/galaxy/uncharted", {
-        "db": db, "ring": ring_index, "layer": layer_index, "slot": ring_slot_index,
+        "db": db, "ring": shell_index, "layer": band_index, "slot": wedge_index,
     })
 
 

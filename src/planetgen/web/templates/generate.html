@@ -153,7 +153,7 @@
   {%- if summary.error %}
   <span class="badge">Database unavailable</span>
   {%- else %}
-  <span class="badge">{% if summary.shape %}Planned, edge at ring {{ "{:,}".format(summary.shape.outer_ring_index) }}{% else %}Not planned yet{% endif %}</span>
+  <span class="badge">{% if summary.shape %}Planned, edge at ring {{ "{:,}".format(summary.shape.outer_shell_index) }}{% else %}Not planned yet{% endif %}</span>
   <span class="badge">{{ num(summary.sectors or 0) }} sector{{ "" if summary.sectors == 1 else "s" }}</span>
   {%- if summary.bright %}
   <span class="badge">{% if summary.bright.scattered %}Bright stars scattered ({{ num(summary.bright.min_luminosity_sol, ",.0f") }} L&#9737; and up, seed {{ summary.bright.seed }}){% else %}Bright stars not scattered yet{% endif %}</span>

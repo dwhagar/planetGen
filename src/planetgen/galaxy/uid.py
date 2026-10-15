@@ -21,14 +21,14 @@ def unplaced_sector_uid(sector_row_id):
     return UNPLACED_SECTOR_BASE + int(sector_row_id)
 
 
-def sector_uid(ring_index, layer_index, slot_index):
+def sector_uid(shell_index, band_index, slot_index):
     """A sector's ID: its designation as an integer. Raises `ValueError`
     like `provisional_sector_designation` for an address outside the grid."""
-    return int(provisional_sector_designation(ring_index, layer_index, slot_index), 16)
+    return int(provisional_sector_designation(shell_index, band_index, slot_index), 16)
 
 
 def sector_address(uid):
-    """The `(ring_index, layer_index, ring_slot_index)` a sector ID names."""
+    """The `(shell_index, band_index, wedge_index)` a sector ID names."""
     return parse_sector_designation(f"{uid:X}")
 
 

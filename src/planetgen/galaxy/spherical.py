@@ -33,9 +33,9 @@ pi) = 3.82 pc` (nominally 4 pc, which would be 6.28 wedges), `alpha = asin(rho /
 R)`. A cap is band `+/-(h + 1)` with wedge 0, where `h` is the shell's highest
 band (the shell holds `2 * h + 1` ordinary bands).
 
-Ordinary shells follow that rule. Shells 1 to 3 are too small for it to look
-right (shell 1's cap would have a 3.82 pc chord radius on a 4 pc sphere), so
-they are a hand-checked table (`SMALL_SHELL_TABLE`).
+Every shell from 2 out follows that rule. Shell 1 is too small for it to look
+right (its cap would have a 3.82 pc chord radius on a 4 pc sphere), so it is
+cut by hand (`HAND_CUT_SHELLS`).
 
 The cells tile space exactly (no gaps, no overlaps) and every lookup is closed
 form: `sector_address_at` maps a point straight to its cell. The layout of a
@@ -48,7 +48,7 @@ import bisect
 import functools
 import math
 
-from planetgen.galaxy.geometry import (
+from planetgen.galaxy.frame import (
     galactic_radius_pc,
     galaxy_to_local_pc,
     local_to_galaxy_pc,
@@ -56,8 +56,8 @@ from planetgen.galaxy.geometry import (
 )
 
 __all__ = [
-    "BAND_ARC_EDGES", "CAP_RIM_WEDGES", "SMALL_SHELL_TABLE", "SectorCell", "ShellLayout",
-    "band_center_pc", "band_colatitude_bounds", "band_range", "cell_count", "cell_volume", "cells_in_band_range",
+    "BAND_ARC_EDGES", "CAP_RIM_WEDGES", "HAND_CUT_SHELLS", "SectorCell", "ShellLayout",
+    "band_at", "band_center_pc", "band_colatitude_bounds", "band_range", "cell_count", "cell_volume", "cells_in_band_range",
     "galactic_radius_pc", "galaxy_to_local_pc", "is_cap", "local_to_galaxy_pc",
     "neighbor_addresses", "nth_cell_in_band_range", "parse_sector_designation",
     "provisional_sector_designation", "sector_address_at", "sector_cell_test", "sector_cell_vertices_pc",
@@ -96,18 +96,14 @@ CAP_CHORD_RADIUS_EDGES = CAP_RIM_WEDGES / TWO_PI
 """float: A cap's rim chord radius in edges: the rim is `CAP_RIM_WEDGES` edges
 around."""
 
-SMALL_SHELL_TABLE = {
-    # shell: (cap colatitude in degrees, or None for the rim rule; wedges per band, north to south)
+HAND_CUT_SHELLS = {
+    # shell: (cap colatitude in degrees; wedges per band, north to south)
     1: (37.5, (12,)),
-    2: (None, (6, 12, 12, 12, 6)),
-    3: (None, (12, 12, 18, 18, 18, 12, 12)),
 }
-"""dict: The hand-checked layout of shells 1 to 3, where the rim rule's caps
-are too big for the shell. Shell 1's cap is cut at 37.5 degrees (about 1.4
-edge cubes of volume against 0.9 for the 12 equatorial cells; the rule would
-leave caps of 4.8 against 0.67 for the cells between). Shells 2 and 3 are the
-rule's own result, kept here so the test that compares them with it says if the
-rule ever moves them. Wedges are listed north to south."""
+"""dict: Shells the rule cannot cut. Shell 1's rim rule would leave caps of 4.8
+edge cubes against 0.67 for the cells between, so its caps are cut at 37.5
+degrees (about 1.4 edge cubes against 0.9 for the 12 equatorial cells). Shells 2
+and 3 follow the rule like every other shell. Wedges are listed north to south."""
 
 
 class ShellLayout:
@@ -125,7 +121,7 @@ class ShellLayout:
         high_band (int): The highest band, `(band_count - 1) // 2`; the caps
             are `+/-(high_band + 1)`.
         table_wedges (tuple or None): Wedges per band north to south for a
-            table shell, else `None` (the rule decides).
+            hand-cut shell, else `None` (the rule decides).
     """
 
     __slots__ = ("shell", "cap_colatitude", "band_count", "band_step", "high_band", "table_wedges")
@@ -158,7 +154,7 @@ def _rim_cap_colatitude(shell):
 def shell_layout(shell):
     """
     The cut of one shell (see the module docstring). Shell 0 is the core
-    ball (no caps, no bands). Shells 1 to 3 come from `SMALL_SHELL_TABLE`; the
+    ball (no caps, no bands). Shell 1 comes from `HAND_CUT_SHELLS`; the
     others from the rim rule: the cap's `alpha = asin(rho / R)`, then `n` bands
     where `n` is the odd integer nearest `R * (pi - 2 * alpha) / e`.
 
@@ -169,10 +165,9 @@ def shell_layout(shell):
         raise ValueError(f"shell must be >= 0, got {shell}")
     if shell == 0:
         return ShellLayout(0, 0.0, 0)
-    if shell in SMALL_SHELL_TABLE:
-        degrees, wedges = SMALL_SHELL_TABLE[shell]
-        alpha = _rim_cap_colatitude(shell) if degrees is None else math.radians(degrees)
-        return ShellLayout(shell, alpha, len(wedges), tuple(wedges))
+    if shell in HAND_CUT_SHELLS:
+        degrees, wedges = HAND_CUT_SHELLS[shell]
+        return ShellLayout(shell, math.radians(degrees), len(wedges), tuple(wedges))
     alpha = _rim_cap_colatitude(shell)
     # The odd integer nearest x: 2 * floor(x / 2) + 1.
     n = 2 * int(math.floor(shell * (math.pi - 2 * alpha) / BAND_ARC_EDGES / 2)) + 1
@@ -508,6 +503,14 @@ def _band_at(layout, colatitude):
     elif colatitude >= layout.edge(i + 1) and i < n - 1:
         i += 1
     return layout.high_band - i
+
+
+def band_at(shell, colatitude):
+    """The band of shell `shell` holding a colatitude (radians from galactic
+    north), a cap included; `0` for the core."""
+    if shell == 0:
+        return 0
+    return _band_at(shell_layout(shell), colatitude)
 
 
 def sector_address_at(position, edge_pc):

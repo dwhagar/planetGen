@@ -97,7 +97,7 @@ def _quadrant_summary_rows(sectors):
     for label in QUADRANT_LABELS:
         members = by_quadrant[label]
         extent = None
-        rings = [s["ring_index"] for s in members if s["ring_index"] is not None]
+        rings = [s["shell_index"] for s in members if s["shell_index"] is not None]
         if rings:
             _inner, outer_ly = zone_bounds_ly(sector_zone(max(rings)))
             extent = f"out to ~{format_distance_ly(outer_ly)}"
@@ -112,7 +112,7 @@ def _quadrant_summary_rows(sectors):
 
 
 def _zone_label(sector):
-    return f"Zone {sector_zone(sector['ring_index'])}" if sector["ring_index"] is not None else None
+    return f"Zone {sector_zone(sector['shell_index'])}" if sector["shell_index"] is not None else None
 
 
 def _quadrant_cells(sector):
@@ -133,7 +133,7 @@ def _quadrant_load(state, limit, offset, want_facets):
     return in_memory(
         members, state, limit, offset, want_facets,
         {"name": lambda s, descending: s["name"].casefold(),
-         "zone": lambda s, descending: s["ring_index"],
+         "zone": lambda s, descending: s["shell_index"],
          "radius": lambda s, descending: s["galactic_radius_pc"],
          "systems": lambda s, descending: s["system_count"] or 0},
         {"zone": _zone_label}, _quadrant_cells)
@@ -271,7 +271,7 @@ def _made_from_args():
     return {
         "total": made["total"],
         "points": [{"x": i["x"], "y": i["y"], "z": i["z"]} for i in made["items"]],
-        "sectors": [[i["ring_index"], i["layer_index"], i["ring_slot_index"]] for i in made["items"]],
+        "sectors": [[i["shell_index"], i["band_index"], i["wedge_index"]] for i in made["items"]],
     }
 
 

@@ -289,8 +289,8 @@ def _cell_edges_px(address, edge_mpc, half_edge):
     than the cube.
 
     Args:
-        address (tuple or None): `(ring_index, layer_index,
-            ring_slot_index)`; any `None` means no grid address.
+        address (tuple or None): `(shell_index, band_index,
+            wedge_index)`; any `None` means no grid address.
 
     Returns:
         list[tuple] or None: 8 points, or `None` for a sector with no grid
@@ -343,12 +343,12 @@ def _cell_arc_edges_px(address, edge_mpc, half_edge):
     if corners is None or ring_bounds_pc is None:
         return None
 
-    ring_index, layer_index, slot_index = address
+    shell_index, band_index, slot_index = address
     edge_pc = mpc_to_pc(edge_mpc)
     center_pc = sector_position_pc(*address, edge_pc)
-    r_bounds = ring_bounds_pc(ring_index, edge_pc)
-    z_bounds = layer_bounds_pc(layer_index, edge_pc)
-    t_start, t_end = slot_angle_bounds(ring_index, slot_index)
+    r_bounds = ring_bounds_pc(shell_index, edge_pc)
+    z_bounds = layer_bounds_pc(band_index, edge_pc)
+    t_start, t_end = slot_angle_bounds(shell_index, slot_index)
     steps = max(2, int(math.ceil(abs(t_end - t_start) / _ARC_STEP_RAD)))
 
     def to_px(r, z, theta):
@@ -495,8 +495,8 @@ def _neighbor_indicator_data(link_url, neighbor):
         "x": ux * reach, "y": -uy * reach, "z": uz * reach,
         "r": _NEIGHBOR_INDICATOR_RADIUS_PX,
         "isNeighbor": True,
-        "ringIndex": neighbor["ring_index"], "layerIndex": neighbor["layer_index"],
-        "ringSlotIndex": neighbor["ring_slot_index"],
+        "ringIndex": neighbor["shell_index"], "layerIndex": neighbor["band_index"],
+        "ringSlotIndex": neighbor["wedge_index"],
         "designation": neighbor["designation"],
         "exists": neighbor["exists"],
     }

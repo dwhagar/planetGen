@@ -163,14 +163,14 @@ def _densities_at(points, z, shape):
     return [{population: column[i] for population, column in columns.items()} for i in range(len(points))]
 
 
-def _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc):
+def _ring_bins(shell_index, band_index, shape, expected_at_density_1, edge_pc):
     """Per angle bin, the population densities at the ring's centerline.
     No bin is zeroed for being sparse (GEN.78): every cell in the outline
     keeps its chance of a bright star."""
-    slots = ring_sector_count(ring_index)
+    slots = ring_sector_count(shell_index)
     count = min(slots, ANGLE_BINS)
-    radius = ring_radius_pc(ring_index, edge_pc)
-    z = layer_center_z_pc(layer_index, edge_pc)
+    radius = ring_radius_pc(shell_index, edge_pc)
+    z = layer_center_z_pc(band_index, edge_pc)
     points = []
     for k in range(count):
         theta = (k + 0.5) * 2 * math.pi / count
@@ -178,7 +178,7 @@ def _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc):
     return slots, _densities_at(points, z, shape)
 
 
-def _place_one(rng, weights, ring_index, layer_index, slots, edge_pc):
+def _place_one(rng, weights, shell_index, band_index, slots, edge_pc):
     """A uniform point in a slot of a bin picked by `weights`, as `(slot,
     (x, y, z))` in whole milliparsecs (as stored), or `None` if rounding
     carried every try over its cell's edge (a point that does is redrawn)."""
@@ -197,25 +197,25 @@ def _place_one(rng, weights, ring_index, layer_index, slots, edge_pc):
             k = max(index for index, weight in enumerate(weights) if weight > 0)
         theta = (k + rng.random()) * bin_width
         slot = min(int(theta / slot_width), slots - 1)
-        stored = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+        stored = _point_in_cell(rng, shell_index, band_index, slot, slots, edge_pc)
         if stored is not None:
             return slot, stored
     return None
 
 
-def _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
+def _point_in_cell(rng, shell_index, band_index, slot, slots, edge_pc):
     """A uniform point in one cell in whole milliparsecs, or `None` when
     rounding carried it over the cell's edge."""
-    stored = _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
-    return stored if _stored_in_cell(stored, ring_index, layer_index, slot, edge_pc) else None
+    stored = _draw_point_in_cell(rng, shell_index, band_index, slot, slots, edge_pc)
+    return stored if _stored_in_cell(stored, shell_index, band_index, slot, edge_pc) else None
 
 
-def _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
+def _draw_point_in_cell(rng, shell_index, band_index, slot, slots, edge_pc):
     """A uniform point in one cell in whole milliparsecs, not yet checked to have stayed in it after rounding
     (`_stored_in_cell`): the object-first scatter checks only the candidates it keeps."""
     slot_width = 2 * math.pi / slots
-    r_low, r_high = ring_bounds_pc(ring_index, edge_pc)
-    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
+    r_low, r_high = ring_bounds_pc(shell_index, edge_pc)
+    z_low, z_high = layer_bounds_pc(band_index, edge_pc)
     theta = (slot + rng.random()) * slot_width
     # Uniform over the cell's area, which grows with radius.
     radius = math.sqrt(rng.uniform(r_low * r_low, r_high * r_high))
@@ -223,9 +223,9 @@ def _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
     return tuple(round(value * MPC_PER_PC) for value in point)
 
 
-def _stored_in_cell(stored, ring_index, layer_index, slot, edge_pc):
+def _stored_in_cell(stored, shell_index, band_index, slot, edge_pc):
     """Whether a stored point (whole milliparsecs) is still in the cell after rounding."""
-    return sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (ring_index, layer_index, slot)
+    return sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (shell_index, band_index, slot)
 
 
 def _finite_or_none(value):
@@ -234,11 +234,11 @@ def _finite_or_none(value):
     return value if value is None or math.isfinite(value) else None
 
 
-def _row(ring_index, layer_index, slot, point, population, params, rng):
+def _row(shell_index, band_index, slot, point, population, params, rng):
     """One star in `_db.BRIGHT_STAR_COLUMNS` order."""
     x, y, z = point
     return (
-        ring_index, layer_index, slot,
+        shell_index, band_index, slot,
         x, y, z,
         population, params["type"], params["yerkes_class"], params["mass_kg"],
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
@@ -257,7 +257,7 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
-        extents (list): `(layer_index, outer_ring_index)` per layer, as
+        extents (list): `(band_index, outer_shell_index)` per layer, as
             `galaxySkeleton.build_layer_extents` returns.
         edge_pc (float): The sector edge.
         expected_at_density_1 (float): Systems per sector at density 1.
@@ -279,8 +279,8 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    for done, (layer_index, outer_ring) in enumerate(extents, start=1):
-        yield from scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
+    for done, (band_index, outer_ring) in enumerate(extents, start=1):
+        yield from scatter_layer(shape, band_index, outer_ring, edge_pc, expected_at_density_1,
                                  min_luminosity_sol, seed, skip_addresses, max_luminosity_sol=max_luminosity_sol,
                                  mass_range=mass_range)
         if on_layer is not None:
@@ -313,7 +313,7 @@ WEIGHT_ANGLE_BINS = 8
 """int: Angle bins per sampled ring in `layer_weight`."""
 
 
-def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions,
+def layer_expected_stars(shape, band_index, outer_ring, edge_pc, expected_at_density_1, fractions,
                          ring_samples=WEIGHT_RING_SAMPLES, angle_bins=WEIGHT_ANGLE_BINS):
     """
     About how many bright stars `scatter_layer` will place in one layer:
@@ -333,13 +333,13 @@ def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_de
     total_fraction = sum(fractions.values())
     if total_fraction <= 0.0:
         return 0.0
-    z = layer_center_z_pc(layer_index, edge_pc)
+    z = layer_center_z_pc(band_index, edge_pc)
     expected = 0.0
     for k in range(count):
-        ring_index = min(int((k + 0.5) * step), rings - 1)
-        slots = ring_sector_count(ring_index)
+        shell_index = min(int((k + 0.5) * step), rings - 1)
+        slots = ring_sector_count(shell_index)
         bins = min(slots, angle_bins)
-        radius = ring_radius_pc(ring_index, edge_pc)
+        radius = ring_radius_pc(shell_index, edge_pc)
         ring_expected = 0.0
         points = [(radius * math.cos(theta), radius * math.sin(theta))
                   for theta in ((j + 0.5) * 2 * math.pi / bins for j in range(bins))]
@@ -349,7 +349,7 @@ def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_de
     return expected
 
 
-def layer_weight(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions):
+def layer_weight(shape, band_index, outer_ring, edge_pc, expected_at_density_1, fractions):
     """
     The work one layer of the scatter is expected to take, in stars: its
     expected stars (`layer_expected_stars`) plus `OBJECT_FIRST_RING_WEIGHT_STARS`
@@ -360,11 +360,11 @@ def layer_weight(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
     Returns:
         tuple: `(weight, expected_stars)`.
     """
-    expected = layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions)
+    expected = layer_expected_stars(shape, band_index, outer_ring, edge_pc, expected_at_density_1, fractions)
     return expected + OBJECT_FIRST_RING_WEIGHT_STARS * (outer_ring + 1), expected
 
 
-def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
+def _spots(shape, band_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
            check=False, on_candidates=None):
     """
     The stars of one layer, object first (PERF.58, `generation/object_first.py`):
@@ -380,12 +380,12 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
             candidates.
 
     Yields:
-        tuple: `(ring_index, slot, point, population)`, `point` in whole milliparsecs.
+        tuple: `(shell_index, slot, point, population)`, `point` in whole milliparsecs.
     """
     if sum(fractions.values()) <= 0.0 or outer_ring < 0:
         return
-    majorants = object_first.ring_majorants(shape, layer_index, outer_ring, edge_pc, fractions)
-    slot_counts = [ring_sector_count(ring_index) for ring_index in range(outer_ring + 1)]
+    majorants = object_first.ring_majorants(shape, band_index, outer_ring, edge_pc, fractions)
+    slot_counts = [ring_sector_count(shell_index) for shell_index in range(outer_ring + 1)]
     cumulative = np.cumsum(expected_at_density_1 * np.array(slot_counts, dtype=float) * majorants)
     total_mean = float(cumulative[-1])
     if not total_mean > 0.0:
@@ -398,24 +398,24 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
     for done in range(candidates):
         if on_candidates is not None and done % CANDIDATE_REPORT == 0:
             on_candidates(done, candidates, taken)
-        ring_index = min(bisect.bisect_right(cumulative, rng.random() * total_mean), outer_ring)
-        slots = slot_counts[ring_index]
+        shell_index = min(bisect.bisect_right(cumulative, rng.random() * total_mean), outer_ring)
+        slots = slot_counts[shell_index]
         slot = min(int(rng.random() * slots), slots - 1)
-        point = _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+        point = _draw_point_in_cell(rng, shell_index, band_index, slot, slots, edge_pc)
         densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
         weights = [densities[population] * fractions[population] for population in POPULATIONS]
         wanted = sum(weights)
-        if check and wanted > bounds[ring_index] * (1.0 + 1e-9):
-            raise AssertionError(f"majorant violated in ring {ring_index} of layer {layer_index}: "
-                                 f"{wanted} > {bounds[ring_index]}")
-        if rng.random() * bounds[ring_index] >= wanted:
+        if check and wanted > bounds[shell_index] * (1.0 + 1e-9):
+            raise AssertionError(f"majorant violated in ring {shell_index} of layer {band_index}: "
+                                 f"{wanted} > {bounds[shell_index]}")
+        if rng.random() * bounds[shell_index] >= wanted:
             continue
-        address = (ring_index, layer_index, slot)
-        if address in skip_addresses or not _stored_in_cell(point, ring_index, layer_index, slot, edge_pc):
+        address = (shell_index, band_index, slot)
+        if address in skip_addresses or not _stored_in_cell(point, shell_index, band_index, slot, edge_pc):
             continue
         held = kept.get(address, 0)
         if held:
-            centre = _densities(sector_position_pc(ring_index, layer_index, slot, edge_pc), shape)
+            centre = _densities(sector_position_pc(shell_index, band_index, slot, edge_pc), shape)
             expected = expected_at_density_1 * sum(centre[population] * fractions[population]
                                                     for population in POPULATIONS)
             if held >= object_first.sector_capacity(expected):
@@ -429,16 +429,16 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
                 break
         else:
             population = max(zip(POPULATIONS, weights), key=lambda item: item[1])[0]
-        yield ring_index, slot, point, population
+        yield shell_index, slot, point, population
     if on_candidates is not None:
         on_candidates(candidates, candidates, taken)
 
 
-def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
+def scatter_layer(shape, band_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
                   skip_addresses=None, max_luminosity_sol=None, on_progress=None, mass_range=None, check=False):
     """
     One layer of `scatter`: every bright star from ring 0 out to
-    `outer_ring` at `layer_index`, placed object first (`_spots`, PERF.58).
+    `outer_ring` at `band_index`, placed object first (`_spots`, PERF.58).
     Each layer draws from its own random stream (the scatter's seed and the
     layer index), so layers can be drawn in any order, or side by side in
     worker processes (PERF.7), and still give the same stars.
@@ -455,7 +455,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    rng = draw.Stream(f"{seed}:objects:{layer_index}")
+    rng = draw.Stream(f"{seed}:objects:{band_index}")
     skip_addresses = skip_addresses or set()
     fractions = band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
     placed = {population: [] for population in POPULATIONS}
@@ -465,10 +465,10 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             estimate = taken * total / done if done else float(total)
             on_progress(taken / 2, max(estimate, float(taken)))
 
-    for ring_index, slot, point, population in _spots(
-            shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
+    for shell_index, slot, point, population in _spots(
+            shape, band_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
             check=check, on_candidates=candidates_done):
-        placed[population].append((ring_index, slot, point))
+        placed[population].append((shell_index, slot, point))
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
     for population, spots in placed.items():
@@ -476,11 +476,11 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             continue
         stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng,
                                     max_luminosity_sol=max_luminosity_sol, mass_range=mass_range)
-        for (ring_index, slot, point), params in zip(spots, stars):
+        for (shell_index, slot, point), params in zip(spots, stars):
             drawn += 1
             if on_progress is not None:
                 on_progress((total_placed + drawn) / 2, total_placed)
-            yield _row(ring_index, layer_index, slot, point, population, params, rng)
+            yield _row(shell_index, band_index, slot, point, population, params, rng)
 
 
 def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
@@ -517,16 +517,16 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
     shares = {(k, population): bright_band_fraction(low, high, population, mass_range)
               for k, low, high in bands for population in POPULATIONS}
-    for ring_index, layer_index, slot in addresses:
-        center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
+    for shell_index, band_index, slot in addresses:
+        center = sector_position_pc(shell_index, band_index, slot, edge_pc)
         densities = _densities(center, shape)
-        slots = ring_sector_count(ring_index)
+        slots = ring_sector_count(shell_index)
         for k, low, high in bands:
             means = {population: expected_at_density_1 * densities[population] * shares[(k, population)]
                      for population in POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
-            rng = draw.Stream(f"{seed}:{ring_index}:{layer_index}:{slot}:{k}")
+            rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{slot}:{k}")
             for population in POPULATIONS:
                 if means[population] <= 0.0:
                     continue
@@ -536,9 +536,9 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                 for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high,
                                                 mass_range=mass_range):
                     for _ in range(SLOT_REDRAWS):
-                        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+                        point = _point_in_cell(rng, shell_index, band_index, slot, slots, edge_pc)
                         if point is not None:
-                            row = _row(ring_index, layer_index, slot, point, population, params, rng)
+                            row = _row(shell_index, band_index, slot, point, population, params, rng)
                             if _in_range(row, min_luminosity_sol, max_luminosity_sol):
                                 yield row
                             break
@@ -619,16 +619,16 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population)
               for low, high in bands for population in POPULATIONS}
-    for ring_index, layer_index, slot in addresses:
-        center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
+    for shell_index, band_index, slot in addresses:
+        center = sector_position_pc(shell_index, band_index, slot, edge_pc)
         densities = _densities(center, shape)
-        slots = ring_sector_count(ring_index)
+        slots = ring_sector_count(shell_index)
         for low, high in bands:
             means = {population: expected_at_density_1 * densities[population] * shares[(low, population)]
                      for population in POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
-            rng = draw.Stream(f"{seed}:{ring_index}:{layer_index}:{slot}:m{low:g}")
+            rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{slot}:m{low:g}")
             for population in POPULATIONS:
                 if means[population] <= 0.0:
                     continue
@@ -638,9 +638,9 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
                 for params in sample_mass_band_stars(count, low, high, population, rng,
                                                      max_luminosity_sol=max_luminosity_sol):
                     for _ in range(SLOT_REDRAWS):
-                        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+                        point = _point_in_cell(rng, shell_index, band_index, slot, slots, edge_pc)
                         if point is not None:
-                            yield _row(ring_index, layer_index, slot, point, population, params, rng)
+                            yield _row(shell_index, band_index, slot, point, population, params, rng)
                             break
 
 

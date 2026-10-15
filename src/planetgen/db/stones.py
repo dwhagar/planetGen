@@ -115,20 +115,20 @@ def stones_in_cells(conn, cells):
             chunk = slots[start:start + _CHUNK]
             marks = ",".join("?" * len(chunk))
             for row in conn.execute(
-                    "SELECT id, ring_slot_index, position_x_mpc, position_y_mpc, position_z_mpc FROM bright_stars"
-                    f" WHERE ring_index = ? AND layer_index = ? AND ring_slot_index IN ({marks})"
+                    "SELECT id, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc FROM bright_stars"
+                    f" WHERE shell_index = ? AND band_index = ? AND wedge_index IN ({marks})"
                     " AND star_system_id IS NULL", (ring, layer, *chunk)).fetchall():
                 stones[stone_key(BRIGHT_STAR, row["id"])] = {
-                    "kind": BRIGHT_STAR, "id": row["id"], "cell": (ring, layer, row["ring_slot_index"]),
+                    "kind": BRIGHT_STAR, "id": row["id"], "cell": (ring, layer, row["wedge_index"]),
                     "position_ly": tuple(pc_to_ly(mpc_to_pc(row[f"position_{axis}_mpc"])) for axis in "xyz")}
             for row in conn.execute(
-                    "SELECT id, ring_slot_index, kind, position_x_mpc, position_y_mpc, position_z_mpc,"
+                    "SELECT id, wedge_index, kind, position_x_mpc, position_y_mpc, position_z_mpc,"
                     " velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix FROM phenomenon_scatter"
-                    f" WHERE ring_index = ? AND layer_index = ? AND ring_slot_index IN ({marks})"
+                    f" WHERE shell_index = ? AND band_index = ? AND wedge_index IN ({marks})"
                     f" AND built_at IS NULL AND kind IN ({kind_marks})", (ring, layer, *chunk, *kinds)).fetchall():
                 point = scatter_position_mpc(row, epoch)
                 stones[stone_key(row["kind"], row["id"])] = {
-                    "kind": row["kind"], "id": row["id"], "cell": (ring, layer, row["ring_slot_index"]),
+                    "kind": row["kind"], "id": row["id"], "cell": (ring, layer, row["wedge_index"]),
                     "position_ly": tuple(pc_to_ly(mpc_to_pc(value)) for value in point)}
     return stones
 

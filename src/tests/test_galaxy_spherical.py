@@ -18,7 +18,7 @@ import pytest
 
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import (
-    SMALL_SHELL_TABLE,
+    HAND_CUT_SHELLS,
     SectorCell,
     band_colatitude_bounds,
     band_range,
@@ -104,17 +104,10 @@ def test_bands_are_an_odd_count_with_the_plane_through_band_zero(shell):
     assert sector_position_pc(shell, 0, 0, EDGE_PC)[2] == 0.0
 
 
-def test_shells_two_and_three_in_the_table_are_the_rim_rule():
-    for shell in (2, 3):
-        degrees, wedges = SMALL_SHELL_TABLE[shell]
-        assert degrees is None
-        alpha = math.asin(RIM_RHO_PC / (shell * EDGE_PC))
-        n = 2 * int(math.floor(shell * (math.pi - 2 * alpha) / 2)) + 1
-        assert n == len(wedges)
-        step = (math.pi - 2 * alpha) / n
-        for i, table in enumerate(wedges):
-            centre = alpha + (i + 0.5) * step
-            assert table == 6 * max(1, int(math.floor(2 * math.pi * shell * math.sin(centre) / 6 + 0.5)))
+def test_shells_two_and_three_follow_the_rule_and_only_shell_one_is_cut_by_hand():
+    assert set(HAND_CUT_SHELLS) == {1}
+    assert [wedge_count(2, b) for b in range(2, -3, -1)] == [6, 12, 12, 12, 6]
+    assert [wedge_count(3, b) for b in range(3, -4, -1)] == [12, 12, 18, 18, 18, 12, 12]
 
 
 def test_shell_one_cells_are_close_to_one_edge_cube():

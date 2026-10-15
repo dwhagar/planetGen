@@ -1406,15 +1406,15 @@ def delete_sector(sector_id):
     conn = _write_conn()
     try:
         with conn:
-            address = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?",
+            address = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
                                    (sector_id,)).fetchone()
             deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
             if deleted:
                 store.note_sector_deleted(conn)
             if address is not None:
                 # GEN.44: the slot goes back to the bright-star level it had unfilled.
-                store.forget_sector_fill(conn, (address["ring_index"], address["layer_index"],
-                                              address["ring_slot_index"]))
+                store.forget_sector_fill(conn, (address["shell_index"], address["band_index"],
+                                              address["wedge_index"]))
     finally:
         conn.close()
 
@@ -1560,7 +1560,7 @@ def _sector_generation_context(conn, sector_id, system_config):
         return None
     skeleton = get_galaxy_shape(conn)
     if skeleton is not None:
-        address = (placement["ring_index"], placement["layer_index"], placement["ring_slot_index"])
+        address = (placement["shell_index"], placement["band_index"], placement["wedge_index"])
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
@@ -1923,7 +1923,7 @@ def galaxy_uncharted_sector():
     except ValueError as err:
         raise ApiError(str(err))
     return jsonify({
-        "ring_index": ring, "layer_index": layer, "ring_slot_index": slot, "designation": cell["designation"],
+        "shell_index": ring, "band_index": layer, "wedge_index": slot, "designation": cell["designation"],
         "center_pc": cell["cartesian_pc"], "edge_pc": edge_pc, "sector_id": get_sector_id_at(conn, ring, layer, slot),
         **uncharted_sector_contents(conn, ring, layer, slot),
     })

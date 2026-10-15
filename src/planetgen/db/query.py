@@ -198,7 +198,7 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
     query = f"""
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+               sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
                COALESCE(c.system_count, 0) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
         FROM sectors sec
         LEFT JOIN sector_system_counts c ON c.sector_id = sec.id{where}
@@ -218,8 +218,8 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
             "galactic_radius_ly": (
                 pc_to_ly(r["galactic_radius_pc"]) if r["galactic_radius_pc"] is not None else None
             ),
-            "ring_index": r["ring_index"], "layer_index": r["layer_index"],
-            "ring_slot_index": r["ring_slot_index"],
+            "shell_index": r["shell_index"], "band_index": r["band_index"],
+            "wedge_index": r["wedge_index"],
             "placed": r["center_x_pc"] is not None,
         }
         for r in rows
@@ -1483,9 +1483,9 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
 
 
 def sector_address(row):
-    """A `sectors` row's `(ring_index, layer_index, ring_slot_index)`, or
+    """A `sectors` row's `(shell_index, band_index, wedge_index)`, or
     `None` when it has no grid address (never placed, or hand-placed)."""
-    address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    address = (row["shell_index"], row["band_index"], row["wedge_index"])
     return None if any(value is None for value in address) else address
 
 
@@ -1503,10 +1503,10 @@ def sector_neighbors(conn, sector):
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
         sector (dict or Row): This sector's own row -- needs
-            `ring_index`, `layer_index`, `ring_slot_index`, and `edge_mpc`.
+            `shell_index`, `band_index`, `wedge_index`, and `edge_mpc`.
 
     Returns:
-        list[dict]: `ring_index`, `layer_index`, `ring_slot_index`,
+        list[dict]: `shell_index`, `band_index`, `wedge_index`,
             `direction_pc` (`[x, y, z]`, this neighbor's galaxy-frame
             center minus this sector's own), `exists` (bool),
             `sector_id`/`sector_name` (both `None` when `exists` is
@@ -1521,19 +1521,19 @@ def sector_neighbors(conn, sector):
     this_position = sector_position_pc(*address, edge_pc)
     addresses = neighbor_addresses(*address)
 
-    clauses = " OR ".join(["(ring_index = ? AND layer_index = ? AND ring_slot_index = ?)"] * len(addresses))
+    clauses = " OR ".join(["(shell_index = ? AND band_index = ? AND wedge_index = ?)"] * len(addresses))
     params = [value for neighbor in addresses for value in neighbor]
     rows = conn.execute(
-        f"SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors WHERE {clauses}", tuple(params),
+        f"SELECT id, name, shell_index, band_index, wedge_index FROM sectors WHERE {clauses}", tuple(params),
     ).fetchall()
-    existing = {(r["ring_index"], r["layer_index"], r["ring_slot_index"]): r for r in rows}
+    existing = {(r["shell_index"], r["band_index"], r["wedge_index"]): r for r in rows}
 
     results = []
     for neighbor in addresses:
         position = sector_position_pc(*neighbor, edge_pc)
         match = existing.get(neighbor)
         results.append({
-            "ring_index": neighbor[0], "layer_index": neighbor[1], "ring_slot_index": neighbor[2],
+            "shell_index": neighbor[0], "band_index": neighbor[1], "wedge_index": neighbor[2],
             "direction_pc": [position[i] - this_position[i] for i in range(3)],
             "exists": match is not None,
             "sector_id": match["id"] if match else None,
@@ -1736,8 +1736,8 @@ def sector_detail(conn, sector_id):
 
     Returns:
         dict: `id`, `name`, `edge_mpc`, `edge_ly`, `center_x_pc`/
-            `center_y_pc`/`center_z_pc`, `ring_index`, `layer_index`,
-            `ring_slot_index`, `placed`, `system_count`, and `systems` (one entry per system
+            `center_y_pc`/`center_z_pc`, `shell_index`, `band_index`,
+            `wedge_index`, `placed`, `system_count`, and `systems` (one entry per system
             placed in this sector, nearest the sector's center first,
             then any with no position by name: `id`, `name`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `binary_separation_km`,
@@ -1807,8 +1807,8 @@ def sector_detail(conn, sector_id):
         "edge_ly": milliparsecs_to_ly(sector["edge_mpc"]),
         "center_x_pc": sector["center_x_pc"], "center_y_pc": sector["center_y_pc"],
         "center_z_pc": sector["center_z_pc"], "galactic_radius_pc": sector["galactic_radius_pc"],
-        "ring_index": sector["ring_index"], "layer_index": sector["layer_index"],
-        "ring_slot_index": sector["ring_slot_index"],
+        "shell_index": sector["shell_index"], "band_index": sector["band_index"],
+        "wedge_index": sector["wedge_index"],
         "placed": sector["center_x_pc"] is not None,
         "system_count": len(systems),
         "star_count": star_count,
@@ -1817,7 +1817,7 @@ def sector_detail(conn, sector_id):
         "phenomena": phenomena_near_sector(conn, sector_id),
         "neighbors": sector_neighbors(conn, sector),
         "wiki_url": sector["wiki_url"],
-        "stats": sector_stats(conn, sector["ring_index"], sector["layer_index"], sector["ring_slot_index"]),
+        "stats": sector_stats(conn, sector["shell_index"], sector["band_index"], sector["wedge_index"]),
     }
 
 
@@ -1828,19 +1828,19 @@ SECTOR_STATS_FIELDS = (
 """tuple: The `sector_stats` columns `sector_stats` reads (PERF.11)."""
 
 
-def sector_stats(conn, ring_index, layer_index, ring_slot_index):
+def sector_stats(conn, shell_index, band_index, wedge_index):
     """
     One grid sector's stored stats (PERF.11, GEN.44): its bright-star
     level, its expected density and, once filled, what it holds
     (`SECTOR_STATS_FIELDS`). `None` for a sector off the grid or with no
     row yet.
     """
-    if ring_index is None or layer_index is None or ring_slot_index is None:
+    if shell_index is None or band_index is None or wedge_index is None:
         return None
     row = conn.execute(
         f"SELECT {', '.join(SECTOR_STATS_FIELDS)} FROM sector_stats"
-        " WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?",
-        (ring_index, layer_index, ring_slot_index),
+        " WHERE shell_index = ? AND band_index = ? AND wedge_index = ?",
+        (shell_index, band_index, wedge_index),
     ).fetchone()
     return None if row is None else {field: row[field] for field in SECTOR_STATS_FIELDS}
 
@@ -2122,15 +2122,15 @@ def _scattered_page(conn, classes, limit, offset):
     for entry in classes:
         clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
         params.extend([entry["kind"], entry["subtype"]])
-    query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, ring_index, layer_index, ring_slot_index"
+    query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index"
              f" FROM phenomenon_scatter WHERE built_at IS NULL AND ({' OR '.join(clauses)}) ORDER BY id")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
     return [
         {"id": row["id"], "type": by_class[(row["kind"], row["subtype"])]["type"],
-         "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['ring_index']}.{row['layer_index']}."
-                 f"{row['ring_slot_index']}",
+         "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}."
+                 f"{row['wedge_index']}",
          "descriptor": by_class[(row["kind"], row["subtype"])]["descriptor"], "radius_ly": 0.0,
          "sector_id": None, "sector_name": None, "placed": True, "scattered": True}
         for row in conn.execute(query, params).fetchall()
@@ -2746,11 +2746,11 @@ def _sector_reach_pc(sector, edge_pc):
     cube alone could miss a cloud that reaches into the real cell.
     """
     reach = edge_pc * math.sqrt(3) / 2
-    if sector["ring_index"] is None or sector["layer_index"] is None or sector["ring_slot_index"] is None:
+    if sector["shell_index"] is None or sector["band_index"] is None or sector["wedge_index"] is None:
         return reach
     center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
     for vertex in sector_cell_vertices_pc(
-            sector["ring_index"], sector["layer_index"], sector["ring_slot_index"], edge_pc):
+            sector["shell_index"], sector["band_index"], sector["wedge_index"], edge_pc):
         reach = max(reach, math.dist(vertex, center))
     return reach
 
@@ -2817,7 +2817,7 @@ def phenomena_near_sector(conn, sector_id):
         ValueError: If no such sector exists.
     """
     sector = conn.execute(
-        "SELECT center_x_pc, center_y_pc, center_z_pc, edge_mpc, ring_index, layer_index, ring_slot_index"
+        "SELECT center_x_pc, center_y_pc, center_z_pc, edge_mpc, shell_index, band_index, wedge_index"
         " FROM sectors WHERE id = ?",
         (sector_id,),
     ).fetchone()
@@ -3127,12 +3127,12 @@ def galaxy_placed_sectors(conn):
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z` (`center_x/y/z_pc`),
-            `galactic_radius_pc`, `ring_index`, `system_count`.
+            `galactic_radius_pc`, `shell_index`, `system_count`.
     """
     rows = conn.execute(
         """
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.ring_index, COALESCE(counts.n, 0) AS system_count
+               sec.galactic_radius_pc, sec.shell_index, COALESCE(counts.n, 0) AS system_count
         FROM sectors sec
         LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems
                    WHERE sector_id IS NOT NULL GROUP BY sector_id) counts ON counts.sector_id = sec.id
@@ -3144,7 +3144,7 @@ def galaxy_placed_sectors(conn):
         {
             "id": r["id"], "name": r["name"],
             "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-            "galactic_radius_pc": r["galactic_radius_pc"], "ring_index": r["ring_index"],
+            "galactic_radius_pc": r["galactic_radius_pc"], "shell_index": r["shell_index"],
             "system_count": r["system_count"],
         }
         for r in rows
@@ -3175,24 +3175,24 @@ def galaxy_layer_specs(conn, edge_pc):
             `radius_pc` (outer edge) and `charted`.
     """
     from planetgen.galaxy.geometry import layer_bounds_pc, ring_bounds_pc
-    layers = conn.execute("SELECT layer_index, outer_ring_index FROM galaxy_layer ORDER BY layer_index DESC").fetchall()
+    layers = conn.execute("SELECT band_index, outer_shell_index FROM galaxy_layer ORDER BY band_index DESC").fetchall()
     if not layers:
         return None
-    charted = {row["layer_index"]: row["n"] for row in conn.execute(
-        "SELECT layer_index, COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL GROUP BY layer_index").fetchall()}
+    charted = {row["band_index"]: row["n"] for row in conn.execute(
+        "SELECT band_index, COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL GROUP BY band_index").fetchall()}
     keep = layers
     if len(layers) > LAYER_SPEC_ROWS:
         picks = {round(i * (len(layers) - 1) / (LAYER_SPEC_ROWS - 1)) for i in range(LAYER_SPEC_ROWS)}
-        picks.update(i for i, row in enumerate(layers) if row["layer_index"] == 0)
+        picks.update(i for i, row in enumerate(layers) if row["band_index"] == 0)
         keep = [layers[i] for i in sorted(picks)]
     rows = []
     for row in keep:
-        bottom, top = layer_bounds_pc(row["layer_index"], edge_pc)
-        rows.append({"layer": row["layer_index"], "bottom_pc": bottom, "top_pc": top,
-                     "radius_pc": ring_bounds_pc(row["outer_ring_index"], edge_pc)[1],
-                     "charted": charted.get(row["layer_index"], 0)})
-    widest = max(row["outer_ring_index"] for row in layers)
-    return {"count": len(layers), "lowest": layers[-1]["layer_index"], "highest": layers[0]["layer_index"],
+        bottom, top = layer_bounds_pc(row["band_index"], edge_pc)
+        rows.append({"layer": row["band_index"], "bottom_pc": bottom, "top_pc": top,
+                     "radius_pc": ring_bounds_pc(row["outer_shell_index"], edge_pc)[1],
+                     "charted": charted.get(row["band_index"], 0)})
+    widest = max(row["outer_shell_index"] for row in layers)
+    return {"count": len(layers), "lowest": layers[-1]["band_index"], "highest": layers[0]["band_index"],
             "height_pc": edge_pc, "thickness_pc": edge_pc * len(layers),
             "radius_pc": ring_bounds_pc(widest, edge_pc)[1], "charted": sum(charted.values()),
             "sampled": len(rows) < len(layers), "rows": rows}
@@ -3206,8 +3206,8 @@ def sectors_made(conn, since, until=None, limit=MADE_SECTOR_LIMIT):
 
     Returns:
         dict: `total` (how many), `items` (up to `limit`, lowest id first:
-            `id`, `name`, `x`/`y`/`z` pc, `ring_index`, `layer_index`,
-            `ring_slot_index`).
+            `id`, `name`, `x`/`y`/`z` pc, `shell_index`, `band_index`,
+            `wedge_index`).
     """
     where = "center_x_pc IS NOT NULL AND UNIX_TIMESTAMP(created_at) >= ?"
     params = [since]
@@ -3216,14 +3216,14 @@ def sectors_made(conn, since, until=None, limit=MADE_SECTOR_LIMIT):
         params.append(until)
     total = conn.execute(f"SELECT COUNT(*) AS n FROM sectors WHERE {where}", params).fetchone()["n"]
     rows = conn.execute(
-        "SELECT id, name, center_x_pc, center_y_pc, center_z_pc, ring_index, layer_index, ring_slot_index "
+        "SELECT id, name, center_x_pc, center_y_pc, center_z_pc, shell_index, band_index, wedge_index "
         f"FROM sectors WHERE {where} ORDER BY id LIMIT ?", [*params, int(limit)],
     ).fetchall()
     return {
         "total": total,
         "items": [
             {"id": r["id"], "name": r["name"], "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-             "ring_index": r["ring_index"], "layer_index": r["layer_index"], "ring_slot_index": r["ring_slot_index"]}
+             "shell_index": r["shell_index"], "band_index": r["band_index"], "wedge_index": r["wedge_index"]}
             for r in rows
         ],
     }
@@ -3248,7 +3248,7 @@ def galaxy_density_shape(conn):
     Returns:
         dict or None: Every `GalaxyShape` field and
             `galaxyDensity.model_terms` entry, plus `edge_pc`,
-            `outer_ring_index`, `expected_system_count_at_density_1` and
+            `outer_shell_index`, `expected_system_count_at_density_1` and
             `half_height_pc` (how far above and below the plane the
             layers reach; left out before the layers are stored).
             `None` if `planetgen plan` has never been run against this
@@ -3259,9 +3259,9 @@ def galaxy_density_shape(conn):
         return None
     shape = shape_with_terms(skeleton.shape)
     shape["edge_pc"] = skeleton.edge_pc
-    shape["outer_ring_index"] = skeleton.outer_ring_index
+    shape["outer_shell_index"] = skeleton.outer_shell_index
     shape["expected_system_count_at_density_1"] = skeleton.expected_system_count_at_density_1
-    extent = conn.execute("SELECT MIN(layer_index) AS lowest, MAX(layer_index) AS highest FROM galaxy_layer").fetchone()
+    extent = conn.execute("SELECT MIN(band_index) AS lowest, MAX(band_index) AS highest FROM galaxy_layer").fetchone()
     if extent["lowest"] is not None:
         from planetgen.galaxy.geometry import layer_bounds_pc
         shape["half_height_pc"] = max(abs(layer_bounds_pc(extent["lowest"], skeleton.edge_pc)[0]),
@@ -3314,7 +3314,7 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z`, `galactic_radius_pc`,
-            `ring_index`, `layer_index`, `ring_slot_index`, `designation`
+            `shell_index`, `band_index`, `wedge_index`, `designation`
             (`provisional_sector_designation`, `None` if this sector has
             no grid address), `system_count`, `edge_ly` (this
             sector's own real edge length -- lets a client compute its
@@ -3325,7 +3325,7 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
     rows = conn.execute(
         """
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+               sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
                sec.edge_mpc,
                (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
         FROM sectors sec
@@ -3430,10 +3430,10 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
     rows = conn.execute(
         """
         SELECT id, name, center_x_pc, center_y_pc, center_z_pc,
-               galactic_radius_pc, ring_index, layer_index, ring_slot_index, edge_mpc
+               galactic_radius_pc, shell_index, band_index, wedge_index, edge_mpc
         FROM (
             SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-                   sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+                   sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
                    sec.edge_mpc,
                    ROW_NUMBER() OVER (ORDER BY sec.id) AS row_num,
                    COUNT(*) OVER () AS row_total
@@ -3473,7 +3473,7 @@ def _placed_sector_entry(r, system_count):
         "id": r["id"], "name": r["name"],
         "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
         "galactic_radius_pc": r["galactic_radius_pc"],
-        "ring_index": r["ring_index"], "layer_index": r["layer_index"], "ring_slot_index": r["ring_slot_index"],
+        "shell_index": r["shell_index"], "band_index": r["band_index"], "wedge_index": r["wedge_index"],
         "designation": provisional_sector_designation(*address) if address is not None else None,
         "system_count": system_count,
         "edge_ly": pc_to_ly(edge_pc) if edge_pc else None,
@@ -3514,11 +3514,11 @@ def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_T
     box = (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2])
     where = (
         "center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? AND center_y_pc < ? "
-        "AND center_z_pc >= ? AND center_z_pc < ? AND ring_index IS NOT NULL"
+        "AND center_z_pc >= ? AND center_z_pc < ? AND shell_index IS NOT NULL"
     )
     if g == 1:
         rows = conn.execute(
-            f"SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors WHERE {where} "
+            f"SELECT id, name, shell_index, band_index, wedge_index FROM sectors WHERE {where} "
             f"ORDER BY id LIMIT ?",
             box + (max_cells + 1,),
         ).fetchall()
@@ -3536,7 +3536,7 @@ def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_T
                     ).fetchall()
                 }
             return {"g": 1, "cells": [
-                [r["ring_index"], r["layer_index"], r["ring_slot_index"], r["id"], counts.get(r["id"], 0), r["name"]]
+                [r["shell_index"], r["band_index"], r["wedge_index"], r["id"], counts.get(r["id"], 0), r["name"]]
                 for r in rows
             ]}
         g = 3
@@ -3549,7 +3549,7 @@ def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_T
                          * GREATEST(3, ROUND(2 * PI() * (cell_ring + 0.5)))) AS cell_wedge,
                    COUNT(*) AS n
             FROM (
-                SELECT FLOOR(ring_index / ?) AS cell_ring, FLOOR((layer_index + ?) / ?) AS cell_layer,
+                SELECT FLOOR(shell_index / ?) AS cell_ring, FLOOR((band_index + ?) / ?) AS cell_layer,
                        center_x_pc, center_y_pc
                 FROM sectors WHERE {where}
             ) placed
@@ -3722,9 +3722,9 @@ def _bright_star_bands(conn, lo, hi, edge_pc):
     layer_lo = layer_index_at(lo[2], edge_pc)
     layer_hi = layer_index_at(hi[2], edge_pc)
     columns = {
-        row["ring_index"]: (row["layer_index_min"], row["layer_index_max"])
+        row["shell_index"]: (row["layer_index_min"], row["layer_index_max"])
         for row in conn.execute(
-            "SELECT ring_index, layer_index_min, layer_index_max FROM galaxy_column WHERE ring_index BETWEEN ? AND ?",
+            "SELECT shell_index, layer_index_min, layer_index_max FROM galaxy_column WHERE shell_index BETWEEN ? AND ?",
             (ring_lo, ring_hi),
         ).fetchall()
     }
@@ -3778,13 +3778,13 @@ def _bright_star_entry(row):
         "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY,
         "temperature_k": row["temperature_k"], "radius_sol": _radius_sol(row["radius_km"]),
         "star_type": row["star_type"], "population": row["population"],
-        "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
-        "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
+        "yerkes_class": row["yerkes_class"], "shell_index": row["shell_index"],
+        "band_index": row["band_index"], "wedge_index": row["wedge_index"],
         "system_id": row["star_system_id"],
     }
 
 
-def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfilled_only=True):
+def bright_stars_in_sector(conn, shell_index, band_index, wedge_index, unfilled_only=True):
     """
     The pre-placed bright stars (`bright_stars`) in one sector cell, most
     luminous first -- the stars a sector page lists for a cell that hasn't
@@ -3794,7 +3794,7 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
-        ring_index, layer_index, ring_slot_index (int): The cell's address.
+        shell_index, band_index, wedge_index (int): The cell's address.
         unfilled_only (bool): Leave out stars already built into a system
             (the default); `False` lists every star placed in the cell,
             each filled one with its `system_id`.
@@ -3807,19 +3807,19 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     rows = conn.execute(
         f"""
         SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
-               star_type, population, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+               star_type, population, yerkes_class, shell_index, band_index, wedge_index, star_system_id
         FROM bright_stars
-        WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?{unfilled}
+        WHERE shell_index = ? AND band_index = ? AND wedge_index = ?{unfilled}
         ORDER BY luminosity_w DESC, id
         """,
-        (int(ring_index), int(layer_index), int(ring_slot_index)),
+        (int(shell_index), int(band_index), int(wedge_index)),
     ).fetchall()
     return [_bright_star_entry(row) for row in rows]
 
 
 UNCHARTED_SYSTEM_SORTS = {
     "luminosity": "luminosity_w", "temperature": "temperature_k", "type": "star_type",
-    "sector": "ring_index,layer_index,ring_slot_index", "age": "age_gy",
+    "sector": "shell_index,band_index,wedge_index", "age": "age_gy",
 }
 """dict: The sort keys `list_uncharted_systems` accepts -> the `bright_stars` column they order by."""
 
@@ -3847,7 +3847,7 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
         list[dict]: One row per star: `id` (the `bright_stars` id), the
             star (`star_type`, `yerkes_class`, `population`, `mass_solar`,
             `radius_solar`, `temperature_k`, `luminosity_sol`, `age_gy`),
-            its sector (`ring_index`, `layer_index`, `ring_slot_index`,
+            its sector (`shell_index`, `band_index`, `wedge_index`,
             `designation`), `x`/`y`/`z` (galaxy frame, parsecs),
             `local_x`/`local_y`/`local_z` (parsecs from the sector's
             center, where the star's sector is in the grid) and
@@ -3857,7 +3857,7 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
         raise ValueError(f"unknown uncharted system sort {sort!r}")
     direction = "DESC" if descending else "ASC"
     order = ", ".join(f"{column} {direction}" for column in UNCHARTED_SYSTEM_SORTS[sort].split(","))
-    query = (f"SELECT id, ring_index, layer_index, ring_slot_index, position_x_mpc, position_y_mpc, position_z_mpc,"
+    query = (f"SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
              f" population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy"
              f" FROM bright_stars WHERE star_system_id IS NULL ORDER BY {order}, id")
     params = []
@@ -3868,7 +3868,7 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
     edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
     items = []
     for row in conn.execute(query, params).fetchall():
-        address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
         x, y, z = (row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz")
         local = galaxy_to_local_pc(sector_position_pc(*address, edge_pc), (x, y, z))
         items.append({
@@ -3876,7 +3876,7 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
             "population": row["population"], "mass_solar": row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
             "radius_solar": _radius_sol(row["radius_km"]), "temperature_k": row["temperature_k"],
             "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY, "age_gy": row["age_gy"],
-            "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+            "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
             "designation": provisional_sector_designation(*address),
             "x": x, "y": y, "z": z, "local_x": local[0], "local_y": local[1], "local_z": local[2],
             "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
@@ -3888,7 +3888,7 @@ UNCHARTED_SCATTER_LIMIT = 500
 """int: Most scattered phenomena one uncharted sector lists (MAP.162)."""
 
 
-def uncharted_sector_contents(conn, ring_index, layer_index, ring_slot_index):
+def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
     """
     What the scatters left in one sector cell that nothing has built yet
     (MAP.162): its waiting bright stars (`bright_stars_in_sector`) and its
@@ -3901,7 +3901,7 @@ def uncharted_sector_contents(conn, ring_index, layer_index, ring_slot_index):
             scatter row (`type` as `_SCATTER_TYPES`; positions in
             galaxy-frame parsecs), at most `UNCHARTED_SCATTER_LIMIT`.
     """
-    address = (int(ring_index), int(layer_index), int(ring_slot_index))
+    address = (int(shell_index), int(band_index), int(wedge_index))
     try:
         stars = bright_stars_in_sector(conn, *address)
     except pymysql.err.ProgrammingError:  # no bright_stars table yet (before v43)
@@ -3910,7 +3910,7 @@ def uncharted_sector_contents(conn, ring_index, layer_index, ring_slot_index):
         """
         SELECT id, kind, subtype, position_x_mpc, position_y_mpc, position_z_mpc
         FROM phenomenon_scatter
-        WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ? AND built_at IS NULL
+        WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND built_at IS NULL
         ORDER BY id
         LIMIT ?
         """,
@@ -3971,8 +3971,8 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
                 _bright_star_entry(row) for row in conn.execute(
                     """
                     SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
-                           radius_km, star_type, population, yerkes_class, ring_index, layer_index,
-                           ring_slot_index, star_system_id
+                           radius_km, star_type, population, yerkes_class, shell_index, band_index,
+                           wedge_index, star_system_id
                     FROM bright_stars FORCE INDEX (idx_bright_stars_population)
                     WHERE population = ? AND off_plane = ?
                     ORDER BY luminosity_w DESC, id DESC
@@ -4021,8 +4021,8 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
     Returns:
         list[dict]: Highest key first (ties by descending id): `id`, `x`/`y`/`z` (parsecs),
             `luminosity_sol`, `temperature_k`, `radius_sol`, `star_type`,
-            `yerkes_class`, `ring_index`, `layer_index`,
-            `ring_slot_index` and `system_id` (the star's system once its
+            `yerkes_class`, `shell_index`, `band_index`,
+            `wedge_index` and `system_id` (the star's system once its
             sector is filled, else `None`).
     """
     if limit is None:
@@ -4044,7 +4044,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
     # Rows read each way, assuming stars spread evenly over the disk: the
     # address path reads its rings' full layer bands (the slot test only
     # filters), the luminosity path about `limit / share of the galaxy`.
-    outer_ring = int(conn.execute("SELECT COALESCE(MAX(ring_index), 0) AS r FROM galaxy_column").fetchone()["r"])
+    outer_ring = int(conn.execute("SELECT COALESCE(MAX(shell_index), 0) AS r FROM galaxy_column").fetchone()["r"])
     outer_ring = outer_ring or bands[-1][0]
     disk = math.pi * ((outer_ring + 1) * edge_pc) ** 2
     intervals = _box_angle_intervals(lo, hi)
@@ -4069,7 +4069,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
         return _top_by_key(found, limit)
 
     columns = ("id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km, "
-               "star_type, population, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id")
+               "star_type, population, yerkes_class, shell_index, band_index, wedge_index, star_system_id")
     # Both keys descending, so the luminosity path walks its index
     # backwards and stops at `limit`: with `id` ascending MariaDB and MySQL
     # sort every star in the box first, millions in a zoomed-out tile.
@@ -4092,11 +4092,11 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
     exact = sum(t - b + 1 for _r, b, t in bands) <= BRIGHT_STAR_MAX_EXACT_RANGES
     for ring, bottom, top in bands:
         slots = _ring_slot_ranges(ring, intervals)
-        slot_test = " OR ".join("ring_slot_index BETWEEN ? AND ?" for _ in slots)
+        slot_test = " OR ".join("wedge_index BETWEEN ? AND ?" for _ in slots)
         slot_params = [v for pair in slots for v in pair]
         layers = [(layer, layer) for layer in range(bottom, top + 1)] if exact else [(bottom, top)]
         for first, last in layers:
-            clauses.append(f"(ring_index = ? AND layer_index BETWEEN ? AND ? AND ({slot_test}))")
+            clauses.append(f"(shell_index = ? AND band_index BETWEEN ? AND ? AND ({slot_test}))")
             params += [ring, first, last] + slot_params
     # The address path reads the box's stars once and keeps the `limit`
     # most luminous of each population, then the `limit` of highest key.
@@ -4240,7 +4240,7 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         list[dict]: Most luminous first (ties by descending id): `id`
             (the `stars` row), `name`, `x`/`y`/`z` (galaxy-frame
             parsecs), `luminosity_sol`, `temperature_k`, `radius_sol`,
-            `star_type`, `ring_index`, `layer_index`, `ring_slot_index`
+            `star_type`, `shell_index`, `band_index`, `wedge_index`
             and `system_id`.
     """
     if sector_count <= 0:
@@ -4250,7 +4250,7 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         SELECT st.id, st.name, st.role, st.luminosity_w, st.temperature_k, st.radius_km, st.star_type,
                ss.id AS system_id, ss.binary_separation_km, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
                sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.ring_index, sec.layer_index, sec.ring_slot_index"""
+               sec.shell_index, sec.band_index, sec.wedge_index"""
     rank = (", ROW_NUMBER() OVER (PARTITION BY sec.id ORDER BY st.luminosity_w DESC, st.id DESC) AS sector_rank"
             if per_sector is not None else "")
     source = """
@@ -4261,7 +4261,7 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
           AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
           AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
-          AND sec.ring_index IS NOT NULL AND MOD(CRC32(sec.id), ?) = 0
+          AND sec.shell_index IS NOT NULL AND MOD(CRC32(sec.id), ?) = 0
           AND ss.position_x_mpc IS NOT NULL
           AND st.luminosity_w >= ? AND b.id IS NULL"""
     params = [lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], stride, float(min_luminosity_sol) * constants.SOLAR_LUMINOSITY]
@@ -4292,8 +4292,8 @@ def _generated_star_entry(row):
         "luminosity_sol": float("%.4g" % (row["luminosity_w"] / constants.SOLAR_LUMINOSITY)),
         "temperature_k": round(row["temperature_k"]),
         "radius_sol": float("%.3g" % _radius_sol(row["radius_km"])),
-        "star_type": row["star_type"], "ring_index": row["ring_index"], "layer_index": row["layer_index"],
-        "ring_slot_index": row["ring_slot_index"], "system_id": row["system_id"],
+        "star_type": row["star_type"], "shell_index": row["shell_index"], "band_index": row["band_index"],
+        "wedge_index": row["wedge_index"], "system_id": row["system_id"],
     }
 
 
@@ -4422,10 +4422,10 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     if not bands:
         return []
     if len(bands) > 64:
-        where_address = "ring_index BETWEEN ? AND ?"
+        where_address = "shell_index BETWEEN ? AND ?"
         address_params = [bands[0][0], bands[-1][0]]
     else:
-        where_address = "(" + " OR ".join("(ring_index = ? AND layer_index BETWEEN ? AND ?)" for _ in bands) + ")"
+        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
         address_params = [v for band in bands for v in band]
     kinds = " OR ".join("(kind = ? AND subtype <=> ?)" for _ in classes)
     kind_params = [v for cls in classes for v in cls[:2]]
@@ -4631,14 +4631,14 @@ def galaxy_stage(conn, at=None):
         block = None
         child_m = DRILL_TOP
         rows = conn.execute(
-            f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, {_STAGE_LOOK_SUMS} "
-            f"FROM ({_stage_sectors_with_stats('ring_index IS NOT NULL')}) placed "
-            "GROUP BY ring_index, slab, ring_slot_index",
+            f"SELECT shell_index, FLOOR((band_index + ?) / ?) AS slab, wedge_index, {_STAGE_LOOK_SUMS} "
+            f"FROM ({_stage_sectors_with_stats('shell_index IS NOT NULL')}) placed "
+            "GROUP BY shell_index, slab, wedge_index",
             ((DRILL_TOP - 1) // 2, DRILL_TOP),
         ).fetchall()
         counts = {}
         for r in rows:
-            top = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * DRILL_TOP, int(r["ring_slot_index"]))[0]
+            top = drill_chain_of(int(r["shell_index"]), int(r["slab"]) * DRILL_TOP, int(r["wedge_index"]))[0]
             _add_stage_sums(counts, top, r)
         return {"at": None, "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
@@ -4654,7 +4654,7 @@ def galaxy_stage(conn, at=None):
     if child_m == 1:
         rows = conn.execute(
             f"SELECT * FROM ({_stage_sectors_with_stats(where, 'id, name, ')}) placed "
-            f"ORDER BY ring_index, layer_index, ring_slot_index",
+            f"ORDER BY shell_index, band_index, wedge_index",
             layer_params + params,
         ).fetchall()
         system_counts = {}
@@ -4669,7 +4669,7 @@ def galaxy_stage(conn, at=None):
                 ).fetchall()
             }
         sectors = [{
-            "ring": r["ring_index"], "layer": r["layer_index"], "slot": r["ring_slot_index"],
+            "ring": r["shell_index"], "layer": r["band_index"], "slot": r["wedge_index"],
             "id": r["id"], "name": r["name"], "system_count": system_counts.get(r["id"], 0),
             "stats": _stage_stats(_sector_sums(r)),
         } for r in rows]
@@ -4683,13 +4683,13 @@ def galaxy_stage(conn, at=None):
 
     child_half = (child_m - 1) // 2
     rows = conn.execute(
-        f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, {_STAGE_LOOK_SUMS} "
-        f"FROM ({_stage_sectors_with_stats(where)}) placed GROUP BY ring_index, slab, ring_slot_index",
+        f"SELECT shell_index, FLOOR((band_index + ?) / ?) AS slab, wedge_index, {_STAGE_LOOK_SUMS} "
+        f"FROM ({_stage_sectors_with_stats(where)}) placed GROUP BY shell_index, slab, wedge_index",
         [child_half, child_m] + layer_params + params,
     ).fetchall()
     counts = {}
     for r in rows:
-        child = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * child_m, int(r["ring_slot_index"]))[level]
+        child = drill_chain_of(int(r["shell_index"]), int(r["slab"]) * child_m, int(r["wedge_index"]))[level]
         _add_stage_sums(counts, child, r)
     return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
@@ -4707,11 +4707,11 @@ def _block_where(block):
     for i in range(block.ring * block.m, block.ring * block.m + block.m):
         first, last = _block_slot_range(block, i)
         if first <= last:
-            ring_clauses.append("(ring_index = ? AND ring_slot_index BETWEEN ? AND ?)")
+            ring_clauses.append("(shell_index = ? AND wedge_index BETWEEN ? AND ?)")
             params += [i, first, last]
     if not ring_clauses:
         raise ValueError(f"no such block: {block!r}")
-    where = f"layer_index BETWEEN ? AND ? AND ({' OR '.join(ring_clauses)})"
+    where = f"band_index BETWEEN ? AND ? AND ({' OR '.join(ring_clauses)})"
     return where, [block.slab * block.m - half, block.slab * block.m + half] + params
 
 
@@ -4749,16 +4749,16 @@ def galaxy_block_stats(conn, m, cells):
     if not cells:
         return {}
     rows = conn.execute(
-        "SELECT ring_index, wedge, slab, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
+        "SELECT shell_index, wedge, slab, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
         " luminosity_sol AS luminosity FROM galaxy_block_stats WHERE m = ? AND ladder_step = ?"
-        " AND (ring_index, wedge, slab) IN ("
+        " AND (shell_index, wedge, slab) IN ("
         + ", ".join("(?, ?, ?)" for _ in cells) + ")",
         [m, DRILL_STEP] + [value for cell in cells for value in cell]).fetchall()
     found = {}
     for r in rows:
         counts = {}
         _add_stage_sums(counts, None, r)
-        found[(int(r["ring_index"]), int(r["wedge"]), int(r["slab"]))] = {
+        found[(int(r["shell_index"]), int(r["wedge"]), int(r["slab"]))] = {
             "generated": counts[None][0], "stats": _stage_stats(counts[None])}
     return found
 
@@ -4813,11 +4813,11 @@ def _stage_sectors_with_stats(where, extra=""):
     `actual_systems`, `expected_systems`, `actual_stars`, `mean_age_gy`
     and `total_luminosity_sol` (NULL without a row or a fill)."""
     return (
-        f"SELECT {extra}s.ring_index, s.layer_index, s.ring_slot_index, st.actual_systems, st.expected_systems,"
+        f"SELECT {extra}s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
         " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol"
         f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
-        " ON st.ring_index = s.ring_index AND st.layer_index = s.layer_index"
-        " AND st.ring_slot_index = s.ring_slot_index"
+        " ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
+        " AND st.wedge_index = s.wedge_index"
     )
 
 
@@ -4911,42 +4911,42 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
     prefix = _search_like_pattern(term)[1:]
     sector_match, sector_params = _locate_match(conn, "name", term)
     sectors = conn.execute(
-        "SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors "
-        f"WHERE ring_index IS NOT NULL AND {sector_match} "
+        "SELECT id, name, shell_index, band_index, wedge_index FROM sectors "
+        f"WHERE shell_index IS NOT NULL AND {sector_match} "
         f"ORDER BY {order.format(col='name')} LIMIT ?",
         (*sector_params, term, prefix, limit),
     ).fetchall()
     system_match, system_params = _locate_match(conn, "ss.name", term)
     systems = conn.execute(
         "SELECT ss.id, ss.name, s.id AS sector_id, s.name AS sector_name, "
-        "s.ring_index, s.layer_index, s.ring_slot_index "
+        "s.shell_index, s.band_index, s.wedge_index "
         "FROM star_systems ss JOIN sectors s ON s.id = ss.sector_id "
-        f"WHERE s.ring_index IS NOT NULL AND {system_match} "
+        f"WHERE s.shell_index IS NOT NULL AND {system_match} "
         f"ORDER BY {order.format(col='ss.name').replace(', id', ', ss.id')} LIMIT ?",
         (*system_params, term, prefix, limit),
     ).fetchall()
     body_order = order.format(col="b.name").replace(", id", ", b.id")
     planets = conn.execute(
         "SELECT b.id, b.name, b.star_system_id, ss.name AS system_name, s.id AS sector_id, s.name AS sector_name, "
-        "s.ring_index, s.layer_index, s.ring_slot_index "
+        "s.shell_index, s.band_index, s.wedge_index "
         "FROM planets b JOIN star_systems ss ON ss.id = b.star_system_id JOIN sectors s ON s.id = ss.sector_id "
-        f"WHERE s.ring_index IS NOT NULL AND {_locate_match(conn, 'b.name', term)[0]} "
+        f"WHERE s.shell_index IS NOT NULL AND {_locate_match(conn, 'b.name', term)[0]} "
         f"ORDER BY {body_order} LIMIT ?",
         (*_locate_match(conn, "b.name", term)[1], term, prefix, limit),
     ).fetchall()
     moons = conn.execute(
         "SELECT b.id, b.name, b.star_system_id, b.planet_id, p.name AS planet_name, ss.name AS system_name, "
-        "s.id AS sector_id, s.name AS sector_name, s.ring_index, s.layer_index, s.ring_slot_index "
+        "s.id AS sector_id, s.name AS sector_name, s.shell_index, s.band_index, s.wedge_index "
         "FROM moons b JOIN planets p ON p.id = b.planet_id JOIN star_systems ss ON ss.id = b.star_system_id "
         "JOIN sectors s ON s.id = ss.sector_id "
-        f"WHERE s.ring_index IS NOT NULL AND {_locate_match(conn, 'b.name', term)[0]} "
+        f"WHERE s.shell_index IS NOT NULL AND {_locate_match(conn, 'b.name', term)[0]} "
         f"ORDER BY {body_order} LIMIT ?",
         (*_locate_match(conn, "b.name", term)[1], term, prefix, limit),
     ).fetchall()
 
     def where(r):
         return {"sector_id": r["sector_id"], "sector_name": r["sector_name"],
-                "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"])}
+                "ring": int(r["shell_index"]), "layer": int(r["band_index"]), "slot": int(r["wedge_index"])}
 
     def sector_parent(r):
         return {"ref": object_ref.format("sector", r["sector_id"]), "kind": "sector", "name": r["sector_name"]}
@@ -4957,11 +4957,11 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
     found = [{
         "kind": "sector", "ref": object_ref.format("sector", r["id"]), "id": r["id"], "name": r["name"],
         "sector_id": r["id"], "sector_name": r["name"], "parents": [],
-        "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
+        "ring": int(r["shell_index"]), "layer": int(r["band_index"]), "slot": int(r["wedge_index"]),
     } for r in sectors] + [{
         "kind": "system", "ref": object_ref.format("system", r["id"]), "id": r["id"], "name": r["name"],
         "sector_id": r["sector_id"], "sector_name": r["sector_name"], "parents": [sector_parent(r)],
-        "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
+        "ring": int(r["shell_index"]), "layer": int(r["band_index"]), "slot": int(r["wedge_index"]),
     } for r in systems] + [{
         "kind": "planet", "ref": object_ref.format("planet", r["id"]), "id": r["id"], "name": r["name"],
         "system_id": r["star_system_id"], "system_name": r["system_name"],
@@ -5167,7 +5167,7 @@ def galaxy_changes(conn, since=None):
 
     rows = conn.execute(
         """
-        SELECT center_x_pc, center_y_pc, center_z_pc, ring_index, layer_index, ring_slot_index
+        SELECT center_x_pc, center_y_pc, center_z_pc, shell_index, band_index, wedge_index
         FROM sectors
         WHERE center_x_pc IS NOT NULL
           AND (id > ? OR modified_at > ?

@@ -59,7 +59,7 @@ def _disk_share_bound(shape, z_near, z_far, fractions):
     return best
 
 
-def ring_majorants(shape, layer_index, outer_ring, edge_pc, fractions):
+def ring_majorants(shape, band_index, outer_ring, edge_pc, fractions):
     """
     Per ring `0..outer_ring`, an upper bound on `sum_p density_p * fractions[p]`
     (the stars of the pass expected per unit of `e`) anywhere in the ring at
@@ -72,7 +72,7 @@ def ring_majorants(shape, layer_index, outer_ring, edge_pc, fractions):
         numpy.ndarray: One bound per ring.
     """
     terms = density.model_terms(shape)
-    z_low, z_high = (layer_index - 0.5) * edge_pc, (layer_index + 0.5) * edge_pc
+    z_low, z_high = (band_index - 0.5) * edge_pc, (band_index + 0.5) * edge_pc
     z_near = 0.0 if z_low <= 0.0 <= z_high else min(abs(z_low), abs(z_high))
     z_far = max(abs(z_low), abs(z_high))
     inner = np.arange(outer_ring + 1, dtype=float) * edge_pc

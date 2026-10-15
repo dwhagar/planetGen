@@ -1238,6 +1238,22 @@
 --   the map reads only rows of its own step. The migration empties the table and fills it
 --   again for the 3-ary ladder.
 --
+-- v91 (Spherical Sector Coordinates, DB.32): the sector grid is spherical shells
+--   (`galaxy/spherical.py`, docs/design/spherical-sector-coordinates.md). A sector's
+--   address `(ring_index, layer_index, ring_slot_index)` becomes `(shell_index,
+--   band_index, wedge_index)` in `sectors`, `bright_stars`, `sector_stats` and
+--   `phenomenon_scatter` (same types); `galaxy_shape.outer_ring_index` becomes
+--   `outer_shell_index`; `galaxy_layer` and `galaxy_column` are replaced by
+--   `galaxy_shell` (one row per shell: the highest band its outline reaches and the
+--   cell count of that run); `galaxy_block_stats` is dropped (the Galaxy Map's block
+--   ladder is gone). Every address means something else, so the migration CONVERTS:
+--   every system, phenomenon and facility keeps its place, velocity and epoch and is
+--   linked to the new sector that holds it, the sector rows are rebuilt on shells
+--   (a cell that holds an object, or whose centre lay in a generated sector), object
+--   IDs are renumbered for the new birth sector (body numbers kept), the scatter and
+--   bright stars take the address of their cell, `sector_stats` is rebuilt for the
+--   generated sectors, and the outline is built again from the stored shape.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1332,12 +1348,13 @@ CREATE TABLE IF NOT EXISTS sectors (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
-    -- v30: the sector's cell in the cylindrical grid (ring = radius band,
-    -- layer = height band, slot = angular wedge) -- see the header
-    -- comment's "v30" note. Deliberately not part of the CHECK below.
-    ring_index          INT,
-    layer_index         INT,
-    ring_slot_index     INT,
+    -- v30, re-keyed to the spherical grid in v91: the sector's cell (shell =
+    -- radius band 4 pc deep, band = latitude ring, signed, 0 on the galactic
+    -- plane, wedge = longitude slice of the band) -- see the header comment's
+    -- "v91" note. Deliberately not part of the CHECK below.
+    shell_index         INT,
+    band_index          INT,
+    wedge_index         INT,
 
     -- v23: manually-set-or-uploaded wiki page link -- see this file's
     -- header comment's "v23" note. NULL means no page yet.
@@ -1367,7 +1384,7 @@ CREATE TABLE IF NOT EXISTS sectors (
     -- lazy-generation race into a clear IntegrityError rather than a
     -- duplicate sector. Never-placed sectors (NULL address) don't collide
     -- -- ordinary SQL NULL semantics for UNIQUE.
-    UNIQUE KEY uq_sectors_address (ring_index, layer_index, ring_slot_index),
+    UNIQUE KEY uq_sectors_address (shell_index, band_index, wedge_index),
 
     KEY idx_sectors_galactic_radius_pc (galactic_radius_pc),
     KEY idx_sectors_name (name),
@@ -1383,13 +1400,12 @@ CREATE TABLE IF NOT EXISTS sectors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- galaxy_shape / galaxy_layer -- the galaxy-wide density "skeleton"
--- (v8, re-keyed to rings in v32 and to layers in v33 -- see the header
--- comment's notes).
+-- galaxy_shape / galaxy_shell -- the galaxy-wide density "skeleton"
+-- (v8, re-keyed to rings in v32, to layers in v33 and to shells in v91 --
+-- see the header comment's notes).
 -- `galaxy_shape` is a singleton (`id` pinned to 1, enforced by the CHECK)
 -- -- there is exactly one galaxy. Building or rebuilding the skeleton
--- (`planetgen plan`) replaces this row and every `galaxy_layer`/
--- `galaxy_column` row
+-- (`planetgen plan`) replaces this row and every `galaxy_shell` row
 -- wholesale; neither
 -- table is ever partially updated.
 -- ---------------------------------------------------------------------
@@ -1413,8 +1429,7 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
 
     -- The sector edge length this skeleton was built at, in parsecs
     -- (galaxyGeometry's own scope -- every grid formula takes this as a
-    -- parameter, as both the ring width and the layer height, rather than
-    -- assuming a fixed constant).
+    -- parameter, as the shell depth, rather than assuming a fixed constant).
     edge_pc                     DOUBLE NOT NULL,
 
     -- SpaceSector(edge_ly=...).expected_system_count() at relative_density
@@ -1423,10 +1438,11 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- fact, not worth re-deriving from edge_pc on every call.
     expected_system_count_at_density_1  DOUBLE NOT NULL,
 
-    -- The last ring with any qualifying content (the plane's layer reaches
-    -- farthest) -- this galaxy's real edge, found by `planetgen plan`,
-    -- not picked as an arbitrary radius. (v32; was `outer_shell_index`.)
-    outer_ring_index            INT NOT NULL,
+    -- The last shell with any qualifying content (its equatorial band
+    -- reaches farthest) -- this galaxy's real edge, found by `planetgen
+    -- plan`, not picked as an arbitrary radius. (v32; `outer_ring_index`
+    -- until v91.)
+    outer_shell_index            INT NOT NULL,
 
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
@@ -1466,26 +1482,19 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     density_ratio_samples           BIGINT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- One row per layer that holds content (v33; replaces v32's
--- `galaxy_ring_band`): the galaxy as a stack of circular slices, from the
--- highest layer to the lowest. Each layer holds rings 0 through
--- `outer_ring_index`, the last ring whose sector centers can clear the
--- qualification threshold for some angle
--- (`galaxySkeleton.build_layer_extents`). Always symmetric about the
--- plane. A layer with no row has no content at all.
-CREATE TABLE IF NOT EXISTS galaxy_layer (
-    layer_index       INT NOT NULL PRIMARY KEY,
-    outer_ring_index  INT NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- The same outline seen from the side (v33): one row per ring any layer
--- reaches, holding the lowest and highest layer that ring's column of
--- sectors reaches -- its stack bound (`galaxySkeleton.column_extents`).
--- Written together with `galaxy_layer`, never on its own.
-CREATE TABLE IF NOT EXISTS galaxy_column (
-    ring_index       INT NOT NULL PRIMARY KEY,
-    layer_index_min  INT NOT NULL,
-    layer_index_max  INT NOT NULL
+-- One row per shell that holds content (v91; replaces `galaxy_layer` and
+-- `galaxy_column`): the galaxy as a stack of nested spheres, from the core
+-- (shell 0) out to `outer_shell_index`. Each shell holds bands
+-- -`high_band_index` through `high_band_index` (both polar caps too when
+-- `high_band_index` is the shell's top band), the widest run around the plane
+-- that holds a sector center clearing the qualification threshold for some
+-- longitude (`galaxySkeleton.build_shell_extents`). Always symmetric about the
+-- plane. `cell_count` is the number of sectors that run holds, worked out once
+-- when the outline is built. A shell with no row has no content at all.
+CREATE TABLE IF NOT EXISTS galaxy_shell (
+    shell_index       INT NOT NULL PRIMARY KEY,
+    high_band_index   INT NOT NULL,
+    cell_count        BIGINT UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Singleton row (same pattern as galaxy_shape above) tracking when
@@ -3085,9 +3094,9 @@ CREATE TABLE IF NOT EXISTS nearest_systems (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS bright_stars (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    ring_index           INT NOT NULL,
-    layer_index          SMALLINT NOT NULL,
-    ring_slot_index      INT NOT NULL,
+    shell_index           INT NOT NULL,
+    band_index            SMALLINT NOT NULL,
+    wedge_index           INT NOT NULL,
     position_x_mpc       BIGINT NOT NULL,
     position_y_mpc       BIGINT NOT NULL,
     position_z_mpc       BIGINT NOT NULL,
@@ -3107,7 +3116,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     off_plane            TINYINT AS (ABS(position_z_mpc) >= 250000) VIRTUAL,
 
-    KEY idx_bright_stars_address (ring_index, layer_index, ring_slot_index),
+    KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
     CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge')),
@@ -3141,9 +3150,9 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 -- is baked into the row.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sector_stats (
-    ring_index             INT NOT NULL,
-    layer_index            SMALLINT NOT NULL,
-    ring_slot_index        INT NOT NULL,
+    shell_index           INT NOT NULL,
+    band_index            SMALLINT NOT NULL,
+    wedge_index           INT NOT NULL,
     bright_level_sol       DOUBLE NOT NULL DEFAULT -1,
     level_before_fill_sol  DOUBLE,
     -- v79 (GEN.187): see header comment.
@@ -3159,7 +3168,7 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (ring_index, layer_index, ring_slot_index),
+    PRIMARY KEY (shell_index, band_index, wedge_index),
     KEY idx_sector_stats_level (bright_level_sol)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -3261,9 +3270,9 @@ CREATE TABLE IF NOT EXISTS generation_run_arguments (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    ring_index           INT NOT NULL,
-    layer_index          SMALLINT NOT NULL,
-    ring_slot_index      INT NOT NULL,
+    shell_index           INT NOT NULL,
+    band_index            SMALLINT NOT NULL,
+    wedge_index           INT NOT NULL,
     kind                 VARCHAR(24) NOT NULL,
     subtype              VARCHAR(16),
     position_x_mpc       BIGINT NOT NULL,
@@ -3278,7 +3287,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     mass_solar           DOUBLE,  -- v80 (MAP.165): see header comment
     map_luminosity_sol   FLOAT,   -- v84 (DB.23): see header comment
 
-    KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
+    KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
     KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment
     CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (
         'black-hole', 'neutron-star', 'planetary-nebula', 'supernova-remnant', 'hypervelocity-star', 'quasar'))
@@ -3364,33 +3373,6 @@ CREATE TABLE IF NOT EXISTS object_timing_samples (
     KEY idx_object_timing_samples_sector (sector_id),
     CONSTRAINT fk_object_timing_samples_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE,
     CONSTRAINT fk_object_timing_samples_sector FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ---------------------------------------------------------------------
--- galaxy_block_stats (v86, DB.25): one row per block `(m, ring_index, wedge,
--- slab)` of a level of the Galaxy Map's block ladder above the sector (`m`
--- sectors a side, `galaxy.drill`) that holds at least one generated sector,
--- with the sums of what those sectors hold: `sector_count`, `systems`,
--- `expected_systems`, `stars`, `age_sum` (each sector's mean age times its stars) and
--- `luminosity_sol`. A stage's child stats are these over the child blocks
--- (`query.galaxy_stage` computes the same sums from `sector_stats`; a test holds
--- the two equal; `ladder_step` is the ladder the row was built for). Written by `db/block_stats.py` when sectors are saved or
--- deleted, and by `planetgen plan --fill-block-stats`; no foreign key, as the
--- blocks are not rows of their own.
--- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS galaxy_block_stats (
-    m                 SMALLINT UNSIGNED NOT NULL,
-    ring_index        INT NOT NULL,
-    wedge             INT NOT NULL,
-    slab              INT NOT NULL,
-    sector_count      INT UNSIGNED NOT NULL,
-    systems           BIGINT UNSIGNED NOT NULL,
-    expected_systems  DOUBLE NOT NULL,
-    stars             BIGINT UNSIGNED NOT NULL,
-    age_sum           DOUBLE NOT NULL,
-    luminosity_sol    DOUBLE NOT NULL,
-    ladder_step       TINYINT UNSIGNED NOT NULL DEFAULT 3,
-    PRIMARY KEY (m, ring_index, wedge, slab)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

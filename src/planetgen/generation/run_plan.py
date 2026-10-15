@@ -84,7 +84,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     `counts`, when given, adds up the stars written per population.
     `on_sector`, when given, is called once per address visited (a
     progress bar's tick, PERF.28). `layers`, when given, adds up the stars
-    written per sector layer and kind: `layers[layer_index]` is a `Counter`
+    written per sector layer and kind: `layers[band_index]` is a `Counter`
     of `star_label` pairs (GEN.131).
 
     Returns:
@@ -118,8 +118,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
                 # this cell is left over from a run that failed before it
                 # recorded one (TEST.25, GEN.44). This draw has no ceiling,
                 # so it is wiped and drawn again whole.
-                conn.execute("DELETE FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
-                             " AND ring_slot_index = ? AND star_system_id IS NULL", address)
+                conn.execute("DELETE FROM bright_stars WHERE shell_index = ? AND band_index = ?"
+                             " AND wedge_index = ? AND star_system_id IS NULL", address)
             if ceiling_cap is not None:
                 ceiling = ceiling_cap if ceiling is None else min(ceiling, ceiling_cap)
             held = held_masses.get(address)
@@ -192,8 +192,8 @@ def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed,
                 # Nothing was placed here by any pass: an unbuilt star in this
                 # cell is left over from a run that failed before it recorded
                 # a level (TEST.25, GEN.44), so it is wiped and drawn again.
-                conn.execute("DELETE FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
-                             " AND ring_slot_index = ? AND star_system_id IS NULL", address)
+                conn.execute("DELETE FROM bright_stars WHERE shell_index = ? AND band_index = ?"
+                             " AND wedge_index = ? AND star_system_id IS NULL", address)
             rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
                                                         target, held, ceiling, seed, edges))
             own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
@@ -231,7 +231,7 @@ def build_skeleton(args):
         args (argparse.Namespace): Parsed arguments.
 
     Returns:
-        dict: `outer_ring_index`, `layer_count`, `top_layer_index`,
+        dict: `outer_shell_index`, `layer_count`, `top_layer_index`,
               `total_candidate_sectors`, `elapsed_s`, `edge_confirmed`.
     """
     edge_pc = run_common._edge_pc()
@@ -261,7 +261,7 @@ def build_skeleton(args):
     )
 
     t0 = time.perf_counter()
-    extents, outer_ring_index, edge_confirmed = build_layer_extents(
+    extents, outer_shell_index, edge_confirmed = build_layer_extents(
         shape, edge_pc, threshold_rho, max_ring=args.max_ring,
     )
     elapsed = time.perf_counter() - t0
@@ -282,7 +282,7 @@ def build_skeleton(args):
         conn.close()
     store.replace_galaxy_layers(extents, config=mysql_config)
     galaxy_seed = store.save_galaxy_shape(
-        shape, edge_pc=edge_pc, outer_ring_index=outer_ring_index,
+        shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
         expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=requested_seed,
     )
     if requested_seed is not None:
@@ -293,10 +293,10 @@ def build_skeleton(args):
         source = "drawn at random"
     log.normal(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
     key = _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
-    _write_settings_file(args, galaxy_seed, key, edge_pc, outer_ring_index, e_value, shape)
+    _write_settings_file(args, galaxy_seed, key, edge_pc, outer_shell_index, e_value, shape)
 
     return {
-        "outer_ring_index": outer_ring_index,
+        "outer_shell_index": outer_shell_index,
         "layer_count": len(extents),
         "top_layer_index": extents[0][0] if extents else None,
         "total_candidate_sectors": candidate_sector_count(extents),
@@ -328,7 +328,7 @@ def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
     return key
 
 
-def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_ring_index, e_value, shape):
+def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_shell_index, e_value, shape):
     """
     ADM.18: the creation settings, seed, version and word lists as a JSON
     file for the Admin dashboard (`galaxy/settings_file.py`). A plan that
@@ -339,7 +339,7 @@ def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_rin
     try:
         document = settings_file.build(
             vars(args), galaxy_seed, naming_key=naming_key_value,
-            shape={"edge_pc": edge_pc, "outer_ring_index": outer_ring_index,
+            shape={"edge_pc": edge_pc, "outer_shell_index": outer_shell_index,
                    "expected_system_count_at_density_1": e_value, "k_norm": shape.k_norm})
         entry = settings_file.write(document, galaxy_seed)
     except Exception as exc:  # noqa: BLE001 -- no writable folder, or no word lists installed
@@ -529,24 +529,24 @@ class _LayerTracker:
     def _description(self):
         return f"{self.label} ({self.done_layers:,} of {len(self.weights):,} layers)"
 
-    def layer_progress(self, layer_index, done, estimate):
+    def layer_progress(self, band_index, done, estimate):
         """A layer in progress has drawn `done` of about `estimate` stars.
         A report that arrives after its layer finished (reports come
         through the channel's thread) is ignored, or that layer would be
         counted twice (PERF.23)."""
         with self.lock:
-            if layer_index in self.weights and layer_index not in self.finished:
-                self.in_flight[layer_index] = (done, estimate)
+            if band_index in self.weights and band_index not in self.finished:
+                self.in_flight[band_index] = (done, estimate)
                 self._refresh()
 
-    def layer_done(self, layer_index):
+    def layer_done(self, band_index):
         with self.lock:
-            if layer_index in self.finished:
+            if band_index in self.finished:
                 return
-            self.finished.add(layer_index)
-            self.in_flight.pop(layer_index, None)
-            self.credited.pop(layer_index, None)
-            self.done_weight += self.weights.get(layer_index, 0.0)
+            self.finished.add(band_index)
+            self.in_flight.pop(band_index, None)
+            self.credited.pop(band_index, None)
+            self.done_weight += self.weights.get(band_index, 0.0)
             self.done_layers += 1
             self.last_done = self.clock()
             self.layer_rate.add(1)
@@ -563,11 +563,11 @@ class _LayerTracker:
 
     def _refresh(self):
         partial = 0.0
-        for layer_index, (done, estimate) in self.in_flight.items():
+        for band_index, (done, estimate) in self.in_flight.items():
             share = min(done / estimate, 1.0) if estimate > 0 else 0.0
             # Never back: an estimate that grows doesn't take credit away.
-            credit = max(self.credited.get(layer_index, 0.0), share * self.weights[layer_index])
-            self.credited[layer_index] = credit
+            credit = max(self.credited.get(band_index, 0.0), share * self.weights[band_index])
+            self.credited[band_index] = credit
             partial += credit
         if self.bar is not None:
             self.bar.update(completed=self.done_weight + partial, description=self._description())
@@ -621,21 +621,21 @@ CHANNEL_INTERVAL_SECONDS = 0.25
 
 def _layer_slots(outer_ring):
     """Sector slots in rings 0 to `outer_ring` of one layer."""
-    return sum(ring_sector_count(ring_index) for ring_index in range(outer_ring + 1))
+    return sum(ring_sector_count(shell_index) for shell_index in range(outer_ring + 1))
 
 
 def log_layers(label, layers):
     """`_log_layer` for each layer of a sector-by-sector draw (`_draw_sector_bands`'s `layers`), top layer first."""
-    for layer_index in sorted(layers):
-        _log_layer(label, layer_index, layers[layer_index])
+    for band_index in sorted(layers):
+        _log_layer(label, band_index, layers[band_index])
 
 
-def _log_layer(label, layer_index, types):
+def _log_layer(label, band_index, types):
     """One line saying how many stars a layer was given, by kind (GEN.131);
     nothing for a layer that drew none (GEN.79's note says how many did)."""
     total = sum(types.values())
     if total:
-        log.normal(f"{label}, layer {layer_index}: added {total:,} stars: {describe_types(types)}.")
+        log.normal(f"{label}, layer {band_index}: added {total:,} stars: {describe_types(types)}.")
 
 
 def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
@@ -670,9 +670,9 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
     for address in filled:
         skip_by_layer[address[1]].add(address)
     weights, expected = {}, {}
-    for layer_index, outer_ring in layers:
-        weights[layer_index], expected[layer_index] = brightStars.layer_weight(
-            skeleton.shape, layer_index, outer_ring, skeleton.edge_pc, e_value, fractions,
+    for band_index, outer_ring in layers:
+        weights[band_index], expected[band_index] = brightStars.layer_weight(
+            skeleton.shape, band_index, outer_ring, skeleton.edge_pc, e_value, fractions,
         )
     log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in {len(layers):,} layers.")
     band_share = sum(fractions.values())
@@ -688,19 +688,19 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
             tracker = _LayerTracker(progress, label, weights, prior=prior, bar=bar)
             outer_rings = dict(layers)
 
-            def on_done_for(layer_index):
+            def on_done_for(band_index):
                 def layer_done(result, seconds, _weight):
                     layer_counts = result["counts"]
-                    _log_layer(label, layer_index, collections.Counter(
+                    _log_layer(label, band_index, collections.Counter(
                         {(name, plural): count for name, plural, count in result["types"]}))
                     for population, count in layer_counts.items():
                         counts[population] += count
-                    tracker.layer_done(layer_index)
+                    tracker.layer_done(band_index)
                     stars = sum(layer_counts.values())
                     if stars:
-                        drew.add(layer_index)
-                    slots = _layer_slots(outer_rings[layer_index])
-                    density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
+                        drew.add(band_index)
+                    slots = _layer_slots(outer_rings[band_index])
+                    density = expected[band_index] / (e_value * band_share * slots) if band_share and slots else 0.0
                     if stars:   # PERF.53: a layer that drew nothing says nothing about how long a star takes
                         run_common._generation_stats(args).record(stats_kind, density, seconds, systems=stars,
                                                                      stars=stars, workers=run_common._worker_count(args))
@@ -718,14 +718,14 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                     else:
                         channel = _DirectChannel(tracker)
                     queue.submit_each(task_kind, [
-                        (f"layer {layer_index}", {
-                            "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                        (f"layer {band_index}", {
+                            "mysql_config": mysql_config, "shape": skeleton.shape, "band_index": band_index,
                             "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value,
                             "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
-                            "seed": seed, "skip": skip_by_layer.get(layer_index, set()), "mass_range": mass_range,
+                            "seed": seed, "skip": skip_by_layer.get(band_index, set()), "mass_range": mass_range,
                             "channel": channel,
-                        }, weights[layer_index], on_done_for(layer_index))
-                        for layer_index, outer_ring in layers], _scatter_layer_task)
+                        }, weights[band_index], on_done_for(band_index))
+                        for band_index, outer_ring in layers], _scatter_layer_task)
             finally:
                 stop.set()
                 if drain is not None:
@@ -851,7 +851,7 @@ def _scatter_layer_task(payload):
     counts = {population: 0 for population in brightStars.POPULATIONS}
     types = collections.Counter()
     channel = payload.get("channel")
-    layer_index = payload["layer_index"]
+    band_index = payload["band_index"]
     last = [0.0]
 
     def report(done, estimate):
@@ -860,7 +860,7 @@ def _scatter_layer_task(payload):
         if channel is not None and now - last[0] >= CHANNEL_INTERVAL_SECONDS:
             last[0] = now
             try:
-                channel.put((layer_index, done, estimate))
+                channel.put((band_index, done, estimate))
             except (EOFError, OSError):
                 pass
 
@@ -868,7 +868,7 @@ def _scatter_layer_task(payload):
     try:
         batch = []
         for row in brightStars.scatter_layer(
-            payload["shape"], layer_index, payload["outer_ring"], payload["edge_pc"],
+            payload["shape"], band_index, payload["outer_ring"], payload["edge_pc"],
             payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
             max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
             mass_range=payload.get("mass_range"),
@@ -928,12 +928,12 @@ def _compact_mass_limit(args, conn):
     return _stellar_mass_limit(args, conn)
 
 
-def _log_phenomena_layer(layer_index, counts):
+def _log_phenomena_layer(band_index, counts):
     """One line saying how many phenomena a layer was given, by kind, as `_log_layer` does for stars;
     nothing for a layer that drew none."""
     total = sum(counts.values())
     if total:
-        log.normal(f"Phenomena, layer {layer_index}: placed {total:,}: "
+        log.normal(f"Phenomena, layer {band_index}: placed {total:,}: "
                    + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
 
 
@@ -943,25 +943,25 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
     layer's expected work as it finishes (UX.83, PERF.51)."""
     layers_done = [0]
 
-    def done_with(layer_index):
+    def done_with(band_index):
         def on_done(result, seconds, weight):
             layer_counts = result["counts"]
             layer_done(layer_counts, result["write_seconds"], seconds, weight)
-            _log_phenomena_layer(layer_index, layer_counts)
+            _log_phenomena_layer(band_index, layer_counts)
             layers_done[0] += 1
-            bar.update(advance=weights[layer_index],
+            bar.update(advance=weights[band_index],
                        description=f"Phenomena ({layers_done[0]:,} of {len(layers):,} layers)")
         return on_done
 
     with run_common._work_queue(args, "Phenomena") as queue:
         queue.submit_each("phenomena", [
-            (f"layer {layer_index}", {
-                "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+            (f"layer {band_index}", {
+                "mysql_config": mysql_config, "shape": skeleton.shape, "band_index": band_index,
                 "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
                 "min_mass_solar": min_mass_solar,
-                "skip": {address for address in filled if address[1] == layer_index},
-            }, weights[layer_index], done_with(layer_index))
-            for layer_index, outer_ring in layers], _phenomenon_layer_task)
+                "skip": {address for address in filled if address[1] == band_index},
+            }, weights[band_index], done_with(band_index))
+            for band_index, outer_ring in layers], _phenomenon_layer_task)
 
 
 def _nebula_field_task(payload):
@@ -1299,10 +1299,10 @@ def scatter_phenomena(args):
         counts = {}
         e_value = skeleton.expected_system_count_at_density_1
         layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
-        weights = {layer_index: phenomenon_scatter.layer_expected(skeleton.shape, layer_index, outer_ring,
+        weights = {band_index: phenomenon_scatter.layer_expected(skeleton.shape, band_index, outer_ring,
                                                                   skeleton.edge_pc, e_value, min_mass_solar)
                    + brightStars.RING_WEIGHT_STARS * (outer_ring + 1)
-                   for layer_index, outer_ring in layers}
+                   for band_index, outer_ring in layers}
         log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
         if filled:
@@ -1406,7 +1406,7 @@ def _phenomenon_layer_task(payload):
     try:
         batch = []
         for row in phenomenon_scatter.scatter_layer(
-            payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
+            payload["shape"], payload["band_index"], payload["outer_ring"], payload["edge_pc"],
             payload["expected"], payload["seed"], skip_addresses=payload["skip"],
             min_mass_solar=payload["min_mass_solar"],
         ):
@@ -1494,7 +1494,7 @@ def run_plan(args):
         layers = "no layers (nothing clears the one-star-per-sector threshold)"
     log.normal(
         f"Skeleton built in {summary['elapsed_s']:.2f}s: {layers}, outer edge = ring "
-        f"{summary['outer_ring_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
+        f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
         log.normal(

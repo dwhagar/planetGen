@@ -139,7 +139,7 @@ def _unplaced_sectors(conn, wanted, found):
     for value, text in wanted.items():
         if text in found or not base < value < 2 * base:
             continue
-        row = conn.execute("SELECT id FROM sectors WHERE id = ? AND uid IS NULL AND ring_index IS NULL",
+        row = conn.execute("SELECT id FROM sectors WHERE id = ? AND uid IS NULL AND shell_index IS NULL",
                            (value - base,)).fetchone()
         if row is not None:
             out[text] = row["id"]
@@ -166,7 +166,7 @@ def printed_many(conn, kind, ids):
         marks = ", ".join("?" for _ in chunk)
         if kind == SECTOR:
             rows = conn.execute(
-                f"SELECT id, uid, ring_index, layer_index, ring_slot_index FROM sectors WHERE id IN ({marks})",
+                f"SELECT id, uid, shell_index, band_index, wedge_index FROM sectors WHERE id IN ({marks})",
                 chunk).fetchall()
             for row in rows:
                 out[row["id"]] = format_stored(SECTOR, _sector_value(row))
@@ -179,8 +179,8 @@ def printed_many(conn, kind, ids):
 def _sector_value(row):
     if row["uid"] is not None:
         return row["uid"]
-    if row["ring_index"] is not None:
-        return sector_uid.sector_uid(row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    if row["shell_index"] is not None:
+        return sector_uid.sector_uid(row["shell_index"], row["band_index"], row["wedge_index"])
     return sector_uid.unplaced_sector_uid(row["id"])
 
 

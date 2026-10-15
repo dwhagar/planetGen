@@ -75,7 +75,7 @@ def _sector_edge_pc(conn):
 
 
 def generated_cells(conn, cells):
-    """The subset of `(ring_index, layer_index, ring_slot_index)` cells that
+    """The subset of `(shell_index, band_index, wedge_index)` cells that
     hold a generated sector."""
     by_band = {}
     for ring, layer, slot in cells:
@@ -86,9 +86,9 @@ def generated_cells(conn, cells):
             chunk = slots[start:start + _CHUNK]
             marks = ",".join("?" * len(chunk))
             rows = conn.execute(
-                f"SELECT ring_slot_index FROM sectors WHERE ring_index = ? AND layer_index = ? "
-                f"AND ring_slot_index IN ({marks})", (ring, layer, *chunk)).fetchall()
-            found.update((ring, layer, row["ring_slot_index"]) for row in rows)
+                f"SELECT wedge_index FROM sectors WHERE shell_index = ? AND band_index = ? "
+                f"AND wedge_index IN ({marks})", (ring, layer, *chunk)).fetchall()
+            found.update((ring, layer, row["wedge_index"]) for row in rows)
     return found
 
 
@@ -103,7 +103,7 @@ def unknown_cells(conn, points_ly):
 
     Returns:
         list[list[tuple]]: One list per hop (`len(points_ly) - 1`) of
-            `(ring_index, layer_index, ring_slot_index)` cells, in the order
+            `(shell_index, band_index, wedge_index)` cells, in the order
             the line enters them. Cells outside the galaxy's outline are
             listed like any other; the caller checks them against `GalaxyBounds`.
     """

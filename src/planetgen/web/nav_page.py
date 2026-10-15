@@ -478,13 +478,13 @@ def galaxy_course(from_raw, to_raw):
     if result["scope"] != "galaxy":
         # One sector holds the whole course: the map shows that sector.
         sector = apiclient.get_sector(db_name(), origin["sector_id"])
-        if sector.get("ring_index") is None:
+        if sector.get("shell_index") is None:
             return None
         return {
             "scope": "sector", "points": [], "navUrl": nav_url_here,
             "sector": {
-                "id": sector["id"], "name": sector["name"], "ring": sector["ring_index"],
-                "layer": sector["layer_index"], "slot": sector["ring_slot_index"],
+                "id": sector["id"], "name": sector["name"], "ring": sector["shell_index"],
+                "layer": sector["band_index"], "slot": sector["wedge_index"],
             },
         }
     names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})

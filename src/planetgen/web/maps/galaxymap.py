@@ -38,11 +38,11 @@ ZONE_TARGET_LY = 100.0
 """float: The approximate light-year width a Zone should aim for.
 `ZONE_RING_WIDTH` is derived from this so Zone boundaries land close to
 round light-year milestones (~100 ly, ~200 ly, ...) while still being a
-fixed number of the sector grid's own rings (`sectors.ring_index`, one
+fixed number of the sector grid's own rings (`sectors.shell_index`, one
 sector edge wide) end to end."""
 
 ZONE_RING_WIDTH = max(1, round(ZONE_TARGET_LY / DEFAULT_SECTOR_EDGE_LY))
-"""int: How many consecutive `ring_index` values make up one Zone."""
+"""int: How many consecutive `shell_index` values make up one Zone."""
 
 
 def sector_quadrant(x_pc, y_pc):
@@ -64,10 +64,10 @@ def sector_quadrant(x_pc, y_pc):
     return QUADRANT_LABELS[geometry.sector_quadrant(x_pc, y_pc) - 1]
 
 
-def sector_zone(ring_index):
+def sector_zone(shell_index):
     """The Zone index (a group of `ZONE_RING_WIDTH` consecutive rings)
-    that `ring_index` falls in (`planetgen.galaxy.geometry.sector_zone`)."""
-    return geometry.sector_zone(ring_index, DEFAULT_SECTOR_EDGE_LY, ZONE_TARGET_LY)
+    that `shell_index` falls in (`planetgen.galaxy.geometry.sector_zone`)."""
+    return geometry.sector_zone(shell_index, DEFAULT_SECTOR_EDGE_LY, ZONE_TARGET_LY)
 
 
 def zone_bounds_ly(zone_index):

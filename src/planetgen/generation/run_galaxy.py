@@ -62,8 +62,8 @@ BACKFILL_FROM_CHOICES = ("edge", "none")
 
 def _format_address(address):
     """`(ring, layer, slot)` as the words the CLI prints."""
-    ring_index, layer_index, slot_index = address
-    return f"ring {ring_index} layer {layer_index} slot {slot_index}"
+    shell_index, band_index, slot_index = address
+    return f"ring {shell_index} layer {band_index} slot {slot_index}"
 
 
 class _BatchDensity:
@@ -464,16 +464,16 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
             -- `sector_name` is read back after saving, since name
             uniqueness (v22) may rename it on save.
     """
-    ring_index, layer_index, slot_index = address
+    shell_index, band_index, slot_index = address
     x, y, z = position_pc
     radius_pc = galactic_radius_pc(position_pc)
-    cell = SectorCell.for_ring(ring_index, pc_to_ly(edge_pc))
+    cell = SectorCell.for_ring(shell_index, pc_to_ly(edge_pc))
 
     fill = _fill_context(args, address, position_pc)
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": radius_pc,
-        "ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": slot_index,
+        "shell_index": shell_index, "band_index": band_index, "wedge_index": slot_index,
     }
     galaxy_seed = _galaxy_seed(args)
     # GEN.47: the galaxy's molecular clouds that reach this sector.
@@ -534,8 +534,8 @@ def block_stats_after_run(args, started_at):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         created = conn.execute(
-            "SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE created_at >= ?"
-            " AND ring_index IS NOT NULL", (started_at,)).fetchall()
+            "SELECT shell_index, band_index, wedge_index FROM sectors WHERE created_at >= ?"
+            " AND shell_index IS NOT NULL", (started_at,)).fetchall()
         if not created:
             return 0
         log.normal("Updating the block totals...")
@@ -544,7 +544,7 @@ def block_stats_after_run(args, started_at):
             try:
                 with steps.Step("Block totals", "blocks", len(created), args=args, progress=progress) as bar:
                     written = block_stats.refresh_sectors(
-                        conn, [(r["ring_index"], r["layer_index"], r["ring_slot_index"]) for r in created],
+                        conn, [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in created],
                         lambda done, total: bar.update(completed=done, total=total))
                 conn.commit()
             finally:
@@ -651,7 +651,7 @@ def queue_settle(config, sector_ids):
         return None
 
 
-def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=None, backfill=True,
+def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, backfill=True,
                             outside_ok=False, settle=True, link=True):
     """
     The galaxy map's "recalculate on visit" entry point: returns the
@@ -664,7 +664,7 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     and marked generated.
 
     A concurrent visit to the same never-generated address is handled by
-    `sectors`'s `UNIQUE (ring_index, layer_index, ring_slot_index)`: the
+    `sectors`'s `UNIQUE (shell_index, band_index, wedge_index)`: the
     losing `INSERT` raises `pymysql.err.IntegrityError`, caught here and
     turned into "return what the other call just created".
 
@@ -690,11 +690,11 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
               (`sector_generation_summary_lines`, only when `created`).
 
     Raises:
-        ValueError: If `ring_slot_index` is out of range for the ring.
+        ValueError: If `wedge_index` is out of range for the ring.
         RuntimeError: If the galaxy's skeleton has never been built --
                      run `planetgen plan` first.
     """
-    address = (ring_index, layer_index, ring_slot_index)
+    address = (shell_index, band_index, wedge_index)
     conn = store.get_connection(config)
     try:
         existing_id = store.get_sector_id_at(conn, *address)
@@ -712,8 +712,8 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     finally:
         conn.close()
 
-    position_pc = sector_position_pc(ring_index, layer_index, ring_slot_index, skeleton.edge_pc)
-    qualifies = bounds.contains(ring_index, layer_index)
+    position_pc = sector_position_pc(shell_index, band_index, wedge_index, skeleton.edge_pc)
+    qualifies = bounds.contains(shell_index, band_index)
     if not qualifies and not outside_ok:
         # Past the layer's stored outer ring -- galaxySkeleton's bound is
         # exact, so this is a certain "no".
@@ -828,18 +828,18 @@ def _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffi
     queue.submit("sector", ",".join(str(part) for part in address), _fill_sector_task, payload, on_done=saved)
 
 
-def _require_inside(args, bounds, ring_index, layer_index, what):
+def _require_inside(args, bounds, shell_index, band_index, what):
     """
     Warns (GEN.81), or under `--strict` stops the run before anything is
-    generated, when `(ring_index, layer_index)` lies outside the galaxy's
+    generated, when `(shell_index, band_index)` lies outside the galaxy's
     stored outline.
 
     Returns:
         bool: Whether it lies inside.
     """
-    if bounds.contains(ring_index, layer_index):
+    if bounds.contains(shell_index, band_index):
         return True
-    run_common._refuse_or_warn(args, f"{what} -- {bounds.describe_miss(ring_index, layer_index)}.")
+    run_common._refuse_or_warn(args, f"{what} -- {bounds.describe_miss(shell_index, band_index)}.")
     return False
 
 
@@ -865,36 +865,36 @@ def run_ring_batch(args, edge_pc, progress):
                    `--limit` nor `--yes` was given. Without it each is a
                    warning and the ring is generated (GEN.81).
     """
-    ring_index, layer_index = args.ring, args.layer
-    total_slots = ring_sector_count(ring_index)
+    shell_index, band_index = args.ring, args.layer
+    total_slots = ring_sector_count(shell_index)
 
     if total_slots > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        run_common._refuse_or_warn(args, f"Ring {ring_index} holds {total_slots} sector slots, a very large run "
+        run_common._refuse_or_warn(args, f"Ring {shell_index} holds {total_slots} sector slots, a very large run "
                               f"(--limit N generates only the first N not-yet-generated slots).")
 
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     # Named outright, so generated even outside the outline (GEN.81).
-    outside_ok = not _require_inside(args, batch_density.bounds, ring_index, layer_index,
-                                     f"ring {ring_index} layer {layer_index}")
+    outside_ok = not _require_inside(args, batch_density.bounds, shell_index, band_index,
+                                     f"ring {shell_index} layer {band_index}")
 
     conn = store.get_connection(mysql_config)
     try:
-        occupied = {a for a in store.get_occupied_addresses(conn, [ring_index]) if a[1] == layer_index}
+        occupied = {a for a in store.get_occupied_addresses(conn, [shell_index]) if a[1] == band_index}
     finally:
         conn.close()
 
-    what = f"ring {ring_index} layer {layer_index}"
+    what = f"ring {shell_index} layer {band_index}"
     batch = []
     skipped = 0
     for slot_index in range(total_slots):
         if args.limit is not None and len(batch) >= args.limit:
             break
-        address = (ring_index, layer_index, slot_index)
+        address = (shell_index, band_index, slot_index)
         if address in occupied:
             continue
 
-        position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
+        position_pc = sector_position_pc(shell_index, band_index, slot_index, edge_pc)
         sector_args = batch_density.resolve(args, address, position_pc, outside_ok=outside_ok)
         if sector_args is None:
             log.debug(f"{_format_address(address)}: skipped (outside its layer's "
@@ -909,7 +909,7 @@ def run_ring_batch(args, edge_pc, progress):
     generated = len(batch)
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
     log.normal(
-        f"Generated {generated} new sector(s) in ring {ring_index} layer {layer_index} "
+        f"Generated {generated} new sector(s) in ring {shell_index} layer {band_index} "
         f"({total_slots} total slots, {len(occupied)} already existed{skip_note})."
     )
 
@@ -957,7 +957,7 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, cylinde
         # `--radius-pc 1e300` used to walk ~1e300 rings before trimming.
         top_layer = max(abs(layer) for layer in bounds.outer_ring)
         reach_pc = (math.hypot(center[0], center[1]) + abs(center[2])
-                    + (bounds.outer_ring_index + top_layer + 2) * edge_pc)
+                    + (bounds.outer_shell_index + top_layer + 2) * edge_pc)
         radius_pc = min(radius_pc, reach_pc)
     candidates = []
     outside = 0
@@ -992,8 +992,8 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
     batch = []
     skipped = 0
     already_existed = 0
-    for ring_index, layer_index, slot_index, x, y, z, distance_pc in candidates:
-        address = (ring_index, layer_index, slot_index)
+    for shell_index, band_index, slot_index, x, y, z, distance_pc in candidates:
+        address = (shell_index, band_index, slot_index)
         if address in occupied or address in skip:
             already_existed += 1
             continue
@@ -1460,10 +1460,10 @@ def run_single_slot(args, edge_pc, progress):
         run_local_neighborhood(args, edge_pc, progress)
 
 
-def _layers_reaching(bounds, ring_index):
-    """Every layer the galaxy's stored outline reaches at `ring_index`,
+def _layers_reaching(bounds, shell_index):
+    """Every layer the galaxy's stored outline reaches at `shell_index`,
     lowest first (the column `galaxy_column` stores for that ring)."""
-    return sorted(layer for layer in bounds.outer_ring if bounds.contains(ring_index, layer))
+    return sorted(layer for layer in bounds.outer_ring if bounds.contains(shell_index, layer))
 
 
 def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density):

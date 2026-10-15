@@ -183,10 +183,10 @@ class Scope:
             return "", ()
         clauses, params = [], []
         if self.rings:
-            clauses.append("ring_index IN (%s)" % ",".join(["%s"] * len(self.rings)))
+            clauses.append("shell_index IN (%s)" % ",".join(["%s"] * len(self.rings)))
             params.extend(self.rings)
         for address in self.addresses:
-            clauses.append("(ring_index = %s AND layer_index = %s AND ring_slot_index = %s)")
+            clauses.append("(shell_index = %s AND band_index = %s AND wedge_index = %s)")
             params.extend(address)
         return f" AND {sector_sql} IN (SELECT id FROM sectors WHERE {' OR '.join(clauses)})", tuple(params)
 
@@ -379,10 +379,10 @@ def check_counts(ctx):
     """A sector's stats count the systems it holds (a warning only)."""
     scope_sql, params = ctx.scope.where("s.id")
     rows = ctx.rows(
-        "SELECT s.ring_index AS r, s.layer_index AS l, s.ring_slot_index AS p, st.actual_systems AS stated,"
+        "SELECT s.shell_index AS r, s.band_index AS l, s.wedge_index AS p, st.actual_systems AS stated,"
         " (SELECT COUNT(*) FROM star_systems y WHERE y.sector_id = s.id) AS actual"
-        " FROM sectors s JOIN sector_stats st ON st.ring_index = s.ring_index"
-        " AND st.layer_index = s.layer_index AND st.ring_slot_index = s.ring_slot_index"
+        " FROM sectors s JOIN sector_stats st ON st.shell_index = s.shell_index"
+        " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index"
         f" WHERE st.actual_systems IS NOT NULL{scope_sql}"
         " HAVING stated <> actual ORDER BY r, l, p", params)
     if not rows:

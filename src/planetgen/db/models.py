@@ -170,9 +170,9 @@ bright_stars = sa.Table(
     'bright_stars',
     metadata,
     sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
-    sa.Column('ring_index', mysql.INTEGER(), nullable=False),
-    sa.Column('layer_index', mysql.SMALLINT(), nullable=False),
-    sa.Column('ring_slot_index', mysql.INTEGER(), nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), nullable=False),
+    sa.Column('band_index', mysql.SMALLINT(), nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), nullable=False),
     sa.Column('position_x_mpc', mysql.BIGINT(), nullable=False),
     sa.Column('position_y_mpc', mysql.BIGINT(), nullable=False),
     sa.Column('position_z_mpc', mysql.BIGINT(), nullable=False),
@@ -192,7 +192,7 @@ bright_stars = sa.Table(
     sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('current_timestamp()'), nullable=False),
     sa.Column('off_plane', mysql.TINYINT(), sa.Computed('(abs(`position_z_mpc`) >= 250000)', persisted=False), nullable=True),
     sa.Index('fk_bright_stars_system', 'star_system_id'),
-    sa.Index('idx_bright_stars_address', 'ring_index', 'layer_index', 'ring_slot_index'),
+    sa.Index('idx_bright_stars_address', 'shell_index', 'band_index', 'wedge_index'),
     sa.Index('idx_bright_stars_luminosity', 'luminosity_w'),
     sa.Index('idx_bright_stars_population', 'population', 'off_plane', 'luminosity_w'),
     sa.CheckConstraint("`population` in ('young','intermediate','old','bulge')", name='chk_bright_stars_population'),
@@ -399,43 +399,6 @@ facility_types = sa.Table(
 )
 
 
-galaxy_block_stats = sa.Table(
-    'galaxy_block_stats',
-    metadata,
-    sa.Column('m', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('ring_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('wedge', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('slab', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
-    sa.Column('systems', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('expected_systems', mysql.DOUBLE(), nullable=False),
-    sa.Column('stars', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('age_sum', mysql.DOUBLE(), nullable=False),
-    sa.Column('luminosity_sol', mysql.DOUBLE(), nullable=False),
-    sa.Column('ladder_step', mysql.TINYINT(unsigned=True), server_default=sa.text('3'), nullable=False),
-    mysql_engine="InnoDB",
-)
-
-
-galaxy_column = sa.Table(
-    'galaxy_column',
-    metadata,
-    sa.Column('ring_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('layer_index_min', mysql.INTEGER(), nullable=False),
-    sa.Column('layer_index_max', mysql.INTEGER(), nullable=False),
-    mysql_engine="InnoDB",
-)
-
-
-galaxy_layer = sa.Table(
-    'galaxy_layer',
-    metadata,
-    sa.Column('layer_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('outer_ring_index', mysql.INTEGER(), nullable=False),
-    mysql_engine="InnoDB",
-)
-
-
 galaxy_shape = sa.Table(
     'galaxy_shape',
     metadata,
@@ -454,7 +417,7 @@ galaxy_shape = sa.Table(
     sa.Column('k_norm', mysql.DOUBLE(), nullable=False),
     sa.Column('edge_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('expected_system_count_at_density_1', mysql.DOUBLE(), nullable=False),
-    sa.Column('outer_ring_index', mysql.INTEGER(), nullable=False),
+    sa.Column('outer_shell_index', mysql.INTEGER(), nullable=False),
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('bright_star_mass_limit_sol', mysql.DOUBLE(), nullable=True),
@@ -467,6 +430,16 @@ galaxy_shape = sa.Table(
     sa.Column('platform', sa.String(64), nullable=True),
     sa.Column('density_ratio_avg', mysql.DOUBLE(), nullable=True),
     sa.Column('density_ratio_samples', mysql.BIGINT(unsigned=True), server_default=sa.text('0'), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
+galaxy_shell = sa.Table(
+    'galaxy_shell',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('high_band_index', mysql.INTEGER(), nullable=False),
+    sa.Column('cell_count', mysql.BIGINT(unsigned=True), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -965,9 +938,9 @@ phenomenon_scatter = sa.Table(
     'phenomenon_scatter',
     metadata,
     sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
-    sa.Column('ring_index', mysql.INTEGER(), nullable=False),
-    sa.Column('layer_index', mysql.SMALLINT(), nullable=False),
-    sa.Column('ring_slot_index', mysql.INTEGER(), nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), nullable=False),
+    sa.Column('band_index', mysql.SMALLINT(), nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), nullable=False),
     sa.Column('kind', sa.String(24), nullable=False),
     sa.Column('subtype', sa.String(16), nullable=True),
     sa.Column('position_x_mpc', mysql.BIGINT(), nullable=False),
@@ -981,7 +954,7 @@ phenomenon_scatter = sa.Table(
     sa.Column('epoch_unix', mysql.DOUBLE(), nullable=True),
     sa.Column('mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Column('map_luminosity_sol', mysql.FLOAT(), nullable=True),
-    sa.Index('idx_phenomenon_scatter_address', 'ring_index', 'layer_index', 'ring_slot_index'),
+    sa.Index('idx_phenomenon_scatter_address', 'shell_index', 'band_index', 'wedge_index'),
     sa.Index('idx_phenomenon_scatter_class', 'kind', 'subtype', 'mass_solar'),
     sa.CheckConstraint("`kind` in ('black-hole','neutron-star','planetary-nebula','supernova-remnant','hypervelocity-star','quasar')", name='chk_phenomenon_scatter_kind'),
     mysql_engine="InnoDB",
@@ -1348,9 +1321,9 @@ sector_paths = sa.Table(
 sector_stats = sa.Table(
     'sector_stats',
     metadata,
-    sa.Column('ring_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('layer_index', mysql.SMALLINT(), primary_key=True, nullable=False),
-    sa.Column('ring_slot_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.SMALLINT(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
     sa.Column('bright_level_sol', mysql.DOUBLE(), server_default=sa.text('-1'), nullable=False),
     sa.Column('level_before_fill_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_mass_sol', mysql.DOUBLE(), nullable=True),
@@ -1389,9 +1362,9 @@ sectors = sa.Table(
     sa.Column('center_y_pc', mysql.DOUBLE(), nullable=True),
     sa.Column('center_z_pc', mysql.DOUBLE(), nullable=True),
     sa.Column('galactic_radius_pc', mysql.DOUBLE(), nullable=True),
-    sa.Column('ring_index', mysql.INTEGER(), nullable=True),
-    sa.Column('layer_index', mysql.INTEGER(), nullable=True),
-    sa.Column('ring_slot_index', mysql.INTEGER(), nullable=True),
+    sa.Column('shell_index', mysql.INTEGER(), nullable=True),
+    sa.Column('band_index', mysql.INTEGER(), nullable=True),
+    sa.Column('wedge_index', mysql.INTEGER(), nullable=True),
     sa.Column('wiki_url', sa.String(2048), nullable=True),
     sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('current_timestamp()'), nullable=False),
     sa.Column('modified_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('current_timestamp(3) ON UPDATE current_timestamp(3)'), nullable=False),
@@ -1406,7 +1379,7 @@ sectors = sa.Table(
     sa.Index('idx_sectors_modified_at', 'modified_at'),
     sa.Index('idx_sectors_name', 'name'),
     sa.Index('idx_sectors_version_key', 'version_key'),
-    sa.Index('uq_sectors_address', 'ring_index', 'layer_index', 'ring_slot_index', unique=True),
+    sa.Index('uq_sectors_address', 'shell_index', 'band_index', 'wedge_index', unique=True),
     sa.Index('uq_sectors_uid', 'uid', unique=True),
     sa.CheckConstraint('`center_x_pc` is null = (`center_y_pc` is null) and `center_y_pc` is null = (`center_z_pc` is null) and `center_z_pc` is null = (`galactic_radius_pc` is null)', name='CONSTRAINT_1'),
     mysql_engine="InnoDB",

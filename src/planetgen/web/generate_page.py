@@ -1485,7 +1485,7 @@ def generate_sectors():
         return _no_store(make_response(jsonify({"error": "The sector list could not be loaded."}), 502))
     items = [{
         "id": row["id"], "name": row["name"], "systems": row.get("system_count"),
-        "ring": row.get("ring_index"), "layer": row.get("layer_index"), "slot": row.get("ring_slot_index"),
+        "ring": row.get("shell_index"), "layer": row.get("band_index"), "slot": row.get("wedge_index"),
     } for row in found["items"]]
     return _no_store(jsonify({"items": items, "total": found["total"], "page": page,
                               "pages": max(1, -(-found["total"] // FINDER_PAGE_SIZE))}))

@@ -19,7 +19,7 @@ Two tiers of content, matching the sprite kinds
   galaxy_sectors_in_view` handles this tier directly (it needs the
   database; nothing here does).
 - **Planned**: real, not-yet-generated sector *addresses* -- exact
-  `(ring_index, layer_index, ring_slot_index)` grid cells this galaxy's own shape model
+  `(shell_index, band_index, wedge_index)` grid cells this galaxy's own shape model
   predicts would qualify (see `galaxyDensity.predicted_star_count`, the
   same >= 1 threshold `planetgen`'s `ensure_sector_generated`/
   `_BatchDensity` already gate real generation on), enumerated exactly
@@ -94,7 +94,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
     (`predicted_star_count >= 1`) -- the "planned" tier `static/
     galaxymap3d.js` renders as small, dim, clickable dots (see the module
     docstring's own tier breakdown), each carrying its real
-    `(ring_index, layer_index, ring_slot_index)` address and a copyable
+    `(shell_index, band_index, wedge_index)` address and a copyable
     provisional designation, ready to feed straight into `planetgen
     galaxy --ring I --layer J --slot K`.
 
@@ -116,7 +116,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
         expected_system_count_at_density_1 (float or None): See
             `galaxySkeleton.expected_system_count_at_density_1` -- required
             (and used) only when `shape` is given.
-        exclude_addresses (set): `{(ring_index, layer_index, ring_slot_index), ...}`
+        exclude_addresses (set): `{(shell_index, band_index, wedge_index), ...}`
             -- addresses to skip because a real sector already exists
             there (the caller already queried those separately as the
             "placed" tier; this avoids listing the same address twice
@@ -124,8 +124,8 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
         cap (int): See `PLANNED_MAX_RESULTS`.
 
     Returns:
-        list[dict]: Closest-first, each with `ring_index`, `layer_index`,
-            `ring_slot_index`, `x`/`y`/`z` (parsecs), `distance_pc`
+        list[dict]: Closest-first, each with `shell_index`, `band_index`,
+            `wedge_index`, `x`/`y`/`z` (parsecs), `distance_pc`
             (from `center_pc`), `designation`
             (`provisional_sector_designation`), and `predicted_star_count`/
             `relative_density` (both `None` when `shape` is `None`).
@@ -148,16 +148,16 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
 def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_addresses, bounds=None):
     """Filters `enumerate_sectors_within_radius`-shaped tuples down to the
     ones worth showing as "planned" (see `planned_slots_in_view`), yielding
-    `(ring_index, layer_index, ring_slot_index, x, y, z, distance_pc,
+    `(shell_index, band_index, wedge_index, x, y, z, distance_pc,
     star_count, density)` -- the last two `None` when `shape` is `None`.
     With a non-empty `bounds` (`galaxySkeleton.GalaxyBounds`), a slot
     outside the galaxy's stored outline is left out too: generation
     refuses it, so the map mustn't offer it (MAP.118)."""
     threshold = qualifying_threshold_star_count()
-    for ring_index, layer_index, slot_index, x, y, z, distance_pc in slots:
-        if (ring_index, layer_index, slot_index) in exclude_addresses:
+    for shell_index, band_index, slot_index, x, y, z, distance_pc in slots:
+        if (shell_index, band_index, slot_index) in exclude_addresses:
             continue
-        if bounds and not bounds.contains(ring_index, layer_index):
+        if bounds and not bounds.contains(shell_index, band_index):
             continue
         if shape is not None:
             star_count = predicted_star_count((x, y, z), shape, expected_system_count_at_density_1)
@@ -167,16 +167,16 @@ def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_
         else:
             star_count = None
             density = None
-        yield (ring_index, layer_index, slot_index, x, y, z, distance_pc, star_count, density)
+        yield (shell_index, band_index, slot_index, x, y, z, distance_pc, star_count, density)
 
 
 def _planned_entry(slot, distance_pc=None):
     """One planned-tier dict from a `_qualifying_slots` tuple."""
-    ring_index, layer_index, slot_index, x, y, z, _distance, star_count, density = slot
+    shell_index, band_index, slot_index, x, y, z, _distance, star_count, density = slot
     entry = {
-        "ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": slot_index,
+        "shell_index": shell_index, "band_index": band_index, "wedge_index": slot_index,
         "x": x, "y": y, "z": z,
-        "designation": provisional_sector_designation(ring_index, layer_index, slot_index),
+        "designation": provisional_sector_designation(shell_index, band_index, slot_index),
         "predicted_star_count": star_count, "relative_density": density,
     }
     if distance_pc is not None:

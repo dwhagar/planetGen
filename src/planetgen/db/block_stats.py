@@ -10,7 +10,7 @@ levels of the ladder would need a stage query for each parent block it touches;
 with the sums stored per level and cell, `query.galaxy_block_stats` reads the
 whole window in one statement.
 
-A row is one block `(m, ring_index, wedge, slab)` of a level above the sector
+A row is one block `(m, shell_index, wedge, slab)` of a level above the sector
 (`drill.DRILL_LEVELS[:-1]`) holding at least one generated sector; a block
 with none has no row. The sums come from `sectors` and `sector_stats` and only
 change when a sector is saved or deleted, so:
@@ -35,7 +35,7 @@ LEVELS = DRILL_LEVELS[:-1]
 FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
 
-COLUMNS = ("m", "ring_index", "wedge", "slab", "sector_count", "systems", "expected_systems", "stars", "age_sum",
+COLUMNS = ("m", "shell_index", "wedge", "slab", "sector_count", "systems", "expected_systems", "stars", "age_sum",
            "luminosity_sol", "ladder_step")
 """tuple: The table's columns in the order `rows` writes them. Migration 0086 fills the table without the last,
 which did not exist yet and defaults to today's step."""
@@ -65,7 +65,7 @@ def refresh_blocks(conn, blocks):
     sector). Returns how many rows were written."""
     written = 0
     for block in sorted(set(blocks)):
-        conn.execute("DELETE FROM galaxy_block_stats WHERE m = ? AND ring_index = ? AND wedge = ? AND slab = ?",
+        conn.execute("DELETE FROM galaxy_block_stats WHERE m = ? AND shell_index = ? AND wedge = ? AND slab = ?",
                      (block.m, block.ring, block.wedge, block.slab))
         sums = query.galaxy_block_sums(conn, block)
         if sums is not None:
@@ -120,17 +120,17 @@ def rebuild(conn, on_progress=None):
     Computes every row from `sectors` and `sector_stats` in one pass, a ring at a time, and replaces the table's
     rows with them in one transaction (readers see the old rows until the commit). Returns the rows written.
     """
-    rings = [row["ring_index"] for row in conn.execute(
-        "SELECT DISTINCT ring_index FROM sectors WHERE ring_index IS NOT NULL ORDER BY ring_index").fetchall()]
+    rings = [row["shell_index"] for row in conn.execute(
+        "SELECT DISTINCT shell_index FROM sectors WHERE shell_index IS NOT NULL ORDER BY shell_index").fetchall()]
     cells = {}
     for done, ring in enumerate(rings, start=1):
         rows = conn.execute(
-            "SELECT s.ring_index, s.layer_index, s.ring_slot_index, st.actual_systems, st.expected_systems,"
+            "SELECT s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
             " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol FROM (SELECT * FROM sectors WHERE"
-            " ring_index = ?) s LEFT JOIN sector_stats st ON st.ring_index = s.ring_index"
-            " AND st.layer_index = s.layer_index AND st.ring_slot_index = s.ring_slot_index", (ring,)).fetchall()
+            " shell_index = ?) s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
+            " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index", (ring,)).fetchall()
         for r in rows:
-            accumulate(cells, (r["ring_index"], r["layer_index"], r["ring_slot_index"]), r["actual_systems"],
+            accumulate(cells, (r["shell_index"], r["band_index"], r["wedge_index"]), r["actual_systems"],
                        r["expected_systems"], r["actual_stars"], r["mean_age_gy"], r["total_luminosity_sol"])
         if on_progress is not None:
             on_progress(done, len(rings))

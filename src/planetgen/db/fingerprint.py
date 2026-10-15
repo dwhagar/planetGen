@@ -69,8 +69,8 @@ CHILD_TABLES = (
 object a sector holds."""
 
 ADDRESS_TABLES = ("bright_stars", "phenomenon_scatter")
-"""tuple: Tables keyed by a sector address (`ring_index`, `layer_index`,
-`ring_slot_index`) rather than a sector row."""
+"""tuple: Tables keyed by a sector address (`shell_index`, `band_index`,
+`wedge_index`) rather than a sector row."""
 
 PLAN_TABLES = ("galaxy_shape", "galaxy_layer", "galaxy_column")
 """tuple: The galaxy's plan, compared for the whole galaxy."""
@@ -218,7 +218,7 @@ class _Reader:
         if cache_key in self._keys:
             return self._keys[cache_key]
         if table == "sectors":
-            row = self.conn.execute("SELECT ring_index, layer_index, ring_slot_index, name FROM sectors WHERE id = ?",
+            row = self.conn.execute("SELECT shell_index, band_index, wedge_index, name FROM sectors WHERE id = ?",
                                     (row_id,)).fetchone()
             key = None if row is None else "sector:" + _sector_label(row)
         elif table == "system_configs":
@@ -257,9 +257,9 @@ def _uid_text(uid):
 
 
 def _sector_label(row):
-    if row["ring_index"] is None:
+    if row["shell_index"] is None:
         return f"unplaced {row['name']}"
-    return f"{row['ring_index']} {row['layer_index']} {row['ring_slot_index']}"
+    return f"{row['shell_index']} {row['band_index']} {row['wedge_index']}"
 
 
 def _sector_lines(reader, sector_id, address):
@@ -291,7 +291,7 @@ def _sector_lines(reader, sector_id, address):
             keep(table, reader.select_in(table, column, owned.get(parent, {})))
     if address is not None:
         for table in ADDRESS_TABLES:
-            keep(table, reader.select(table, "ring_index = ? AND layer_index = ? AND ring_slot_index = ?", address))
+            keep(table, reader.select(table, "shell_index = ? AND band_index = ? AND wedge_index = ?", address))
     return sorted(reader.line(table, row) for table, rows in owned.items() for row in rows.values())
 
 
@@ -306,14 +306,14 @@ def sector_digest(conn, sector_id=None, address=None):
     if sector_id is None and address is None:
         raise ValueError("give a sector id or an address")
     if sector_id is None:
-        row = conn.execute("SELECT id FROM sectors WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?",
+        row = conn.execute("SELECT id FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ?",
                            tuple(address)).fetchone()
         sector_id = None if row is None else row["id"]
     elif address is None:
-        row = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?",
+        row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
                            (sector_id,)).fetchone()
-        if row is not None and row["ring_index"] is not None:
-            address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        if row is not None and row["shell_index"] is not None:
+            address = (row["shell_index"], row["band_index"], row["wedge_index"])
     return _digest(_sector_lines(_Reader(conn), sector_id, address))
 
 
@@ -329,15 +329,15 @@ def _cells(conn, rings=None, addresses=None):
     address-keyed cell in the region, in address order (unplaced sectors
     last, by name)."""
     cells = {}
-    for row in conn.execute("SELECT id, ring_index, layer_index, ring_slot_index, name FROM sectors").fetchall():
-        if row["ring_index"] is None:
+    for row in conn.execute("SELECT id, shell_index, band_index, wedge_index, name FROM sectors").fetchall():
+        if row["shell_index"] is None:
             cells[(1, row["name"] or "", row["id"])] = (_sector_label(row), row["id"], None)
         else:
-            address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+            address = (row["shell_index"], row["band_index"], row["wedge_index"])
             cells[(0,) + address] = (_sector_label(row), row["id"], address)
     for table in ADDRESS_TABLES:
-        for row in conn.execute(f"SELECT DISTINCT ring_index, layer_index, ring_slot_index FROM `{table}`").fetchall():
-            address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        for row in conn.execute(f"SELECT DISTINCT shell_index, band_index, wedge_index FROM `{table}`").fetchall():
+            address = (row["shell_index"], row["band_index"], row["wedge_index"])
             cells.setdefault((0,) + address, (" ".join(str(n) for n in address), None, address))
     chosen = []
     for order in sorted(cells):
