@@ -1,0 +1,2 @@
+### Changed
+- **`test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star` fills a cell that the backfill gave stars to** (TEST.132). The test filled the nearest cell the backfill reached, but the backfill draws each sector's stars from its mass and drew none for that cell in about 1 run in 20 (3 of 60 on an idle machine), so the fill found nothing preplaced. It now fills the nearest cell that did get stars; 100 of 100 runs pass. Test only.

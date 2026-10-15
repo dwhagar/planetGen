@@ -414,6 +414,19 @@ def _unbuilt_leftover_cells(mysql_config, last_leftover):
         conn.close()
 
 
+def _cells_with_stars_after(mysql_config, last_id):
+    """The cells holding a bright star with an id above `last_id` (stars drawn after that point)."""
+    conn = store.get_connection(mysql_config)
+    try:
+        return {
+            (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+            for row in conn.execute("SELECT DISTINCT ring_index, layer_index, ring_slot_index FROM bright_stars"
+                                    " WHERE id > ?", (last_id,)).fetchall()
+        }
+    finally:
+        conn.close()
+
+
 def _built_in(mysql_config, address):
     """`(ids of the stars built in this cell, its unbuilt star count)`."""
     conn = store.get_connection(mysql_config)
@@ -454,12 +467,16 @@ def test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star(mysql_c
         assert layers == {0, -1}
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
     address = max((address for address in leftovers if address[1] == 0), key=lambda a: (leftovers[a], a))
-    neighbor = _nearest([cell for cell in _backfill_rings(mysql_config, address) if cell in leftovers], address)
+    ring_cells = [cell for cell in _backfill_rings(mysql_config, address) if cell in leftovers]
 
     _sector_id, _name, sector = _fill(mysql_config, address)
     assert [entry for entry in sector.entries if entry.preplaced] == []
     assert _count(mysql_config, "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL") == 0
     assert _backfill_around(mysql_config, address)["stars"] > 0
+    # The backfill draws each sector's stars from its mass, and a sector it reaches can draw none (about 1 run
+    # in 20 for the nearest one, TEST.132): the cell filled next is the nearest that was given stars.
+    given = _cells_with_stars_after(mysql_config, last_leftover)
+    neighbor = _nearest([cell for cell in ring_cells if cell in given], address)
     reached = _reached(mysql_config)
     assert neighbor in reached
     # The filled cell's own leftovers stay unbuilt (a filled sector never
