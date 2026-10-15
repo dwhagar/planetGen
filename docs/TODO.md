@@ -1332,10 +1332,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   highlight drawn only for the upper side) and fix it so the underside
   is picked and highlighted wherever the cursor is over it. Done when a
   browser test selects and highlights regions below the plane from
-  several camera angles. Owner: Bugfixes lane 2 (galaxystageview.js
-  selection work), queued after MAP.200 (done, PR #1556; MAP.199 done, PR #1513); it touches the same
-  selection and camera code as MAP.198 (done), MAP.199 (done), MAP.200 (done) and the
-  MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
+  several camera angles. Owner: Foundations Maps (Bug 2 retired,
+  Boss 2026-10-15 05:39Z), at the end of its queue; it touches the same
+  selection and camera code as MAP.198 (done), MAP.199 (done), MAP.200 (done,
+  PR #1556) and the MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
   to follow.
   Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199 (done,
   PR #1513), MAP.200 (done, PR #1556), MAP.152.
@@ -1349,15 +1349,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   picks a block count per level; every band of every shell has 6 * m
   wedges, m using only the primes 2, 3, 5 and 7 and nearest the 4 pc arc
   (Boss, 07:17Z), so the ladder note works from that rule: counts
-  nest in most steps, not all. The ladder-timing question (after
-  the coordinates, or in parallel) is still open with Boss. Replaces the
+  nest in most steps, not all. Ladder timing decided (Boss, 07:22Z,
+  "proceed with your plan"): built after the coordinates and the migration,
+  not in parallel; equal-volume bands were not adopted. Replaces the
   cylinder 243/81/27/9/3 ladder (MAP.151, done, PR #1539). Owner: Foundations Maps,
   after item 6. Source: item 7 of section 6 of the plan. Boss decided
   the move (2026-10-15 06:39Z): "two meridian lines from pole to pole
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
-  Prerequisite: UX.111.
+  Prerequisites: DB.32, GEN.227, UX.111.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **MAP.206 Galaxy Map drawing on shells**

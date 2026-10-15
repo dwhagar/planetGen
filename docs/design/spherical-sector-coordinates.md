@@ -42,14 +42,15 @@ Known costs, from the study: face neighbours go from 6 to 7 up to roughly 10 to 
 
 ## 3. Decisions still open
 
-Four cards are on the thread for Boss; the plan assumes the recommended answer until he picks otherwise.
+The plan assumes the recommended answer for any row not marked Decided.
 
 | Question | Assumed | Alternatives |
 |---|---|---|
 | Wedge count per band | Decided (Boss 07:17Z): 6 * m, m with primes 2, 3, 5, 7 only, nearest the 4 pc arc, same rule in every band and shell | Blocks cut on cells: decided no, blocks hold the cells whose centre they hold (Boss 06:58Z), so the ladder item picks a block count per level |
 | Wedges meeting a cap | 6 (cap radius 3.82 pc) | 5 (3.18) or 7 (4.46) |
 | The plane | Middle of the equatorial band (odd bands) | On a band boundary (even bands) |
-| Galaxy Map ladder | Built after coordinates and migration (card still open) | In parallel |
+| Galaxy Map ladder | Decided (Boss 07:22Z, "proceed with your plan"): built after coordinates and migration | In parallel (not adopted) |
+| Equal-volume bands | Decided (Boss 07:22Z): not adopted; the wedge rule stays primes up to 7 | Bands of equal volume (not adopted) |
 
 Settled in the first item (GEN.224): shells 1 to 3 are too small for the cap rule to look right (shell 1's cap arc radius is 3.82 pc on a 4 pc sphere), so they are a hand-checked table in `spherical.py` (`SMALL_SHELL_TABLE`): shell 1 has caps cut at 37.5 degrees and one band of 12 wedges (cell volumes 0.9 to 1.4 edge cubes, against 4.8 for the caps and 0.67 for the cells under the rule), shells 2 and 3 keep the rule's own result. Still open: whether the migration's data delete needs a fresh word from Boss when it merges (it is destructive; Boss accepted the same for the v32 and v33 grids).
 
