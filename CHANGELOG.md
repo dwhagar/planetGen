@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1287] - 2026-10-15
+
+### Added
+- **On-map zoom and center controls on the Galaxy Map.** A zoom slider and a
+  direction star (four arrows and a middle button) sit on the map's lower
+  right. The arrows move the center the view turns and zooms about (hold to
+  repeat; Alt and the arrow keys do the same), a small readout and the center
+  cross show where the center is while it moves, and the middle button puts the
+  center back at the middle of the region being viewed.
+
 ## [8.0.1286] - 2026-10-15
 
 ### Changed
