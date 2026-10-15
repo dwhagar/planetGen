@@ -184,3 +184,11 @@ def test_the_paragraph_lengths_stay_short_enough_to_read():
         world = _world(pressure_kpa=10 ** rng.uniform(-2, 5), temperature_c=rng.uniform(-200, 400),
                        surface_dose_sv_yr=10 ** rng.uniform(-3, 3), life_stage=rng.choice(hab.LIFE_STAGES))
         assert len(protection.paragraph(world, _bold)) < 1700
+
+
+def test_the_air_line_of_a_world_with_no_atmosphere_says_so_and_is_red():
+    """GEN.215: Air is Red and the text says there is no atmosphere, never that the gases are fine."""
+    world = _world(pressure_kpa=0.0, gases={})
+    text = protection.paragraph(world, _bold)
+    assert "**Air: Red**." in text and "no atmosphere (0.0 kPa)" in text
+    assert "within their long-term limits" not in text

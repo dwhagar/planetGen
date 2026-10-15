@@ -29,7 +29,7 @@ EXAMPLES = {
     "Ice-sealed ocean": (World(1e-6, -170, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, surface_dose_sv_yr=0.05,
                                habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05,
                                life_stage="microbial", life_on_surface=False),
-                         ("Red", "Red", "Green", "Blue", "Green", "Red"), 0.0, 0.533, 0.0, 0.468, "sealed suit"),
+                         ("Red", "Red", "Red", "Blue", "Green", "Red"), 0.0, 0.533, 0.0, 0.468, "sealed suit"),
     "Mars-analog brine": (World(0.6, -60, {"CO2": 0.95, "N2": 0.03}, gravity_ms2=3.71, water_activity=0.5,
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
@@ -42,7 +42,7 @@ EXAMPLES = {
     "Europan ocean": (World(1e-9, -160, {}, gravity_ms2=1.31, ph=9, energy_flux_w_m2=1e-4, surface_dose_sv_yr=2000,
                             habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05,
                             life_stage="microbial", life_on_surface=False),
-                      ("Red", "Red", "Green", "Green", "Red", "Red"), 0.0, 0.395, 0.0, 0.276,
+                      ("Red", "Red", "Red", "Green", "Red", "Red"), 0.0, 0.395, 0.0, 0.276,
                       "full life support with radiation hardening"),
 }
 """dict: `(world, the six tiers, PHI-4, PHI_bio, PHI_cpx, Phi_tech, kit)`. The Earth world has a
@@ -275,3 +275,12 @@ def test_the_temperature_score_takes_the_worse_extreme_of_a_swinging_light():
         swing = World(pressure_kpa=101.3, temperature_c=temperature, gases={"N2": 0.78, "O2": 0.21},
                       flux_variation=0.4)
         assert hab.temperature_score(swing) <= hab.temperature_score(base) or temperature < 0
+
+
+def test_a_world_with_no_atmosphere_has_red_air_and_a_zero_score():
+    """GEN.215: with no air at all the Air domain is Red and 0, not Green for lack of toxins."""
+    for pressure in (0.0, 1e-9, 0.04):
+        got = scores(World(pressure, -227, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, relative_humidity=0.05))
+        assert got["Air"] == (0.0, "Red"), pressure
+    assert hab.air_score(World(0.6, -60, {"CO2": 0.95, "N2": 0.03})) > 0.0
+    assert scores(EARTH)["Air"][1] == "Blue"
