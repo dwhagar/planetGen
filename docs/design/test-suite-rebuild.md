@@ -2,7 +2,7 @@
 
 Boss (2026-10-14 12:17Z): "rework, optimize, and rebuild our entire test suite from the ground up so that it runs faster and is modular (so we can if we choose only test the things that we changed in the last run)."
 
-Status: measurement and plan, 2026-10-14. Stage 1 onward is not built yet. Evidence tags: [M] measured in this work (numbers below), [S] seen in the repo, [E] estimated from a measurement.
+Status: stages 1 to 3 built and stage 4 mostly built (2026-10-15). Stage 1 (#1280: markers, `src/tests/areas.py`, `scripts/test.py`, failure capture), stage 2 (#1323: `src/tests/depmap.py`, `--changed`) and stage 3 (one database per worker) are merged, and stage 4's browser work is in (sections 21 and 22); the heavy generation files wait for their owning lanes' word. Stage 5, five clean full runs before `changed` replaces the full run as the merge gate, is in progress. TEST.139 stays open until then. The measurement below is the baseline of 2026-10-14. Evidence tags: [M] measured in this work (numbers below), [S] seen in the repo, [E] estimated from a measurement.
 
 ## Summary
 

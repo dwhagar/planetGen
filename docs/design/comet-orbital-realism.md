@@ -43,7 +43,7 @@ comets are sector phenomena, drawn per star at the design rate in
 
 - About 30% of star-bound comets (`COMET_PARABOLIC_CHANCE`).
 - `eccentricity` is stored (0.995 to 1.0) but the orbit is propagated as an
-  exact parabola with Barker's equation (`keplerMotion.solve_barker_equation`).
+  exact parabola with Barker's equation (`kepler.solve_barker_equation` in `planetgen/physics/kepler.py`).
 - There is no period. `parabolic_mean_anomaly` advances linearly and does not
   wrap; it starts near zero (around the one perihelion passage) and can be
   negative (still approaching).

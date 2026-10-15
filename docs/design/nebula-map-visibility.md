@@ -4,7 +4,7 @@ Boss (2026-10-10 21:46Z): "I also want nebula should be visible, even if they ju
 
 Informs: MAP.132 (overlay markers), MAP.142 (fuzzy boundaries), MAP.151 (region data layer and its per-level aggregates), MAP.153 to MAP.155 (rank fade, nested lists, other objects fade in), MAP.157 to MAP.161 (wire format), MAP.131 and MAP.143 (Color by), MAP.123 (per-kind toggles), GEN.47 (the molecular cloud field), GEN.99 and GEN.150 (hosted nebulae). Builds on [nebula-and-asteroid-field-classes.md](nebula-and-asteroid-field-classes.md), [zoom-star-visibility.md](zoom-star-visibility.md), [galaxy-map-wire-format.md](galaxy-map-wire-format.md) and [slow-reads-and-timeouts.md](slow-reads-and-timeouts.md).
 
-Status: research, 2026-10-10; nothing here is built. Evidence tags: [S] seen in the repo, [C] computed or measured in this research, [R] recalled and not confirmed (listed at the end).
+Status: partly built (2026-10-15). Built: the `nebula_field` table (DB.24, #1317, schema v83; `run_plan.build_nebula_field` at plan time, `store.insert_nebula_field`), with these differences from the text below: it holds only classes M and N (as the density note recommended), its rows carry no object ID until a sector stores the cloud, and the flag is `is_stored`. Built beside it: the density cut (GEN.152, #1239) and `plan --redo-nebula-field` (GEN.205, #1325). Open: the per-level cell aggregates (MAP.172), the tile nebula layer (MAP.173), the nebula cover (MAP.174), regions (MAP.176), the overlay markers (MAP.132) and fuzzy boundaries (MAP.142). Evidence tags: [S] seen in the repo, [C] computed or measured in this research, [R] recalled and not confirmed (listed at the end).
 
 ## Summary
 

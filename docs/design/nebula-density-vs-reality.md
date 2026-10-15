@@ -4,7 +4,7 @@ Boss (2026-10-10 22:01Z): "review and have a thread look at the cloud density vs
 
 Follows [nebula-map-visibility.md](nebula-map-visibility.md) (the three-scale map design). Informs GEN.152 (lower the cloud field to about 1%), DB.24 (the `nebula_field` table), MAP.172 to MAP.178 (aggregates, tile layer, regions, cover, field clouds), GEN.202 (scattered nebulae), MAP.182 (hosted H II for pre-placed stars). Builds on [nebula-and-asteroid-field-classes.md](nebula-and-asteroid-field-classes.md) (the GEN.47 field and its first rate check).
 
-Status: research, 2026-10-10; nothing here is built. Evidence tags: [S] seen in the repo or in a cited source, [C] computed or measured in this research, [R] recalled and not re-checked (listed at the end).
+Status: partly built (2026-10-15). Built: the lowered field (GEN.152, #1239), the rate audit (TEST.136, #1239), the `nebula_field` table as recommended, classes M and N only (DB.24, #1317), and the redo of an existing galaxy's field (`plan --redo-nebula-field`, GEN.205, #1325). The row counts and sizes priced for the old plan (about 700,000 rows and 50 MB) describe what was avoided; the table holds about 163,000 rows. Open: the map-side items (MAP.172 to MAP.174, MAP.176 to MAP.178), scattered nebulae (GEN.202) and hosted H II regions (MAP.182). Evidence tags: [S] seen in the repo or in a cited source, [C] computed or measured in this research, [R] recalled and not re-checked (listed at the end).
 
 ## Summary
 
