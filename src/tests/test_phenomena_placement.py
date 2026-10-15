@@ -24,7 +24,7 @@ from planetgen.db import query
 from planetgen.db import store
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import sector_orientation
+from planetgen.galaxy.spherical import sector_orientation
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly

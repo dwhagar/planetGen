@@ -235,7 +235,7 @@ def mutual_hill_radius_au(mass1_kg, mass2_kg, distance1_au, distance2_au, centra
         R_H,mutual = ((m1 + m2) / (3 * M_central))^(1/3) * ((a1 + a2) / 2)
 
     Gladman's own derivation assumes both bodies orbit the SAME central
-    mass -- used here (see `systemData.StarSystem._validate_cross_star_clearance`)
+    mass -- used here (see `system.StarSystem._validate_cross_star_clearance`)
     across two planets that orbit *different* stars of a wide binary, this
     is a physically-motivated extension of the criterion's spirit rather
     than a literal textbook application; see that method's docstring for
@@ -302,10 +302,10 @@ def circular_orbital_speed_kms(distance_au, period_years):
     Tangential speed of a circular orbit, given its radius and period:
     `v = 2*pi*r / T`. Exact (constant at every point of the orbit), since
     this generator only ever models circular orbits for planets and moons
-    (see `planetPhysics.generate_orbital_motion_properties`) -- unlike
+    (see `physics.planets.generate_orbital_motion_properties`) -- unlike
     `calculate_galactic_orbit`, which has to *assume* a rotation-curve
     model to get a speed at all, a planet's/moon's period is already known
-    exactly from Kepler's third law (`planetPhysics.
+    exactly from Kepler's third law (`physics.planets.
     calculate_orbital_period_years`), so speed here is a direct
     geometric consequence of the two, not a separate physical model.
 
@@ -333,7 +333,7 @@ def orbital_position_au(distance_au, inclination_deg, ascending_node_deg, phase_
     circular orbit: `orbital_phase_deg` already plays the role of the
     argument of latitude `u = omega + true_anomaly` directly (no separate
     argument-of-periapsis term, since a circular orbit has no periapsis to
-    measure one from -- see `planetPhysics.generate_orbital_motion_properties`'s
+    measure one from -- see `physics.planets.generate_orbital_motion_properties`'s
     docstring). `inclination_deg`/`ascending_node_deg` orient the orbital
     plane itself; `phase_deg` is where the body sits within it:
 
@@ -419,7 +419,7 @@ def calculate_reflex_offset(parent_mass_kg, children):
     by the combined gravitational pull of everything orbiting it -- the
     "wobble"/reflex-motion half of a proper two-body (barycentric)
     treatment, mirrored on the SQL side by the correlated-subquery
-    `UPDATE`s in `_db.advance_orbital_phases`.
+    `UPDATE`s in `store.advance_orbital_phases`.
 
     For a single child, this is the exact two-body barycentric formula:
     `offset = -(child_mass / (parent_mass + child_mass)) * relative_vector`,
@@ -466,7 +466,7 @@ def minimum_update_interval_years(period_years):
     smaller than `orbital_phase_deg`'s own floating-point resolution, so
     `MOD(orbital_phase_deg + delta, 360)` is guaranteed to round right
     back to the exact value already stored: a wasted write that changes
-    nothing. Exists specifically to guard `_db.advance_orbital_phases`
+    nothing. Exists specifically to guard `store.advance_orbital_phases`
     against that silent no-op, not as a narrative/display stat -- unlike
     this package's other derived quantities, there is no scale at which a
     human would want to read this number (it lands in the nanosecond
@@ -503,7 +503,7 @@ def minimum_update_interval_years(period_years):
 
     Returns:
         float: The minimum `elapsed_years` worth calling
-              `_db.advance_orbital_phases` for, for a body with this
+              `store.advance_orbital_phases` for, for a body with this
               period.
     """
     ulp_deg = math.ulp(360.0)

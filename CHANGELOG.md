@@ -2,6 +2,119 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1405] - 2026-10-15
+
+**Headline:** TEST.158 and DOC.21 are retired, and the findings Quality reported are on their items.
+
+### Changed
+
+- TEST.158 (#1697) and DOC.21 (#1698) leave the open list; TEST.156, DOC.24, GEN.231 and DB.33 carry Quality's notes.
+
+TODO items resolved: TEST.158, DOC.21 / Added: none
+
+## [8.0.1404] - 2026-10-15
+
+**Headline:** The code's own docs name the modules and the shell, band and wedge grid as they are now.
+
+### Changed
+- About 270 mentions in docstrings and comments of modules that no longer exist by that name (`queryDb`, `_db`, `sectorGen`, `brightStars`, `adminAuth` and the like) now name the real module, and the scatter's "layers" and "rings" are shells and bands. Only comments and docstrings change, plus the sector grid comment in `schema.sql`; nothing behaves differently.
+- The `planetgen.galaxy` package docstring lists its modules and says what each of the map's modules does on the shell grid.
+
+## [8.0.1403] - 2026-10-15
+
+**Headline:** The math check now tests the shell, band and wedge grid the program uses.
+
+### Changed
+- The three math checks that exercised the old cylinder grid (ring cells filling an annulus, the address round trip, the ring count rule) are replaced by five on the spherical grid: shells tile their spherical shell, shells are 4 pc deep around a 2 pc core ball with an odd count of bands from pole to pole, every band holds 6*m wedges (m only 2, 3, 5, 7) and the caps are one cell, every cell's center is found again in its own cell, and seeded random points lie inside the shell, band and wedge their address names. New tests show the gate fails when the wedge rule, the lookup or the cell volume is broken. The run still takes about a second.
+
+## [8.0.1402] - 2026-10-15
+
+**Headline:** The tests that are not about the Galaxy Map now check the spherical sector grid
+
+### Changed
+- Nine tests that only needed an address, a position or a neighbor now use `galaxy/spherical.py` instead of the old cylinder `galaxy/geometry.py`.
+- The sector-exhaustion, galaxy-boundary and line-sector tests are rewritten for the shell, band and wedge cells, and the grid fuzz tests (`test_fuzz_galaxy_grid.py`) check layout, positions, cells, neighbors (against a brute-force scan), designations, enumeration and `describe_sector_cell` for the new grid.
+- The fuzz tests found that a sector designation cannot be made for a cap or high band past about shell 1,300 (the band field is 12 bits); the tests pin that as a clean `ValueError`.
+- The Galaxy Map, drill, viewport and prism tests stay on the old ladder until the Maps rebuild replaces it.
+
+## [8.0.1401] - 2026-10-15
+
+**Headline:** The math check now tests the shell, band and wedge grid the program uses.
+
+### Changed
+- The three math checks that exercised the old cylinder grid (ring cells filling an annulus, the address round trip, the ring count rule) are replaced by five on the spherical grid: shells tile their spherical shell, shells are 4 pc deep around a 2 pc core ball with an odd count of bands from pole to pole, every band holds 6*m wedges (m only 2, 3, 5, 7) and the caps are one cell, every cell's center is found again in its own cell, and seeded random points lie inside the shell, band and wedge their address names. New tests show the gate fails when the wedge rule, the lookup or the cell volume is broken. The run still takes about a second.
+
+## [8.0.1400] - 2026-10-15
+
+**Headline:** The tests that are not about the Galaxy Map now check the spherical sector grid
+
+### Changed
+- Nine tests that only needed an address, a position or a neighbor now use `galaxy/spherical.py` instead of the old cylinder `galaxy/geometry.py`.
+- The sector-exhaustion, galaxy-boundary and line-sector tests are rewritten for the shell, band and wedge cells, and the grid fuzz tests (`test_fuzz_galaxy_grid.py`) check layout, positions, cells, neighbors (against a brute-force scan), designations, enumeration and `describe_sector_cell` for the new grid.
+- The fuzz tests found that a sector designation cannot be made for a cap or high band past about shell 1,300 (the band field is 12 bits); the tests pin that as a clean `ValueError`.
+- The Galaxy Map, drill, viewport and prism tests stay on the old ladder until the Maps rebuild replaces it.
+
+## [8.0.1399] - 2026-10-15
+
+**Headline:** The design index lists the multi-star note again (a test was failing on main), and the findings other lanes reported are on their TODO items and issues.
+
+### Changed
+
+- `docs/design/README.md` lists `multi-star-systems.md`, so `test_every_design_note_is_listed_in_the_design_index` passes.
+- Findings from Quality, Core 1, Core 2 and Interface are noted on TEST.111, DB.33, TEST.163 and TEST.148.
+- TEST.167 filed: `test_random_start_mode_respects_min_start_density` timed out at 900 s in a full run (bug).
+
+TODO items resolved: none / Added: TEST.167
+
+## [8.0.1398] - 2026-10-15
+
+**Headline:** TODO pages and GitHub issues now match: every open item belongs to a goal issue, and every TODO page links its issues.
+
+### Changed
+
+- Thirty goal issues group the open TODO items (the rows are in `docs/plan/issue-groups.md`); Boss's own issues keep his text and gain a "TODO sync" comment.
+- The tier plan, the TODO tree and the TODO reference link every item to its issues; the execution plan is rebuilt for the two Core lanes, Interface, Quality and the stage plan, with issue links.
+- DOC.52 filed: a docs index page that links every HTML page under docs/ with a description.
+- The headline panel on the three generated pages now renders (it ran before its data existed).
+
+TODO items resolved: GEN.232, MAP.204 / Added: DOC.52
+
+## [8.0.1397] - 2026-10-15
+
+**Headline:** The Galaxy Map is checked from under the galactic plane, so blocks below it are picked and outlined as easily as those above.
+
+### Changed
+- Blocks under the galactic plane are picked and outlined from below as easily as those above it on the Galaxy Map (MAP.204): the hover, outline and click on the shell grid were checked from under the plane at several tilts, and a browser test now keeps it so. The report came from the cylinder map, which the shell grid replaced.
+
+TODO items resolved: MAP.204 / Added: none
+
+## [8.0.1396] - 2026-10-15
+
+**Headline:** Working out the path of a body held by a heavy black hole no longer takes minutes in a core sector.
+
+### Changed
+- A body held by a heavy mass (the thousands of rogue planets that orbit a core black hole) used to run all 20,000 integration steps of its sector path, about half a second each, so a core sector with a 10 to 90 million solar-mass hole took many minutes to settle and `test_galaxy_gen` timed out about one run in three (GEN.232). A path is now cut off once its direction has turned through one full revolution (`sector_path.MAX_TURN_RAD`), the most the spline's 48 knots can follow anyway, and the hard step ceiling is 2,000. A held body now costs about 5 ms, whatever the hole's mass, and every body's cost is bounded the same way. Paths that leave the sector are unchanged to the last bit. The integrator also visits the point masses once per step instead of twice (`sector_path._pull`).
+
+TODO items resolved: GEN.232. Added: none.
+
+## [8.0.1395] - 2026-10-15
+
+**Headline:** The plan and the lane briefs show two Core lanes and each lane's list.
+
+### Changed
+- The intergalactic plan, the lane briefs and the execution plan page record the Core 1 and Core 2 split (migrations stay with Core 1) approved by the TODO lane, with DB.33 and the sphere_runs() part of GEN.276 on Core 2.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1394] - 2026-10-15
+
+**Headline:** The orbital update plan gains halo and intergalactic movement scales, a sector-crossing guard, full counting and a per-night cost ceiling.
+
+### Changed
+- GEN.223 now also adds the halo (1 mpc) and intergalactic (40 mpc) scales, a guard that wakes an object before it can cross its sector's boundary unseen, and counts of everything the update moves and every sector crossing, per kind; GEN.265 points at it, and PERF.103 caps the cost of a night's run.
+
+TODO items resolved: none / Added: PERF.103
+
 ## [8.0.1393] - 2026-10-15
 
 **Headline:** Quality's confirmations that two failures fail on a clean main are recorded on their TODO items.

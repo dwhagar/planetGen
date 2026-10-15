@@ -162,6 +162,8 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 <script>
 (function(){
 const D=JSON.parse(document.getElementById('data').textContent);
+const ISSUES=D.issues||{},ISSUE_URL='https://github.com/dwhagar/planetGen/issues/';
+const issueLinks=a=>(a||[]).map(n=>'<a class="chip" href="'+ISSUE_URL+n+'" target="_blank" rel="noopener" title="'+esc((ISSUES[n]||{}).title||'')+'">#'+n+(ISSUES[n]&&ISSUES[n].state==='closed'?' (closed)':'')+'</a>').join('');
 const CAT={GEN:'Generation',MAP:'Maps',NAV:'Navigation',UX:'User experience',ADM:'Admin',OPS:'Operations',API:'API',TEST:'Tests',PERF:'Performance',USR:'Accounts',DB:'Database',VIEW:'View from a planet',POP:'Population',SEC:'Security',DOC:'Documentation'};
 const PH=[{key:'1',lbl:'Phase 1'},{key:'2',lbl:'Phase 2'},{key:'3',lbl:'Phase 3'},{key:'3+',lbl:'Phase 3+'}];
 const items=D.items, all=Object.values(items);
@@ -225,7 +227,7 @@ D.phases.forEach((p,ix)=>{
     g.ids.forEach((id,k)=>{
       const it=items[id];
       const sub=(it.deps.length?'<span>needs</span>'+it.deps.map(d=>'<a class="chip" href="#'+d+'" data-jump="'+d+'">'+d+'</a>').join(''):'');
-      h+='<li class="item" id="'+id+'" data-id="'+id+'"><button class="row" type="button" aria-expanded="false" aria-controls="d-'+id.replace('.','-')+'"><span class="ord">'+(k+1)+'</span><span class="id">'+id+'</span><span class="ttl"><span class="t">'+inline(it.title).replace(/<a class="chip"[^>]*>([^<]*)<\/a>/g,'$1')+'</span>'+(sub?'<span class="sub">'+sub+'</span>':'')+'</span><span class="badges">'+(it.bug?'<span class="badge bug">bug</span>':'')+(it.was==='new'?'<span class="badge new">new</span>':'')+'<span class="badge cat">'+esc(CAT[cat(id)]||cat(id))+'</span></span></button><div class="detail" id="d-'+id.replace('.','-')+'" hidden></div></li>';
+      h+='<li class="item" id="'+id+'" data-id="'+id+'"><button class="row" type="button" aria-expanded="false" aria-controls="d-'+id.replace('.','-')+'"><span class="ord">'+(k+1)+'</span><span class="id">'+id+'</span><span class="ttl"><span class="t">'+inline(it.title).replace(/<a class="chip"[^>]*>([^<]*)<\/a>/g,'$1')+'</span>'+(sub?'<span class="sub">'+sub+'</span>':'')+'</span><span class="badges">'+(it.bug?'<span class="badge bug">bug</span>':'')+((it.issues||[]).length?'<span class="badge cat">'+it.issues.map(n=>'#'+n).join(' ')+'</span>':'')+(it.was==='new'?'<span class="badge new">new</span>':'')+'<span class="badge cat">'+esc(CAT[cat(id)]||cat(id))+'</span></span></button><div class="detail" id="d-'+id.replace('.','-')+'" hidden></div></li>';
     });
     h+='</ol></div>';
   });
@@ -243,6 +245,7 @@ function fill(li){
   let h='<div class="text">'+md(it.text||'')+'</div><div class="rel">';
   h+='<b>Needs</b>'+(it.deps.length?chips(it.deps):'<span>nothing</span>');
   h+='</div><div class="rel"><b>Unblocks</b>'+(it.unblocks.length?chips(it.unblocks):'<span>nothing</span>')+'</div>';
+  if((it.issues||[]).length) h+='<div class="rel"><b>GitHub</b>'+issueLinks(it.issues)+'<span>'+esc(ISSUES[it.issues[0]]?ISSUES[it.issues[0]].title:'')+'</span></div>';
   h+='<div class="rel"><b>Thread</b><span>'+esc(it.thread)+'</span>'+(it.was&&it.was!=='new'?'<b style="margin-left:10px">Moved from</b><span>phase '+esc(it.was)+'</span>':'')+'</div>';
   if(it.note) h+='<div class="note">'+inline(it.note)+'</div>';
   d.innerHTML=h;
@@ -273,7 +276,7 @@ function apply(){
       let gv=0;
       g.querySelectorAll('li.item').forEach(li=>{
         const it=items[li.dataset.id];
-        const ok=okPhase&&(!c||cat(it.id)===c)&&(!ob||it.bug)&&(!t||(it.id+' '+it.title+' '+(it.text||'')+' '+it.note).toLowerCase().includes(t));
+        const ok=okPhase&&(!c||cat(it.id)===c)&&(!ob||it.bug)&&(!t||(it.id+' '+it.title+' '+(it.text||'')+' '+it.note+' '+(it.issues||[]).map(n=>'#'+n).join(' ')).toLowerCase().includes(t));
         li.hidden=!ok; if(ok){gv++}
       });
       g.hidden=!gv; sv+=gv;

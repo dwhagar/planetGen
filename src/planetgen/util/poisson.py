@@ -8,7 +8,7 @@ multiplicative method (a handful of uniform draws); from there up it is
 Hormann's transformed rejection with squeeze ("PTRS", Insurance: Mathematics
 and Economics 12, 1993), which is exact too and takes about the same few
 draws whether the mean is 10 or 10 million. The object-first scatter
-(`generation/bright_stars.py`) draws one count per layer, with means in the
+(`generation/bright_stars.py`) draws one count per band, with means in the
 thousands to millions, which Knuth's O(mean) method cannot do.
 
 Every draw comes from the `rng` it is given (a `draw.Stream`, or the `draw`

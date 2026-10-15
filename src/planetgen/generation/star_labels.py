@@ -2,7 +2,7 @@
 
 """
 How a run's logs name kinds of star: the sector fill's summary line ("3 G-type,
-1 K-type giant") and the bright-star scatter's per-layer lines (GEN.131) use
+1 K-type giant") and the bright-star scatter's per-shell lines (GEN.131) use
 the same words, so a log reads the same whichever step wrote it.
 """
 

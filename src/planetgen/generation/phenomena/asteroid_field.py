@@ -114,7 +114,7 @@ class AsteroidField(LazySaladName):
             `nebulaData.Nebula`'s identical fields' docstring).
         galactic_orbital_period_gy (float): Orbital period, billions of years.
         galactic_orbital_phase_deg (float): Current angular position around
-            that orbit -- advanced over time by `_db.advance_orbital_phases`.
+            that orbit -- advanced over time by `store.advance_orbital_phases`.
         galactic_min_update_interval_years (float): Floating-point update
             guard for `galactic_orbital_phase_deg`.
     """
@@ -140,7 +140,7 @@ class AsteroidField(LazySaladName):
             name (str, optional): An explicit name. Random if omitted.
         """
         self.system_config = system_config
-        # A placeholder: `_db.insert_asteroid_field` replaces it with the
+        # A placeholder: `store.insert_asteroid_field` replaces it with the
         # field's designation (`asteroid_field_designation`, v40).
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)

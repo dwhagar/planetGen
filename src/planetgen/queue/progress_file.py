@@ -16,7 +16,7 @@ progress bar:
 (units per second) and `eta_s` (seconds left, as of `updated_at`) are
 `null` until the first unit is done. `detail` is a second bar under the
 first, or `null`: `{"description", "completed", "total", "eta_s"}` (the
-bright-star layers being drawn, while layers are slow); `percent` asks for
+bright-star shells being drawn, while shells are slow); `percent` asks for
 the bar as a share done rather than counts. Writes are
 atomic (a temp file renamed over the old one) and throttled to a few per
 second, so a fast loop costs nothing. Without the variable (every
@@ -56,7 +56,7 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
         eta_s (float, optional): Seconds left at that rate, as of
             `updated_at`.
         detail (dict, optional): A second bar under this one (PERF.4,
-            the bright-star layers being drawn while layers are slow):
+            the bright-star shells being drawn while shells are slow):
             `description`, `completed`, `total` and `eta_s`.
         percent (bool): Show this bar as a share done, not as counts
             (PERF.9's weighted bright-star bar).

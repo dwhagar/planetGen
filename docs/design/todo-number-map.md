@@ -22,10 +22,10 @@ release is stamped.
 | API | API.28 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.167 |
+| TEST | TEST.168 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.52 |
+| DOC | DOC.53 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -525,7 +525,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | none | open |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | open |
-| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | open |
+| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | done, PR #1698 |
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | done, PR #1599 |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
@@ -556,6 +556,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | open |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
+| DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -787,7 +788,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule | none | open |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | none | open |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | open |
-| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | open |
+| GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | done, PR #1660 |
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | none | open |
 | GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | open |
 | GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | none | open |
@@ -1035,7 +1036,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) | none | done, PR #1494 |
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) | none | done, PR #1490 |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) | none | done, PR #1519 |
-| MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | open |
+| MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) | none | done, PR #1692 |
 | MAP.205 | Galaxy Map block ladder for shells | none | done, PR #1612 |
 | MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | none | open |
@@ -1333,7 +1334,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | done, PR #707 |
 | UX.22 | Meaningful units for every measurement | none | done, PR #1504 |
-| UX.23 | A shared unit-ladder module | none | open |
+| UX.23 | A shared unit-ladder module | none | done (shipped as src/planetgen/util/ladders.py; its entry left TODO.md earlier) |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | done, PR #558 |
@@ -1679,7 +1680,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.155 | Wording and index agree: property test | none | open |
 | TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
 | TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | done, PR #1572 |
-| TEST.158 | The math check tests the spherical shell, band and wedge grid | none | open |
+| TEST.158 | The math check tests the spherical shell, band and wedge grid | none | done, PR #1697 |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | open |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | open |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |
@@ -1688,6 +1689,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | open |
+| TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

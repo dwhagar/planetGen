@@ -8,13 +8,13 @@ This module defines the `Planet` class, the representation of a single
 planet or moon within a star system. `Planet` itself holds the object's
 state and its presentation (`to_paragraph_list`); the logic that determines
 what a planet physically *is* lives in `planetPhysics`, and the logic that
-determines whether/how life arises on it lives in `planetLife` — both
+determines whether/how life arises on it lives in `life` — both
 operate on `Planet` instances passed in as arguments, rather than as
 methods on the class, to keep generation concerns separate from the object
 itself.
 
 A `Planet` is constructed *without* life data (see `planetPhysics`'s module
-docstring); `StarSystem` applies `planetLife.apply_life_data` to every
+docstring); `StarSystem` applies `life.apply_life_data` to every
 planet and moon once the whole system has been generated.
 
 The `AsteroidBelt` class, a simpler representation of an asteroid belt, is
@@ -49,7 +49,7 @@ class Planet(HoldsOrbitPosition):
     this generation work is delegated to `planetPhysics.generate_planet_properties`
     and related functions in that module, called from `__init__`. Life
     chemistry and evolutionary data are NOT set during construction — see
-    `planetLife.apply_life_data`, applied later by `StarSystem`.
+    `life.apply_life_data`, applied later by `StarSystem`.
 
     A planet reads whichever of the host star's own properties it needs
     (luminosity, mass, spectral type) directly off the `star` object it
@@ -105,16 +105,16 @@ class Planet(HoldsOrbitPosition):
                                    -- not this single-body value.
         name (str): The generated name of the planet or moon.
         life_chemical (str): The primary chemical basis for any potential life
-                             (set by `planetLife.apply_life_data`, None until then).
+                             (set by `life.apply_life_data`, None until then).
         evolutionary_speed (str): How fast life evolves here (e.g. 'fast',
-                                  'normal', 'slow'); set by `planetLife.apply_life_data`,
+                                  'normal', 'slow'); set by `life.apply_life_data`,
                                   None until then.
         reflection_spectrum_visible (list): Visible-light reflection descriptors
                                             for any life present (set by
-                                            `planetLife.apply_life_data`, None until then).
+                                            `life.apply_life_data`, None until then).
         reflection_spectrum_non_visible (list): Non-visible-spectrum reflection
                                                 descriptors for any life present
-                                                (set by `planetLife.apply_life_data`,
+                                                (set by `life.apply_life_data`,
                                                 None until then).
         habitable_zone (tuple): The inner and outer bounds of the host star's
                                 habitable zone in AU (same value as `Star.habitable_zone`,
@@ -161,7 +161,7 @@ class Planet(HoldsOrbitPosition):
                                    only changes if `distance`/`period` do
                                    (see `StarSystem.validate_system`).
         min_update_interval_years (float): The shortest `elapsed_years`
-                                   worth calling `_db.advance_orbital_phases`
+                                   worth calling `store.advance_orbital_phases`
                                    for -- below this, the phase delta added
                                    is smaller than `orbital_phase_deg`'s own
                                    floating-point resolution, so the update
@@ -185,7 +185,7 @@ class Planet(HoldsOrbitPosition):
         p_o2_kpa ... p_so2_kpa (float): Each `physics.atmosphere.SPECIES`
                                         gas's partial pressure, kPa.
         evolutionary_data (list): A list of strings describing the evolutionary timeline
-                                  (set by `planetLife.apply_life_data`, empty until then).
+                                  (set by `life.apply_life_data`, empty until then).
         flavor_text (str): A randomly selected flavor text for the planet.
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
@@ -249,7 +249,7 @@ class Planet(HoldsOrbitPosition):
         Initializes a Planet object with its physical and orbital properties.
 
         Life chemistry and evolutionary data are intentionally not set here;
-        call `planetLife.apply_life_data(planet)` separately once the whole
+        call `life.apply_life_data(planet)` separately once the whole
         system's planets and moons have been generated (this is done
         automatically by `StarSystem.__init__`).
 
@@ -313,12 +313,12 @@ class Planet(HoldsOrbitPosition):
         self.scale_height = None
         self.hill_radius = None
         self.min_orbit_distance = None
-        self.name = None # Set by the owning StarSystem (bodyNames.name_bodies) once orbits are final.
+        self.name = None # Set by the owning StarSystem (names.bodies.name_bodies) once orbits are final.
         self.life_chemical = None
         self.evolutionary_speed = None
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
-        self.evolutionary_data = [] # Populated later by planetLife.apply_life_data
+        self.evolutionary_data = [] # Populated later by life.apply_life_data
         self.flavor_text = None # Initialize flavor text
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
         self.orbital_inclination_deg = None
@@ -427,7 +427,7 @@ class Planet(HoldsOrbitPosition):
 
         Reads (but does not compute) `self.life_chemical`, `self.evolutionary_speed`,
         `self.evolutionary_data`, and `self.flavor_text`, all of which are
-        set by `planetLife.apply_life_data`/`planetLife.decide_flavor_text`
+        set by `life.apply_life_data`/`life.decide_flavor_text`
         before this is ever called (`to_paragraph_list` is only invoked once
         a `StarSystem` is fully generated) -- this method is a pure read and
         may be called more than once without re-rolling or re-mutating
@@ -463,7 +463,7 @@ class Planet(HoldsOrbitPosition):
         if self.evolutionary_data and self.planet_class in tuning.HABITABLE_PLANET_CLASSES:
             life_paragraphs.extend(self.evolutionary_data)
 
-        # Flavor text was already decided at generation time (planetLife.decide_flavor_text);
+        # Flavor text was already decided at generation time (life.decide_flavor_text);
         # this is a pure read so repeated renders don't re-roll or double-count it.
         if self.flavor_text:
             life_paragraphs.append(f"Sensors show {self.flavor_text}")

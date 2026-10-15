@@ -6,7 +6,7 @@ How long each generated object takes, per object and per object type
 
 Every generator reports the same way: a generated class is registered with
 `track(cls, kind)`, which wraps its constructor, so no generator carries
-timing code of its own. While a *unit of work* (a sector, a scatter layer)
+timing code of its own. While a *unit of work* (a sector, a run of scatter shells)
 runs inside `unit(...)`, each object built is timed; the time an object
 spends building the objects inside it (a planet's moons, a system's stars)
 is taken out of its own, so the per-kind totals add up to the unit's time
@@ -176,7 +176,7 @@ def active():
 @contextlib.contextmanager
 def unit(label, full=None):
     """Times the objects built inside the block as one unit of work named
-    `label` (a sector's address, a scatter layer); yields its `Collector`.
+    `label` (a sector's address, a run of scatter shells); yields its `Collector`.
     Units don't nest: a unit inside another shares the outer's collector."""
     outer = active()
     if outer is not None:

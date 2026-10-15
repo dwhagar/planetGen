@@ -15,7 +15,7 @@
 <p class="hl-note">Each upcoming release has one headline feature. Every open item it needs is listed below it in build order; "ready" means nothing else has to land first.</p>
 <div id="hl-list"></div>
 <script>
-(function(){
+document.addEventListener('DOMContentLoaded',function(){
   const H=(JSON.parse(document.getElementById('data').textContent).headlines)||[];
   const root=document.getElementById('hl-list');
   H.forEach(h=>{
@@ -32,6 +32,6 @@
     d.append(ol); root.append(d);
   });
   if(!H.length) document.getElementById('hl-panel').hidden=true;
-})();
+});
 </script>
 </section>

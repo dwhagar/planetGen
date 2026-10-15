@@ -31,7 +31,7 @@ import pytest
 from planetgen.db.query import nav_between
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.nav_graph import (
     build_knn_adjacency, build_route_graph, connected_components, join_islands, shortest_path,
 )

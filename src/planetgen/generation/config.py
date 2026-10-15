@@ -6,7 +6,7 @@ Configuration settings for the generator.
 This module defines the `SystemConfig` class, which encapsulates all
 configuration flags and variables that control the behavior of the star system
 generation process. These settings can be modified via command-line arguments
-or a JSON system-specification file in `systemGen.py`, or directly within the
+or a JSON system-specification file in `generation/run_system.py`, or directly within the
 code for specific scenarios.
 
 Most boolean-ish options are tri-state (`True`/`False`/`None`) rather than a
@@ -16,7 +16,7 @@ pair of `FORCE_X`/`NO_X` flags:
     - `None` (the default) leaves it to random chance.
 
 This tri-state shape maps directly onto the command line's `+name`/`-name`
-syntax (see `systemGen.process_args`): `+name` sets the option to `True`,
+syntax (see `run_system.process_args`): `+name` sets the option to `True`,
 `-name` sets it to `False`, and omitting it leaves it `None`.
 """
 
@@ -24,7 +24,7 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 
 # The SystemConfig attributes that make up a system's generation "recipe" --
 # i.e. everything a `--system-file` JSON document can set (see
-# `systemGen.apply_system_file`) -- as opposed to `system_flavor_count` /
+# `run_system.apply_system_file`) -- as opposed to `system_flavor_count` /
 # `recent_flavor_texts`, which are run-time bookkeeping rather than
 # configuration. `to_dict`/`from_dict` use this list so a config round-trips
 # through JSON in exactly the shape `--system-file` already expects.
@@ -152,7 +152,7 @@ class SystemConfig:
         P-type (close/circumbinary) binary -- the original, and only,
         binary behavior this generator had before this option existed,
         where the two stars are merged into one effective star
-        (`doubleStar.BinaryStarProxy`) for the purposes of planet
+        (`binary.BinaryStarProxy`) for the purposes of planet
         placement. If None, one of the two is chosen at random (see
         `program_constants.WIDE_BINARY_DEFAULT_CHANCE`). Defaults to None.
         """
@@ -198,8 +198,8 @@ class SystemConfig:
         from ("young", "intermediate", "old" or "bulge"; see
         `stellarEvolution.population_age_range_gy`), which sets its age
         range; a galaxy sector picks one per system from
-        `galaxyDensity.population_densities` at its position
-        (`stellarPopulation.pick_population`). None draws from the whole
+        `galaxy.density.population_densities` at its position
+        (`star_population.pick_population`). None draws from the whole
         disk's history. Not saved with the config: the star keeps its age.
         """
 
@@ -223,7 +223,7 @@ class SystemConfig:
     def to_dict(self):
         """
         Returns a JSON-serializable dict of this config's settings, in the
-        same lowercase-key shape as `systemGen.py`'s `--system-file` format.
+        same lowercase-key shape as `generation/run_system.py`'s `--system-file` format.
 
         Returns:
             dict: One entry per field in `SERIALIZABLE_FIELDS`.

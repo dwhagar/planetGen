@@ -4,7 +4,7 @@
 JSON endpoints over the planetGen database.
 
 The read endpoints each open a strictly-read-only connection
-(`queryDb.open_readonly` -- same `file:...?mode=ro`-equivalent guarantee
+(`db.query.open_readonly` -- same `file:...?mode=ro`-equivalent guarantee
 the `planetgen.db.query` CLI already relies on, see that module's docstring for
 how "read-only" is enforced by the configured account's grants). Listing
 endpoints delegate straight to `planetgen.db.query`'s existing `list_sectors`/
@@ -195,7 +195,7 @@ def get_db():
     lifetime of the request instead of one connection per query, then
     closed by `close_db` in the app's teardown handler.
 
-    `queryDb.open_readonly` raises a bare `SystemExit` when the
+    `db.query.open_readonly` raises a bare `SystemExit` when the
     configured MySQL server is unreachable -- correct for its own CLI
     callers (a clean process exit with a message), but `SystemExit` is a
     `BaseException`, not an `Exception`: uncaught, it would propagate
@@ -329,7 +329,7 @@ def _paginate(query_args):
 def _parse_size_range(query_args, prefix):
     """
     Parses a `<prefix>_min_radius_km`/`<prefix>_max_radius_km` query
-    parameter pair into a `(min_km, max_km)` tuple for `queryDb.search`'s
+    parameter pair into a `(min_km, max_km)` tuple for `db.query.search`'s
     `sizes` argument -- either bound may be omitted (`None`) for "no
     lower/upper limit"; giving neither returns `None` altogether (no size
     filter for this entity at all), the same "absent means inactive"
@@ -501,7 +501,7 @@ def _parse_sector_id_filter(raw_sector_id):
     """
     Parses the `sector_id` query parameter `/api/systems` accepts: a
     sector's ID (one sector), the literal `"none"` (standalone systems --
-    `queryDb.NO_SECTOR`, `html/browse.py`'s own table of systems generated
+    `db.query.NO_SECTOR`, `html/browse.py`'s own table of systems generated
     with no sector), or absent (no filter).
 
     Raises:
@@ -757,8 +757,8 @@ def nav():
     Course, distance, and optimal route between two objects -- each any
     star system, body inside one, or standalone phenomenon, written as an
     object reference (`?from=planet:7&to=nebula:2`; a bare number is a
-    system) -- see `queryDb.nav_course` for the legs and
-    `queryDb.nav_between` for the availability rules, and docs/api.md for
+    system) -- see `db.query.nav_course` for the legs and
+    `db.query.nav_between` for the availability rules, and docs/api.md for
     the response shape.
     """
     from_ref = _nav_ref_param(request.args, "from")
@@ -795,7 +795,7 @@ def nav():
 def nav_chart():
     """
     NAV.48: the uncharted sectors that block the course between two objects (`?from=...&to=...`, written
-    as for `/api/nav`; `border=1` adds the uncharted cells next to them) -- see `queryDb.nav_chart_plan`.
+    as for `/api/nav`; `border=1` adds the uncharted cells next to them) -- see `db.query.nav_chart_plan`.
     Answers `unknown_hops`, `cells` (`[shell, band, wedge]`, in the order the route enters them, inside the
     galaxy's outline), `count`, `outside_galaxy`, `route_distance_ly`, `bypass` (`{found, distance_ly,
     checked}`: whether a route through charted space exists, or `null` when no hop is unknown) and
@@ -818,7 +818,7 @@ def nav_chart():
 def _route_for_json(route):
     """
     `route["positions"]` can have both plain-int keys (a system hop) and
-    `queryDb._phenomenon_nav_key`-shaped string keys (a phenomenon
+    `db.query._phenomenon_nav_key`-shaped string keys (a phenomenon
     origin/destination) since phenomenon endpoints were added -- Flask's
     `jsonify` sorts dict keys by default, and comparing an int key against
     a string key mid-sort raises `TypeError: '<' not supported between
@@ -864,7 +864,7 @@ def galaxy_made():
     The galaxy-placed sectors created in a time window, for the Galaxy
     Map's "Show on Galaxy Map" after a generate job (ADM.31): `?since=`
     and optional `&until=` as Unix seconds. Returns `{"total", "items"}`
-    (`queryDb.sectors_made`; at most `MADE_SECTOR_LIMIT` items).
+    (`db.query.sectors_made`; at most `MADE_SECTOR_LIMIT` items).
     """
     try:
         since = float(request.args.get("since", ""))
@@ -878,7 +878,7 @@ def galaxy_made():
 def galaxy_phenomena():
     """
     Every galaxy-placed standalone phenomenon (`center_x/y/z_pc` not
-    NULL, in any `queryDb._PHENOMENON_TABLES` table -- see `schema.sql`'s
+    NULL, in any `db.query._PHENOMENON_TABLES` table -- see `schema.sql`'s
     "v18"/"v21"/"v29" header notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
     as small dots on the same `/galaxy` Galaxy Map. Not paginated,
     for the same reason `/api/galaxy/sectors` isn't.
@@ -890,12 +890,12 @@ def galaxy_phenomena():
 def galaxy_shape():
     """
     The galaxy's stored density-skeleton shape (`planetgen plan`'s own
-    output, `queryDb.galaxy_density_shape`) -- the real spiral/disk/bulge
+    output, `db.query.galaxy_density_shape`) -- the real spiral/disk/bulge
     model the Galaxy Map (`/galaxy`) shades its "expected density"
     cloud from, for whatever space hasn't actually been generated yet.
     `"shape"` is `null` when the skeleton has never been built (the map
     then falls back to its own generic illustrative gradient).
-    `"bright_stars"` is `queryDb.bright_star_scatter_status`: whether the
+    `"bright_stars"` is `db.query.bright_star_scatter_status`: whether the
     bright-star scatter has run, its threshold and seed, and the default
     threshold a plain plan uses. `"version_warning"` (DB.7) is a sentence
     when the galaxy holds sectors generated by another PlanetGen version
@@ -967,7 +967,7 @@ def galaxy_tiles_route():
     """
     The 3D Galaxy Map's cube tiles -- `tiles` is a comma-separated list of
     `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`). See
-    `queryDb.galaxy_tiles` and `planetgen.galaxy.viewport`'s "Cube
+    `db.query.galaxy_tiles` and `planetgen.galaxy.viewport`'s "Cube
     tiles" section. Each tile's work is bounded, so no request can scan an
     unbounded region (the removed `/galaxy/view` route could). Called by
     `/galaxy/tiles` (`planetgen/web/galaxy_views.py`), which caches every tile on disk and only forwards
@@ -987,7 +987,7 @@ def galaxy_locate_route():
     """
     The Galaxy Map address bar's name lookup: `?q=<part of a name>`.
     Returns `{"matches": [...]}`, sectors and systems whose name contains
-    it, each with its sector address -- see `queryDb.galaxy_locate`.
+    it, each with its sector address -- see `db.query.galaxy_locate`.
     Called by `/galaxy/locate` (`planetgen/web/galaxy_views.py`).
     """
     return jsonify({"matches": galaxy_locate(get_db(), request.args.get("q") or "")})
@@ -999,7 +999,7 @@ def galaxy_stage_route():
     One Galaxy Map drill-down stage: `?at=m.shell.band.wedge` (a block key,
     `planetgen.galaxy.drill`), or no `at` for the galaxy. Returns how
     many generated sectors each child block holds, and at a level-3 block
-    the generated sectors themselves -- see `queryDb.galaxy_stage`.
+    the generated sectors themselves -- see `db.query.galaxy_stage`.
     Called by `/galaxy/stage` (`planetgen/web/galaxy_views.py`), which caches
     each stage on disk.
     """
@@ -1014,7 +1014,7 @@ def galaxy_window_route():
     """
     A Galaxy Map data window of cells bigger than a sector: `?at=m.shell.band.wedge`
     (the middle cell) and `?g=` (cells across), read from the stored block
-    totals in one query -- see `queryDb.galaxy_window`. Called by
+    totals in one query -- see `db.query.galaxy_window`. Called by
     `/galaxy/window` (`planetgen/web/galaxy_views.py`).
     """
     try:
@@ -1030,7 +1030,7 @@ def galaxy_stamp_route():
     """
     `{"stamp": "<16 hex>", "state": "<token>"}` -- `stamp` changes whenever
     the galaxy's tile contents could change (see
-    `queryDb.galaxy_content_stamp`), and `state` is what
+    `db.query.galaxy_content_stamp`), and `state` is what
     `/galaxy/changes?since=` takes to say which tiles did.
     """
     changes = galaxy_changes(get_db())
@@ -1041,7 +1041,7 @@ def galaxy_stamp_route():
 def galaxy_changes_route():
     """
     `?since=<state>` -- which cube tiles changed since that state (see
-    `queryDb.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`.
+    `db.query.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`.
     `planetgen/web/lib/tilecache.py` calls this about once a minute and deletes
     only the listed tiles, or all of them when `full`. A missing or
     unreadable `since` just answers `full`.
@@ -1052,7 +1052,7 @@ def galaxy_changes_route():
 def uncharted_systems():
     """
     `GET /api/uncharted-systems` -- the scattered stars no system was built
-    around yet (UX.87), brightest first: `queryDb.list_uncharted_systems`'s
+    around yet (UX.87), brightest first: `db.query.list_uncharted_systems`'s
     rows (the star, its coordinates, its sector address, designation and
     position in the sector). Query parameters: `sort` (`luminosity` -- the
     default -- `temperature`, `type`, `sector` or `age`) with `order`
@@ -1131,7 +1131,7 @@ def phenomena():
     `descriptor`, `radius`, `sector` or `placed`) with `order` (`asc` or
     `desc`); the filters `type` and `descriptor` (each repeatable, any of),
     and `placed` (`yes` or `no`); and `facets=1` to add the option counts
-    for the type and descriptor filter menus (`queryDb.phenomena_facets`).
+    for the type and descriptor filter menus (`db.query.phenomena_facets`).
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
     """
     limit, offset = _paginate(request.args)
@@ -1159,7 +1159,7 @@ def phenomena():
 def phenomenon(phenomenon_type, phenomenon_id):
     """
     One phenomenon's full detail -- `html/phenomenon.py`'s info page.
-    `phenomenon_type` is one of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s keys
+    `phenomenon_type` is one of `db.query._PHENOMENON_TYPE_TO_TABLE`'s keys
     (`nebula`/`asteroid_field`/`black_hole`/`neutron_star`/
     `supernova_remnant`/`rogue_planet`/`interstellar_comet`); anything
     else, or an id that doesn't exist under it, is a 404.
@@ -1176,7 +1176,7 @@ def object_ref_route(ref):
     """
     Resolves one object reference (`<kind>:<id>`, NAV.7): name, parent
     chain, sibling references and positions in each frame -- see
-    `queryDb.resolve_object` and docs/api.md.
+    `db.query.resolve_object` and docs/api.md.
     """
     try:
         resolved = ids.resolve_ref(get_db(), ref)
@@ -1236,11 +1236,11 @@ def search():
     tags (object type; star spectral/luminosity class; planet/moon class,
     body type, supported life chemistry; asteroid belt density), a
     min/max size range per entity, plus a per-entity name search -- see
-    `queryDb.search`'s own docstring for the full request/response shape.
+    `db.query.search`'s own docstring for the full request/response shape.
     `html/search.py` is a thin renderer over this endpoint's JSON.
 
     Query parameters: `sector_q`/`system_q`/`star_q`/`planet_q`/`moon_q`
-    (name search terms); every name in `queryDb.SEARCH_TAG_FACETS`
+    (name search terms); every name in `db.query.SEARCH_TAG_FACETS`
     (repeatable, e.g. `?class=M&class=K` for two active Class tags); and
     `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/
     `moon_`) for a size range, in km -- either bound may be omitted.
@@ -1299,7 +1299,7 @@ def wiki_config():
 # ---------------------------------------------------------------------
 # Write endpoints. Every one requires an authenticated admin
 # (`authz.require_admin`) whose credentials aren't still the seeded
-# default (`fresh=True` -- see `authz.py`/`adminAuth.py`), runs against
+# default (`fresh=True` -- see `authz.py`/`admin/auth.py`), runs against
 # `WRITE_MYSQL_CONFIG` (a separate, less-privileged-than-`CREATE`
 # account -- see `config.py`) rather than the request-scoped read-only
 # `get_db()` every read route above uses, and records one
@@ -1323,7 +1323,7 @@ def _resolve_requested_write_db_config():
 def _write_conn():
     """Opens a write-capable connection against the content database
     `?db=` (or the configured default) selects -- `ensure_schema=False`,
-    same reasoning as `queryDb.open_readonly`/`store.open_write`: the
+    same reasoning as `db.query.open_readonly`/`store.open_write`: the
     write-capable account has no `CREATE` grant (see `config.py`), so the
     schema must already exist."""
     return store.open_write(_resolve_requested_write_db_config())
@@ -1335,7 +1335,7 @@ def _write_conn():
 def create_sector():
     """`POST /api/sectors` `{"name": str, "edge_ly": number > 0}` (both
     required) -- inserts a new, empty `sectors` row (no systems -- use
-    `sectorGen.py`/`galaxyGen.py` to generate a populated one) and
+    `generation/run_sector.py`/`generation/run_galaxy.py` to generate a populated one) and
     returns its id."""
     body = given(parse_body(SectorCreate, require_json_body()))
 
@@ -1590,7 +1590,7 @@ def _generate_system(system_config, galactic_center_dist_ly=None, **kwargs):
 def create_system():
     """
     `POST /api/systems` -- a generation "recipe" body (see
-    `SYSTEM_CONFIG_ALLOWED_FIELDS`), the same shape `systemGen.py
+    `SYSTEM_CONFIG_ALLOWED_FIELDS`), the same shape `generation/run_system.py
     --system-file` already takes (`SystemConfig.from_dict`), plus optional
     `sector_id` and `position`. Without `sector_id` the new system is
     standalone. With it, the system joins that sector
@@ -1886,7 +1886,7 @@ def sector_facilities(sector_id):
 def galaxy_bright_stars_in_cell():
     """`GET /api/galaxy/bright-stars?shell=&band=&wedge=[&all=1]` -- the
     pre-placed bright stars in one sector cell, brightest first
-    (`queryDb.bright_stars_in_sector`): only those not yet built into a
+    (`db.query.bright_stars_in_sector`): only those not yet built into a
     system unless `all=1`. `{"items": []}` when no scatter has run (or
     the database predates them)."""
     try:
@@ -1907,8 +1907,8 @@ def galaxy_uncharted_sector():
     place and what the scatters left in it, for opening a cell nothing was
     generated in (MAP.162): `designation`, `center_pc`, `edge_pc`,
     `sector_id` (the generated sector there, or `null`), `stars` (its
-    waiting bright stars, `queryDb.bright_stars_in_sector`) and `scattered`
-    (its unbuilt scattered phenomena, `queryDb.uncharted_sector_contents`).
+    waiting bright stars, `db.query.bright_stars_in_sector`) and `scattered`
+    (its unbuilt scattered phenomena, `db.query.uncharted_sector_contents`).
     A cell outside the grid is a 400."""
     try:
         shell, band, wedge = (int(request.args[key]) for key in ("shell", "band", "wedge"))
@@ -2268,7 +2268,7 @@ def _sector_wiki_content(sector):
     `wikijs`) and wikitext (for `mediawiki`) -- like a system's own page
     (`systemRender.render_system_text`), nothing is stored
     (see `schema.sql`'s "v22" header note), so this is rendered on the
-    fly from `sector`'s already-queried detail (`queryDb.sector_detail`'s
+    fly from `sector`'s already-queried detail (`db.query.sector_detail`'s
     shape) at upload time: the sector's name/size, and one table row per
     system placed in it, with the same star-type fallback
     `html/sector.py`'s own systems table already uses (a `'close'` pair's
@@ -2276,7 +2276,7 @@ def _sector_wiki_content(sector):
     `star_type` joined by `" / "`).
 
     Args:
-        sector (dict): `queryDb.sector_detail`'s return shape.
+        sector (dict): `db.query.sector_detail`'s return shape.
 
     Returns:
         tuple[str, str]: `(markdown_content, wikitext_content)`.

@@ -21,7 +21,7 @@ from planetgen.physics import constants as _physical_constants
 # Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
 # around extrasolar giant planets" -- a prograde moon on a circular orbit
 # stays bound out to about 0.4895 of its planet's Hill radius; beyond that
-# the star strips it (planetPhysics.generate_moons' outer limit).
+# the star strips it (physics.planets.generate_moons' outer limit).
 MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
 
 # Each gas-giant class's mass range in Earth masses (GEN.34): a giant's
@@ -81,7 +81,7 @@ MIN_ASTEROID_BELT_SEPARATION = 0.05
 # `StarSystem.validate_system`'s planet-planet spacing check, which is
 # the only place this applies (a moon's own orbital limit around its
 # parent is a single-body Hill-sphere question, not a mutual one -- see
-# `Planet.min_orbit_distance`/`planetPhysics.generate_moons`).
+# `Planet.min_orbit_distance`/`physics.planets.generate_moons`).
 MUTUAL_HILL_RADII_SEPARATION = 10
 
 # Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
@@ -130,7 +130,7 @@ GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 # satisfied afterward. Needed because validate_system's own orbital-overlap
 # correction can, in rare cases, push a deliberately-placed guaranteed body
 # (e.g. the forced Class M world) into a zone its class no longer supports --
-# planetPhysics.reconcile_zone_and_class correctly reclassifies it away
+# physics.planets.reconcile_zone_and_class correctly reclassifies it away
 # rather than reporting a physically inconsistent class, which can undo the
 # very guarantee that placement was satisfying. Retrying with a fresh
 # placement is simpler and more robust than trying to reshuffle every
@@ -164,12 +164,12 @@ HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
 WIDE_BINARY_DEFAULT_CHANCE = 0.5
 
 # S-type binary separation is sampled log-uniformly between these bounds
-# (see doubleStar.WideBinaryPair.generate) rather than with plain
+# (see binary.WideBinaryPair.generate) rather than with plain
 # random.uniform -- real wide-binary separations are observed roughly
 # log-uniform/log-normal over several decades (Duquennoy & Mayor 1991;
 # Raghavan et al. 2010), and a flat-uniform draw would spend almost all its
 # density in the single largest order of magnitude (the same reasoning
-# `planetPhysics.generate_moons` already applies to moon spacing). The lower
+# `physics.planets.generate_moons` already applies to moon spacing). The lower
 # bound sits comfortably above the close/P-type BinaryStarProxy separation
 # range (0.05-0.25 AU) so the two configurations' separations never overlap;
 # the upper bound keeps generated pairs within the separation regime that
@@ -181,7 +181,7 @@ WIDE_BINARY_SEPARATION_MIN_AU = 50.0
 WIDE_BINARY_SEPARATION_MAX_AU = 10000.0
 
 # Cap on the sampled binary orbital eccentricity for an S-type pair (see
-# doubleStar.WideBinaryPair.generate's thermal-distribution sampling).
+# binary.WideBinaryPair.generate's thermal-distribution sampling).
 # Wide binaries never tidally circularize the way the close/P-type pair
 # does, and real wide pairs are broadly consistent with a "thermal"
 # eccentricity distribution (f(e) = 2e) -- but this is capped short of the
@@ -582,19 +582,19 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_PROGENITOR_ENGULFMENT_AU = 1.5
 
-# Stellar populations by age (galaxyDensity.population_densities,
-# stellarPopulation). Each has its own age range (uniform within it); the
+# Stellar populations by age (galaxy.density.population_densities,
+# star_population). Each has its own age range (uniform within it); the
 # three disk populations share the disk's star formation evenly in time,
 # so each one's share of disk stars is its age range's length over
 # STAR_FORMATION_AGE_RANGE_GY's. Young stars sit close to the plane and
 # crowd the spiral arms; old stars are puffed up by billions of years of
 # scattering and spread evenly in azimuth. Scale heights are relative to
 # the galaxy's own thin-disk scale height, all exponential scale heights
-# (`galaxyDensity._vertical`): the old thin disk's ~300 pc in the Milky
+# (`galaxy.density._vertical`): the old thin disk's ~300 pc in the Milky
 # Way (BHG16), young ~50 pc (OB stars, Reed 2000) and intermediate
 # ~150 pc (A to F dwarfs, Bovy 2017). The bulge is old
 # (8-12 Gy), and so is the thick disk, whose stars count as "old"
-# (`galaxyDensity.population_densities`).
+# (`galaxy.density.population_densities`).
 STELLAR_POPULATION_AGE_RANGES_GY = {
     "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
 }
@@ -602,7 +602,7 @@ STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
 
 # The galaxy density model's fixed Milky Way structure
-# (`galaxyDensity`, GEN.118, GEN.119): everything that isn't a
+# (`galaxy.density`, GEN.118, GEN.119): everything that isn't a
 # `GalaxyShape` field, as ratios to those fields so it scales with the
 # galaxy. Sources: Bland-Hawthorn & Gerhard 2016 (ARA&A 54:529, "BHG16"),
 # Dwek et al. 1995 (ApJ 445:716), Wegg & Gerhard 2013 (MNRAS 435:1874).
@@ -639,10 +639,10 @@ BULGE_BAR_ANGLE_DEG = 27.0
 # stellar halo fills the space between, at about a thousandth of the local
 # disk density near the Sun (Juric et al. 2008, ApJ 673:864). So every
 # sector inside the galaxy's outline has some chance of a star, and of a
-# bright one. The floor's stars are old (`galaxyDensity.population_densities`).
+# bright one. The floor's stars are old (`galaxy.density.population_densities`).
 MIN_RELATIVE_DENSITY = 1.0e-3
 
-# Pre-placed bright stars (stellarPopulation.sample_bright_stars): the
+# Pre-placed bright stars (star_population.sample_bright_stars): the
 # mass grid, in log-spaced cells over the IMF's range, on which the chance
 # of a star being at least the threshold's brightness is tabulated.
 BRIGHT_STAR_MASS_GRID_CELLS = 4000
@@ -699,7 +699,7 @@ PLANET_CLASSES = {
         # "with a thin atmosphere" moved off the description and onto the
         # atmosphere field itself ("a thin mix of...") -- the description
         # used to collide with the render template's own "with an
-        # atmosphere of {atmosphere}" clause (planetData.py's
+        # atmosphere of {atmosphere}" clause (generation/planet.py's
         # to_paragraph_list), producing "...world with a thin atmosphere
         # with an atmosphere of...".
         # Radius ceiling raised to 7500 to absorb the same formerly-separate
@@ -962,7 +962,7 @@ PLANET_CLASSES = {
         # How far through the ecosphere zone's own [inner, outer] AU range
         # this class is generated, via a `random.sample_bounded_bell` draw
         # centered here instead of the zone's full width being equally
-        # likely (see `planetPhysics.generate_planet_properties`'s
+        # likely (see `physics.planets.generate_planet_properties`'s
         # "zone_position_mode" handling) -- Mars sits much farther from the
         # Sun than Earth, so K is pushed toward the outer (colder) edge of
         # the zone rather than sharing Class M's own ~0.5 (center) position.
@@ -1053,7 +1053,7 @@ PLANET_CLASSES = {
         # ~1 atm, see docs/analysis/habitability-atmosphere-sanity-review.md),
         # greenhouse_multiplier 1.65-1.85 (calibrates base_ratio -- the
         # composition-only greenhouse proxy -- up to Earth's real ~33K
-        # greenhouse effect; see planetPhysics.calculate_atmospheric_conditions).
+        # greenhouse effect; see physics.planets.calculate_atmospheric_conditions).
         # Verified via climate_tuning_cli.py --class M: mean surface_temperature
         # 286K (-0.6% vs 288K), mean atmospheric_pressure ~98.6kPa (-2.7% vs
         # 101,325 Pa) over a 400-sample run across the full host-star grid.
@@ -1175,7 +1175,7 @@ PLANET_CLASSES = {
         # rocky/Earth-like range (0.12, 0.35) -- real ice/snow Bond albedo is
         # roughly 0.5-0.9 (e.g. Europa ~0.68, Enceladus ~0.81). Gives P a
         # genuine cold bias from the unclamped physics instead of relying on
-        # a post-hoc temperature clamp (see planetPhysics.calculate_atmospheric_conditions).
+        # a post-hoc temperature clamp (see physics.planets.calculate_atmospheric_conditions).
         "albedo_range": (0.5, 0.7),
         # Given the same atm_molar_density_range/atm_density_range/
         # greenhouse_multiplier_range treatment the M/O/H/K/L/N/E/F/G/V pass
@@ -1339,7 +1339,7 @@ PLANET_CLASSES = {
 # that absorbed its concept rather than just dropped; R already carried a
 # weight of 0.0000, so nothing needed redistributing, and these weights are
 # just relative (this dict isn't required to sum to 1.0 -- see
-# planetPhysics._choose_weighted_planet_class), so dropping W's tiny 0.0001
+# physics.planets._choose_weighted_planet_class), so dropping W's tiny 0.0001
 # share needed no redistribution either.
 PLANET_CLASS_PROBABILITIES = {
     'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
@@ -1615,7 +1615,7 @@ list: A list of planet class codes that cannot be generated as moons.
 
 CO2_MAX_GREENHOUSE_FACTOR = 500
 """
-int: A generous safety ceiling on greenhouse_factor (planetPhysics.py's
+int: A generous safety ceiling on greenhouse_factor (physics/planets.py's
 calculate_atmospheric_conditions), not the per-class calibration knob --
 that's PLANET_CLASSES[cls]["greenhouse_multiplier_range"]. Real Venus's own
 airless-equilibrium-to-surface ratio is ~101, still well below N's (the
@@ -1729,7 +1729,7 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
     "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
 ]
 
-# --- Exotic Stellar Phenomena (phenomenonGen.py, compactRemnant.py,
+# --- Exotic Stellar Phenomena (phenomenonGen.py, generation/phenomena/compact_remnant.py,
 # nebulaData.py, supernovaRemnantData.py, roguePlanetData.py) ---
 #
 # These five phenomena are generated by a separate, rarer, on-demand
@@ -2704,7 +2704,7 @@ galaxy's center (see `QUASAR_ACTIVE_NUCLEUS_CHANCE`) and so is only ever
 generated when asked for by name.
 """
 
-# --- Sector-Level Exotic Phenomena (sectorGen.py/galaxyGen.py) ---
+# --- Sector-Level Exotic Phenomena (generation/run_sector.py, generation/run_galaxy.py) ---
 #
 # Every generated sector seeds a population of exotic phenomena, sampled
 # independently per type via a Poisson draw (spaceSector.
@@ -2875,7 +2875,7 @@ def phenomenon_rate_per_star(kind):
     return PHENOMENON_DENSITY_PC3[kind] * PHENOMENON_RATE_SCALE.get(kind, 1.0) / REFERENCE_STELLAR_DENSITY_PC3
 
 
-# --- Galaxy Random-Start Generation (galaxyGen.py) ---
+# --- Galaxy Random-Start Generation (generation/run_galaxy.py) ---
 
 GALAXY_RADIUS_PC = 15000.0
 """
@@ -2924,7 +2924,7 @@ is topped up with only the band it lacks.
 RANDOM_START_MAX_PLACEMENT_ATTEMPTS = 1000
 """
 int: Retry cap for picking a random, not-yet-occupied sector address before
-`galaxyGen.py`'s random-start mode gives up -- generous, since even a
+`generation/run_galaxy.py`'s random-start mode gives up -- generous, since even a
 fairly well-populated galaxy leaves overwhelmingly more addresses empty
 than occupied (see docs/design/galaxy-coordinate-system.md section 9's
 storage-analysis addendum: ~320 billion addressable sector slots total).

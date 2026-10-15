@@ -3155,7 +3155,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 
 -- ---------------------------------------------------------------------
 -- sector_stats (v53, GEN.44 and PERF.11): one row per sector address
--- (ring, layer, slot) that a backfill reached or a fill generated --
+-- (shell, band, wedge) that a backfill reached or a fill generated --
 -- unfilled sectors have no `sectors` row, so this is keyed by address.
 --
 -- `bright_level_sol` is how deep the sector's bright stars go (GEN.44):

@@ -243,12 +243,12 @@ def generate_neighborhood(sector_id, radius_ly, config):
 
 def regenerate_sector(sector_id, config):
     """The queued body of `POST /api/sectors/<id>/regenerate`: deletes the
-    galaxy-placed sector with everything in it, then generates its slot
+    galaxy-placed sector with everything in it, then generates its cell
     again.
 
     Returns:
         dict: `deleted` (the row counts), `sector_id` and `sector_name` of
-            the new sector (`None` when the slot is outside the outline).
+            the new sector (`None` when the cell is outside the outline).
     """
     from planetgen.db import edits as editStore, sector_paths, store
     from planetgen.generation import run_galaxy

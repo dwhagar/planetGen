@@ -12,7 +12,7 @@ isolated build environment with no runtime dependency installed, and
 
 import argparse
 
-__version__ = "8.0.1393"
+__version__ = "8.0.1405"
 
 REPO_URL = "https://github.com/dwhagar/planetGen"
 
@@ -27,7 +27,7 @@ def version_banner(prog_name):
 
     Args:
         prog_name (str): The name of the CLI script to display (e.g.
-                         "systemGen.py").
+                         "generation/run_system.py").
 
     Returns:
         str: The formatted, multi-line version banner.

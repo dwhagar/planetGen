@@ -19,8 +19,8 @@ from planetgen.physics.units import pc_to_ly
 
 MAX_GENERATE_RADIUS_PC = 200.0
 """float: The largest neighborhood radius (`--radius-pc`, the Generate
-page's radius fields). A 200 pc sphere already holds about 520,000 sector
-slots at the 4 pc sector standard; the default neighborhood (100 ly, about
+page's radius fields). A 200 pc sphere already holds about 520,000 sectors
+at the 4 pc sector standard; the default neighborhood (100 ly, about
 31 pc) holds under 2,000."""
 
 MAX_GENERATE_RADIUS_LY = pc_to_ly(MAX_GENERATE_RADIUS_PC)

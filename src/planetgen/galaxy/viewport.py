@@ -9,29 +9,29 @@ that map is a single bird's-eye overview. The interactive 3D map
 (`planetgen/web/maps/galaxymap3d.py`/`static/galaxymap3d.js`) is the opposite: a
 real camera that moves freely through the galaxy, so what it needs to
 plot changes every time it moves -- this module is the data layer behind
-that, called fresh (via `queryDb.galaxy_tiles`) each time the camera's
+that, called fresh (via `db.query.galaxy_tiles`) each time the camera's
 viewport changes.
 
 Two tiers of content, matching the sprite kinds
 `static/galaxymap3d.js` draws:
 
-- **Placed**: real, already-generated sectors -- `queryDb.
+- **Placed**: real, already-generated sectors -- `db.query.
   galaxy_sectors_in_view` handles this tier directly (it needs the
   database; nothing here does).
 - **Planned**: real, not-yet-generated sector *addresses* -- exact
   `(shell_index, band_index, wedge_index)` grid cells this galaxy's own shape model
-  predicts would qualify (see `galaxyDensity.predicted_star_count`, the
+  predicts would qualify (see `galaxy.density.predicted_star_count`, the
   same >= 1 threshold `planetgen`'s `ensure_sector_generated`/
   `_BatchDensity` already gate real generation on), enumerated exactly
-  via `galaxySpherical.enumerate_sectors_within_radius` -- `planned_slots_in_view`.
+  via `galaxy.spherical.enumerate_sectors_within_radius` -- `planned_slots_in_view`.
   Deliberately capped to a small view radius (`PLANNED_RADIUS_CAP_PC`):
   see that function's own docstring for why an unbounded radius here
   would be catastrophic.
 Predicted density itself is no longer served from here: the map's prisms
-evaluate `galaxyDensity.relative_density` in the browser
+evaluate `galaxy.density.relative_density` in the browser
 (`static/galaxyprisms.js`).
 
-Pure and side-effect-free, like `galaxySpherical.py`/`galaxyDensity.py` --
+Pure and side-effect-free, like `galaxy/spherical.py`/`galaxy/density.py` --
 no database or I/O; `planetgen.db.query` owns combining this with the database's
 own placed-sector rows.
 """
@@ -51,7 +51,7 @@ billions. Beyond this radius the map shows predicted density only (its
 prisms, computed in the browser) -- exact addresses only become worth enumerating once the
 view has actually narrowed down to something close to a "handful to a
 few dozen real sectors" neighborhood, the scale this primitive was always
-designed for (see `galaxySpherical`'s own module docstring).
+designed for (see `galaxy.spherical`'s own module docstring).
 
 Was 200 pc, which with 11.5 ly sectors meant enumerating ~770 thousand
 slots (and, before only the closest `PLANNED_MAX_RESULTS` were kept
@@ -106,7 +106,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
                            constant's own docstring); a caller with a wider
                            view gets no addresses beyond that cap.
         edge_pc (float): The sector edge length, parsecs.
-        shape (galaxyDensity.GalaxyShape or None): The galaxy's stored
+        shape (galaxy.density.GalaxyShape or None): The galaxy's stored
             shape parameters. `None` (no `planetgen plan` has been run
             against this database yet) means there's no density model to
             qualify slots against, so every enumerated address is
@@ -114,7 +114,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
             `None` on each entry) -- addressable, even if this galaxy's
             real content hasn't been planned out yet.
         expected_system_count_at_density_1 (float or None): See
-            `galaxySkeleton.expected_system_count_at_density_1` -- required
+            `galaxy.skeleton.expected_system_count_at_density_1` -- required
             (and used) only when `shape` is given.
         exclude_addresses (set): `{(shell_index, band_index, wedge_index), ...}`
             -- addresses to skip because a real sector already exists
@@ -150,7 +150,7 @@ def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_
     ones worth showing as "planned" (see `planned_slots_in_view`), yielding
     `(shell_index, band_index, wedge_index, x, y, z, distance_pc,
     star_count, density)` -- the last two `None` when `shape` is `None`.
-    With a non-empty `bounds` (`galaxySkeleton.GalaxyBounds`), a slot
+    With a non-empty `bounds` (`galaxy.skeleton.GalaxyBounds`), a slot
     outside the galaxy's stored outline is left out too: generation
     refuses it, so the map mustn't offer it (MAP.118)."""
     threshold = qualifying_threshold_star_count()
@@ -198,7 +198,7 @@ def _planned_entry(slot, distance_pc=None):
 # cache it (see `planetgen/web/lib/tilecache.py` and `static/galaxymap3d.js`).
 #
 # Each tile's work is bounded by construction: placed sectors are capped
-# per tile (`queryDb.GALAXY_TILE_MAX_PLACED`), planned slots are only
+# per tile (`db.query.GALAXY_TILE_MAX_PLACED`), planned slots are only
 # enumerated for small tiles (`PLANNED_TILE_MAX_EDGE_PC`), and density
 # clouds are a fixed point count.
 # ---------------------------------------------------------------------
@@ -278,7 +278,7 @@ def tile_keys_containing(point_pc):
     """
     The key of the one tile per level whose half-open box holds
     `point_pc` -- every tile a sector centered there appears in, so the
-    tiles to refetch when that sector changes (`queryDb.galaxy_changes`).
+    tiles to refetch when that sector changes (`db.query.galaxy_changes`).
 
     Args:
         point_pc (tuple): `(x, y, z)`, parsecs.
@@ -296,7 +296,7 @@ def tile_keys_containing(point_pc):
         for value in point_pc:
             i = math.floor((value - origin) / edge)
             # Settle a rounding tie against the same `lo <= v < hi` test
-            # `queryDb.galaxy_sectors_in_box` uses.
+            # `db.query.galaxy_sectors_in_box` uses.
             if origin + i * edge > value:
                 i -= 1
             elif origin + (i + 1) * edge <= value:

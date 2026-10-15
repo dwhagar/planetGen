@@ -82,7 +82,7 @@ def draw_class_contents(letter):
 
 def typical_class_contents(letter):
     """The same tuple as `draw_class_contents`, but each value the middle
-    of its range -- what `_db`'s v38 migration fills for existing rows."""
+    of its range -- what `store`'s v38 migration fills for existing rows."""
     data = tuning.NEBULA_CLASSES[letter]
     return (
         data["species"],
@@ -157,7 +157,7 @@ class Nebula(LazySaladName):
         galactic_orbital_period_gy (float): Orbital period, billions of
             years.
         galactic_orbital_phase_deg (float): Current angular position
-            around that orbit -- the value `_db.advance_orbital_phases`
+            around that orbit -- the value `store.advance_orbital_phases`
             advances over time, the same role `Star.galactic_orbital_phase_deg`
             plays.
         galactic_min_update_interval_years (float): Floating-point update
@@ -197,7 +197,7 @@ class Nebula(LazySaladName):
                 drawn up to the class's limit if omitted.
         """
         self.system_config = system_config
-        # A draft name: `_db.insert_nebula` reserves it through the
+        # A draft name: `store.insert_nebula` reserves it through the
         # system-name registry (v40), which may decorate it.
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)

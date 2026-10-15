@@ -4,7 +4,7 @@
 Derived names for the stars, planets and moons inside one star system.
 
 Only the system itself draws a generated name (and only it goes through
-`nameUniqueness`'s database-wide collision handling). Everything inside
+`names.uniqueness`'s database-wide collision handling). Everything inside
 the system is named from it:
 
 - A single star shares the system's name: `Voranthis`.

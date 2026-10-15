@@ -29,7 +29,7 @@ from planetgen.queue import redisclient
 from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
-"""str: Sector fills, layer scatters and backfill blocks."""
+"""str: Sector fills, shell scatters and backfill blocks."""
 
 BULK_QUEUE = "planetgen-bulk"
 """str: A run's units of work (PERF.95): the scatters, sector fills and backfill blocks of the work queue
@@ -183,7 +183,7 @@ class RQFuture:
 class Channel:
     """
     A one-way message channel from a run's workers back to the run, on a
-    Redis list: the scatter's per-layer progress (PERF.4). Items are plain
+    Redis list: the scatter's per-shell progress (PERF.4). Items are plain
     data, sent as JSON (PERF.94). It pickles as just its URL and key, so a
     task's payload can carry it to a burst worker (a multiprocessing
     manager's queue can't: the worker isn't the manager's child, so it

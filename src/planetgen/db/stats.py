@@ -37,7 +37,7 @@ the naming hierarchy -- see `planetgen/names/uniqueness.py`. Every
 name gets a registry row when it's first used, so only the rows matching
 the condition had to be decorated: a sector or system name used more than
 once (Greek/Roman), or a system named after a sector (a diminutive).
-Planets and moons are named from their system (`bodyNames.py`), so they
+Planets and moons are named from their system (`names/bodies.py`), so they
 have no registry.
 
 None of these columns is indexed, so counting them scans each registry

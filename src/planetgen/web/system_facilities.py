@@ -22,7 +22,7 @@ logarithmic slider (`orbit_step`, `facilities.distance_from_step`) from
 just above the host's surface to the edge of its sphere of influence
 (`facilities.orbit_limits`), shown only for "in orbit". A facility on a
 surface takes no distance, and one in a belt gets a random spot in it
-when saved (`_db.add_facility`).
+when saved (`store.add_facility`).
 - `save`: `POST /api/facilities`. Success redirects (303) back to the GET
   page with `?facility=added`; a refusal re-renders the page with the
   API's reason next to the form.

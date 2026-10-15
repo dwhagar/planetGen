@@ -2,7 +2,7 @@
 
 """
 The generation work queue (PERF.8): runs independent units of work (a
-sector to fill, a layer of bright stars to scatter) on a pool of worker
+sector to fill, a run of shells of bright stars to scatter) on a pool of worker
 processes, at most about 80% of the machine's cores and at a lower
 scheduling priority than everything else on it.
 
@@ -14,7 +14,7 @@ work is done. The run hands tasks to the pool as fast as the pool takes
 them, and each finished task comes back to it as a signal (`on_done`,
 with the time the task took) it uses for its progress bars and ETA.
 
-    with WorkQueue("Sectors (ring 12)", workers=6, control_config=cfg) as queue:
+    with WorkQueue("Sectors (shell 12)", workers=6, control_config=cfg) as queue:
         for address in addresses:
             queue.submit("sector", key, fill_sector, payload, on_done=report)
 
@@ -88,12 +88,12 @@ macOS."""
 
 CHUNKS_PER_WORKER = 8
 """int: Most items one `WorkQueue.submit_each` chunk holds is `1 / (workers * CHUNKS_PER_WORKER)` of them. Every
-task a pool runs costs about 60 database statements and a fork, which is more than a bright-star layer costs to
-draw, so thousands of tiny layers go out in few chunks (PERF.79)."""
+task a pool runs costs about 60 database statements and a fork, which is more than a bright-star shell costs to
+draw, so thousands of tiny shells go out in few chunks (PERF.79)."""
 
 CHUNK_SECONDS = 2.0
 """float: How long a `WorkQueue.submit_each` chunk is meant to run, so a progress line is never more than a few
-seconds behind (PERF.83: 16 chunks of 128 default-scale phenomenon layers each stayed silent for over 3 minutes)."""
+seconds behind (PERF.83: 16 chunks of 128 default-scale phenomenon shells each stayed silent for over 3 minutes)."""
 
 HEARTBEAT_SECONDS = 5
 STALE_SECONDS = 30
@@ -1533,13 +1533,13 @@ class WorkQueue:
 
     def submit_each(self, kind, items, fn):
         """
-        Queues many small tasks of one kind (a layer of the scatter each) as fewer, sized by how long they
+        Queues many small tasks of one kind (a run of shells of the scatter each) as fewer, sized by how long they
         take: with a pool the `items` -- `(key, payload, weight, on_done)` -- go out in chunks, one task
         each, that run `fn(payload)` for their items in order and then `on_done(result, seconds, weight)`
         for each of them. The first chunk is one item; later ones hold as many as take about
         `CHUNK_SECONDS` at the rate the finished items showed, at most `1 / (workers * CHUNKS_PER_WORKER)`
         of the items, so thousands of millisecond items pay the task cost a few dozen times while a
-        layer that takes seconds is a task of its own and shows its progress when it ends (PERF.79,
+        shell that takes seconds is a task of its own and shows its progress when it ends (PERF.79,
         PERF.83). Items are dealt out in a stride order, so a chunk mixes dense and thin ones. With one
         worker it is `submit` per item. A task's result does not depend on its chunk: nothing in `fn` may
         read the task seed.
