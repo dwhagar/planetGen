@@ -1259,7 +1259,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | done, PR #707 |
-| UX.22 | Meaningful units for every measurement | none | open |
+| UX.22 | Meaningful units for every measurement | none | done, PR #1504 |
 | UX.23 | A shared unit-ladder module | none | open |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
@@ -1318,7 +1318,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.78 | Unit preference: Automatic, Metric only or Customary | none | open |
 | UX.79 | Python and JS round half-way values differently (bug) | none | done, PR #843 |
 | UX.80 | Negative values that round to zero print "-0" (bug) | none | done, PR #843 |
-| UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | open |
+| UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | done, PR #1504 |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | open |
 | UX.83 | Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug) | none | done, PR #895 |
 | UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) | none | done, PR #930 |
