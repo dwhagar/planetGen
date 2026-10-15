@@ -1056,7 +1056,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system hand-offs with hysteresis are held until Bug 2's
   galaxystageview.js work (wheel zoom, centre, selection: MAP.198 to
   MAP.202) has merged, to avoid conflicts. Foundations Maps order: MAP.151b,
-  MAP.197, MAP.155 verification, then the MAP.152 hand-offs after Bug 2.
+  MAP.197 (done, PR #1455), MAP.155 verification, then the MAP.152 hand-offs after Bug 2.
   Progress (2026-10-15): the server part merged (PR #1439): Galaxy Map
   tiles are picked by distance from the camera, the per-level brightness
   floors are gone and stars fade by distance. The client part (scale
@@ -1457,16 +1457,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache and the browser's IndexedDB. Leaving out stars a parent tile
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
-
-- [ ] **MAP.197 Remove the obsolete drill container code left by the map flip**
-  Foundations lane 2, 2026-10-15, after the map flip (PR #1382, MAP.151d
-  part 2). The Galaxy Map is now a plain disk of level-243 blocks with a
-  nine-block window per click, so the old drill container pieces are
-  unused: galaxyprisms.js wedgeLines and drillBlockSectors have no
-  callers, while drill.py's container rules and
-  tests/test_galaxydrill.py still use the non-null drillChildren
-  branches and drillSlabs. Remove them together with their tests.
-  Prerequisites: none. Related: MAP.151.
 
 - [ ] **MAP.198 The Galaxy Map outlines and shades the whole block a click would zoom into (bug)**
   Boss, 2026-10-15 01:46Z: it is really unclear what region is being
@@ -5138,6 +5128,16 @@ clears each one.
   PR). Done when a killed run leaves nothing that changes a resumed
   run's result and the guide matches.
   Prerequisite: TEST.151. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.154 A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug)**
+  Reported by Foundations Maps (2026-10-15, MAP.197 gate):
+  src/tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
+  fails 2 of 6 reruns on an idle machine. The test assumes the first
+  facility's host body is the first planet of a random system, but the
+  system is not seeded so the assumption breaks. Make the test pick its
+  host from the data (or seed the system) so it passes every time.
+  Owner: Test Suite Rebuild. Done when 20 reruns in a row pass.
+  Prerequisites: none. Related: TEST.147, TEST.149, TEST.126.
 
 ## USR: User accounts
 
