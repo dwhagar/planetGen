@@ -3386,28 +3386,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.217 Refresh the stored habitability numbers on existing planets and moons**
-  The habitability paragraph is recomputed on every request, but the
-  stored numbers (flux_variation, phi4, the six phi4_* and tier_*
-  columns, equipment_tier, hab_note) are stale or NULL on old rows (the
-  six-domain columns are NULL on rows made before schema v87). The
-  planet-row chip, tooltip, search page and habitability facet counts
-  therefore disagree with the paragraph, and no command refreshes them.
-  Add `plan --fill-habitability` (run_plan.py), in the style of
-  `--fill-map-luminosity` and `--fill-block-stats`: per system, load the
-  graph, run insolation.refresh_system and the same scoring step the
-  life pass uses, and UPDATE only the habitability columns of planets
-  and moons. Resumable per system. No migration, no shim. Found by
-  Foundations Generation (no new Boss message). Expect visible changes:
-  stored moon scores differ from a re-score of their own stored
-  conditions, so the fill will change some chips, making them agree with
-  the description. Also fixes a generation bug found in testing: a
-  lifeless moon kept its first habitability score from before its
-  temperature settled, so about a third of moons had a chip that
-  disagreed with the description (no separate item).
-  Prerequisite: GEN.216 (done, PR #1482). Related: GEN.214 (done, PR #1472),
-  GEN.215 (done, PR #1478), GEN.216 (done, PR #1482).
-
 - [ ] **GEN.218 One habitability describer, in the short wording**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code

@@ -760,7 +760,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) | none | done, PR #1472 |
 | GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) | none | done, PR #1478 |
 | GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) | none | done, PR #1482 |
-| GEN.217 | Refresh the stored habitability numbers on existing planets and moons | none | open |
+| GEN.217 | Refresh the stored habitability numbers on existing planets and moons | none | done, PR #1492 |
 | GEN.218 | One habitability describer, in the short wording | none | open |
 | GEN.219 | The habitability levels page and tooltips are generated from the limits | none | open |
 | GEN.220 | "Habitable" means the index | none | open |
