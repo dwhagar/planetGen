@@ -75,7 +75,7 @@ class _BatchDensity:
     uses for a single lazily-generated sector, applied across a whole run
     instead of every sector sharing one flat CLI value.
 
-    The outline check (`galaxy.skeleton.GalaxyBounds.contains`) always
+    The outline check (`galaxy.skeleton.GalaxyBounds.qualifies`) always
     applies: nothing is ever generated outside the galaxy, even with an
     explicit `--density`/`--num-systems`. Past it, an explicit flag is a
     deliberate, uniform override for the whole run (`resolve` returns
@@ -138,7 +138,7 @@ class _BatchDensity:
                 skipped (GEN.76): the predicted density only sets how many
                 systems the draw expects, and the draw always runs.
         """
-        if not outside_ok and not self.bounds.contains(address[0], address[1]):
+        if not outside_ok and not self.bounds.qualifies(address[0], address[1]):
             return None
         if args.density is not None or args.num_systems is not None:
             return args
@@ -206,7 +206,7 @@ def backfill_step_targets(addresses, bounds, step_masses=None):
         following = set()
         for address in frontier:
             for neighbor in neighbor_addresses(*address):
-                if neighbor in seen or not bounds.contains(neighbor[0], neighbor[1]):
+                if neighbor in seen or not bounds.qualifies(neighbor[0], neighbor[1]):
                     continue
                 seen.add(neighbor)
                 following.add(neighbor)
@@ -659,7 +659,7 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
         conn.close()
 
     position_pc = sector_position_pc(shell_index, band_index, wedge_index, skeleton.edge_pc)
-    qualifies = bounds.contains(shell_index, band_index)
+    qualifies = bounds.qualifies(shell_index, band_index)
     if not qualifies and not outside_ok:
         # Past the shell's stored highest band -- galaxy.skeleton's bound is
         # exact, so this is a certain "no".
@@ -783,7 +783,7 @@ def _require_inside(args, bounds, shell_index, band_index, what):
     Returns:
         bool: Whether it lies inside.
     """
-    if bounds.contains(shell_index, band_index):
+    if bounds.qualifies(shell_index, band_index):
         return True
     run_common._refuse_or_warn(args, f"{what} -- {bounds.describe_miss(shell_index, band_index)}.")
     return False
@@ -821,7 +821,7 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
     candidates = []
     outside = 0
     for candidate in enumerate_sectors_within_radius(center, radius_pc, edge_pc):
-        if bounds.contains(candidate[0], candidate[1]):
+        if bounds.qualifies(candidate[0], candidate[1]):
             candidates.append(candidate)
         else:
             outside += 1
@@ -1022,7 +1022,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     center = (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
     batch_density = _BatchDensity(config)
     center_shell, center_band, _wedge = sector_address_at(center, edge_pc)
-    if not batch_density.bounds.contains(center_shell, center_band):
+    if not batch_density.bounds.qualifies(center_shell, center_band):
         raise ValueError(
             f"sector_id={center_sector_id} lies outside the galaxy: "
             f"{batch_density.bounds.describe_miss(center_shell, center_band)}."
@@ -1083,7 +1083,7 @@ def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
     x, y, z = position_pc
     for dx, dy, dz in ((0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
         shell, band, _wedge = sector_address_at((x + dx * radius_pc, y + dy * radius_pc, z + dz * radius_pc), edge_pc)
-        if not bounds.contains(shell, band):
+        if not bounds.qualifies(shell, band):
             return False
     return True
 

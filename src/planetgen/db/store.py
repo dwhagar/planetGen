@@ -85,7 +85,7 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.density import GalaxyShape
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
-    CELL_REACH_EDGES, SectorCell, provisional_sector_designation, sector_address_at,
+    CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at,
 )
 from planetgen.names.bodies import rename_prefix, wide_pair_first_word
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
@@ -1510,6 +1510,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (93, _column_marker("galaxy_shape", "reach_shell_index")),
     (92, _column_marker("galaxy_block_stats", "shell_index")),
     (91, _table_marker("galaxy_shell")),
     (90, _column_marker("galaxy_block_stats", "ladder_step")),
@@ -3898,6 +3899,30 @@ def _designate_comets(star_system):
             comet.name = comet_designation(host_name, index, comet)
 
 
+def _galaxy_point_pc(conn, sector_id, offset_mpc):
+    """A system's point in the galaxy frame, parsecs (`star_systems.galaxy_*_pc`), from its sector-local offset in
+    milliparsecs; `(None, None, None)` while it has no position or its sector has no center."""
+    center = _sector_center_pc(conn, sector_id)
+    if center is None or offset_mpc is None:
+        return (None, None, None)
+    return local_to_galaxy_pc(center, tuple(c / 1000.0 for c in offset_mpc))
+
+
+def _sector_center_pc(conn, sector_id):
+    """A sector's center `(x, y, z)`, parsecs, or `None` when it has none (a standalone sector, or no sector at all).
+    Inside a `batched()` scope each is read once (a read flushes the held-back INSERTs)."""
+    if sector_id is None:
+        return None
+    if conn._batch is not None and sector_id in conn.sector_centers_pc:
+        return conn.sector_centers_pc[sector_id]
+    row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id = ?",
+                       (sector_id,)).fetchone()
+    center = None if row is None or row["center_x_pc"] is None else tuple(row[f"center_{axis}_pc"] for axis in "xyz")
+    if conn._batch is not None:
+        conn.sector_centers_pc[sector_id] = center
+    return center
+
+
 def _system_velocity_kms(conn, star_system, sector_id, position_pc):
     """
     The galactic velocity, km/s, `star_system` has at `position_pc`
@@ -3907,15 +3932,7 @@ def _system_velocity_kms(conn, star_system, sector_id, position_pc):
     """
     if sector_id is None or position_pc is None:
         return (0.0, 0.0, 0.0)
-    if conn._batch is not None and sector_id in conn.sector_centers_pc:
-        center = conn.sector_centers_pc[sector_id]
-    else:
-        row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id = ?",
-                           (sector_id,)).fetchone()
-        center = None if row is None or row["center_x_pc"] is None else tuple(
-            row[f"center_{axis}_pc"] for axis in "xyz")
-        if conn._batch is not None:
-            conn.sector_centers_pc[sector_id] = center
+    center = _sector_center_pc(conn, sector_id)
     if center is None:
         return (0.0, 0.0, 0.0)
     place = tuple(c + offset for c, offset in zip(center, position_pc))
@@ -4022,6 +4039,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         location = None
     velocity_kms = _system_velocity_kms(conn, star_system, sector_id,
                                         None if position is None else tuple(ly_to_pc(c) for c in position))
+    galaxy_pc = _galaxy_point_pc(conn, sector_id, None if position is None else
+                                 (position_x_mpc, position_y_mpc, position_z_mpc))
 
     # Name-uniqueness (v24, names/uniqueness.py) -- the stars, planets and
     # moons are renamed from the final name in place, so the caller's
@@ -4035,7 +4054,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         """
         INSERT INTO star_systems (
             sector_id, system_config_id, name,
-            position_x_mpc, position_y_mpc, position_z_mpc, quadrant, location,
+            position_x_mpc, position_y_mpc, position_z_mpc, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc, quadrant, location,
             is_binary, binary_configuration,
             binary_separation_km, binary_eccentricity, binary_periapsis_km, binary_apoapsis_km,
             binary_type, binary_temperature_k, binary_radius_km,
@@ -4054,11 +4073,11 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
             system_flavor_text, runaway_class, runaway_speed_kms,
             velocity_x_kms, velocity_y_kms, velocity_z_kms, schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.name,
-            position_x_mpc, position_y_mpc, position_z_mpc, quadrant, location,
+            position_x_mpc, position_y_mpc, position_z_mpc, *galaxy_pc, quadrant, location,
             int(is_binary), binary_configuration,
             separation_km, eccentricity, periapsis_km, apoapsis_km,
             *proxy_only_fields,
@@ -5210,8 +5229,8 @@ class _SectorIndex:
 
 def advance_galactic_positions(conn, clock, on_progress=None):
     """
-    Moves every due star system, standalone phenomenon and stand-alone
-    facility along its galactic orbit, from its epoch to `clock.end_unix`:
+    Moves every due star system, standalone phenomenon, stand-alone
+    facility and unbuilt scatter point (`advance_scatter_points`) along its galactic orbit, from its epoch to `clock.end_unix`:
     a system by its close pair's or primary star's period (its stars'
     `galactic_orbital_phase_deg` and a close pair's
     `binary_galactic_orbital_phase_deg` advance with it, each by its own
@@ -5251,8 +5270,9 @@ def advance_galactic_positions(conn, clock, on_progress=None):
     touched = set()
     counts = {}
     seconds_per_year = physical_constants.SECONDS_PER_YEAR
-    # The star systems, each phenomenon table (the quasars, which don't orbit, report nothing), the facilities.
-    steps = len(PLACED_PHENOMENON_TABLES) + 1
+    # The star systems, each phenomenon table (the quasars, which don't orbit, report nothing), the facilities, the
+    # unbuilt scatter points.
+    steps = len(PLACED_PHENOMENON_TABLES) + 1 + len(SCATTER_MOTION_TABLES)
 
     systems = conn.execute(
         """
@@ -5302,9 +5322,9 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         if sector_id != row["sector_id"]:
             refiled += 1
             touched.update((sector_id, row["sector_id"]))
-            refile_updates.append((sector_id, *local_mpc, quadrant, *velocity, row["id"]))
+            refile_updates.append((sector_id, *local_mpc, *point, quadrant, *velocity, row["id"]))
         else:
-            updates.append((*local_mpc, quadrant, *velocity, row["id"]))
+            updates.append((*local_mpc, *point, quadrant, *velocity, row["id"]))
     if scheduled:
         conn.executemany("UPDATE star_systems SET epoch_unix = ?, next_update_due = ?, modified_at = modified_at"
                          " WHERE id = ?", scheduled)
@@ -5323,13 +5343,13 @@ def advance_galactic_positions(conn, clock, on_progress=None):
             " WHERE star_system_id = ? AND galactic_orbital_period_gy > 0", phases)
     if updates:
         conn.executemany(
-            "UPDATE star_systems SET position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?, quadrant = ?,"
-            " velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?, modified_at = modified_at WHERE id = ?",
+            "UPDATE star_systems SET position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?, galaxy_x_pc = ?,"
+            " galaxy_y_pc = ?, galaxy_z_pc = ?, quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?, modified_at = modified_at WHERE id = ?",
             updates)
     if refile_updates:
         conn.executemany(
             "UPDATE star_systems SET sector_id = ?, position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?,"
-            " quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+            " galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ?, quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
             refile_updates)
         _refile_nearest_rows(conn, "star_systems", [(update[0], update[-1]) for update in refile_updates])
     counts["star_systems"] = len(clocks)
@@ -5428,12 +5448,114 @@ def advance_galactic_positions(conn, clock, on_progress=None):
                          " galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                          " epoch_unix = ?, next_update_due = ? WHERE id = ?", refile_updates)
     counts["space_facilities"] = len(updates) + len(refile_updates)
-    _report(on_progress, "facilities", steps, steps)
+    _report(on_progress, "facilities", steps - len(SCATTER_MOTION_TABLES), steps)
+
+    points = advance_scatter_points(conn, clock, on_progress, steps=(steps - len(SCATTER_MOTION_TABLES), steps))
+    counts.update(points["counts"])
+    moved += points["moved"]
+    refiled += points["refiled"]
 
     touched.discard(None)
     for sector_id in touched:
         touch_sector(conn, sector_id)
     return {"moved": moved, "refiled": refiled, "sectors": touched, "counts": counts}
+
+
+SCATTER_MOTION_TABLES = ("bright_stars", "phenomenon_scatter")
+"""tuple: The tables of objects not yet built (GEN.223): the star and phenomenon scatters. Each row is a point in
+space of its own, moved with everything else; once the sector builds it, the built object carries on."""
+
+_SCATTER_ROWS = {
+    # table -> the rows that are still only a point: not built, and not the nucleus (which sits at the center)
+    "bright_stars": "star_system_id IS NULL",
+    "phenomenon_scatter": "built_at IS NULL AND kind <> 'quasar'",
+}
+_SCATTER_COLUMNS = {
+    "bright_stars": "id, NULL AS kind",
+    "phenomenon_scatter": "id, kind",
+}
+
+
+def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1)):
+    """
+    Moves every due scatter point (`SCATTER_MOTION_TABLES`) along its galactic
+    orbit from its epoch to `clock.end_unix`, the way `advance_galactic_positions`
+    moves a built star or phenomenon (GEN.223): a point on the rotation curve
+    turns about the galactic axis by the angle its period sweeps, a
+    hypervelocity star flies a straight line. A point's own columns hold all of
+    it, one per component: position (milliparsecs, galaxy frame), velocity
+    (km/s), `epoch_unix`, `next_update_due`, and the mass it was drawn with. A
+    row with no velocity yet is on the rotation curve (the update gives it the
+    circular velocity at its radius), and one with no due time gets one first.
+    A point that crosses into another cell is refiled there (`shell_index`,
+    `band_index`, `wedge_index`), so the sector that is generated there later
+    builds what is in it now.
+
+    Args:
+        conn (Connection): An open, read-write connection.
+        clock (OrbitClock): The span to move over (`orbit_clock`).
+        on_progress (callable, optional): `on_progress(label, done, total)`
+            after each table.
+        steps (tuple): `(done, total)` of the steps `on_progress` already
+            counts, so the caller's bar continues.
+
+    Returns:
+        dict: `moved` and `refiled` counts, and `counts`, `{table: rows_moved}`.
+    """
+    shape = get_galaxy_shape(conn)
+    edge_pc = shape.edge_pc if shape is not None else 0.0
+    moved = refiled = 0
+    counts = {}
+    seconds_per_year = physical_constants.SECONDS_PER_YEAR
+    done, total = steps
+    for table in SCATTER_MOTION_TABLES:
+        scheduled, updates = [], []
+        rows = conn.execute(
+            f"SELECT {_SCATTER_COLUMNS[table]}, shell_index, band_index, wedge_index, position_x_mpc,"
+            f" position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix,"
+            f" next_update_due FROM {table} WHERE {_SCATTER_ROWS[table]}"
+            f" AND (next_update_due IS NULL OR next_update_due <= ?)", (clock.end_unix,)).fetchall()
+        for row in rows:
+            point = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+            speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(point[0], point[1])))
+            stored = None not in (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+            velocity = ((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) if stored
+                        else tuple(c / 1000.0 for c in galactic_velocity_ms(point, speed_kms)))
+            ballistic = row["kind"] == "hypervelocity-star" and stored
+            speed = math.sqrt(sum(c * c for c in velocity)) if ballistic else speed_kms
+            epoch, interval, due = _due_interval_s(row, clock, speed, "galactic")
+            if due > clock.end_unix:
+                scheduled.append((epoch, due, row["id"]))
+                continue
+            next_due = clock.end_unix + interval
+            elapsed_years = (clock.end_unix - epoch) / seconds_per_year
+            if ballistic:
+                new_point = straight_line_position_pc(point, velocity, clock.end_unix - epoch)
+                new_velocity = velocity
+            else:
+                angle = _galactic_turn(elapsed_years, period_gy)
+                new_point = _rotate_about_axis(point, angle)
+                new_velocity = _rotate_about_axis(velocity, angle)
+            address = (row["shell_index"], row["band_index"], row["wedge_index"])
+            if edge_pc > 0:
+                found = sector_address_at(new_point, edge_pc)
+                if found[0] <= MAX_ADDRESSABLE_SHELL:
+                    address = found
+            moved += 1
+            refiled += address != (row["shell_index"], row["band_index"], row["wedge_index"])
+            updates.append((*address, *(c * 1000.0 for c in new_point), *new_velocity, clock.end_unix, next_due,
+                            row["id"]))
+        if scheduled:
+            conn.executemany(f"UPDATE {table} SET epoch_unix = ?, next_update_due = ? WHERE id = ?", scheduled)
+        if updates:
+            conn.executemany(
+                f"UPDATE {table} SET shell_index = ?, band_index = ?, wedge_index = ?, position_x_mpc = ?,"
+                f" position_y_mpc = ?, position_z_mpc = ?, velocity_x_kms = ?, velocity_y_kms = ?,"
+                f" velocity_z_kms = ?, epoch_unix = ?, next_update_due = ? WHERE id = ?", updates)
+        counts[table] = len(updates)
+        done += 1
+        _report(on_progress, table, done, total)
+    return {"moved": moved, "refiled": refiled, "counts": counts}
 
 
 def _refile_nearest_rows(conn, table, moves):
@@ -6930,18 +7052,21 @@ def get_sector_id_at(conn, shell_index, band_index, wedge_index):
 
 GalaxySkeletonInfo = namedtuple(
     "GalaxySkeletonInfo",
-    ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1", "galaxy_seed"],
-    defaults=(None,),
+    ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1", "galaxy_seed",
+     "reach_shell_index"],
+    defaults=(None, 65535),
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
 note). `shape` is a `galaxy.density.GalaxyShape`; the other fields are
 `galaxy_shape`'s own remaining columns, `galaxy_seed` (v51, GEN.39) the
-16-byte seed or `None` for a galaxy planned before it."""
+16-byte seed or `None` for a galaxy planned before it, `reach_shell_index`
+(v93, GEN.233) the outermost shell the grid has addresses for."""
 
 
 def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
-                       expected_system_count_at_density_1, config=None, galaxy_seed=None):
+                       expected_system_count_at_density_1, config=None, galaxy_seed=None,
+                       reach_shell_index=65535):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
     one galaxy, so this always overwrites whatever was there before rather
@@ -6954,6 +7079,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                          at, parsecs.
         outer_shell_index (int): The last shell with any qualifying
             content (`planetgen plan`'s own discovered galaxy edge).
+        reach_shell_index (int): The outermost shell the grid has
+            addresses for (GEN.233); the plan has checked the object ID
+            can name it (`spherical.check_reach`).
         expected_system_count_at_density_1 (float): See
             `galaxy.skeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -6980,8 +7108,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     bulge_scale_radius_pc, bulge_amplitude, arm_count,
                     pitch_angle_rad, arm_amplitude, arm_level, core_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_shell_index, galaxy_seed
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -6998,6 +7126,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     edge_pc = VALUES(edge_pc),
                     expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
                     outer_shell_index = VALUES(outer_shell_index),
+                    reach_shell_index = VALUES(reach_shell_index),
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
                     galaxy_seed = ?
@@ -7008,7 +7137,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     shape.pitch_angle_rad, shape.arm_amplitude, shape.arm_level, shape.core_amplitude,
                     shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), bytes(galaxy_seed),
+                    expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
+                    bytes(galaxy_seed),
                 ),
             )
             if stored_seed != bytes(galaxy_seed):
@@ -7145,6 +7275,7 @@ def get_galaxy_shape(conn):
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
         galaxy_seed=None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"]),
+        reach_shell_index=row.get("reach_shell_index", 65535),
     )
 
 
@@ -7200,7 +7331,7 @@ def get_galaxy_bounds(conn):
     skeleton = get_galaxy_shape(conn)
     if skeleton is None:
         return None
-    return GalaxyBounds(get_galaxy_shells(conn), skeleton.edge_pc)
+    return GalaxyBounds(get_galaxy_shells(conn), skeleton.edge_pc, skeleton.reach_shell_index)
 
 
 def get_galaxy_shells(conn):
@@ -7291,7 +7422,7 @@ class _UidIssuer:
 
     def _top_level(self):
         serial = self._next_serial
-        if serial >= (1 << objectUid.DEFAULT_LAYOUT.serial_count_bits):
+        if serial >= (1 << objectUid.LAYOUT.serial_count_bits):
             self.complete = False
             return None
         self._next_serial = serial + 1
@@ -7316,7 +7447,7 @@ class _UidIssuer:
         system_id = row.get("star_system_id")
         parent = self._system_uid.get(system_id)
         number = self._body_count.get(system_id, 0) + 1
-        if parent is None or number > objectUid.max_body(objectUid.DEFAULT_LAYOUT):
+        if parent is None or number > objectUid.max_body(objectUid.LAYOUT):
             self.complete = False
             return None
         self._body_count[system_id] = number
@@ -7355,7 +7486,7 @@ def _runtime_uids(conn, address, count):
     address = NO_BIRTH_SECTOR if address is None else tuple(address)
     scope = objectUid.sector_bytes(*address)
     first = _reserve_counter(conn._config, RUNTIME_COUNTER, scope, count, 0)
-    limit = 1 << objectUid.DEFAULT_LAYOUT.serial_count_bits
+    limit = 1 << objectUid.LAYOUT.serial_count_bits
     if first + count > limit:
         raise ValueError(f"sector {address} has used all of its run-time object IDs")
     return [objectUid.to_bytes(objectUid.pack(*address, objectUid.SERIAL_RUNTIME, first + n)) for n in range(count)]
@@ -7371,7 +7502,7 @@ def _next_body_numbers(conn, system_uid, system_id, count):
             if row["uid"] is not None:
                 highest = max(highest, objectUid.body_of(objectUid.from_bytes(row["uid"])))
     first = _reserve_counter(conn._config, BODY_COUNTER, bytes(system_uid), count, highest + 1)
-    if first + count - 1 > objectUid.max_body(objectUid.DEFAULT_LAYOUT):
+    if first + count - 1 > objectUid.max_body(objectUid.LAYOUT):
         raise ValueError(f"system {objectUid.format_id(objectUid.from_bytes(system_uid))} has used all of its body numbers")
     return first
 

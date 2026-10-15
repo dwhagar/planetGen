@@ -5,7 +5,7 @@ Object IDs as the API's public reference (API.23).
 
 Row ids (`star_systems.id` and the rest) stay the foreign and join keys inside the database and the
 code that queries it; what the API, the pages, the URLs and `objectref` carry is the object's ID:
-the 80-bit `uid` column printed as `FE81000A2B-0000005-000` (`galaxy/object_uid.py`), or for a sector
+the 96-bit `uid` column printed as `FE8100000A2B-0000005-000` (`galaxy/object_uid.py`), or for a sector
 its designation printed as hex (`galaxy/uid.py`). This module is the one place that turns one into
 the other:
 
@@ -48,7 +48,7 @@ OBJECT_TABLES = {
     "interstellar_comet": "interstellar_comets",
     "quasar": "quasars",
 }
-"""dict: Each kind with an 80-bit `uid` column and the table that holds it. A phenomenon's kind is its type."""
+"""dict: Each kind with an 96-bit `uid` column and the table that holds it. A phenomenon's kind is its type."""
 
 PHENOMENON_KINDS = ("nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
                     "rogue_planet", "interstellar_comet", "quasar")

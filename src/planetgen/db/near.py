@@ -173,7 +173,7 @@ def _sector_counts(conn, center, distance, margin):
     bounds = query.get_galaxy_bounds(conn)
     reached = {(shell, band, wedge)
                for shell, band, wedge, *_rest in enumerate_sectors_within_radius(center, distance, float(shape.edge_pc))
-               if bounds.contains(shell, band)}
+               if bounds.qualifies(shell, band)}
     reach = distance + margin
     rows = conn.execute(
         """

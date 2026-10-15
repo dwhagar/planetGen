@@ -14,7 +14,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
-from planetgen.galaxy import object_uid, spherical
+from planetgen.galaxy import object_uid, spherical, uid as galaxy_uid
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from tests.db_schema_support import load_old_schema
@@ -166,7 +166,7 @@ def test_the_sector_rows_are_shell_cells_and_the_old_ones_are_gone(mysql_config,
             address = (row["shell_index"], row["band_index"], row["wedge_index"])
             assert (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]) == pytest.approx(
                 spherical.sector_position_pc(*address, EDGE))
-            assert row["uid"] == int(spherical.provisional_sector_designation(*address), 16)
+            assert row["uid"] == galaxy_uid.sector_uid(*address)  # 0093 moved it to the 56-bit designation
         assert len({r["name"] for r in rows}) == len(rows)
         assert {r["name"] for r in rows} >= {"Alpha Test", "Beta Test"} or any(r["name"].startswith("Alpha Test") for r in rows)
         assert not {r["id"] for r in rows} & set(old_galaxy["ids"].values())

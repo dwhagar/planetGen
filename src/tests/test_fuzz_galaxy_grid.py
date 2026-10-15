@@ -620,7 +620,7 @@ def test_random_address_is_inside_and_respects_max_shell(pair, max_shell):
             assert max_shell is not None and max_shell < 0
             return
         shell, band, wedge = address
-        assert bounds.contains(shell, band)
+        assert bounds.qualifies(shell, band)
         assert 0 <= wedge < spherical.wedge_count(shell, band)
         if max_shell is not None:
             assert shell <= max_shell
@@ -642,7 +642,7 @@ def test_random_address_is_uniform_over_every_cell():
 @given(bounds_and_rng(), st.integers(-10, 70), st.integers(-70, 70))
 def test_bounds_contains_and_describe_miss_agree(pair, shell, band):
     bounds, _seed = pair
-    if bounds.contains(shell, band):
+    if bounds.qualifies(shell, band):
         assert 0 <= shell <= bounds.outer_shell_index and abs(band) <= bounds.high_band[shell]
     else:
         message = bounds.describe_miss(shell, band)
@@ -655,7 +655,7 @@ def test_empty_bounds_are_falsy_and_hold_nothing():
     assert bounds.cell_count() == 0
     assert bounds.random_address(random.Random(1)) is None
     assert bounds.outer_shell_index == -1
-    assert not bounds.contains(0, 0)
+    assert not bounds.qualifies(0, 0)
 
 
 # --- tiles ---------------------------------------------------------------------

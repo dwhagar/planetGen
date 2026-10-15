@@ -108,7 +108,7 @@ def test_every_sector_that_clears_the_threshold_is_inside_the_outline():
         center = spherical.sector_position_pc(shell, band, wedge, EDGE_PC)
         if relative_density(center, SMALL) >= THRESHOLD:
             inside += 1
-            assert bounds.contains(shell, band), (shell, band, wedge)
+            assert bounds.qualifies(shell, band), (shell, band, wedge)
     assert inside > 100
 
 
@@ -143,7 +143,7 @@ def test_galaxy_bounds_contains_describes_misses_and_counts():
     extents = [(0, 0), (1, 1), (2, 3), (3, 1)]
     bounds = GalaxyBounds(extents, EDGE_PC)
     assert bounds and bounds.outer_shell_index == 3
-    assert bounds.contains(2, -3) and bounds.contains(2, 0) and not bounds.contains(3, 2) and not bounds.contains(4, 0)
+    assert bounds.qualifies(2, -3) and bounds.qualifies(2, 0) and not bounds.qualifies(3, 2) and not bounds.qualifies(4, 0)
     assert "shell 4" in bounds.describe_miss(4, 0)
     assert "band 2" in bounds.describe_miss(3, 2) and "-1 to 1" in bounds.describe_miss(3, 2)
     assert bounds.cell_count() == 1 + spherical.cells_in_band_range(1, 1) + spherical.cells_in_band_range(2, 3) + spherical.cells_in_band_range(3, 1)
@@ -169,7 +169,7 @@ def test_random_addresses_are_inside_the_outline_and_uniform_by_cell():
     draws = 6000
     for _ in range(draws):
         shell, band, wedge = bounds.random_address(rng)
-        assert bounds.contains(shell, band)
+        assert bounds.qualifies(shell, band)
         assert 0 <= wedge < spherical.wedge_count(shell, band)
         first_shells += shell <= 3
     expected = sum(spherical.cells_in_band_range(shell, high) for shell, high in extents if shell <= 3) / bounds.cell_count()
@@ -184,19 +184,47 @@ def test_random_address_can_be_limited_to_inner_shells():
     assert bounds.random_address(rng, max_shell=0) == (0, 0, 0)
 
 
-def test_the_default_galaxy_fits_the_default_object_id(milky_way):
-    from planetgen.galaxy import object_uid
-    from planetgen.galaxy.skeleton import outline_object_id_layout
+def test_the_default_galaxy_fits_the_object_id_and_its_reach(milky_way):
     extents, _outer, _confirmed = milky_way
-    assert outline_object_id_layout(extents) == object_uid.DEFAULT_LAYOUT
+    bounds = GalaxyBounds(extents, EDGE_PC)
     assert max(high for _shell, high in extents) == 1602
-    assert spherical.wedge_count(3764, 0) < 65536
+    assert bounds.reach_shell_index == 65535
+    assert spherical.wedge_count(3764, 0) < 1 << 19
 
 
-def test_a_bigger_outline_gets_a_longer_object_id_and_an_impossible_one_is_refused():
-    from planetgen.galaxy.skeleton import outline_object_id_layout
-    assert outline_object_id_layout([]).total_bits == 80
-    assert outline_object_id_layout([(0, 0), (4096, 1)]).total_bits == 96
-    assert outline_object_id_layout([(3000, 3000)]).total_bits == 96
+def test_a_reach_the_object_id_cannot_name_or_that_stops_inside_the_outline_is_refused():
+    extents, _outer, _confirmed = build_shell_extents(SMALL, EDGE_PC, THRESHOLD)
     with pytest.raises(ValueError):
-        outline_object_id_layout([(2 ** 60, 2 ** 40)])
+        GalaxyBounds(extents, EDGE_PC, reach_shell_index=spherical.MAX_ADDRESSABLE_SHELL + 1)
+    with pytest.raises(ValueError):
+        GalaxyBounds(extents, EDGE_PC, reach_shell_index=max(row[0] for row in extents) - 1)
+
+
+def test_contains_answers_for_the_reach_and_qualifies_for_the_outline():
+    extents, outer, _confirmed = build_shell_extents(SMALL, EDGE_PC, THRESHOLD)
+    bounds = GalaxyBounds(extents, EDGE_PC, reach_shell_index=outer + 50)
+    high = bounds.high_band[outer]
+    top = spherical.band_range(outer)[1]
+    assert bounds.qualifies(outer, high) and bounds.contains(outer, high)
+    if top > high:
+        assert not bounds.qualifies(outer, top) and bounds.contains(outer, top)
+    far = outer + 50
+    assert not bounds.qualifies(far, 0) and bounds.contains(far, 0)
+    assert bounds.contains(far, spherical.band_range(far)[1]) and not bounds.contains(far, spherical.band_range(far)[1] + 1)
+    assert not bounds.contains(far + 1, 0) and not bounds.contains(-1, 0)
+    assert bounds.random_address(random.Random(1))[0] <= outer
+
+
+def test_every_cell_of_the_widest_shell_round_trips_through_its_designation_and_object_id():
+    from planetgen.galaxy import object_uid
+    shell = 65535
+    low, high = spherical.band_range(shell)
+    for band in (low, low + 1, -1, 0, 1, high - 1, high):
+        for wedge in {0, spherical.wedge_count(shell, band) - 1}:
+            text = spherical.provisional_sector_designation(shell, band, wedge)
+            assert spherical.parse_sector_designation(text) == (shell, band, wedge)
+            value = object_uid.pack(shell, band, wedge, object_uid.SERIAL_GENERATED, 1)
+            assert tuple(object_uid.unpack(value))[:3] == (shell, band, wedge)
+            assert int(text, 16) == value >> (object_uid.LAYOUT.serial_bits + object_uid.LAYOUT.body_bits)
+    with pytest.raises(ValueError):
+        spherical.provisional_sector_designation(90000, 131072, 0)

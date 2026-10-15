@@ -7,12 +7,16 @@ and which birth it was.
 
     | birth sector address | serial in that sector | body number |
     | shell, band, wedge   |        28 bits        |   12 bits   |
-    |       40 bits        |   (top 2 bits: kind)  |             |
+    |       56 bits        |   (top 2 bits: kind)  |             |
 
-By default the three sector fields are 12, 12 and 16 bits, so the whole ID
-is 80 bits: 20 hex digits, `BINARY(10)`. `fit_layout` picks wider sector
-fields for a galaxy whose bounds do not fit, and the ID then grows to 96 or
-at most 128 bits; the length is the same for every object in one galaxy.
+The three sector fields are 19, 18 and 19 bits, so the whole ID is 96 bits:
+24 hex digits, `BINARY(12)`, the same for every object in every galaxy
+(GEN.230). That holds every cell of the grid out to shell 83,037 (332 kpc
+of radius at the 4 pc edge): the outermost shell of the 262 kpc reach
+(shell 65,535) needs a band field for bands up to about plus or minus
+102,900 and 411,600 wedges in its widest band (`spherical.check_reach`). The 80-bit ID this replaced
+was sized for the disk's outline, and its band field could not name a polar
+cell beyond shell 1,303.
 
 * The band is stored biased (`band + 2 ** (band_bits - 1)`) so negative
   bands pack as plain integers.
@@ -51,18 +55,15 @@ SERIAL_FIELD = 2
 
 SERIAL_KINDS = (SERIAL_GENERATED, SERIAL_RUNTIME, SERIAL_FIELD)
 
-MAX_BITS = 128
-"""int: The longest ID a galaxy may need."""
-
 _TEXT_RE = re.compile(r"^[0-9A-F]+(-[0-9A-F]+){2}$")
 
 
 class Layout(NamedTuple):
     """The field widths of one galaxy's IDs, in bits."""
 
-    shell_bits: int = 12
-    band_bits: int = 12
-    wedge_bits: int = 16
+    shell_bits: int = 19
+    band_bits: int = 18
+    wedge_bits: int = 19
     serial_bits: int = SERIAL_BITS
     body_bits: int = BODY_BITS
 
@@ -89,8 +90,8 @@ class Layout(NamedTuple):
         return self.serial_bits - SERIAL_KIND_BITS
 
 
-DEFAULT_LAYOUT = Layout()
-"""Layout: 12/12/16 + 28 + 12 = 80 bits, the default Milky Way's."""
+LAYOUT = Layout()
+"""Layout: 19/18/19 + 28 + 12 = 96 bits, every galaxy's (the `uid` columns are `BINARY(12)`)."""
 
 
 class ObjectId(NamedTuple):
@@ -112,18 +113,17 @@ def _check(name, value, bits):
 
 def check_layout(layout):
     """Raises `ValueError` unless every field is wide enough to use, the
-    sector fields and total are whole hex digits and bytes, and the whole is
-    at most `MAX_BITS`."""
+    sector fields and total are whole hex digits and bytes."""
     if min(layout) < 1 or layout.serial_bits <= SERIAL_KIND_BITS or layout.band_bits < 2:
         raise ValueError(f"an object ID layout needs every field wide enough to use: {tuple(layout)}")
     if layout.sector_bits % 4 or layout.serial_bits % 4 or layout.body_bits % 4:
         raise ValueError(f"the sector, serial and body fields must be whole hex digits: {tuple(layout)}")
-    if layout.total_bits % 8 or layout.total_bits > MAX_BITS:
-        raise ValueError(f"an object ID is a whole number of bytes, at most {MAX_BITS} bits: {layout.total_bits}")
+    if layout.total_bits % 8:
+        raise ValueError(f"an object ID is a whole number of bytes: {layout.total_bits}")
     return layout
 
 
-def pack(shell, band, wedge, serial_kind, serial, body=0, layout=DEFAULT_LAYOUT):
+def pack(shell, band, wedge, serial_kind, serial, body=0, layout=LAYOUT):
     """
     The ID, as an integer, of body `body` of the object whose serial in
     birth sector (`shell`, `band`, `wedge`) is `serial` of kind `serial_kind`.
@@ -145,30 +145,30 @@ def pack(shell, band, wedge, serial_kind, serial, body=0, layout=DEFAULT_LAYOUT)
     return (((sector << layout.serial_bits) | number) << layout.body_bits) | body
 
 
-def sector_bytes(shell, band, wedge, layout=DEFAULT_LAYOUT):
+def sector_bytes(shell, band, wedge, layout=LAYOUT):
     """The birth sector's address on its own, as the big-endian bytes the
     sector part of an ID holds (the key of a sector's run-time counter)."""
     return (pack(shell, band, wedge, SERIAL_GENERATED, 0, 0, layout) >> (layout.serial_bits + layout.body_bits)
             ).to_bytes(layout.sector_bits // 8, "big")
 
 
-def max_body(layout=DEFAULT_LAYOUT):
+def max_body(layout=LAYOUT):
     """The highest body number a system can hold."""
     return (1 << layout.body_bits) - 1
 
 
-def body_of(value, layout=DEFAULT_LAYOUT):
+def body_of(value, layout=LAYOUT):
     """The body number of an ID (0 for the top-level object itself)."""
     return value & max_body(layout)
 
 
-def with_body(value, body, layout=DEFAULT_LAYOUT):
+def with_body(value, body, layout=LAYOUT):
     """The ID of body `body` of the system whose ID is `value` (any body of it)."""
     _check("body", body, layout.body_bits)
     return (value & ~max_body(layout)) | body
 
 
-def unpack(value, layout=DEFAULT_LAYOUT):
+def unpack(value, layout=LAYOUT):
     """The `ObjectId` an integer from `pack` holds.
 
     Raises:
@@ -191,13 +191,13 @@ def unpack(value, layout=DEFAULT_LAYOUT):
     return ObjectId(shell, biased - layout.band_bias, wedge, kind, number & ((1 << layout.serial_count_bits) - 1), body)
 
 
-def to_bytes(value, layout=DEFAULT_LAYOUT):
+def to_bytes(value, layout=LAYOUT):
     """The big-endian bytes a `BINARY(layout.length)` column holds."""
     _check("object ID", value, layout.total_bits)
     return value.to_bytes(layout.length, "big")
 
 
-def from_bytes(raw, layout=DEFAULT_LAYOUT):
+def from_bytes(raw, layout=LAYOUT):
     """The integer a `BINARY` column's bytes hold.
 
     Raises:
@@ -209,7 +209,7 @@ def from_bytes(raw, layout=DEFAULT_LAYOUT):
     return int.from_bytes(raw, "big")
 
 
-def format_id(value, layout=DEFAULT_LAYOUT):
+def format_id(value, layout=LAYOUT):
     """The printed form, uppercase hex in three groups: sector, serial and
     body, such as `FE81000A2B-0000005-000`."""
     _check("object ID", value, layout.total_bits)
@@ -220,7 +220,7 @@ def format_id(value, layout=DEFAULT_LAYOUT):
     return f"{text[:sector_digits]}-{text[sector_digits:sector_digits + serial_digits]}-{text[-body_digits:]}"
 
 
-def parse_id(text, layout=DEFAULT_LAYOUT):
+def parse_id(text, layout=LAYOUT):
     """The integer an ID's printed form names. The hyphens are optional, the
     case is not significant, and the digit count must be the layout's.
 
@@ -238,40 +238,3 @@ def parse_id(text, layout=DEFAULT_LAYOUT):
     if len(cleaned) != digits or not re.fullmatch(r"[0-9A-F]+", cleaned):
         raise ValueError(f"an object ID is {digits} hex digits, got {text!r}")
     return int(cleaned, 16)
-
-
-def _bits_for(count):
-    """Bits to hold the values 0 .. count - 1 (at least 1)."""
-    return max(1, (count - 1).bit_length())
-
-
-def fit_layout(max_shell, min_band, max_band, max_wedges):
-    """
-    The layout for a galaxy with shells 0..`max_shell`, bands `min_band` to
-    `max_band` and at most `max_wedges` wedges in a band: the default 80 bits
-    when its bounds fit, else the sector fields widened (the band field to
-    whole hex digits, the rest to fill the nibbles) until the ID is 96 or 128
-    bits.
-
-    Raises:
-        ValueError: Bounds that do not fit 128 bits.
-    """
-    shell_bits = _bits_for(max_shell + 1)
-    wedge_bits = _bits_for(max_wedges)
-    reach = max(abs(min_band), abs(max_band) + 1)
-    band_bits = max(2, reach.bit_length() + 1)
-    if (shell_bits <= DEFAULT_LAYOUT.shell_bits and band_bits <= DEFAULT_LAYOUT.band_bits
-            and wedge_bits <= DEFAULT_LAYOUT.wedge_bits):
-        return DEFAULT_LAYOUT
-    need = shell_bits + band_bits + wedge_bits
-    for total in (96, 128):
-        sector_bits = total - SERIAL_BITS - BODY_BITS
-        if need <= sector_bits:
-            spare = sector_bits - need
-            # Spare bits go to the shell first, then the wedge, keeping the sum.
-            shell_bits += spare
-            if (shell_bits + band_bits + wedge_bits) % 4:
-                raise ValueError("internal: sector fields not nibble aligned")
-            return check_layout(Layout(shell_bits, band_bits, wedge_bits))
-    raise ValueError(f"a galaxy of {max_shell + 1} shells, bands {min_band} to {max_band} and {max_wedges} wedges "
-                     f"does not fit a {MAX_BITS}-bit object ID")

@@ -1601,7 +1601,7 @@ def test_random_start_and_its_neighborhood_stay_inside_a_real_plan(mysql_config)
     sectors = _all_sectors(mysql_config)
     assert sectors
     for row in sectors:
-        assert bounds.contains(row["shell_index"], row["band_index"]), _address(row)
+        assert bounds.qualifies(row["shell_index"], row["band_index"]), _address(row)
 
 
 def test_ensure_sector_generated_queues_a_settle_job_for_a_new_sector_only_when_asked(mysql_config, monkeypatch):

@@ -11,7 +11,7 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
-from planetgen.galaxy.spherical import band_center_pc, sector_position_pc, wedge_longitude_bounds
+from planetgen.galaxy.spherical import band_center_pc, sector_address_at, sector_position_pc, wedge_longitude_bounds
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.straight_line import scatter_position_mpc, straight_line_position_pc
@@ -261,3 +261,92 @@ def test_a_scatter_row_flies_on_from_its_epoch_and_other_kinds_stay():
     assert scatter_position_mpc(row, 105.0) == pytest.approx((6000.0, 0.0, 0.0))
     assert scatter_position_mpc(dict(row, epoch_unix=None), 105.0) == (1000.0, 0.0, 0.0)
     assert scatter_position_mpc(dict(row, kind="neutron-star"), 105.0) == (1000.0, 0.0, 0.0)
+
+
+SCATTER_RADIUS_PC = 8000.0
+
+
+def _seed_scatter_grid(mysql_config):
+    """The galaxy's stored cell size (a point is refiled by it) and one point of every moving scatter kind."""
+    from planetgen.galaxy.density import build_galaxy_shape
+    shape = build_galaxy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
+                               bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
+    store.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=2000.0,
+                            config=mysql_config)
+
+
+def _insert_scatter_point(conn, table, point_pc, kind=None, velocity=None, built=False):
+    shell, band, wedge = sector_address_at(point_pc, EDGE_PC)
+    x, y, z = (c * 1000.0 for c in point_pc)
+    v = velocity or (None, None, None)
+    if table == "bright_stars":
+        return conn.execute(
+            "INSERT INTO bright_stars (shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc,"
+            " position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms, population, star_type, yerkes_class,"
+            " mass_kg, radius_km, temperature_k, luminosity_w, age_gy, initial_mass_sol, seed)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'young', 'B2V', 'V', 1e31, 1e6, 20000, 1e30, 0.1, 5.0, 1)",
+            (shell, band, wedge, x, y, z, *v)).lastrowid
+    return conn.execute(
+        "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc, position_y_mpc,"
+        " position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms, seed, built_at)"
+        f" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, {'CURRENT_TIMESTAMP' if built else 'NULL'})",
+        (shell, band, wedge, kind, x, y, z, *v)).lastrowid
+
+
+def test_every_kind_of_scatter_point_moves_and_is_refiled_and_built_or_nucleus_points_stay(mysql_config):
+    """GEN.223: a scatter point is a point in space like any other; nothing in the scatter is left standing."""
+    _seed_scatter_grid(mysql_config)
+    point = (SCATTER_RADIUS_PC, 0.0, 0.0)
+    elapsed = 1e6
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            ids = {
+                "bright_stars": _insert_scatter_point(conn, "bright_stars", point),
+                "black-hole": _insert_scatter_point(conn, "phenomenon_scatter", point, "black-hole"),
+                "neutron-star": _insert_scatter_point(conn, "phenomenon_scatter", point, "neutron-star"),
+            }
+            built = _insert_scatter_point(conn, "phenomenon_scatter", point, "black-hole", built=True)
+            nucleus = _insert_scatter_point(conn, "phenomenon_scatter", point, "quasar")
+            motion = store.advance_scatter_points(conn, store.orbit_clock(conn, elapsed))
+            rows = {
+                "bright_stars": conn.execute("SELECT * FROM bright_stars WHERE id = ?",
+                                             (ids["bright_stars"],)).fetchone(),
+                **{kind: conn.execute("SELECT * FROM phenomenon_scatter WHERE id = ?", (ids[kind],)).fetchone()
+                   for kind in ("black-hole", "neutron-star")},
+            }
+            stayed = [conn.execute("SELECT position_x_mpc, epoch_unix FROM phenomenon_scatter WHERE id = ?",
+                                   (row_id,)).fetchone() for row_id in (built, nucleus)]
+    finally:
+        conn.close()
+    assert motion["counts"] == {"bright_stars": 1, "phenomenon_scatter": 2} and motion["moved"] == 3
+    _speed, period_gy = calculate_galactic_orbit(pc_to_ly(SCATTER_RADIUS_PC))
+    angle = 2 * math.pi * (elapsed / (period_gy * 1e9))
+    for name, row in rows.items():
+        moved = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+        assert moved == pytest.approx((point[0] * math.cos(angle), point[0] * math.sin(angle), 0.0), abs=1e-6), name
+        assert row["epoch_unix"] is not None and row["next_update_due"] is not None, name
+        assert math.hypot(row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) > 1.0, name
+        assert sector_address_at(moved, EDGE_PC) == (row["shell_index"], row["band_index"], row["wedge_index"]), name
+        assert (row["shell_index"], row["band_index"], row["wedge_index"]) != sector_address_at(point, EDGE_PC), name
+    assert all(row["position_x_mpc"] == pytest.approx(point[0] * 1000.0) and row["epoch_unix"] is None
+               for row in stayed)
+
+
+def test_a_hypervelocity_scatter_point_flies_a_straight_line(mysql_config):
+    _seed_scatter_grid(mysql_config)
+    point = (SCATTER_RADIUS_PC, 0.0, 0.0)
+    velocity = (400.0, -300.0, 20.0)
+    elapsed = 1e5
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            row_id = _insert_scatter_point(conn, "phenomenon_scatter", point, "hypervelocity-star", velocity)
+            store.advance_scatter_points(conn, store.orbit_clock(conn, elapsed))
+            row = conn.execute("SELECT * FROM phenomenon_scatter WHERE id = ?", (row_id,)).fetchone()
+    finally:
+        conn.close()
+    expected = straight_line_position_pc(point, velocity, elapsed * physical_constants.SECONDS_PER_YEAR)
+    assert (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0,
+            row["position_z_mpc"] / 1000.0) == pytest.approx(expected, abs=1e-3)
+    assert (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) == pytest.approx(velocity)

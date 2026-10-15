@@ -34,7 +34,7 @@ from planetgen.galaxy.density import arm_terms, build_galaxy_shape, relative_den
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.skeleton import (
-    build_shell_extents, expected_system_count_at_density_1, shell_candidate_sector_count,
+    DEFAULT_REACH_SHELL, build_shell_extents, expected_system_count_at_density_1, shell_candidate_sector_count,
 )
 from planetgen.generation import run_common
 from planetgen.generation import stages, steps
@@ -264,9 +264,16 @@ def build_skeleton(args):
         f"k_norm={shape.k_norm:.4f} threshold_rho={threshold_rho:.6f}"
     )
 
+    reach_shell_index = getattr(args, "reach_shells", DEFAULT_REACH_SHELL)
+    try:
+        spherical.check_reach(reach_shell_index)
+    except ValueError as exc:
+        log.error(f"--reach-shells {reach_shell_index}: {exc}")
+        raise SystemExit(1)
+
     t0 = time.perf_counter()
     extents, outer_shell_index, edge_confirmed = build_shell_extents(
-        shape, edge_pc, threshold_rho, max_shell=args.max_shell,
+        shape, edge_pc, threshold_rho, max_shell=min(args.max_shell, reach_shell_index),
     )
     elapsed = time.perf_counter() - t0
 
@@ -288,6 +295,7 @@ def build_skeleton(args):
     galaxy_seed = store.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
         expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=requested_seed,
+        reach_shell_index=reach_shell_index,
     )
     if requested_seed is not None:
         source = "from --seed"
@@ -301,6 +309,7 @@ def build_skeleton(args):
 
     return {
         "outer_shell_index": outer_shell_index,
+        "reach_shell_index": reach_shell_index,
         "shell_count": len(extents),
         "total_candidate_sectors": shell_candidate_sector_count(extents),
         "elapsed_s": elapsed,

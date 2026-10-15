@@ -46,7 +46,7 @@ from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy.density import arm_terms, build_galaxy_shape
-from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL
+from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL, DEFAULT_REACH_SHELL
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation import run_common
@@ -916,6 +916,10 @@ def add_plan_arguments(parser):
                              "random for a new galaxy. Changing it needs a galaxy with no sectors.")
     parser.add_argument('--max-shell', type=int, default=DEFAULT_MAX_SHELL,
                         help=f"Hard cap on how far out the shells are walked. Default: {DEFAULT_MAX_SHELL}.")
+    parser.add_argument('--reach-shells', type=int, default=DEFAULT_REACH_SHELL, metavar="N",
+                        help="The outermost shell the grid has addresses for (the galaxy's reach; a shell is 4 pc "
+                             f"deep). Default: {DEFAULT_REACH_SHELL} (262 kpc). The object ID can name shells up to "
+                             f"{spherical.MAX_ADDRESSABLE_SHELL}; the galaxy's disk outline must fit inside it.")
 
     bright_group = parser.add_argument_group("bright-star pre-placement (planetgen.generation.bright_stars)")
     bright_group.add_argument('--bright-star-min-luminosity', type=finite_float,

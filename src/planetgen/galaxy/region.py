@@ -173,7 +173,7 @@ class Region:
         ]
 
     def _within(self, arc, bounds):
-        return bounds is None or bounds.contains(arc.shell, arc.band)
+        return bounds is None or bounds.qualifies(arc.shell, arc.band)
 
     def count(self, bounds=None):
         """How many sectors the region holds, inside the outline when

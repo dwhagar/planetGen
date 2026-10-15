@@ -154,6 +154,8 @@ TABLE_LABELS = {
     "interstellar_comets": "interstellar comet(s)",
     "asteroid_fields": "asteroid field(s)",
     "space_facilities": "stand-alone facilit(ies)",
+    "bright_stars": "unbuilt bright star(s)",
+    "phenomenon_scatter": "unbuilt scattered phenomen(a)",
 }
 """dict: The count keys of `advance_orbital_phases`, `advance_comet_orbits`,
 `advance_facility_orbits` and `advance_galactic_positions` -> the label in
