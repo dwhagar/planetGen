@@ -297,7 +297,7 @@ def _reference_checks():
               "definition: 1 M_sun on the main sequence gives 1 L_sun", unit="L_sun"),
         Check("sun_main_sequence_lifetime", "reference", "stellar_evolution.main_sequence_lifetime_gy(1)",
               lambda: stellar_evolution.main_sequence_lifetime_gy(1.0), 10.0, 0.1,
-              "the Sun's main-sequence lifetime, about 10 Gy (Sackmann et al. 1993)", unit="Gy"),
+              "the Sun's main-sequence lifetime, about 10 Gyr (Sackmann et al. 1993)", unit="Gyr"),
         Check("sun_effective_temperature", "reference", "stellar_evolution.effective_temperature_k(1, 1)",
               lambda: stellar_evolution.effective_temperature_k(1.0, 1.0), 5772.0, 1e-3,
               "IAU 2015 Resolution B3: nominal solar T_eff 5,772 K", unit="K"),
@@ -350,7 +350,7 @@ def _reference_checks():
               unit="km/s"),
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
               lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
-              "the galactic year, about 230 million years", unit="My"),
+              "the galactic year, about 230 million years", unit="Myr"),
         Check("galaxy_bulge_to_total", "reference", "galaxyDensity.component_masses(default shape)",
               lambda: _galaxy_mass_ratio("bulge", ("bulge", "thin_disk", "thick_disk")), 0.31, 0.1,
               "Milky Way bulge 1.4-1.7e10 of 5e10 M_sun of stars (Bland-Hawthorn & Gerhard 2016)"),
@@ -700,7 +700,7 @@ def _imf_p_value():
 
 
 def _star_age_p_value():
-    """Disk ages are uniform over 0-10 Gy (constant star formation)."""
+    """Disk ages are uniform over 0-10 Gyr (constant star formation)."""
     rng = draw.Stream(SEED + 2)
     draws = [stellar_evolution.sample_star_age_gy(rng=rng) for _ in range(3000)]
     edges = [float(i) for i in range(11)]
@@ -708,7 +708,7 @@ def _star_age_p_value():
 
 
 def _bulge_age_p_value():
-    """Bulge ages are uniform over 8-12 Gy."""
+    """Bulge ages are uniform over 8-12 Gyr."""
     rng = draw.Stream(SEED + 3)
     draws = [stellar_evolution.sample_star_age_gy(rng=rng, population="bulge") for _ in range(2000)]
     edges = [8.0, 8.5, 9.0, 9.5, 10.0, 10.5, 11.0, 11.5, 12.0]
@@ -774,11 +774,11 @@ def _distribution_checks():
               unit="p"),
         Check("star_ages_uniform", "distribution", "stellar_evolution.sample_star_age_gy",
               _star_age_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"constant disk star formation over 0-10 Gy (tuning.STAR_FORMATION_AGE_RANGE_GY); {chi}",
+              f"constant disk star formation over 0-10 Gyr (tuning.STAR_FORMATION_AGE_RANGE_GY); {chi}",
               mode="min", unit="p"),
         Check("bulge_ages_uniform", "distribution", "stellar_evolution.sample_star_age_gy(population='bulge')",
               _bulge_age_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"bulge stars 8-12 Gy old (tuning.STELLAR_POPULATION_AGE_RANGES_GY); {chi}",
+              f"bulge stars 8-12 Gyr old (tuning.STELLAR_POPULATION_AGE_RANGES_GY); {chi}",
               mode="min", unit="p"),
         Check("sector_counts_poisson", "distribution", "spaceSector._sample_poisson_count(6.5)",
               _poisson_p_value, CHI_SQUARE_P_MIN, 0.0,

@@ -132,7 +132,7 @@ def _in_rung(rung, value):
     number = value / rung.factor
     if rung.whole_from is not None and abs(value) >= rung.whole_from:
         return f"{format_number(number)} {rung.symbol}"
-    text = _three_figures(number)
+    text = _three_figures_or_tiny(number)
     return f"{text} {rung.singular if rung.singular and text == '1' else rung.symbol}"
 
 
@@ -265,7 +265,7 @@ def format_speed_ms(ms):
 def format_duration_seconds(seconds):
     """
     Formats a time period or duration in the most meaningful unit on the
-    ladder µs < ms < s < minutes < hours < days < years < ky < My < Gy
+    ladder µs < ms < s < minutes < hours < days < years < kyr < Myr < Gyr
     (`ladders.TIME`): the largest unit the value is at least 1 of, as
     `format_distance_m` does. One unit, three significant figures, singular
     when the shown value is exactly 1 ("1 year", "1 day").
@@ -276,14 +276,14 @@ def format_duration_seconds(seconds):
 
     Returns:
         str: e.g. "12.5 ms", "45 minutes", "27.3 days", "1.88 years",
-             "236 My". Zero is "0 s"; `None` gives an en dash.
+             "236 Myr". Zero is "0 s"; `None` gives an en dash.
     """
     return format_quantity(ladders.TIME, seconds)
 
 
 def format_period_years(years):
     """`format_duration_seconds` for a value in (Julian) years -- every
-    orbital period the generator stores is in years or Gy."""
+    orbital period the generator stores is in years or Gyr."""
     return format_duration_seconds(None if years is None else years * physical_constants.SECONDS_PER_YEAR)
 
 
@@ -324,8 +324,8 @@ def format_temperature_k(kelvin):
 
 def _three_figures_or_tiny(value):
     """`_three_figures`, but scientific below a thousandth, where a
-    secondary unit would otherwise run to a row of zeros."""
-    if value != 0 and abs(value) < 1e-3:
+    unit would otherwise run to a row of zeros (UX.81)."""
+    if value != 0 and abs(value) < ladders.TINY_NUMBER:
         return scientific_text(value)
     return _three_figures(value)
 

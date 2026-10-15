@@ -16,13 +16,19 @@ out of date, so the two copies cannot drift apart
 Each ladder's base is the SI unit of its quantity, and a rung's `factor` is
 how many base units one of it is. A value is shown in the largest rung it
 is at least `start` of (a hair of tolerance, so a value computed as exactly
-1 unit isn't shown as 1,000 of the one below it).
+1 unit isn't shown as 1,000 of the one below it). A value that would show
+under `TINY_NUMBER` of a rung is shown in scientific notation instead of a
+row of zeros (UX.81).
 """
 
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
 from planetgen.physics import constants as physical_constants
+
+TINY_NUMBER = 1e-3
+"""float: A number below this in the unit shown is written as scientific
+notation ("2.50 × 10⁻¹³ Pa"), not "0.00000000000025 Pa" (UX.81)."""
 
 
 @dataclass(frozen=True)
@@ -95,7 +101,8 @@ LENGTH = Ladder(
     rungs=(
         # Whole kilometers read better than three figures ("384,400 km").
         Rung("km", physical_constants.KM_M, "kilometers", start=0.0, whole_from=1e6),
-        Rung("AU", physical_constants.AU_M, "astronomical units"),
+        # From a million km (0.0067 AU), so Mercury is "0.387 AU", not "5.79 × 10⁷ km" (UX.81).
+        Rung("AU", physical_constants.AU_M, "astronomical units", start=1e6 * physical_constants.KM_M),
         Rung("mpc", physical_constants.MILLIPARSEC_M, "milliparsecs", with_aside=True),
         Rung("cpc", physical_constants.CENTIPARSEC_M, "centiparsecs", with_aside=True),
         Rung("ly", physical_constants.LIGHTYEAR_M, "light-years"),
@@ -143,9 +150,10 @@ TIME = Ladder(
         Rung("hours", 3600.0, "hours", singular="hour"),
         Rung("days", 86400.0, "days", singular="day"),
         Rung("years", physical_constants.SECONDS_PER_YEAR, "years", singular="year"),
-        Rung("ky", physical_constants.SECONDS_PER_YEAR * 1e3, "thousand years"),
-        Rung("My", physical_constants.SECONDS_PER_YEAR * 1e6, "million years"),
-        Rung("Gy", physical_constants.SECONDS_PER_YEAR * 1e9, "billion years"),
+        # Not "Gy": that is the gray in SI (UX.81).
+        Rung("kyr", physical_constants.SECONDS_PER_YEAR * 1e3, "thousand years"),
+        Rung("Myr", physical_constants.SECONDS_PER_YEAR * 1e6, "million years"),
+        Rung("Gyr", physical_constants.SECONDS_PER_YEAR * 1e9, "billion years"),
     ),
 )
 

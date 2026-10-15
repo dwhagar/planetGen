@@ -12,8 +12,8 @@
 
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
-const { LADDERS } = await import(`./unitladders.js${VERSION_QUERY}`);
+const { formatNumber, scientificText, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { LADDERS, TINY_NUMBER } = await import(`./unitladders.js${VERSION_QUERY}`);
 
 export { LADDERS };
 
@@ -27,14 +27,18 @@ export const PARSEC_M = factorOf(LADDERS.length, "pc");
 export const SECONDS_PER_YEAR = factorOf(LADDERS.time, "years");
 
 // `value` (in the rung's base unit) in the rung's unit: three significant
-// figures, or a whole number from the rung's `whole_from`; the singular
-// form when the number is exactly 1.
-function inRung(rung, value) {
+// figures, or a whole number from the rung's `whole_from`, or scientific
+// notation under TINY_NUMBER of the unit (UX.81); the singular form when the
+// number is exactly 1. `spoken` writes the unit's name, for screen readers.
+function inRung(rung, value, spoken) {
   const number = value / rung.factor;
   if (rung.whole_from !== null && Math.abs(value) >= rung.whole_from) {
-    return formatNumber(number) + " " + rung.symbol;
+    return formatNumber(number) + " " + (spoken ? rung.name : rung.symbol);
   }
-  const text = threeFigures(number);
+  const text = number !== 0 && Math.abs(number) < TINY_NUMBER ? scientificText(number) : threeFigures(number);
+  if (spoken) {
+    return text + " " + rung.name;
+  }
   return text + " " + (rung.singular && text === "1" ? rung.singular : rung.symbol);
 }
 
@@ -55,7 +59,9 @@ export function pickRung(ladder, value) {
 }
 
 // `value` (in `ladder`'s base unit) as text; an en dash for null and NaN.
-export function formatQuantity(ladder, value) {
+// `spoken` spells the units out ("1.5 astronomical units"), for
+// `aria-valuetext` and the like.
+export function formatQuantity(ladder, value, spoken = false) {
   if (value == null || isNaN(value)) {
     return "–";
   }
@@ -63,19 +69,25 @@ export function formatQuantity(ladder, value) {
     return (value > 0 ? "inf " : "-inf ") + ladder.nonfinite;
   }
   const rung = pickRung(ladder, value);
-  let text = inRung(rung, value);
+  let text = inRung(rung, value, spoken);
   if (rung.with_aside) {
     const size = Math.abs(value);
     const [, symbol] = ladder.asides.find(([start]) => size >= start);
-    text += " (" + inRung(ladder.rungs.find((candidate) => candidate.symbol === symbol), value) + ")";
+    text += " (" + inRung(ladder.rungs.find((candidate) => candidate.symbol === symbol), value, spoken) + ")";
   }
   return text;
 }
+
+// A planet, moon or star radius: always km in scientific notation (Boss,
+// 2026-09-30), the one exception to the distance ladder; the mirror of
+// planetgen/util/format.py `format_body_radius_km`.
+export const formatBodyRadiusKm = (km) => (km == null || isNaN(km) ? "–" : scientificText(km) + " km");
 
 const scaled = (value, factor) => (value == null ? value : value * factor);
 
 export const formatDistanceM = (meters) => formatQuantity(LADDERS.length, meters);
 export const formatDistanceKm = (km) => formatDistanceM(scaled(km, KM_M));
+export const formatDistanceKmSpoken = (km) => formatQuantity(LADDERS.length, scaled(km, KM_M), true);
 export const formatDistanceAu = (au) => formatDistanceM(scaled(au, AU_M));
 export const formatDistanceLy = (ly) => formatDistanceM(scaled(ly, LIGHTYEAR_M));
 export const formatDistancePc = (pc) => formatDistanceM(scaled(pc, PARSEC_M));

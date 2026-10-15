@@ -91,7 +91,7 @@ def _astropy_factor(symbol):
     named = {"km": u.km, "AU": u.au, "mpc": u.mpc, "cpc": 0.01 * u.pc, "ly": u.lyr, "pc": u.pc, "kpc": u.kpc,
              "Mpc": u.Mpc, "Gpc": u.Gpc, "km/h": u.km / u.hr, "km/s": u.km / u.s, "Mm/s": u.Mm / u.s,
              "c": const.c, "µs": u.us, "ms": u.ms, "s": u.s, "minutes": u.min, "hours": u.hr, "days": u.day,
-             "years": u.year, "ky": u.kyr, "My": u.Myr, "Gy": u.Gyr}
+             "years": u.year, "kyr": u.kyr, "Myr": u.Myr, "Gyr": u.Gyr}
     quantity = named.get(symbol)
     if quantity is None:
         return None
@@ -155,7 +155,7 @@ def _check_values(ladder):
             values.append(rung.factor * factor)
             values.append(-rung.factor * factor)
         values.append((rung.factor if rung.start is None else rung.start) * (1 + 1e-9))
-    values += [0.0, -0.0, 1e300]
+    values += [0.0, -0.0, 1e300, 1e-300, 5e-324, 1e-5, 4e-4, 9.99e-4, 1e-3]
     return values
 
 
@@ -188,3 +188,45 @@ def test_unitladders_js_is_up_to_date():
     result = subprocess.run([sys.executable, os.path.join(_ROOT, "scripts", "build_unit_ladders.py"), "--check"],
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stdout
+
+
+def test_a_value_under_a_thousandth_of_its_unit_is_scientific_not_a_row_of_zeros():
+    assert format_quantity(ladders.LENGTH, 0.4) == "4.00 × 10⁻⁴ km"
+    assert format_quantity(ladders.LENGTH, 0.5) == "5.00 × 10⁻⁴ km"
+    assert format_quantity(ladders.LENGTH, 1.0) == "0.001 km"
+    assert format_quantity(ladders.TIME, 2.5e-13) == "2.50 × 10⁻⁷ µs"
+    assert format_quantity(ladders.LENGTH, 0) == "0 km"
+    assert format_quantity(ladders.LENGTH, 1e-300).endswith("× 10⁻³⁰³ km")
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
+def test_the_spoken_form_spells_the_unit_out():
+    script = (
+        "const m = await import(process.argv[1]);"
+        "console.log(JSON.stringify([m.formatDistanceKmSpoken(149597870.7), m.formatDistanceKmSpoken(384400),"
+        " m.formatDistanceKmSpoken(3.0857e13), m.formatDistanceKmSpoken(null)]));"
+    )
+    module_url = "file://" + os.path.abspath(os.path.join(_STATIC, "unitladder.js"))
+    out = subprocess.run(["node", "--input-type=module", "-e", script, module_url],
+                         check=True, capture_output=True, text=True).stdout
+    assert json.loads(out) == ["1 astronomical units", "384,400 kilometers", "1 parsecs (3.26 light-years)", "–"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
+def test_the_browser_body_radius_is_scientific_km_like_python():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.util.format import format_body_radius_km
+    config = SystemConfig()
+    config.MARKDOWN = True
+    radii = [6371, 1737.4, 696_000, 0.5, 2.5e9]
+    script = (
+        "const m = await import(process.argv[1]);"
+        "const values = JSON.parse((await import('node:fs')).readFileSync(0, 'utf8'));"
+        "console.log(JSON.stringify(values.map(v => m.formatBodyRadiusKm(v))));"
+    )
+    module_url = "file://" + os.path.abspath(os.path.join(_STATIC, "unitladder.js"))
+    out = subprocess.run(["node", "--input-type=module", "-e", script, module_url], input=json.dumps(radii),
+                         check=True, capture_output=True, text=True).stdout
+    python = [re.sub(r"<sup>(-?\d+)</sup>", lambda m: m.group(1).translate(str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")),
+                     format_body_radius_km(config, km)) for km in radii]
+    assert json.loads(out) == python

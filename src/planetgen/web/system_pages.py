@@ -610,7 +610,7 @@ FIELD_SPECS = {
         ("has_accretion_disk", "Accretion Disk", _bool_text),
         ("temperature_k", "Hawking Temperature", lambda v: f"{format_number(v, '.2e')} K"),
         ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
-        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
@@ -622,7 +622,7 @@ FIELD_SPECS = {
         ("pulsar_type", "Pulsar Type", _title_case),
         ("surface_temperature_k", "Surface Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
         ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
-        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
@@ -648,7 +648,7 @@ FIELD_SPECS = {
         ("has_moons", "Has Moons", _bool_text),
         # Surface conditions (schema v48, rogueSurface): no star, so only
         # its own heat. A giant's temperature and pressure are at 1 bar.
-        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         ("internal_heat_flux_w_m2", "Internal Heat Flow", lambda v: f"{format_number(v, ',.3g')} W/m\u00b2"),
         ("effective_temperature_k", "Effective Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
         ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),

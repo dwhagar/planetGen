@@ -90,11 +90,11 @@ def test_distance_ladder_goes_scientific_past_six_digits():
 
 
 def test_periods_go_scientific_past_six_digits_of_years():
-    # Past 999 years the period ladder moves to ky, so a period only goes
-    # scientific past 999,999 Gy.
-    assert format_period_years(9_000) == "9 ky"
-    assert format_period_years(1.2346e13) == "12,346 Gy"
-    assert format_period_years(1.2346e15) == "1.23 × 10⁶ Gy"
+    # Past 999 years the period ladder moves to kyr, so a period only goes
+    # scientific past 999,999 Gyr.
+    assert format_period_years(9_000) == "9 kyr"
+    assert format_period_years(1.2346e13) == "12,346 Gyr"
+    assert format_period_years(1.2346e15) == "1.23 × 10⁶ Gyr"
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")

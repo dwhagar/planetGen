@@ -172,7 +172,7 @@ def test_format_relative_to_sol_picks_percent_or_multiplier(value, markdown, low
 
 
 _PERIOD_TEXT = re.compile(r"^-?[0-9.,]+(?: \u00d7 10[\u207b\u2070\u00b9\u00b2\u00b3\u2074-\u2079]+)? "
-                          r"(\u00b5s|ms|s|minutes?|hours?|days?|years?|ky|My|Gy)$")
+                          r"(\u00b5s|ms|s|minutes?|hours?|days?|years?|kyr|Myr|Gyr)$")
 
 
 @given(years=st.floats(min_value=0, max_value=1e15))
