@@ -1,7 +1,7 @@
 # planetgen/physics/habitability_explain.py
 
 """
-The words behind a body's PHI-4 colours (UX.91): for each of the six
+The words behind a body's PHI-6 colours (UX.91): for each of the six
 factors (pressure, temperature, air, water, radiation, suitability) its colour and score,
 the inputs that make it up with this world's value for each, and which input
 sets the colour. It reads the same `habitability.World` the stored numbers

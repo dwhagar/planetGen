@@ -115,7 +115,8 @@ def test_every_example_world_gets_one_paragraph_naming_each_category_and_its_col
     paragraphs = (protection.paragraph(world, _bold),)
     text = paragraphs[0]
     assert "\n" not in text
-    assert text.startswith(f"**Habitability** is {scores['PHI-4']:.2f} ({hab.tier(scores['PHI-4'])}).")
+    assert text.startswith(f"**PHI-6 habitability** is {scores['PHI-4']:.2f} ({hab.tier(scores['PHI-4'])}).")
+    assert "PHI-4" not in text
     for domain in hab.DOMAINS:
         assert f"**{domain}: {scores[domain][1]}**." in text, domain
     assert text.index("**Pressure:") < text.index("**Temperature:") < text.index("**Air:") < text.index(

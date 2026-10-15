@@ -273,26 +273,26 @@ def _stat(text):
 
 def _habitability_chip(body):
     """GEN.89: the equipment a human needs on this body, coloured by its
-    worst PHI-4 domain (Blue to Red), with the score and what limits it in
+    worst PHI-6 domain (Blue to Red), with the score and what limits it in
     its tooltip; empty for a gas giant or a body saved before v76."""
     tier = body.get("equipment_tier")
     if tier is None:
         return ""
     worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
-    title = f'PHI-4 {body["phi4"]:.2f}. {body.get("hab_note") or ""}'.strip()
+    title = f'PHI-6 {body["phi4"]:.2f}. {body.get("hab_note") or ""}'.strip()
     return (f'<span class="flag flag-tier flag-tier-{worst}" title="{esc(title)}">'
             f'{esc(EQUIPMENT_LABELS[tier])}</span>')
 
 
 TIER_NAMES = ("Blue", "Green", "Yellow", "Red")
-"""tuple: The PHI-4 tier colours, best first."""
+"""tuple: The PHI-6 tier colours, best first."""
 
 HABITABILITY_SCORES = (("phi_bio", "Microbial"), ("phi_cpx", "Complex life"), ("phi_tech", "Human operability"))
-"""tuple: The stored PHI-4 scores and their names (UX.90)."""
+"""tuple: The stored PHI-6 scores and their names (UX.90)."""
 
 
 def _habitability_detail(body):
-    """UX.90: each PHI-4 factor's colour (Blue to Red) and the three stored
+    """UX.90: each PHI-6 factor's colour (Blue to Red) and the three stored
     scores, as visible text under the equipment chip; empty when unscored."""
     if body.get("equipment_tier") is None:
         return ""
