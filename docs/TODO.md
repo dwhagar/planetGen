@@ -508,16 +508,13 @@ with `clamp()`.
   saying that a correlative update is underway and give a general ETA on
   when it should finish if one is available, in fact make the entire
   site and database access unavailable to anyone but admin while the
-  maps are being rebuilt." Done: a maintenance mode, off by default,
-  turned on and off by an admin command-line command and an admin page
-  toggle, with a free-text ETA the admin can set. While on, every
+  maps are being rebuilt." Done: a maintenance mode that closes the site ONLY while the maps are being updated and leaves it open otherwise (Boss, 08:03Z: not "off by default"). It comes on automatically when the spherical switch is applied (the migration, or the update step right after it) and goes off automatically when Maps' new map lands; an admin command-line command and an admin page toggle stay as manual overrides, with a free-text ETA the admin can set. While on, every
   non-admin web page answers with a 503 page that says an update is
   underway and shows the ETA if one is set (the Galaxy Map redirects to
   it), and every API call and database read answers with 503 JSON;
   admins see the site normally with a banner saying maintenance mode is
   on. The mode is stored where the web workers and the queue both see
-  it. Used by the spherical switch: Maps turns it off after its map is
-  rebuilt and landed. Owner: UX lane, in progress as part of the
+  it. Used by the spherical switch: MAP.205 and MAP.206 clear it when the new map lands. Owner: UX lane, in progress as part of the
   spherical switch (PR into claude/spherical-switch).
   Prerequisites: none.
 
@@ -1363,8 +1360,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
-  Prerequisites: none to start (Boss released Maps, 07:31Z): build in
-  parallel on a branch and merge after the DB.32 + GEN.227 + UX.111 switch.
+  Prerequisites: none to start (Boss released Maps, 07:31Z): build in parallel on a branch and merge after the DB.32 + GEN.227 + UX.111 switch. Clears maintenance mode (UX.112) when the new map lands.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **MAP.206 Galaxy Map drawing on shells**
@@ -1376,8 +1372,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisite: MAP.205 (build in parallel on a branch, merge after the
-  DB.32 + GEN.227 + UX.111 switch).
+  Prerequisite: MAP.205 (build in parallel on a branch, merge after the DB.32 + GEN.227 + UX.111 switch). Clears maintenance mode (UX.112) when the new map lands, with MAP.205.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## NAV: Navigation and courses
