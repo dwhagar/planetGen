@@ -1,9 +1,10 @@
 """
 planetgen/galaxy/drill.py
 
-The Galaxy Map drill-down's block ladder (docs/design/galaxy-drilldown-
-navigation.md, section 3): blocks 243, 27, 3 and 1 sectors a side, nested
-so that every block sits wholly inside one block of the next size up.
+The Galaxy Map's block ladder (docs/design/galaxy-drilldown-navigation.md,
+section 3, made 3-ary by MAP.151b, docs/design/drilldown-region-sizes.md):
+blocks 243, 81, 27, 9, 3 and 1 sectors a side, nested so that every block
+sits wholly inside one block of the next size up.
 `static/galaxyprisms.js`'s `drill*` functions are the same rules for the
 page; `tests/test_galaxydrill.py` checks that the two agree.
 
@@ -19,7 +20,8 @@ whole multiple of its parent ring's, so every parent wedge line is also a
 child wedge line. Sectors join the level-3 block holding their center
 (section 3.5), as `blockSlotRange` already does.
 
-Everything here is integer math apart from the level-243 wedge count,
+Every level is three times its child, so a window of cells changes size by
+a third at a time. Everything here is integer math apart from the level-243 wedge count,
 which copies `blockWedgeCount` step for step (including JavaScript's
 round-half-up) so both sides pick the same count.
 """
@@ -30,9 +32,13 @@ from functools import lru_cache
 
 from planetgen.galaxy.geometry import ring_master_count, ring_sector_count
 
-DRILL_LEVELS = (243, 27, 3, 1)
-"""tuple: Block sizes from the galaxy down to a sector (Boss's "bigger
-targets", 2026-10-01). Each step divides by 9, the last by 3."""
+DRILL_LEVELS = (243, 81, 27, 9, 3, 1)
+"""tuple: Block sizes from the galaxy down to a sector. Each step divides
+by `DRILL_STEP`. (MAP.151b: the ladder was 243, 27, 3, 1, steps of 9 and 3;
+a 729 block, coarser than the 243-block galaxy home, is left out.)"""
+
+DRILL_STEP = 3
+"""int: How many child blocks a side one block holds, at every level."""
 
 DRILL_TOP = DRILL_LEVELS[0]
 
@@ -80,18 +86,13 @@ def _check_level(m):
         raise ValueError(f"block size must be one of {DRILL_LEVELS}, got {m}")
 
 
-def _step(m):
-    """How many child blocks a side one block of size `m` holds."""
-    return 3 if m == 3 else 9
-
-
 @lru_cache(maxsize=65536)
 def drill_wedge_count(m, ring):
     """
     Wedges in block ring `ring` at size `m` (the nested wedge rule):
 
     - 243: `blockWedgeCount(ring, 243)`, unchanged.
-    - 27 and 3: the parent ring's count times
+    - 81, 27, 9 and 3: the parent ring's (`ring // 3`) count times
       `max(1, round(T / W_parent))`, `T` this ring's target
       `max(3, round(2*pi*(ring + 1/2)))`.
     - 1: the ring's slots, `ring_sector_count`.
@@ -110,7 +111,7 @@ def drill_wedge_count(m, ring):
         return ring_sector_count(ring)
     if m == DRILL_TOP:
         return _top_wedge_count(ring)
-    parent = drill_wedge_count(m * 9, ring // 9)
+    parent = drill_wedge_count(m * DRILL_STEP, ring // DRILL_STEP)
     return parent * max(1, _round_half_up(_target_wedges(ring), parent))
 
 
@@ -131,19 +132,19 @@ def drill_parent(block):
     if m == DRILL_TOP:
         return None
     if m == 1:
-        parent_ring = ring // 3
+        parent_ring = ring // DRILL_STEP
         # A sector joins the level-3 wedge holding its slot's center.
         parent_wedge = ((2 * wedge + 1) * drill_wedge_count(3, parent_ring)) // (2 * ring_sector_count(ring))
-        return DrillBlock(3, parent_ring, parent_wedge, (slab + 1) // 3)
-    parent_ring = ring // 9
-    q = drill_wedge_count(m, ring) // drill_wedge_count(m * 9, parent_ring)
-    return DrillBlock(m * 9, parent_ring, wedge // q, (slab + 4) // 9)
+        return DrillBlock(3, parent_ring, parent_wedge, (slab + 1) // DRILL_STEP)
+    parent_ring = ring // DRILL_STEP
+    q = drill_wedge_count(m, ring) // drill_wedge_count(m * DRILL_STEP, parent_ring)
+    return DrillBlock(m * DRILL_STEP, parent_ring, wedge // q, (slab + 1) // DRILL_STEP)
 
 
 def drill_chain_of(ring, layer, slot):
     """
     Sector `(ring, layer, slot)`'s blocks from the top: `[level 243,
-    level 27, level 3, the sector itself]`.
+    81, 27, 9, 3, the sector itself]`.
     """
     chain = [DrillBlock(1, ring, slot, layer)]
     while chain[-1].m != DRILL_TOP:
@@ -160,9 +161,7 @@ def drill_slabs(block):
     _check_level(m)
     if m == 1:
         raise ValueError("a sector has no children")
-    f = _step(m)
-    half = (f - 1) // 2
-    return list(range(slab * f - half, slab * f + half + 1))
+    return list(range(slab * DRILL_STEP - 1, slab * DRILL_STEP + 2))
 
 
 def drill_block_sectors(block, layer):
@@ -193,7 +192,7 @@ def drill_children(block):
     m, ring, wedge, _slab = block
     if m == 3:
         return [(layer, drill_block_sectors(block, layer)) for layer in drill_slabs(block)]
-    f = _step(m)
+    f = DRILL_STEP
     child_m = m // f
     parent_wedges = drill_wedge_count(m, ring)
     groups = []

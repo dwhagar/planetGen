@@ -575,6 +575,14 @@ def get_galaxy_stage(db, at=None):
     return _request("/galaxy/stage", {"db": db, "at": at})
 
 
+def get_galaxy_window(db, at, g):
+    """Returns `GET /api/galaxy/window`'s payload (`at`/`g`/`child_m`/
+    `cells`/`children` -- see `queryDb.galaxy_window`): a window of cells
+    bigger than a sector, read from the stored block totals in one query."""
+    _require_db(db)
+    return _request("/galaxy/window", {"db": db, "at": at, "g": g})
+
+
 def get_territories(db):
     """Returns `GET /api/territories`' payload (`points`: owned systems
     with galaxy-frame parsec positions and their polity's color;

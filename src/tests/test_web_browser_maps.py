@@ -336,12 +336,12 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
             break
         # MAP.150: each click opens a window centred on the cell clicked, one size down.
         assert crumbs[-1].startswith("Block "), crumbs
-        assert re.fullmatch(r"win=(27|3|1)\.\d+\.\d+\.-?\d+", query), query
+        assert re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query), query
         assert query != steps[-1][0], "the URL names the new stage"
         steps.append((query, crumbs))
     assert reached_sector, f"never reached a sector: {steps[-1]}"
     kinds = " ".join(q for q, _ in steps)
-    for marker in ("win=27.", "win=3."):
+    for marker in ("win=81.", "win=27.", "win=9.", "win=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
     assert not re.search(r"[=,]r\d|p=", kinds), kinds
 
@@ -399,7 +399,10 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     else:
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
     _wait_settled(page)
-    assert _crumbs(page) == steps[1][1][:2], "the second step is the window of its first block"
+    # The crumb is the 243-block above where the walk ended, which the clicks may have carried past the first
+    # block's edge: the 3-ary ladder takes more steps than the old one did, each centred on the cell clicked.
+    crumbs = _crumbs(page)
+    assert len(crumbs) == 2 and crumbs[0] == "Galaxy" and crumbs[1].endswith("(243)"), crumbs
     before = _state(page)
     page.click('#galaxymap3d-controls [data-action="reset"]')
     _wait_settled(page, before)
@@ -418,7 +421,7 @@ def test_galaxy_map_free_camera_from_a_window_down(page, base_url):
     reset_view = page.locator('#galaxymap3d-controls [data-action="reset-view"]')
     assert not reset_view.is_disabled(), "the whole galaxy turns (MAP.85)"
     _click_choice(page)
-    assert parse_qs(_query(page))["win"][0].startswith("27."), "the galaxy's first pick is a window of 27-blocks"
+    assert parse_qs(_query(page))["win"][0].startswith("81."), "the galaxy's first pick is a window of 81-blocks"
 
     canvas = "#galaxymap3d-canvas"
     box = page.locator(canvas).bounding_box()

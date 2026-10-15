@@ -27,7 +27,7 @@ from planetgen.api.config import Config
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.galaxy.density import build_galaxy_shape, shape_with_terms  # noqa: E402
-from planetgen.galaxy.drill import DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
+from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1  # noqa: E402
 from planetgen.physics.units import pc_to_ly  # noqa: E402
 from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
@@ -224,9 +224,9 @@ def galaxy_stage(at=None):
             counts.setdefault(chain[0], []).append(s[0])
         return {"at": None, "child_m": 243, "children": _children(counts), "sectors": None}
     block = parse_drill_key(at)
-    level = (243, 27, 3).index(block.m)
+    level = DRILL_LEVELS[:-1].index(block.m)
     inside = [(s, chain) for s, chain in chains if chain[level] == block]
-    child_m = (27, 3, 1)[level]
+    child_m = DRILL_LEVELS[level + 1]
     counts = {}
     for s, chain in inside:
         counts.setdefault(chain[level + 1], []).append(s[0])
@@ -339,6 +339,24 @@ class FixtureApi:
     def get_galaxy_stage(self, db, at=None):
         return galaxy_stage(at)
 
+    def get_galaxy_window(self, db, at, g):
+        """`queryDb.galaxy_window` over `SECTORS`: the cells of the window that hold a fixture sector."""
+        from planetgen.galaxy.window import check_width, parse_window_key, window_cells
+
+        centre = parse_window_key(at)
+        width = check_width(g)
+        cells = window_cells(centre, width)
+        wanted = {(c.ring, c.wedge, c.slab) for c in cells}
+        level = DRILL_LEVELS.index(centre.m)
+        counts = {}
+        for s in SECTORS:
+            cell = drill_chain_of(s[1], s[2], s[3])[level]
+            if (cell.ring, cell.wedge, cell.slab) in wanted:
+                counts.setdefault(cell, []).append(s[0])
+        children = sorted(_children(counts), key=lambda c: (c["slab"], c["ring"], c["wedge"]))
+        return {"at": format_drill_key(centre), "g": width, "child_m": centre.m,
+                "cells": [[c.ring, c.wedge, c.slab] for c in cells], "children": children, "sectors": None}
+
     def get_population_status(self, db):
         return dict(apiclient.POPULATION_NONE)
 
@@ -388,7 +406,7 @@ class FixtureApi:
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_nebula_shape", "get_system_scene", "get_uncharted_sector")
-_TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage")
+_TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage", "get_galaxy_window")
 
 
 class _SiteConfig(Config):

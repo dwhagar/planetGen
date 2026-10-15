@@ -359,13 +359,21 @@ connectivity to that specific schema rather than the default one.
   sums of their systems, expected systems, stars and luminosity, and the
   stars' mean age (each sector's mean weighted by its star count; `null`
   with no stars). A sector's own `stats` has the same keys. Blocks are 243,
-  27 and 3 sectors a side (`planetgen.galaxy.drill`); with no `at`,
+  81, 27, 9 and 3 sectors a side (`planetgen.galaxy.drill`); with no `at`,
   the children are the galaxy's level-243 blocks. Children with nothing
   generated are left out (the page computes totals itself). At a level-3
   block the children are sectors (`wedge` is the slot, `slab` the layer)
   and `sectors` lists each one as `{ring, layer, slot, id, name,
   system_count, stats}`; otherwise `sectors` is `null`. A malformed or impossible
   key is a 400.
+- `GET /api/galaxy/window?at=<m.ring.wedge.slab>&g=<n>` — the cells of the
+  window of `g` cells across (one of the window widths, default 9) centred on block `at`
+  (MAP.151b), one level down from `at`'s own size (`queryDb.galaxy_window`),
+  read from the stored block totals (`galaxy_block_stats`) in one query:
+  `{"at", "g", "child_m", "cells": [[ring, wedge, slab]], "children": [{"ring",
+  "wedge", "slab", "generated", "stats"}], "sectors": null}`, the children the
+  same as a stage's. A window of sectors (`at` of 3 sectors a side) is cut from
+  the stages of its parents instead, and a block of one sector is a 400.
 - `GET /api/galaxy/locate?q=<part of a name>` — the Galaxy Map address
   bar's name lookup (`queryDb.galaxy_locate`): `{"matches": [{"kind"
   (`"sector"`, `"system"`, `"planet"` or `"moon"`), "ref", "id", "name",

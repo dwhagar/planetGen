@@ -431,9 +431,9 @@ def _charted_spot(page):
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     # What the pointer meets is the first block of its ray, the top face of the
     # cell under the sector in a slanted view: aim a little under the top of
-    # the cell at each size (1, 3, 27 and 243 sectors tall), the midplane too.
-    heights = [z, z + 2 - 0.01, z + 6 - 0.01, z + 54 - 0.01, z + 486 - 0.01,
-               z - 2 + 0.01, z - 6 + 0.01, z - 54 + 0.01, z - 486 + 0.01]  # and the bottoms, seen from under the plane
+    # the cell at each size (1, 3, 9, 27, 81 and 243 sectors tall), the midplane too.
+    heights = [z, z + 2 - 0.01, z + 6 - 0.01, z + 18 - 0.01, z + 54 - 0.01, z + 162 - 0.01, z + 486 - 0.01,
+               z - 2 + 0.01, z - 6 + 0.01, z - 18 + 0.01, z - 54 + 0.01, z - 162 + 0.01, z - 486 + 0.01]  # and the bottoms, seen from under the plane
     for _ in range(HOVER_RETRIES):
         for height in heights:
             spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [x, y, height])
@@ -554,7 +554,7 @@ def test_galaxy_map_hover_names_a_choice_and_leaving_hides_it(page, map_site):
 
 def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     """MAP.150: each click opens a window centred on the block clicked, one
-    size down, from the galaxy to a block of 243 sectors, 27, 3, a sector, and
+    size down, from the galaxy to a block of 243 sectors, 81, 27, 9, 3, a sector, and
     the sector itself opens in place."""
     _open_galaxy(page, map_site)
     assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
@@ -564,11 +564,11 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert _on_galaxy(page) and crumbs[-1].startswith("Sector "), crumbs
     sizes = []
     for query, _crumbs_seen in steps[1:-1]:
-        match = re.fullmatch(r"win=(27|3|1)\.\d+\.\d+\.-?\d+", query)
+        match = re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query)
         assert match, query
         sizes.append(int(match.group(1)))
-    # A block of 243 opens the window of its 27-blocks, and so on down.
-    assert sizes == sorted(sizes, reverse=True) and set(sizes) == {27, 3, 1}, sizes
+    # A block of 243 opens the window of its 81-blocks, and so on down.
+    assert sizes == sorted(sizes, reverse=True) and set(sizes) == {81, 27, 9, 3, 1}, sizes
 
 
 def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
@@ -579,8 +579,8 @@ def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
     assert _query(page) == "win=243.0.1.0"
     assert _crumbs(page) == ["Galaxy", "Block 0·1 (243)"], _crumbs(page)
     _click_choice(page)
-    assert re.fullmatch(r"win=27\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
-    assert len(_crumbs(page)) == 3 and _crumbs(page)[-1].endswith("(27)"), _crumbs(page)
+    assert re.fullmatch(r"win=81\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert len(_crumbs(page)) == 3 and _crumbs(page)[-1].endswith("(81)"), _crumbs(page)
     page.locator(GALAXY_CANVAS).focus()
     page.keyboard.press("Escape")
     _settle(page)
@@ -1588,10 +1588,9 @@ def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
     _open_galaxy(page, map_site, "?win=27.27.0.0")
     assert page.evaluate(CAMERA)["tilt"] == pytest.approx(iso, abs=0.5)
     page.locator(GALAXY_CANVAS).focus()
-    page.keyboard.press("Escape")
-    _settle(page)
-    page.keyboard.press("Escape")
-    _settle(page)
+    for _ in range(3):  # 27, 81, 243 and the galaxy
+        page.keyboard.press("Escape")
+        _settle(page)
     assert _crumbs(page) == ["Galaxy"]
     assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)
 

@@ -57,9 +57,10 @@ def _fill(connection):
         for r in rows.fetchall():
             block_stats.accumulate(cells, (r[0], r[1], r[2]), *r[3:])
         alembic_runner.report_progress("Block totals", done, len(rings))
+    columns = block_stats.COLUMNS[:-1]  # `ladder_step` is a v89 column; its default is the step
     insert = sa.text(
-        "INSERT INTO galaxy_block_stats (" + ", ".join(block_stats.COLUMNS) + ") VALUES ("
-        + ", ".join(":" + column for column in block_stats.COLUMNS) + ")")
-    rows = [dict(zip(block_stats.COLUMNS, row)) for row in block_stats.cell_rows(cells)]
+        "INSERT INTO galaxy_block_stats (" + ", ".join(columns) + ") VALUES ("
+        + ", ".join(":" + column for column in columns) + ")")
+    rows = [dict(zip(columns, row)) for row in block_stats.cell_rows(cells)]
     for start in range(0, len(rows), BATCH):
         connection.execute(insert, rows[start:start + BATCH])
