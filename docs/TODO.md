@@ -3410,6 +3410,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on public pages. Wording moves into the describer as it is rewritten.
   Prerequisite: UX.104.
 
+- [ ] **GEN.222 Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug)**
+  Boss (2026-10-15 05:30Z): "BUG: Output, when generation text is
+  output, nebulae should show text showing the kinds of nebulae in each
+  slab and the layers included in each slab." When a generation run
+  prints its text output, the nebula part should say, for each slab,
+  which kinds of nebulae were made there and which layers the slab
+  holds. Found: the output prints nebulae without that per-slab
+  breakdown. Done when a run's text output lists, per slab, the nebula
+  kinds and the layers included.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3828,6 +3839,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from measured performance). Done when: the library passes its tests
   for the barrier, counters, stream and ETA and PERF.33's acceptance is
   met by it.
+  Also (Boss, 2026-10-15 05:30Z): when a phase reports no updates, the
+  whole task bar still shows an estimated time remaining, from earlier
+  runs' stage timings or the time per task so far in this run; the ETA
+  function must carry this fallback (the interim fix is the bug item
+  PERF.101).
   Prerequisite: PERF.95. Related: PERF.86, PERF.33.
 
 - [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
@@ -3921,6 +3937,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   automatic resume. Done when: the suite is green with the old code gone
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
+
+- [ ] **PERF.101 No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug)**
+  Boss (2026-10-15 05:30Z): "Why is there no update going on for the
+  phenomena indexes? There has to be something we can track, during a
+  phase with no updates the whole task bar should also still have an
+  estimated time remaining based on previous statistics or how long the
+  run has taken per task so far." Today the phase "Building the
+  phenomena indexes" (run_plan.py, step phenomena-index) is one pass
+  over the whole phenomenon_scatter table and says outright that there
+  is no progress until it is done. Fix: build the indexes so something
+  is countable (one index at a time, or chunks), so the step reports
+  progress; and when any phase reports nothing, the whole task bar still
+  shows an estimated time remaining from earlier runs' stage timings, or
+  from the time per task so far in this run. The same fallback must be
+  part of PERF.96's ETA function (see its acceptance), so it survives
+  the move to the Redis run record.
+  Prerequisites: none. Related: PERF.96, PERF.33.
 
 ## DB: Database and schema
 
