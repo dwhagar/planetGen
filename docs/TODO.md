@@ -500,7 +500,7 @@ with `clamp()`.
   and why, with units through the ladders, and nothing is stored by
   opening it. Owner: Interface; the numbers come from Core's density
   model.
-  Prerequisites: GEN.235.
+  Prerequisite: GEN.235.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -3310,7 +3310,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Found by Maps (2026-10-15). Owner: Core for the region and the
   command; the button is Interface, after Core. Order it after PERF.99
   so the queue it uses is the new one.
-  Prerequisites: PERF.99. Related: GEN.101, MAP.120.
+  Prerequisite: PERF.99. Related: GEN.101, MAP.120.
 
 - [ ] **GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug)**
   A random hypervelocity star (about 350 km/s) makes
@@ -3347,7 +3347,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core (2026-10-15); the migration, if any, is Core's. Decided (Boss,
   2026-10-15): the research note's recommendation stands: reach 262 kpc
   (65,535 shells), 96-bit object IDs, and the defaults of its section 8.
-  Prerequisites: GEN.230. Related: GEN.9.
+  Prerequisite: GEN.230. Related: GEN.9.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.234 A measured stellar halo replaces the flat density floor**
@@ -3465,7 +3465,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   components. Owner: Core (2026-10-15). Decided (Boss, 2026-10-15): the
   research note's recommendation stands: reach 262 kpc (65,535 shells),
   96-bit object IDs, and the defaults of its section 8.
-  Prerequisites: GEN.237. Related: GEN.202.
+  Prerequisite: GEN.237. Related: GEN.202.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -3823,19 +3823,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   automatic resume. Done when: the suite is green with the old code gone
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
-
-- [ ] **PERF.102 The migration progress display shows no estimated time remaining on either bar (bug)**
-  Boss (2026-10-15 15:54 EDT), on his test server: "migration ETA
-  doesn't work". During a migration run the progress bars and the
-  elapsed time show, but neither bar shows an estimated time remaining.
-  Owner: Core (2026-10-15), grouped with PERF.101 (done, PR #1620), which had the same
-  symptom for the phenomena index build. Done: the migration progress
-  display (`planetgen.cli.migrate`, run from update.sh) shows an estimated time
-  remaining on both bars from the first step that reports progress, and
-  a step with no progress updates says so instead of showing nothing; a
-  test covers the estimate for a step that reports progress and a step
-  that does not. Reuses the progress and ETA code PERF.101 fixed. Bug.
-  Prerequisites: none. Related: PERF.101 (done, PR #1620).
 
 ## DB: Database and schema
 
