@@ -489,18 +489,23 @@ with `clamp()`.
   (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **UX.113 The page of an empty or sparse sector computes what is there from its address**
-  A cell nobody has stored rows for shows "no objects; expected 3e-5
-  systems here" and the background figures from its address alone, like
-  the interstellar debris count already shown: the dark-matter density
-  and mass in the cell from the galactic potential, a gas density class
-  (disk, hot halo, intergalactic medium) with its figure, and the
-  expected object counts per kind. No codes in the text. Done: any
+- [ ] **UX.113 The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run**
+  Step 8 of the whole-sphere train. An uncharted address shows its
+  profile computed from the address alone: expected systems, the
+  population mix, the dark-matter density and mass in the cell, the
+  ambient medium (disk ISM, hot halo, intergalactic) with its density
+  and gas mass, and the expected counts per kind, like the interstellar
+  debris count already shown. An asked, empty sector shows the same with
+  "no objects". A heavy cell (a globular cluster core cell is 14 minutes
+  to 2.5 hours) is a queued job with an ETA and a warning, never a
+  blocking request, and a neighbourhood request out in the halo shows
+  its expected system count and cost line before it runs. Units go
+  through the ladders and no TODO codes appear in the text. Done: any
   address inside the reach opens a page that says what is expected there
-  and why, with units through the ladders, and nothing is stored by
-  opening it. Owner: Interface; the numbers come from Core's density
-  model.
-  Prerequisite: GEN.235.
+  and why, nothing is stored by opening it, and the warnings show before
+  a heavy request starts. Owner: Interface; the numbers come from Core's
+  profile (GEN.235) through API.27.
+  Prerequisites: GEN.235, API.27. Related: GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1327,14 +1332,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PR #1513), MAP.200 (done, PR #1556), MAP.152.
 
 - [ ] **MAP.207 The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline**
-  Components (the Clouds, Sagittarius, dwarfs, clusters) and wanderers
-  (hypervelocity stars, kicked neutron stars) are drawn as points where
-  the outline ends, with no change to the shading of the sectors. Map
-  code uses `galaxy/spherical.py` and `galaxy/frame.py`, never
-  `geometry.py`. Done: a visitor flying out of the disk finds the
-  Magellanic Clouds where the data puts them, and nothing is drawn for
-  the empty halo cells. Owner: Interface.
-  Prerequisites: GEN.237, GEN.238.
+  Step 9 of the whole-sphere train. Components (the Clouds, Sagittarius,
+  dwarfs, clusters) and wanderers (hypervelocity stars, kicked neutron
+  stars) are drawn as points where the outline ends, with no change to
+  the shading of the sectors. Map code uses `galaxy/spherical.py` and
+  `galaxy/frame.py`, never `geometry.py`. MAP.182 (hosted nebulae for
+  pre-placed stars) stays do not build unless Boss asks. Done: a visitor
+  flying out of the disk finds the Magellanic Clouds where the data puts
+  them, and nothing is drawn for the empty halo cells. Owner: Interface.
+  Prerequisites: GEN.237, GEN.238. Related: MAP.182.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## NAV: Navigation and courses
@@ -2925,6 +2931,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets are multiplied by 10^(2 [Fe/H]) in clusters. The repository's
   lifetime law gives a 0.93 Msun turn-off at 12 Gyr (the note's 0.85
   needs metallicity, which the code lacks).
+  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
+  Boss 2026-10-15): step 4. The same value serves the halo (about -1.6
+  inside 25 kpc, -2.2 outside) and the clusters; the planet cull for
+  both is in GEN.236 and GEN.162.
   Prerequisites: none.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -2941,6 +2951,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows: position, distance, [Fe/H], c, r_c, r_h, M_V, sigma_v,
   core-collapse flag) or approve a one-time download script. Decided by Boss (2026-10-09 19:02Z, default taken): derived: a cluster star's sector address
   is derived from the cluster centre's sector path, not stored per star.
+  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
+  Boss 2026-10-15): step 5. The table holds every component kind
+  (cluster, satellite), so GEN.237 adds the satellite rows and profiles
+  to this table; the Harris catalogue question is on GEN.237.
   Prerequisite: GEN.158.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -2956,6 +2970,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sampled radial profile matches the table; no sector above the gate
   is skipped; counts match the note's table (a typical cluster 5.0e5
   systems in 965 sectors, a 47 Tuc-like one 2.0e6 in 5,848).
+  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
+  Boss 2026-10-15): step 5. The density term is the profile's `lambda`
+  and `mix` for a cell inside a cluster (GEN.235), and the cluster
+  population carries its own pre-placed share (GEN.234).
   Prerequisite: GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -2966,6 +2984,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.44); the dim main sequence on demand. The cost reason: every
   system of a 157-cluster Milky Way is 1.8e8 systems, 10 to 34 days of
   single-worker time at 5 to 16.6 ms each.
+  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
+  Boss 2026-10-15): step 5. No cluster star reaches the bright floor or
+  the mass limit, so a cluster is entirely fill-time; this item is its
+  fill order.
   Prerequisite: GEN.160.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -2982,6 +3004,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   blue stragglers
   scale as M_core^0.4 while millisecond pulsars and X-ray binaries scale
   with the encounter rate (his text says linearly with Gamma for both).
+  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
+  Boss 2026-10-15): step 7, built after the profile (GEN.235) and the
+  metallicity value (GEN.158).
   Prerequisites: GEN.158, GEN.160.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -2995,6 +3020,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   340 = 0.29%, computed). Pulsar counts per cluster scale with the
   encounter rate Gamma ~ rho_c^2 r_c^3 / sigma; default 10 times the
   field rate per star, by Gamma rank.
+  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
+  Boss 2026-10-15): step 7.
   Prerequisites: GEN.130, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -3012,6 +3039,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-10 18:44Z, defaults approved; default: 0.5 dex and the S_N
   ranges above): the mass-function
   width and S_N ranges.
+  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
+  Boss 2026-10-15): step 7; also the source of seeded fictional
+  satellites for other shapes.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -3328,144 +3358,215 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.88.
 
 - [ ] **GEN.233 Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits**
-  The grid tiles all of space, but the sectors that exist stop at the
-  disk outline (shell 4,095 at most) and the object ID cannot name the
-  cells beyond it. Add a plan-time `reach` (default 65,535 shells = 262
-  kpc, which holds the Magellanic Clouds, the Sagittarius remnant, the
-  globular clusters and the satellites out to Leo I), stored with the
-  galaxy next to the outline. `GalaxyBounds.contains` answers for the
-  reach and a new `qualifies` answers for the outline; `random_address`
-  stays on the outline (on the reach 99.998% of draws would be empty
-  halo); the designation functions and `outline_object_id_layout` take
-  the galaxy's layout, and the plan refuses a reach the layout cannot
-  hold. A cell beyond the reach is refused as today. A galaxy planned
-  without a reach keeps the layout its outline needs. Existing galaxies
-  get the reach by re-planning or by a renumbering migration like the
-  shell move's (no backward compatibility). Done: the plan stores the
-  reach, every cell inside it round-trips through its designation and
-  object ID at the widest shell, and a cell beyond it is refused. Owner:
-  Core (2026-10-15); the migration, if any, is Core's. Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, and the defaults of its section 8.
-  Prerequisite: GEN.230. Related: GEN.9.
+  Step 1 of the whole-sphere train
+  (docs/design/intergalactic-and-halo-contents.md section 9). The grid
+  tiles all of space, but the sectors that exist stop at the disk
+  outline (shell 4,095 at most) and the object ID cannot name the cells
+  beyond it. Add a plan-time `reach` (default 65,535 shells = 262 kpc:
+  the Magellanic Clouds, the Sagittarius remnant, the globular clusters
+  and the satellites out to Leo I), stored with the galaxy next to the
+  outline, with the 96-bit layout from `object_uid.fit_layout`.
+  `GalaxyBounds.contains` answers for the reach and a new `qualifies`
+  answers for the outline; `random_address` and the default
+  neighbourhood stay on the outline (the first pull stays in the
+  galactic region); an explicit address, span or block anywhere in the
+  reach is accepted. The designation functions and
+  `outline_object_id_layout` take the galaxy's layout, the plan refuses
+  a reach the layout cannot hold, and a cell beyond the reach is refused
+  with the text "outside the grid". A galaxy planned without a reach
+  keeps the layout its outline needs; an existing galaxy is re-planned
+  or renumbered by a migration like the shell move's (no backward
+  compatibility). Done: the plan stores the reach, every cell inside it
+  round-trips through its designation and object ID at the widest shell,
+  and a cell beyond it is refused. Owner: Core (2026-10-15); the
+  migration, if any, is Core's. Resolves GEN.230's layout question;
+  GEN.230 fixes the band field for the default galaxy first.
+  Prerequisites: GEN.230. Related: GEN.9.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.234 A measured stellar halo replaces the flat density floor**
-  `MIN_RELATIVE_DENSITY` (0.1% of the local density everywhere) is half
-  the real halo at the Sun and 200 to 340,000 times too high at 50 to
-  262 kpc. Add a halo term to `_raw_density`: a broken power law on a
-  spheroid (baseline mass 1.5e9 solar masses = 3% of the visible mass,
-  inner slope 2.5, outer slope 4.5, break 25 kpc = 9.6 disk scale
-  lengths, axis ratio 0.7, flat inside 0.5 kpc), amplitude solved like
-  `k_norm`, radii as ratios to the shape's scale length, plus a `halo`
-  population (age 10 to 13 Gyr, [Fe/H] about -1.6 inside 25 kpc falling
-  to -2.2, dispersion 120 km/s, no rotation). Delete the floor, with no
-  setting. Done: the floor is gone, the halo term integrates to its
-  mass, no cell beyond 8.7 kpc from the core expects a full system and
-  the outline does not move, the density mirror in `galaxyprisms.js`
-  accepts the new population key, and the floor tests are rewritten. The
-  local-density alternative (about 2.7 times higher) is kept as a
-  documented constant. Owner: Core (2026-10-15). Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, and the defaults of its section 8.
+- [ ] **GEN.234 A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations**
+  Step 3 of the whole-sphere train. `MIN_RELATIVE_DENSITY` (0.1% of the
+  local density everywhere) is half the real halo at the Sun and 200 to
+  340,000 times too high at 50 to 262 kpc. Add a halo term to
+  `_raw_density`: a broken power law on a spheroid (baseline mass 1.5e9
+  solar masses = 3% of the visible mass, inner slope 2.5, outer slope
+  4.5, break 25 kpc = 9.6 disk scale lengths, axis ratio 0.7, flat
+  inside 0.5 kpc), amplitude solved like `k_norm`, radii as ratios to
+  the shape's scale length. Add the populations the profile will mix:
+  `halo` (age 10 to 13 Gyr, [Fe/H] about -1.6 inside 25 kpc falling to
+  -2.2, dispersion 120 km/s, no rotation), `cluster` and one class per
+  satellite, each an age window with its own pre-placed share
+  (`bright_star_fraction`, `massive_star_fraction`), and put them in
+  `fractions` and the shell majorants (`band_majorants`) in place of the
+  floor's share. Delete the floor, with no setting. Done: the floor is
+  gone, the halo term integrates to its mass, no cell beyond 8.7 kpc
+  from the core expects a full system and the outline does not move, the
+  density mirror in `galaxyprisms.js` accepts the new population keys,
+  and the floor tests are rewritten. The local-density alternative
+  (about 2.7 times higher) is kept as a documented constant. Owner: Core
+  (2026-10-15).
   Prerequisites: none. Related: GEN.78, GEN.134.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.235 A sector that expects fewer than one system is drawn on visit, and an empty one stores nothing**
-  Three tiers, one rule: a cell's contents are a pure function of the
-  galaxy seed and its address. Inside the outline a cell is generated
-  and filled as today. Inside the reach but outside the outline it is
-  never queued or pre-filled: on a visit `ensure_sector_generated` draws
-  the Poisson count for its expected systems (density model with the
-  halo term and the components), builds that many systems and the cell's
-  rare objects, and stores rows only if there are any. An empty visit
-  costs one 0.06 ms draw and stores nothing. Check first whether any
-  page needs a sector row to exist (sector names). Done: the visit is
-  deterministic (the same address always gives the same draw, empty or
-  not), an empty visit leaves no rows, an occupied one stores exactly
-  what the draw gave, and the outline is only a cached bound on where
-  the sparse tier starts. Owner: Core (2026-10-15). Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, and the defaults of its section 8.
-  Prerequisites: GEN.233, GEN.234. Related: GEN.42.
+- [ ] **GEN.235 One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved**
+  Step 2 of the whole-sphere train. Boss's rule: the program has the
+  same rules everywhere, and each sector carries parameters that tune
+  them to where it is. Add `galaxy/profile.py`, a pure function of the
+  galaxy shape, the component table and the address with no database
+  read: `lambda` (expected systems per cell), `mix` (density by
+  population), per-population age window, [Fe/H], dispersion and
+  rotation, `gas` (cold-gas fraction and the ambient medium with its
+  density), `dark_matter` (density and mass) and `region` (a label for
+  pages). `ensure_sector_generated` generates any asked cell in the
+  reach from its profile with the same Poisson count, population pick
+  and fill, and saves it even when empty (as GEN.76 does now); the
+  outline refusal and `outside_ok` are removed, the reach is the only
+  refusal, and an uncharted cell is never stored. `FillContext` takes a
+  profile. A neighbourhood request out in the halo reports its expected
+  system count and cost before it runs. Check first that no page needs a
+  sector row to exist to show an uncharted cell. Done: the profile is
+  deterministic and needs no database, the same code serves a preview, a
+  scatter and a fill, an asked halo sector is saved as a generated empty
+  sector, and nothing is generated unless asked. Owner: Core
+  (2026-10-15).
+  Prerequisites: GEN.233, GEN.234. Related: GEN.76, GEN.81, GEN.42.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.236 Halo rules for each kind of object: multipliers, zero for what needs gas, and the planet cull by metallicity**
-  Rates stay per star, so a halo cell with few stars follows the
-  existing rule. Per kind: ordinary stars use the `halo` population;
-  neutron stars and black holes at the per-star rate (an old population
-  has 5.2e-3 neutron stars per living star); brown dwarfs and planetary
-  nebulae at the per-star rate; supernova remnants, molecular clouds,
-  emission and reflection nebulae and asteroid fields are zero in the
-  halo (except inside the Magellanic and dwarf components); the runaway
-  flag is relative to the neighbours, not the disk; the 9,000 L_sun
-  bright-star floor finds no halo star and stays. Rogue planets, comets
-  and every halo star's planet set follow the metallicity planet cull of
-  the globular cluster slice (giant planets times 10^(2 [Fe/H]), capped
-  at 1): until it exists a halo system carries a full planet set, which
-  is the one known wrong thing. Done: each rule above is in the
-  generator with a test, and no halo system carries more planets than
-  its metallicity allows. Owner: Core (2026-10-15). Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, and the defaults of its section 8.
-  Prerequisites: GEN.234, GEN.158, GEN.162. Related: GEN.134.
+- [ ] **GEN.236 Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity**
+  Part of step 2 and step 4 of the whole-sphere train. Rates stay per
+  star; the profile supplies a factor for each kind: neutron stars and
+  black holes (bound) 1 for every population (the disk's kick thickening
+  applies to disk populations only), planetary nebulae and brown dwarfs
+  1, supernova remnants the gas fraction (0 in the halo and in
+  clusters), molecular clouds and emission and reflection nebulae the
+  gas fraction times the young share, rogue planets and comets the
+  planet occurrence at the cell's [Fe/H] (until the metallicity value
+  exists, 1: the one known wrong thing is that halo systems carry full
+  planet sets). The 9,000 L_sun bright-star floor finds no halo star and
+  stays; the runaway flag is relative to the neighbours, not the disk.
+  Done: each factor is in the generator with a test, and no halo or
+  cluster system carries more planets than its metallicity allows.
+  Owner: Core (2026-10-15). The Type Ia share and the hosted-nebula
+  rules are GEN.241.
+  Prerequisites: GEN.235, GEN.158. Related: GEN.134, GEN.162.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.237 Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters**
-  One small table of discrete density components generalising the
-  cluster record of GEN.159 (position, velocity, epoch, mass, scale
-  length, profile, age, [Fe/H], kind), with a spatial index so the
-  density call stays cheap. The Milky Way default ships about 160
-  clusters (the Harris catalogue), the LMC (6.2e9 systems), the SMC
-  (1.3e9), the Sagittarius remnant (2.5e8) and the best known dwarfs
-  (Fornax, Draco, Sculptor and others), placed with the embedding of the
-  multiple-galaxies note. Profiles: King for clusters, exponential for
-  the Clouds and Sagittarius, Plummer for dwarfs. Streams are left out
-  of the first release. Verify positions, sizes and masses against
-  McConnachie (2012) or the current Gaia census before any row ships. A
-  galaxy of another shape gets seeded fictional satellites from a
-  luminosity function later (GEN.9). Done: the components add to the
-  density the sector draw uses, so their cells qualify as normal
-  sectors, and each of the Clouds' and Sagittarius's star counts matches
-  its mass. Owner: Core (2026-10-15), sharing slices with GEN.159 and
-  GEN.160. Decided (Boss, 2026-10-15): the research note's
-  recommendation stands: reach 262 kpc (65,535 shells), 96-bit object
-  IDs, and the defaults of its section 8.
-  Prerequisites: GEN.234, GEN.159, GEN.160. Related: GEN.9.
+  Step 5 of the whole-sphere train. GEN.159 (the cluster table and King
+  tables) and GEN.160 (the cluster density term, with its spatial index
+  and the "cluster" population) are built to one table that holds every
+  kind of component: cluster, satellite (stream later), with position
+  and velocity at an epoch, mass, scale radius, profile (King with W0
+  for clusters, exponential for the Clouds and Sagittarius, Plummer for
+  dwarfs), age, [Fe/H] and a core-collapse flag. This item adds the
+  satellite rows and profiles and the density term in the profile and in
+  the shell bounds. The Milky Way default ships about 157 clusters (the
+  Harris catalogue), the LMC (49.6 kpc, 6.2e9 systems), the SMC (62.4
+  kpc, 1.3e9), Sagittarius (about 24 kpc, 2.5e8), Fornax (143 kpc) and
+  the best-known dwarfs, placed with the embedding of the
+  multiple-galaxies note. Verify positions, sizes and masses against
+  McConnachie (2012) or the current Gaia census before any row ships.
+  Open question for Boss (default synthetic generator first): the
+  repository has no catalogue file and this environment cannot reach the
+  Harris catalogue's host; supply the public table (about 157 rows) or
+  allow that host for a one-time ingestion script; until then GEN.164
+  builds first and the real catalogue slots in when it arrives. A galaxy
+  of another shape gets seeded fictional satellites later (GEN.9,
+  GEN.164). Done: components add to the profile's `lambda` and `mix`, a
+  cluster core cell is a queued job with an ETA, and the Clouds' and
+  Sagittarius's star counts match their masses. Owner: Core
+  (2026-10-15).
+  Prerequisites: GEN.235, GEN.159, GEN.160. Related: GEN.9, GEN.161,
+  GEN.164.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.238 Hypervelocity stars reach out to the grid, and kicked neutron stars and black holes follow a radial law**
-  Hypervelocity stars: keep the uniform direction and distance draw out
-  to the reach but drop the outline test (they are wanderers by
-  definition), with the ejection rate and flight-time law (inside radius
-  r there are rate x r / v of them, density falling as r^-2); the code's
-  1e3 to 1e4 total is read as "out to 100 kpc", which puts 84% of them
-  beyond the disk. Kicked neutron stars (20% to 40% of the isolated
-  ones) and black holes (about 2%): a radial law r^-2, speeds 300 to 500
-  km/s above escape, random direction, not pre-placed (about 1e7 rows
-  inside 262 kpc) but drawn when a cell is visited by the same Poisson
-  rule as every other far object. Positions carry epoch and velocity, so
-  the nightly update (GEN.223) moves them like everything else. Done:
-  the placement is a pure function of the seed, none is redrawn for
-  landing outside the outline, and the counts per radius match the law.
-  Owner: Core (2026-10-15), after GEN.232 (a fast body's path
-  integration runs for minutes until it is capped). Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, and the defaults of its section 8.
-  Prerequisites: GEN.233, GEN.232. Related: GEN.223.
+- [ ] **GEN.238 Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population**
+  Part of step 6 of the whole-sphere train. Hypervelocity stars keep
+  their pre-placement (direction uniform on the sphere, distance uniform
+  to the reach, density falling as r^-2, speed 500 to 1,000 km/s) but
+  lose the outline test; the code's 1e3 to 1e4 total is read as "out to
+  100 kpc", which puts 84% of them beyond the disk. Kicked neutron stars
+  (20% to 40% of the isolated ones) and black holes (about 2%) are an
+  `ejecta` population: density N / (4 pi r^2 v T) out to v T, speeds 300
+  to 500 km/s above escape, random direction. They are not pre-placed
+  (about 1e7 rows inside 262 kpc, 1e-8 per cell): they join the cell's
+  `lambda` for neutron stars and black holes in the profile and are
+  drawn at fill. Positions carry epoch and velocity, so the nightly
+  update (GEN.223) moves them like everything else. Done: placement is a
+  pure function of the seed, none is redrawn for landing outside the
+  outline, and the counts per radius match the law. Owner: Core
+  (2026-10-15), after GEN.232 (a fast body's path integration runs for
+  minutes until it is capped).
+  Prerequisites: GEN.233, GEN.232, GEN.235. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
-  High-velocity clouds are the one gas item in the halo worth rows: a
-  few hundred, pre-placed like the molecular cloud field
-  (`nebula_field`) at 2 to 15 kpc, and the Magellanic Stream at about 55
-  kpc and beyond. The discrete cloud count is not known from the
-  searches done; get it before building. Done: the clouds exist as
-  placed gas objects and the Stream is a chain of them. Later, after the
-  components. Owner: Core (2026-10-15). Decided (Boss, 2026-10-15): the
-  research note's recommendation stands: reach 262 kpc (65,535 shells),
-  96-bit object IDs, and the defaults of its section 8.
-  Prerequisite: GEN.237. Related: GEN.202.
+  Step 10 of the whole-sphere train. High-velocity clouds are the one
+  gas item in the halo worth rows: a few hundred, placed like the
+  molecular cloud field (`nebula_field`) at 2 to 15 kpc, and the
+  Magellanic Stream at about 55 kpc and beyond. The discrete cloud count
+  is not known from the searches done; get it before building. Done: the
+  clouds exist as placed gas objects and the Stream is a chain of them.
+  Later, after the components. Owner: Core (2026-10-15).
+  Prerequisites: GEN.237. Related: GEN.202, GEN.241.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.240 The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass**
+  Step 6 of the whole-sphere train. The bright-star and mass passes keep
+  their algorithm (one Poisson count per shell from a certified bound,
+  bands in proportion, accept by true density over bound;
+  `object_first.py`) but take the halo term in `band_majorants`, the new
+  populations in `fractions`, and band groups of 64 bands beyond the
+  outline: to 262 kpc that is about 2 minutes a pass instead of 2.25
+  hours, with under 10% efficiency loss beyond 8 kpc. The phenomena pass
+  walks every band of every shell today (`_band_rows`), which cannot
+  reach 262 kpc; it moves to the same object-first sampler, with its
+  rates, cut and below-cut draw at sector time unchanged. Components
+  (clusters, Clouds, Sagittarius) get their own pass: total star count
+  from the mass, positions by inverse transform of the profile table,
+  each star kept or dropped by the same pass cut, and the sector fill
+  adds the component's density to `lambda` so no pre-placed star is
+  counted twice. At the defaults the passes place nothing in the halo,
+  clusters or old satellites, a few thousand stars in the Clouds, and
+  about 2.4 million extra black-hole rows outside the disk (4% on top of
+  the disk's scatter). Done: the three passes cover the reach with the
+  same code, a pre-placed star is never drawn again at fill, and the
+  yields match the design note's table. Owner: Core (2026-10-15), after
+  GEN.232 (the cap on path integration for fast bodies); the wanderers
+  are GEN.238. Decided (Boss, 2026-10-15): the research note's
+  recommendation stands: reach 262 kpc (65,535 shells), 96-bit object
+  IDs, one rule set everywhere with per-sector parameters, nothing
+  generated unless asked, and an asked sector always generated and
+  saved.
+  Prerequisites: GEN.232, GEN.234, GEN.235, GEN.237. Related: GEN.238,
+  GEN.223.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.241 The required objects of a nebula are decided by its kind, not its place, and are made when the nebula is made**
+  Step 11 of the whole-sphere train (design note section 5.10).
+  Planetary nebulae (a white dwarf) and supernova remnants (a neutron
+  star, black hole or nothing) keep building their core at creation in
+  any cell. Emission, reflection and Wolf-Rayet nebulae are hosted: the
+  host star is chosen first from the cell's young population and the
+  nebula grown around it; the cluster classes D, E and G get real member
+  stars drawn from the young mix (or the class is not offered in that
+  cell), and embedded protostars for classes P and Q become real objects
+  or the class is withheld. The Type Ia remnant share becomes a profile
+  field (1 where there is no young population); core-collapse remnants
+  and hosted nebulae scale with the young share, planetary nebulae and
+  Type Ia remnants with the old share, molecular clouds with `gas`;
+  `nebula_field` must read the cell's `gas`, not the disk position
+  alone. The Wolf-Rayet class is added with the anomalies lane. Done: an
+  asked halo cell never shows an H II region or a pulsar-bearing
+  remnant, a planetary nebula always has its white dwarf, every hosted
+  nebula holds its host star, and a Magellanic cell can show all of
+  them. MAP.182 (hosted nebulae for pre-placed stars) stays do not build
+  unless Boss asks. Owner: Core (2026-10-15). Decided (Boss,
+  2026-10-15): the research note's recommendation stands: reach 262 kpc
+  (65,535 shells), 96-bit object IDs, one rule set everywhere with
+  per-sector parameters, nothing generated unless asked, and an asked
+  sector always generated and saved.
+  Prerequisites: GEN.235, GEN.236. Related: MAP.182, GEN.202, GEN.99.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -4315,6 +4416,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the only user, so no 3 route is kept). Not a bug.
   Prerequisites: none. Related: API.4.
 
+- [ ] **API.27 A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed**
+  Step 8 of the whole-sphere train. A route returns the profile of an
+  address (expected systems, mix, gas, dark matter, kind factors)
+  computed from the address alone, with nothing stored and no sector row
+  needed, for the sector page (UX.113), the neighbourhood cost line and
+  any client. It follows the API standards (error bodies, versioning,
+  the per-key log of API.15). Done: the route answers in microseconds
+  for any address inside the reach, refuses one beyond it with the
+  grid's own message, is documented in docs/api.md and has tests. Owner:
+  Interface asks Core for the profile function (GEN.235). Decided (Boss,
+  2026-10-15): the research note's recommendation stands: reach 262 kpc
+  (65,535 shells), 96-bit object IDs, one rule set everywhere with
+  per-sector parameters, nothing generated unless asked, and an asked
+  sector always generated and saved.
+  Prerequisites: GEN.235. Related: UX.113, API.15.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -4892,6 +5010,24 @@ clears each one.
   a point maps to the sector whose bounds contain it. Owner: Quality
   (2026-10-15), taken alongside TEST.156. Not a bug.
   Prerequisites: none. Related: TEST.156.
+
+- [ ] **TEST.159 Whole-sphere tests: required contents per nebula kind, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
+  Step 13 of the whole-sphere train. Tests: no emission, reflection or
+  core-collapse remnant in a halo or old cluster cell; a planetary
+  nebula always has its white dwarf; a core-collapse remnant has a
+  compact core at the stated share; every hosted nebula holds its host
+  star; tiling and the object ID round trip at the widest shell of the
+  reach; the profile and an empty sector are deterministic; the
+  pre-placed share of every population; no double count of a cluster
+  star; the King solver against the textbook concentrations. Done: each
+  test above exists and runs in the normal suite. Owner: Quality (all
+  TEST items are Quality's), written beside each build step. Decided
+  (Boss, 2026-10-15): the research note's recommendation stands: reach
+  262 kpc (65,535 shells), 96-bit object IDs, one rule set everywhere
+  with per-sector parameters, nothing generated unless asked, and an
+  asked sector always generated and saved.
+  Prerequisites: GEN.233, GEN.235, GEN.236, GEN.241. Related: TEST.156.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## USR: User accounts
 
@@ -5546,14 +5682,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Not a bug.
   Prerequisites: none. Related: DOC.27, DOC.28 (done, PR #1628).
 
-- [ ] **DOC.48 Docs: the halo and the reach in the density and coordinate-system notes**
+- [ ] **DOC.48 Docs: the reach, the halo and the profile rules in the density, coordinate, cluster and object-rate notes**
+  Step 12 of the whole-sphere train.
   `docs/design/galaxy-disk-density.md` says the stellar halo is not
-  modelled beyond the floor, and
-  `docs/design/galaxy-coordinate-system.md` section 4 describes only the
-  outline. Done: both describe the halo term, the reach versus the
-  outline, the sparse tier and the 96-bit layout as built. Owner:
-  Quality, after the code.
-  Prerequisites: GEN.233, GEN.234.
+  modelled beyond the floor, `docs/design/galaxy-coordinate-system.md`
+  section 4 describes only the outline,
+  `docs/design/globular-clusters.md` needs its status, and
+  `docs/design/interstellar-object-rates.md` needs the populations and
+  the kind factors. Done: all four describe the halo term, the reach
+  versus the outline, the profile, the components, the kind factors and
+  the 96-bit layout as built. Owner: Quality, after the code.
+  Prerequisites: GEN.233, GEN.234, GEN.235, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## VIEW: The view from a planet
