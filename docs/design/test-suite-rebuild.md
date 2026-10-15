@@ -280,3 +280,4 @@ The first capture with full reports (`/mnt/project-files/test-suite-rebuild/fail
 - TEST.147 the nebula field table tests: the galaxy seed was random per database and 5 of 80 seeds had no class M or N cloud reaching the sampled sectors. Fixed with a fixed seed.
 
 Lesson for the rest of the flake list: before calling a failure load, run it in a loop on an idle machine; a test that builds random data without a seed can fail at any load.
+- TEST.149, second test: `test_atmospheric_pressure_correlates_positively_with_gravity` is statistical. With 40 planets per class the Pearson r is 0.10 with a spread of 0.04 (Spearman 0.60, spread 0.02), so r of 0 or less came up in about 1 run in 100. 320 per class makes the spread 0.017 and costs 1.4 s a run. A statistical test needs a sample whose spread is a few times smaller than the distance to its threshold.

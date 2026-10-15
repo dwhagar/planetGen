@@ -296,24 +296,28 @@ def test_atmospheric_pressure_correlates_positively_with_gravity():
     magnitude) used to be part of this sample and pulled both correlations
     much higher (Spearman reliably >0.5) -- since their removal (see
     CHANGELOG.md), the remaining gas giants (I/J/T) span a much narrower
-    gravity range, so the correlation is real but weaker (observed Spearman
-    ~0.17-0.22, Pearson ~0.22-0.25 across repeated runs) -- still clearly,
-    consistently positive and a clear improvement over the pre-fix ~-0.11,
-    just not >0.5 anymore with this narrower class mix.
+    gravity range, so the correlation is real but weaker -- still clearly,
+    consistently positive and a clear improvement over the pre-fix ~-0.11.
+
+    Sample size (TEST.149): measured over 300 repeated samples, Spearman is
+    ~0.60 (sd 0.02) and Pearson only ~0.10 (sd 0.04) with 40 planets per
+    class, so a Pearson r of 0 or less was 2.4 standard deviations away and
+    failed about one run in a hundred on random draws. 320 per class makes
+    that nearly 6 standard deviations.
     """
     records = []
     for cls in ("A", "B", "C", "E", "F", "M", "N", "O", "P"):
         zone = next((z for z in "hec" if prog_c.PLANET_CLASSES[cls][z]), None)
         if zone is None:
             continue
-        records.extend(plausibility.generate_sample(cls, zone, 40, include_moons=False))
+        records.extend(plausibility.generate_sample(cls, zone, 320, include_moons=False))
     for cls in ("I", "J", "T"):
-        records.extend(plausibility.generate_sample(cls, "c", 40, include_moons=False))
+        records.extend(plausibility.generate_sample(cls, "c", 320, include_moons=False))
 
     records = [r for r in records if r["has_atmosphere"]]
     gravities = [r["gravity"] for r in records]
     pressures = [r["atmospheric_pressure"] for r in records]
-    assert len(gravities) >= 300
+    assert len(gravities) >= 2400
 
     pearson = _pearson_correlation(gravities, pressures)
     assert pearson > 0, f"gravity/pressure Pearson correlation {pearson:.3f} is not even positive"
