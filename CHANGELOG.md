@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1341] - 2026-10-15
+
+### Changed
+- `planetgen galaxy` and `plan` run on shells to the end: single sectors, bands, shells, spans, courses and random starts fill by `(shell, band, wedge)`; the plan stages, the backfill and the sector paths read and write the shell columns; the galactic nucleus is the one core sector. The bright-star backfill and the sector-stats lock read `sector_stats` by its primary key, so concurrent backfills lock rows in address order (they could deadlock on the level index).
+- The block-totals step of a `galaxy` run and `plan --fill-block-stats` are gone with the `galaxy_block_stats` table; the Galaxy Map's ladder brings its totals back with MAP.205.
+- `SectorCell.contains` refuses a non-finite point (a cap or the core accepted NaN).
+
+TODO items resolved: GEN.227 / Added: none
+
 ## [8.0.1340] - 2026-10-15
 
 ### Changed
