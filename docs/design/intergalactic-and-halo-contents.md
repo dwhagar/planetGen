@@ -342,6 +342,44 @@ Consequences for the profile (section 5.3): emission, reflection, Wolf-Rayet and
 
 **In the sphere profile** (section 5.3): `kind_factors["wolf-rayet"]` is not a number to tune but the massive-star density the profile already carries; the metallicity-dependent threshold is the only new per-population field. Disk and Magellanic-type cells get them; halo, old clusters, old satellites, the bulge and implicit uncharted far cells do not. Counts in the sphere at the default floors [C]: about 1,200 in the Milky Way disk, none beyond it except the Cloud estimates above if the Cloud population is built.
 
+### 5.12 Systems around Wolf-Rayet stars and protostars, and more phenomenon types
+
+Boss asked whether Wolf-Rayet stars and protostars can have star systems the way a black hole or neutron star can, and whether we need more phenomenon types.
+
+**What black holes and neutron stars get today** [S]:
+- A scattered or rolled black hole or neutron star is a standalone phenomenon row with no system around it (`run_sector._build_scattered`, lines 449 and 454, `sector.add_phenomenon`).
+- A system is built around one only on request, with `phenomenon --anchor-system` (`run_phenomenon.py:70` and `:73` pass the remnant as `StarSystem(compact_remnant=...)`). `StarSystem.__init__` puts it in as the star (`system.py:234`) and skips binary generation whenever a remnant is passed (`system.py:255`; the docstring at `compact_remnant.py:36` calls the companion "a natural follow-up").
+- Planets come out at zero because the snow-line ceiling for a dim remnant is zero (`compact_remnant.py:30`).
+- The rules for the company they keep are designed (`multistar-and-compact-systems.md` 7.3 and 7.6: white dwarf, young neutron star none, millisecond pulsar 1% with planets, dormant black hole with a Gaia-type companion) but GEN.129 and GEN.130 are still open (`TODO.md:2672`).
+
+So a remnant is a special `Star` subclass on a separate path. A Wolf-Rayet star or protostar is the opposite: in the design above both are **states of an ordinary star** (`evolve_star`), so they are ordinary `Star` objects and get ordinary star systems with no special path.
+
+| | Wolf-Rayet star | Protostar |
+|---|---|---|
+| Known | binary fraction about 0.4 observed; Dsilva et al. find 0.52 for WN and 0.96 for WC once the survey's bias is modelled; WN binaries mostly short-period like O stars, WC periods peak near 5,000 days [S]. No planet is known around one [R]. The star lives about 4 Myr and sheds 40% to 60% of its mass, which would widen any orbit by the same factor and then the star explodes; the massive neighbour's ultraviolet also shortens disks [S, I] | Perseus survey, 15 to 10,000 AU: multiplicity fraction 0.57 for Class 0, 0.23 for Class I (0.33 for six Class II systems), companion star fraction 1.2 for Class 0, 0.71 overall [S]. Disks are common at this age and planets are still forming, with a disk lifetime around 3 Myr and dispersal within about 1 Myr, inside out [S] |
+| Already in the generator | the planet draw drops every non-belt body around a star younger than `PLANET_MIN_STAR_AGE_GY` = 0.01 Gy (`system.py:1024`, `tuning.py:579`, "planet formation takes about 10 Myr"), so a W star or protostar keeps **belts at most** with no new code | the same rule |
+| Recommended rule | an ordinary system: **no planets, belts allowed** (a debris ring is real for evolved massive stars [R]); companions from the normal binary machinery with the W star's own fractions: 50% for WN, 90% for WC (the intrinsic 0.96, capped), companion an O or B star or a compact object, period drawn from the WN or WC law above; after GEN.129 the same fractions work for trees | an ordinary system: **no planets yet**, a `disk` descriptor on the star (class 0, I or II by age under 0.15, 0.5 and 3 Myr [I]; mass 0.01 to 0.3 of the star, outer radius 10 to 300 AU [R]), no bodies in it; companions from the Perseus multiplicity (Class 0 0.57, Class I 0.23), higher than the field's 0.26 to 0.45, drawn by the same code |
+| Where it comes from | the bright and mass passes place the star as a pre-placed row; the system is built when its sector fills | made with its Q or P core (section 5.10); the system is built when the core's sector fills |
+
+This also covers a question Boss did not ask: a **planetary nebula's central white dwarf** already is an ordinary system (`_add_planetary_nebula` builds it with the normal draw), so planets there are possible but engulfment removes the inner ones.
+
+**Build-order note (Boss, 2026-10-15):** if the nebula, Wolf-Rayet and pre-main-sequence steps (11 to 13 of section 9) are not researched and planned by the time the spherical layout is ready, they are skipped and picked up after it. Nothing in steps 1 to 10 depends on them: the profile's `kind_factors` simply has no entry for the new kinds until they exist.
+
+**Further phenomenon types the whole-sphere design lacks.** None is needed for the layout; each is a rule to plan later. Counts are not researched here:
+
+| Missing | Rule I would use |
+|---|---|
+| Young open clusters and OB associations | a component of the same table as globular clusters (section 5.5): a Plummer profile, age under 1 Gyr, disk-bound; the hosted nebulae of 5.10 are their youngest form; one kind with a different age window and [Fe/H] |
+| Protoplanetary and debris disks | the `disk` descriptor above for stars under 10 Myr; a debris-disk flag for A and F stars (Vega type [R]); a descriptor on the star, no new rows |
+| Luminous blue variables and hypergiants | states of the massive-star model like Wolf-Rayet (a short window before it, with an ejecta nebula); rare (tens in the Galaxy [R]) |
+| Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors | subtypes of white-dwarf-plus-companion systems once GEN.129 and GEN.130 exist (the symbiotic one is already in `anomalies.md`); follows the old-star share, so they appear in halo and clusters |
+| X-ray binaries, microquasars, magnetars | already designed in `anomalies.md` and `multistar-and-compact-systems.md` 7.3; follow the young share |
+| Pulsar wind nebulae, superbubbles, Fermi bubbles | already in `anomalies.md` (the plerion morphology exists); the superbubble field zeroes the clouds inside it |
+| Tidal streams and high-velocity clouds | placed components of the halo: streams as an elongated density term, clouds as gas objects (build step 10) |
+| Hot halo and circumgalactic gas | the `gas` field of the profile (section 5.3) with its ambient medium; no objects |
+| Be stars and other stellar attributes (decretion disks, carbon stars, Mira variables) | state or attribute on an ordinary star; no new kind |
+| Transients: gamma-ray bursts, fast radio bursts, kilonovae | out of scope: they have no persistent object to place |
+
 ## 6. What it costs
 
 | Item | Cost | Tag |
@@ -415,3 +453,6 @@ All read as search-result summaries; none opened in full.
 - Satellites: [The Massive Satellite Population of Milky-Way Sized Galaxies](https://arxiv.org/pdf/1306.4328); [The mass of our Milky Way](https://arxiv.org/pdf/1912.02599); [LMC mass from S5 streams](https://arxiv.org/pdf/2107.13004).
 - In this repository: `galaxy-disk-density.md`, `interstellar-object-rates.md`, `compact-remnant-regions.md`, `globular-clusters.md`, `multiple-galaxies.md`, `galactic-potential.md`, `sampling-backfill-and-resume.md`, `spherical-sector-coordinates.md`, `galaxy-coordinate-system.md`; `src/planetgen/galaxy/{density,skeleton,spherical,object_uid}.py`, `generation/phenomenon_scatter.py`, `tuning.py`.
 - Computations: `/mnt/project-files/research/scripts/halo/halo_numbers.py` and `halo_numbers.txt`.
+- Wolf-Rayet multiplicity: [Wolf-Rayet stars: recent advances and persisting problems](https://arxiv.org/pdf/2208.02614); [A spectroscopic multiplicity survey of Galactic Wolf-Rayet stars III](https://arxiv.org/pdf/2212.06927); [The multiplicity of Galactic Wolf-Rayet stars](https://cris.iucc.ac.il/en/publications/the-multiplicity-of-galactic-wolf-rayet-stars/)
+- Protostar multiplicity: [VANDAM survey of Perseus protostars II](https://arxiv.org/pdf/1601.00692); [Class 0 multiplicity pilot survey](https://arxiv.org/pdf/1001.3691)
+- Disk dispersal and external photoevaporation: [The dispersal of protoplanetary disks around binary stars](https://arxiv.org/pdf/1209.0779) (search-result summaries only)
