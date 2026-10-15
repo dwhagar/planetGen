@@ -3879,8 +3879,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   new ID built from its new sector in the conversion, and every table
   that stores an object ID is rewritten with it; positions are
   unchanged. Nothing is regenerated and nothing is deleted except sector
-  rows. Merged only with Boss's go-ahead (it rewrites the
-  whole sector map). Owner: Spherical Sector Coordinates thread (the
+  rows. The final PR to main merges on a green gate without waiting for
+  Boss's word (Boss, 07:56Z: "Do not wait for my word to merge unless
+  there becomes an outstanding question that you do not have a reasonable
+  default for"), even though it rewrites the whole sector map. Owner: Spherical Sector Coordinates thread (the
   only migration lane while this runs). Source: item 4 of section 6 of
   the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
   lines from pole to pole make a wedge (vert), shell (radius), and band
