@@ -353,7 +353,7 @@ test("the whole galaxy has no grid lines; a window shows the lines between its b
   await drillOnce(m);
   assert.equal(m.view.stage().win.centre.m, 27);
   assert.deepEqual(gridEdges(m), [1]);
-  assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "chartedLines"]);
+  assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "chartedLines", "hovered"]);
 });
 
 test("the whole galaxy turns and zooms in to half its fit, never out past it", async () => {
