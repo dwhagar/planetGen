@@ -210,8 +210,23 @@ changes.
 
 ## Tech levels (POP.7, POP.8, POP.9)
 
-Not built. This section is the POP.8 design: how the six domain indices
-are drawn from a species' age, era and world. POP.9 builds it. Boss's
+As built (POP.8): `planetgen/population/tech.py` draws the six indices
+(`draw_indices`), computes the tech level (`tech_level`), the band name
+(`band_name`), the limiting domain and the lopsided flag, with every number of
+the parameter table below in `tuning.py` (`TECH_*`). Run on species aged
+log-uniformly under the shipped windows it gives the table of results
+below (medians 3.0 Industrial, 4.0 Interplanetary, 5.2 Interstellar, 6.0 to
+6.1 for the three oldest eras; p5 about 2.0 to 4.9; p95 up to 7.0 because the
+indices are rounded to integers and a lopsided species can reach 7). Two
+readings of the text that the doc leaves open: the collapse rate "per decade
+of age" is per decade of log10 age past 100 years (which gives the stated 30%
+of species with a collapse), and a species' ceiling and each domain's ceiling
+are clipped at 7. Not built yet (POP.9): the columns, the pass that fills
+them, and the species page and search, which wait for a migration from
+Foundations Database.
+
+This section is the POP.8 design: how the six domain indices
+are drawn from a species' age, era and world. POP.9 builds the storage. Boss's
 source is [Technological Assessment.md](Technological%20Assessment.md)
 (uploaded, not edited); "TA" below cites its sections. Evidence tags: [S]
 seen in search results, [C] computed, [R] recalled and unconfirmed (see
