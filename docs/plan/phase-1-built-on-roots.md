@@ -22,6 +22,23 @@ Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
 
+### Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z)
+
+Owned by the dedicated thread "Spherical Sector Coordinates" for the first six items (plan: [spherical-sector-coordinates.md](../design/spherical-sector-coordinates.md)); Maps, Test Suite and Docs take the rest after item 6. Ahead of every lane queue.
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.224 | Spherical grid module: shells, bands, wedges, caps and the core ball |  |  |
+| GEN.225 | Outline and bounds on shells | GEN.224 |  |
+| GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | GEN.224 |  |
+| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and migrate | GEN.224, GEN.225, GEN.226 |  |
+| GEN.227 | Generation paths on shells | GEN.224, GEN.225, GEN.226, DB.32 |  |
+| UX.111 | Reads, API and web wording on shells | DB.32, GEN.227 |  |
+| MAP.205 | Galaxy Map block ladder for shells | UX.111 |  |
+| MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
+| TEST.156 | Rewrite the tests that name ring, layer and slot | GEN.224 |  |
+| DOC.46 | Docs for the spherical sector grid | UX.111 |  |
+
 ### References
 
 | ID | Item | Needs | Note |
