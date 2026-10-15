@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1255] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the sector view star size match (MAP.203) as open work; it merged in #1519, and Bugfixes lane 1 is empty and retired.
+
+TODO items resolved: MAP.203 / Added: none
+
 ## [8.0.1254] - 2026-10-15
 
 ### Added
