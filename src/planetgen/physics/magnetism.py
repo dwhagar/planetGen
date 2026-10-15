@@ -31,6 +31,19 @@ section 3.5 (design defaults):
    (p_sw / 2.24 nPa)^(-1/6)`, the wind pressure scaling with the star's
    surface X-ray flux to the 1.3 (capped at 10x solar, 1x under 0.4 solar
    masses) over distance squared. `None` without a field.
+6. **Induced field of an ocean moon** (GEN.178). A moon with a conducting
+   liquid ocean answers its parent's changing field with an induced dipole
+   (Europa and Callisto). The parent's field at the moon's orbit,
+   `mu0 M_p f_dip / (4 pi a^3)`, is seen to oscillate at the synodic period
+   `1 / |1/P_rot - 1/P_orb|` with `EXCITATION_SHARE` (0.4) of its strength,
+   which gives Europa's ~200 nT amplitude for Jupiter's 1.56e27 A m2. The
+   ocean answers as a thin conducting shell, `|A| = x / sqrt(1 + x^2)`,
+   `x = omega mu0 Sigma R / 2` for the shell's conductance `Sigma = sigma h`
+   at the shell's radius R (Europa: A = 0.97 [R]), and the induced dipole is
+   `2 pi R_moon^3 A B_exc / mu0`, stored as `induced_moment_a_m2` beside the
+   intrinsic `magnetic_moment_a_m2`. `sigma` is a planetGen default per ocean
+   class (`OCEAN_CONDUCTIVITY_S_M`; Europa's magnesium-sulfate ocean 2.75 S/m
+   [Hand and Chyba 2007]). Nothing is drawn.
 
 `dipole_class`: none, weak (under 0.01 Earth's), Earth-like, strong (over 5
 Earth's) or multipolar (`f_dip` under 0.5).
@@ -42,7 +55,7 @@ from planetgen.physics import activity, constants
 from planetgen.util import draw
 
 BODY_FIELDS = (
-    "magnetic_moment_a_m2", "dipole_class", "magnetopause_rp",
+    "magnetic_moment_a_m2", "dipole_class", "induced_moment_a_m2", "magnetopause_rp",
     "xuv_flux_earth", "xuv_exposure_index", "flare_irradiation_index",
 )
 """tuple: What this module sets on a planet or moon, as stored in `planets`
@@ -73,6 +86,21 @@ GANYMEDE_CHANCE = 0.1
 GIANT_ANCHORS = ((17.0, 3e24), (95.0, 5e25), (318.0, 1.5e27))
 """tuple: `(mass in Earth masses, dipole moment A m2)` for Neptune, Saturn
 and Jupiter."""
+
+VACUUM_PERMEABILITY = 4e-7 * math.pi
+"""float: mu0, T m/A."""
+EXCITATION_SHARE = 0.4
+"""float: The share of the parent's equatorial dipole field that reaches a moon
+as a changing field (tilt, plasma sheet): Jupiter's 520 nT at Europa gives the
+~200 nT amplitude Galileo saw. A planetGen default."""
+OCEAN_CONDUCTIVITY_S_M = {
+    "ice-sealed": 0.5, "chloride brine": 5.0, "acid sulfate": 10.0, "soda": 3.0, "neutral": 2.75, None: 2.75,
+}
+"""dict: Electrical conductivity of an ocean by `ocean_class`, S/m: a cold
+dilute ocean 0.5, Europa's MgSO4 2.75 (Hand and Chyba 2007), sodium carbonate
+3, saturated chloride 5, sulfuric acid 10 (planetGen defaults)."""
+INDUCTION_HYDROSPHERES = ("ice-covered ocean", "surface ocean", "hycean")
+"""tuple: The states with a liquid ocean for an induced field."""
 
 EARTH_STANDOFF_RP = 9.75
 EARTH_WIND_PA = 2.24e-9
@@ -183,6 +211,58 @@ def generate_field(body):
         body.dipole_class = "earth-like"
     distance = getattr(body, "_star_distance_au", None)
     body.magnetopause_rp = magnetopause_rp(body, distance) if distance else None
+
+
+def synodic_period_s(parent_rotation_hours, orbital_period_years):
+    """The period at which a moon sees the parent's field turn, s; `None` when
+    the parent turns with the moon (tidally locked: nothing oscillates)."""
+    if not parent_rotation_hours or not orbital_period_years:
+        return None
+    rate = abs(1.0 / (parent_rotation_hours * 3600.0)
+               - 1.0 / (orbital_period_years * constants.SECONDS_PER_YEAR))
+    return 1.0 / rate if rate > 1e-12 else None
+
+
+def induced_moment(parent_moment_a_m2, orbit_radius_m, synodic_s, moon_radius_m, shell_conductance_s, shell_radius_m):
+    """
+    The induced dipole moment of a moon's ocean, A m2 (rule 6), and the
+    response `|A|` it gave, as `(moment, response)`.
+
+    Args:
+        parent_moment_a_m2: The parent's dipole moment (times its dipole share).
+        orbit_radius_m: The moon's distance from the parent.
+        synodic_s: The excitation period (`synodic_period_s`), `None` for none.
+        moon_radius_m: The moon's radius.
+        shell_conductance_s: The ocean's conductance `sigma h`, siemens.
+        shell_radius_m: The ocean shell's radius (the moon's less its ice).
+    """
+    if not parent_moment_a_m2 or not synodic_s or shell_conductance_s <= 0.0 or orbit_radius_m <= 0.0:
+        return 0.0, 0.0
+    excitation_t = EXCITATION_SHARE * VACUUM_PERMEABILITY * parent_moment_a_m2 / (4.0 * math.pi * orbit_radius_m ** 3)
+    omega = 2.0 * math.pi / synodic_s
+    x = omega * VACUUM_PERMEABILITY * shell_conductance_s * shell_radius_m / 2.0
+    response = x / math.sqrt(1.0 + x * x)
+    return 2.0 * math.pi * moon_radius_m ** 3 * response * excitation_t / VACUUM_PERMEABILITY, response
+
+
+def generate_induced_field(moon, parent):
+    """Sets `induced_moment_a_m2` on a moon from its parent planet's field
+    and its own ocean (rule 6; no draws): 0 for a moon with no liquid ocean,
+    no parent field or a parent that turns with it. Call once the moon's
+    water and orbit are set and the parent's field exists."""
+    moon.induced_moment_a_m2 = 0.0
+    if getattr(moon, "hydrosphere", None) not in INDUCTION_HYDROSPHERES:
+        return
+    depth_m = (getattr(moon, "ocean_depth_km", None) or 0.0) * 1000.0
+    if depth_m <= 0.0:
+        return
+    parent_moment = (getattr(parent, "magnetic_moment_a_m2", None) or 0.0) * body_dipole_share(parent)
+    synodic = synodic_period_s(getattr(parent, "rotation_period_hours", None), moon.period)
+    radius_m = moon.radius * 1000.0
+    shell_radius_m = max(radius_m - (getattr(moon, "ice_shell_km", None) or 0.0) * 1000.0, 0.0)
+    conductivity = OCEAN_CONDUCTIVITY_S_M.get(getattr(moon, "ocean_class", None), OCEAN_CONDUCTIVITY_S_M[None])
+    moon.induced_moment_a_m2 = induced_moment(
+        parent_moment, moon.distance * constants.AU_TO_M, synodic, radius_m, conductivity * depth_m, shell_radius_m)[0]
 
 
 def wind_pressure_pa(star, distance_au):

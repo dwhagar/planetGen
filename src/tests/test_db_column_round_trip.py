@@ -76,7 +76,9 @@ NULL_IN_THIS_GALAXY = {
     ("system_configs", "age"): "only with --age",
     # v87 (DB.26): the columns the Generation lane fills (GEN.148, GEN.150, GEN.178, GEN.207) once it lands (GEN.207's are written now).
     **{(table, column): "not generated yet" for table in ("planets", "moons") for column in (
-        "induced_moment_a_m2", "flux_variation")},
+        "flux_variation",)},
+    # GEN.178: only a moon has an induced field.
+    ("planets", "induced_moment_a_m2"): "moons only",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
