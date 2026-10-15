@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1244] - 2026-10-15
+
+### Added
+- The TODO list gains two description items: UX.108 puts phenomena, sectors, the galaxy and facilities into the same description document, and UX.109 removes the old per-class description text.
+
+TODO items resolved: none / Added: UX.108, UX.109
+
 ## [8.0.1243] - 2026-10-15
 
 ### Changed
