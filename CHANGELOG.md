@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1380] - 2026-10-15
+
+**Headline:** The whole-sphere design note now states that the nebula, Wolf-Rayet and protostar steps are filed (GEN.241 to GEN.243) and marks the other phenomenon types as a plan-later list.
+
+### Changed
+- Corrected the build-order note and labelled the further phenomenon types as plan-later in `docs/design/intergalactic-and-halo-contents.md`. No code changed.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1379] - 2026-10-15
 
 **Headline:** The whole-sphere design note now says what systems Wolf-Rayet stars and protostars get, compared with black holes and neutron stars, and lists the phenomenon types still missing.
