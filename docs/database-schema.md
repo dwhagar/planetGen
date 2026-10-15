@@ -1000,7 +1000,7 @@ One row per generated sector.
 | `edge_mpc` | DOUBLE | NOT NULL | Cube edge length, milliparsecs. Native generator value is `SpaceSector.edge_ly` (light-years). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`planetgen sector`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
-| `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v32, `planetgen/galaxy/geometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (one sector edge, 4 pc, wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
+| `shell_index`, `band_index`, `wedge_index` | INT | nullable | This sector's address on the spherical grid (v91, DB.32, `planetgen/galaxy/spherical.py`; see `docs/design/spherical-sector-coordinates.md`): the shell (distance from the galactic centre in 4 pc steps; shell 0 is the core ball), the band (latitude; band 0 holds the plane and a shell's end bands are its polar caps) and the wedge (longitude, counted from the +X meridian). Named `ring_index`, `layer_index` and `ring_slot_index` on the cylindrical grid until v90. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
 | `wiki_url` | VARCHAR(2048) | nullable | Where this sector's summary page lives on a wiki (v23) — set either by `POST /api/sectors/<id>/wiki` (uploading `planetgen/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (the `/admin` page's manual-link form, `web/admin_pages.py`). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
 | `version_key`, `planetgen_version`, `python_version`, `platform` | CHAR(22), VARCHAR(32), VARCHAR(32), VARCHAR(64) | nullable, `version_key` indexed | Added in v67 (DB.7). The code that generated the sector: the packed version key (`planetgen/galaxy/version_key.py`) and the release, Python and platform strings it stands for, as `galaxy_shape` records them for the plan. NULL on a sector generated before v67. The Generate page and `planetgen galaxy` warn when the running version differs from a sector's (`galaxy/version_check.py`). |
 | `created_at` | TIMESTAMP | NOT NULL | Added in v27. See "Row timestamps (v27)" above. |
@@ -1012,7 +1012,7 @@ history" above for why that addition needed a wholesale table rewrite
 rather than an incremental `ALTER TABLE`). A cell's corners are
 closed-form (`galaxyGeometry.sector_cell_vertices_pc`), so none are
 stored (v32 dropped the old `sector_vertices` table). A
-`UNIQUE (ring_index, layer_index, ring_slot_index)` constraint
+`UNIQUE (shell_index, band_index, wedge_index)` constraint
 (`uq_sectors_address`) guarantees at most one sector per galaxy address —
 NULL-together rows (never placed in a galaxy) don't collide with each
 other or with a placed sector, ordinary SQL `NULL` semantics for `UNIQUE`.
@@ -1028,14 +1028,14 @@ and density on demand, built by `planetgen plan`. Deliberately **not** one
 row per sector: a sector's position (`planetgen.galaxy.geometry.
 sector_position_pc`), density (`planetgen.galaxy.density.
 relative_density`), and corners (`galaxyGeometry.sector_cell_vertices_pc`)
-are all pure deterministic functions of its `(ring_index, layer_index,
-ring_slot_index)`
+are all pure deterministic functions of its `(shell_index, band_index,
+wedge_index)`
 address plus this handful of galaxy-wide numbers — cheaper to recompute
 on demand (sub-millisecond per sector) than to look up, so none of it is
 stored per address. What genuinely needs precomputing — where the galaxy
-has any content at all — lives in `galaxy_layer` below instead.
+has any content at all — lives in `galaxy_shell` below instead.
 Building or rebuilding the skeleton replaces this row (and every
-`galaxy_layer` row) wholesale; there is no partial update, since a
+`galaxy_shell` row) wholesale; there is no partial update, since a
 full build takes a few milliseconds even at real Milky-Way scale (a
 closed-form walk over ~3,800 rings and ~1,020 layers, not a per-sector scan over
 billions of candidates).
@@ -1047,7 +1047,7 @@ billions of candidates).
 | `arm_count` | INT | NOT NULL | Same source. |
 | `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs: always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC` (4) since v33. |
 | `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
-| `outer_ring_index` | INT | NOT NULL | The last ring with any qualifying content — this galaxy's real edge, found by `planetgen plan` (the plane's layer reaches farthest), not an arbitrary radius. Named `outer_shell_index` before v32. |
+| `outer_shell_index` | INT | NOT NULL | The last shell with any qualifying content — this galaxy's real edge, found by `planetgen plan` (the equatorial band reaches farthest), not an arbitrary radius. Named `outer_ring_index` from v32 to v90. |
 | `bright_star_min_luminosity_sol` | DOUBLE | nullable | Added in v43. The luminosity threshold the bright-star scatter used (see `bright_stars` below). A sector fill reads this, not the current constant. NULL until a scatter has run. |
 | `bright_star_seed` | BIGINT UNSIGNED | nullable | Added in v43. The scatter's seed: since v51 the top 63 bits of the galaxy seed's unit seed `bright-stars:scatter` (GEN.39). |
 | `bright_star_mass_limit_sol` | DOUBLE | nullable | Added in v73 (GEN.185). The mass, in solar masses, the star scatter's mass pass placed every star from (the same limit as `phenomenon_min_mass_solar`): a sector's own draw and the luminosity pass are lighter than it. NULL on a scatter drawn before v73, which had no mass pass. |
@@ -1059,42 +1059,28 @@ billions of candidates).
 | `density_ratio_avg` | DOUBLE | nullable | Added in v53 (PERF.11). Systems a fill got against systems expected (`sector_stats`), as a mean over the first 1,000 fills, then a decaying average weighing each new fill 1 in 1,000 (`_db.DENSITY_RATIO_WINDOW`). NULL before any fill. |
 | `density_ratio_samples` | BIGINT UNSIGNED | NOT NULL, default 0 | Added in v53 (PERF.11). How many fills went into `density_ratio_avg`. |
 
-### `galaxy_layer`
+### `galaxy_shell`
 
-The galaxy's outline, one row per layer that can hold content (v33,
-replacing v32's `galaxy_ring_band`), from the highest layer to the lowest.
-Each layer is a circular slice holding rings 0 through `outer_ring_index`,
-the last ring whose sector centers could clear the qualification
-threshold (`planetgen.galaxy.skeleton.build_layer_extents`). It comes
-from an exact upper bound over every spiral-arm angle, so a sector inside
-a layer's extent isn't guaranteed to qualify, but one outside it is
-guaranteed not to. The exact per-sector answer (one `relative_density`
-evaluation) is made when the address is visited
-(`generate.ensure_sector_generated`). The bound falls steadily with radius
-and height, so the layers are symmetric about the plane and shrink away
-from it. A layer with no qualifying content has no row.
-
-| Column | Type | Null | Notes |
-|---|---|---|---|
-| `layer_index` | INT | PK | The layer (signed; 0 is centered on the plane). |
-| `outer_ring_index` | INT | NOT NULL | The last ring this layer reaches; it holds rings 0 through this one. |
-
-### `galaxy_column`
-
-The same outline seen from the side (v33): one row per ring, holding the
-highest and lowest layer that ring's column of sectors reaches (its stack
-bound). It is derived from `galaxy_layer`
-(`galaxySkeleton.column_extents`) and rewritten with it whenever
-`planetgen plan` runs.
+The galaxy's outline on the spherical grid (v91, replacing `galaxy_layer` and
+`galaxy_column`): one row per shell that can hold content, from the core out
+to the last shell whose equatorial band could clear the qualification
+threshold (`planetgen.galaxy.skeleton.build_shell_extents`). A shell holds
+bands `-high_band_index .. high_band_index` (both polar caps when
+`high_band_index` is the shell's top band), every wedge. Like the cylinder's
+outline it comes from an exact upper bound, so a sector inside it isn't
+guaranteed to qualify, but one outside it is guaranteed not to; the exact
+per-sector answer is made when the address is visited
+(`generate.ensure_sector_generated`). The outline is symmetric about the
+plane. A shell with no row has no content at all.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `ring_index` | INT | PK | The ring. |
-| `layer_index_min` | INT | NOT NULL | The lowest layer this ring reaches. |
-| `layer_index_max` | INT | NOT NULL | The highest layer this ring reaches. |
+| `shell_index` | INT | PK | The shell (0 is the core ball). |
+| `high_band_index` | INT | NOT NULL | The highest band the shell reaches; it holds bands `-high_band_index` to `high_band_index`. |
+| `cell_count` | BIGINT UNSIGNED | NOT NULL | The cells that is (every wedge of every band), stored so a count of the galaxy's candidate sectors needs no recount. |
 
-Together these two tables are the galaxy's bounds.
-`_db.get_galaxy_bounds` loads them as a `galaxySkeleton.GalaxyBounds`,
+Together with `galaxy_shape` this is the galaxy's bounds.
+`_db.get_galaxy_bounds` loads it as a `galaxySkeleton.ShellBounds`,
 and every generation path checks an address against it before generating
 anything there, so a sector is never placed outside the galaxy.
 
@@ -1821,7 +1807,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK | |
-| `ring_index`, `layer_index`, `ring_slot_index` | INT / SMALLINT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
+| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | Galaxy-frame position, milliparsecs. |
 | `population` | VARCHAR(12) | NOT NULL, CHECK IN ('young','intermediate','old','bulge') | |
 | `star_type`, `yerkes_class` | VARCHAR | NOT NULL | As on `stars`. |
@@ -1833,7 +1819,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `created_at` | TIMESTAMP | NOT NULL | |
 | `off_plane` | TINYINT | virtual | Added in v57 (GEN.117): 1 when `|position_z_mpc|` is 250 pc or more. Computed; nothing writes it. |
 
-Indexes: the address (`ring_index`, `layer_index`, `ring_slot_index`),
+Indexes: the address (`shell_index`, `band_index`, `wedge_index`),
 `luminosity_w`, and `idx_bright_stars_population` (`population`,
 `off_plane`, `luminosity_w`, v59), which the Galaxy Map's tile picks walk
 once per population so the old giants of the bulge and the thick disk
@@ -1847,7 +1833,7 @@ row per sector address a backfill reached or a fill generated. See
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `ring_index`, `layer_index`, `ring_slot_index` | INT / SMALLINT / INT | PK | The sector's grid address. |
+| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | PK | The sector's grid address. |
 | `bright_level_sol` | DOUBLE | NOT NULL, default -1 | How deep its bright stars go: -1 untouched (follows `galaxy_shape.bright_star_min_luminosity_sol`), a positive L_sun for a backfill's floor, 0 generated. Indexed. |
 | `level_before_fill_sol` | DOUBLE | nullable | The level a fill found, put back when the sector is deleted. |
 | `relative_density` | DOUBLE | nullable | The galaxy model's density at the sector's center (`galaxyDensity.relative_density`). |
@@ -2028,11 +2014,11 @@ planet, with `polities` and `system_owners` hanging off `species` and
 nearest systems; `bright_stars` points at the system built around each
 star once its sector is filled.
 
-`galaxy_shape`/`galaxy_layer`/`galaxy_column` stand apart from the tree above —
+`galaxy_shape`/`galaxy_shell` stand apart from the tree above —
 neither has a foreign key to `sectors` or anything else. They describe the
 galaxy as a whole (its shape parameters, and which addresses could hold
-content), not any individual sector; `sectors.ring_index` is the ring
-both an actual generated sector and a `galaxy_layer` row are
+content), not any individual sector; `sectors.shell_index` is the shell
+both an actual generated sector and a `galaxy_shell` row are
 independently expressed in, not an FK
 relationship.
 
@@ -2040,6 +2026,12 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v91 (DB.32): sectors on spherical shells
+
+The sector grid moved from the cylinder's ring, layer and slot to the sphere's shell, band and wedge (`docs/design/spherical-sector-coordinates.md`). Migration 0091 renames `ring_index`, `layer_index` and `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` on `sectors`, `bright_stars`, `sector_stats` and `phenomenon_scatter`, renames `galaxy_shape.outer_ring_index` to `outer_shell_index`, replaces `galaxy_layer` and `galaxy_column` with `galaxy_shell` and drops `galaxy_block_stats` (the block ladder is rebuilt on shells with MAP.205 and MAP.206).
+
+It converts the data; nothing is deleted. Every star system, phenomenon and facility keeps its place in the galaxy (a system's stored offset is worked out again from its place and its new sector's centre), its velocity and its epoch. The sector rows are rebuilt: one for every cell that holds an object and one for every cell whose centre lay inside a generated sector; a new sector takes the name of the old sector holding its centre (second and later ones get " 2", " 3" ...), and a system's location text takes the new sector's name. Object IDs are renumbered for the new birth sector (the serial is the object's rank there, a body keeps its body number); `id_counters` is rebuilt to match. The bright stars and phenomenon scatter get the address of the cell holding their position, `sector_stats` is counted again for the generated sectors (the untouched and partly backfilled rows are dropped, as a new scatter does), `sector_paths` of the old sectors go with them and come back with the next orbit update, and `galaxy_shell` is built again from the stored shape. The address indexes of `bright_stars` and `phenomenon_scatter` are dropped for the bulk update and built again after: about 35 microseconds a row, so a hundred million scatter rows take about an hour.
 
 ### v90 (MAP.151b): `galaxy_block_stats.ladder_step` and the 3-ary ladder
 
@@ -2057,7 +2049,9 @@ relationship.
 
 `planets` and `moons` gain `induced_moment_a_m2` (after `dipole_class`), `flux_variation` (after `energy_flux_w_m2`), `phi4_water`, `tier_water`, `phi4_suitability` and `tier_suitability`, and `phi4_chemistry` / `tier_chemistry` are renamed `phi4_air` / `tier_air` (GEN.178, GEN.148, GEN.207). `nebulae` gains `age_myr`, `q_total` (ionizing photons per second) and `hosts` (host stars as counts by spectral type) after `extinction_av` (GEN.150). All NULL on rows generated earlier; no compatibility name is kept for the old columns. The migration skips each step already done, so a stopped run can be started again.
 
-### v86 (DB.25): `galaxy_block_stats`
+### v86 (DB.25): `galaxy_block_stats` (dropped in v91)
+
+The table was dropped in v91 (DB.32); the ladder is rebuilt on shells. What it held, as it was:
 
 `galaxy_block_stats` holds what a drill-down stage shows for each block of the Galaxy Map's block ladder above the sector (`galaxy.drill`, 243, 81, 27, 9 and 3 sectors a side): one row per block `(m, ring_index, wedge, slab)` that holds a generated sector, with `sector_count`, `systems`, `expected_systems`, `stars`, `age_sum` (each sector's mean age times its stars, so a mean is `age_sum / stars`) and `luminosity_sol` and `ladder_step` (v89). The figures come from `sectors` and `sector_stats`; a block with no generated sector has no row. `query.galaxy_block_stats(conn, m, cells)` reads a window's cells in one statement, and a test holds every row equal to what `query.galaxy_stage` computes for the same block. `db/block_stats.py` keeps it: a sector saved on its own (a visit) or deleted updates the blocks above it, a `galaxy` run updates the blocks above all the sectors it created once at its end (the stage "Update the block totals"), and `planetgen plan --fill-block-stats` rebuilds every row. The migration fills the table from the sectors already there. The ladder is 3-ary since MAP.151b; v90 emptied the table and filled it again for it. No foreign keys: a block is not a row of its own.
 
