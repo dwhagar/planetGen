@@ -10,8 +10,10 @@
 // along. The fetch set is the cuts at `k * FADE_BAND` and `k / FADE_BAND`
 // together, the tiles static/starfade.js fades in and out between.
 
-import { FADE_BAND } from "./starfade.js";
-
+// Equal to planetgen.galaxy.viewport.DISTANCE_CUT_FADE_BAND and static/starfade.js's
+// (a test holds them equal); not imported, since a module may not import a sibling
+// without its version query.
+export const FADE_BAND = 1.15;
 export const DISTANCE_CUT_EDGES = 2;
 export const DISTANCE_CUT_HALF_ANGLE_DEG = 70;
 export const DISTANCE_CUT_MAX_TILES = 512;

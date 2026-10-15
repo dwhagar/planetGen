@@ -18,6 +18,7 @@ test("the constants equal Python's", () => {
   assert.equal(C.DISTANCE_CUT_EDGES, fixtures.edges);
   assert.equal(F.CUT_EDGES, fixtures.edges);
   assert.equal(F.FADE_BAND, fixtures.band);
+  assert.equal(C.FADE_BAND, fixtures.band);
 });
 
 test("the cut and the fetch set are Python's, key for key", () => {
