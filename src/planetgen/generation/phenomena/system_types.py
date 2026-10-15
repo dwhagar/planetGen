@@ -34,9 +34,10 @@ GENERATOR_MODULE = "planetgen.generation.multistar"
 """str: The module the generators are written in; `SystemType.generator` is a
 function name in it. The item named in `SystemType.owner` adds the function
 when it builds the type. A generator that already exists is a full
-`module:attr` path with owner `None`. Until the module exists the name is
-only checked as an identifier; once it exists (GEN.261 creates it) the test
-fails for a name it lacks (`test_system_type_rates`)."""
+`module:attr` path with owner `None`. The name is checked as an identifier
+until its owner has landed; the item that adds the function lists its own
+number in `test_system_type_rates._LANDED_OWNERS`, and the test then fails for
+a name the module lacks. The module exists since the member-tree generator."""
 
 POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster")
 """tuple: The stellar populations of the sector profile's `mix` a type may be

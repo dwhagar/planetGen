@@ -68,9 +68,12 @@ def test_an_entry_is_complete_and_in_order(key):
         assert isinstance(value, (int, float)) and value >= 0
 
 
-def test_every_generator_is_named_and_exists_once_its_module_does():
-    module_exists = importlib.util.find_spec(types.GENERATOR_MODULE.rpartition(".")[0]) is not None \
-        and importlib.util.find_spec(types.GENERATOR_MODULE) is not None
+_LANDED_OWNERS = frozenset({261})
+"""set: The items whose generators are written. A generator owned by an item outside this set may not exist
+yet; add the item's number here in the PR that adds its functions."""
+
+
+def test_every_generator_is_named_and_exists_once_its_owner_has_landed():
     for key, entry in types.SYSTEM_TYPE_RATES.items():
         assert entry.generator, key
         if ":" in entry.generator:
@@ -79,7 +82,7 @@ def test_every_generator_is_named_and_exists_once_its_module_does():
             assert hasattr(importlib.import_module(module), attr), f"{key}: {entry.generator}"
         else:
             assert entry.generator.isidentifier() and entry.owner is not None, key
-            if module_exists:
+            if entry.owner in _LANDED_OWNERS:
                 assert hasattr(importlib.import_module(types.GENERATOR_MODULE), entry.generator), key
 
 
