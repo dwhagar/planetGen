@@ -1588,7 +1588,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | open |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
-| TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
+| TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | done, PR #1578 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | done, PR #1405 |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |

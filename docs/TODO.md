@@ -4645,24 +4645,6 @@ clears each one.
   builder.
   Prerequisite: GEN.198. Related: GEN.198, GEN.115.
 
-- [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
-  Reported by Bugfixes lane 2 (2026-10-10 21:06Z):
-  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
-  failed once in the NAV.42 full run (`-n 4`, about 4 parallel workers
-  on one box, started 19:21Z) and passed on both of 2 re-runs alone; it
-  was not run on main while failing and the failure message was not
-  kept. Done: the next failure's traceback is captured (or a loaded run
-  reproduces it), the cause is found (a shared scatter table or marker
-  between workers, a draw that sometimes leaves a star, or a real
-  leftover-star bug in the failed-layer path) and the test is made
-  reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Prerequisites: none. Related: TEST.111, TEST.128.
-
 - [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
   Bugfixes lane 1 (2026-10-10, full local suite 19:41Z to 20:54Z, -n 4):
   src/tests/test_web_jobs_damage.py::test_many_processes_starting_at_once_start_one_job
@@ -4708,7 +4690,7 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
+  Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-10 23:33Z):
@@ -4777,6 +4759,13 @@ clears each one.
   fixed; the 5-clean-run proof for TEST.126, TEST.138 and TEST.144
   continues. Known red: test_redis_health fails once in the widened
   changed run and passes alone.
+  Progress (2026-10-15, Quality, PR #1578): TEST.111, TEST.116, TEST.127,
+  TEST.128, TEST.134 and TEST.140 each looped 60 times on an idle machine
+  with no failures, TEST.137 and TEST.141 40 times per case with no
+  failures (details in docs/design/test-suite-rebuild.md section 22); they
+  stay open for the 5-clean-full-runs proof. TEST.129 was fixed earlier
+  (PR #1313) but is unverified on MySQL 8.4 (Quality only has MariaDB
+  10.11), so it waits for the scheduled 8.4 run on main.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
   Status (2026-10-09): Stage 2 merged (Test Suite Rebuild thread,
@@ -4855,7 +4844,7 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
+  Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite -n 4,
