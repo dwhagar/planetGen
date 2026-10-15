@@ -190,11 +190,21 @@ connectivity to that specific schema rather than the default one.
   shape, not the generation object graph" relationship to
   `planetgen.db.store.load_star_system(...).to_dict()` as `/api/sectors/<id>`
   above.
-- `GET /api/systems/<id>/text?format=wikitext|markdown` — the system's
-  full wiki page, `{"id", "format", "content"}`, rendered from its
-  database rows on each request (`planetgen/db/render.py`; no page
-  text is stored since schema v29). `format` defaults to `wikitext`; any
-  other value is a `400`.
+- `GET /api/systems/<id>/description` — the system's description (API.25,
+  `planetgen/describe/`, `docs/design/system-description.md`): `{"kind":
+  "system", "ref", "title", "sections": [...]}`. A section has a `kind`
+  (`system`, `star`, `pair`, `planet`, `moon`, `belt`, `comet`), a `ref`
+  (`planet:<ID>`, or `null` for a pair), a `title`, `blocks` and `children`.
+  A block is `facts` (rows of `key`, `label`, `value`), `ratings` (the PHI-6
+  `overall`, the `gear` a visitor needs and a row per category), `composition`
+  or `prose` (sentences). Text is a list of strings and typed items: a
+  quantity `{"qty": {"kind", "si", ...}}` (`si` in the kind's base unit, never
+  formatted), a link `{"ref", "name"}` or `{"strong"}`. Built from the
+  database rows on each request.
+- `GET /api/systems/<id>/text?format=wikitext|markdown|text` — the same
+  description written out on request, `{"id", "format", "content"}`
+  (`planetgen/db/render.py`; no page text is stored since schema v29).
+  `format` defaults to `wikitext`; any other value is a `400`.
 - `GET /api/systems/<id>/sections` — the same page as Markdown split for
   the system page's expandable list: `overview` (a binary pair's own data
   table, the system summary, flavor text) plus `stars`, `planets`,

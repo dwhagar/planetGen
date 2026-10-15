@@ -1,24 +1,28 @@
 # planetgen/db/render.py
 
 """
-On-demand rendering of a stored star system's wiki page text.
+On-demand rendering of a stored star system's text.
 
-Since schema v29 no page text is stored (see `schema.sql`'s "v29" header
-note): both formats are rebuilt from the database rows whenever they are
-needed -- `_db.load_star_system` reconstructs the generation object graph
-and `StarSystem.__str__` renders it, exactly as generation itself used to
-right before saving. `render_system_text` gives the whole page, for the
-Wikitext/Markdown code view and for wiki upload; `render_system_sections`
-gives the same Markdown split per star/planet/moon/belt/comet, for
-`html/system.py`'s expandable system list.
+No page text is stored (schema v29): `describe.describe` builds the system's Document from the
+database rows (`load_star_system`) and `describe.render` writes it as text, Markdown or wikitext
+when someone asks, for the code views, the downloads, the command line and the wiki upload.
+`render_system_sections` gives the page's Markdown split per star/planet/moon/belt/comet for
+`web/lib/systempage.py`'s expandable system list until the page renders the Document itself
+(UX.105).
 """
 
 from contextlib import contextmanager
 
+from planetgen import describe
 from planetgen.db.store import load_star_system
 
-FORMATS = ("wikitext", "markdown")
-"""tuple: The page formats `render_system_text` accepts."""
+FORMATS = tuple(describe.RENDERERS)
+"""tuple: The formats a system can be rendered in (`describe.RENDERERS`)."""
+
+
+def _check_format(fmt):
+    if fmt not in FORMATS:
+        raise ValueError(f"unknown format {fmt!r} (expected one of {', '.join(FORMATS)})")
 
 
 @contextmanager
@@ -26,8 +30,7 @@ def _format(system, fmt):
     """Sets the system's shared `SystemConfig.MARKDOWN` flag for the
     duration of a render, restoring it afterward. Every reconstructed
     object shares that one config, so this switches the whole page."""
-    if fmt not in FORMATS:
-        raise ValueError(f"unknown format {fmt!r} (expected one of {', '.join(FORMATS)})")
+    _check_format(fmt)
     config = system.system_config
     original = config.MARKDOWN
     config.MARKDOWN = fmt == "markdown"
@@ -39,41 +42,49 @@ def _format(system, fmt):
 
 def render_star_system(system, fmt):
     """
-    Renders an already-loaded (or freshly generated) `StarSystem` as a full
-    wiki page.
+    Renders an already-loaded (or freshly generated) `StarSystem` in `fmt`.
 
     Args:
         system (StarSystem): The system to render.
-        fmt (str): `"wikitext"` or `"markdown"`.
+        fmt (str): One of `FORMATS`.
 
     Returns:
-        str: The page text.
+        str: The text.
 
     Raises:
         ValueError: If `fmt` isn't one of `FORMATS`.
     """
-    with _format(system, fmt):
-        return str(system)
+    _check_format(fmt)
+    return describe.render(describe.describe(system), fmt)
 
 
 def render_system_text(conn, star_system_id, fmt):
     """
-    Renders one stored system's full wiki page from its database rows.
+    Renders one stored system from its database rows.
 
     Args:
         conn (Connection): An open connection.
         star_system_id (int): The `star_systems.id` to render.
-        fmt (str): `"wikitext"` or `"markdown"`.
+        fmt (str): One of `FORMATS`.
 
     Returns:
-        str: The page text.
+        str: The text.
 
     Raises:
         ValueError: If no such system exists, or `fmt` is unknown.
     """
-    if fmt not in FORMATS:
-        raise ValueError(f"unknown format {fmt!r} (expected one of {', '.join(FORMATS)})")
+    _check_format(fmt)
     return render_star_system(load_star_system(conn, star_system_id), fmt)
+
+
+def describe_system(conn, star_system_id):
+    """
+    One stored system's Document (`describe.describe`), JSON-safe.
+
+    Raises:
+        ValueError: If no such system exists.
+    """
+    return describe.describe(load_star_system(conn, star_system_id))
 
 
 def _without_header(paragraphs):
