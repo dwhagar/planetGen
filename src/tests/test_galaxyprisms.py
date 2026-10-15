@@ -435,7 +435,7 @@ console.log(JSON.stringify({one: one, glass: glass, stacked: [count(stacked), co
 
 def test_wedge_counts_follow_the_cylindrical_sector_rule():
     rings = list(range(0, 40)) + [100, 1234]
-    got = _run(f"console.log(JSON.stringify({json.dumps(rings)}.map(i => P.azimuthSegments(i))));")
+    got = _run(f"console.log(JSON.stringify({json.dumps(rings)}.map(i => P.ringSectorCount(i))));")
     assert got == [ring_sector_count(i) for i in rings]
 
 
