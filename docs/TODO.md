@@ -843,7 +843,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.151, MAP.152, MAP.153,
+  Prerequisites: MAP.152, MAP.153,
   MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -888,114 +888,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
   2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: region data is read in aligned cells with an exact-centred
-  frame, with per-level aggregates, and a region is described as layer,
-  ring and slot-arc ranges (with slot wrap) that stats, ADM.29 and
-  ADM.30 fills, MAP.120 backfills and fill on demand all use. Tile and
-  stage cache keys follow the cells and bump the cache stamp (clear
-  /var/cache/planetgen/tiles on update); decide them together with
-  MAP.147's wire format. This is the data layer of the original MAP.146
-  text (see docs/design/drilldown-region-sizes.md for region sizes,
-  shapes and the cell pyramid). It touches the per-sector stats and
-  colouring (MAP.131), the Galaxy Map opening view (MAP.134) and the
-  settle step (GEN.126), and `galaxy/drill.py` and `galaxyprisms.js` are
-  replaced, not kept beside it.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: a 3-ary
-  pyramid accepting cells 0.84
-  to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
-  sizes?
-  Split (Foundations lane 2, 2026-10-14): each piece merges on its own
-  green suite, in this order. MAP.151a: the round-region description
-  (centre sector, width, height) as layer, ring and slot-arc ranges that
-  wrap past slot 0, with an instant count (the lane starts here).
-  MAP.151b: the 3-ary block ladder 243/81/27/9/3/1 (729 dropped by
-  Foundations lane 2, 2026-10-15: 729-sector blocks, about 2.9 kpc, are
-  coarser than today's 243-block home view) replacing drill.py and
-  galaxyprisms.js, with stage cache keys and one cache stamp bump. Its PR
-  also carries a data-only migration (no schema change, next free
-  revision at merge, expect 0090) that empties galaxy_block_stats and
-  refills it with block_stats.rebuild on the new ladder, because every
-  stored row (DB.25) is wrong on the new ladder and a stale m=27 row
-  would be read as a new-ladder cell without error. Foundations Maps writes it
-  under the migration rule for Maps (Boss, 2026-10-15 03:16Z: Maps may
-  build the database changes it needs after telling Foundations Database
-  first; if Database has that work in progress, Maps holds off and does
-  something else); the migration must land with or after the ladder code. MAP.151c: per-level aggregates and the window query.
-  MAP.151d: the map reads the windows. None of it is visible until
-  Boss's installer is fixed (issue #1211 stays open until he tests).
-  Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
-  GEN.126, MAP.131, MAP.134, MAP.146.
-  Dependency (2026-10-09, fly-through-view-distance.md): The region data
-  layer and its aggregates (3-ary pyramid, per-star id, per-level
-  aggregates) wait on MAP.147 (wire format, Research Lane 3).
-  Wire format (2026-10-09, galaxy-map-wire-format.md): The wire format
-  decision is made (MAP.147's report): the tile and stage cache keys are
-  decided here together with MAP.159 (packed binary tiles) and MAP.154,
-  on one cache stamp bump.
-  Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
-  ADM.29 is merged (PR #926): `planetgen/galaxy/span.py` (`Span`,
-  `parse_range`: layer, ring and slot-arc ranges with wrap and an
-  instant count from prefix sums). This item is unblocked on the ADM.29
-  side and reuses `span.py`; the wire-format steps it still waits on
-  are in its other notes (MAP.157 to MAP.159).
-  Note (2026-10-09): From ADM.31 (PR #942, 2026-10-10): the 'made' rings
-  on the Galaxy Map cover only the first 2,000 sectors of a run; the
-  region data layer should replace that cap with ranges.
-  Status (2026-10-09): MAP.151a done (Foundations lane 2, 2026-10-14,
-  #1312): planetgen/galaxy/region.py holds the round region as layer,
-  ring and wrapping slot-arc ranges (count, Span conversion, SQL
-  ranges); the radial fills use it. MAP.151b to d remain; next is
-  MAP.151c.
-  Status (2026-10-09): DB.24 done (Foundations lane 1, 2026-10-14,
-  #1317, schema v83): nebula_field holds every kept class M and N cloud,
-  written by plan from the seed. Deviation: rows carry no object id
-  until a sector stores the cloud (an id needs a nebula shape, about 112
-  ms each, roughly 30 CPU hours for all clouds at default scale); a save
-  fills uid and is_stored (the flag is is_stored because 'stored' is
-  reserved on MySQL 8), and plan links clouds a galaxy already holds.
-  Key unstored clouds by (cell_i, cell_j, cell_k, n).
-  Status (2026-10-09): MAP.151c server half done (Foundations lane 2,
-  2026-10-14, #1320): /galaxy/window returns the cells around any chosen
-  cell, cut from the cached stage files; no migration; nothing in the
-  map reads it yet. Left: JS window geometry, the window stage beside
-  the old one, then the switch that retires the arc, slab and segment
-  picks (MAP.151d); the 3-ary ladder (MAP.151b) after. MAP.151 stays
-  open.
-  Status (2026-10-09): Lane 2 plan for MAP.151d (2026-10-14): it is also
-  the rest of MAP.150 (click-centred drill, retire the arc, slab and
-  segment picks, camera in the URL, breadcrumb from position). It
-  rewrites galaxystages.js, galaxystageview.js and their tests, landed
-  in steps: JS window geometry with a Python parity test, the window
-  stage beside the old one, the flip that deletes the picks and
-  containers, then the 3-ary ladder (MAP.151b).
-  /galaxy/window?at=<cell>&g=<3..11> is planetgen/galaxy/window.py and
-  tilecache.fetch_window.
-  Status (2026-10-09): MAP.151d part 1 done (Foundations lane 2,
-  2026-10-14, #1335): the window stage at /galaxy?win=&g= with
-  click-centred zoom, JS windowCells matching the Python Region, and
-  /galaxy/window; nothing links to it yet. Part 2 left: the galaxy home
-  as a window, retire the arc, slab and segment picks (the rest of
-  MAP.150, which unlocks MAP.189 and MAP.190), URLs and breadcrumb from
-  the window. The 3-ary ladder (MAP.151b) needs a per-level aggregate
-  table so a window does not need about 64 stage queries: DB.25
-  (done, #1376: galaxy_block_stats, read by query.galaxy_block_stats;
-  add the new levels to drill.DRILL_LEVELS and a rebuild fills them), so
-  MAP.151b is unblocked.
-  MAP.151d part 2 done (Foundations lane 2, 2026-10-15, #1382): the galaxy is
-  a plain disk of level-243 blocks; a click opens a window of nine blocks
-  round the clicked cell, one size down; Up zooms out one step; the arc,
-  slab and segment picks, the slab buttons and the 3x3x3 view are gone.
-  This unlocks MAP.189 and MAP.190. Left: MAP.151b (the 3-ary ladder).
-  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
-  replaces the cylinder grid this item assumes. Held until the thread
-  reports; the TODO thread will reword or retire it when the new grid
-  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1134,7 +1026,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the galaxy's smooth potential (GEN.115) and the per-region mass
   aggregates (MAP.151), so the spiral arms, bulge and halo show as
   wells; only if the cost study (PERF.72) says it is cheap enough.
-  Prerequisites: MAP.168, MAP.151. Related: MAP.167.
+  Prerequisite: MAP.168. Related: MAP.167.
 
 - [ ] **MAP.171 The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit")**
   Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
@@ -1187,7 +1079,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class and cover, updated when a nebula is stored. Done: the
   aggregates, and a Monte Carlo check that the stored cover is within 5%
   of the true cover. Owner: Foundations lane 1, with MAP.151.
-  Prerequisite: MAP.151. Related: MAP.159.
+  Prerequisite: none. Related: MAP.151 (done, PR #1539), MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
@@ -1202,7 +1094,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
   the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
   with MAP.151 and MAP.159.
-  Prerequisite: MAP.172. Related: MAP.147, MAP.151,
+  Prerequisite: MAP.172. Related: MAP.147, MAP.151 (done, PR #1539),
   MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -1217,7 +1109,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nebulae and for unfilled cells from the field. Done: the statistic,
   with a test that filled and unfilled cells agree on a seeded galaxy.
   Owner: Foundations lane 2.
-  Prerequisite: DB.24. Related: MAP.131, MAP.151.
+  Prerequisite: DB.24. Related: MAP.131, MAP.151 (done, PR #1539).
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.176 Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour**
@@ -1351,7 +1243,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whole galaxy. A browser test loads a galaxy with one neighbourhood and
   finds the camera framed on it. Owner: Foundations lane 2, after
   MAP.152 (MAP.150 done, #1382); part of the fly-through headline.
-  Prerequisite: MAP.152. Related: MAP.146, MAP.151, MAP.190.
+  Prerequisite: MAP.152. Related: MAP.146, MAP.151 (done, PR #1539), MAP.190.
 
 - [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
   GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
@@ -1361,7 +1253,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which group it opens on and a way to jump between the groups (a list
   of regions). Decided (Boss, 2026-10-14 13:27Z): the map opens on the
   largest group; a user's own home (USR.11) overrides it.
-  Prerequisite: MAP.189. Related: MAP.189, MAP.151.
+  Prerequisite: MAP.189. Related: MAP.189, MAP.151 (done, PR #1539).
 
 - [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
   GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
@@ -1466,13 +1358,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and latitude, caps, stage keys, `galaxy_block_stats`), then
   `drill.py`, `region.py`, `window.py`, the block stats table and its
   migration. Waits for Boss's answer on the ladder card. Replaces the
-  cylinder 243/81/27/9/3/1 ladder (MAP.151). Owner: Foundations Maps,
+  cylinder 243/81/27/9/3 ladder (MAP.151, done, PR #1539). Owner: Foundations Maps,
   after item 6. Source: item 7 of section 6 of the plan. Boss decided
   the move (2026-10-15 06:39Z): "two meridian lines from pole to pole
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
-  Prerequisites: UX.111.
+  Prerequisite: UX.111.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **MAP.206 Galaxy Map drawing on shells**
@@ -1484,7 +1376,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisites: MAP.205.
+  Prerequisite: MAP.205.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## NAV: Navigation and courses
@@ -3409,7 +3301,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pole make a wedge (vert), shell (radius), and band (horizontal),
   together they identify a single 3D segment of the sphere". TOP
   PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: GEN.224.
+  Prerequisite: GEN.224.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **GEN.226 Addresses on shells: designation, sector ID, seeds and object ID**
@@ -3422,7 +3314,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisites: GEN.224.
+  Prerequisite: GEN.224.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **GEN.227 Generation paths on shells**
@@ -3671,7 +3563,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151.
+  Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151 (done, PR #1539).
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
 - [ ] **PERF.75 Keyset paging for the other data tables and the jump-by-value box (Systems name sort done)**
@@ -5079,7 +4971,7 @@ clears each one.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisites: GEN.224.
+  Prerequisite: GEN.224.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## USR: User accounts
@@ -5715,7 +5607,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   GEN.176 and API.23 follow (all done); galaxy-drilldown-navigation.md
   lists MAP.56 as planned (done, #408). The top banner of the drilldown
   note is blocked on MAP.151d. Done: each note says what is built.
-  Prerequisites: none. Related: MAP.151.
+  Prerequisites: none. Related: MAP.151 (done, PR #1539).
 
 - [ ] **DOC.24 Bring Python 3.12, numba and astropy into the research notes and three source comments**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -6063,7 +5955,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   pole make a wedge (vert), shell (radius), and band (horizontal),
   together they identify a single 3D segment of the sphere". TOP
   PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: UX.111.
+  Prerequisite: UX.111.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## VIEW: The view from a planet
