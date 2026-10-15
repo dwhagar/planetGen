@@ -6,6 +6,10 @@ damaged database is found and repaired. Recorded 2026-10-02 from Boss's
 decisions of 01:34Z to 02:31Z and the seed math report (dependency tree
 thread). This is the design note OPS.11 asks for.
 
+**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The astropy-constants fix and the Python 3.9 and 3.10 caveats below are done (GEN.211, OPS.42); the version key's `env` list no longer names astropy.
+
+**Status (2026-10-15).** Built: the fingerprint (GEN.58, #809, `db/fingerprint.py`), the version-key history (OPS.13, #810), the mismatch warning (OPS.14, #876), the per-sector version (DB.7, #813) and `check-db` (DB.8, #893, `db/check.py`). Still open: the golden test (TEST.77), the epoch (OPS.28, GEN.136). Dropped by Boss on 2026-10-09: `reproduce` (OPS.12, section 10) and DB.10. ADM.50 proposes removing the galaxy settings file (`galaxy/settings_file.py` still exists). So "planned and not built" in the status block below is out of date for the built items above.
+
 **Scope change (Boss, 2026-10-09 20:42Z).** "Remove the idea of us letting
 the USER regenerate an entire galaxy from the seed and version, we'll use
 that internally, but no need for it to go anywhere else." What stays, as
