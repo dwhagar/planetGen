@@ -136,7 +136,11 @@ It runs eight steps and prints each one:
 6. Locks down the code tree and `config.json` for Apache's account.
 7. Creates the Galaxy Map tile cache (`/var/cache/planetgen/tiles`) and
    the Generate jobs directory (`/var/lib/planetGen/jobs`).
-8. Creates the debug log and its logrotate config when `debug` is on.
+8. Creates the debug log (whether or not `debug` is on) and the activity
+   log's folder, each with its logrotate config.
+
+After the eight steps it checks that the web app imports as Apache's
+user, and checks the Redis server (below).
 
 After step 3 it also offers to run the optional population pass
 (species, civilizations and territories; y/N, defaulting to N after 30
@@ -144,7 +148,8 @@ seconds). `sudo POPULATION=1 ./install.sh` runs it without asking, and
 `planetgen population` runs it any time later. A new galaxy has no
 worlds yet, so there is nothing for it to do on a first install.
 
-The installer also checks the Redis server's settings and prints a
+The Redis check installs `redis-server` with apt and starts it when
+nothing answers at `redis.url`; then the installer checks its settings and prints a
 warning, with the exact line to add, for the append-only file, the memory
 policy and limit, and the bind address; copy the lines from
 [`examples/redis/planetgen.conf`](examples/redis/planetgen.conf) into your
@@ -258,18 +263,27 @@ sudo ./update.sh
 
 It pulls the latest code (a `git reset --hard` to the tracked
 branch; `config.json` and other untracked files are kept), checks the
-Python libraries and installs only a missing or too-old one, migrates
-the database, re-applies folders and permissions, and checks that the
-site imports. It never reinstalls what is already there.
+Python libraries and installs only a missing or too-old one, checks the
+NLTK corpus, runs the generator's math check (a failure only warns, and
+bulk generation refuses to start until it passes), migrates the database
+and records the version key, re-applies folders, permissions and the
+logs, checks that the site imports, and checks Redis as the installer
+does. It never reinstalls what is already there. Last, it starts
+building the Galaxy Map's opening view into the tile cache in the
+background (`planetgen.cli.warm_map`, at most 30 minutes, log at
+`/tmp/planetgen-warm-map.log`), so the first visit after an update is
+fast; the update does not wait for it.
 
 When the update includes a schema migration, it first asks whether to
 **delete the galaxy data instead** (y/N, defaulting to N after 30
 seconds; admin logins are kept either way). Answer `y` when the release
 notes say to regenerate, then generate the galaxy again
 ([step 7](#7-generate-the-galaxy)). The update never runs the
-population pass; run `planetgen population` by hand when wanted. Then
-reload the site as the script's last line says (Apache reload on Linux,
-a `SIGHUP` to gunicorn on macOS).
+population pass; run `planetgen population` by hand when wanted. On
+Linux, `update.sh` reloads Apache itself when Apache is running (and
+restarts it when it just enabled a module); only if Apache is not running,
+or with nginx or Caddy in front of gunicorn, does it print the command to
+run. On macOS it prints the `SIGHUP` to send to gunicorn.
 
 Do not use a plain `git pull`: it skips the migration and can drop the
 scripts' executable bits.

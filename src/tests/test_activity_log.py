@@ -328,3 +328,13 @@ def test_database_writes_are_logged(real_app, log_dir):
     assert any(" AUTH credentials.changed " in line and 'user="boss" old_user=admin' in line for line in lines)
     created = [line for line in lines if " DB sector.create " in line]
     assert len(created) == 1 and f"target=sector:{sector_id}" in created[0] and 'user="boss"' in created[0]
+
+
+def test_the_shipped_fail2ban_jail_and_guide_name_the_activity_log_file():
+    """The jail and its guide once named `planetgen-log`, the logrotate file, so both failed as written (DOC.41)."""
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    jail = open(os.path.join(root, "examples", "fail2ban", "planetgen.jail.conf"), encoding="utf-8").read()
+    guide = open(os.path.join(root, "docs", "deployment", "fail2ban.md"), encoding="utf-8").read()
+    paths = re.findall(r"^logpath\s*=\s*(\S+)", jail, re.M)
+    assert paths and all(os.path.basename(path) == logpaths.ACTIVITY_LOG_NAME for path in paths)
+    assert logpaths.ACTIVITY_LOG_NAME in guide and "planetgen-log" not in guide
