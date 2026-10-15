@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1183] - 2026-10-15
+
+### Changed
+
+- GEN.178 retired (merged in #1447).
+
+TODO items resolved: GEN.178 / Added: none
+
 ## [8.0.1182] - 2026-10-15
 
 ### Added
