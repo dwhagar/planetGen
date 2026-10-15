@@ -4004,21 +4004,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.27 One migration for the species tech-level columns: six indices, tech level and tech source**
-  Asked for by Foundations Generation through the coordinator
-  (2026-10-15 02:23Z): POP.9 needs one migration and Foundations
-  Database is the only lane adding migrations. Add to `species` the
-  columns `energy_index`, `materials_index`, `information_index`,
-  `medical_index`, `propulsion_index` and `defense_index` (TINYINT
-  UNSIGNED, CHECK 0..7, NULL until drawn), `tech_level` DECIMAL(3,2)
-  with an index for range search, and `tech_source` ('generated' or
-  'admin'), as listed under "Planned columns (POP.9, POP.10)" in
-  docs/design/population-and-politics.md. Done: the migration (next
-  number after 0087, schema v88) with its old-schema fixture and tests,
-  merged so Foundations Generation can build POP.9 on it. Owner:
-  Foundations Database, first in its queue after DB.26.
-  Prerequisites: none. Related: POP.9, POP.10, DB.28.
-
 - [ ] **DB.28 One migration for the facility type tables and the new facility columns**
   Needed by POP.10 (Foundations Generation), same rule as DB.27: only
   Foundations Database adds migrations. Add `facility_types`,
@@ -4029,7 +4014,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration (next after DB.27's) with its old-schema fixture and tests,
   merged so POP.10 can be built on it. Owner: Foundations Database,
   right after DB.27.
-  Prerequisite: DB.27. Related: POP.10, DB.27.
+  Prerequisite: DB.27 (done, PR #1446). Related: POP.10, DB.27 (done, PR #1446).
 
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
   Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
@@ -4067,7 +4052,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   old work tables with a migration) must pass through this check too.
   Owner: Foundations Database, after DB.28 and before PERF.100.
   Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
-  OPS.48, DB.18, DB.27, DB.28.
+  OPS.48, DB.18, DB.27 (done, PR #1446), DB.28.
 
 ## API: The JSON API
 
@@ -6281,7 +6266,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
     limiting domain (lowest of E, M, I) and the lopsided flag (max minus
     min at least 3) are derived, not stored; show the tech band name
     beside the age era on the species page.
-    Prerequisite: DB.27 (the migration).
+    Prerequisite: DB.27 (the migration; done, PR #1446).
     Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
