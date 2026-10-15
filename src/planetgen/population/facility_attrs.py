@@ -157,4 +157,4 @@ def write(conn, facility_id, plan):
     for field_id, (column, value) in plan["upserts"].items():
         conn.execute(
             f"INSERT INTO facility_field_values (facility_id, field_id, {column}) VALUES (?, ?, ?) "
-            f"ON DUPLICATE KEY UPDATE {column} = VALUES({column})", (facility_id, field_id, value))
+            f"ON DUPLICATE KEY UPDATE {column} = ?", (facility_id, field_id, value, value))
