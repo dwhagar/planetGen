@@ -1355,7 +1355,7 @@ def test_nav_chart_page_shows_the_plan_and_posts_the_job_to_the_generate_page(cl
     _log_in(client, fake)
     html = client.get("/nav/chart?from=system:1001&to=system:1002").get_data(as_text=True)
 
-    assert "2 hops of the route cross unknown space" in html and "generating 2 sectors" in html
+    assert "2 hops of the route cross unknown space" in html and "fills in 2 sectors" in html
     assert "1 uncharted cell on the line lies outside the galaxy" in html
     assert "No route through charted space exists" in html
     form = re.search(r'<form method="post" action="/admin/generate".*?</form>', html, re.S).group(0)
@@ -1370,7 +1370,7 @@ def test_nav_chart_page_shows_the_plan_and_posts_the_job_to_the_generate_page(cl
 def test_nav_chart_border_confirmation_and_bypass(client, fake):
     _log_in(client, fake)
     html = client.get("/nav/chart?from=system:1001&to=system:1002&border=1").get_data(as_text=True)
-    assert "generating 5 sectors (a border of one cell included)" in html
+    assert "fills in 5 sectors (a border of one cell included)" in html
     assert 'name="course_border" value="1"' in html and ("get_nav_chart", DB, "system:1001", "system:1002", True) in fake.calls
 
     fake.nav_chart = {**fake.nav_chart, "confirm_over": 1,
