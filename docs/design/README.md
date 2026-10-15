@@ -25,8 +25,8 @@ A note's own status line, at its top, is the authority; this page only points at
 
 | Note | What it covers | Status |
 |---|---|---|
-| [galaxy-coordinate-system.md](galaxy-coordinate-system.md) | The cylindrical ring, layer and slot grid | built; being replaced by the spherical grid |
-| [spherical-sector-coordinates.md](spherical-sector-coordinates.md) | The plan for spherical shells, bands and wedges | plan (in progress) |
+| [galaxy-coordinate-system.md](galaxy-coordinate-system.md) | The spherical shell, band and wedge sector grid | built (schema v91); the cylinder it replaced is in [archive/](archive/galaxy-coordinate-system-cylinder.md) |
+| [spherical-sector-coordinates.md](spherical-sector-coordinates.md) | The plan for spherical shells, bands and wedges | plan, built (the switch merged to main on 2026-10-15, #1607; the Galaxy Map ladder is MAP.205 and MAP.206) |
 | [spherical-shell-sectors.md](spherical-shell-sectors.md) | What spherical-shell sectors would mean (the question behind the plan) | research |
 | [spherical-ladder-meridians.md](spherical-ladder-meridians.md) | Meridians for the spherical block ladder | research |
 | [galaxy-disk-density.md](galaxy-disk-density.md) | The galaxy density model | built |

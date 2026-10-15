@@ -133,8 +133,8 @@ back into its ID for a search that wants it. The wide-pair rule (never
 ### Unique IDs for every object (GEN.69 and GEN.170, schema v78)
 
 Every object has a `uid` column. A sector's is its designation as an
-integer (`BIGINT UNSIGNED`, unique; it needs no row: `uid.sector_uid(ring,
-layer, slot)` is the ID of a sector nobody has generated). Every other
+integer (`BIGINT UNSIGNED`, unique; it needs no row: `uid.sector_uid(shell,
+band, wedge)` is the ID of a sector nobody has generated). Every other
 object's is the 80-bit `BINARY(10)` of `planetgen/galaxy/object_uid.py`,
 unique on its own: birth sector 40 bits, serial 28 bits, body number 12
 bits (layout and rules in [object-id-options.md](object-id-options.md)
@@ -149,7 +149,7 @@ section 0).
   own, a sector with no grid address) is a run-time birth: `store.assign_uids`
   takes the next serial of the sector's `id_counters` row (kind 01), or for
   a body the system's next body number. A system with no sector is born at
-  ring 0, layer 0, slot 0.
+  the core (shell 0, band 0, wedge 0).
 - A row that already has a `uid` keeps it, so a system whose content is
   regenerated in place (`replace_system_content`) keeps its own ID.
 - Counters only move up and `planetgen reset` keeps them, so a number is

@@ -103,7 +103,7 @@ astronomy (the Sun, Earth's and Jupiter's orbits, the habitable zone, white
 dwarf sizes, Holman & Wiegert's stability limits, the Kepler and Barker
 equations), identities that hold for any input (unit round trips, the
 constants agreeing with each other, energy conservation around a Kepler
-orbit, the sector grid tiling each ring), and seeded draws from every
+orbit, the sector grid tiling every shell), and seeded draws from every
 sampler checked against its intended shares with a chi-square test. Each
 check names the function it calls, the expected value, the tolerance and
 where the expected value comes from. It takes well under a second.
@@ -336,7 +336,7 @@ suite on Python 3.12 against MySQL 8.0, MySQL 8.4 and MariaDB 11.4, then the `ge
   traceback) and lets Hypothesis search for a counterexample, including
   NaN, infinity, negative zero, huge and tiny numbers, empty and hostile
   strings. They cover:
-  - `test_fuzz_galaxy_grid.py`: the ring/layer/slot sector grid,
+  - `test_fuzz_galaxy_grid.py`: the shell/band/wedge sector grid,
     neighbours, designations, density, skeleton and map tiles.
   - `test_fuzz_system_generation.py`: every star type and config option,
     binaries, remnants, moons and belts.
