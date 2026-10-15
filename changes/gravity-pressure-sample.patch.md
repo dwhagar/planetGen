@@ -1,2 +1,0 @@
-### Fixed
-- **The gravity/pressure correlation test no longer fails on a thin sample** (TEST.149). `test_atmospheric_pressure_correlates_positively_with_gravity` asked for a positive Pearson correlation from 40 planets per class, but that correlation is about 0.10 with a spread of 0.04, so it was zero or less in about one run in a hundred on random draws and passed when run alone. It draws 320 per class (spread 0.017, nearly 6 standard deviations from zero); the docstring now gives the measured numbers.

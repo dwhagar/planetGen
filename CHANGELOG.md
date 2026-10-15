@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1149] - 2026-10-15
+
+### Fixed
+- **The gravity/pressure correlation test no longer fails on a thin sample** (TEST.149). `test_atmospheric_pressure_correlates_positively_with_gravity` asked for a positive Pearson correlation from 40 planets per class, but that correlation is about 0.10 with a spread of 0.04, so it was zero or less in about one run in a hundred on random draws and passed when run alone. It draws 320 per class (spread 0.017, nearly 6 standard deviations from zero); the docstring now gives the measured numbers.
+
 ## [8.0.1148] - 2026-10-15
 
 ### Changed
