@@ -329,6 +329,13 @@ with `clamp()`.
   Decided (2026-10-10): Boss (19:12Z): the system overview stays as
   prose.
   Prerequisite: UX.23.
+  Plan change (Boss, 2026-10-15 04:21Z): markdown is no longer the web
+  default for any planet or system text; the richer tables replace it, and
+  markdown and wikitext are generated on the fly only when the user asks.
+  The new lane Foundations Wording audits all planet and system text
+  output (wording and tables, matching the habitability index) and will
+  propose the items that carry this out; this item is reconciled with that
+  list before either is built.
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
   Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
