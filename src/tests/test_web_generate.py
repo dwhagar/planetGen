@@ -1152,7 +1152,7 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
     # An unreachable database: --output must never try to connect.
     env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1",
            "PYTHONIOENCODING": "utf-8"}
-    proc = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--markdown", "--output", str(out),
+    proc = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--format", "markdown", "--output", str(out),
                            "--name=Output Test", "+habitable_world"],
                           cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert proc.returncode == 0, proc.stdout + proc.stderr
@@ -1160,7 +1160,11 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
     assert "not saved to the database" in proc.stdout
     wiki = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
                           cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
-    assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")
+    assert wiki.returncode == 0 and wiki.stdout.startswith("Wiki Out\n========")
+    wikitext = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--format", "wikitext", "--output", "-", "--quiet",
+                               "--name=Wiki Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
+                              env=env)
+    assert wikitext.returncode == 0 and wikitext.stdout.startswith("= Wiki Out =")
 
 
 # --- Upper bounds (SEC.18) ----------------------------------
