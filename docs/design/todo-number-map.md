@@ -1571,7 +1571,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.150 | Test run progress log and build id for resuming a run | none | done, PR #1431 |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
-| TEST.153 | A single hung test can stall a whole run (bug) | none | open |
+| TEST.153 | A single hung test can stall a whole run (bug) | none | done, PR #1451 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
