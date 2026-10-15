@@ -277,22 +277,47 @@ def _wait_settled(page, before=None, timeout_s=15.0):
             return
 
 
+HOVER_SCAN = """([here, wanted, steps]) => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    const box = canvas.getBoundingClientRect();
+    const re = wanted ? new RegExp(wanted) : null;
+    for (let j = 2; j < steps - 1; j++) {
+        for (let i = 2; i < steps - 1; i++) {
+            const x = box.left + (i / steps) * box.width, y = box.top + (j / steps) * box.height;
+            if (document.elementFromPoint(x, y) !== canvas) continue;  // only where a real click lands on the map
+            canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
+            const text = tip.hidden ? "" : tip.textContent;
+            if (text && text.split(/[:,] /)[0].trim() !== here && (!re || re.test(text))) return [x, y, text];
+        }
+    }
+    return null;
+}"""
+"""str: Moves the pointer over the map with pointer events sent from the page, in the same 21 x 21 grid the real pointer used
+to visit (a Playwright move and a read for each of 441 points took 120 s under load, TEST.139 stage 4), and returns
+[x, y, tooltip] of the first spot whose tooltip names a choice matching `wanted` other than `here`."""
+
+
+HOVER_RETRIES = 20
+
+
 def _hover_choice(page, wanted=None):
-    """Moves the pointer over the map until the tooltip names a choice
-    (matching `wanted`, a regex); returns (x, y, text) or None. A tooltip
-    naming where the map already is gets passed over: under load it can
-    still show the choice that was just clicked."""
+    """Finds a spot on the map whose tooltip names a choice (matching `wanted`, a regex), moves the real pointer there
+    and returns (x, y, text) once the tooltip still names it, or None. A tooltip naming where the map already is gets
+    passed over: under load it can still show the choice that was just clicked. The scan sends pointer events from the
+    page; a spot the map is still redrawing under can name another choice for the real pointer (TEST.109), so the
+    scan is made again until the real pointer reads the same."""
     here = _crumbs(page)[-1]
-    box = page.locator("#galaxymap3d-canvas").bounding_box()
     tooltip = page.locator("#galaxymap3d-tooltip")
-    for fy in [i / 24 for i in range(2, 23)]:
-        for fx in [i / 24 for i in range(2, 23)]:
-            x, y = box["x"] + fx * box["width"], box["y"] + fy * box["height"]
+    for _ in range(HOVER_RETRIES):
+        found = page.evaluate(HOVER_SCAN, [here, wanted, 24])
+        if found:
+            x, y, _text = found
             page.mouse.move(x, y)
-            if tooltip.is_visible():
-                text = tooltip.inner_text()
-                if text and _label_of(text) != here and (wanted is None or re.search(wanted, text)):
-                    return x, y, text
+            text = tooltip.inner_text() if tooltip.is_visible() else ""
+            if text and _label_of(text) != here and (wanted is None or re.search(wanted, text)):
+                return x, y, text
+        page.wait_for_timeout(250)  # the map ignores the pointer while a stage's flight runs
     return None
 
 
