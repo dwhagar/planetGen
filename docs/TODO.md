@@ -3058,28 +3058,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.91.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
-- [ ] **GEN.148 Habitability index follow-ups from the research (GEN.84 built)**
-  GEN.84 is built; the research adds: record Boss's decision as PHI-4
-  domains for display plus three Xenobiology scores behind (2026-10-07
-  17:11Z, confirmed 2026-10-09 07:48Z); `PHI_bio` becomes the Liebig
-  blend (habitability-index.md 7.1; the settled product in the built
-  item contradicts it, a point for Boss to settle), the Master doc's
-  example table recomputed once the L terms exist, the display-band
-  table (2.3), the equipment-tier table (4), the 16 conflicts and
-  resolutions (3) and the constants (2.4). Numeric radiation tiers fill
-  the gap between 100 mSv/yr and 10 Gy/yr (design doc 4.6); fix the Gy
-  and Sv units in the L_rad item (Mars is 0.077 Gy/yr, 0.236 Sv/yr); use
-  D10 5 to 10 kGy for Deinococcus. A summed-insolation input with a
-  `flux_variation` term for multi-star systems. Expose a harshness
-  number (0 to 1, default 0.5, no effect until it exists) for the tech
-  draw and facility rating suggestions. The dose ladder cannot lean on
-  astropy on Python 3.9 (6.0.1 has no `Gy` or `Sv`); keep Gy/yr and
-  mSv/yr as two quantities. Decided (Boss, 2026-10-10 18:44Z, defaults
-  approved; default: 20 mSv/yr
-  for the Blue tier, 50 as the single-year limit).
-  Prerequisite (the flux_variation part only): DB.26 (done, PR #1423).
-  Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
 - [ ] **GEN.149 Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K**
   Central stars are generated at 1.1 to 1.44 Msun and at most 100 Lsun;
   real ones are 0.5 to 0.7 Msun (median 0.59), 1e2 to 1e4 Lsun and up to
@@ -3391,7 +3369,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrong index, with a test over the generated description. Rebase on
   main: Foundations Generation's GEN.148 flux half touches the
   temperature rating, so keep the edit to the description text.
-  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148, UX.101.
+  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457), UX.101.
 
 - [ ] **GEN.215 Air shows Green with 0 Air when the air pressure is 0 (bug)**
   Boss (2026-10-15 03:46Z): "Bug, Air will say Green with 0 Air when
@@ -3401,7 +3379,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line: "**Air: Red** (0.0). There is no atmosphere (0.0 kPa)." Done
   when a world with no atmosphere never shows Green in Air and a test
   covers it.
-  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148.
+  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
 
 - [ ] **GEN.216 Habitability text is too wordy and the Suitability sentence is oddly worded (bug)**
   Boss (2026-10-15 03:46Z): "Bug, Sustainability text is very oddly
@@ -3428,7 +3406,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the two items before it; do it after them. Done when every rating
   line reads like the examples and tests pin the wording. Rebase on
   main; Foundations Generation avoids the description text meanwhile.
-  Prerequisites: GEN.214, GEN.215. Related: GEN.207, GEN.208, GEN.148.
+  Prerequisites: GEN.214, GEN.215. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
