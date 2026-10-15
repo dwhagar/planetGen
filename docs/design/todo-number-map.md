@@ -529,7 +529,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
 | DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | done, PR #1581 |
-| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | open |
+| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | done, PR #1586 |
 | DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | open |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | open |
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 | none | open |
@@ -537,7 +537,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | open |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | open |
 | DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | open |
-| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | open |
+| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | done, PR #1586 |
 | DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | open |
 | DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | done, PR #1581 |
 | DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail | none | done, PR #1584 |

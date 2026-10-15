@@ -212,7 +212,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
 | DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) |  |  |
-| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS |  |  |
 | DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 |  |  |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults |  |  |
 | DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config |  |  |
@@ -220,7 +219,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 |  |  |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names |  |  |
 | DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits |  |  |
-| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names |  |  |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages |  |  |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md |  |  |
 | DOC.26 | Give every design note a status line and refresh the stale ones |  |  |
