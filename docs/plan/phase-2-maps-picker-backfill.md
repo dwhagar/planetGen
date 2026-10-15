@@ -150,6 +150,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.232, GEN.234, GEN.235, GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
+| GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.248 | Tidal streams as placed components of the halo (later) | GEN.237, GEN.234 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | GEN.129, GEN.130 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.246 | Luminous blue variables and hypergiants (later) | GEN.243 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.245 | Debris disks around A and F stars (later) | GEN.242 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.244 | Young open clusters and OB associations as components (later) | GEN.237, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | GEN.233, GEN.232, GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.235, GEN.159, GEN.160 | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
 | GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | GEN.235, GEN.158 | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |

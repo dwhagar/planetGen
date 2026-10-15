@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.114 |
 | MAP | MAP.208 |
 | NAV | NAV.60 |
-| GEN | GEN.244 |
+| GEN | GEN.250 |
 | PERF | PERF.103 |
 | DB | DB.33 |
 | API | API.28 |
@@ -793,6 +793,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | none | open |
 | GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | none | open |
 | GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | none | open |
+| GEN.244 | Young open clusters and OB associations as components (later) | none | open |
+| GEN.245 | Debris disks around A and F stars (later) | none | open |
+| GEN.246 | Luminous blue variables and hypergiants (later) | none | open |
+| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | none | open |
+| GEN.248 | Tidal streams as placed components of the halo (later) | none | open |
+| GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
