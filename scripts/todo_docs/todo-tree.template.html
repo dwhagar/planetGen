@@ -100,6 +100,7 @@ __HEADLINES__
 <script type="application/json" id="data">__DATA__</script>
 <script>
 const D=JSON.parse(document.getElementById('data').textContent);
+const ISSUES=D.issues||{},ISSUE_URL='https://github.com/dwhagar/planetGen/issues/';
 const items=D.items, ids=Object.keys(items);
 const phaseOf=i=>String(items[i].phase||'');
 const idKey=s=>{const [c,n]=s.split('.');return [c,+n]};
@@ -144,7 +145,7 @@ const matches=i=>{
   if(!state.phases.has(phaseOf(i))) return false;
   if(state.q){
     const q=state.q.toLowerCase();
-    if(!(i.toLowerCase().includes(q)||it.title.toLowerCase().includes(q)||(it.note||'').toLowerCase().includes(q))) return false;
+    if(!(i.toLowerCase().includes(q)||it.title.toLowerCase().includes(q)||(it.note||'').toLowerCase().includes(q)||(it.issues||[]).some(n=>('#'+n).includes(q)))) return false;
   }
   return true;
 };
@@ -161,6 +162,7 @@ function nodeFor(i,forceOpen){
   if(it.bug) head.append(el('span','tag bug','bug'));
   if(it.headline) head.append(el('span','tag n','headline '+it.headline));
   head.append(tagFor(phaseOf(i)));
+  (it.issues||[]).forEach(n=>{const l=el('a','tag n','#'+n);l.href=ISSUE_URL+n;l.target='_blank';l.rel='noopener';l.title=(ISSUES[n]||{}).title||'';l.addEventListener('click',e=>e.stopPropagation());head.append(l)});
   if(descendants[i]) head.append(el('span','tag n','unblocks '+descendants[i]));
   const others=(it.deps||[]).filter(d=>d!==parent[i]&&d in items);
   if(others.length){

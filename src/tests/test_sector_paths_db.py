@@ -85,9 +85,16 @@ def test_a_heavy_black_hole_bends_the_path_of_a_slow_neighbour_and_recomputing_r
     finally:
         conn.close()
     assert len(path.knots) > 2
-    cos = sum(a * b for a, b in zip(path.start.velocity, path.end.velocity)) / (
-        math.sqrt(sum(v * v for v in path.start.velocity)) * math.sqrt(sum(v * v for v in path.end.velocity)))
-    assert math.degrees(math.acos(max(-1.0, min(1.0, cos)))) > 10.0
+    # The star is held by the hole and goes round once before the path is cut off (GEN.232), so it is
+    # the furthest knot, not the last, that shows the bend.
+    start = path.start.velocity
+    start_speed = math.sqrt(sum(v * v for v in start))
+
+    def bend_deg(velocity):
+        cos = sum(a * b for a, b in zip(start, velocity)) / (start_speed * math.sqrt(sum(v * v for v in velocity)))
+        return math.degrees(math.acos(max(-1.0, min(1.0, cos))))
+
+    assert max(bend_deg(knot.velocity) for knot in path.knots) > 10.0
     assert again == 1 and counts == (1, len(path.knots))
 
 

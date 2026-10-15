@@ -49,8 +49,19 @@ from the integrated path before it gets another knot."""
 DEFAULT_MAX_KNOTS = 48
 """int: The most knots one sector's path keeps."""
 
-DEFAULT_MAX_STEPS = 20000
-"""int: The most integration steps before the path is cut off."""
+DEFAULT_MAX_STEPS = 2000
+"""int: The most integration steps before the path is cut off. A step is
+a fraction of the shortest dynamical or crossing time, so a path that has
+not left by now is held by a mass (see `MAX_TURN_RAD`) or is plunging
+through a very dense stretch; it is the hard ceiling on a body's cost."""
+
+MAX_TURN_RAD = 2.0 * math.pi
+"""float: A path is cut off once its direction of travel has turned through
+this much in all, one full revolution: a body held by a mass has come all
+the way round, and the spline (`DEFAULT_MAX_KNOTS` knots) cannot follow it
+further anyway. A flyby turns by less than half of it. Without this cap a
+body in the well of a heavy black hole ran every one of the thousands of
+steps for each of the thousands of bodies in a core sector (GEN.232)."""
 
 DEFAULT_RELEVANT_MASSES = 32
 """int: The most point masses one path is integrated against."""
@@ -246,28 +257,37 @@ def relevant_masses(position, velocity, masses, edge_m, softening_m=DEFAULT_SOFT
     return chosen
 
 
-def _acceleration(position, masses, softening_sq):
-    """The pull at `position`; `masses` as `(x, y, z, mu)` tuples (`integrate_path` unpacks them once)."""
+def _pull(position, masses, softening_sq):
+    """
+    The pull at `position` and the two limits it sets on the next step: the
+    shortest dynamical time of any mass, and the nearest mass's distance
+    (the step must also be a fraction of that distance over the speed).
+    `masses` as `(x, y, z, mu)` tuples (`integrate_path` unpacks them once).
+    One pass over the masses serves all three, which is the integrator's
+    whole cost.
+
+    Returns:
+        tuple: `(acceleration, dynamical_step, nearest_m)`.
+    """
     ax = ay = az = 0.0
-    px, py, pz = position
-    for mx, my, mz, mu in masses:
-        dx, dy, dz = mx - px, my - py, mz - pz
-        r2 = dx * dx + dy * dy + dz * dz + softening_sq
-        k = mu / (r2 * math.sqrt(r2))
-        ax += k * dx
-        ay += k * dy
-        az += k * dz
-    return (ax, ay, az)
-
-
-def _step_size(position, speed, masses, softening_sq, max_step):
-    step = max_step
+    dynamical = math.inf
+    nearest_sq = math.inf
     px, py, pz = position
     for mx, my, mz, mu in masses:
         dx, dy, dz = mx - px, my - py, mz - pz
         r2 = dx * dx + dy * dy + dz * dz + softening_sq
         r = math.sqrt(r2)
-        step = min(step, STEP_FRACTION * math.sqrt(r * r2 / mu), STEP_FRACTION * r / speed)
+        k = mu / (r2 * r)
+        ax += k * dx
+        ay += k * dy
+        az += k * dz
+        dynamical = min(dynamical, STEP_FRACTION * math.sqrt(r * r2 / mu))
+        nearest_sq = min(nearest_sq, r2)
+    return (ax, ay, az), dynamical, math.sqrt(nearest_sq)
+
+
+def _step_size(dynamical, nearest_m, speed, max_step):
+    step = min(max_step, dynamical, STEP_FRACTION * nearest_m / speed)
     return max(step, max_step * 1.0e-6)
 
 
@@ -379,20 +399,25 @@ def integrate_path(position, velocity, masses, inside, edge_m, softening_m=DEFAU
 
     samples = [start]
     t, p, v = 0.0, position, velocity
-    a = _acceleration(p, active, softening_sq)
+    a, dynamical, nearest = _pull(p, active, softening_sq)
     exited = False
+    turned = 0.0
     for _ in range(max_steps):
-        h = _step_size(p, _norm(v), active, softening_sq, max_step)
+        speed_prev = _norm(v)
+        h = _step_size(dynamical, nearest, speed_prev, max_step)
         v_half = tuple(vi + 0.5 * h * ai for vi, ai in zip(v, a))
         p_next = tuple(pi + h * vi for pi, vi in zip(p, v_half))
-        a_next = _acceleration(p_next, active, softening_sq)
+        a_next, dynamical_next, nearest_next = _pull(p_next, active, softening_sq)
         v_next = tuple(vi + 0.5 * h * ai for vi, ai in zip(v_half, a_next))
         if not inside(p_next):
             samples.append(_exit_state(inside, t, p, v, t + h, p_next, v_next))
             exited = True
             break
-        t, p, v, a = t + h, p_next, v_next, a_next
+        speed_next = _norm(v_next)
+        if speed_next > 0.0:
+            turned += math.acos(max(-1.0, min(1.0, _dot(v, v_next) / (speed_prev * speed_next))))
+        t, p, v, a, dynamical, nearest = t + h, p_next, v_next, a_next, dynamical_next, nearest_next
         samples.append(PathKnot(t, p, v))
-        if t > max_time:
+        if t > max_time or turned > MAX_TURN_RAD:
             break
     return SectorPath(_simplify(samples, tolerance_m, max_knots), exited)

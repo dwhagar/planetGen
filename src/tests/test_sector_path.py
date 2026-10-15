@@ -122,6 +122,23 @@ def test_a_body_held_by_a_mass_is_cut_off_instead_of_running_forever():
     assert not path.exited and 2 <= len(path.knots) <= sp.DEFAULT_MAX_KNOTS
 
 
+def test_a_body_held_by_a_heavy_mass_costs_one_revolution_not_the_step_limit():
+    """GEN.232: thousands of bodies orbit the core's black hole; each used to run every step of the limit."""
+    mass = sp.PointMass((0.0, 0.0, 0.0), 1.0e8 * MSUN)
+    edge = 4.0 * PC
+    speed = 0.4 * math.sqrt(constants.G * mass.mass_kg / PC)
+    pulls = []
+    original = sp._pull
+    sp._pull = lambda *args: pulls.append(1) or original(*args)
+    try:
+        path = sp.integrate_path((PC, 0.0, 0.0), (0.0, speed, 0.0), [mass], lambda p: math.dist(p, (0, 0, 0)) < 2.5 * PC,
+                                 edge)
+    finally:
+        sp._pull = original
+    assert not path.exited and 2 < len(path.knots) <= sp.DEFAULT_MAX_KNOTS
+    assert len(pulls) < sp.DEFAULT_MAX_STEPS // 2, len(pulls)
+
+
 def test_paths_chain_across_sectors_from_the_exit_state():
     first = sp.integrate_path((-9.0 * PC, 0.0, 0.0), (50.0e3, 5.0e3, 0.0), [], _box(), EDGE)
     entry = first.restart()
