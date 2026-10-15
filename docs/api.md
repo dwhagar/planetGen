@@ -680,6 +680,14 @@ forced credential change. They back the admin stats page
   "offset"}`. `load.kind` is `load` (the 1, 5 and 15 minute load
   average); `load.values` is null where the system has no load average.
   `available` is false until `update.sh` has added control schema v7.
+- `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
+  `{"count": n}` or `{"ludicrous": true}` — the bulk queue's worker count
+  (ADM.15, PERF.95). `{"wanted", "live", "ludicrous", "cpus"}`: the count
+  asked for (the admin's, else 80% of the cores), the workers running now,
+  the count "Ludicrous Speed" sets (95% of the cores) and the cores. A
+  POST needs a fresh admin login, is audited as `work.workers.set`, and
+  lowering the count asks the extra workers to finish their unit and exit.
+  503 when Redis does not answer.
 - `GET /api/admin/work/<id>` — the whole job tree holding node `<id>`
   (ADM.12): every node's `kind`, `title`, `state`, `status` (`interrupted`
   for a run that stopped answering), Unix-time `created_at`,

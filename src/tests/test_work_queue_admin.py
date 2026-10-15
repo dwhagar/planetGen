@@ -514,3 +514,45 @@ def test_a_helper_that_fails_still_resumes_the_queue_and_the_failure_reaches_the
     with pytest.raises(AssertionError, match="timed out"):
         helper.finish()
     assert resumed == [True]
+
+
+def test_the_worker_count_is_read_and_set_through_the_api(admin_client, redis_server):
+    """ADM.15: GET shows the bulk worker count; POST sets a count or "Ludicrous Speed", in the audit log."""
+    from planetgen.queue import redisqueue, workers
+    connection = redisqueue.connect()
+    connection.delete(workers.WANTED_KEY)
+    try:
+        state = admin_client.get("/api/admin/work/workers").get_json()
+        assert set(state) == {"wanted", "live", "ludicrous", "cpus"} and state["wanted"] >= 1
+        done = admin_client.post("/api/admin/work/workers", json={"count": 3})
+        assert done.status_code == 200 and done.get_json()["wanted"] == 3 and workers.wanted(connection) == 3
+        done = admin_client.post("/api/admin/work/workers", json={"ludicrous": True})
+        assert done.get_json()["wanted"] == workers.ludicrous_count()
+        for bad in ({}, {"count": 0}, {"count": "4"}, {"count": 2, "ludicrous": True}, {"ludicrous": False}):
+            assert admin_client.post("/api/admin/work/workers", json=bad).status_code == 400, bad
+    finally:
+        connection.delete(workers.WANTED_KEY)
+
+
+def test_the_worker_count_needs_an_admin(web_app):
+    client = web_app.test_client()
+    assert client.get("/api/admin/work/workers").status_code == 401
+    assert client.post("/api/admin/work/workers", json={"count": 2}).status_code == 401
+
+
+def test_the_queue_page_sets_the_worker_count(web_app, admin_client, redis_server):
+    from planetgen.queue import redisqueue, workers
+    connection = redisqueue.connect()
+    connection.delete(workers.WANTED_KEY)
+    try:
+        page = admin_client.get("/admin/queue").get_data(as_text=True)
+        assert 'name="count"' in page and "Ludicrous Speed" in page
+        response = _post(web_app, admin_client, action="workers-set", count="2")
+        assert response.status_code == 303 and workers.wanted(connection) == 2
+        assert "now asks for 2 workers" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+        _post(web_app, admin_client, action="workers-set", count="0")
+        assert workers.wanted(connection) == 2                                  # refused: still 2
+        _post(web_app, admin_client, action="workers-ludicrous")
+        assert workers.wanted(connection) == workers.ludicrous_count()
+    finally:
+        connection.delete(workers.WANTED_KEY)

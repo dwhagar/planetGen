@@ -2,6 +2,132 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1246] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the unit ladders (UX.22) and time symbols (UX.81) as open work; they merged in #1504. The two design-note ladders for planet bulk density and measured angles were not built because no page shows them.
+
+TODO items resolved: UX.22, UX.81 / Added: none
+
+## [8.0.1245] - 2026-10-15
+
+### Changed
+
+- A comet's orbit panel (period and perihelion), the Galaxy Map's block legend and scale bar, and the Generate page's sector count now round and group their numbers with the shared unit ladders and number rule. A comet's perihelion reads "2 AU" and its period "12.3 years" like every other distance and time; a test now fails when a page script formats a measurement by hand.
+
+## [8.0.1244] - 2026-10-15
+
+### Added
+- The TODO list gains two description items: UX.108 puts phenomena, sectors, the galaxy and facilities into the same description document, and UX.109 removes the old per-class description text.
+
+TODO items resolved: none / Added: UX.108, UX.109
+
+## [8.0.1243] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the single system description builder as open work (it merged in #1509).
+
+TODO items resolved: UX.104 / Added: none
+
+## [8.0.1242] - 2026-10-15
+
+### Added
+
+- `planetgen.describe.describe(system)` builds one structured description of a star system (sections, facts, ratings, prose and typed quantities, all plain JSON) from a generated or database-loaded system. Nothing shows it yet; the web page, the API and the command line move to it in the following changes.
+- `protection.rating()` gives a rocky body's six habitability categories as data; `protection.paragraph()` is built from it, so the words are unchanged.
+
+## [8.0.1241] - 2026-10-15
+
+### Changed
+
+- PERF.95 retired (merged in #1506: the queue spine), with PERF.40, PERF.78 and ADM.15 folded into it.
+
+TODO items resolved: PERF.95, PERF.40, PERF.78, ADM.15 / Added: none
+
+## [8.0.1240] - 2026-10-15
+
+### Changed
+
+- UX.100 is owned by Foundations UX (the interface owner was the retired Bugfixes lane 2).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1239] - 2026-10-15
+
+### Added
+- Two shared work queues, `planetgen-bulk` and `planetgen-interactive`, each served by its own workers. Workers wait a minute for work before they exit, so a run's queue can be empty for a moment between stages. The API's jobs and the admin's long operations use the interactive queue, so a long run never holds them up.
+- An admin can set the bulk worker count from the Queue page, or pick "Ludicrous Speed" (95% of the cores). Lowering the count asks the extra workers to finish their unit and exit.
+- A running job can be stopped at once, not only a waiting one.
+
+### Changed
+- A worker killed with `kill -9` is replaced the next time work is queued or a job's status is read.
+
+## [8.0.1238] - 2026-10-15
+
+### Changed
+
+- Plan: Boss retired the Bug 1 and Bug 2 lanes (after MAP.203, and after MAP.199, MAP.200, MAP.204). GEN.222 is owned by Foundations Generation and PERF.101 by Foundations Database.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1237] - 2026-10-15
+
+### Added
+
+- Plan entry for a Boss bug: regions under the galactic plane are hard to highlight and select on the Galaxy Map (MAP.204).
+
+TODO items resolved: none / Added: MAP.204
+
+## [8.0.1236] - 2026-10-15
+
+### Changed
+
+- UX.22 progress recorded: step 6 (density and magnetic-field units) merged in #1497; step 7 remains.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1235] - 2026-10-15
+
+### Added
+
+- Plan entries for two bugs from Boss: nebula kinds and layers per slab in the generation text (GEN.222), and progress for the phenomena indexes with a fallback ETA for silent phases (PERF.101). PERF.96 gains the fallback ETA in its acceptance.
+
+TODO items resolved: none / Added: GEN.222, PERF.101
+
+## [8.0.1234] - 2026-10-15
+
+### Changed
+
+- UX.103 retired (merged in #1496: design note for the description layer).
+
+TODO items resolved: UX.103 / Added: none
+
+## [8.0.1233] - 2026-10-15
+
+### Changed
+
+- A cloud's particle density ("3.5 particles/cm³", in nebula and remnant pages and descriptions) and a magnetic field ("50 µT" for a planet, "1.00 × 10¹² G" for a pulsar) use the shared unit ladders; fields are written in tesla with SI prefixes up to 10,000 T and in gauss above that.
+
+## [8.0.1232] - 2026-10-15
+
+### Changed
+- **Design note for the system description layer.** `docs/design/system-description.md` describes one typed description of a star system, planet, moon, belt or comet, with HTML, Markdown, wikitext, plain-text and JSON renderers, so Markdown and wikitext are produced only on request. No code changes.
+
+## [8.0.1231] - 2026-10-15
+
+### Changed
+
+- MAP.201 retired (merged in #1494: an unfilled selected sector stays highlighted).
+
+TODO items resolved: MAP.201 / Added: none
+
+## [8.0.1230] - 2026-10-15
+
+### Fixed
+- **A selected sector with nothing generated lost its highlight on the Galaxy Map.**
+  It cannot be opened, and now stays outlined and shaded, even after the
+  pointer passes over other blocks, until something else is selected.
+
 ## [8.0.1229] - 2026-10-15
 
 ### Changed

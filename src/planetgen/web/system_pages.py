@@ -22,7 +22,7 @@ from flask import abort, jsonify, redirect, request
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
-    format_duration_seconds, format_gravity_g, format_flux_w_m2, format_mass_kg, format_mass_solar, format_number, format_power_w, format_period_years, format_pressure_pa, format_speed_kms,
+    format_duration_seconds, format_gravity_g, format_flux_w_m2, format_magnetic_field_gauss, format_mass_kg, format_number_density_cm3, format_mass_solar, format_number, format_power_w, format_period_years, format_pressure_pa, format_speed_kms,
     format_temperature_k, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_nearest,
     nearest_systems_html,
@@ -551,7 +551,7 @@ def _cloud_class_text(value):
 # unset value is stored as 0 or ''; those rows are left out.
 _CLOUD_CONTENTS = [
     ("dominant_species", "Dominant Species", lambda v: v or None),
-    ("density_cm3", "Density", lambda v: f"{format_number(v, ',.3g')} particles/cm\u00b3" if v else None),
+    ("density_cm3", "Density", lambda v: format_number_density_cm3(v) if v else None),
     ("temperature_k", "Gas Temperature", lambda v: f"{format_number(v, ',.0f')} K" if v else None),
     ("extinction_av", "Extinction", lambda v: f"{format_number(v, ',.2f')} magnitudes (visual)" if v else None),
 ]
@@ -614,7 +614,7 @@ FIELD_SPECS = {
         ("mass_solar", "Mass", format_mass_solar),
         ("radius_km", "Radius", _km),
         ("spin_period_ms", "Spin Period", lambda v: format_duration_seconds(v / 1000)),
-        ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
+        ("magnetic_field_gauss", "Magnetic Field", format_magnetic_field_gauss),
         ("pulsar_type", "Pulsar Type", _title_case),
         ("surface_temperature_k", "Surface Temperature", lambda v: format_temperature_k(v, companions=False)),
         ("luminosity_w", "Luminosity", format_power_w),

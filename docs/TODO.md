@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.10, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.3, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -231,84 +231,6 @@ with `clamp()`.
   Queue page and job log. Foundations UX starts it when PERF.96 has merged.
   Prerequisite: PERF.96.
 
-- [ ] **UX.22 Meaningful units for every measurement**
-  Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
-  like we have so that we always have meaningful units. From mass, to
-  distance, to time, to speed, just everything that can have units.
-  Atmospheric pressure and surface conditions should show customary
-  units as well as a secondary to help contextualize the metric values
-  given." Today only distance has a ladder (`format_distance_m` and
-  friends in `stellarObjects/utils.py` and `html/lib/fmt.py`, mirrored
-  by `static/distance.js`), speed (UX.13: `format_speed_kms`,
-  `static/speed.js`) and durations (UX.14: `format_duration_seconds`,
-  `format_period_years`, `static/period.js`). Done: one ladder per quantity, in Python with a JavaScript
-  mirror, picking a meaningful unit the same way, and every page, map
-  panel and form converted to it: mass (kg, Earth, Jupiter and solar
-  masses), distance, time, speed, temperature, pressure, gravity,
-  density, luminosity, power and any other quantity shown with a unit.
-  Surface conditions show temperature in K, °C and °F; atmospheric
-  pressure and the other surface conditions show a customary unit
-  (such as atm, psi or g) beside the metric value. Surface
-  temperature (K, °C, °F) and pressure (kPa, atm, psi) shipped in PR
-  #234; this item covers the rest. Question (decided below): the ladder
-  and switch
-  points for each quantity; which customary unit goes with each surface
-  condition; whether the secondary unit shows in tables or only in
-  detail panels.
-  Research (2026-10-09, units-and-number-formatting.md): answer the open
-  questions with the defaults in section 1 of the doc (ladder and switch
-  points per quantity; atm, psi and bar for pressure; g and m/s² for
-  gravity, ft/s² under Customary; °F for temperature; lb and mi only
-  under the Customary preset). Secondary units show in detail panels,
-  property grids and generator text; table rows and chips show the
-  primary unit with the secondary in a tooltip. The rogue-planet page
-  (`web/system_pages.py` `_temperature_text`, `_pressure_text`) still
-  bypasses the shipped K/°C/°F and pressure formatters. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults taken): lunar-mass rung
-  wanted (0.01 lunar mass to
-  0.1 Earth mass; Jupiter masses from 0.1 M_J; solar masses from 0.075
-  M☉); keep "AU" and accept "au" on input; no fourth in-universe unit
-  set.
-
-  - [ ] **UX.23 A shared unit-ladder module**
-    Done: one Python ladder module (in `stellarObjects/utils.py` or a new
-    `units.py`) and its JavaScript twin, generalising the existing
-    distance, speed and duration ladders, with a test that the Python and
-    JavaScript twins agree for a table of values. Then one sub-item per
-    quantity family: mass; temperature; pressure and gravity; density,
-    luminosity and power.
-    Plan (2026-10-07): The ladder is built on astropy.units (GEN.66).
-    Research (2026-10-09, units-and-number-formatting.md): re-scope to a
-    data-driven ladder table in Python, one generated JS data file and
-    one algorithm per language, built on astropy constants. Step 0: the
-    module, a generated `unitladders.js`, wrappers keeping the old
-    names; behaviour-preserving, proven by a 600,000-value equivalence
-    run against the current formatters, plus the rounding fix as the one
-    deliberate output change. Replace the sub-item list with the
-    migration order in section 5: distance, time,
-    temperature/pressure/gravity, mass, luminosity/power/flux,
-    density/number density/magnetic field/angles, JS stragglers,
-    preference menu. Add the seven Hypothesis/parity tests of section 4
-    to "Done". The text names `stellarObjects/utils.py` and
-    `html/lib/fmt.py`; the files are now `src/planetgen/util/format.py`
-    and `src/planetgen/web/lib/fmt.py`.
-  Decided (2026-10-10): Boss (19:12Z): accept the research unit table in
-  units-and-number-formatting.md (ladders, switch points, customary
-  pairings).
-  Progress (2026-10-15): step 0 merged (PR #1427): one unit-ladder
-  table and algorithm for distance, speed and time, in Python and the
-  browser. Next steps follow in the migration order (UX.81 kyr/Myr/Gyr
-  and AU from 1,000,000 km, then UX.22 temperature, pressure, gravity).
-  Progress (2026-10-15, PR #1450, Foundations UX): steps 0 to 3 done:
-  distance, speed, time, temperature, pressure and gravity run through
-  the shared ladders. Step 4 done (PR #1480): masses run through the
-  ladder (kg, lunar, Earth, Jupiter, solar). Step 5 done (PR #1488):
-  luminosity, power and heat flow run through ladders. Remaining (step 6):
-  density, number density, magnetic field and angles; (step 7) the
-  leftover `toFixed` calls in `galaxymap3d.js` and `galaxystageview.js`
-  (coordinates, angles; folded in from UX.81), and the JavaScript lint test that bans direct `toFixed` for unit
-  values.
-
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
   Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
   and moon from the row display just giving class instead of class and
@@ -419,28 +341,6 @@ with `clamp()`.
   Prerequisite: UX.23.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
-- [ ] **UX.81 Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3**
-  Rename before GEN.87 introduces the gray (touches `PERIOD_LADDER`,
-  `format_age_string`, `period.js`, tests). Start the AU rung at
-  1,000,000 km (0.0067 AU) so inner-system distances never print as
-  "5.79 × 10⁷ km", and use scientific text below mantissa 1e-3 for every
-  rung (pressure prints "0.00000000000025 Pa" today). Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults yes): the rename and
-  the AU start. Also pass
-  `aria-valuetext` the unit name, not the symbol, in `facilityform.js`,
-  and route direct `toFixed`/`toPrecision` calls in `systemview3d.js`,
-  `galaxysystem.js`, `galaxymap3d.js`, `galaxystages.js` and
-  `galaxystageview.js` through the ladders.
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-  Progress (2026-10-15, PR #1450, Foundations UX): done: the kyr, Myr
-  and Gyr symbols, AU from 1,000,000 km, scientific text for tiny
-  values, `aria-valuetext` with the unit name, and the `systemview3d.js`
-  and `galaxysystem.js` routing. Left over: the direct `toFixed` calls
-  in `galaxymap3d.js` and `galaxystageview.js` (coordinates, angles,
-  luminosity), now steps 5 to 7 of UX.22. UX.81 retires when UX.22
-  finishes those.
-
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
   `vendor/shoelace/assets` and `icons.svg` uses `currentColor`; recheck
@@ -483,8 +383,8 @@ with `clamp()`.
   column, UX.101 swaps in the final shapes. Boss, 2026-10-11 01:35Z: the
   description text at the end should be in paragraph form, simply saying
   for each category where the planet falls and why, with no extra
-  information (GEN.208). Owner: Bugfixes lane 2 (interface), after the
-  generation items.
+  information (GEN.208). Owner: Foundations UX (moved from the
+  retired Bugfixes lane 2, Boss 2026-10-15 05:39Z), in its queue order.
   Prerequisites: none. Related: UX.30 (absorbed into UX.105), UX.32, UX.101, GEN.208 (done, PR #1433).
 
 - [ ] **UX.101 PHI-6 symbols in the planet and moon lists, coloured by rating**
@@ -535,34 +435,6 @@ with `clamp()`.
   a Phase 2 item for the interface builders.
   Prerequisites: none. Related: PERF.66.
 
-- [ ] **UX.103 Design note for the description layer**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Write docs/design/system-description.md: the document
-  model (per body a heading, a facts table of typed quantities, a rating
-  table of the six PHI-6 rows with colour, score and one short sentence,
-  and a few short sentences), the HTML, Markdown, wikitext and
-  plain-text renderers, what is stored versus computed, the migration
-  list for Foundations Database, and a map of every field now written by
-  a to_paragraph_list(). Reconciles with UX.30 (now absorbed). Docs-only
-  PR.
-  Prerequisites: none.
-
-- [ ] **UX.104 Build the document model for stars, pairs, planets, moons, belts, comets and the overview**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Pure functions (package name provisional,
-  planetgen/describe/) from a loaded or freshly generated system to the
-  document model; no format flag, no Markdown, no HTML in it. Facts
-  tables carry typed quantities (kind, SI value, ladder name, or plain
-  text). The planet and moon model includes the habitability rating rows
-  by calling the existing protection and habitability functions
-  unchanged (the wording is replaced in the describer item). Tests
-  compare field coverage against the old tables so nothing is dropped. A
-  quantity not yet on a unit ladder is carried as a plain number with
-  its unit and converted when UX.22/UX.23 land.
-  Prerequisite: UX.103.
-
 - [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -582,7 +454,7 @@ with `clamp()`.
   04:21Z): markdown is no longer the web default for any planet or
   system text; the richer tables replace it, and markdown and wikitext
   are generated on the fly only when the user asks.
-  Prerequisites: UX.104, UX.23. Related: UX.30 (absorbed into this
+  Prerequisite: UX.23. Related: UX.30 (absorbed into this
   item), UX.32, UX.101.
 
 - [ ] **UX.106 CLI output as plain text by default, Markdown and wikitext on request**
@@ -593,7 +465,6 @@ with `clamp()`.
   decided default, stands unless Boss says otherwise). The one-line
   lists in cli/query.py go through the unit ladders. Updates docs/cli.md
   in the same PR.
-  Prerequisite: UX.104.
 
 - [ ] **UX.107 Units in the description go through the ladders**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -603,9 +474,25 @@ with `clamp()`.
   habitability text), the CLI query lines, the class page radius ranges,
   and the wide-binary, comet, nebula and quasar numbers. The ladders
   themselves (mass, temperature, pressure, Gyr rename) are UX.22, UX.23
-  and UX.81 (Foundations UX); this item is the call sites outside the
+  and UX.81 (Foundations UX, all done); this item is the call sites outside the
   files they edit.
-  Prerequisite: UX.23. Related: UX.22, UX.81.
+  Prerequisite: UX.23. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
+
+- [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
+  Nebulae, remnants, quasar, rogue planets, asteroid fields, sector
+  summaries and facilities are still described by their own per-class
+  text. Build them into the same document model as UX.104 so one set of
+  renderers (text, HTML tables, Markdown, wikitext) covers everything
+  the program describes. Foundations Wording (filed 05:50Z, split out of
+  API.25, which was too big for one PR).
+  Prerequisites: UX.104 (done, PR #1509).
+
+- [ ] **UX.109 Remove the old per-class description text**
+  Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
+  __str__ text, db/render.py render_system_sections, the /sections
+  endpoint and mdrender, once nothing reads them. Foundations Wording
+  (filed 05:50Z, split out of API.25).
+  Prerequisites: UX.105, UX.106, UX.108.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1537,17 +1424,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [#1414](https://github.com/dwhagar/planetGen/issues/1414).
   Prerequisite: MAP.199. Related: MAP.198 (done, PR #1470), MAP.152, MAP.146.
 
-- [ ] **MAP.201 A selected sector that is not filled stays highlighted on the map until something else is selected (bug)**
-  Boss, 2026-10-15 01:49Z: when a sector is selected but unfilled, it
-  cannot be entered, but it should then stay highlighted on the map
-  until something else is selected. Done: selecting an unfilled sector
-  keeps its highlight (same outline as MAP.198) after the refusal to
-  enter, until another selection replaces it; browser test. Owner:
-  Bugfixes lane 2, right after MAP.198 (same selection and highlight
-  area). GitHub issue
-  [#1416](https://github.com/dwhagar/planetGen/issues/1416).
-  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199, MAP.152.
-
 - [ ] **MAP.203 Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug)**
   Boss, 2026-10-15 02:15Z, with three screenshots: when viewing a
   sector, the stars and such look too big compared to what the user just
@@ -1562,6 +1438,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   client part next), so start from main after that merge. GitHub issue
   [#1420](https://github.com/dwhagar/planetGen/issues/1420).
   Prerequisites: none. Related: MAP.152, MAP.198 (done, PR #1470), MAP.146.
+
+- [ ] **MAP.204 Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug)**
+  Boss (2026-10-15 05:33Z): "BUG: Attempting to select a region under
+  the galactic plane on the galaxy map is exceedingly difficult and the
+  system doesn't want to highlight or allow selecing anything on the
+  underside unless positioning is just right." Selecting and
+  highlighting a sector, slab or block on the underside of the galactic
+  plane (below the mid-plane, seen from above or at an angle) should
+  work as easily as above it. Find why the pick and the highlight miss
+  the underside (the picking ray, the plane or box tests, or the
+  highlight drawn only for the upper side) and fix it so the underside
+  is picked and highlighted wherever the cursor is over it. Done when a
+  browser test selects and highlights regions below the plane from
+  several camera angles. Owner: Bugfixes lane 2 (galaxystageview.js
+  selection work), queued after MAP.199 and MAP.200; it touches the same
+  selection and camera code as MAP.198 (done), MAP.199, MAP.200 and the
+  MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
+  to follow.
+  Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199,
+  MAP.200, MAP.152.
 
 ## NAV: Navigation and courses
 
@@ -3396,7 +3292,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one gas-name table, PHI-6 everywhere, dead code deleted
   (habitability_explain.factors and helpers unless a row sentence needs
   them). Keeps GEN.148's temperature behaviour.
-  Prerequisites: UX.104, GEN.214 (done, PR #1472).
+  Prerequisites: GEN.214 (done, PR #1472).
 
 - [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -3419,7 +3315,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages label the flag "Habitable class". Touches Foundations UX
   (UX.32 chip decision, UX.101 symbols): coordinate before editing
   systempage.py.
-  Prerequisites: UX.104, GEN.218. Related: UX.32, UX.101.
+  Prerequisite: GEN.218. Related: UX.32, UX.101.
 
 - [ ] **GEN.221 Short plain prose for the fixed text**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -3433,7 +3329,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class descriptions that claim life or water (tuning.PLANET_CLASSES,
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
-  Prerequisite: UX.104.
+
+- [ ] **GEN.222 Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug)**
+  Boss (2026-10-15 05:30Z): "BUG: Output, when generation text is
+  output, nebulae should show text showing the kinds of nebulae in each
+  slab and the layers included in each slab." When a generation run
+  prints its text output, the nebula part should say, for each slab,
+  which kinds of nebulae were made there and which layers the slab
+  holds. Found: the output prints nebulae without that per-slab
+  breakdown. Done when a run's text output lists, per slab, the nebula
+  kinds and the layers included. Owner: Foundations Generation (Boss
+  retired the bug lanes, 2026-10-15 05:39Z), next after its current item.
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3628,26 +3535,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.40 Two shared queues, a reserved interactive worker and a real "cancel now"**
-  `planetgen-interactive` (one reserved worker) and `planetgen-bulk`
-  (workers serve `[interactive, bulk]`); "cancel now" for running tasks
-  via `send_stop_job_command` (safe: sector and backfill-chunk saves are
-  single transactions; `cancel()` alone leaves a running job running);
-  keep the interval-less `Retry(max=1)` and add no retry intervals
-  without a scheduler (a retry with an interval stayed `scheduled` on a
-  burst worker). Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-  default yes): a reserved
-  interactive worker costs one process (about 195 MB) while any bulk run
-  is active; start it on demand and exit when its queue is empty.
-  Note (2026-10-14, GitHub issue sweep):
-  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
-  2026-10-13): the whole work queue is to be redone (PERF.86). Build
-  this item only if the PERF.86 plan keeps it; otherwise it is folded
-  into or dropped by that plan.
-  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
-  plan, 2026-10-14 21:08Z); it is built there.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
   A `TILE_FORMAT` constant in the stamp base in place of `__version__`,
   with a golden test that fails when the tile or page structure changes
@@ -3713,30 +3600,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
-- [ ] **PERF.78 A reserved warm worker for long admin operations, and the poll pattern for them**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): queueing a read is not the answer
-  for page reads (it runs the same SQL on the same busy database, holds
-  one of the API daemon's 5 threads while the request waits, needs a
-  public polling route and costs 2.4 s to start a worker), but it is
-  right for work an admin starts and expects to take long. Done: the
-  `planetgen-interactive` queue of
-  docs/design/performance-eta-queue-and-caching.md 3.4 is built for
-  those operations only (Generate estimates, the deep database check
-  DB.21, exports), with a warm worker reserved for it and the admin poll
-  route they already use; no public polling route. Low priority. Owner:
-  Foundations lane 1.
-  Note (2026-10-14, GitHub issue sweep):
-  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
-  2026-10-13): the whole work queue is to be redone (PERF.86). Build
-  this item only if the PERF.86 plan keeps it; otherwise it is folded
-  into or dropped by that plan.
-  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
-  plan, 2026-10-14 21:08Z); it is built there.
-  Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
   (Boss, 2026-10-13 02:41Z): "I was mistaken about how Redis worked and
@@ -3745,8 +3608,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   subtask and all of that. It's going to be a lot of work too but I
   think I'm wasting a lot of efficiency." Done: a design note on what
   the queue does today, what it needs to do, and the simplest design on plain Redis queues,
-  then the rebuild; PERF.40, PERF.78, ADM.15, PERF.29 and PERF.30 wait
-  for this plan and are folded in or dropped. Decided (Boss, 2026-10-14
+  then the rebuild; PERF.40, PERF.78, ADM.15 (all folded into PERF.95,
+  done, PR #1506), PERF.29 and PERF.30 waited for this plan and are
+  folded in or dropped. Decided (Boss, 2026-10-14
   13:24Z): keep a "cancel now" that stops a job, progress bars and ETAs
   per stage, per-stage timing records (Boss wants stats on how long
   everything takes) and the job log with its download link; an admin
@@ -3758,8 +3622,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   best ways to use Redis in a situation like ours and to give him
   options before the rebuild starts. Owner: a research thread first
   (coordinator to assign), then Foundations lane 1.
-  Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
-  ADM.15, PERF.24.
+  Prerequisites: none. Related: PERF.40 (done, PR #1506), PERF.78 (done, PR #1506),
+  PERF.29, PERF.30, ADM.15 (done, PR #1506), PERF.24.
   Redis review (2026-10-14): research done (Research Lane 1, PR #1350,
   docs/design/redis-and-the-work-queue.md, with
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
@@ -3808,32 +3672,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.95 Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.4 and 5.11 step 1. Two
-  queues, planetgen-bulk and planetgen-interactive, each worker serving
-  only one; ensure_workers starts idle-timeout workers (max_idle_time
-  about 60 s, not burst) up to the wanted-count key
-  planetgen:workers:wanted, counts only live workers, cleans the worker
-  registry, and is called by whoever queues and by every status poll;
-  API jobs move to the interactive queue. Folds in PERF.40 (two shared
-  queues, a reserved interactive worker, a real cancel now), PERF.78 (a
-  reserved warm worker for long admin operations) and ADM.15 (worker
-  count from the Queue page, Ludicrous Speed as a number). Done when:
-  those items' behaviours work on the new spine and a test kills a
-  worker and a replacement starts.
-  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78,
-  ADM.15.
-
 - [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -3853,7 +3691,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from measured performance). Done when: the library passes its tests
   for the barrier, counters, stream and ETA and PERF.33's acceptance is
   met by it.
-  Prerequisite: PERF.95. Related: PERF.86, PERF.33.
+  Also (Boss, 2026-10-15 05:30Z): when a phase reports no updates, the
+  whole task bar still shows an estimated time remaining, from earlier
+  runs' stage timings or the time per task so far in this run; the ETA
+  function must carry this fallback (the interim fix is the bug item
+  PERF.101).
+  Prerequisite: PERF.95 (done, PR #1506). Related: PERF.86, PERF.33.
 
 - [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -3946,6 +3789,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   automatic resume. Done when: the suite is green with the old code gone
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
+
+- [ ] **PERF.101 No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug)**
+  Boss (2026-10-15 05:30Z): "Why is there no update going on for the
+  phenomena indexes? There has to be something we can track, during a
+  phase with no updates the whole task bar should also still have an
+  estimated time remaining based on previous statistics or how long the
+  run has taken per task so far." Today the phase "Building the
+  phenomena indexes" (run_plan.py, step phenomena-index) is one pass
+  over the whole phenomenon_scatter table and says outright that there
+  is no progress until it is done. Fix: build the indexes so something
+  is countable (one index at a time, or chunks), so the step reports
+  progress; and when any phase reports nothing, the whole task bar still
+  shows an estimated time remaining from earlier runs' stage timings, or
+  from the time per task so far in this run. The same fallback must be
+  part of PERF.96's ETA function (see its acceptance), so it survives
+  the move to the Redis run record. Owner: Foundations Database,
+  together with PERF.96 (Boss retired the bug lanes, 2026-10-15
+  05:39Z).
+  Prerequisites: none. Related: PERF.96, PERF.33.
 
 ## DB: Database and schema
 
@@ -4083,7 +3945,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   command, after which the check uses them. PERF.100 (which deletes the
   old work tables with a migration) must pass through this check too.
   Owner: Foundations Database, after DB.28 (done, PR #1476) and before PERF.100.
-  Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
+  Prerequisites: none. Related: PERF.95 (done, PR #1506), PERF.96, PERF.99, PERF.100,
   OPS.48, DB.18, DB.27 (done, PR #1446), DB.28 (done, PR #1476).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
@@ -4112,7 +3974,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration and agrees its timing; Foundations Wording writes
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
-  Prerequisite: UX.104.
 
 ## API: The JSON API
 
@@ -4437,7 +4298,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   SystemConfig.MARKDOWN and its global flipping (db/render.py _format,
   render_star_system). The run-config markdown column goes with the
   storage item. Updates docs/api.md in the same PR.
-  Prerequisite: UX.104.
 
 ## ADM: Admin tools
 
@@ -4460,43 +4320,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `upload_runs`, `upload_units` and `upload_claims`.
   Decided (2026-10-10): Boss (19:16Z, Accept all): flag an upload that
   has been silent for 3 days; flag only, never auto-clear.
-
-- [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
-  Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
-  change the worker count including a "Ludicrous Speed" that will
-  basically change the system to run max CPU power on the system up to
-  95% of available CPU power but periodized so that the web interface
-  still works (even though they will be slow) and DB calls still work
-  (even though they will be slow). This speed mode will not care if
-  mysql is running and will have the goal of saturating the host CPU
-  safely." Today the worker count is fixed when a run starts
-  (`--workers`, `PLANETGEN_WORKERS`, or `worker_count()` in
-  `stellarObjects/workQueue.py`: 80% of the cores, one fewer when MySQL
-  is on this machine), with workers at lowered priority, and the admin
-  Queue page (`admin_queue.html`, ADM.10/11) can't change it. Done: an
-  admin can set the worker count on the Queue page (for running and
-  future work) and pick "Ludicrous Speed", which aims to saturate the
-  host's CPU up to 95% of its capacity without keeping a core back for a
-  local MySQL, while still giving the web site and database calls enough
-  time that they keep working, if slowly. The change is written to the
-  admin activity log.
-  Plan (2026-10-07): The worker count now means RQ worker processes
-  (PERF.24).
-  Research (2026-10-09, performance-eta-queue-and-caching.md): keep
-  lowered worker priority, but it does not protect the database: add one
-  connection per worker, a cap on total worker connections and the
-  reserved interactive worker; re-run PERF.34's page-time test under
-  Ludicrous Speed.
-  Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
-  run under Ludicrous Speed moved here from PERF.38; it needs this item
-  built and a real fill.
-  Note (2026-10-14, GitHub issue sweep):
-  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
-  2026-10-13): the whole work queue is to be redone (PERF.86). Build
-  this item only if the PERF.86 plan keeps it; otherwise it is folded
-  into or dropped by that plan.
-  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
-  plan, 2026-10-14 21:08Z); it is built there.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a

@@ -35,6 +35,7 @@ const {
   blockAddressAt, blockAt, blockSectorCount, blockSizeForScale, blocksForView, boundsDensity, buildPrismGeometry,
   cellCoordinates,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
+const { scientificText, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 // Unfilled space: this opaque at the sparsest drawn density, rising to
 // BLOCK_OPACITY_DENSE at the densest (90% to 70% see-through). Boss
@@ -210,9 +211,9 @@ function formatLegend(value) {
     return "0";
   }
   if (value !== 0 && (Math.abs(value) >= 1e5 || Math.abs(value) < 0.01)) {
-    return value.toExponential(1);
+    return scientificText(value);
   }
-  return String(Number(value.toPrecision(3)));
+  return threeFigures(value);
 }
 
 // The ramp of a single statistic, low to high (sRGB).

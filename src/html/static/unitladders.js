@@ -124,4 +124,24 @@ export const LADDERS = {
       {"symbol": "MW/m²", "factor": 1000000.0, "name": "megawatts per square meter", "start": 1000000.0, "singular": null, "whole_from": null, "with_aside": false},
     ],
   },
+  "number density": {
+    "base": "particles/m³", "nonfinite": "particles/cm³", "zero": "particles/cm³",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "particles/cm³", "factor": 1000000.0, "name": "particles per cubic centimeter", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false},
+    ],
+  },
+  "magnetic field": {
+    "base": "T", "nonfinite": "G", "zero": "T",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "nT", "factor": 1e-09, "name": "nanoteslas", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "µT", "factor": 1e-06, "name": "microteslas", "start": 1e-06, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "mT", "factor": 0.001, "name": "milliteslas", "start": 0.001, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "T", "factor": 1.0, "name": "teslas", "start": 1.0, "singular": null, "whole_from": null, "with_aside": false},
+      {"symbol": "G", "factor": 0.0001, "name": "gauss", "start": 10000.0, "singular": null, "whole_from": null, "with_aside": false},
+    ],
+  },
 };

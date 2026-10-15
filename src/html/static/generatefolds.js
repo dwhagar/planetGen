@@ -16,6 +16,10 @@
 // still fold (the server opens Current job and a form shown again), and
 // the Sector ID is typed by hand.
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+
 const STORE_KEY = "planetgen.generate.open";
 const SEARCH_DELAY_MS = 300;
 
@@ -156,7 +160,7 @@ function setUpFinder(box) {
       page = body.page;
       pages = body.pages;
       status.textContent = body.total
-        ? `${body.total.toLocaleString()} filled sector${body.total === 1 ? "" : "s"}, nearest the core first. Page ${page} of ${pages}.`
+        ? `${formatNumber(body.total)} filled sector${body.total === 1 ? "" : "s"}, nearest the core first. Page ${page} of ${pages}.`
         : "No sector has been generated yet.";
       show(body.items, (s) => `Sector ${s.name} (ID ${s.id}, ${address(s)}, ${s.systems ?? 0} systems)`);
       pager.hidden = pages <= 1;

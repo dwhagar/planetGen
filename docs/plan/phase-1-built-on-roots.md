@@ -112,22 +112,24 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | MAP.199 |  |
+| MAP.204 | Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug) |  |  |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
-| UX.103 | Design note for the description layer |  |  |
-| UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | UX.103 |  |
-| UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.104, UX.23 |  |
-| API.25 | A structured description endpoint, and Markdown and wikitext on request only | UX.104 |  |
-| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | UX.104 |  |
-| GEN.218 | One habitability describer, in the short wording | UX.104 |  |
+| UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.23 |  |
+| API.25 | A structured description endpoint, and Markdown and wikitext on request only |  |  |
+| UX.106 | CLI output as plain text by default, Markdown and wikitext on request |  |  |
+| GEN.218 | One habitability describer, in the short wording |  |  |
 | GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
-| GEN.220 | "Habitable" means the index | UX.104, GEN.218 |  |
+| GEN.220 | "Habitable" means the index | GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
-| GEN.221 | Short plain prose for the fixed text | UX.104 |  |
+| GEN.221 | Short plain prose for the fixed text |  |  |
+| GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) |  |  |
+| PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
-| DB.31 | Store structure, not prose, for life and flavour | UX.104 |  |
+| UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
+| UX.109 | Remove the old per-class description text | UX.105, UX.106, UX.108 |  |
+| DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
-| MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) |  |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
@@ -162,17 +164,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.23 | A shared unit-ladder module |  | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 then UX.30 build on it. |
-| UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 |  | Research: wording and ladder fixes. |
+| UX.23 | A shared unit-ladder module |  | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 (done, PR #1504) then UX.30 build on it. |
 | UX.78 | Unit preference: Automatic, Metric only or Customary | UX.23 | Research: under UX.23. |
-| UX.22 | Meaningful units for every measurement | UX.23 | One quantity family per PR. |
 | UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
 
 ### Queue
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode |  | Worker count now means RQ workers. Changing the worker count live only makes sense once any count works. |
 
 ### API
 
@@ -253,20 +252,16 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost |  | Generation performance study. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
-| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | PERF.99 | PERF.86 step 6 |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98 | PERF.86 step 5 |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.97 | PERF.86 step 4 |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | PERF.96 | PERF.86 step 3 |
-| PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | PERF.95 | PERF.86 step 2 |
-| PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count |  | PERF.86 step 1 |
-| PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
+| PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library |  | PERF.86 step 2 |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
 
 ## Open questions for Boss
 
-- UX.22: Meaningful units for every measurement, see its entry in TODO.md.
 - UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.
 - OPS.13: Every update records the version key, keeping the last 10, see its entry in TODO.md.

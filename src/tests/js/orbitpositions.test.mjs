@@ -73,7 +73,7 @@ test("a comet's orbit is described as bound with its period, or unbound and not 
   const kepler = { perihelion_distance_km: 2 * AU_KM, eccentricity: 0.5, period_years: 12.3456 };
   const closed = Object.fromEntries(P.cometOrbitFields({ type: "elliptical", kepler }));
   assert.equal(closed.Orbit, "Bound, returns every 12.3 years");
-  assert.equal(closed.Perihelion, "2.00 AU");
+  assert.equal(closed.Perihelion, "2 AU");
   const open = Object.fromEntries(P.cometOrbitFields({ type: "parabolic", kepler: { ...kepler, eccentricity: 0.9987, period_years: null } }));
   assert.match(open.Orbit, /^Unbound.*does not return/);
   assert.equal(open.Eccentricity, "0.9987");

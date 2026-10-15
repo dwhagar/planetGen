@@ -15,12 +15,12 @@ page (`web/queue_page.py`), not here.
 from flask import Blueprint, g, jsonify, request
 
 from planetgen.generation import stats as generationStats
-from planetgen.queue import load as systemLoad, work as workQueue
+from planetgen.queue import load as systemLoad, redisqueue, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .routes import _paginate
-from .schemas import QueueAction, WorkAction, parse_body
+from .schemas import QueueAction, WorkAction, WorkerCount, parse_body
 
 bp = Blueprint("workqueue", __name__, url_prefix="/api/admin/work")
 
@@ -198,3 +198,42 @@ def clear_lease():
     if holder:
         audit("work.lease.clear", target="lease", detail=holder[:200])
     return jsonify({"cleared": holder})
+
+
+def _workers_state(connection):
+    queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
+    return {"wanted": queueWorkers.wanted(connection), "live": queueWorkers.live_worker_count(queue),
+            "ludicrous": queueWorkers.ludicrous_count(), "cpus": workQueue.cpu_count()}
+
+
+def _redis():
+    try:
+        connection = redisqueue.connect()
+        connection.ping()
+    except Exception as exc:  # noqa: BLE001 -- any connection failure
+        raise ApiError(f"Redis is not answering: {exc}", 503) from exc
+    return connection
+
+
+@bp.route("/workers", methods=["GET"])
+@require_admin()
+def workers_state():
+    """`GET /api/admin/work/workers` -- `wanted` (the bulk worker count), `live` (bulk workers running now),
+    `ludicrous` (the count "Ludicrous Speed" sets) and `cpus` (ADM.15)."""
+    return jsonify(_workers_state(_redis()))
+
+
+@bp.route("/workers", methods=["POST"])
+@require_admin(fresh=True)
+def set_workers():
+    """
+    `POST /api/admin/work/workers` `{"count": n}` or `{"ludicrous": true}` sets the bulk worker count
+    (ADM.15): running work picks it up as workers start and exit (lowering it asks the extra workers to finish
+    their unit and exit). Returns the new state; written to the audit log.
+    """
+    body = parse_body(WorkerCount, require_json_body())
+    connection = _redis()
+    count = queueWorkers.ludicrous_count() if body.ludicrous else body.count
+    queueWorkers.set_wanted(connection, count)
+    audit("work.workers.set", target="workers", detail=f"count={count}" + (" ludicrous" if body.ludicrous else ""))
+    return jsonify(_workers_state(connection))

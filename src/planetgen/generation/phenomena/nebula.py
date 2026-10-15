@@ -23,7 +23,7 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
 from planetgen.physics import hii, stellar_evolution
-from planetgen.util.format import format_distance_ly, format_number
+from planetgen.util.format import format_distance_ly, format_number, format_number_density_cm3
 from planetgen.util.random import log_uniform
 
 
@@ -345,7 +345,7 @@ class Nebula(LazySaladName):
         )
         contents = (
             f"It is a class {self.nebula_class} nebula ({self.class_name.lower()}): mostly "
-            f"{self.dominant_species}, at about {format_number(self.density_cm3, ',.3g')} particles per cubic centimeter "
+            f"{self.dominant_species}, at about {format_number_density_cm3(self.density_cm3)} "
             f"and {format_number(self.temperature_k, ',.0f')} K, dimming the stars behind it by "
             f"{self.extinction_av:.2g} magnitudes."
         )

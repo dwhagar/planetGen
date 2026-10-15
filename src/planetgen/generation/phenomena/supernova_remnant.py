@@ -27,7 +27,7 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.util.format import format_distance_ly, format_number
+from planetgen.util.format import format_distance_ly, format_number, format_number_density_cm3
 
 
 def remnant_classes_for(progenitor_type, compact_remnant_kind):
@@ -267,7 +267,7 @@ class SupernovaRemnant(LazySaladName):
         class_name = tuning.NEBULA_CLASSES[self.remnant_class]["name"]
         paragraphs = [header, description, (
             f"It is a class {self.remnant_class} remnant ({class_name.lower()}): mostly "
-            f"{self.dominant_species}, at about {format_number(self.density_cm3, ',.3g')} particles per cubic centimeter "
+            f"{self.dominant_species}, at about {format_number_density_cm3(self.density_cm3)} "
             f"and {format_number(self.temperature_k, ',.3g')} K."
         )]
 

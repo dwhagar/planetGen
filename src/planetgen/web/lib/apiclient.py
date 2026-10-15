@@ -1043,6 +1043,17 @@ def admin_work_queue(cookie_header, action):
     return body["ok"]
 
 
+def admin_work_workers(cookie_header, count=None, ludicrous=False):
+    """`GET`, or with `count` / `ludicrous` `POST`, `/api/admin/work/workers` -- the bulk worker count (ADM.15):
+    `{"wanted", "live", "ludicrous", "cpus"}`."""
+    if count is None and not ludicrous:
+        body, _set_cookie_headers = _auth_request("GET", "/admin/work/workers", cookie_header=cookie_header)
+    else:
+        body, _set_cookie_headers = _auth_request("POST", "/admin/work/workers", cookie_header=cookie_header,
+                                                  json_body={"ludicrous": True} if ludicrous else {"count": count})
+    return body
+
+
 def admin_work_clear_lease(cookie_header):
     """`POST /api/admin/work/lease/clear` -- frees a stale lease; returns
     the holder it cleared, or `None`."""
