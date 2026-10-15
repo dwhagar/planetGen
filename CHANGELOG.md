@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1238] - 2026-10-15
+
+### Changed
+
+- Plan: Boss retired the Bug 1 and Bug 2 lanes (after MAP.203, and after MAP.199, MAP.200, MAP.204). GEN.222 is owned by Foundations Generation and PERF.101 by Foundations Database.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1237] - 2026-10-15
 
 ### Added
