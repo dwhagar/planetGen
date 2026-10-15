@@ -3389,19 +3389,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.213 Mercury-like bodies never keep their magnetic field (bug)**
-  Seen by Foundations Generation (2026-10-15) while working on GEN.177
-  (done, #1410).
-  Mercury-like bodies (0.05 to 0.1 Earth masses, iron-rich) never keep
-  their magnetic field: 0 of 500 draws keep one at 4.5 Gyr, because the
-  dynamo-lifetime check in magnetism._rocky_moment runs before the
-  Mercury branch. Foundations Generation fixes it together with GEN.177
-  (the stagnant-lid factor), right after GEN.177 in its queue. Done:
-  Mercury-like bodies keep their field, with a test on a Mercury-like
-  body. GitHub issue
-  [#1406](https://github.com/dwhagar/planetGen/issues/1406).
-  Prerequisites: none. Related: GEN.177 (done, #1410).
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
