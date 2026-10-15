@@ -4024,26 +4024,34 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   right after DB.27.
   Prerequisite: DB.27. Related: POP.10, DB.27.
 
-- [ ] **DB.29 A database migration refuses to start while jobs are active and asks the user to cancel them first**
+- [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
   Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
   to a new version, if there are active jobs, ask the user to cancel the
-  jobs first before changing anything." Done: before any migration step
-  changes the database (the migrate command and the migration step of
-  update.sh), the run checks for active jobs (running or queued
-  generation runs and other background jobs). If there are any, it
-  changes nothing, lists them, and asks the user to cancel them first
-  (naming the cancel command or page), then exits with a non-zero
-  status; with no active jobs it proceeds as before. A test covers both
-  paths, and the check is the one place every migration goes through.
+  jobs first before changing anything." Widened by Boss, 02:56Z: "In
+  fact, anytime update is run, it won't start without either --yes
+  passed OR if the user specifically confirms they want to cancel all
+  jobs prior to starting the upgrade or install." Done: before it
+  changes anything, update.sh (every install and every upgrade, not only
+  runs that migrate) and the migrate command check for active jobs
+  (running or queued generation runs and other background jobs). With
+  none, they proceed as before. With any, they list them and stop until
+  either `--yes` was passed, or the user types an explicit confirmation
+  that all active jobs may be cancelled; only then are the jobs
+  cancelled, and then the install or upgrade starts. Without `--yes` and
+  without a terminal to ask on, they change nothing and exit non-zero.
+  update.sh still never edits the user's Redis configuration (OPS.48).
+  A test covers each path (no jobs, jobs and `--yes`, jobs and a typed
+  confirmation, jobs and no answer), and the check is the one place every
+  migration goes through.
   Dependency: how the active jobs are read depends on the work queue
   steps. Until PERF.96 (run record and counters in Redis) merges, the
   check reads the old job tables; PERF.96 supplies the library call that
-  lists active runs, after which the check uses it, and PERF.100 (which
-  deletes the old work tables with a migration) must pass through this
-  check too. Owner: Foundations Database, after DB.28 and before
-  PERF.100.
+  lists active runs, and PERF.99 supplies the cancel through the stop
+  command, after which the check uses them. PERF.100 (which deletes the
+  old work tables with a migration) must pass through this check too.
+  Owner: Foundations Database, after DB.28 and before PERF.100.
   Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
-  DB.18, DB.27, DB.28.
+  OPS.48, DB.18, DB.27, DB.28.
 
 ## API: The JSON API
 
