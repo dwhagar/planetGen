@@ -78,6 +78,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.260, GEN.262, GEN.264, GEN.266, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
+| DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | DB.34, GEN.276, NAV.60 | Spherical region query, stage C. Step 8. Quality. |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | GEN.250, GEN.251, GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 9. Quality. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
@@ -133,6 +134,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map |  | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
+| NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | NAV.60 | Spherical region query, stage C. Step 4. Core. |
+| NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | DB.34, GEN.276, DB.35 | Spherical region query, stage C. Step 3. Core. |
+| DB.35 | Scatter rows keep their address columns and gain the point columns and the cell key | GEN.223, DB.34 | Spherical region query, stage C. Step 5. Core. |
+| DB.34 | Cell key and covering index on every table that holds a position, in the shared 0093 migration | GEN.223, GEN.276 | Spherical region query, stage C. Step 1. Core. |
+| GEN.276 | planetgen/galaxy/cellkey.py: the cell key function and the sphere-to-key-runs cover, numpy only |  | Spherical region query, stage C. Step 2. Core. |
 
 ### Bookmarks
 
@@ -206,6 +212,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.233, GEN.235, GEN.236, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.262, GEN.264 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
+| TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | DB.34, GEN.223 | Spherical region query, stage C. Step 7. Quality. |
+| TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | DB.34, GEN.276 | Spherical region query, stage C. Step 6. Quality. |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.250, GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | GEN.198 | Research. |
