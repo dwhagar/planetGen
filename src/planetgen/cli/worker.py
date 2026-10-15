@@ -95,17 +95,21 @@ def worker_class():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="planetgen.cli.worker", description=__doc__.strip().splitlines()[0])
-    parser.add_argument("queues", nargs="*", default=list(redisqueue.QUEUES),
-                        help="the queues to serve, first one first (default: all of planetGen's)")
+    parser.add_argument("queues", nargs="*", default=[redisqueue.WEB_QUEUE],
+                        help="the queues to serve, first one first (default: the web queue; a worker serves one kind)")
     parser.add_argument("--burst", action="store_true", help="exit once the queues are empty")
     parser.add_argument("--name", help="the worker's name (default: RQ picks one)")
     parser.add_argument("--url", help="the Redis server (default: PLANETGEN_REDIS_URL, else config.json's redis.url)")
     args = parser.parse_args(argv)
     work.lower_priority()
     warm(args.queues)
-    connection = redisqueue.connect(args.url)
+    serializers = {redisqueue.serializer_for(name) for name in args.queues}
+    if len(serializers) > 1:
+        parser.error("one worker serves queues of one kind: the web queues (JSON) or a run's own queue (pickle), "
+                     "not both.")
+    connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]
-    worker = worker_class()(queues, connection=connection, name=args.name)
+    worker = worker_class()(queues, connection=connection, name=args.name, serializer=serializers.pop())
     worker.work(burst=args.burst, with_scheduler=False)
 
 

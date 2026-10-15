@@ -474,43 +474,13 @@ with `clamp()`.
   otherwise.
   Prerequisite: UX.45. Related: UX.47.
 
-- [ ] **UX.93 No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does**
-  Boss (2026-10-10 20:28Z): "TODO codes should never appear in the
-  finished product, so add a TODO item to scrub output lines with things
-  like PERF.67 etc etc etc". Done: every user-facing line is scrubbed of
-  TODO IDs (a category from the TODO table, a dot and a number, such as
-  PERF.67 or NAV.42): page and template text, tooltips, error and
-  refusal messages, CLI and job-log lines, API error and help text,
-  setting descriptions, the in-app help and any docs shown to users of
-  the site. Code comments, docstrings, TODO.md, `changes/` notes, the
-  changelog and the design docs may keep them. A pytest scans the
-  templates, the static files and the string literals the code shows to
-  users (settings descriptions, messages, CLI output) and fails on a
-  TODO-ID pattern there, with a short allowlist for the places where an
-  ID is wanted (none expected). The first pass found about 44 hits in
-  the templates and static files, most of them in template comments (`{#
-  ... #}`), which stay, and about 130 string literals in the Python code
-  to check by hand. Owner: Bugfixes lane 2, after its current items.
-  Docs sweep (2026-10-09): Docs sweep (2026-10-14, reference audit
-  finding 9 and 39): TODO codes are still in many CLI --help strings
-  (GEN.195, NAV.48, ADM.29, GEN.30, GEN.96, GEN.97, GEN.186, ADM.30,
-  GEN.196, OPS.13, DB.8, GEN.183, GEN.39, NAV.43, SEC.22, SEC.26 in
-  cli/generate.py, cli/query.py and cli/lockouts.py), in one run
-  message, and web/templates/admin_stats.html line 162 renders (PERF.56)
-  on the admin Stats page; the help text also shows the internal
-  constant name LARGE_RING_WARNING_THRESHOLD. Remove them as part of
-  this item, with a test that scans CLI help and templates for TODO
-  codes. Details in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md.
-  Prerequisites: none.
-
 - [ ] **UX.94 Gravity map wording: the legend, the mode names and the Map help text**
   Done: the legend names the unit (metric or Customary through the UX.36
   number formatting), the three modes have plain in-universe names with
   a one-line explanation each, the Map help dialog explains what the
   colours mean and what a saddle point is, and no TODO code appears in
-  any of it (UX.93).
-  Prerequisite: MAP.168. Related: MAP.167, UX.93.
+  any of it (UX.93, done).
+  Prerequisite: MAP.168. Related: MAP.167.
 
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -575,7 +545,7 @@ with `clamp()`.
   only in the page display, labelled). Bugfixes lane 1 built
   UX.98 as the first slice (done, #1369: one stage formatter); the rest is
   a Phase 2 item for the interface builders.
-  Prerequisites: none. Related: PERF.66, UX.93.
+  Prerequisites: none. Related: PERF.66.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3816,14 +3786,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/redis-review/). Boss adopted its Option A
   and approved every default in it on 2026-10-14 21:08Z (see the
   Decided line below). Filed from the same review, independent of the
-  rebuild: PERF.93 (bug, done, PR #1364), OPS.48, PERF.94, ADM.54.
+  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48, ADM.54.
   Decided (Boss, 2026-10-14 21:08Z): Option A of
   the Redis review, every default approved. Build steps filed as PERF.95
   (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
   scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
   cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
   when they are; it follows the dead-worker bug PERF.93 (done) and the client
-  module PERF.94 in Foundations lane 1. DOC.20 rewrites the notes after
+  module PERF.94 (done) in Foundations lane 1. DOC.20 rewrites the notes after
   step 6.
 
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
@@ -3859,19 +3829,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
-  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
-  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
-  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
-  benchmarks in research/redis-review/bench/). Redis is opened in
-  several places with different settings (finding F9) and RQ arguments
-  are pickled (F8). Done when: one module owns the connection (timeouts,
-  retry, health check, a cached pool), every connect() call site uses
-  it, and task arguments travel as plain JSON where the old path pickled
-  them. Normal priority; PERF.86 builds on it. Foundations lane 1,
-  before PERF.40.
-  Prerequisites: none. Related: PERF.86, PERF.40.
-
 - [ ] **PERF.95 Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -3895,7 +3852,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   count from the Queue page, Ludicrous Speed as a number). Done when:
   those items' behaviours work on the new spine and a test kills a
   worker and a replacement starts.
-  Prerequisite: PERF.94. Related: PERF.86, PERF.40, PERF.78,
+  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78,
   ADM.15.
 
 - [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
@@ -4646,7 +4603,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   is on, the memory policy, used_memory, the last save status and the
   worker count. Default: build it after the Redis settings item; Boss
   may drop it. Foundations lane 1, after the client module.
-  Prerequisites: none. Related: OPS.48, PERF.94.
+  Prerequisites: none. Related: OPS.48.
 
 ## SEC: Security
 
@@ -5133,6 +5090,84 @@ clears each one.
   Test Suite Rebuild thread, not a lane.
   Prerequisites: none. Related: TEST.126, TEST.139.
 
+- [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
+  Boss (2026-10-15 00:09Z): wants to be able to restart a test run where
+  it left off so long as the build is the same, so a run that is stopped
+  or times out does not start over (a full run is about 49 minutes).
+  Boss also set the standing rule that every test run starts with a
+  timeout of at least 90 minutes and is known to be done by its own
+  completion notice or final summary line, not by polling (now in
+  docs/testing.md). Done when the Test Suite Rebuild thread reports the
+  options (for example a record of passed tests keyed by the git commit
+  and a hash of the working tree, a resume flag in scripts/test.py that
+  skips them, and what must invalidate a resume: any changed file,
+  database or Redis state, the Python or library versions) with a
+  recommendation, and Boss picks one; the build is then filed as its own
+  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: the Test
+  Suite Rebuild thread, part of TEST.139, not a lane.
+  Decided (Boss, 2026-10-15, tapped Build
+  it): option A, a per-test progress log plus an explicit
+  `scripts/test.py <command> --resume`, same build id only; not
+  automatic and not part of the merge gate. Build items TEST.150,
+  TEST.151 and TEST.152, owner the Test Suite Rebuild thread, after
+  TEST.133.
+  Prerequisites: none. Related: TEST.139.
+
+- [ ] **TEST.149 Two physics tests fail under load and pass alone (bug)**
+  Reported by Foundations lane 1 (2026-10-15 00:18Z) in a
+  scripts/test.py changed run that selected the whole suite (15,433
+  passed):
+  tests/test_update_due.py::test_only_due_planets_and_moons_move_and_count
+  and
+  tests/test_planet_physics_fixes.py::test_atmospheric_pressure_correlates_positively_with_gravity
+  failed under load and passed alone. Done when the cause is found (a
+  shared-state or time assumption, or an unseeded draw) and the suite
+  shows no flake for these two. Owner: the Test Suite Rebuild thread,
+  not a lane.
+  Prerequisites: none. Related: TEST.126, TEST.139.
+
+- [ ] **TEST.150 Test run progress log and build id for resuming a run**
+  Option A of TEST.148 (Boss chose it, 2026-10-15). Every test worker
+  appends one line per finished test to .test-progress/<build-id>.jsonl
+  (test id, outcome, seconds, worker), one write per line like the
+  failure log, so a killed run loses at most the tests running at that
+  moment. The build id is a hash of the git tree of HEAD, the content of
+  every uncommitted or untracked file, the lock files and pytest.ini,
+  the test command and its selection, the Python version, the database
+  server name and version, and the UTC date. A new run without the
+  resume flag starts a new log; a log for another build is kept for a
+  day, then removed. Done when the log and the build id exist with tests
+  (the id changes when any of those inputs change and not otherwise).
+  Prerequisite: TEST.133. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.151 scripts/test.py --resume: skip the tests that passed in a run of the same build**
+  Option A of TEST.148. `scripts/test.py <command> --resume` computes
+  the build id, finds the progress log, and deselects the tests that
+  passed (a skip list passed to pytest on every worker at collection);
+  tests that failed, errored, were running when it stopped or never
+  started run again. It prints the build id, the time of the earlier run
+  and the counts first, and ends with a line that says the run was
+  resumed (for example PASS: N from the earlier run + M now). Each phase
+  (non-browser, then browser) resumes by its own test ids. A resumed run
+  is never automatic, and it is not the merge gate unless the PR says
+  so: a PR that used one says which build and run it continued. Done
+  when a run killed in either phase resumes and finishes with the same
+  verdict a full run gives, with tests for the skip list.
+  Prerequisite: TEST.150. Related: TEST.148, TEST.139.
+
+- [ ] **TEST.152 Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming**
+  Option A of TEST.148. A killed run can leave keys on the shared Redis:
+  a resume (and a normal start) clears the keys that carry a test
+  database's name prefix and the rate-limit keys before the first test.
+  The dependency record (.pytest-deps.json) merges what a resumed run
+  records into the existing one, so `full --check` after a resume still
+  refreshes it, and its MISSED check says it covers only the tests that
+  ran now. docs/testing.md documents the resume flag, the build id and
+  the labelling rule (a resumed run says so in its last line and in the
+  PR). Done when a killed run leaves nothing that changes a resumed
+  run's result and the guide matches.
+  Prerequisite: TEST.151. Related: TEST.148, TEST.139.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -5487,27 +5522,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   edits his Redis config. One Redis instance; no password while it binds
   loopback (it does today), an ACL user documented for later.
   Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
-
-- [ ] **OPS.49 update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug)**
-  Boss, 2026-10-14 21:36Z: after the OPS.47 fix, update.sh runs steps 1
-  to 4 on the rebuilt venv (cryptography 50.0.2, pymysql 1.2.3,
-  SQLAlchemy 2.1.3, alembic 1.20.0, math check passed) and then fails at
-  step 5, Migrating the configured MySQL database, with: error:
-  'NoneType' object has no attribute 'is_auth_switch_request'. That text
-  comes from pymysql's login handshake, so the cause is probably the
-  auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
-  version, not the schema. Reproduce it against MySQL 8 and the lock
-  file, check the locked versions against ones known to work with that
-  plugin, fix the cause by adapting to the current library, and make the update
-  print a clear error naming the login problem instead of the bare
-  exception.
-  Cause found by Bugfixes lane 1 (2026-10-14 22:41Z, reproduced on a real
-  MySQL 8.0): pymysql 1.2.1 to 1.2.3 return nothing from the caching_sha2
-  full login on a connection without TLS. Decided (Boss, 2026-10-14
-  22:46Z): no pin below 1.2.1; keep the current pymysql and adapt our
-  connection code to it, and make every database login failure name the
-  server and account.
-  Prerequisites: none.
 
 ## DOC: Documentation
 

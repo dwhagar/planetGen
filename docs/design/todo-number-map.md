@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.148 |
+| TEST | TEST.153 |
 | USR | USR.12 |
 | OPS | OPS.50 |
 | DOC | DOC.45 |
@@ -1051,7 +1051,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.46 | Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python | none | done, PR #1359 |
 | OPS.47 | update.sh stops at the database migrate step in the venv: cryptography is missing from the requirements (bug) | none | done, PR #1346 |
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) | none | open |
-| OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) | none | open |
+| OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) | none | done, PR #1387 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1145,7 +1145,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) | none | open |
 | PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job | none | done, PR #1371 |
 | PERF.93 | api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug) | none | done, PR #1364 |
-| PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | open |
+| PERF.94 | One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle | none | done, PR #1383 |
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | open |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | open |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | none | open |
@@ -1299,7 +1299,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | done, PR #1065 |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | done, PR #1104 |
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
-| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
+| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | done, PR #1378 |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | done, PR #1299 |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
@@ -1553,6 +1553,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | done, PR #1367 |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | done, PR #1367 |
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | open |
+| TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
+| TEST.149 | Two physics tests fail under load and pass alone (bug) | none | open |
+| TEST.150 | Test run progress log and build id for resuming a run | none | open |
+| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
+| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

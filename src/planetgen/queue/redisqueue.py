@@ -13,7 +13,9 @@ database's lease still keeps two runs' workers off the machine at once
 (`planetgen.queue.work`).
 """
 
-import pickle
+import datetime
+import decimal
+import json
 import queue as queue_module
 import subprocess
 import sys
@@ -23,6 +25,7 @@ import time
 import redis
 import rq
 
+from planetgen.queue import redisclient
 from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
@@ -30,6 +33,10 @@ GENERATION_QUEUE = "planetgen-generation"
 
 WEB_QUEUE = "planetgen-web"
 """str: Generate page runs and work the API hands off."""
+
+JSON_QUEUE_PREFIXES = (WEB_QUEUE, "planetgen-api-")
+"""tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the web queue and each
+Generate page job's own (`planetgen-web-<id>`), and the API queue the tests give a name of its own."""
 
 QUEUES = (GENERATION_QUEUE, WEB_QUEUE)
 """tuple: Every queue, in the order a worker serves them."""
@@ -40,26 +47,58 @@ def redis_url():
     return get_settings().redis.url
 
 
-def connect(url=None):
-    """A Redis connection to `url` (default `redis_url()`)."""
-    return redis.Redis.from_url(url or redis_url())
+def connect(url=None, **options):
+    """The shared client for `url` (default `redis_url()`); `options` are `redisclient.client`'s (PERF.94)."""
+    return redisclient.client(url or redis_url(), **options)
+
+
+def _json_default(value):
+    """What `JsonSerializer` writes for a value `json` has no form for: a `Decimal` as the number it holds, a
+    time as ISO text."""
+    if isinstance(value, decimal.Decimal):
+        return int(value) if value == value.to_integral_value() else float(value)
+    if isinstance(value, (datetime.datetime, datetime.date)):
+        return value.isoformat()
+    raise TypeError(f"{type(value).__name__} can't be sent to the queue as JSON")
+
+
+class JsonSerializer:
+    """RQ's serializer for the queues that carry plain data (PERF.94, finding F8): a job's arguments and its
+    result travel as JSON, not pickle, so a process that can reach Redis can queue data but not code to run."""
+
+    @staticmethod
+    def dumps(value, *args, **kwargs):
+        return json.dumps(value, default=_json_default, *args, **kwargs).encode("utf-8")
+
+    @staticmethod
+    def loads(raw, *args, **kwargs):
+        return json.loads(raw.decode("utf-8"), *args, **kwargs)
+
+
+def serializer_for(name):
+    """
+    The serializer the queue `name` uses: JSON for the web queues (the Generate page's jobs and the API's,
+    whose arguments are paths, ids and numbers); RQ's default, pickle, for a run's own queue, whose tasks carry
+    Python objects until the work queue rebuild (PERF.95 to 98) turns them into ids. One worker serves one kind.
+    """
+    return JsonSerializer if name.startswith(JSON_QUEUE_PREFIXES) else None
 
 
 def queue(name, connection):
-    """The RQ queue `name` on `connection`."""
-    return rq.Queue(name, connection=connection)
+    """The RQ queue `name` on `connection`, with its serializer (`serializer_for`)."""
+    return rq.Queue(name, connection=connection, serializer=serializer_for(name))
 
 
-def fetch_job(job_id, connection=None):
-    """The RQ job `job_id`, or `None` when there is none (never queued, or
-    expired).
+def fetch_job(job_id, connection=None, serializer=None):
+    """The RQ job `job_id` (of a queue using `serializer`, default pickle), or `None` when there is none (never
+    queued, or expired).
 
     Raises:
         Unavailable: No Redis server answers.
     """
     connection = connection or connect()
     try:
-        return rq.job.Job.fetch(job_id, connection=connection)
+        return rq.job.Job.fetch(job_id, connection=connection, serializer=serializer)
     except rq.exceptions.NoSuchJobError:
         return None
     except redis.RedisError as exc:
@@ -138,10 +177,11 @@ class RQFuture:
 class Channel:
     """
     A one-way message channel from a run's workers back to the run, on a
-    Redis list: the scatter's per-layer progress (PERF.4). It pickles as
-    just its URL and key, so a task's payload can carry it to a burst
-    worker (a multiprocessing manager's queue can't: the worker isn't
-    the manager's child, so it can't authenticate to it).
+    Redis list: the scatter's per-layer progress (PERF.4). Items are plain
+    data, sent as JSON (PERF.94). It pickles as just its URL and key, so a
+    task's payload can carry it to a burst worker (a multiprocessing
+    manager's queue can't: the worker isn't the manager's child, so it
+    can't authenticate to it).
 
     Args:
         url (str): The Redis server.
@@ -162,16 +202,17 @@ class Channel:
     def __setstate__(self, state):
         self.__init__(state["url"], state["key"])
 
-    def _redis(self):
+    def _redis(self, blocking=False):
         if self._connection is None:
             self._connection = connect(self.url)
-        return self._connection
+        return connect(self.url, blocking=True) if blocking else self._connection
 
     def put(self, item):
-        """Appends `item` (anything picklable). A lost Redis is `OSError`."""
+        """Appends `item` (numbers, strings, booleans, lists; a tuple arrives as a list). A lost Redis is
+        `OSError`."""
         try:
             pipe = self._redis().pipeline()
-            pipe.rpush(self.key, pickle.dumps(item))
+            pipe.rpush(self.key, json.dumps(item).encode("utf-8"))
             pipe.expire(self.key, self.EXPIRE_SECONDS)
             pipe.execute()
         except redis.RedisError as exc:
@@ -181,12 +222,12 @@ class Channel:
         """The oldest item, waiting up to `timeout` seconds; `queue.Empty`
         when none comes, `OSError` when Redis is gone."""
         try:
-            popped = self._redis().blpop([self.key], timeout=timeout)
+            popped = self._redis(blocking=True).blpop([self.key], timeout=timeout)
         except redis.RedisError as exc:
             raise OSError(str(exc)) from exc
         if popped is None:
             raise queue_module.Empty
-        return pickle.loads(popped[1])
+        return json.loads(popped[1].decode("utf-8"))
 
     def close(self):
         """Deletes the list."""

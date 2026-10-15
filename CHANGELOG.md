@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1128] - 2026-10-15
+
+### Changed
+
+- The TODO list retires OPS.49 (update.sh database login, merged in #1387).
+
+## [8.0.1127] - 2026-10-15
+
+### Fixed
+
+update.sh no longer stops at "Migrating the configured MySQL database" with "'NoneType' object has no attribute 'is_auth_switch_request'". pymysql 1.2.3, the current release, fails that way when a MySQL 8 account (caching_sha2_password) logs in the first time after a server start on a server without TLS; the fix is merged upstream but not yet released, so planetGen now logs in through pymysql's own step with the one-line difference described in `planetgen/db/login.py`. The library check now requires pymysql 1.2.3 or newer, and a failed login prints "Couldn't log in to the database server at host:port as 'user'" with what to check, from every command (OPS.49).
+
+## [8.0.1126] - 2026-10-15
+
+### Added
+- The TODO list records Boss's choice for TEST.148 (a test progress log with an explicit resume flag) and files its build items TEST.150 to TEST.152.
+
+## [8.0.1125] - 2026-10-15
+
+### Changed
+- The TODO list records the Test Suite Rebuild thread's options for resuming a test run (TEST.148); the recommendation is a progress log with an explicit resume flag.
+
+## [8.0.1124] - 2026-10-15
+
+### Changed
+- The TODO list drops PERF.94 (one Redis client module, merged in #1383) and files TEST.149, two physics tests that fail under load.
+
+## [8.0.1123] - 2026-10-15
+
+### Changed
+- Every Redis connection (the web pages, the API's queued jobs, the tile locks, the login lockout store and the work queue) now comes from one client module with a connect and read timeout, a retry after a dropped connection, a health check and keepalive, so a hung Redis fails a call instead of hanging the web thread that made it.
+- The Generate page's jobs, the API's queued jobs and the scatter's progress messages travel through Redis as JSON instead of pickle. A run's own task queue still uses pickle until the work queue rebuild. `planetgen.cli.worker` now serves the web queue by default and refuses to mix the two kinds of queue in one worker.
+
+## [8.0.1122] - 2026-10-15
+
+### Added
+- The testing guide gives the test time limit (at least 90 minutes) and how to know a run is done, and the TODO list files TEST.148, an investigation into resuming a test run where it left off.
+
+## [8.0.1121] - 2026-10-14
+
+### Changed
+- The TODO list drops UX.93 (no TODO codes in user-facing output, merged in #1378).
+
+## [8.0.1120] - 2026-10-14
+
+### Fixed
+- No internal TODO code (such as GEN.96 or PERF.56) shows in the command-line help, the admin Stats page hint or any other text a user reads, and the help no longer names an internal constant. A test now scans the templates, static files, the strings the code shows and every command's `--help`, and fails if one comes back.
+
 ## [8.0.1119] - 2026-10-14
 
 ### Changed

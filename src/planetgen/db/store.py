@@ -66,7 +66,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner
+from planetgen.db import alembic_runner, login
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
@@ -393,7 +393,7 @@ def _is_mariadb(config):
     the two name their statement time limit differently."""
     server = (config.host, config.port)
     if server not in _mariadb_servers:
-        probe = pymysql.connect(host=config.host, port=config.port, user=config.user,
+        probe = login.connect(host=config.host, port=config.port, user=config.user,
                                 password=config.password, connect_timeout=10)
         try:
             _mariadb_servers[server] = "mariadb" in probe.get_server_info().lower()
@@ -467,7 +467,7 @@ def _get_pool(config, statement_timeout_s=None, lock_wait_s=None):
         # server through these DictCursor connections and read rows by
         # position.
         pool = sqlalchemy.pool.QueuePool(
-            lambda: pymysql.connect(**connect_args),
+            lambda: login.connect(**connect_args),
             pool_size=10,
             max_overflow=10,
         )
