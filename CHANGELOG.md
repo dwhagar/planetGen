@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1348] - 2026-10-15
+
+**Headline:** Every release note now has to open with a Headline line, so no release goes out without one.
+
+### Changed
+- `scripts/bump_version.py` refuses a release note that does not start with a `**Headline:**` line (the rule has been optional since it was restored on 2026-10-14). `--check`, `--check-pr` and the stamp all apply it; `changes/README.md` says so.
+
 ## [8.0.1347] - 2026-10-15
 
 ### Changed
