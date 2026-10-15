@@ -106,6 +106,15 @@ class FakeData:
         self.calls.append(("get_system_facilities", db, system_id))
         return []
 
+    def get_system_owner(self, db, system_id):
+        return None
+
+    def get_facility_types(self, db, active_only=True):
+        return []
+
+    def get_system_habitable_species(self, db, system_id):
+        return []
+
     def get_system_text(self, db, system_id, fmt):
         self.calls.append(("get_system_text", db, system_id, fmt))
         return {"id": system_id, "format": fmt, "content": f"== {fmt} <page> ==\nline"}
@@ -147,7 +156,8 @@ class FakeData:
         return self.admin
 
 
-_FAKED = ("get_system", "get_system_sections", "get_system_facilities", "get_system_text", "get_wiki_config", "upload_system_to_wiki",
+_FAKED = ("get_system", "get_system_sections", "get_system_facilities", "get_system_owner", "get_facility_types", "get_system_habitable_species",
+          "get_system_text", "get_wiki_config", "upload_system_to_wiki",
           "get_phenomena", "get_phenomenon", "auth_me")
 
 
@@ -841,3 +851,26 @@ def test_browser_nav_buttons_follow_the_server_templates():
         [{"label": "Start Here", "href": "/nav?from=planet:3"}, {"label": "End Here", "href": "/nav?to=planet:3"}],
         [], [], [],
     ]
+
+
+def test_admin_system_page_opens_when_the_owner_and_facility_types_answer_not_found(client, fake, monkeypatch):
+    """A reachable API that answers 404 for the extras (POP.10) must not turn the whole page into a 404."""
+    def missing(*args, **kwargs):
+        raise apiclient.NotFoundError("no such thing")
+
+    _as_admin(client, fake)
+    monkeypatch.setattr(apiclient, "get_system_owner", missing)
+    monkeypatch.setattr(apiclient, "get_facility_types", missing)
+    assert client.get("/system/5").status_code == 200
+
+
+def test_system_page_opens_when_the_species_panel_answers_not_found(client, fake, monkeypatch):
+    """The 'species that could live here' panel (POP.12) is extra: a 404 from the API leaves the page up."""
+    from planetgen.web import system_species
+
+    def missing(*args, **kwargs):
+        raise apiclient.NotFoundError("no such thing")
+
+    monkeypatch.setattr(system_species, "population_status", lambda: {"species": True})
+    monkeypatch.setattr(apiclient, "get_system_habitable_species", missing)
+    assert client.get("/system/5").status_code == 200

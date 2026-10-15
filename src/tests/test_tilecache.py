@@ -277,7 +277,7 @@ def test_stages_are_cached_until_their_chain_changes(api, monkeypatch):
 
 
 def test_stage_keys_are_checked(api):
-    for bad in ("81.0.0.0", "243.0.99.0", "../x", "1.0.0.0"):
+    for bad in ("729.0.0.0", "243.0.99.0", "../x", "1.0.0.0"):
         with pytest.raises(tilecache.TileRequestError):
             tilecache.fetch_stage("mydb", bad)
     assert api.stage_calls == []

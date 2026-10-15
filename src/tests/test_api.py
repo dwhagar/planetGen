@@ -1403,7 +1403,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
 
     home = (1705, -20, 3225)
     chain = drill_chain_of(*home)
-    level3 = chain[2]
+    level3 = chain[4]
     # Two more sectors in the same level-3 block, one on another layer.
     others = [s for s in drill_block_sectors(level3, -20) if (s.ring, s.slab, s.wedge) != home][:1]
     others += drill_block_sectors(level3, -21)[:1]
@@ -1421,14 +1421,11 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     def counted(children):
         return [{k: v for k, v in child.items() if k != "stats"} for child in children]
 
-    stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[0])}").get_json()
-    assert stage["child_m"] == 27
-    assert counted(stage["children"]) == [
-        {"ring": chain[1].ring, "wedge": chain[1].wedge, "slab": chain[1].slab, "generated": 3}]
-
-    stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[1])}").get_json()
-    assert counted(stage["children"]) == [
-        {"ring": level3.ring, "wedge": level3.wedge, "slab": level3.slab, "generated": 3}]
+    for parent, child in zip(chain[:4], chain[1:5]):
+        stage = client.get(f"/api/galaxy/stage?at={format_drill_key(parent)}").get_json()
+        assert stage["child_m"] == child.m
+        assert counted(stage["children"]) == [
+            {"ring": child.ring, "wedge": child.wedge, "slab": child.slab, "generated": 3}]
 
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(level3)}").get_json()
     assert stage["child_m"] == 1
@@ -1440,13 +1437,13 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     # A block next door holds none of them.
     empty = client.get(f"/api/galaxy/stage?at=3.{level3.ring}.{level3.wedge + 1}.{level3.slab}").get_json()
     assert empty["children"] == [] and empty["sectors"] == []
-    for bad in ("81.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
+    for bad in ("729.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
         assert client.get(f"/api/galaxy/stage?at={bad}").status_code == 400
 
     changes = query.galaxy_changes(_db.get_connection(mysql_config), before)
     assert not changes["full"]
-    assert set(changes["stages"]) == {"galaxy"} | {format_drill_key(b) for b in chain[:3]} | {
-        format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:3]}
+    assert set(changes["stages"]) == {"galaxy"} | {format_drill_key(b) for b in chain[:5]} | {
+        format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:5]}
 
 
 def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
@@ -1459,7 +1456,7 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
 
     home = (1705, -20, 3225)
     chain = drill_chain_of(*home)
-    others = [s for s in drill_block_sectors(chain[2], -20) if (s.ring, s.slab, s.wedge) != home][:2]
+    others = [s for s in drill_block_sectors(chain[4], -20) if (s.ring, s.slab, s.wedge) != home][:2]
     addresses = [home] + [(s.ring, s.slab, s.wedge) for s in others]
     for n, address in enumerate(addresses):
         _place_sector(mysql_config, f"Look {n}", sector_position_pc(*address, 4.0), address=address)
@@ -1490,7 +1487,7 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
                                                                                      chain[0].slab)]
     assert top["stats"] == child["stats"]
 
-    stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[2])}").get_json()
+    stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[4])}").get_json()
     by_address = {(s["ring"], s["layer"], s["slot"]): s["stats"] for s in stage["sectors"]}
     assert by_address[home] == {"systems": 4, "expected_systems": 3.0, "stars": 6, "mean_age_gy": 2.0,
                                 "luminosity_sol": 10.0}

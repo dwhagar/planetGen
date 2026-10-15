@@ -41,3 +41,4 @@ Commit each file came from:
 - v86: ac6330ca (ADM.54 Redis health, before DB.26)
 - v87: 9c725da0 (DB.26 habitability columns, before the POP.9 columns)
 - v88: 29f7a086 (DB.27 species tech columns, before DB.28)
+- v89: c6c22061 (DB.28 facility types, before the MAP.151b ladder_step)

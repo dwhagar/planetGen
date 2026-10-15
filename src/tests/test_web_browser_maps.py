@@ -277,22 +277,47 @@ def _wait_settled(page, before=None, timeout_s=15.0):
             return
 
 
+HOVER_SCAN = """([here, wanted, steps]) => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    const box = canvas.getBoundingClientRect();
+    const re = wanted ? new RegExp(wanted) : null;
+    for (let j = 2; j < steps - 1; j++) {
+        for (let i = 2; i < steps - 1; i++) {
+            const x = box.left + (i / steps) * box.width, y = box.top + (j / steps) * box.height;
+            if (document.elementFromPoint(x, y) !== canvas) continue;  // only where a real click lands on the map
+            canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
+            const text = tip.hidden ? "" : tip.textContent;
+            if (text && text.split(/[:,] /)[0].trim() !== here && (!re || re.test(text))) return [x, y, text];
+        }
+    }
+    return null;
+}"""
+"""str: Moves the pointer over the map with pointer events sent from the page, in the same 21 x 21 grid the real pointer used
+to visit (a Playwright move and a read for each of 441 points took 120 s under load, TEST.139 stage 4), and returns
+[x, y, tooltip] of the first spot whose tooltip names a choice matching `wanted` other than `here`."""
+
+
+HOVER_RETRIES = 20
+
+
 def _hover_choice(page, wanted=None):
-    """Moves the pointer over the map until the tooltip names a choice
-    (matching `wanted`, a regex); returns (x, y, text) or None. A tooltip
-    naming where the map already is gets passed over: under load it can
-    still show the choice that was just clicked."""
+    """Finds a spot on the map whose tooltip names a choice (matching `wanted`, a regex), moves the real pointer there
+    and returns (x, y, text) once the tooltip still names it, or None. A tooltip naming where the map already is gets
+    passed over: under load it can still show the choice that was just clicked. The scan sends pointer events from the
+    page; a spot the map is still redrawing under can name another choice for the real pointer (TEST.109), so the
+    scan is made again until the real pointer reads the same."""
     here = _crumbs(page)[-1]
-    box = page.locator("#galaxymap3d-canvas").bounding_box()
     tooltip = page.locator("#galaxymap3d-tooltip")
-    for fy in [i / 24 for i in range(2, 23)]:
-        for fx in [i / 24 for i in range(2, 23)]:
-            x, y = box["x"] + fx * box["width"], box["y"] + fy * box["height"]
+    for _ in range(HOVER_RETRIES):
+        found = page.evaluate(HOVER_SCAN, [here, wanted, 24])
+        if found:
+            x, y, _text = found
             page.mouse.move(x, y)
-            if tooltip.is_visible():
-                text = tooltip.inner_text()
-                if text and _label_of(text) != here and (wanted is None or re.search(wanted, text)):
-                    return x, y, text
+            text = tooltip.inner_text() if tooltip.is_visible() else ""
+            if text and _label_of(text) != here and (wanted is None or re.search(wanted, text)):
+                return x, y, text
+        page.wait_for_timeout(250)  # the map ignores the pointer while a stage's flight runs
     return None
 
 
@@ -336,12 +361,12 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
             break
         # MAP.150: each click opens a window centred on the cell clicked, one size down.
         assert crumbs[-1].startswith("Block "), crumbs
-        assert re.fullmatch(r"win=(27|3|1)\.\d+\.\d+\.-?\d+", query), query
+        assert re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query), query
         assert query != steps[-1][0], "the URL names the new stage"
         steps.append((query, crumbs))
     assert reached_sector, f"never reached a sector: {steps[-1]}"
     kinds = " ".join(q for q, _ in steps)
-    for marker in ("win=27.", "win=3."):
+    for marker in ("win=81.", "win=27.", "win=9.", "win=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
     assert not re.search(r"[=,]r\d|p=", kinds), kinds
 
@@ -399,7 +424,10 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     else:
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
     _wait_settled(page)
-    assert _crumbs(page) == steps[1][1][:2], "the second step is the window of its first block"
+    # The crumb is the 243-block above where the walk ended, which the clicks may have carried past the first
+    # block's edge: the 3-ary ladder takes more steps than the old one did, each centred on the cell clicked.
+    crumbs = _crumbs(page)
+    assert len(crumbs) == 2 and crumbs[0] == "Galaxy" and crumbs[1].endswith("(243)"), crumbs
     before = _state(page)
     page.click('#galaxymap3d-controls [data-action="reset"]')
     _wait_settled(page, before)
@@ -418,7 +446,7 @@ def test_galaxy_map_free_camera_from_a_window_down(page, base_url):
     reset_view = page.locator('#galaxymap3d-controls [data-action="reset-view"]')
     assert not reset_view.is_disabled(), "the whole galaxy turns (MAP.85)"
     _click_choice(page)
-    assert parse_qs(_query(page))["win"][0].startswith("27."), "the galaxy's first pick is a window of 27-blocks"
+    assert parse_qs(_query(page))["win"][0].startswith("81."), "the galaxy's first pick is a window of 81-blocks"
 
     canvas = "#galaxymap3d-canvas"
     box = page.locator(canvas).bounding_box()

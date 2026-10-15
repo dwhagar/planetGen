@@ -575,6 +575,14 @@ def get_galaxy_stage(db, at=None):
     return _request("/galaxy/stage", {"db": db, "at": at})
 
 
+def get_galaxy_window(db, at, g):
+    """Returns `GET /api/galaxy/window`'s payload (`at`/`g`/`child_m`/
+    `cells`/`children` -- see `queryDb.galaxy_window`): a window of cells
+    bigger than a sector, read from the stored block totals in one query."""
+    _require_db(db)
+    return _request("/galaxy/window", {"db": db, "at": at, "g": g})
+
+
 def get_territories(db):
     """Returns `GET /api/territories`' payload (`points`: owned systems
     with galaxy-frame parsec positions and their polity's color;
@@ -1163,6 +1171,13 @@ def get_system_facilities(db, system_id):
     return _request(f"/systems/{system_id}/facilities", {"db": db})["items"]
 
 
+def get_system_habitable_species(db, system_id):
+    """Returns `GET /api/systems/<id>/habitable-species`'s `bodies`: each rocky planet and moon some species could
+    live on, with those species (POP.12)."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/habitable-species", {"db": db})["bodies"]
+
+
 def get_sector_facilities(db, sector_id):
     """Returns `GET /api/sectors/<id>/facilities`'s `items`: the
     stand-alone facilities parked in the sector and those on its asteroid
@@ -1201,6 +1216,46 @@ def create_facility(cookie_header, db, body):
         "POST", f"/facilities?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
     )
     return result["id"]
+
+
+def get_facility_types(db, active_only=True):
+    """`GET /api/facility-types`'s `items` (POP.10): every type with its `fields`, the active ones only unless
+    `active_only` is off."""
+    _require_db(db)
+    return _request("/facility-types", {"db": db, "active": "1" if active_only else None})["items"]
+
+
+def facility_type_write(method, cookie_header, db, path, body=None):
+    """
+    One admin write to `/api/facility-types<path>` (POP.10): `POST` a type (`path` empty), `PATCH` or `DELETE` one
+    (`/<id>`), `POST` a field (`/<id>/fields`), `PATCH` or `DELETE` one (`/<id>/fields/<field_id>`) or `POST
+    /examples`. Returns the parsed answer. A rule the API refuses is an `ApiError` with its status.
+    """
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        method, f"/facility-types{path}?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
+    )
+    return result
+
+
+def update_facility(cookie_header, db, facility_id, body):
+    """`PATCH /api/facilities/<id>` with `body` (any of `name`, `description`, `type_id`, `affiliation_polity_id`,
+    `affiliation_name`, `ratings`, `ratings_note`, `fields`). Returns the facility. A refusal is an `ApiError`
+    with its status; a missing facility a `NotFoundError`."""
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        "PATCH", f"/facilities/{facility_id}?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
+    )
+    return result
+
+
+def suggest_facility_ratings(cookie_header, db, facility_id):
+    """`POST /api/facilities/<id>/suggest-ratings`: fills the ratings nobody set. Returns the dimensions filled."""
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        "POST", f"/facilities/{facility_id}/suggest-ratings?{_build_query({'db': db})}", cookie_header=cookie_header,
+    )
+    return result["filled"]
 
 
 def delete_facility(cookie_header, db, facility_id):

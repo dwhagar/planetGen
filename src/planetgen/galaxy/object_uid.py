@@ -6,7 +6,7 @@ fixed-length ID for every object in the galaxy, made of where it was born
 and which birth it was.
 
     | birth sector address | serial in that sector | body number |
-    |  ring, layer, slot   |        28 bits        |   12 bits   |
+    | shell, band, wedge   |        28 bits        |   12 bits   |
     |       40 bits        |   (top 2 bits: kind)  |             |
 
 By default the three sector fields are 12, 12 and 16 bits, so the whole ID
@@ -14,8 +14,8 @@ is 80 bits: 20 hex digits, `BINARY(10)`. `fit_layout` picks wider sector
 fields for a galaxy whose bounds do not fit, and the ID then grows to 96 or
 at most 128 bits; the length is the same for every object in one galaxy.
 
-* The layer is stored biased (`layer + 2 ** (layer_bits - 1)`) so negative
-  layers pack as plain integers.
+* The band is stored biased (`band + 2 ** (band_bits - 1)`) so negative
+  bands pack as plain integers.
 * The serial's top two bits say how it was given out, so no allocator needs
   another's state: `SERIAL_GENERATED` (the object's rank in generation order
   in its birth sector), `SERIAL_RUNTIME` (added after generation: an admin's
@@ -60,15 +60,15 @@ _TEXT_RE = re.compile(r"^[0-9A-F]+(-[0-9A-F]+){2}$")
 class Layout(NamedTuple):
     """The field widths of one galaxy's IDs, in bits."""
 
-    ring_bits: int = 12
-    layer_bits: int = 12
-    slot_bits: int = 16
+    shell_bits: int = 12
+    band_bits: int = 12
+    wedge_bits: int = 16
     serial_bits: int = SERIAL_BITS
     body_bits: int = BODY_BITS
 
     @property
     def sector_bits(self):
-        return self.ring_bits + self.layer_bits + self.slot_bits
+        return self.shell_bits + self.band_bits + self.wedge_bits
 
     @property
     def total_bits(self):
@@ -80,8 +80,8 @@ class Layout(NamedTuple):
         return self.total_bits // 8
 
     @property
-    def layer_bias(self):
-        return 1 << (self.layer_bits - 1)
+    def band_bias(self):
+        return 1 << (self.band_bits - 1)
 
     @property
     def serial_count_bits(self):
@@ -97,9 +97,9 @@ class ObjectId(NamedTuple):
     """An ID taken apart: the birth sector's address, the serial's kind and
     number, and the body number."""
 
-    ring: int
-    layer: int
-    slot: int
+    shell: int
+    band: int
+    wedge: int
     serial_kind: int
     serial: int
     body: int
@@ -114,7 +114,7 @@ def check_layout(layout):
     """Raises `ValueError` unless every field is wide enough to use, the
     sector fields and total are whole hex digits and bytes, and the whole is
     at most `MAX_BITS`."""
-    if min(layout) < 1 or layout.serial_bits <= SERIAL_KIND_BITS or layout.layer_bits < 2:
+    if min(layout) < 1 or layout.serial_bits <= SERIAL_KIND_BITS or layout.band_bits < 2:
         raise ValueError(f"an object ID layout needs every field wide enough to use: {tuple(layout)}")
     if layout.sector_bits % 4 or layout.serial_bits % 4 or layout.body_bits % 4:
         raise ValueError(f"the sector, serial and body fields must be whole hex digits: {tuple(layout)}")
@@ -123,10 +123,10 @@ def check_layout(layout):
     return layout
 
 
-def pack(ring, layer, slot, serial_kind, serial, body=0, layout=DEFAULT_LAYOUT):
+def pack(shell, band, wedge, serial_kind, serial, body=0, layout=DEFAULT_LAYOUT):
     """
     The ID, as an integer, of body `body` of the object whose serial in
-    birth sector (`ring`, `layer`, `slot`) is `serial` of kind `serial_kind`.
+    birth sector (`shell`, `band`, `wedge`) is `serial` of kind `serial_kind`.
 
     Raises:
         ValueError: A field that does not fit its width, or an unknown kind.
@@ -134,21 +134,21 @@ def pack(ring, layer, slot, serial_kind, serial, body=0, layout=DEFAULT_LAYOUT):
     check_layout(layout)
     if serial_kind not in SERIAL_KINDS:
         raise ValueError(f"serial_kind {serial_kind!r} is not one of {SERIAL_KINDS}")
-    biased = layer + layout.layer_bias
-    _check("ring", ring, layout.ring_bits)
-    _check("layer", biased, layout.layer_bits)
-    _check("slot", slot, layout.slot_bits)
+    biased = band + layout.band_bias
+    _check("shell", shell, layout.shell_bits)
+    _check("band", biased, layout.band_bits)
+    _check("wedge", wedge, layout.wedge_bits)
     _check("serial", serial, layout.serial_count_bits)
     _check("body", body, layout.body_bits)
-    sector = (((ring << layout.layer_bits) | biased) << layout.slot_bits) | slot
+    sector = (((shell << layout.band_bits) | biased) << layout.wedge_bits) | wedge
     number = (serial_kind << layout.serial_count_bits) | serial
     return (((sector << layout.serial_bits) | number) << layout.body_bits) | body
 
 
-def sector_bytes(ring, layer, slot, layout=DEFAULT_LAYOUT):
+def sector_bytes(shell, band, wedge, layout=DEFAULT_LAYOUT):
     """The birth sector's address on its own, as the big-endian bytes the
     sector part of an ID holds (the key of a sector's run-time counter)."""
-    return (pack(ring, layer, slot, SERIAL_GENERATED, 0, 0, layout) >> (layout.serial_bits + layout.body_bits)
+    return (pack(shell, band, wedge, SERIAL_GENERATED, 0, 0, layout) >> (layout.serial_bits + layout.body_bits)
             ).to_bytes(layout.sector_bits // 8, "big")
 
 
@@ -181,14 +181,14 @@ def unpack(value, layout=DEFAULT_LAYOUT):
     value >>= layout.body_bits
     number = value & ((1 << layout.serial_bits) - 1)
     value >>= layout.serial_bits
-    slot = value & ((1 << layout.slot_bits) - 1)
-    value >>= layout.slot_bits
-    biased = value & ((1 << layout.layer_bits) - 1)
-    ring = value >> layout.layer_bits
+    wedge = value & ((1 << layout.wedge_bits) - 1)
+    value >>= layout.wedge_bits
+    biased = value & ((1 << layout.band_bits) - 1)
+    shell = value >> layout.band_bits
     kind = number >> layout.serial_count_bits
     if kind not in SERIAL_KINDS:
         raise ValueError(f"unknown serial kind {kind} in object ID")
-    return ObjectId(ring, biased - layout.layer_bias, slot, kind, number & ((1 << layout.serial_count_bits) - 1), body)
+    return ObjectId(shell, biased - layout.band_bias, wedge, kind, number & ((1 << layout.serial_count_bits) - 1), body)
 
 
 def to_bytes(value, layout=DEFAULT_LAYOUT):
@@ -245,33 +245,33 @@ def _bits_for(count):
     return max(1, (count - 1).bit_length())
 
 
-def fit_layout(max_ring, min_layer, max_layer, max_slots):
+def fit_layout(max_shell, min_band, max_band, max_wedges):
     """
-    The layout for a galaxy with rings 0..`max_ring`, layers `min_layer` to
-    `max_layer` and at most `max_slots` slots in a ring: the default 80 bits
-    when its bounds fit, else the sector fields widened (the layer field to
+    The layout for a galaxy with shells 0..`max_shell`, bands `min_band` to
+    `max_band` and at most `max_wedges` wedges in a band: the default 80 bits
+    when its bounds fit, else the sector fields widened (the band field to
     whole hex digits, the rest to fill the nibbles) until the ID is 96 or 128
     bits.
 
     Raises:
         ValueError: Bounds that do not fit 128 bits.
     """
-    ring_bits = _bits_for(max_ring + 1)
-    slot_bits = _bits_for(max_slots)
-    reach = max(abs(min_layer), abs(max_layer) + 1)
-    layer_bits = max(2, reach.bit_length() + 1)
-    if (ring_bits <= DEFAULT_LAYOUT.ring_bits and layer_bits <= DEFAULT_LAYOUT.layer_bits
-            and slot_bits <= DEFAULT_LAYOUT.slot_bits):
+    shell_bits = _bits_for(max_shell + 1)
+    wedge_bits = _bits_for(max_wedges)
+    reach = max(abs(min_band), abs(max_band) + 1)
+    band_bits = max(2, reach.bit_length() + 1)
+    if (shell_bits <= DEFAULT_LAYOUT.shell_bits and band_bits <= DEFAULT_LAYOUT.band_bits
+            and wedge_bits <= DEFAULT_LAYOUT.wedge_bits):
         return DEFAULT_LAYOUT
-    need = ring_bits + layer_bits + slot_bits
+    need = shell_bits + band_bits + wedge_bits
     for total in (96, 128):
         sector_bits = total - SERIAL_BITS - BODY_BITS
         if need <= sector_bits:
             spare = sector_bits - need
-            # Spare bits go to the ring first, then the slot, keeping the sum.
-            ring_bits += spare
-            if (ring_bits + layer_bits + slot_bits) % 4:
+            # Spare bits go to the shell first, then the wedge, keeping the sum.
+            shell_bits += spare
+            if (shell_bits + band_bits + wedge_bits) % 4:
                 raise ValueError("internal: sector fields not nibble aligned")
-            return check_layout(Layout(ring_bits, layer_bits, slot_bits))
-    raise ValueError(f"a galaxy of {max_ring + 1} rings, layers {min_layer} to {max_layer} and {max_slots} slots "
+            return check_layout(Layout(shell_bits, band_bits, wedge_bits))
+    raise ValueError(f"a galaxy of {max_shell + 1} shells, bands {min_band} to {max_band} and {max_wedges} wedges "
                      f"does not fit a {MAX_BITS}-bit object ID")

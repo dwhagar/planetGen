@@ -628,6 +628,34 @@ tbody tr:last-child td {
 .flag-tier-2 { color: var(--tier-yellow); border-color: var(--tier-yellow); }
 .flag-tier-3 { color: var(--tier-red); border-color: var(--tier-red); }
 
+/* POP.10: a facility's rating chips. The shape (check, triangle, cross), the dimension's name and its word carry
+   the meaning, so colour is never the only signal; the Okabe-Ito fills take black text and a thin dark ring. */
+.rating-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  border-radius: 999px;
+  color: #000;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.rating-green { background: #009e73; }
+.rating-yellow { background: #e69f00; }
+.rating-red { background: #d55e00; }
+.rating-name { font-weight: 600; }
+
 .flag-yes {
   color: var(--accent);
   border-color: var(--accent);
@@ -800,6 +828,79 @@ tbody tr:last-child td {
     linear-gradient(var(--accent), var(--accent)) center / 2px 100% no-repeat,
     linear-gradient(var(--accent), var(--accent)) center / 100% 2px no-repeat;
   filter: drop-shadow(0 0 1px var(--bg-subtle));
+}
+
+.starmap-centre.is-moving {
+  opacity: 1;
+  transform: scale(1.5);
+}
+
+/* MAP.200: the zoom slider and the direction star, on the map's lower right. */
+.starmap-navpad {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  padding: 0.3rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  opacity: 0.92;
+  /* Only the controls themselves take the pointer, so the map under the
+     gaps still hovers, picks and zooms. */
+  pointer-events: none;
+}
+
+.starmap-navpad > * {
+  pointer-events: auto;
+}
+
+.starmap-navpad.is-disabled {
+  opacity: 0.4;
+}
+
+.starmap-zoom-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 1.4rem;
+  height: 6.5rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.starmap-dirstar {
+  display: grid;
+  grid-template: ". up ." "left mid right" ". down ." / 1.7rem 1.7rem 1.7rem;
+  grid-auto-rows: 1.7rem;
+  gap: 2px;
+}
+
+.starmap-dir {
+  padding: 0;
+  border: 1px solid var(--border, currentColor);
+  border-radius: var(--radius);
+  background: var(--bg, transparent);
+  color: var(--accent);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.starmap-dir:disabled {
+  cursor: default;
+}
+
+.starmap-centre-readout {
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  transform: translateX(-50%);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  font-size: 0.8rem;
+  pointer-events: none;
 }
 
 .starmap-canvas {

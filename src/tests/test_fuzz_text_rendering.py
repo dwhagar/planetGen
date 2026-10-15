@@ -418,33 +418,11 @@ def test_formatters_survive_non_finite_and_subnormal_values(value):
 # systemRender
 # ---------------------------------------------------------------------------
 
-class _FakeSystem:
-    def __init__(self, text, raise_on_render=False):
-        self.system_config = SystemConfig()
-        self._text = text
-        self._raise = raise_on_render
-
-    def __str__(self):
-        if self._raise:
-            raise RuntimeError("render failed")
-        return f"{'md' if self.system_config.MARKDOWN else 'wiki'}:{self._text}"
-
-
-@given(fmt_=st.one_of(st.sampled_from(systemRender.FORMATS), hostile_text), initial=st.booleans(),
-       text=hostile_text, fail=st.booleans())
-def test_render_star_system_always_restores_the_markdown_flag(fmt_, initial, text, fail):
-    system = _FakeSystem(text, raise_on_render=fail)
-    system.system_config.MARKDOWN = initial
-    if fmt_ not in systemRender.FORMATS:
-        with pytest.raises(ValueError):
-            systemRender.render_star_system(system, fmt_)
-    elif fail:
-        with pytest.raises(RuntimeError):
-            systemRender.render_star_system(system, fmt_)
-    else:
-        out = systemRender.render_star_system(system, fmt_)
-        assert out == f"{'md' if fmt_ == 'markdown' else 'wiki'}:{text}"
-    assert system.system_config.MARKDOWN is initial
+@given(fmt_=hostile_text)
+def test_render_star_system_rejects_unknown_formats_before_describing(fmt_):
+    assume(fmt_ not in systemRender.FORMATS)
+    with pytest.raises(ValueError):
+        systemRender.render_star_system(object(), fmt_)
 
 
 @given(fmt_=hostile_text)

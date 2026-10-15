@@ -531,3 +531,48 @@ atmosphere reads "There is no atmosphere (0.0 kPa)." (GEN.215), Radiation names 
 and Suitability says which of food, water and shelter are readily available. Gear is named in
 short words (`SHORT_GEAR`); the first line gives the heaviest class any stressor asks for. A
 planet of a pulsar, a neutron star or a black hole says its dose is rated lethal.
+
+## 10. What a species can live in (POP.12, built without storage)
+
+A species' environment limits are section 9's table with some rows replaced
+(`planetgen/physics/species_limits.py`): `overrides`, `{limit name: value}`,
+empty for the human limits. `habitability.bands(overrides)` builds the pressure,
+temperature, dose and oxygen bands from them, and `habitability.phi4`,
+`core_scores`, `equipment` and the domain functions take those bands (the human
+`HUMAN` by default), so the six domains are scored by the same code with the
+species' edges. Nothing else about the score changes: the Water and Suitability
+rungs, the toxic gases and PHI_bio are the human visitor's.
+
+**Generated from the homeworld** (Boss's default of 2026-10-15: every species
+passes its own homeworld). `species_limits.generated(world)` leaves a band alone
+when the human limits already hold the homeworld inside Blue with a margin
+(`tuning.SPECIES_LIMIT_MARGIN`). Past it, the side the homeworld lies beyond moves
+as a whole, so the Green and Yellow widths stay the human ones: pressure edges
+scale by the factor that puts the homeworld 1.5 times inside the Blue edge (low
+side or high side), temperature edges move by the degrees that put the cycle's
+extreme 10 degrees inside, the wet-bulb limit sits 2 degrees above the
+homeworld's, all the dose edges scale so the homeworld's dose is a third of the
+Blue edge, and the inspired oxygen limits follow the homeworld's air (the
+minimum a half of it, the chronic limit a quarter above it, the acute limit in
+the human ratio). A species with an Earth-like homeworld has no overrides.
+
+**What could live where.** `species_limits.assess(world, overrides, tech_level)`
+scores the six domains. A species could live there **unaided** when no domain is
+Red. It could live there **with equipment** when Water is not Red and its tech
+level reaches the kit its limits ask for (`habitability.equipment`;
+`tuning.SPECIES_EQUIPMENT_MIN_TECH` gives a level per kit); a species with no tech
+level has no kit. A base brings its own food and shelter, so Suitability does not
+count for the equipped list. The lists are `db/species_fit.py`:
+`species_for_body` and `species_for_system` (the species that could live on a
+body), and `bodies_for_species` (the worlds of a system or sector one species
+could live on), through `GET /api/planets|moons/<id>/habitable-species`,
+`/api/systems/<id>/habitable-species` and `/api/species/<id>/habitable-worlds/...`;
+the system page shows the first as "Species that could live here" and the species
+page shows its limits.
+
+**Storage.** `species_fit.limits_for_species` is the one function that says what a
+species' limits are. It generates them from the homeworld now; DB.30 adds the
+columns, and `species_fit.stored_overrides` then returns the stored values, which
+win over the generated ones. A species whose homeworld has no habitability score
+has the human limits. POP.13 (the species editor) will write the stored values and
+should run `species_limits.validate` on them.

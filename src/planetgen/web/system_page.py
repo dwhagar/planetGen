@@ -134,8 +134,7 @@ def system_request(form):
     for option, _label in TRISTATE_FIELDS:
         if states[option] is not None:
             argv.append(("+" if states[option] else "-") + option)
-    if fmt == "markdown":
-        argv.append("--markdown")
+    argv.append(f"--format={fmt}")
     # `--flag=value`, so a name starting with "-" is never read as an option.
     if name:
         argv.append(f"--name={name}")

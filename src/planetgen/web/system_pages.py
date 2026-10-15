@@ -21,8 +21,8 @@ every link is a plain GET link (`page_url`).
 from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.galaxy import objectref
-from planetgen.web.lib import apiclient
 from planetgen.physics import constants as physical_constants
+from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_distance_km, format_number, linkify_nearest,
     nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
@@ -43,7 +43,7 @@ from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 
 from . import bp, tables
-from . import edit_actions, system_facilities
+from . import edit_actions, system_facilities, system_species
 from .class_pages import class_url
 from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
@@ -279,8 +279,11 @@ def system(system_id):
     detail = apiclient.get_system(db, system_id)
     facilities = apiclient.get_system_facilities(db, system_id)
     facility_form = None
+    facility_context = {"types": [], "owner": None}
+    if facility_action or current_admin() is not None:
+        facility_context = system_facilities.form_context(system_id)
     if facility_action:
-        facility_form = system_facilities.handle_post(system_id, detail, facilities)
+        facility_form = system_facilities.handle_post(system_id, detail, facilities, facility_context)
         if not isinstance(facility_form, dict):
             return facility_form
     sections = apiclient.get_system_sections(db, system_id)
@@ -335,9 +338,13 @@ def system(system_id):
         wiki_status=wiki_status,
         admin=admin,
         facilities=system_facilities.facility_rows(facilities),
+        habitable_species=system_species.panel_rows(db, system_id),
         facility_status=system_facilities.MESSAGES.get(request.args.get("facility")) if admin else None,
         facility_form=facility_form or {"fields": {}, "errors": [], "preview": None},
         facility_hosts=system_facilities.host_options(detail) if admin else [],
+        facility_context=facility_context if admin else {"types": [], "owner": None},
+        facility_ratings=system_facilities.RATING_CHOICES,
+        facility_dimensions=facility_display.DIMENSION_LABELS,
         facility_placements=system_facilities.PLACEMENT_OPTIONS,
         facility_kinds=system_facilities.kind_options(),
         facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,

@@ -14,7 +14,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 const {
-  DEFAULT_WINDOW, WINDOW_WIDTHS, drillBlockBounds, drillChainOf, drillParent, drillSlotRange,
+  DEFAULT_WINDOW, DRILL_LEVELS, WINDOW_WIDTHS, drillBlockBounds, drillChainOf, drillParent, drillSlotRange,
   drillWedgeCount, formatDrillKey, galaxyBlockGroups, ringSectorCount, sectorAddressAt, sectorDrawable, windowCells,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
@@ -204,7 +204,7 @@ export function resolveStage(stage, outline, edgePc) {
 // one. Null for a sector.
 export function windowChildCentre(block, at, edgePc) {
   if (block.m === 1) return null;
-  const childM = block.m === 3 ? 1 : block.m / 9;
+  const childM = block.m / 3;
   let radius = (block.ring + 0.5) * block.m;
   let turn = (block.wedge + 0.5) / drillWedgeCount(block.m, block.ring);
   if (at && edgePc) {
@@ -312,7 +312,7 @@ export function parseCellKey(key) {
   if (parts.length !== 4 || !parts.every(function (p) { return /^-?\d+$/.test(p); })) return null;
   const v = parts.map(Number);
   const cell = { m: v[0], ring: v[1], wedge: v[2], slab: v[3] };
-  if ([243, 27, 3, 1].indexOf(cell.m) < 0 || cell.ring < 0 || !Number.isSafeInteger(cell.ring)) return null;
+  if (DRILL_LEVELS.indexOf(cell.m) < 0 || cell.ring < 0 || !Number.isSafeInteger(cell.ring)) return null;
   if (cell.wedge < 0 || cell.wedge >= drillWedgeCount(cell.m, cell.ring)) return null;
   return cell;
 }

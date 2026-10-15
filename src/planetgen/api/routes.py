@@ -70,6 +70,7 @@ from planetgen.db.query import (
     sectors_made,
     galaxy_locate,
     galaxy_stage,
+    galaxy_window,
     galaxy_tiles,
     list_phenomena,
     phenomena_facets,
@@ -98,9 +99,10 @@ from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
+from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
-from planetgen.db.render import render_system_sections, render_system_text
+from planetgen.db.render import describe_system, render_system_sections, render_system_text
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from planetgen.util.format import format_distance_ly
 from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
@@ -586,12 +588,26 @@ def system_scene(system_id):
     return jsonify(scene)
 
 
+@bp.route("/systems/<uid:system_id>/description")
+def system_description(system_id):
+    """
+    `GET /api/systems/<id>/description` -- the system's Document (API.25,
+    `planetgen/describe/`): sections, fact and rating tables, compositions
+    and prose, every number a typed quantity, built now from its database
+    rows. The web page renders it; `/text` writes it as text on request.
+    """
+    try:
+        return jsonify(describe_system(get_db(), system_id))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+
+
 @bp.route("/systems/<uid:system_id>/text")
 def system_text(system_id):
     """
-    `GET /api/systems/<id>/text?format=wikitext|markdown` -- the system's
-    full wiki page, rendered now from its database rows
-    (`planetgen/db/render.py`; no page text is stored since
+    `GET /api/systems/<id>/text?format=wikitext|markdown|text` -- the
+    system's description written as MediaWiki text, Markdown or plain text,
+    on request only (`planetgen/db/render.py`; no page text is stored since
     schema v29). `format` defaults to `wikitext`.
     """
     fmt = request.args.get("format", "wikitext")
@@ -988,6 +1004,20 @@ def galaxy_stage_route():
     """
     try:
         return jsonify(galaxy_stage(get_db(), request.args.get("at") or None))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/window")
+def galaxy_window_route():
+    """
+    A Galaxy Map data window of cells bigger than a sector: `?at=m.ring.wedge.slab`
+    (the middle cell) and `?g=` (cells across), read from the stored block
+    totals in one query -- see `queryDb.galaxy_window`. Called by
+    `/galaxy/window` (`planetgen/web/galaxy_views.py`).
+    """
+    try:
+        return jsonify(galaxy_window(get_db(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW))
     except ValueError as exc:
         raise ApiError(str(exc))
 

@@ -59,6 +59,7 @@ class FakeData:
         self.tile_calls = []
         self.fail_tiles = None
         self.stage_calls = []
+        self.window_calls = []
         self.polity_total = 2
 
     def get_polities(self, db, limit=None, offset=None):
@@ -93,6 +94,12 @@ class FakeData:
         self.stage_calls.append(at)
         return {"at": at, "child_m": 243 if at is None else 27, "children": [], "sectors": None}
 
+    def get_galaxy_window(self, db, at, g):
+        self.dbs.add(db)
+        self.window_calls.append((at, g))
+        return {"at": at, "g": g, "child_m": int(at.split(".")[0]), "cells": [[3, 5, 0]], "children": [],
+                "sectors": None}
+
     def auth_me(self, cookie_header):
         return None
 
@@ -105,6 +112,7 @@ def fake(monkeypatch, tmp_path):
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)
     monkeypatch.setattr(tilecache, "get_galaxy_stage", data.get_galaxy_stage)
+    monkeypatch.setattr(tilecache, "get_galaxy_window", data.get_galaxy_window)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
     monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
@@ -349,34 +357,44 @@ def test_stage_endpoint_serves_and_caches(client, fake):
 
 
 def test_stage_endpoint_rejects_bad_keys(client, fake):
-    for bad in ("81.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
+    for bad in ("729.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
         resp = client.get(f"/galaxy/stage?at={bad}")
         assert resp.status_code == 400
         assert "error" in resp.get_json()
     assert fake.stage_calls == []
 
 
-def test_window_endpoint_builds_from_the_parent_stages(client, fake):
+def test_window_endpoint_reads_big_cells_from_the_block_totals(client, fake):
     first = client.get("/galaxy/window?at=27.3.5.0&g=5")
     assert first.status_code == 200
     assert first.headers["Cache-Control"] == "no-store"
     window = first.get_json()
     assert window["at"] == "27.3.5.0" and window["g"] == 5 and window["child_m"] == 27
     assert window["stamp"] == STAMP and [3, 5, 0] in window["cells"] and window["children"] == []
-    assert fake.stage_calls and all(call.startswith("243.") for call in fake.stage_calls)
-    calls = list(fake.stage_calls)
-    client.get("/galaxy/window?at=27.3.5.0&g=5")
-    assert fake.stage_calls == calls  # the stages are cached
+    assert fake.window_calls == [("27.3.5.0", 5)] and fake.stage_calls == []
     top = client.get("/galaxy/window?at=243.2.1.0").get_json()
-    assert top["g"] == 9 and fake.stage_calls[len(calls):] == [None]
+    assert top["g"] == 9 and fake.window_calls[1:] == [("243.2.1.0", 9)] and fake.stage_calls == []
+
+
+def test_window_endpoint_builds_a_window_of_sectors_from_the_parent_stages(client, fake):
+    first = client.get("/galaxy/window?at=1.4.7.0&g=5")
+    assert first.status_code == 200
+    window = first.get_json()
+    assert window["at"] == "1.4.7.0" and window["g"] == 5 and window["child_m"] == 1
+    assert window["stamp"] == STAMP and [4, 7, 0] in window["cells"] and window["children"] == []
+    assert fake.stage_calls and all(call.startswith("3.") for call in fake.stage_calls)
+    assert fake.window_calls == []
+    calls = list(fake.stage_calls)
+    client.get("/galaxy/window?at=1.4.7.0&g=5")
+    assert fake.stage_calls == calls  # the stages are cached
 
 
 def test_window_endpoint_rejects_bad_keys_and_widths(client, fake):
-    for query in ("at=81.0.0.0", "at=243.0.99.0", "at=nonsense", "", "at=27.3.5.0&g=4", "at=27.3.5.0&g=x", "at=27.3.5.0&g=13"):
+    for query in ("at=729.0.0.0", "at=243.0.99.0", "at=nonsense", "", "at=27.3.5.0&g=4", "at=27.3.5.0&g=x", "at=27.3.5.0&g=13"):
         resp = client.get(f"/galaxy/window?{query}")
         assert resp.status_code == 400, query
         assert "error" in resp.get_json()
-    assert fake.stage_calls == []
+    assert fake.stage_calls == [] and fake.window_calls == []
 
 
 def test_galaxy_page_offers_territories_once_polities_exist(client, fake):

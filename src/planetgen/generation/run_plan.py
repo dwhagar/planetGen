@@ -965,16 +965,56 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
 
 
 def _nebula_field_task(payload):
-    """One first-index slab of field cells of the nebula field table -- a work queue task: draws its kept classes M
-    and N clouds from the seed and writes them (DB.24). Returns the rows written."""
+    """
+    One first-index slab of field cells of the nebula field table -- a work queue task: draws its kept classes M
+    and N clouds from the seed and writes them (DB.24).
+
+    Returns:
+        dict: `written` (the rows written), `counts` (rows per class letter) and `layers` (`(lowest, highest)`
+            sector layer any of the clouds reaches, or `None` for a slab without clouds, GEN.222).
+    """
+    edge_pc = payload["edge_pc"]
+    counts = {}
+    reach = [None, None]
+
+    def watched(rows):
+        for row in rows:
+            letter = row[4]
+            counts[letter] = counts.get(letter, 0) + 1
+            radius_pc = ly_to_pc(row[5])
+            low = math.floor((row[8] - radius_pc) / edge_pc + 0.5)
+            high = math.floor((row[8] + radius_pc) / edge_pc + 0.5)
+            reach[0] = low if reach[0] is None else min(reach[0], low)
+            reach[1] = high if reach[1] is None else max(reach[1], high)
+            yield row
+
     conn = store.get_connection(payload["mysql_config"])
     try:
-        written = store.insert_nebula_field(conn, nebulaField.table_rows(
-            payload["galaxy_seed"], payload["shape"], payload["i"], payload["radius_pc"], payload["half_height_pc"]))
+        written = store.insert_nebula_field(conn, watched(nebulaField.table_rows(
+            payload["galaxy_seed"], payload["shape"], payload["i"], payload["radius_pc"], payload["half_height_pc"])))
         conn.commit()
     finally:
         conn.close()
-    return written
+    layers = None if reach[0] is None else (max(reach[0], -payload["top_layer"]), min(reach[1], payload["top_layer"]))
+    return {"written": written, "counts": counts, "layers": layers}
+
+
+def _layer_range_text(layers):
+    """`layers` (lowest, highest) as "layer 2" or "layers -1 to 3"."""
+    low, high = layers
+    return f"layer {low}" if low == high else f"layers {low} to {high}"
+
+
+def _log_nebula_slab(i, edge_pc, result):
+    """One line saying what a slab of the nebula field was given, by class, and which sector layers its clouds
+    reach, as `_log_phenomena_layer` does for the phenomena; nothing for a slab that drew none (GEN.222)."""
+    counts = result["counts"]
+    total = sum(counts.values())
+    if total:
+        kinds = ", ".join(f"{count:,} {program_constants.NEBULA_CLASSES[letter]['name']} (class {letter})"
+                          for letter, count in sorted(counts.items()))
+        log.normal(f"Nebula field, slab {i} (x {i * edge_pc:,.0f} to {(i + 1) * edge_pc:,.0f} pc): {total:,} clouds"
+                   f" in {_layer_range_text(result['layers'])}: {kinds}.")
 
 
 def build_nebula_field(args, conn, skeleton, extents, progress):
@@ -995,16 +1035,20 @@ def build_nebula_field(args, conn, skeleton, extents, progress):
                     progress=progress, workers=run_common._worker_count(args)) as bar:
         done = [0]
 
-        def on_done(result, _seconds, _weight):
-            written[0] += result
-            done[0] += 1
-            bar.update(advance=1, description=f"Drawing the nebula field ({done[0]:,} of {len(slabs):,} slabs)")
+        def on_done_slab(i):
+            def on_done(result, _seconds, _weight):
+                written[0] += result["written"]
+                _log_nebula_slab(i, edge, result)
+                done[0] += 1
+                bar.update(advance=1, description=f"Drawing the nebula field ({done[0]:,} of {len(slabs):,} slabs)")
+            return on_done
 
         mysql_config = store.mysql_config_from_args(args)
         with run_common._work_queue(args, "Nebula field") as queue:
             queue.submit_each("nebula-field", [
                 (f"slab {i}", {"mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape,
-                               "i": i, "radius_pc": radius_pc, "half_height_pc": half_height_pc}, 1.0, on_done)
+                               "i": i, "radius_pc": radius_pc, "half_height_pc": half_height_pc,
+                               "edge_pc": skeleton.edge_pc, "top_layer": top_layer}, 1.0, on_done_slab(i))
                 for i in slabs], _nebula_field_task)
     linked = store.link_nebula_field_stored(conn)
     log.normal(f"Nebula field: {written[0]:,} clouds of classes M and N"

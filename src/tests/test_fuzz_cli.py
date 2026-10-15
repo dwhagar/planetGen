@@ -340,7 +340,7 @@ def system_run_argv(draw):
     if draw(st.booleans()):
         argv.append("--max-planet-flavor")
     if draw(st.booleans()):
-        argv.append("--markdown")
+        argv += ["--format", draw(st.sampled_from(["text", "markdown", "wikitext"]))]
     return argv
 
 

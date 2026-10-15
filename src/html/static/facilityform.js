@@ -13,6 +13,8 @@
 //   surface to the edge of its sphere of influence), the browser mirror
 //   of `facilities.distance_from_step`; the period is Kepler's third law,
 //   as `facilities.orbit_for` works it out.
+// - The Type list holds only the types of the chosen Kind (`data-kind`), and
+//   choosing a type shows that type's fields (`data-facility-type-fields`).
 
 // This module's own `?v=`, so the sibling loads at the same version.
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -25,7 +27,36 @@ function distanceFromStep(step, steps, lowestKm, highestKm) {
   return lowestKm * Math.pow(highestKm / lowestKm, fraction);
 }
 
+function setUpTypes(form) {
+  const kind = form.querySelector("[data-facility-kind]");
+  const type = form.querySelector("[data-facility-type]");
+  if (!kind || !type) {
+    return;
+  }
+  const sets = form.querySelectorAll("[data-facility-type-fields]");
+  const show = () => {
+    for (const fields of sets) {
+      fields.hidden = fields.dataset.facilityTypeFields !== type.value;
+    }
+  };
+  const filterTypes = () => {
+    for (const option of type.options) {
+      const fits = !option.dataset.kind || option.dataset.kind === kind.value;
+      option.hidden = !fits;
+      option.disabled = !fits;
+    }
+    if (type.selectedOptions[0] && type.selectedOptions[0].disabled) {
+      type.value = "";
+    }
+    show();
+  };
+  kind.addEventListener("change", filterTypes);
+  type.addEventListener("change", show);
+  filterTypes();
+}
+
 function setUp(form) {
+  setUpTypes(form);
   const placement = form.querySelector("[data-facility-placement]");
   const host = form.querySelector("[data-facility-host]");
   const orbit = form.querySelector("[data-facility-orbit]");
