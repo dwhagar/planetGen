@@ -1037,6 +1037,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Server: drop the generated_star_floor_sol brightness floors, settle
   the 400-star cap, and choose tiles by distance. Client: the
   cross-fades with hysteresis and the per-tile origins.
+  Plan change (2026-10-15, Foundations Maps, approved by the coordinator):
+  the client part has two pieces. (1) The per-tile camera-relative
+  origins are already met by the whole-parsec target frame of MAP.102
+  (a star's error reaches a pixel only within about 0.003 pc of the
+  camera, where the system scene draws instead), so that piece is retired
+  with a note in the design doc. (2) The automatic galaxy, sector and
+  system hand-offs with hysteresis are held until Bug 2's
+  galaxystageview.js work (wheel zoom, centre, selection: MAP.198 to
+  MAP.202) has merged, to avoid conflicts. Foundations Maps order: MAP.151b,
+  MAP.197, MAP.155 verification, then the MAP.152 hand-offs after Bug 2.
   Progress (2026-10-15): the server part merged (PR #1439): Galaxy Map
   tiles are picked by distance from the camera, the per-level brightness
   floors are gone and stars fade by distance. The client part (scale
