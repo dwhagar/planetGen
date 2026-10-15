@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1139] - 2026-10-15
+
+### Changed
+
+- The TODO list retires MAP.150 (the free camera, finished by the map flip in #1382) and adds MAP.197 (remove the unused drill code).
+
 ## [8.0.1138] - 2026-10-15
 
 ### Changed
