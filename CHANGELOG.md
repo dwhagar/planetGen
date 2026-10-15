@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1366] - 2026-10-15
+
+**Headline:** The plan files the bug that sector designations cannot name bands beyond 2047.
+
+### Changed
+- Filed GEN.230 (Core, bug): the 12-bit band field in sector designations and object-ID birth fields fails for the polar caps and high-latitude bands from shell 1304 outward.
+
+TODO items resolved: none / Added: GEN.230
+
 ## [8.0.1365] - 2026-10-15
 
 **Headline:** The plan retires six more documentation items and files the rebuild of the architecture snapshot page.
