@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1122] - 2026-10-15
+
+### Added
+- The testing guide gives the test time limit (at least 90 minutes) and how to know a run is done, and the TODO list files TEST.148, an investigation into resuming a test run where it left off.
+
 ## [8.0.1121] - 2026-10-14
 
 ### Changed
