@@ -158,6 +158,31 @@ def species():
     )
 
 
+_LIMIT_SUFFIXES = ("_kpa", "_sv_yr", "_sv", "_c")
+
+
+def _limit_label(name):
+    """A limit's key as a label: `comfort_high_c` is "Comfort high"."""
+    for suffix in _LIMIT_SUFFIXES:
+        if name.endswith(suffix):
+            name = name[:-len(suffix)]
+            break
+    return name.replace("_", " ").capitalize()
+
+
+def _limit_value(value, unit):
+    """A limit's number with its unit, in at most four significant figures."""
+    unit = {"C": "\u00b0C"}.get(unit, unit)
+    return f"{value:,.4g} {unit}"
+
+
+def _limit_rows(limits):
+    """POP.12: the species page's environment limits table rows."""
+    return [{"label": _limit_label(row["name"]), "human": _limit_value(row["human"], row["unit"]),
+             "value": _limit_value(row["value"], row["unit"]), "differs": row["changed"], "meaning": row["meaning"]}
+            for row in limits]
+
+
 @bp.route("/species/<int:species_id>")
 def species_page(species_id):
     """One species."""
@@ -193,6 +218,7 @@ def species_page(species_id):
         description=f"The {item['name']}, a species of this generated galaxy.",
         species=row,
         facts=[(label, text) for label, text in facts if text],
+        limits=_limit_rows(item.get("limits", [])),
     )
 
 

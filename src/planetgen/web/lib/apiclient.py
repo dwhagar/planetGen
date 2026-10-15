@@ -1171,6 +1171,13 @@ def get_system_facilities(db, system_id):
     return _request(f"/systems/{system_id}/facilities", {"db": db})["items"]
 
 
+def get_system_habitable_species(db, system_id):
+    """Returns `GET /api/systems/<id>/habitable-species`'s `bodies`: each rocky planet and moon some species could
+    live on, with those species (POP.12)."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/habitable-species", {"db": db})["bodies"]
+
+
 def get_sector_facilities(db, sector_id):
     """Returns `GET /api/sectors/<id>/facilities`'s `items`: the
     stand-alone facilities parked in the sector and those on its asteroid

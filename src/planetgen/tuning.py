@@ -3300,3 +3300,18 @@ WEB_LOCK_WAIT_SECONDS = 5
 before it gives up, where the server's own limit is 50 s (ADM.53). The app has five threads and a 60 s request
 limit, so a handful of requests stuck behind one long transaction would otherwise stop every page, the login
 included."""
+
+# --- Species environment limits (POP.12) -------------------------------------------------------
+
+SPECIES_LIMIT_MARGIN = {"pressure_factor": 1.5, "temperature_c": 10.0, "wet_bulb_c": 2.0, "dose_factor": 3.0,
+                        "o2_factor": 1.25}
+"""dict: How far inside Blue a species' homeworld sits when its limits are generated from it
+(`species_limits.generated`): the homeworld's pressure is 1.5 times inside the Blue pressure edges, its
+temperature cycle 10 degrees inside the Blue temperature edges, a wet bulb limit 2 degrees above its wet bulb,
+its dose a third of the Blue dose edge, and the chronic inspired O2 limit a quarter above its own. planetGen
+defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
+
+SPECIES_EQUIPMENT_MIN_TECH = (0.0, 2.0, 2.5, 3.0, 4.0)
+"""tuple: The least tech level (0 to 7) a species needs to make the kit of each equipment tier
+(`habitability_world.EQUIPMENT_NAMES`: ideal, breathing mask, mask with scrubber, sealed suit, full life
+support with radiation hardening), for the "could live there with equipment" list. A planetGen default."""
