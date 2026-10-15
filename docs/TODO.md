@@ -301,7 +301,8 @@ with `clamp()`.
   and AU from 1,000,000 km, then UX.22 temperature, pressure, gravity).
   Progress (2026-10-15, PR #1450, Foundations UX): steps 0 to 3 done:
   distance, speed, time, temperature, pressure and gravity run through
-  the shared ladders. Remaining: mass (step 4), luminosity, power and
+  the shared ladders. Step 4 done (PR #1480): masses run through the
+  ladder (kg, lunar, Earth, Jupiter, solar). Remaining: luminosity, power and
   flux, density, number density, magnetic field and angles, the leftover
   `toFixed` calls in `galaxymap3d.js` and `galaxystageview.js`
   (coordinates, angles, luminosity; folded in from UX.81 as steps 5 to
