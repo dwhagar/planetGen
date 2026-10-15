@@ -28,7 +28,8 @@ connection, so the app already sees the real address and scheme.
    [`examples/maintenance/`](../../examples/maintenance/).
 7. Run the [server checklist](../server-checklist.md).
 
-Later updates: `sudo ./update.sh`, then `sudo systemctl reload apache2`.
+Later updates: `sudo ./update.sh`. It reloads Apache itself when Apache is running (and restarts it after enabling a
+module); it prints `sudo systemctl reload apache2` only when Apache is not running.
 
 ## Deployment files
 

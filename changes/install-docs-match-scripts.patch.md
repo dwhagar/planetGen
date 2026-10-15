@@ -1,0 +1,2 @@
+### Changed
+- **INSTALL.md and the Apache guide describe what `install.sh` and `update.sh` really do** (DOC.42). The update section now lists the NLTK check, the math check (a failure only warns), the version key, the Redis check and the background warm-up of the Galaxy Map tiles; Apache is reloaded by `update.sh` itself when it is running, so the guides no longer tell the reader to do it by hand; install step 8 says the debug log is made whether or not `debug` is on, with the activity log's folder, and the Redis install is described.

@@ -20,9 +20,9 @@ They match four events:
 ## Before you start
 
 - The activity log must be written. `update.sh` creates
-  `/var/log/planetgen/` and the log (`planetgen-log`); check that it
+  `/var/log/planetgen/` and the log (`planetgen.log`); check that it
   fills when you fail a sign-in on purpose:
-  `sudo tail /var/log/planetgen/planetgen-log`.
+  `sudo tail /var/log/planetgen/planetgen.log`.
 - **Behind a reverse proxy** (Cloudflare, a load balancer, nginx in front
   of Apache), set `proxy_fix` in `config.json` first. Without it every
   visitor has the proxy's address, the log shows that address, and the
@@ -38,13 +38,13 @@ sudo apt install fail2ban
 sudo cp examples/fail2ban/planetgen.filter.conf /etc/fail2ban/filter.d/planetgen.conf
 sudo cp examples/fail2ban/planetgen.jail.conf /etc/fail2ban/jail.d/planetgen.conf
 # Check the filter against the log (shows how many lines match):
-sudo fail2ban-regex /var/log/planetgen/planetgen-log /etc/fail2ban/filter.d/planetgen.conf
+sudo fail2ban-regex /var/log/planetgen/planetgen.log /etc/fail2ban/filter.d/planetgen.conf
 sudo fail2ban-client reload
 sudo fail2ban-client status planetgen
 ```
 
 If you set `log_dir` in `config.json`, change `logpath` in the jail to
-that folder's `planetgen-log`.
+that folder's `planetgen.log`.
 
 ## What the jail does
 
