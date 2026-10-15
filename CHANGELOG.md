@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1249] - 2026-10-15
+
+### Added
+
+- A research note on spherical-shell sectors with a 4 pc round core: what it would mean for the grid, the block ladder, the database and object IDs, measured against the real density model (`docs/design/spherical-shell-sectors.md`). No code changed.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1248] - 2026-10-15
 
 ### Changed
