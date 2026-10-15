@@ -342,8 +342,8 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
   <ul>
     <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom.</li>
     <li>Hover over the galaxy to see its blocks and click one to zoom into it: the map then shows the blocks
-    one size down around the middle of the one you clicked, and a click on one of those centres on that, and
-    so on down to single sectors.</li>
+    one size down around the spot you clicked, and a click on one of those centres on that, and so on down
+    to single sectors.</li>
     <li>Back and Forward retrace your steps; the round Steps button lists them all, with Jump to newest. Up (or
     Esc) goes one step out, Whole galaxy (or Home) starts over, and Re-center puts the camera back to the
     current step's own view.</li>
