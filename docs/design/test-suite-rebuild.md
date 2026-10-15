@@ -2,7 +2,7 @@
 
 Boss (2026-10-14 12:17Z): "rework, optimize, and rebuild our entire test suite from the ground up so that it runs faster and is modular (so we can if we choose only test the things that we changed in the last run)."
 
-Status: stages 1 to 3 built and stage 4 mostly built (2026-10-15). Stage 1 (#1280: markers, `src/tests/areas.py`, `scripts/test.py`, failure capture), stage 2 (#1323: `src/tests/depmap.py`, `--changed`) and stage 3 (one database per worker) are merged, and stage 4's browser work is in (sections 21 and 22); the heavy generation files wait for their owning lanes' word. Stage 5, five clean full runs before `changed` replaces the full run as the merge gate, is in progress. TEST.139 stays open until then. The measurement below is the baseline of 2026-10-14. Evidence tags: [M] measured in this work (numbers below), [S] seen in the repo, [E] estimated from a measurement.
+Status: stages 1 to 3 built and stage 4 mostly built (2026-10-15). Stage 1 (#1280: markers, `src/tests/areas.py`, `scripts/test.py`, failure capture), stage 2 (#1323: `src/tests/depmap.py`, `--changed`) and stage 3 (one database per worker) are merged, and stage 4's browser work is in (sections 21 and 22); the heavy generation files wait for their owning lanes' word. Stage 5, five clean full runs before `changed` replaces the full run as the merge gate, has its five clean runs (2026-10-15, section 22); the gate policy of section 13 stands. TEST.139 closes with this proof. The measurement below is the baseline of 2026-10-14. Evidence tags: [M] measured in this work (numbers below), [S] seen in the repo, [E] estimated from a measurement.
 
 ## Summary
 
@@ -325,4 +325,8 @@ Each test run 60 times (`-n 2`, a fresh random draw each time, nothing else on t
 | (sibling of TEST.132) | `test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers` | 0 of 40 |
 
 A test with 0 failures in 60 has a failure rate under about 5% at 95% confidence, so these stay on the list for the five-clean-full-runs proof; none has a reproducer. The loop used a small plugin that repeats a test through a parametrized fixture; the 60-run loop of the six slowest takes about 27 minutes on 2 workers.
+
+### The proof period (2026-10-15)
+
+Five clean full runs with `scripts/test.py full --check` on main, none with a `MISSED` line (so `changed` would have chosen every test that failed, which was none). Run 1 was clean; the next run failed `test_a_live_redis_reports_its_settings` (a real bug in the test, fixed since, not a flake). The four runs after the fix each passed 17,446 tests with 78 skipped, in 32 min 9 s, 32 min 51 s, 33 min 24 s and 32 min 23 s. None of the folded flake-list tests failed in any run. The policy of section 13 (a green `changed` for small changes, a green `full --check` when a sequence finishes) therefore stays as it is, and the proof backs it.
 
