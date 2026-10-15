@@ -1002,7 +1002,7 @@ def _binary_star_positions_km(system, stars):
     star sitting at that same barycenter -- see its own docstring).
 
     Args:
-        system (dict): `queryDb.system_detail`'s return shape -- reads
+        system (dict): `planetgen.db.query.system_detail`'s return shape -- reads
             `binary_mutual_position_x/y/z_km`.
         stars (list[dict]): Exactly 2 entries (primary, then secondary),
             each with `id`/`mass_kg`.
@@ -1304,7 +1304,7 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
 
     # The companion marker's real direction (from `binary_mutual_position_
     # x/y_km`, "the secondary's position relative to the primary" -- see
-    # `queryDb.system_detail`'s docstring), but a fixed, merely
+    # `planetgen.db.query.system_detail`'s docstring), but a fixed, merely
     # representative distance -- this scene's own outer edge -- rather
     # than the real separation itself, which is routinely 10-1000x any
     # planet's own distance from its star (see `wideBinary.py`'s sampled

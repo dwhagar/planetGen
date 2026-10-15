@@ -99,7 +99,7 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
     for a point-like compact remnant) -- see this module's docstring.
 
     Args:
-        phenomenon_type (str): One of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s
+        phenomenon_type (str): One of `planetgen.db.query._PHENOMENON_TYPE_TO_TABLE`'s
             keys (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
             `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`, or
             `"interstellar_comet"`).

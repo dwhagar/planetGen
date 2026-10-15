@@ -9,7 +9,7 @@ HTML error pages for the Flask-served pages, with these safety rules:
   occurred." The traceback goes to the log (and the debug log, when
   debug is on), never into the page.
 
-`api/app.py`'s app-wide handlers call `render_error` for any request
+`web/app.py`'s app-wide handlers call `render_error` for any request
 outside `/api`, so an unknown URL or a 405 on a page gets this HTML page,
 while `/api/...` keeps its JSON errors.
 """

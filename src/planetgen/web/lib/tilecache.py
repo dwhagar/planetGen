@@ -6,8 +6,8 @@ the map doesn't hit the API (and through it, the database) every time the
 camera moves.
 
 A tile's contents (see `planetgen.galaxy.viewport`'s "Cube tiles"
-section and `queryDb.galaxy_tiles`) depend only on its key and on the
-database's contents, which `queryDb.galaxy_content_stamp` summarizes as a
+section and `planetgen.db.query.galaxy_tiles`) depend only on its key and on the
+database's contents, which `planetgen.db.query.galaxy_content_stamp` summarizes as a
 short "stamp". Tiles are cached as `<cache dir>/<db>/<generation>/
 <tile>.bin` (the finished, trimmed and packed bytes, see `trim_tile` and `tilepack`), where the generation is the stamp at the last time every
 tile went stale. `fetch_tiles` asks the API only for the tiles it doesn't
@@ -16,7 +16,7 @@ tiles at all.
 
 Freshness is checked at most once per `STAMP_TTL_SECONDS` per database,
 with one cheap API call (`GET /api/galaxy/changes`, see
-`queryDb.galaxy_changes`), which reads the schema-v27 `modified_at`
+`planetgen.db.query.galaxy_changes`), which reads the schema-v27 `modified_at`
 columns and answers which tiles changed since the last check. Only those
 tile files are deleted, so renaming a sector refetches the dozen tiles
 holding it rather than the whole map. A change that can't be pinned to
@@ -94,7 +94,7 @@ PRUNE_PROBABILITY = 0.05
 cache's total size (a directory walk, so not on every request)."""
 
 MAX_TILES_PER_REQUEST = 128
-"""int: Mirrors `queryDb.MAX_TILES_PER_REQUEST` -- rejected here before
+"""int: Mirrors `planetgen.db.query.MAX_TILES_PER_REQUEST` -- rejected here before
 anything is read or fetched."""
 
 _STAMP_RE = re.compile(r"^[0-9a-f]{16}$")
@@ -655,7 +655,7 @@ def fetch_tiles_wire(db, tile_keys, known_stamp=None):
 
 def fetch_stage(db, at=None):
     """
-    One Galaxy Map drill-down stage (`queryDb.galaxy_stage`), from the disk
+    One Galaxy Map drill-down stage (`planetgen.db.query.galaxy_stage`), from the disk
     cache when it's there, else from `GET /api/galaxy/stage` (and then
     cached). A sector change deletes just its chain's stages (`stages` in
     `/api/galaxy/changes`), the same way tiles are refreshed.
@@ -705,7 +705,7 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
     """
     One Galaxy Map data window (MAP.151, `galaxy.window`): `g` cells across
     around the cell `at`. Cells bigger than a sector come from the stored
-    block totals in one query (`queryDb.galaxy_window`, MAP.151b); a window
+    block totals in one query (`planetgen.db.query.galaxy_window`, MAP.151b); a window
     of sectors is cut from the stages of the parent blocks it touches,
     which come from `fetch_stage`, so a warm cache serves it without a
     query and it shares its files with every other window and stage in the

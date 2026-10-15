@@ -143,7 +143,7 @@ def render_phenomenon_view_panel(phenomenon_type, detail):
     `view_kind`).
 
     Args:
-        phenomenon_type (str): A `queryDb._PHENOMENON_TYPE_TO_TABLE` key.
+        phenomenon_type (str): A `planetgen.db.query._PHENOMENON_TYPE_TO_TABLE` key.
         detail (dict): The phenomenon's API detail (name and the columns
             `_params` reads).
 

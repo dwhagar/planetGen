@@ -5,7 +5,7 @@ NAV map: a flat, top-down SVG plot of the galactic X-Y plane showing a
 NAV request's origin, destination, and (when one was found) the optimal
 route's intermediate hops -- the "actual plotted image/diagram of the two
 points" `docs/api.md`/`docs/TODO.md` flagged as still open once
-`queryDb.nav_between` started returning course/route data as numbers and
+`planetgen.db.query.nav_between` started returning course/route data as numbers and
 links only (the NAV page, `/nav`).
 
 Deliberately modeled on `galaxymap.py`'s flat 2D SVG rather than
@@ -248,7 +248,7 @@ def _point_url(link_url, waypoint):
     if waypoint.get("kind") == "stone":  # NAV.47: a stop in unknown space has no page
         return None
     # A route's own intermediate hops are always real systems (see
-    # queryDb.nav_between's docstring), but the origin/destination
+    # planetgen.db.query.nav_between's docstring), but the origin/destination
     # themselves can each be a standalone phenomenon instead -- linked to
     # its phenomenon page rather than a system page.
     if waypoint.get("kind") == "phenomenon":
@@ -290,7 +290,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
                                 light-year tuple in `nav_between`'s scope
                                 frame -- `origin_position`/
                                 `destination_position`/a route's
-                                `positions` entries, see `queryDb.
+                                `positions` entries, see `planetgen.db.query.
                                 nav_between`), `role` (`"origin"`,
                                 `"destination"`, or `"hop"`), and `kind`
                                 (`"system"`, the default read when the key
@@ -298,7 +298,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
                                 is always `"system"`, only the origin/
                                 destination can be a phenomenon; when
                                 `kind == "phenomenon"`, `type` must also be
-                                set to its `queryDb._PHENOMENON_TYPE_TO_TABLE`
+                                set to its `planetgen.db.query._PHENOMENON_TYPE_TO_TABLE`
                                 key). Always at least the origin and destination; any
                                 `"hop"` entries in between are the
                                 optimal route's intermediate systems, in

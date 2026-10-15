@@ -2,7 +2,7 @@
 
 """
 The HTML pages of the site, served by the same Flask app as the JSON API
-(`api/app.py`'s `create_app` calls `init_app` below).
+(`web/app.py`'s `create_app` calls `init_app` below).
 
 Every page has a real GET route here (`/`, `/sectors`, `/sector/<id>`,
 ...) and a Jinja2 template in `web/templates/` extending `base.html`.
@@ -76,7 +76,7 @@ SECURITY_HEADERS = (
     ("Content-Security-Policy", CONTENT_SECURITY_POLICY),
 )
 """tuple: The one place the HTML pages' security headers are decided
-(`api/app.py` adds them to every `text/html` response). The JSON API sets
+(`web/app.py` adds them to every `text/html` response). The JSON API sets
 its own stricter set there."""
 
 STRICT_TRANSPORT_SECURITY = ("Strict-Transport-Security", "max-age=31536000")
