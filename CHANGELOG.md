@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1364] - 2026-10-15
+
+**Headline:** The plan retires PERF.101, the missing progress and time remaining while the phenomena indexes are built.
+
+### Changed
+- Retired PERF.101 (done, PR #1620); PERF.102 now follows it as the same progress and ETA fix for the migration bars.
+
+TODO items resolved: PERF.101 / Added: none
+
 ## [8.0.1363] - 2026-10-15
 
 **Headline:** The architecture document describes the code as it is now, module by module.
