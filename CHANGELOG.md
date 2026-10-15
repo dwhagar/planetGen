@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1182] - 2026-10-15
+
+### Added
+
+- **An ocean moon has an induced magnetic field (GEN.178).** A moon with a liquid ocean (an ocean under ice, a surface ocean or a Hycean one) now answers its parent planet's changing magnetic field with an induced dipole, the way Europa and Callisto do. The size comes from the parent's field at the moon's orbit, the period at which the moon sees it turn, and the ocean's depth and conductivity by ocean class; a Europa-like moon of a Jupiter-like planet gets about 100 nT at its equator. It is stored on the moon beside its own magnetic moment (`induced_moment_a_m2`, 0 for a moon with no ocean, a locked parent or no parent field). Moons generated before this release have none until they are regenerated.
+
 ## [8.0.1181] - 2026-10-15
 
 ### Changed
