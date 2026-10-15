@@ -47,6 +47,18 @@ migrates the one it is pointed at:
     curl -s "https://HOST/api/health?db=OTHER_DB_NAME"
     python3 -m planetgen.cli.migrate --mysql-database OTHER_DB_NAME
 
+## 2a. Is Redis answering?
+
+The Generate page's jobs, the work queue behind `--workers` above 1, the rate limits and the login lockouts run on
+the Redis server in `redis.url` (`config.json`, default `redis://127.0.0.1:6379/0`). `/api/health` does not report
+it, and without Redis the Generate page silently starts no job.
+
+    redis-cli -u redis://127.0.0.1:6379/0 ping
+
+Pass: `PONG`. The admin Stats page also shows Redis (whether it answers, the append-only file, the memory policy, the
+last save and how many workers are alive). If not: `sudo systemctl enable --now redis-server` (macOS: `brew services
+start redis`). `PLANETGEN_WORKERS` sets how many worker processes a generation run uses (more than one needs Redis).
+
 ## 3. Are the spatial indexes there?
 
     mysql DB_NAME -e "SELECT table_name, index_name FROM information_schema.statistics

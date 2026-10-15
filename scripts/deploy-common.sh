@@ -103,11 +103,11 @@ ensure_nltk_words() {
 }
 
 # The Redis server at config.json's redis.url (OPS.21), which the work
-# queue and the rate limits will use. On Linux with a local address it
-# installs redis-server with apt and starts it when nothing answers; on
-# macOS (Homebrew refuses to run as root) and for a remote address it
-# only says what to run. Nothing uses Redis yet, so a server that doesn't
-# answer warns rather than stopping the install or update.
+# queue, the Generate page's jobs and the rate limits use. On Linux with a
+# local address it installs redis-server with apt and starts it when nothing
+# answers; on macOS (Homebrew refuses to run as root) and for a remote address
+# it only says what to run. A server that doesn't answer warns rather than
+# stopping the install or update.
 ensure_redis() {
     local url host
     url="$("$PYTHON" -c "from planetgen.util.settings import get_settings; print(get_settings().redis.url)")" || {
@@ -139,7 +139,7 @@ ensure_redis() {
     else
         echo "  Install and start it: sudo apt install redis-server && sudo systemctl enable --now redis-server" >&2
     fi
-    echo "  Nothing needs it yet; the work queue will (docs/deployment/README.md)." >&2
+    echo "  Without it the Generate page starts no job and a run cannot use more than one worker (docs/deployment/README.md)." >&2
 }
 
 # Warns, with the exact line to add, when the running Redis server's
