@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1233] - 2026-10-15
+
+### Changed
+
+- A cloud's particle density ("3.5 particles/cm³", in nebula and remnant pages and descriptions) and a magnetic field ("50 µT" for a planet, "1.00 × 10¹² G" for a pulsar) use the shared unit ladders; fields are written in tesla with SI prefixes up to 10,000 T and in gauss above that.
+
 ## [8.0.1232] - 2026-10-15
 
 ### Changed
