@@ -211,7 +211,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 |  |  |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults |  |  |
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list |  |  |
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 |  |  |
@@ -220,7 +219,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages |  |  |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md |  |  |
 | DOC.26 | Give every design note a status line and refresh the stale ones |  |  |
-| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged |  |  |
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state |  |  |

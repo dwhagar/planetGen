@@ -524,7 +524,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | open |
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | open |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
-| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | open |
+| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | done, PR #1594 |
 | DOC.26 | Give every design note a status line and refresh the stale ones | none | open |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | open |
 | DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | open |
@@ -536,7 +536,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list | none | open |
 | DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | done, PR #1588 |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | open |
-| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | open |
+| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | done, PR #1594 |
 | DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS | none | done, PR #1586 |
 | DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) | none | done, PR #1590 |
 | DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py | none | done, PR #1581 |
