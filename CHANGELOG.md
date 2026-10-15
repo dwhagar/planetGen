@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1316] - 2026-10-15
+
+### Changed
+- Docs: config.md now describes the page cache's stored counts and `PLANETGEN_WORKERS`, the gunicorn unit comment says rate limits count on the Redis server, and the planet class table in the system file format guide lists class S and Q's habitable flag as the code has them.
+
 ## [8.0.1315] - 2026-10-15
 
 ### Changed
