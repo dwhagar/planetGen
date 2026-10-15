@@ -1,7 +1,7 @@
 # planetgen/cli/worker.py
 
 """
-One RQ worker for planetGen's queues (PERF.24), at the lowered priority
+One RQ worker for planetGen's queues, at the lowered priority
 generation workers always run at. `planetgen.queue.redisqueue.
 ensure_workers` starts these in burst mode, so each exits once its
 queues are empty.

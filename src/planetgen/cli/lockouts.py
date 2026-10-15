@@ -84,9 +84,9 @@ def main(argv=None):
     group.add_argument("--user", help="Lift the lockout of this username.")
     group.add_argument("--all", action="store_true", help="Lift every lockout.")
     group.add_argument("--forget-devices", metavar="USER",
-                       help="Revoke every trusted-device cookie of this admin (SEC.22).")
+                       help="Revoke every trusted-device cookie of this admin.")
     group.add_argument("--reset-two-factor", metavar="USER",
-                       help="Turn off this admin's two-factor sign-in, for a lost phone (SEC.26).")
+                       help="Turn off this admin's two-factor sign-in, for a lost phone.")
     add_mysql_connection_args(parser)
     args = parser.parse_args(argv)
 

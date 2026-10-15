@@ -474,43 +474,13 @@ with `clamp()`.
   otherwise.
   Prerequisite: UX.45. Related: UX.47.
 
-- [ ] **UX.93 No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does**
-  Boss (2026-10-10 20:28Z): "TODO codes should never appear in the
-  finished product, so add a TODO item to scrub output lines with things
-  like PERF.67 etc etc etc". Done: every user-facing line is scrubbed of
-  TODO IDs (a category from the TODO table, a dot and a number, such as
-  PERF.67 or NAV.42): page and template text, tooltips, error and
-  refusal messages, CLI and job-log lines, API error and help text,
-  setting descriptions, the in-app help and any docs shown to users of
-  the site. Code comments, docstrings, TODO.md, `changes/` notes, the
-  changelog and the design docs may keep them. A pytest scans the
-  templates, the static files and the string literals the code shows to
-  users (settings descriptions, messages, CLI output) and fails on a
-  TODO-ID pattern there, with a short allowlist for the places where an
-  ID is wanted (none expected). The first pass found about 44 hits in
-  the templates and static files, most of them in template comments (`{#
-  ... #}`), which stay, and about 130 string literals in the Python code
-  to check by hand. Owner: Bugfixes lane 2, after its current items.
-  Docs sweep (2026-10-09): Docs sweep (2026-10-14, reference audit
-  finding 9 and 39): TODO codes are still in many CLI --help strings
-  (GEN.195, NAV.48, ADM.29, GEN.30, GEN.96, GEN.97, GEN.186, ADM.30,
-  GEN.196, OPS.13, DB.8, GEN.183, GEN.39, NAV.43, SEC.22, SEC.26 in
-  cli/generate.py, cli/query.py and cli/lockouts.py), in one run
-  message, and web/templates/admin_stats.html line 162 renders (PERF.56)
-  on the admin Stats page; the help text also shows the internal
-  constant name LARGE_RING_WARNING_THRESHOLD. Remove them as part of
-  this item, with a test that scans CLI help and templates for TODO
-  codes. Details in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md.
-  Prerequisites: none.
-
 - [ ] **UX.94 Gravity map wording: the legend, the mode names and the Map help text**
   Done: the legend names the unit (metric or Customary through the UX.36
   number formatting), the three modes have plain in-universe names with
   a one-line explanation each, the Map help dialog explains what the
   colours mean and what a saddle point is, and no TODO code appears in
-  any of it (UX.93).
-  Prerequisite: MAP.168. Related: MAP.167, UX.93.
+  any of it (UX.93, done).
+  Prerequisite: MAP.168. Related: MAP.167.
 
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
@@ -575,7 +545,7 @@ with `clamp()`.
   only in the page display, labelled). Bugfixes lane 1 built
   UX.98 as the first slice (done, #1369: one stage formatter); the rest is
   a Phase 2 item for the interface builders.
-  Prerequisites: none. Related: PERF.66, UX.93.
+  Prerequisites: none. Related: PERF.66.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1081,8 +1051,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as a window, retire the arc, slab and segment picks (the rest of
   MAP.150, which unlocks MAP.189 and MAP.190), URLs and breadcrumb from
   the window. The 3-ary ladder (MAP.151b) needs a per-level aggregate
-  table so a window does not need about 64 stage queries: DB.25,
-  Foundations lane 1.
+  table so a window does not need about 64 stage queries: DB.25
+  (done, #1376: galaxy_block_stats, read by query.galaxy_block_stats;
+  add the new levels to drill.DRILL_LEVELS and a rebuild fills them), so
+  MAP.151b is unblocked.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -4108,20 +4080,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.25 A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration)**
-  Foundations lane 2 (2026-10-14, after #1335): with the 3-ary ladder
-  (MAP.151b, 729/243/81/27/9/3/1) a map window would need about 64 stage
-  queries unless the per-level aggregates are stored. Done: a migration
-  and its previous-version fixture for a table holding the aggregates
-  per ladder level and cell (the columns the stage views already show:
-  star count, summed luminosity, mean age, nebula cover when MAP.172
-  lands), filled by the stage run and by a backfill for existing
-  galaxies; the window query reads it in one statement; a test that the
-  stored aggregates equal the ones computed from the stage files. Owner:
-  Foundations lane 1 (the only lane that adds migrations); queue it
-  right after PERF.92 (done, #1371) because MAP.151b waits on it.
-  Prerequisites: none. Related: MAP.151, MAP.172.
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -5144,6 +5102,23 @@ clears each one.
   is found and the suite shows no load flake for these two. Owner: the
   Test Suite Rebuild thread, not a lane.
   Prerequisites: none. Related: TEST.126, TEST.139.
+
+- [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
+  Boss (2026-10-15 00:09Z): wants to be able to restart a test run where
+  it left off so long as the build is the same, so a run that is stopped
+  or times out does not start over (a full run is about 49 minutes).
+  Boss also set the standing rule that every test run starts with a
+  timeout of at least 90 minutes and is known to be done by its own
+  completion notice or final summary line, not by polling (now in
+  docs/testing.md). Done when the Test Suite Rebuild thread reports the
+  options (for example a record of passed tests keyed by the git commit
+  and a hash of the working tree, a resume flag in scripts/test.py that
+  skips them, and what must invalidate a resume: any changed file,
+  database or Redis state, the Python or library versions) with a
+  recommendation, and Boss picks one; the build is then filed as its own
+  items. Options are pending until the thread reports. Owner: the Test
+  Suite Rebuild thread, part of TEST.139, not a lane.
+  Prerequisites: none. Related: TEST.139.
 
 ## USR: User accounts
 

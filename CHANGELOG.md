@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1122] - 2026-10-15
+
+### Added
+- The testing guide gives the test time limit (at least 90 minutes) and how to know a run is done, and the TODO list files TEST.148, an investigation into resuming a test run where it left off.
+
+## [8.0.1121] - 2026-10-14
+
+### Changed
+- The TODO list drops UX.93 (no TODO codes in user-facing output, merged in #1378).
+
+## [8.0.1120] - 2026-10-14
+
+### Fixed
+- No internal TODO code (such as GEN.96 or PERF.56) shows in the command-line help, the admin Stats page hint or any other text a user reads, and the help no longer names an internal constant. A test now scans the templates, static files, the strings the code shows and every command's `--help`, and fails if one comes back.
+
+## [8.0.1119] - 2026-10-14
+
+### Changed
+- The TODO list drops DB.25 (per-level aggregate table, merged in #1376); the schema is now v86 and the next migration is 0087.
+
+## [8.0.1118] - 2026-10-14
+
+### Added
+- The sums the Galaxy Map's drill-down stages show (sectors, systems, stars, mean age, luminosity) are now stored per block of each ladder level (`galaxy_block_stats`, schema 86), so a map window reads its cells in one query. A `galaxy` run, a sector visit and a sector deletion keep them current, and the migration fills them for the sectors already there. `planetgen plan --fill-block-stats` rebuilds them.
+
 ## [8.0.1117] - 2026-10-14
 
 ### Changed

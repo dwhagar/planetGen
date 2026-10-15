@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.148 |
+| TEST | TEST.149 |
 | USR | USR.12 |
 | OPS | OPS.50 |
 | DOC | DOC.45 |
@@ -491,7 +491,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | done, PR #1127 |
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | done, PR #1365 |
 | DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | done, PR #1317 |
-| DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | open |
+| DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | done, PR #1376 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1299,7 +1299,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | done, PR #1065 |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | done, PR #1104 |
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
-| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
+| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | done, PR #1378 |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | done, PR #1299 |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
@@ -1553,6 +1553,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | done, PR #1367 |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | done, PR #1367 |
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | open |
+| TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

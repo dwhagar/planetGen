@@ -2,7 +2,7 @@
 # planetgen.cli.config
 
 """
-Checks and documents the settings (ADM.42).
+Checks and documents the settings.
 
     python3 -m planetgen.cli.config check   # validate config.json and settings.json
     python3 -m planetgen.cli.config docs    # rewrite the files generated from the model
