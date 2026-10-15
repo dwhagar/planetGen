@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1332] - 2026-10-15
+
+### Changed
+- Docs: the orbital, slow-reads, login, scheduling, test-suite, database-check, course-routing, nebula, object-ID and drill-down notes now say what is built and what is open, the login note gains a section on the 503 Busy page and skipped writes (ADM.53), and the orbital note names the real positional-update command (DOC.22, DOC.23).
+
 ## [8.0.1331] - 2026-10-15
 
 ### Changed
