@@ -73,7 +73,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | DB.26 | Research follow-up to GEN.84 (built). |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | DB.26 | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
-| GEN.213 | Mercury-like bodies never keep their magnetic field (bug) |  |  |
 
 ### Tech levels and facilities
 
