@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1386] - 2026-10-15
+
+**Headline:** The intergalactic space plan is written down as one plan document.
+
+### Changed
+- docs/plan/intergalactic-space-plan.md holds the goal, the decided rules, the stages from the spherical grid to the whole sphere, the reserved slots for the multi-star research and the region query, every item with its owner, prerequisites and what it unlocks, the defaults awaiting Boss, tests and docs, and the later group; the execution plan, TODO.md and the plan notes point at it.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1385] - 2026-10-15
 
 **Headline:** Stellar companions of stars and remnants are made at scatter time; planets and moons stay at sector fill.
