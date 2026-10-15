@@ -31,7 +31,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.224 | Spherical grid module: shells, bands, wedges, caps and the core ball |  |  |
 | GEN.225 | Outline and bounds on shells | GEN.224 |  |
 | GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | GEN.224 |  |
-| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and migrate | GEN.224, GEN.225, GEN.226 |  |
+| DB.32 | Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything | GEN.224, GEN.225, GEN.226 |  |
 | GEN.227 | Generation paths on shells | GEN.224, GEN.225, GEN.226, DB.32 |  |
 | UX.111 | Reads, API and web wording on shells | DB.32, GEN.227 |  |
 | MAP.205 | Galaxy Map block ladder for shells | UX.111 |  |

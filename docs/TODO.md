@@ -506,9 +506,9 @@ with `clamp()`.
 - [ ] **UX.111 Reads, API and web wording on shells**
   `query.py`, `store.py`, the API, the Galaxy and Sector pages, URLs and
   bookmarks say shell, band and wedge; "layer" and "slab" mean nothing
-  any more. Done: pages and API keep working on a regenerated small
-  galaxy; after this item Boss can regenerate a galaxy and look at it
-  before Maps work begins. Owner: Spherical Sector Coordinates thread.
+  any more. Done: pages and API keep working on a converted (DB.32)
+  small galaxy; after this item Boss can open the converted galaxy and
+  look at it before Maps work begins. Owner: Spherical Sector Coordinates thread.
   Source: item 6 of section 6 of the plan. Boss decided the move
   (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
   wedge (vert), shell (radius), and band (horizontal), together they
@@ -3962,18 +3962,31 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
 
-- [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and migrate**
+- [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything**
   A new Alembic revision renames `ring_index`, `layer_index` and
   `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` in
-  the seven address-keyed tables, deletes galaxy-placed sectors, systems
-  and phenomena, rebuilds the outline, and adds the old-schema fixture.
-  Merged only with Boss's go-ahead for the delete (it is destructive).
-  Owner: Spherical Sector Coordinates thread (the only migration lane
-  while this runs). Source: item 4 of section 6 of the plan. Boss
-  decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
-  pole make a wedge (vert), shell (radius), and band (horizontal),
-  together they identify a single 3D segment of the sphere". TOP
-  PRIORITY in Phase 1, ahead of every lane queue.
+  the seven address-keyed tables, and adds the old-schema fixture. It
+  also carries the conversion plan (Boss, 2026-10-15 06:54Z): "it will
+  need to be able to wipe out all of the sector data without losing the
+  position coordinates of everything. Rebuild the galactic sector map,
+  then link everything back to the sector it belongs in. Now, planets
+  and moons that have a star can just anchor to that, they are whatever
+  sector the star is in. Nothing's position changes just what we call
+  it." Done: the old sector rows, outline and sector-keyed statistics
+  are emptied; every star system, free-floating object and phenomenon
+  keeps its stored position, velocity and epoch; the sector map is
+  rebuilt on the shell grid; each object is linked to the shell, band
+  and wedge its position falls in; planets and moons anchor to their
+  star's sector and are never placed by their own coordinates; a check
+  compares every position before and after (zero difference) and counts
+  objects per sector. Nothing is regenerated and nothing is deleted
+  except sector rows. Merged only with Boss's go-ahead (it rewrites the
+  whole sector map). Owner: Spherical Sector Coordinates thread (the
+  only migration lane while this runs). Source: item 4 of section 6 of
+  the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
+  lines from pole to pole make a wedge (vert), shell (radius), and band
+  (horizontal), together they identify a single 3D segment of the
+  sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
   Prerequisites: GEN.224, GEN.225, GEN.226.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
