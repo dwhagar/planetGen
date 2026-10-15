@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1344] - 2026-10-15
+
+### Changed
+
+- TODO: retired DB.32, GEN.227, GEN.226, UX.111 and UX.112 (the spherical switch, PR #1607); the held items MAP.152, GEN.101, GEN.24 and GEN.27 are released to be reread against the shell grid.
+
+TODO items resolved: DB.32, GEN.227, GEN.226, UX.111, UX.112 / Added: none
+
 ## [8.0.1343] - 2026-10-15
 
 ### Added
