@@ -3310,6 +3310,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
 
+- [ ] **GEN.223 The orbital update does not move the galaxy position of a star system that has no placed sector (bug)**
+  Boss (2026-10-15, asked "Does our orbital update include all objects
+  that are not in a charted sector?", then said "Yes" to filing it as a
+  bug): the orbital update advances the phases and the clock for a star
+  system with no placed (charted) sector but skips the move of its
+  galactic position (`db/store.py` around line 5268, `sector_id not in
+  index.info`), and the follow-up refresh (`refresh_after_motion`,
+  around line 5471) covers only placed sectors, so such a system also
+  gets no containment, nearest-systems or location refresh. Planets,
+  moons, comets, facilities and every phenomenon type are already
+  selected by due time with no sector filter. Done: a system with no
+  placed sector moves with the rest at every update and gets the same
+  containment, nearest-systems and location refresh, with a test that
+  fails when it does not. Owner: Foundations Database (suggested; the
+  sector-index code changes with the Spherical Sector Coordinates work,
+  so check it first). Queued behind the Spherical Sector Coordinates
+  stop (Boss, 2026-10-15 06:39Z).
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
