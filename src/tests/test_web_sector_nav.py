@@ -240,9 +240,6 @@ def fake(monkeypatch):
     data = FakeData()
     for name in _FAKED:
         monkeypatch.setattr(apiclient, name, getattr(data, name))
-    # The map's first frame of galaxy tiles (the sector page embeds the Galaxy Map's engine).
-    monkeypatch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
-        "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
     return data
 
 
@@ -271,12 +268,6 @@ def _csrf(app, client):
         return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
-def _page_scene(html):
-    """The map's scene data a sector page embeds (`#galaxymap3d-data`)."""
-    match = re.search(r'<script type="application/json" id="galaxymap3d-data">(.*?)</script>', html, re.S)
-    return json.loads(match.group(1))
-
-
 def _scene(client, path):
     """The sector's scene JSON (`/sector/<id>/scene`, what the map draws) for a
     sector page's `path`, query and all."""
@@ -299,11 +290,8 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     assert '<a href="/sectors">Sectors</a>' in crumbs and '<span aria-current="page">Fake Sector</span>' in crumbs
     assert "Edge 3.07 pc (10 ly)" in html and "2 systems" in html and "1 phenomenon" in html
     assert 'href="/galaxy?quadrant=' in html
-    assert re.search(r'<script type="module" src="/static/galaxymap3d.js\?v=[^"]+"></script>', html)
-    # The map is the Galaxy Map locked to this sector (MAP.68).
-    assert 'id="galaxymap3d-canvas"' in html and "galaxymap3d-crumbs" not in html
-    assert json.loads(re.search(r'id="galaxymap3d-data">(.*?)</script>', html, re.S).group(1))["pinned"] == {
-        "ring": 5, "layer": 1, "slot": 20}
+    # UX.111: the Galaxy Map locked to this sector is rebuilt for shells, bands and wedges (Maps); a notice stands in.
+    assert "galaxymap3d" not in html and 'id="map"' in html and "being rebuilt" in html
     # Contents: nearest first, systems and phenomena, plain links.
     contents = html[html.index('id="sector-contents"'):]
     assert contents.index("Other") < contents.index("Alpha") < contents.index("Veil")
@@ -1024,8 +1012,6 @@ def test_real_admin_action_error_shows_on_the_page(db_client, mysql_config):
 # --- NAV links and pick mode (MAP.21, design doc sections 9.1-9.2) ----------------
 
 def test_sector_map_page_offers_start_here_and_end_here_without_a_pick(client, fake):
-    page = _page_scene(client.get("/sector/5").get_data(as_text=True))
-    assert page["pick"] is None and page["navUrl"] == "/nav"
     assert "pick-banner" not in client.get("/sector/5").get_data(as_text=True)
 
 
@@ -1039,17 +1025,14 @@ def test_pick_destination_mode(app, client, fake):
     banner = re.search(r'<p class="pick-banner".*?</p>', html, re.S).group(0)
     assert "Choosing a destination" in banner and "End Here" in banner
     assert f'href="{escape(nav_url_for(app, "system:12", None))}">Cancel</a>' in banner
-    page = _page_scene(html)
-    assert page["pick"] == "to" and page["pickOther"] == "system:12"
-    assert page["navUrl"] == "/nav"
+    assert 'data-pick="to"' in html and 'data-keep-value="system:12"' in html
 
 
 def test_pick_start_mode_without_the_other_end(app, client, fake):
     html = client.get("/sector/5?pick=from").get_data(as_text=True)
     assert "Choosing a start" in html
     assert f'href="{escape(nav_url_for(app, None, None))}">Cancel</a>' in html
-    page = _page_scene(html)
-    assert page["pick"] == "from" and page["pickOther"] is None
+    assert 'data-pick="from"' in html
 
 
 def test_a_body_can_be_a_nav_endpoint(client, fake):
@@ -1070,7 +1053,7 @@ def test_bad_pick_mode_is_ignored(client, fake, query):
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
     assert "pick-banner" not in html
-    assert _page_scene(html)["pick"] is None
+    assert "pick-banner" not in html
 
 
 # --- Bright stars waiting in an unfilled neighbor -----------------------------------

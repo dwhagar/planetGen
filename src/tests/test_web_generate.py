@@ -352,7 +352,7 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "random", "max_shell": "9" * 25}, "Highest shell must be at most 100000."),
     ({"mode": "shell", "shell_index": "100001"}, "Shell must be at most 100000."),
     ({"mode": "shell", "shell_index": "3", "shell_limit": "1e30"}, "Limit must be a whole number."),
-    ({"mode": "shell", "shell_index": "3", "shell_limit": "9999999"}, "Limit must be at most"),
+    ({"mode": "shell", "shell_index": "3", "shell_limit": str(generate_page.MAX_GENERATE_LIMIT + 1)}, "Limit must be at most"),
     ({"mode": "shell", "shell_index": "3", "shell_band": "x"}, "Band must be a whole number."),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "1e9"}, "Radius (pc) must be at most 200."),
     ({"mode": "center", "center_by": "address", "center_wedge": "1", "center_radius_pc": "5"}, "Shell is required."),
@@ -517,7 +517,7 @@ def test_around_a_sector_offers_every_way_to_name_the_center(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     for by in ("sector", "address", "position"):
         assert f'name="center_by" value="{by}"' in html
-    for name in ("center_sector", "center_ring", "center_layer", "center_slot", "center_x_pc", "center_y_pc",
+    for name in ("center_sector", "center_shell", "center_band", "center_wedge", "center_x_pc", "center_y_pc",
                  "center_z_pc", "center_radius_pc"):
         assert f'name="{name}"' in html
     assert 'data-locate-url="/galaxy/locate"' in html

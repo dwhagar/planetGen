@@ -29,7 +29,7 @@ from planetgen.db import store
 from planetgen.web.lib import apiclient  # noqa: E402
 
 # Imported fixtures (see test_bughunt_api_gaps.py for why this works).
-from tests.test_web_galaxy import _place_sector, _scene, app, client, db_client, fake  # noqa: F401,E402
+from tests.test_web_galaxy import MAPS_PENDING, _place_sector, _scene, app, client, db_client, fake  # noqa: F401,E402
 from tests.publicids import pid, pids
 
 
@@ -65,6 +65,7 @@ DRILL_COMBOS = [
 
 
 @pytest.mark.parametrize("query", DRILL_COMBOS)
+@MAPS_PENDING
 def test_drill_parameters_are_left_to_the_browser(client, fake, query):
     """The server ignores the drill-down's own parameters: any mix of
     them -- even nonsense -- renders the same map the bare URL does."""
@@ -75,6 +76,7 @@ def test_drill_parameters_are_left_to_the_browser(client, fake, query):
 
 @pytest.mark.parametrize("extra", ["quadrant=II", "quadrant=II&page=2", "quadrant=nonsense&page=-4",
                                    "pick=from&to=system:1", "course=system:1"])
+@MAPS_PENDING
 def test_drill_parameters_with_the_servers_own(client, fake, extra):
     html = _assert_clean_page(client.get(f"/galaxy?at=243.7.14.0&p=1,2&sector=R5.L1.S20&{extra}"))
     assert "galaxymap3d-data" in html
@@ -86,6 +88,7 @@ def test_drill_parameters_are_never_echoed_raw(client, fake):
     assert "<script>alert(1)</script>" not in html
 
 
+@MAPS_PENDING
 def test_drill_parameters_with_a_course(client, fake, monkeypatch):
     """`?course=` is the one the server reads; the drill-down parameters
     beside it change nothing about the course it draws."""
@@ -176,6 +179,7 @@ def store_row_of_pid(config, printed):
         conn.close()
 
 
+@MAPS_PENDING
 def test_course_to_deleted_objects_is_a_clean_404(db_client, mysql_config):
     sector_id = _place_sector(mysql_config, "Course Sector", address=(5, 1, 20))
     gone = _system_in(mysql_config, sector_id, "Gone Away")
@@ -192,6 +196,7 @@ def test_course_to_deleted_objects_is_a_clean_404(db_client, mysql_config):
                            statuses=(404,))
 
 
+@MAPS_PENDING
 def test_course_whose_sector_was_deleted_still_renders(db_client, mysql_config):
     """Deleting the sector detaches its systems (`sector_id` NULL): the
     course's endpoints still exist, so the map renders -- with or
@@ -258,7 +263,7 @@ def test_locate_ambiguous_names(db_client, mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         with conn:
-            conn.execute("UPDATE sectors SET ring_index = NULL, layer_index = NULL, ring_slot_index = NULL"
+            conn.execute("UPDATE sectors SET shell_index = NULL, band_index = NULL, wedge_index = NULL"
                          " WHERE id = ?", (unplaced,))
     finally:
         conn.close()
