@@ -20,7 +20,7 @@ from tests.publicids import pid, pids
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots",
 }
@@ -76,6 +76,11 @@ NULL_IN_THIS_GALAXY = {
     ("system_configs", "age"): "only with --age",
     # GEN.178: only a moon has an induced field.
     ("planets", "induced_moment_a_m2"): "moons only",
+    # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
+    **{("facilities", column): "not set yet" for column in (
+        "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",
+        "rating_resources", "rating_maintenance", "rating_health", "ratings_source", "ratings_note",
+        "ratings_set_at")},
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -109,6 +114,11 @@ NEVER_READ = {
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
+    # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
+    **{("facilities", column): "read once POP.10 lands" for column in (
+        "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",
+        "rating_resources", "rating_maintenance", "rating_health", "ratings_source", "ratings_note",
+        "ratings_set_at")},
     # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
     ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,

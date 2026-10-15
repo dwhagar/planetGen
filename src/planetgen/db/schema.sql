@@ -1217,6 +1217,21 @@
 --   for range search) and `tech_source` ('generated' or 'admin': a pass never
 --   redraws a hand-edited species). NULL on a species saved before v88.
 --
+-- v89: facility types and the facility columns that go with them (DB.28, POP.10). A
+--   *type refines a kind*: `facility_types` (name, kind, icon, description, order,
+--   active) holds the admin-defined types; `facility_type_fields` the typed fields
+--   a type carries (key, label, datatype int/decimal/text/bool/choice, unit,
+--   required, bounds, choices, default; at most 24 per type and the key's pattern
+--   `^[a-z][a-z0-9_]{0,31}$` are checked by the application); `facility_field_values`
+--   one typed value per facility and field (retire a field, do not delete it: the
+--   field FK is RESTRICT). `facilities` gains `type_id` (RESTRICT), the affiliation
+--   (`affiliation_polity_id`, SET NULL, or free text `affiliation_name`), the five
+--   Green/Yellow/Red ratings `rating_crime`, `rating_housing`, `rating_resources`,
+--   `rating_maintenance` and `rating_health` (1 Green to 3 Red, NULL until rated),
+--   and how they were set (`ratings_source`, `ratings_note`, `ratings_set_at`).
+--   All NULL on a facility saved before v89. Design:
+--   docs/design/population-and-politics.md, "Data model" of the facility section.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3051,78 +3066,6 @@ CREATE TABLE IF NOT EXISTS nearest_systems (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- facilities (v42): starbases, colonies and outposts. Exactly one host,
--- named by `host_type`: a star (`star_system_id`, plus `star_id` unless
--- it's a close pair's shared orbit), a planet, a moon, an asteroid belt,
--- an asteroid field, or open space (`sector_id` plus a galaxy-frame
--- center, like a phenomenon). `star_system_id` is set for every host in a
--- system so a system's facilities list in one lookup. `placement` is
--- terrestrial, orbital, asteroid or standalone, and
--- `program_constants.FACILITY_RULES` says which kinds may go where
--- (`facilities.check_facility`). An orbital facility's circular orbit
--- (`orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`,
--- `orbit_phase_deg`) comes from its host's mass the way a moon's does.
--- Every host foreign key cascades, so a deleted host takes its
--- facilities along. "Exactly one host" is checked by `_db.add_facility`,
--- not a CHECK: MySQL refuses a CHECK on a column with a cascading
--- foreign key.
--- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS facilities (
-    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name                 VARCHAR(255) NOT NULL,
-    kind                 VARCHAR(16) NOT NULL,
-    placement            VARCHAR(16) NOT NULL,
-    host_type            VARCHAR(16) NOT NULL,
-    star_system_id       BIGINT UNSIGNED,
-    star_id              BIGINT UNSIGNED,
-    planet_id            BIGINT UNSIGNED,
-    moon_id              BIGINT UNSIGNED,
-    asteroid_belt_id     BIGINT UNSIGNED,
-    asteroid_field_id    BIGINT UNSIGNED,
-    sector_id            BIGINT UNSIGNED,
-    center_x_pc          DOUBLE,
-    center_y_pc          DOUBLE,
-    center_z_pc          DOUBLE,
-    galactic_radius_pc   DOUBLE,
-    velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
-    velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
-    velocity_z_kms       DOUBLE NOT NULL DEFAULT 0,
-    orbit_distance_km    DOUBLE,
-    orbit_period_years   DOUBLE,
-    orbital_speed_kms    DOUBLE,
-    orbit_phase_deg      DOUBLE,
-    epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
-    next_update_due      DOUBLE,
-    description          TEXT,
-    uid                  BINARY(10),  -- v78 (DB.20), see header comment
-
-    created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-
-    KEY idx_facilities_star_system (star_system_id),
-    KEY idx_facilities_next_update_due (next_update_due),
-    KEY idx_facilities_sector (sector_id),
-    KEY idx_facilities_name (name),
-    UNIQUE KEY uq_facilities_uid (uid),
-    CONSTRAINT chk_facilities_kind CHECK (kind IN ('colony', 'outpost', 'mining-colony', 'station', 'starbase')),
-    CONSTRAINT chk_facilities_placement CHECK (placement IN ('terrestrial', 'orbital', 'asteroid', 'standalone')),
-    CONSTRAINT fk_facilities_star_system
-        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
-    CONSTRAINT fk_facilities_star
-        FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE CASCADE,
-    CONSTRAINT fk_facilities_planet
-        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
-    CONSTRAINT fk_facilities_moon
-        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
-    CONSTRAINT fk_facilities_asteroid_belt
-        FOREIGN KEY (asteroid_belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
-    CONSTRAINT fk_facilities_asteroid_field
-        FOREIGN KEY (asteroid_field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
-    CONSTRAINT fk_facilities_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ---------------------------------------------------------------------
 -- bright_stars (v43): every star at least
 -- `galaxy_shape.bright_star_min_luminosity_sol` bright, generated and
 -- placed galaxy-wide by `planetgen plan`'s scatter step before any
@@ -3559,6 +3502,161 @@ CREATE TABLE IF NOT EXISTS polities (
         FOREIGN KEY (species_id) REFERENCES species(id) ON DELETE CASCADE,
     CONSTRAINT fk_polities_capital
         FOREIGN KEY (capital_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- facilities (v42): starbases, colonies and outposts. Exactly one host,
+-- named by `host_type`: a star (`star_system_id`, plus `star_id` unless
+-- it's a close pair's shared orbit), a planet, a moon, an asteroid belt,
+-- an asteroid field, or open space (`sector_id` plus a galaxy-frame
+-- center, like a phenomenon). `star_system_id` is set for every host in a
+-- system so a system's facilities list in one lookup. `placement` is
+-- terrestrial, orbital, asteroid or standalone, and
+-- `program_constants.FACILITY_RULES` says which kinds may go where
+-- (`facilities.check_facility`). An orbital facility's circular orbit
+-- (`orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`,
+-- `orbit_phase_deg`) comes from its host's mass the way a moon's does.
+-- Every host foreign key cascades, so a deleted host takes its
+-- facilities along. "Exactly one host" is checked by `_db.add_facility`,
+-- not a CHECK: MySQL refuses a CHECK on a column with a cascading
+-- foreign key.
+-- ---------------------------------------------------------------------
+-- facility_types (v89, DB.28): the admin-defined refinements of a facility kind, see header comment.
+CREATE TABLE IF NOT EXISTS facility_types (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name                 VARCHAR(255) NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    icon                 VARCHAR(64),
+    description          TEXT,
+    sort_order           INT NOT NULL DEFAULT 0,
+    active               TINYINT(1) NOT NULL DEFAULT 1,
+
+    UNIQUE KEY uq_facility_types_name (name),
+    KEY idx_facility_types_kind (kind),
+    CONSTRAINT chk_facility_types_kind CHECK (kind IN ('colony', 'outpost', 'mining-colony', 'station', 'starbase')),
+    CONSTRAINT chk_facility_types_active CHECK (active IN (0, 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- facility_type_fields (v89, DB.28): the typed fields a facility type carries.
+CREATE TABLE IF NOT EXISTS facility_type_fields (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type_id              BIGINT UNSIGNED NOT NULL,
+    `key`                VARCHAR(32) NOT NULL,
+    label                VARCHAR(255) NOT NULL,
+    datatype             VARCHAR(8) NOT NULL,
+    unit                 VARCHAR(32),
+    required             TINYINT(1) NOT NULL DEFAULT 0,
+    min_value            DOUBLE,
+    max_value            DOUBLE,
+    choices              TEXT,
+    default_text         VARCHAR(255),
+    sort_order           INT NOT NULL DEFAULT 0,
+
+    UNIQUE KEY uq_facility_type_fields_key (type_id, `key`),
+    CONSTRAINT chk_facility_type_fields_datatype CHECK (datatype IN ('int', 'decimal', 'text', 'bool', 'choice')),
+    CONSTRAINT chk_facility_type_fields_required CHECK (required IN (0, 1)),
+    CONSTRAINT fk_facility_type_fields_type
+        FOREIGN KEY (type_id) REFERENCES facility_types(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS facilities (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name                 VARCHAR(255) NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    placement            VARCHAR(16) NOT NULL,
+    host_type            VARCHAR(16) NOT NULL,
+    star_system_id       BIGINT UNSIGNED,
+    star_id              BIGINT UNSIGNED,
+    planet_id            BIGINT UNSIGNED,
+    moon_id              BIGINT UNSIGNED,
+    asteroid_belt_id     BIGINT UNSIGNED,
+    asteroid_field_id    BIGINT UNSIGNED,
+    sector_id            BIGINT UNSIGNED,
+    center_x_pc          DOUBLE,
+    center_y_pc          DOUBLE,
+    center_z_pc          DOUBLE,
+    galactic_radius_pc   DOUBLE,
+    velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_z_kms       DOUBLE NOT NULL DEFAULT 0,
+    orbit_distance_km    DOUBLE,
+    orbit_period_years   DOUBLE,
+    orbital_speed_kms    DOUBLE,
+    orbit_phase_deg      DOUBLE,
+    epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due      DOUBLE,
+    description          TEXT,
+    uid                  BINARY(10),  -- v78 (DB.20), see header comment
+    -- v89 (DB.28, POP.10): type, affiliation and ratings, see header comment.
+    type_id              BIGINT UNSIGNED,
+    affiliation_polity_id BIGINT UNSIGNED,
+    affiliation_name     VARCHAR(255),
+    rating_crime         TINYINT UNSIGNED,
+    rating_housing       TINYINT UNSIGNED,
+    rating_resources     TINYINT UNSIGNED,
+    rating_maintenance   TINYINT UNSIGNED,
+    rating_health        TINYINT UNSIGNED,
+    ratings_source       VARCHAR(16),
+    ratings_note         TEXT,
+    ratings_set_at       TIMESTAMP NULL,
+
+    created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    KEY idx_facilities_type (type_id),
+    KEY idx_facilities_affiliation (affiliation_polity_id),
+    KEY idx_facilities_rating_crime (rating_crime),
+    KEY idx_facilities_rating_housing (rating_housing),
+    KEY idx_facilities_rating_resources (rating_resources),
+    KEY idx_facilities_rating_maintenance (rating_maintenance),
+    KEY idx_facilities_rating_health (rating_health),
+    KEY idx_facilities_star_system (star_system_id),
+    KEY idx_facilities_next_update_due (next_update_due),
+    KEY idx_facilities_sector (sector_id),
+    KEY idx_facilities_name (name),
+    UNIQUE KEY uq_facilities_uid (uid),
+    CONSTRAINT chk_facilities_kind CHECK (kind IN ('colony', 'outpost', 'mining-colony', 'station', 'starbase')),
+    CONSTRAINT chk_facilities_placement CHECK (placement IN ('terrestrial', 'orbital', 'asteroid', 'standalone')),
+    CONSTRAINT chk_facilities_rating_crime CHECK (rating_crime BETWEEN 1 AND 3),
+    CONSTRAINT chk_facilities_rating_housing CHECK (rating_housing BETWEEN 1 AND 3),
+    CONSTRAINT chk_facilities_rating_resources CHECK (rating_resources BETWEEN 1 AND 3),
+    CONSTRAINT chk_facilities_rating_maintenance CHECK (rating_maintenance BETWEEN 1 AND 3),
+    CONSTRAINT chk_facilities_rating_health CHECK (rating_health BETWEEN 1 AND 3),
+    CONSTRAINT fk_facilities_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_star
+        FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_asteroid_belt
+        FOREIGN KEY (asteroid_belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_asteroid_field
+        FOREIGN KEY (asteroid_field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_type
+        FOREIGN KEY (type_id) REFERENCES facility_types(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_facilities_affiliation_polity
+        FOREIGN KEY (affiliation_polity_id) REFERENCES polities(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- facility_field_values (v89, DB.28): one typed value per facility and field.
+CREATE TABLE IF NOT EXISTS facility_field_values (
+    facility_id          BIGINT UNSIGNED NOT NULL,
+    field_id             BIGINT UNSIGNED NOT NULL,
+    value_int            BIGINT,
+    value_dec            DOUBLE,
+    value_text           VARCHAR(255),
+    value_bool           TINYINT(1),
+
+    PRIMARY KEY (facility_id, field_id),
+    KEY idx_facility_field_values_field (field_id),
+    CONSTRAINT fk_facility_field_values_facility
+        FOREIGN KEY (facility_id) REFERENCES facilities(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facility_field_values_field
+        FOREIGN KEY (field_id) REFERENCES facility_type_fields(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- system_owners: the polity with the strongest claim (reach / distance)
