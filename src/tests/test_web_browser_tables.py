@@ -174,8 +174,6 @@ def table_site():
         patch.setattr(apiclient, "get_sector", _fake_sector)
         patch.setattr(apiclient, "get_sector_facilities", lambda db, sector_id: [])
         patch.setattr(apiclient, "get_galaxy_shape", lambda db: None)
-        patch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
-            "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
         app = create_app(_SiteConfig)
         app.testing = True
         server = make_server("127.0.0.1", 0, app, threaded=True)
