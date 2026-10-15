@@ -35,7 +35,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createRing } = await import(`./mappick.js${VERSION_QUERY}`);
 const {
-  buildSectorScene, entryLabel, infoSpec, kindOf, KINDS, STAR_CLASSES, starClassOf, POINT_CLOSE_GROWTH, tooltipText,
+  buildSectorScene, entryLabel, infoSpec, kindOf, KINDS, STAR_CLASSES, starClassOf, tooltipText,
 } = await import(`./sectorscene.js${VERSION_QUERY}`);
 
 // The corners of the sector's cell as a flat [x, y, z, ...] list, for
@@ -67,15 +67,6 @@ export function createSectorStage(host) {
   // MAP.123: star classes left off and the dimmest star shown (L☉).
   const hiddenClasses = new Set();
   let minLuminosity = 0;
-
-  // How much the points have grown with the view closing in (as the
-  // Sector Map's own zoom does): their own size at the fit, POINT_CLOSE_GROWTH
-  // times it at the closest zoom.
-  function pointSizeScale() {
-    const near = host.closeness ? host.closeness() : 1;
-    const share = Math.max(0, Math.min(1, (near - 1) / 1.5));
-    return 1 + (POINT_CLOSE_GROWTH - 1) * share;
-  }
 
   function ringAround(ring, entry) {
     ring.at(entry.x, entry.y, entry.z, open.sector.ringSize(entry));
@@ -270,7 +261,6 @@ export function createSectorStage(host) {
       state.sector = buildSectorScene(data, {
         origin: data.centerPc, unit: data.halfEdgePc / half, flipY: true,
         accentColor: host.accentColor, lightBackground: host.lightBackground, pixelRatio: host.pixelRatio(),
-        sizeScale: pointSizeScale,
         // How many nebulae are drawn from their shape now (read by the browser tests).
         onShape: function (count) { host.canvasEl.dataset.sectorNebulaMeshes = String(count); },
       });
@@ -305,10 +295,9 @@ export function createSectorStage(host) {
     return badge;
   }
 
-  // Every frame: the points' growth and the rings' size.
+  // Every frame: the rings' size.
   function update() {
     if (!open) return;
-    open.sector.update();
     [[selectionRing, open.selected], [hoverRing, open.hovered]].forEach(function (pair) {
       const size = pair[1] && open.sector.ringSize(pair[1]);
       if (size && size.px != null) pair[0].setPx(size.px);
