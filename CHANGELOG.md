@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1257] - 2026-10-15
+
+### Added
+
+- The unit ladders now know three unit systems: Automatic (the existing choice), Metric only and Customary (feet, miles, pounds, mph, psi, °F). Nothing offers the choice on a page yet; the header menu follows in the next change.
+
 ## [8.0.1256] - 2026-10-15
 
 ### Changed
