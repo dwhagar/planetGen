@@ -22,7 +22,7 @@ from flask import abort, jsonify, redirect, request
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
-    format_duration_seconds, format_gravity_g, format_number, format_period_years, format_pressure_pa, format_speed_kms,
+    format_duration_seconds, format_gravity_g, format_mass_kg, format_mass_solar, format_number, format_period_years, format_pressure_pa, format_speed_kms,
     format_temperature_k, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_nearest,
     nearest_systems_html,
@@ -600,7 +600,7 @@ FIELD_SPECS = {
     ],
     "black_hole": [
         ("mass_class", "Class", _title_case),
-        ("mass_solar", "Mass", lambda v: f"{format_number(v, ',.2f')} solar masses"),
+        ("mass_solar", "Mass", format_mass_solar),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
         ("has_accretion_disk", "Accretion Disk", _bool_text),
@@ -611,7 +611,7 @@ FIELD_SPECS = {
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
     "neutron_star": [
-        ("mass_solar", "Mass", lambda v: f"{format_number(v, ',.2f')} solar masses"),
+        ("mass_solar", "Mass", format_mass_solar),
         ("radius_km", "Radius", _km),
         ("spin_period_ms", "Spin Period", lambda v: format_duration_seconds(v / 1000)),
         ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
@@ -636,7 +636,7 @@ FIELD_SPECS = {
         ("planet_type", "Type", _rogue_planet_type_text),
         ("planet_class", "Planet Class", str),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
-        ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
+        ("mass_kg", "Mass", format_mass_kg),
         ("radius_km", "Radius", _body_radius),
         ("gravity_g", "Surface Gravity", format_gravity_g),
         ("composition", "Composition", str),
@@ -664,7 +664,7 @@ FIELD_SPECS = {
     ],
     # No galactic-orbit rows: a quasar sits at the galactic center.
     "quasar": [
-        ("black_hole_mass_solar", "Black Hole Mass", lambda v: f"{format_number(v, '.2e')} solar masses"),
+        ("black_hole_mass_solar", "Black Hole Mass", format_mass_solar),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
         ("eddington_ratio", "Eddington Ratio", lambda v: f"{v:.0%}"),

@@ -401,6 +401,18 @@ def format_gravity_g_short(gravity_g):
     return f"{_three_figures_or_tiny(gravity_g)} g"
 
 
+def format_mass_kg(kilograms):
+    """A mass in kilograms on the mass ladder (UX.22): "5.97 × 10²⁴ kg" is
+    shown as "1 Earth mass", "0.299 Jupiter masses", "0.122 solar masses"."""
+    return format_quantity(ladders.MASS, kilograms)
+
+
+def format_mass_solar(solar_masses):
+    """`format_mass_kg` for a mass held in solar masses (black holes, neutron
+    stars, the quasar's black hole)."""
+    return format_quantity(ladders.MASS, None if solar_masses is None else solar_masses * physical_constants.SOLAR_MASS_TO_KG)
+
+
 def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):
     """
     A planet, moon or star radius: always km in scientific notation (Boss,

@@ -535,7 +535,7 @@ def test_black_hole_skips_missing_optional_rows(client, fake):
     fake.phenomenon = {"id": 2, "name": "BH", "mass_solar": 10.0, "has_accretion_disk": 1,
                        "galactic_orbital_speed_kms": None, "sector_id": None}
     html = client.get("/phenomenon/black_hole/2").get_data(as_text=True)
-    assert "10.00 solar masses" in html and "<td>Yes</td>" in html
+    assert "10 solar masses" in html and "<td>Yes</td>" in html
     assert "Galactic Orbital Speed" not in html
     assert "Sector:" not in html
 

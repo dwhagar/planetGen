@@ -385,7 +385,7 @@ nonzero_finite = st.floats(allow_nan=False, allow_infinity=False, min_value=-1e3
 
 @given(value=nonzero_finite)
 def test_star_formatters_never_raise_on_finite_values(value):
-    for formatter in (tabledisplay.format_star_mass, tabledisplay.format_star_luminosity,
+    for formatter in (tabledisplay.format_mass, tabledisplay.format_star_luminosity,
                       tabledisplay.format_star_radius):
         out = formatter(value)
         assert isinstance(out, str) and out
@@ -409,7 +409,7 @@ def test_format_period_never_raises(years):
 @example(value=-math.inf)
 @example(value=5e-324)   # 10**-324 == 0.0 made the old coefficient a division by zero
 def test_formatters_survive_non_finite_and_subnormal_values(value):
-    for formatter in (tabledisplay.format_star_mass, tabledisplay.format_star_luminosity,
+    for formatter in (tabledisplay.format_mass, tabledisplay.format_star_luminosity,
                       tabledisplay.format_star_radius, lambda v: tabledisplay.format_body_distance(v, True)):
         assert isinstance(formatter(value), str)
 

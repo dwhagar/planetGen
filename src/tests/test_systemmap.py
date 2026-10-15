@@ -775,14 +775,14 @@ def test_planet_and_moon_markers_carry_radius_and_mass():
     html = sm.render_system_map_panel({"name": "Sol", "binary_configuration": None}, [_star(10)], [earth, giant], [])
     planet = _marker_attrs(html, "planet", 1)
     assert planet["data-radius"] == "6.37 × 10³ km (1.00 Earth radii)"
-    assert planet["data-mass"] == "5.97 × 10²⁴ kg (1.00 Earth masses)"
-    assert _marker_attrs(html, "planet", 2)["data-mass"] == "1.90 × 10²⁷ kg (1.00 Jupiter masses)"
+    assert planet["data-mass"] == "1 Earth mass"
+    assert _marker_attrs(html, "planet", 2)["data-mass"] == "1 Jupiter mass"
     moon_attrs = _marker_attrs(html, "moon", 7)
     assert moon_attrs["data-radius"] == "1.74 × 10³ km (0.273 Earth radii)"
-    assert moon_attrs["data-mass"] == "7.35 × 10²² kg (0.0123 Earth masses)"
+    assert moon_attrs["data-mass"] == "1 lunar mass"
     # The planet drilled into, at the center of its moon scene, too.
     center = re.search(r'<g class="sysmap-body sysmap-planet" [^>]*data-self="true"[^>]*>', html).group(0)
-    assert 'data-mass="5.97 × 10²⁴ kg (1.00 Earth masses)"' in center
+    assert 'data-mass="1 Earth mass"' in center
 
 
 def test_unknown_radius_and_mass_show_a_dash():
