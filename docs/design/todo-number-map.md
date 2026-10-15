@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.154 |
+| TEST | TEST.155 |
 | USR | USR.12 |
 | OPS | OPS.51 |
 | DOC | DOC.45 |
@@ -952,7 +952,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | none | open |
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
 | MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | done, PR #1331 |
-| MAP.197 | Remove the obsolete drill container code left by the map flip | none | open |
+| MAP.197 | Remove the obsolete drill container code left by the map flip | none | done, PR #1455 |
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | open |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) | none | open |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | none | open |
@@ -1575,6 +1575,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
 | TEST.153 | A single hung test can stall a whole run (bug) | none | done, PR #1451 |
+| TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
