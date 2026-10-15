@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.153 |
+| TEST | TEST.154 |
 | USR | USR.12 |
 | OPS | OPS.51 |
 | DOC | DOC.45 |
@@ -1567,6 +1567,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.150 | Test run progress log and build id for resuming a run | none | open |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
+| TEST.153 | A single hung test can stall a whole run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

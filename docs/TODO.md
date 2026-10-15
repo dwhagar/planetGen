@@ -5136,6 +5136,23 @@ clears each one.
   run's result and the guide matches.
   Prerequisite: TEST.151. Related: TEST.148, TEST.139.
 
+- [ ] **TEST.153 A single hung test can stall a whole run (bug)**
+  Reported by Bug 1 (OPS.50, 2026-10-15) through Test Suite Rebuild: a
+  scripts/test.py changed run hung at 99% for more than 60 minutes. One
+  xdist worker was stuck in
+  src/tests/test_work_queue_admin.py::test_a_paused_queue_node_stands_by_until_resumed:
+  queue.submit waits forever for a resume because the helper thread's
+  _wait_for raised "timed out" under load and so never sent the resume.
+  The test passes alone. Done when: (1) that test's helper thread always
+  sends the resume and the failure is raised in the test instead of
+  hanging; (2) the suite has a per-test timeout (pytest-timeout is
+  already in the test extra; the slowest recorded test is 479 s, so 900
+  s default, longer for the budget tier) so one test can never hang a
+  run again; (3) the scripts/test.py final line names TIMED OUT tests.
+  Owner: the Test Suite Rebuild thread, part of TEST.139. Related:
+  TEST.126, TEST.134, TEST.150.
+  Prerequisites: none. Related: TEST.126, TEST.134, TEST.139, TEST.150.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
