@@ -331,19 +331,6 @@ with `clamp()`.
     the outline is the coplanar-merged edge set.
     Prerequisite: UX.47.
 
-- [ ] **UX.78 Unit preference: Automatic, Metric only or Customary**
-  Stored in `localStorage` key `planetgen.units` and applied by
-  re-rendering `.qty` spans from `data-si`; a header menu on
-  `sl-dropdown`. UX.42 (done, PR #1466) was wording only; do not fold units into it.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: the
-  three presets, per browser).
-  Progress (2026-10-15): part 1 merged in PR #1523 (the shared unit
-  ladders in Python and the browser know Automatic, Metric only and
-  Customary, parity-tested). Part 2 (the header menu and the page
-  spans) remains; the item retires with it.
-  Prerequisite: UX.23.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
   `vendor/shoelace/assets` and `icons.svg` uses `currentColor`; recheck
@@ -5422,7 +5409,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
   interface." Done: the coordinate frames (galactic, sector, system),
-  the unit ladder and when a unit switches (UX.22, UX.23, UX.78, UX.81),
+  the unit ladder and when a unit switches (UX.22, UX.23, UX.78 (done, PR #1562), UX.81),
   sector addresses and paths, the object ID (GEN.170), the epoch and
   time scales, and the in-universe terms (UX.42, done), each with a worked
   example. The page is a Markdown file in docs/help/ built into the Help

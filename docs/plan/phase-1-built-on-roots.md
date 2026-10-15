@@ -173,7 +173,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.23 | A shared unit-ladder module |  | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 (done, PR #1504) then UX.30 build on it. |
-| UX.78 | Unit preference: Automatic, Metric only or Customary | UX.23 | Research: under UX.23. |
 | UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
 
 ### Queue
