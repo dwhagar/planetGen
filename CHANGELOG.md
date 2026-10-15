@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1297] - 2026-10-15
+
+### Changed
+
+- TODO.md and the spherical sector plan: the switch to main merges on a green gate without waiting for Boss's word (Boss decided).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1296] - 2026-10-15
 
 ### Added
