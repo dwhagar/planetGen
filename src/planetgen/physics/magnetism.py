@@ -12,7 +12,13 @@ section 3.5 (design defaults):
    U(0.5, 1.5)` (half as long under a core fraction of 0.2); the moment is
    `7.8e22 A m2 * M * (c / 0.325)`, log-normal 0.4 dex, fading as
    `(1 - age / tau)^0.3`. A small, iron-rich body (Mercury) gets 3e19,
-   log-normal 0.5 dex. Whether the lid is stagnant is not modelled.
+   log-normal 0.5 dex. A planet with a **stagnant lid** (one rigid plate, no
+   plate tectonics: Venus, Mars) cools its core slowly, so its dynamo lasts
+   0.4 as long (GEN.177). Plate tectonics (a mobile lid) needs a liquid surface
+   ocean to lubricate the plates: a body of 0.5 to 5 Earth masses with one has
+   a 0.6 chance of a mobile lid, a heavier one 0.3 (the literature is
+   unsettled about super-Earths, so the odds fall rather than rise), and any
+   other rocky planet is stagnant (`mobile_lid_chance`).
 2. **Rotation.** Slow rotation makes the field multipolar: `Ro_l = 0.09 (P /
    24 h)^1.23` and `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`. A tidally
    locked M-dwarf planet keeps about 0.15 of its moment in the dipole.
@@ -52,6 +58,14 @@ EARTH_DENSITY = 5.51
 MIN_DYNAMO_MASS_EARTH = 0.05
 MIN_CORE_FRACTION = 0.15
 DYNAMO_LIFETIME_GY = 4.0
+STAGNANT_LID_LIFETIME_FACTOR = 0.4
+MOBILE_LID_MIN_MASS_EARTH = 0.5
+MOBILE_LID_MAX_MASS_EARTH = 5.0
+MOBILE_LID_CHANCE = 0.6
+MOBILE_LID_HEAVY_CHANCE = 0.3
+"""float: Rule 1's lid regime (GEN.177; design note section 3.5 rule 2): the dynamo
+lifetime factor of a stagnant lid, and the chance that a planet with a liquid
+surface ocean has plate tectonics, by mass (planetGen defaults)."""
 MERCURY_MOMENT_A_M2 = 3e19
 GANYMEDE_MOMENT_A_M2 = 1.3e20
 GANYMEDE_MIN_MASS_EARTH = 0.02
@@ -113,13 +127,25 @@ def _giant_moment(mass_earth):
     return anchors[-1][1]
 
 
+def mobile_lid_chance(body, mass_earth):
+    """The chance that a rocky planet has plate tectonics (a mobile lid): only
+    a body with a liquid surface ocean can, and only from `MOBILE_LID_MIN_MASS_EARTH`
+    (smaller worlds lose their heat too fast)."""
+    if getattr(body, "hydrosphere", None) != "surface ocean" or mass_earth < MOBILE_LID_MIN_MASS_EARTH:
+        return 0.0
+    return MOBILE_LID_CHANCE if mass_earth <= MOBILE_LID_MAX_MASS_EARTH else MOBILE_LID_HEAVY_CHANCE
+
+
 def _rocky_moment(body, mass_earth, age_gy):
     """Rule 1's moment for a rocky planet, or 0."""
     core = core_mass_fraction(mass_earth, getattr(body, "density", None) or EARTH_DENSITY)
     lifetime = DYNAMO_LIFETIME_GY * math.sqrt(mass_earth) * draw.uniform(0.5, 1.5)
     strength = _log_normal(0.4)
+    mobile_lid = draw.random() < mobile_lid_chance(body, mass_earth)
     if mass_earth < MIN_DYNAMO_MASS_EARTH or core < MIN_CORE_FRACTION:
         return 0.0
+    if not mobile_lid:
+        lifetime *= STAGNANT_LID_LIFETIME_FACTOR
     if core < 0.2:
         lifetime *= 0.5
     if age_gy >= lifetime:

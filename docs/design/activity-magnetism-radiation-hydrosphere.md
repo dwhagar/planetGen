@@ -283,6 +283,18 @@ mass fraction c (Earth 0.325) and lid regime:
    under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
    `magnetopause_rp`.
 
+**Lid regime, as built (GEN.177).** Rule 2's stagnant-lid factor is applied in
+`magnetism._rocky_moment`: the dynamo lifetime is times 0.4 unless the planet
+has a mobile lid. The regime is not stored; it is drawn once per planet from
+`mobile_lid_chance`: a liquid surface ocean (`hydrosphere == "surface ocean"`)
+is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth
+masses and 0.3 above (the literature on super-Earth plate tectonics is split,
+so the chance falls rather than rises). Every other rocky planet is stagnant:
+Venus, Mars, dry worlds, ice-covered oceans and Hycean worlds. At 4.5 Gyr
+a watery Earth-mass world now keeps its field about 22 times in 100 (it was 38),
+and a dry one never does.
+
+
 ## 4. Surface radiation dose (GEN.87)
 
 ### 4.1 Anchors

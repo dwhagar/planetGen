@@ -104,21 +104,58 @@ def test_earth_mercury_and_jupiter_get_their_fields():
     earths = []
     for _ in range(300):
         body = _body(1.0, 5.51, 24.0)
+        body.hydrosphere = "surface ocean"
         magnetism.generate_field(body)
         earths.append(body)
     alive = [body.magnetic_moment_a_m2 for body in earths if body.magnetic_moment_a_m2]
-    # The dynamo lasts 2 to 6 Gyr at one Earth mass, so at 4.5 Gyr about 3 in 8 are alive.
-    assert 80 < len(alive) < 150
+    # The dynamo lasts 2 to 6 Gyr at one Earth mass with plate tectonics (60% of watery Earth-mass worlds)
+    # and 0.8 to 2.4 Gyr under a stagnant lid: about 0.6 x 3/8 + 0.4 x 0 of them are alive at 4.5 Gyr.
+    assert 40 < len(alive) < 110
     median = sorted(alive)[len(alive) // 2]
     assert 0.1 * magnetism.EARTH_MOMENT_A_M2 < median < 3 * magnetism.EARTH_MOMENT_A_M2
     jupiter = _body(318.0, 1.33, 10.0, body_type="g")
     magnetism.generate_field(jupiter)
     assert jupiter.dipole_class == "strong" and jupiter.magnetic_moment_a_m2 > 1e26
     locked = _body(1.0, 5.51, 24.0 * 11)
+    locked.hydrosphere = "surface ocean"
     magnetism.generate_field(locked)
     while not locked.magnetic_moment_a_m2:
         magnetism.generate_field(locked)
     assert locked.dipole_class == "multipolar"
+
+
+def test_only_a_planet_with_a_surface_ocean_can_have_a_mobile_lid():
+    """GEN.177: plate tectonics needs a liquid surface ocean and half an Earth mass."""
+    earth = _body(1.0, 5.51, 24.0)
+    earth.hydrosphere = "surface ocean"
+    assert magnetism.mobile_lid_chance(earth, 1.0) == magnetism.MOBILE_LID_CHANCE
+    assert magnetism.mobile_lid_chance(earth, 8.0) == magnetism.MOBILE_LID_HEAVY_CHANCE
+    assert magnetism.mobile_lid_chance(earth, 0.3) == 0.0
+    for state in ("dry", "vapour", "ice", "ice-covered ocean", "hycean", None):
+        venus = _body(0.8, 5.24, 24.0)
+        venus.hydrosphere = state
+        assert magnetism.mobile_lid_chance(venus, 0.8) == 0.0
+
+
+def test_a_stagnant_lid_shortens_the_dynamo_and_a_mobile_lid_keeps_it():
+    """GEN.177: the same planet at 4.5 Gyr keeps its field far more often with plate tectonics."""
+    def alive(hydrosphere, mass=1.0):
+        draw.set_run_seed(11)
+        count = 0
+        for _ in range(400):
+            body = _body(mass, 5.51, 24.0)
+            body.hydrosphere = hydrosphere
+            magnetism.generate_field(body)
+            count += bool(body.magnetic_moment_a_m2)
+        return count
+    mobile, stagnant = alive("surface ocean"), alive("dry")
+    assert stagnant == 0  # 0.4 x (2 to 6 Gyr) is under 4.5 Gyr for every draw
+    assert mobile > 60    # 0.6 x about 3 in 8, with room for the seed
+    # A watery planet that is 4.5 Gyr old has a lid that decides its field; a young one has a field either way.
+    young = _body(1.0, 5.51, 24.0, age=0.3)
+    young.hydrosphere = "dry"
+    magnetism.generate_field(young)
+    assert young.magnetic_moment_a_m2 > 0
 
 
 def test_earths_magnetopause_is_ten_radii():
