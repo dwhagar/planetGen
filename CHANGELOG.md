@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1143] - 2026-10-15
+
+### Changed
+
+- The TODO list retires ADM.54 (Redis health on the admin Stats page, merged in #1401) and adds the induced moment column to DB.26.
+
 ## [8.0.1142] - 2026-10-15
 
 ### Added
