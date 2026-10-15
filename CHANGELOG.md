@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1199] - 2026-10-15
+
+### Changed
+
+- POP.9 and POP.7 retired (merged in #1461).
+
+TODO items resolved: POP.9, POP.7 / Added: none
+
 ## [8.0.1198] - 2026-10-15
 
 ### Changed
