@@ -27,12 +27,10 @@ from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, choose_weighted_class
 from planetgen.generation.phenomena.quasar import Quasar
-from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.galaxy.sector import SpaceSector, _sample_poisson_count
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
@@ -40,6 +38,7 @@ from planetgen.names.wordsalad import generate_sector_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.random import log_uniform
 from planetgen.generation import phenomenon_scatter
+from planetgen.generation.phenomena import registry
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.generation import run_common
 from planetgen.generation import run_phenomenon
@@ -47,21 +46,12 @@ from planetgen.generation import run_population
 from planetgen.generation import run_system
 
 
-SECTOR_PHENOMENON_KINDS = (
-    ("black-hole", "black-hole",
-     lambda config, dist_ly: BlackHole(config, galactic_center_dist_ly=dist_ly)),
-    ("neutron-star", "neutron-star",
-     lambda config, dist_ly: NeutronStar(config, galactic_center_dist_ly=dist_ly)),
-    ("planetary-nebula", "nebula", lambda config, dist_ly: Nebula(config, nebula_type="planetary")),
-    ("molecular-cloud", "nebula", lambda config, dist_ly: Nebula(config, nebula_type="dark")),
-    ("supernova-remnant", "supernova-remnant", lambda config, dist_ly: SupernovaRemnant(config)),
-    ("rogue-planet", "rogue-planet", lambda config, dist_ly: RoguePlanet(config)),
-    ("brown-dwarf", "rogue-planet", lambda config, dist_ly: RoguePlanet(config, mass_bin="brown-dwarf")),
-    ("comet", "comet", lambda config, dist_ly: InterstellarComet(config)),
-    ("asteroid-field", "asteroid-field", lambda config, dist_ly: AsteroidField(config)),
+SECTOR_PHENOMENON_KINDS = tuple(
+    (row.kind, row.phenomenon_type, registry.resolve(row.builder)) for row in registry.rows(sector_roll=True)
 )
 """tuple: `(program_constants.PHENOMENON_DENSITY_PC3 key, phenomenon type,
-factory)` for each kind `generate_sector_phenomena` rolls. A factory takes
+factory)` for each kind `generate_sector_phenomena` rolls, read from the
+phenomena registry (`registry.Kind.sector_roll`; GEN.250). A factory takes
 `(config, galactic_center_dist_ly)`; only black holes and neutron stars
 use the distance (their Hill sphere and galactic orbit). A planetary
 nebula is generated around its own new hot white dwarf system
