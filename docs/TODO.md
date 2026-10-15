@@ -386,7 +386,7 @@ with `clamp()`.
   column, UX.101 swaps in the final shapes. Boss, 2026-10-11 01:35Z: the
   description text at the end should be in paragraph form, simply saying
   for each category where the planet falls and why, with no extra
-  information (GEN.208). Owner: Foundations UX (moved from the
+  information (GEN.208). Owner: UX (moved from the
   retired Bugfixes lane 2, Boss 2026-10-15 05:39Z), in its queue order.
   Prerequisites: none. Related: UX.30 (absorbed into UX.105), UX.32, UX.101, GEN.208 (done, PR #1433).
 
@@ -468,7 +468,7 @@ with `clamp()`.
   habitability text), the CLI query lines, the class page radius ranges,
   and the wide-binary, comet, nebula and quasar numbers. The ladders
   themselves (mass, temperature, pressure, Gyr rename) are UX.22, UX.23
-  and UX.81 (Foundations UX, all done); this item is the call sites outside the
+  and UX.81 (UX, all done); this item is the call sites outside the
   files they edit.
   Prerequisite: UX.23. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
@@ -497,7 +497,7 @@ with `clamp()`.
   equals the number of rows the Phenomena list shows, for the whole
   galaxy and after every fill, scatter or edit; a test fails when the
   two differ. Cause not yet found (it may be a stale cache, a missing
-  table in the union or double counting). Owner: Foundations Database
+  table in the union or double counting). Owner: Database
   (count and cache). Queued behind the Spherical Sector Coordinates stop
   (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
@@ -905,7 +905,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Server: drop the generated_star_floor_sol brightness floors, settle
   the 400-star cap, and choose tiles by distance. Client: the
   cross-fades with hysteresis and the per-tile origins.
-  Plan change (2026-10-15, Foundations Maps, approved by the coordinator):
+  Plan change (2026-10-15, Maps, approved by the coordinator):
   the client part has two pieces. (1) The per-tile camera-relative
   origins are already met by the whole-parsec target frame of MAP.102
   (a star's error reaches a pixel only within about 0.003 pc of the
@@ -913,7 +913,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with a note in the design doc. (2) The automatic galaxy, sector and
   system hand-offs with hysteresis are held until Bug 2's
   galaxystageview.js work (wheel zoom, centre, selection: MAP.198 to
-  MAP.202) has merged, to avoid conflicts. Foundations Maps order: MAP.151b,
+  MAP.202) has merged, to avoid conflicts. Maps order: MAP.151b,
   MAP.197 (done, PR #1455), MAP.155 verification, then the MAP.152 hand-offs after Bug 2.
   Progress (2026-10-15): the server part merged (PR #1439): Galaxy Map
   tiles are picked by distance from the camera, the per-level brightness
@@ -1332,7 +1332,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   highlight drawn only for the upper side) and fix it so the underside
   is picked and highlighted wherever the cursor is over it. Done when a
   browser test selects and highlights regions below the plane from
-  several camera angles. Owner: Foundations Maps (Bug 2 retired,
+  several camera angles. Owner: Maps (Bug 2 retired,
   Boss 2026-10-15 05:39Z), at the end of its queue; it touches the same
   selection and camera code as MAP.198 (done), MAP.199 (done), MAP.200 (done,
   PR #1556) and the MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
@@ -1352,25 +1352,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nest in most steps, not all. Ladder timing decided (Boss, 07:22Z,
   "proceed with your plan"): built after the coordinates and the migration,
   not in parallel; equal-volume bands were not adopted. Replaces the
-  cylinder 243/81/27/9/3 ladder (MAP.151, done, PR #1539). Owner: Foundations Maps,
+  cylinder 243/81/27/9/3 ladder (MAP.151, done, PR #1539). Owner: Maps,
   after item 6. Source: item 7 of section 6 of the plan. Boss decided
   the move (2026-10-15 06:39Z): "two meridian lines from pole to pole
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
-  Prerequisites: DB.32, GEN.227, UX.111.
+  Prerequisites: none to start (Boss released Maps, 07:31Z): build in
+  parallel on a branch and merge after the DB.32 + GEN.227 + UX.111 switch.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **MAP.206 Galaxy Map drawing on shells**
   `galaxyprisms.js`, `galaxystageview.js`, `galaxymap3d.js`, tile cuts
   and picking draw and pick shell cells and caps; the slab slider
-  becomes a band control. Owner: Foundations Maps, after the ladder
+  becomes a band control. Owner: Maps, after the ladder
   item. Source: item 8 of section 6 of the plan. Boss decided the move
   (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisite: MAP.205.
+  Prerequisite: MAP.205 (build in parallel on a branch, merge after the
+  DB.32 + GEN.227 + UX.111 switch).
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## NAV: Navigation and courses
@@ -3234,7 +3236,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (default: potentially habitable = overall Green or Blue; Boss can move
   the line), the row chip and search facet say what they mean (the
   rating, or "Habitable class" where it is the class flag), and the
-  class pages label the flag "Habitable class". Touches Foundations UX
+  class pages label the flag "Habitable class". Touches UX
   (UX.32 chip decision, UX.101 symbols): coordinate before editing
   systempage.py.
   Prerequisite: GEN.218. Related: UX.32, UX.101.
@@ -3265,7 +3267,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   selected by due time with no sector filter. Done: a system with no
   placed sector moves with the rest at every update and gets the same
   containment, nearest-systems and location refresh, with a test that
-  fails when it does not. Owner: Foundations Database (suggested; the
+  fails when it does not. Owner: Database (suggested; the
   sector-index code changes with the Spherical Sector Coordinates work,
   so check it first). Queued behind the Spherical Sector Coordinates
   stop (Boss, 2026-10-15 06:39Z).
@@ -3645,7 +3647,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stream is the live log and is written to the jobs directory at run end
   for the download link, last 20 kept. Done when: the pages need no
   MySQL job tree and cancel is measured under a second on a 75-job run.
-  The all-visitors banner is not in this step: it is UX.3 (Foundations UX),
+  The all-visitors banner is not in this step: it is UX.3 (UX),
   built on the run record after PERF.96 (decided by the
   coordinator, 2026-10-15).
   Prerequisite: PERF.98. Related: PERF.86, UX.3.
@@ -3687,7 +3689,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows an estimated time remaining from earlier runs' stage timings, or
   from the time per task so far in this run. The same fallback must be
   part of PERF.96's ETA function (see its acceptance), so it survives
-  the move to the Redis run record. Owner: Foundations Database,
+  the move to the Redis run record. Owner: Database,
   together with PERF.96 (Boss retired the bug lanes, 2026-10-15
   05:39Z).
   Prerequisites: none. Related: PERF.96 (done, PR #1553), PERF.33 (done, PR #1553).
@@ -3827,13 +3829,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   uses; and PERF.99 supplies the cancel through the stop
   command, after which the check uses them. PERF.100 (which deletes the
   old work tables with a migration) must pass through this check too.
-  Owner: Foundations Database, after DB.28 (done, PR #1476) and before PERF.100.
+  Owner: Database, after DB.28 (done, PR #1476) and before PERF.100.
   Prerequisites: none. Related: PERF.95 (done, PR #1506), PERF.96 (done, PR #1553), PERF.99, PERF.100,
   OPS.48, DB.18, DB.27 (done, PR #1446), DB.28 (done, PR #1476).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
-  Needed by POP.12 (done, PR #1554; Foundations Generation), same rule as DB.27 and
-  DB.28: only Foundations Database adds migrations. Add the columns or
+  Needed by POP.12 (done, PR #1554; Generate), same rule as DB.27 and
+  DB.28: only Database adds migrations. Add the columns or
   the table that hold each species' own environment limits, one value
   per row of `LIMIT_ROWS` in `planetgen/physics/protection_limits.py`
   (pressure, oxygen, temperature, wet-bulb, dose and the other rows it
@@ -3842,7 +3844,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   limit replaces a row in this table and nothing else"). Done: the
   migration (next after DB.29's if that lands first) with its old-schema
   fixture and tests, merged so the species limits of POP.12 (done, PR #1554) can be stored. Owner:
-  Foundations Database, after DB.29.
+  Database, after DB.29.
   Prerequisite: DB.29. Related: POP.12 (done, PR #1554), POP.13, DB.27.
 
 - [ ] **DB.31 Store structure, not prose, for life and flavour**
@@ -3853,7 +3855,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ages; flavor_text with a flavour key; drop hab_note (computed) and the
   run-config markdown column. Then life_stage_from_paragraphs and the
   string searches in decide_flavor_text go. Changes what generation
-  stores, not the galaxy (draws are unchanged). Foundations Database
+  stores, not the galaxy (draws are unchanged). Database
   owns the migration and agrees its timing; Foundations Wording writes
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
@@ -4894,7 +4896,7 @@ clears each one.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **TEST.157 A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug)**
-  Foundations Generation saw
+  Generate saw
   tests/test_web_system_phen.py::test_system_detail_names_the_containing_nebula
   fail once in a full run and in 1 of 16 solo reruns (found while
   merging POP.12, PR #1554), so it is flaky on its own, not only under
@@ -6082,8 +6084,8 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   homeworld that exists, a unique name) and refreshes the "could live
   here" lists; an admin-made species is marked as such and survives a
   reseed like other admin edits. Same shape as the facility type editor
-  (POP.10, done) and the same admin patterns (ADM.9). Owner: Foundations UX
-  for the page, Foundations Generation for the checks. Phase 2: nothing
+  (POP.10, done) and the same admin patterns (ADM.9). Owner: UX
+  for the page, Generate for the checks. Phase 2: nothing
   in Phase 1 needs it once POP.12 stores the data; Boss can pull it
   forward.
   Prerequisite: none (POP.12 done, PR #1554). Related: POP.10 (done, PRs #1517 and #1524), POP.9, ADM.9.
