@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1306] - 2026-10-15
+
+### Changed
+- **`test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star` fills a cell that the backfill gave stars to** (TEST.132). The test filled the nearest cell the backfill reached, but the backfill draws each sector's stars from its mass and drew none for that cell in about 1 run in 20 (3 of 60 on an idle machine), so the fill found nothing preplaced. It now fills the nearest cell that did get stars; 100 of 100 runs pass. Test only.
+
 ## [8.0.1305] - 2026-10-15
 
 ### Changed
