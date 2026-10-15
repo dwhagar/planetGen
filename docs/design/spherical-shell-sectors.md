@@ -2,6 +2,8 @@
 
 Research only, 2026-10-15. No code, TODO.md or schema changes. Boss decides.
 
+**Update, 2026-10-15 06:39Z:** Boss decided to go ahead with spherical shells, with pole caps and wedges starting at a 4 pc gap. The plan and the final rules (which differ from S1 below in the caps and the multiples-of-6 wedge rule) are in [spherical-sector-coordinates.md](spherical-sector-coordinates.md). The recommendation in this note was to keep the cylinder; that is superseded by Boss's decision.
+
 Question (Boss, 2026-10-15 05:51Z): what would happen if sectors were spherical shells cut into arc segments, with the core a spherical sector 4 pc across, so that at sector level it is still basically a cube for most of the galaxy?
 
 Informs: MAP.151 (the 3-ary block ladder, MAP.151b, is the next piece), MAP.152, GEN.101, GEN.24, ADM.30.
