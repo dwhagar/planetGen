@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1159] - 2026-10-15
+
+### Added
+
+- **A tech level for a species can be drawn (POP.8).** The six domain indices (Energy, Materials, Information, Medical, Propulsion, Defense) are drawn from a species' age, with collapses, stagnation, a species ceiling and prerequisite limits between the domains, and the tech level is their weighted sum with a band name, a limiting domain and a lopsided flag. Nothing stores or shows it yet (POP.9).
+
 ## [8.0.1158] - 2026-10-15
 
 ### Added
