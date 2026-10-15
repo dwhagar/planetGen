@@ -534,7 +534,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | open |
 | DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names | none | open |
 | DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 | none | open |
-| DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list | none | open |
+| DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list | none | done, PR #1623 |
 | DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config | none | done, PR #1588 |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults | none | done, PR #1616 |
 | DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | none | done, PR #1594 |
