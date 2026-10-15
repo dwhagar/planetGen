@@ -290,6 +290,10 @@ with `clamp()`.
   Decided (2026-10-10): Boss (19:12Z): accept the research unit table in
   units-and-number-formatting.md (ladders, switch points, customary
   pairings).
+  Progress (2026-10-15): step 0 merged (PR #1427): one unit-ladder
+  table and algorithm for distance, speed and time, in Python and the
+  browser. Next steps follow in the migration order (UX.81 kyr/Myr/Gyr
+  and AU from 1,000,000 km, then UX.22 temperature, pressure, gravity).
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -361,6 +365,9 @@ with `clamp()`.
   "Charted only" in MAP item MAP.111) agreed with Boss, then pages,
   buttons and messages changed page by page; admin-only tools may keep
   plain wording.
+  Decided (2026-10-15): Boss approved the word list on the decision
+  card: "Chart", "charted" and "uncharted" on public pages; admin pages
+  keep plain wording.
   Research (2026-10-09, map-ui-and-frontend-libraries.md): schedule with
   UX.43 so each page is restyled once. Shoelace 2.20.1 is its final
   release ("sunset"); open question for Boss (default: stay, and do the
