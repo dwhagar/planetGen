@@ -3398,16 +3398,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.215 Air shows Green with 0 Air when the air pressure is 0 (bug)**
-  Boss (2026-10-15 03:46Z): "Bug, Air will say Green with 0 Air when
-  there's 0 air pressure because it's free of toxins." With no
-  atmosphere the Air domain is Green only because it has no toxins. With
-  no air (0.0 kPa) the Air rating must be Red and its value 0. Target
-  line: "**Air: Red** (0.0). There is no atmosphere (0.0 kPa)." Done
-  when a world with no atmosphere never shows Green in Air and a test
-  covers it.
-  Prerequisites: none. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
-
 - [ ] **GEN.216 Habitability text is too wordy and the Suitability sentence is oddly worded (bug)**
   Boss (2026-10-15 03:46Z): "Bug, Sustainability text is very oddly
   worded: **Suitability: Red** (0.20). The food is none, what native
@@ -3433,7 +3423,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the two items before it; do it after them. Done when every rating
   line reads like the examples and tests pin the wording. Rebase on
   main; Foundations Generation avoids the description text meanwhile.
-  Prerequisite: GEN.215. Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
+  Prerequisite: GEN.215 (done, PR #1478). Related: GEN.207, GEN.208, GEN.148 (done, PR #1457).
 
 - [ ] **GEN.217 Refresh the stored habitability numbers on existing planets and moons**
   The habitability paragraph is recomputed on every request, but the
@@ -3447,8 +3437,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   graph, run insolation.refresh_system and the same scoring step the
   life pass uses, and UPDATE only the habitability columns of planets
   and moons. Resumable per system. No migration, no shim. Found by
-  Foundations Generation (no new Boss message).
-  Prerequisite: GEN.216. Related: GEN.214 (done, PR #1472), GEN.215,
+  Foundations Generation (no new Boss message). Expect visible changes:
+  stored moon scores differ from a re-score of their own stored
+  conditions, so the fill will change some chips, making them agree with
+  the description.
+  Prerequisite: GEN.216. Related: GEN.214 (done, PR #1472), GEN.215 (done, PR #1478),
   GEN.216.
 
 - [ ] **GEN.218 One habitability describer, in the short wording**
@@ -3461,7 +3454,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one gas-name table, PHI-6 everywhere, dead code deleted
   (habitability_explain.factors and helpers unless a row sentence needs
   them). Keeps GEN.148's temperature behaviour.
-  Prerequisites: UX.104, GEN.215, GEN.216, GEN.214 (done, PR #1472).
+  Prerequisites: UX.104, GEN.216, GEN.214 (done, PR #1472).
 
 - [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -5238,7 +5231,10 @@ clears each one.
   host from the data (or seed the system) so it passes every time.
   Owner: Test Suite Rebuild. Done when 20 reruns in a row pass.
   Seen again by Foundations UX in its UX.81 and UX.22 gate (2026-10-15):
-  the same test, so two lanes now hit it.
+  the same test, so two lanes now hit it. Seen a third time by
+  Foundations Generation (GEN.215 gate): about 1 failure in 12 runs on
+  unchanged main. Its finding: the fixture puts the facility on the lowest
+  planet row id, while the test expects the first planet the API lists.
   Prerequisites: none. Related: TEST.147, TEST.149, TEST.126.
 
 - [ ] **TEST.155 Wording and index agree: property test**
@@ -5249,7 +5245,7 @@ clears each one.
   sentence names, the gear and the equipment label disagree; when a body
   has life text but the index gives it no life (check the 130 C case
   first); when an airless body shows Air as anything but Red (shared
-  with GEN.215); and when any quantity in the describer is formatted
+  with GEN.215, done in PR #1478); and when any quantity in the describer is formatted
   with a raw :.Nf. Test items are owned by Test Suite Rebuild: that
   thread approves, Foundations Wording writes it.
   Prerequisite: GEN.218.
