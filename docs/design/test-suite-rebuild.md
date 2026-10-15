@@ -281,3 +281,7 @@ The first capture with full reports (`/mnt/project-files/test-suite-rebuild/fail
 
 Lesson for the rest of the flake list: before calling a failure load, run it in a loop on an idle machine; a test that builds random data without a seed can fail at any load.
 - TEST.149, second test: `test_atmospheric_pressure_correlates_positively_with_gravity` is statistical. With 40 planets per class the Pearson r is 0.10 with a spread of 0.04 (Spearman 0.60, spread 0.02), so r of 0 or less came up in about 1 run in 100. 320 per class makes the spread 0.017 and costs 1.4 s a run. A statistical test needs a sample whose spread is a few times smaller than the distance to its threshold.
+
+## 17. TEST.150: the progress log and the build id (2026-10-15, Boss chose option A of TEST.148)
+
+`src/tests/progress_log.py` (a plugin loaded from `pytest.ini`, like `depmap`) appends a line when a test's teardown is reported, with the worst outcome of its phases (`failed`, `skipped`, `xfailed`, `xpassed`, `passed`; only `passed` counts as done on a resume). `src/tests/buildid.py` hashes the parts listed in its docstring into a 16-character id and keeps the parts so a resume that finds nothing can name the part that changed. `scripts/test.py` computes the id before pytest starts, writes the header, sets `PLANETGEN_PROGRESS_LOG`, and removes logs more than a day old. The failure reruns (`rerun_failures`) do not log. Resuming is TEST.151, clearing Redis and merging the map TEST.152.

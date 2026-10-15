@@ -22,6 +22,12 @@ runner = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(runner)
 
 
+@pytest.fixture(autouse=True)
+def _progress_logs_in_a_throwaway_directory(tmp_path, monkeypatch):
+    """`runner.main` starts a progress log (TEST.150); these tests must not leave logs in the checkout's own."""
+    monkeypatch.setattr(runner, "PROGRESS_DIR", str(tmp_path / "progress"))
+
+
 @pytest.mark.parametrize("name, area", [
     ("test_web_pages.py", "web"),
     ("test_fuzz_web_routes.py", "web"),

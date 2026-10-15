@@ -1,0 +1,2 @@
+### Added
+- **A progress log and a build id for every test run** (TEST.150, the first step of resuming a run). `scripts/test.py` prints the id of the build it is running and keeps `.test-progress/<id>.jsonl`, a line for every test that finished, written as it finishes. The id covers the code, uncommitted files, installed packages, Python, MySQL and Redis versions, the command and the day. Nothing reads the log yet; `--resume` is next.
