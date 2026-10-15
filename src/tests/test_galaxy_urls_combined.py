@@ -29,7 +29,8 @@ from planetgen.db import store
 from planetgen.web.lib import apiclient  # noqa: E402
 
 # Imported fixtures (see test_bughunt_api_gaps.py for why this works).
-from tests.test_web_galaxy import MAPS_PENDING, _place_sector, _scene, app, client, db_client, fake  # noqa: F401,E402
+from tests.maps_pending import MAPS_PENDING  # noqa: E402
+from tests.test_web_galaxy import _place_sector, _scene, app, client, db_client, fake  # noqa: F401,E402
 from tests.publicids import pid, pids
 
 

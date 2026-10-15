@@ -31,8 +31,7 @@ from planetgen.web import csrf  # noqa: E402
 from planetgen.web.helpers import page_url  # noqa: E402
 
 
-MAPS_PENDING = pytest.mark.skip(
-    reason="UX.111: the 3D Galaxy Map is rebuilt for shells, bands and wedges by Maps (MAP.205/206); Maps restores these with it")
+from tests.maps_pending import MAPS_PENDING  # noqa: E402
 
 DB = "planetgen_galaxy_test"
 STAMP = "00000000000000aa"
