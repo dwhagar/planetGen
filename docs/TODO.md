@@ -3280,6 +3280,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss's report 2026-10-15 07:44Z.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
+- [ ] **GEN.230 Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug)**
+  Found by Quality's grid fuzz tests (branch claude/test158, not merged
+  yet). `DESIGNATION_BAND_BITS` in `src/planetgen/galaxy/spherical.py`
+  is 12, so the band field holds -2048 to 2047, but a shell's top band
+  (the polar cap) is about 1.57 times the shell number. From shell 1304
+  outward every cap and high-latitude band is out of range, and the
+  default Milky Way reaches shell 3764 with bands up to about plus or
+  minus 5,900. For those cells `provisional_sector_designation` and
+  `describe_sector_cell` raise ValueError. Sectors in the disk plane are
+  unaffected, so the bug is latent: it shows in the halo and over the
+  poles and in `/api/galaxy/cell` lookups there. Done: the band field is
+  wide enough for the deepest shell the galaxy can reach (14 bits), the
+  birth-field layout is decided and documented (shell 12 + band 14 +
+  wedge 15 is 41 bits, one more than the 40-bit birth field, so the
+  layout needs a decision, and it may change the object ID design), the
+  designation round-trips for every cell of the default galaxy, and
+  `test_designation_rejects_bands_outside_its_bit_field` in
+  `src/tests/test_fuzz_galaxy_grid.py` is updated by whoever fixes it.
+  Owner: Core (2026-10-15). A layout change reaches stored designations,
+  so it is Core's migration and is decided before more sectors are
+  created in the halo. Bug.
+  Prerequisites: none. Related: GEN.229.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**

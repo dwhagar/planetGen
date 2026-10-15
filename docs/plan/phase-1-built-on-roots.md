@@ -128,6 +128,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.221 | Short plain prose for the fixed text |  |  |
 | PERF.102 | The migration progress display shows no estimated time remaining on either bar (bug) |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
+| GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) |  |  |
 | UX.107 | Units in the description go through the ladders | UX.23 |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |
