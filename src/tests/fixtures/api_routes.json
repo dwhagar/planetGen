@@ -96,6 +96,7 @@
   "/api/systems/<uid:system_id> GET",
   "/api/systems/<uid:system_id> PATCH",
   "/api/systems/<uid:system_id>/class-options GET",
+  "/api/systems/<uid:system_id>/description GET",
   "/api/systems/<uid:system_id>/facilities GET",
   "/api/systems/<uid:system_id>/owner GET",
   "/api/systems/<uid:system_id>/scene GET",
