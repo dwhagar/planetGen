@@ -72,6 +72,34 @@ def _wait_for(check, timeout=20):
     raise AssertionError("timed out")
 
 
+class _ResumeLater(threading.Thread):
+    """A helper thread for a test whose queue stands by until it is resumed: runs `before` (waits until the queue
+    is where the test needs it), then ALWAYS runs `resume`, even when `before` failed. A helper that stopped
+    without resuming left the queue standing by for ever, and the whole test run with it (TEST.153). `finish`
+    joins it and raises what it caught, so the failure is the test's and not a hang."""
+
+    def __init__(self, before, resume):
+        super().__init__(daemon=True)
+        self.before, self.resume, self.error = before, resume, None
+
+    def run(self):
+        try:
+            self.before()
+        except BaseException as exc:  # noqa: BLE001 -- handed to the test by `finish`
+            self.error = exc
+        finally:
+            try:
+                self.resume()
+            except BaseException as exc:  # noqa: BLE001
+                self.error = self.error or exc
+
+    def finish(self):
+        self.join(60)
+        assert not self.is_alive(), "the helper thread did not finish"
+        if self.error is not None:
+            raise self.error
+
+
 # ---------------------------------------------------------------------------
 # What a run does when asked
 # ---------------------------------------------------------------------------
@@ -83,20 +111,22 @@ def test_a_paused_queue_node_stands_by_until_resumed(control_config, workers):
         node_id = queue.job_id
         assert _call(control_config, workQueue.request_control, node_id, "pause")
 
-        def resume_later():
+        def before():
             _wait_for(lambda: _state(control_config, node_id) == "paused")
             if workers > 1:
                 # Standby gives the lease up, so other runs can go.
                 lease = _call(control_config, workQueue.queue_status)
                 assert lease["holder"] is None
+
+        def resume():
             _call(control_config, workQueue.request_control, node_id, "resume")
             done.append("resumed")
 
-        thread = threading.Thread(target=resume_later)
-        thread.start()
+        helper = _ResumeLater(before, resume)
+        helper.start()
         for n in range(3):
             queue.submit("square", str(n), _square, n)
-        thread.join()
+        helper.finish()
     assert done == ["resumed"] and queue.finished == 3
     assert _state(control_config, node_id) == "done"
 
@@ -145,17 +175,16 @@ def test_pausing_the_whole_queue_holds_every_run(control_config, redis_server):
     assert not _call(control_config, workQueue.pause_queue, "boss")
     waits = []
 
-    def resume_later():
+    def before():
         _wait_for(lambda: waits)
         time.sleep(0.2)
-        _call(control_config, workQueue.resume_queue)
 
-    thread = threading.Thread(target=resume_later)
-    thread.start()
+    helper = _ResumeLater(before, lambda: _call(control_config, workQueue.resume_queue))
+    helper.start()
     started = time.monotonic()
     with workQueue.WorkQueue("Waits", workers=2, control_config=control_config, on_wait=waits.append) as queue:
         queue.submit("square", "1", _square, 1)
-    thread.join()
+    helper.finish()
     assert waits[0]["paused"] and waits[0]["paused_by"] == "boss"
     assert time.monotonic() - started >= 0.2
     assert not _call(control_config, workQueue.queue_status)["paused"]
@@ -472,3 +501,16 @@ def test_retry_plan_for_a_web_job_starts_at_the_step_that_failed(tmp_path, monke
     assert plan["describe"] == "Plan, then Fill" and plan["title"] == "Retry: New galaxy"
     (path / "state.json").write_text('{"status": "succeeded", "step": 3, "started_at": 1, "finished_at": 2}')
     assert jobs.remaining_steps(job_id) is None
+
+
+def test_a_helper_that_fails_still_resumes_the_queue_and_the_failure_reaches_the_test():
+    resumed = []
+
+    def before():
+        raise AssertionError("timed out")
+
+    helper = _ResumeLater(before, lambda: resumed.append(True))
+    helper.start()
+    with pytest.raises(AssertionError, match="timed out"):
+        helper.finish()
+    assert resumed == [True]

@@ -1,0 +1,2 @@
+### Fixed
+- **A single hung test can no longer stall a whole test run** (TEST.153). The paused-queue tests in `test_work_queue_admin.py` used a helper thread that stopped without resuming the queue when it timed out under load, so the test waited for ever. The helper now always resumes and the failure is raised in the test. Every test also has a 900 s limit (`pytest.ini`), and `scripts/test.py` lists the tests that hit it under "TIMED OUT" and counts them on its last line.
