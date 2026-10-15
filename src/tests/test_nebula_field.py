@@ -17,6 +17,7 @@ from planetgen.galaxy import nebula_field
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
+from planetgen.galaxy.spherical import sector_address_at as shell_address_at
 from planetgen.physics.units import ly_to_pc
 
 from tests.bughunt_support import forced_system_config
@@ -192,7 +193,7 @@ def test_a_cloud_is_born_in_the_sector_holding_its_centroid(monkeypatch):
         value = object_uid.unpack(nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC))
         mpc = nebula_field.centroid_mpc(nebula, center)
         assert value.serial_kind == object_uid.SERIAL_FIELD and value.body == 0
-        assert (value.shell, value.band, value.wedge) == sector_address_at(tuple(v / 1000.0 for v in mpc), EDGE_PC)
+        assert (value.shell, value.band, value.wedge) == shell_address_at(tuple(v / 1000.0 for v in mpc), EDGE_PC)
 
 
 def test_field_cloud_ids_are_unique_and_do_not_depend_on_the_order_asked():

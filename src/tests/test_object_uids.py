@@ -10,7 +10,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.galaxy import object_uid as ids, uid as galaxy_uid
-from planetgen.galaxy.geometry import provisional_sector_designation
+from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet

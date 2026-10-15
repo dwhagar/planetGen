@@ -26,7 +26,7 @@ already stored.
 import functools
 import math
 
-from planetgen.galaxy import density as galaxyDensity, geometry as galaxyGeometry, object_uid as objectUid, seed as galaxySeed
+from planetgen.galaxy import density as galaxyDensity, object_uid as objectUid, seed as galaxySeed, spherical as galaxySpherical
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
@@ -162,8 +162,8 @@ def centroid_mpc(nebula, center_pc):
 
 
 def birth_sector(nebula, center_pc, edge_pc):
-    """The `(ring, layer, slot)` of the sector holding the centroid of `nebula`, placed at `center_pc`."""
-    return galaxyGeometry.sector_address_at(tuple(v / 1000.0 for v in centroid_mpc(nebula, center_pc)), edge_pc)
+    """The `(shell, band, wedge)` of the sector holding the centroid of `nebula`, placed at `center_pc`."""
+    return galaxySpherical.sector_address_at(tuple(v / 1000.0 for v in centroid_mpc(nebula, center_pc)), edge_pc)
 
 
 def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None):
@@ -197,7 +197,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
     # Every cloud born here has its centre within a cloud radius of the sector.
     sector_size = edge_pc * math.sqrt(3.0)
     reach = MAX_CLOUD_RADIUS_PC + sector_size
-    sector_center = galaxyGeometry.sector_position_pc(*address, edge_pc)
+    sector_center = galaxySpherical.sector_position_pc(*address, edge_pc)
     low = cell_index(tuple(c - reach for c in sector_center))
     high = cell_index(tuple(c + reach for c in sector_center))
     rank = 0
