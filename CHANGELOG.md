@@ -2,6 +2,50 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1252] - 2026-10-15
+
+### Changed
+- The TODO list records that the facility types API part (POP.10) merged in #1517; the web part remains.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1251] - 2026-10-15
+
+### Added
+- **Facility types and typed fields.** An admin can define facility types (a name, a kind, an icon, a description) with up to 24 typed fields each (whole number, decimal, text, yes/no or one of a list), through `GET/POST /api/facility-types`, `PATCH/DELETE /api/facility-types/<id>` and the matching `/fields` routes. Anyone can read them. A type facilities use keeps its kind and can only be retired, and a field with stored values cannot change under them (POP.10).
+- **Type, affiliation and ratings on facilities.** A facility can take a type with that type's field values, an affiliation (a polity, whose name it keeps, or free text) and Green, Yellow or Red ratings for crime, housing, resources, maintenance and health, set on `POST /api/facilities` or changed with the new `PATCH /api/facilities/<id>`. `GET /api/facilities` lists facilities and filters them by kind, type, affiliation and any rating, worst first if asked (POP.10).
+- **Suggested ratings and an example type.** `POST /api/facilities/<id>/suggest-ratings` (and one for every facility with an unset rating) fills the ratings nobody set from the host's habitability, the affiliated species' tech indices, the kind of facility and the distance from the capital, marks them generated and never changes a rating that is set. `POST /api/facility-types/examples` adds an example "Research outpost" type (POP.10).
+
+## [8.0.1250] - 2026-10-15
+
+### Changed
+- The design notes list now links the spherical-shell sectors research note (#1515).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1249] - 2026-10-15
+
+### Added
+
+- A research note on spherical-shell sectors with a 4 pc round core: what it would mean for the grid, the block ladder, the database and object IDs, measured against the real density model (`docs/design/spherical-shell-sectors.md`). No code changed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1248] - 2026-10-15
+
+### Changed
+- The TODO list, number map and plans no longer list the Galaxy Map shared zoom and rotation centre (MAP.199) as open work; it merged in #1513.
+
+TODO items resolved: MAP.199 / Added: none
+
+## [8.0.1247] - 2026-10-15
+
+### Fixed
+- **The Galaxy Map's wheel zoom moved the view's center toward the pointer, so zooming and turning used different centers.**
+  Both now go about one center, marked by a small cross in the middle of the
+  map. Shift-click or right-click a spot to make it the new center (the view
+  flies there, keeping its angle and zoom); C and Shift/right-drag still work.
+
 ## [8.0.1246] - 2026-10-15
 
 ### Changed

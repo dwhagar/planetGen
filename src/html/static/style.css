@@ -802,6 +802,7 @@ tbody tr:last-child td {
   filter: drop-shadow(0 0 1px var(--bg-subtle));
 }
 
+<<<<<<< HEAD
 .starmap-centre.is-moving {
   opacity: 1;
   transform: scale(1.5);
@@ -868,6 +869,8 @@ tbody tr:last-child td {
   pointer-events: none;
 }
 
+=======
+>>>>>>> origin/main
 .starmap-canvas {
   display: block;
   width: 100%;

@@ -244,14 +244,14 @@ def test_standalone_facility_offset_outside_its_sector_is_400(admin_client, mysq
     assert admin_client.post("/api/facilities", json=body).status_code == 201
 
 
-def test_facility_has_no_patch_and_delete_is_404_once_gone(admin_client, mysql_config):
+def test_facility_has_no_put_and_delete_is_404_once_gone(admin_client, mysql_config):
     _system_id, star_id, _moon_id = _star_and_moon(mysql_config)
     response = admin_client.post("/api/facilities", json=_facility(host_id=pid('star', star_id)))
     assert response.status_code == 201
     facility_id = response.get_json()["id"]
 
-    # There is no facility PATCH: a clean 405, and the facility is untouched.
-    response = admin_client.patch(f"/api/facilities/{pid('facility', facility_id)}", json={"name": "Renamed"})
+    # There is no facility PUT: a clean 405, and the facility is untouched.
+    response = admin_client.put(f"/api/facilities/{pid('facility', facility_id)}", json={"name": "Renamed"})
     assert response.status_code == 405
     assert response.get_json() == {"error": "method not allowed"}
     assert admin_client.get(f"/api/facilities/{pid('facility', facility_id)}").get_json()["name"] == "Relay"
