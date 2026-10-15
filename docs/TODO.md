@@ -5720,26 +5720,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   one of them describes the venv, how mod_wsgi, the CGI scripts and the
   services use it, and how to rebuild it.
 
-- [ ] **DOC.39 Fix the README facts, the documentation table and the headline rule (Boss decision)**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, findings
-  25 to 27. README names planetgen.db.query, which has no main; the
-  command is planetgen.cli.query. The README docs table omits
-  WINDOWS.md, server-checklist.md, ci-runners.md, system-file-format.md
-  and others. The rule that every release opens with a Headline has not
-  been followed since 8.0.912 (157 releases). Default: restore the rule
-  from the next release on and say so in changes/README.md, leaving the
-  earlier releases without one; Boss may instead drop the rule. Done:
-  README facts and table are correct, and the headline rule text matches
-  what is done.
-  Decided (Boss, 2026-10-14 19:54Z, on a decision
-  card relayed by the coordinator): restore the rule. Every release from
-  the next one on opens with a Headline line, and changes/README says
-  so.
-  Prerequisites: none.
-
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
