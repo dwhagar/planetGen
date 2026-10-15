@@ -3439,7 +3439,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which kinds of nebulae were made there and which layers the slab
   holds. Found: the output prints nebulae without that per-slab
   breakdown. Done when a run's text output lists, per slab, the nebula
-  kinds and the layers included.
+  kinds and the layers included. Owner: Foundations Generation (Boss
+  retired the bug lanes, 2026-10-15 05:39Z), next after its current item.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -3973,7 +3974,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows an estimated time remaining from earlier runs' stage timings, or
   from the time per task so far in this run. The same fallback must be
   part of PERF.96's ETA function (see its acceptance), so it survives
-  the move to the Redis run record.
+  the move to the Redis run record. Owner: Foundations Database,
+  together with PERF.96 (Boss retired the bug lanes, 2026-10-15
+  05:39Z).
   Prerequisites: none. Related: PERF.96, PERF.33.
 
 ## DB: Database and schema
