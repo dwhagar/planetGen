@@ -770,7 +770,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.222 | Generation text output for nebulae does not list the kinds of nebulae and the layers in each slab (bug) | none | done, PR #1529 |
 | GEN.223 | The orbital update does not move the galaxy position of a star system that has no placed sector (bug) | none | open |
 | GEN.224 | Spherical grid module: shells, bands, wedges, caps and the core ball | none | done, PR #1549 |
-| GEN.225 | Outline and bounds on shells | none | open |
+| GEN.225 | Outline and bounds on shells | none | done, PR #1551 |
 | GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | none | open |
 | GEN.227 | Generation paths on shells | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |

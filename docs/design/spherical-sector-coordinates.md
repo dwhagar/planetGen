@@ -63,6 +63,9 @@ TODO items that assume the cylinder and need rewording, holding or retiring (the
 
 ## 5. How the work should run
 
+Switch structure (2026-10-15): DB.32, GEN.227 and UX.111 are PRs into a shared integration branch `claude/spherical-switch`, owned by the Spherical Sector Coordinates thread; one final PR goes to main after Boss's word. MAP.205 and MAP.206 are built in parallel on their own branch and merge after that.
+
+
 One dedicated thread, "Spherical Sector Coordinates", owns the grid (items 1 to 6). It is the only migration lane while this runs, so the Database lane's DB.2x items queue behind it unless they touch other tables. Maps, Generation and UX lanes stay stopped until their items below are open. The Test Suite thread owns the TEST items. Each item merges on a green `scripts/test.py changed`; the full suite runs when item 6 finishes.
 
 Rules that carry over: no backward compatibility, no shims; PRs add a `changes/` note and never bump the version; no `.major.md` note without Boss's word; update.sh refuses while jobs are running.
