@@ -443,6 +443,19 @@ def settle_after_run(args, started_at):
     return saved
 
 
+def _systems_radius_pc(address, radius_pc, edge_pc):
+    """
+    The galactic distance, parsecs, a sector's systems are built at: its
+    center's, except in the core ball, whose center is the galactic center
+    itself. A distance of zero gives every star a zero-size Hill sphere, so
+    no system there could hold a planet; the ball's systems are built at a
+    point's mean distance in a ball, three quarters of its radius.
+    """
+    if address[0] == 0:
+        return 0.75 * spherical.shell_bounds_pc(0, edge_pc)[1]
+    return radius_pc
+
+
 def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=None):
     """
     Generates one sector via `generate_sector` inside its real grid cell
@@ -485,7 +498,8 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
             ",".join(str(part) for part in address)) as timings:
         _sector_name, sector = run_sector.generate_directed_sector(
             args, galaxy_seed=galaxy_seed, address=address,
-            galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill, cloud_field=cloud_field)
+            galactic_center_dist_ly=pc_to_ly(_systems_radius_pc(address, radius_pc, edge_pc)),
+            cell=cell, fill=fill, cloud_field=cloud_field)
         if address == run_sector.NUCLEUS_ADDRESS and not (fill is not None and fill.phenomena_scattered):
             run_sector.add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
