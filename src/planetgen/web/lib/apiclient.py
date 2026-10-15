@@ -1210,6 +1210,19 @@ def get_facility_types(db, active_only=True):
     return _request("/facility-types", {"db": db, "active": "1" if active_only else None})["items"]
 
 
+def facility_type_write(method, cookie_header, db, path, body=None):
+    """
+    One admin write to `/api/facility-types<path>` (POP.10): `POST` a type (`path` empty), `PATCH` or `DELETE` one
+    (`/<id>`), `POST` a field (`/<id>/fields`), `PATCH` or `DELETE` one (`/<id>/fields/<field_id>`) or `POST
+    /examples`. Returns the parsed answer. A rule the API refuses is an `ApiError` with its status.
+    """
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        method, f"/facility-types{path}?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
+    )
+    return result
+
+
 def update_facility(cookie_header, db, facility_id, body):
     """`PATCH /api/facilities/<id>` with `body` (any of `name`, `description`, `type_id`, `affiliation_polity_id`,
     `affiliation_name`, `ratings`, `ratings_note`, `fields`). Returns the facility. A refusal is an `ApiError`

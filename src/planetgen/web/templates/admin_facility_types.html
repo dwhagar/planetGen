@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{#- POP.10: the admin Facility types page (web/facility_type_pages.py). Every form is a plain POST with a
+    `type_action`; the API holds the rules and its refusals come back as the flashed error. -#}
+{%- macro type_fields(type) %}
+      <label class="search-field">Name
+        <input type="text" name="name" maxlength="255" required value="{{ type.name if type else '' }}">
+      </label>
+      <label class="search-field">Kind
+        <select name="kind">
+          {%- for kind in kinds %}
+          <option value="{{ kind }}"{% if type and type.kind == kind %} selected{% endif %}>{{ kind }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field">Icon
+        <select name="icon">
+          <option value="">No icon</option>
+          {%- for icon in icons %}
+          <option value="{{ icon }}"{% if type and type.icon == icon %} selected{% endif %}>{{ icon }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field">Sort order
+        <input type="number" name="sort_order" step="1" value="{{ type.sort_order if type else 0 }}">
+      </label>
+      <label class="search-field">Description (optional)
+        <input type="text" name="description" maxlength="4000" value="{{ (type.description if type else '') or '' }}">
+      </label>
+      <label class="search-field generate-check"><span><input type="checkbox" name="active" value="1"{% if not type or type.active %} checked{% endif %}> In use (offered when placing a facility)</span></label>
+{%- endmacro %}
+{%- macro field_fields(field) %}
+      {%- if not field %}
+      <label class="search-field">Key (lowercase letters, digits and underscores; never changes)
+        <input type="text" name="key" maxlength="32" required pattern="[a-z][a-z0-9_]{0,31}">
+      </label>
+      {%- endif %}
+      <label class="search-field">Label
+        <input type="text" name="label" maxlength="255" required value="{{ field.label if field else '' }}">
+      </label>
+      <label class="search-field">Kind of value
+        <select name="datatype">
+          {%- for value, text in datatypes %}
+          <option value="{{ value }}"{% if field and field.datatype == value %} selected{% endif %}>{{ text }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field">Unit (numbers only)
+        <input type="text" name="unit" maxlength="32" value="{{ (field.unit if field else '') or '' }}">
+      </label>
+      <label class="search-field">Lowest value (numbers only)
+        <input type="number" name="min_value" step="any" value="{{ field.min_value if field and field.min_value is not none else '' }}">
+      </label>
+      <label class="search-field">Highest value (numbers only)
+        <input type="number" name="max_value" step="any" value="{{ field.max_value if field and field.max_value is not none else '' }}">
+      </label>
+      <label class="search-field">Options, one a line (a list only)
+        <textarea name="choices" rows="3">{{ (field.choices | join('\n')) if field and field.choices else '' }}</textarea>
+      </label>
+      <label class="search-field">Starting value (optional)
+        <input type="text" name="default_text" maxlength="255" value="{{ (field.default_text if field else '') or '' }}">
+      </label>
+      <label class="search-field">Sort order
+        <input type="number" name="sort_order" step="1" value="{{ field.sort_order if field else 0 }}">
+      </label>
+      <label class="search-field generate-check"><span><input type="checkbox" name="required" value="1"{% if field and field.required %} checked{% endif %}> Required</span></label>
+{%- endmacro %}
+{% block content %}
+{%- if message %}
+<p class="hint" role="status">{{ message }}</p>
+{%- endif %}
+{%- if error %}
+<p class="error" role="alert">{{ error }}</p>
+{%- endif %}
+<section class="panel" id="types-intro" aria-labelledby="types-intro-heading">
+  <h2 id="types-intro-heading">Facility types</h2>
+  <p class="hint">A type refines one of the five kinds ("Agricultural colony" is a colony) and can carry up to
+  {{ max_fields }} fields of its own. Pick one when placing a facility on a system page. A type that facilities use
+  keeps its kind and can only be taken out of use; a field some facility has a value for cannot be deleted.</p>
+  {%- if not types %}
+  <form method="post" action="{{ page_url('admin_facility_types') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="type_action" value="examples">
+    <div class="search-actions"><button type="submit" class="btn">Add the example type</button></div>
+  </form>
+  {%- endif %}
+</section>
+{%- for type in types %}
+<section class="panel" id="type-{{ type.id }}" aria-labelledby="type-{{ type.id }}-heading">
+  <h2 id="type-{{ type.id }}-heading">{% if type.icon %}<sl-icon name="{{ type.icon }}" aria-hidden="true"></sl-icon> {% endif %}{{ type.name }}</h2>
+  <p class="hint">A {{ type.kind }}{% if not type.active %}, out of use{% endif %}; {{ type.facilities }} facilit{{ 'y' if type.facilities == 1 else 'ies' }} use it.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Field</th><th scope="col">Key</th><th scope="col">Value</th><th scope="col">Required</th><th scope="col">Limits</th><th scope="col">Starting value</th></tr></thead>
+    <tbody>
+      {%- for field in type.fields %}
+      <tr>
+        <td>{{ field.label }}</td>
+        <td><code>{{ field.key }}</code></td>
+        <td>{{ field.datatype }}{% if field.unit %} ({{ field.unit }}){% endif %}{% if field.choices %}: {{ field.choices | join(', ') }}{% endif %}</td>
+        <td>{{ 'yes' if field.required else 'no' }}</td>
+        <td>{% if field.min_value is not none or field.max_value is not none %}{{ field.min_value if field.min_value is not none else '' }} to {{ field.max_value if field.max_value is not none else '' }}{% else %}&ndash;{% endif %}</td>
+        <td>{{ field.default_text or '–' }}</td>
+      </tr>
+      {%- else %}
+      <tr><td colspan="6">No fields yet.</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <details>
+    <summary>Change this type</summary>
+    <form method="post" action="{{ page_url('admin_facility_types') }}" class="search-form">
+      {{ csrf_field() }}
+      <input type="hidden" name="type_action" value="update_type">
+      <input type="hidden" name="type_id" value="{{ type.id }}">
+      <div class="search-fields">{{ type_fields(type) }}</div>
+      <div class="search-actions"><button type="submit" class="btn">Save the type</button></div>
+    </form>
+  </details>
+  {%- for field in type.fields %}
+  <details>
+    <summary>Change the field {{ field.label }}</summary>
+    <form method="post" action="{{ page_url('admin_facility_types') }}" class="search-form">
+      {{ csrf_field() }}
+      <input type="hidden" name="type_id" value="{{ type.id }}">
+      <input type="hidden" name="field_id" value="{{ field.id }}">
+      <div class="search-fields">{{ field_fields(field) }}</div>
+      <div class="search-actions">
+        <button type="submit" class="btn" name="type_action" value="update_field">Save the field</button>
+        <button type="submit" class="btn" name="type_action" value="delete_field">Delete the field</button>
+      </div>
+    </form>
+  </details>
+  {%- endfor %}
+  {%- if type.fields | length < max_fields %}
+  <details>
+    <summary>Add a field</summary>
+    <form method="post" action="{{ page_url('admin_facility_types') }}" class="search-form">
+      {{ csrf_field() }}
+      <input type="hidden" name="type_action" value="add_field">
+      <input type="hidden" name="type_id" value="{{ type.id }}">
+      <div class="search-fields">{{ field_fields(none) }}</div>
+      <div class="search-actions"><button type="submit" class="btn">Add the field</button></div>
+    </form>
+  </details>
+  {%- endif %}
+  <details>
+    <summary>Delete this type</summary>
+    <form method="post" action="{{ page_url('admin_facility_types') }}" class="search-form">
+      {{ csrf_field() }}
+      <input type="hidden" name="type_action" value="delete_type">
+      <input type="hidden" name="type_id" value="{{ type.id }}">
+      <p class="hint">Deletes the type and its fields. A type facilities use cannot be deleted; take it out of use instead.</p>
+      <div class="search-actions"><button type="submit" class="btn">Yes, delete {{ type.name }}</button></div>
+    </form>
+  </details>
+</section>
+{%- endfor %}
+<section class="panel" id="new-type" aria-labelledby="new-type-heading">
+  <h2 id="new-type-heading">Add a type</h2>
+  <form method="post" action="{{ page_url('admin_facility_types') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="type_action" value="create_type">
+    <div class="search-fields">{{ type_fields(none) }}</div>
+    <div class="search-actions"><button type="submit" class="btn">Add the type</button></div>
+  </form>
+</section>
+{% endblock %}
