@@ -247,6 +247,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source |  |  |
 | DB.28 | One migration for the facility type tables and the new facility columns | DB.27 |  |
+| DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |

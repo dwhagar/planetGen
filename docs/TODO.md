@@ -4024,6 +4024,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   right after DB.27.
   Prerequisite: DB.27. Related: POP.10, DB.27.
 
+- [ ] **DB.29 A database migration refuses to start while jobs are active and asks the user to cancel them first**
+  Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
+  to a new version, if there are active jobs, ask the user to cancel the
+  jobs first before changing anything." Done: before any migration step
+  changes the database (the migrate command and the migration step of
+  update.sh), the run checks for active jobs (running or queued
+  generation runs and other background jobs). If there are any, it
+  changes nothing, lists them, and asks the user to cancel them first
+  (naming the cancel command or page), then exits with a non-zero
+  status; with no active jobs it proceeds as before. A test covers both
+  paths, and the check is the one place every migration goes through.
+  Dependency: how the active jobs are read depends on the work queue
+  steps. Until PERF.96 (run record and counters in Redis) merges, the
+  check reads the old job tables; PERF.96 supplies the library call that
+  lists active runs, after which the check uses it, and PERF.100 (which
+  deletes the old work tables with a migration) must pass through this
+  check too. Owner: Foundations Database, after DB.28 and before
+  PERF.100.
+  Prerequisites: none. Related: PERF.95, PERF.96, PERF.99, PERF.100,
+  DB.18, DB.27, DB.28.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
