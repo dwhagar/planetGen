@@ -99,6 +99,19 @@ def test_core_fractions_follow_density():
     assert magnetism.core_mass_fraction(0.055, 5.43) > 0.4    # Mercury
 
 
+def test_a_mercury_like_planet_keeps_its_field_at_any_age():
+    """GEN.213: the lifetime test used to run first and always zeroed a 0.055 Earth-mass iron world at 4.5 Gyr."""
+    draw.set_run_seed(13)
+    for age in (0.5, 4.5, 10.0):
+        for _ in range(50):
+            body = _body(0.055, 5.43, 1407.6, age=age)
+            magnetism.generate_field(body)
+            assert 1e18 < body.magnetic_moment_a_m2 < 3e20
+    small_rocky = _body(0.03, 5.43, 24.0)  # under 0.05 Earth masses: too small for a dynamo
+    magnetism.generate_field(small_rocky)
+    assert small_rocky.magnetic_moment_a_m2 == 0.0
+
+
 def test_earth_mercury_and_jupiter_get_their_fields():
     draw.set_run_seed(4)
     earths = []
