@@ -1189,6 +1189,9 @@ def add_check_db_arguments(parser):
                         help="With --deep: go ahead after the estimate without asking (needed off a terminal).")
     parser.add_argument('--estimate-only', action='store_true',
                         help="With --deep: print the time estimate and stop (the Generate page uses it).")
+    parser.add_argument('--wide-binaries', action='store_true',
+                        help="With --deep: validate only the wide binaries (S-type pairs), for the count of "
+                             "pairs whose orbits overlap.")
     parser.add_argument('--no-check-table', action='store_true', help="Skip CHECK TABLE.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
@@ -1414,9 +1417,11 @@ def run_check_db(args):
     """`planetgen check-db`: prints the database check's report; exits 1 on
     damage, 2 when a check could not run (DB.8)."""
     config = store.mysql_config_from_args(args)
-    scope = db_check.Scope(tuple(args.shell or ()), tuple(tuple(a) for a in args.sector or ()))
+    scope = db_check.Scope(tuple(args.shell or ()), tuple(tuple(a) for a in args.sector or ()), args.wide_binaries)
     if args.estimate_only and not args.deep:
         raise SystemExit("check-db: --estimate-only is for --deep.")
+    if args.wide_binaries and not args.deep:
+        raise SystemExit("check-db: --wide-binaries is for --deep.")
     conn = store.get_connection(config, ensure_schema=False)
     try:
         if args.deep:

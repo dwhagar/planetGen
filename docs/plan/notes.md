@@ -372,7 +372,7 @@ items. New notes are listed here when the PR that adds them merges.
 | [sky-view.md](../design/sky-view.md) | The view from a planet's surface: stars, backfill levels and cost (VIEW.1 to VIEW.4). |
 | [multiple-galaxies.md](../design/multiple-galaxies.md) | Neighbour galaxies in the sky and several galaxies in one install (GEN.9, VIEW.2, VIEW.3). |
 | [navigation-frames.md](../design/navigation-frames.md) | Coordinate frames used for navigation and courses. |
-| [galaxy-coordinate-system.md](../design/galaxy-coordinate-system.md) | The galaxy frame, rings, layers and slots. |
+| [galaxy-coordinate-system.md](../design/galaxy-coordinate-system.md) | The galaxy frame and the shell, band and wedge sector grid. |
 | [spherical-shell-sectors.md](../design/spherical-shell-sectors.md) | Research (Boss, 2026-10-15 05:51Z): what spherical-shell sectors with a round 4 pc core would mean; recommends keeping the cylindrical grid (no TODO item unless Boss decides otherwise). |
 | [galaxy-disk-density.md](../design/galaxy-disk-density.md) | The disk density model behind sector fill. |
 | [performance-eta-queue-and-caching.md](../design/performance-eta-queue-and-caching.md) | Profiling, progress and ETA estimates, the RQ queue and cache invalidation (PERF.20, PERF.31 to PERF.34, UX.3, ADM.15). |

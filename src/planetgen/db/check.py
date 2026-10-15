@@ -168,9 +168,12 @@ class Report:
 @dataclass
 class Scope:
     """Which sectors the sector-scoped checks look at: whole `shells` and
-    single `addresses` (`(shell, band, wedge)`); neither means all."""
+    single `addresses` (`(shell, band, wedge)`); neither means all.
+    `wide_binaries` narrows the `--deep` star system pass to the wide
+    binaries (GEN.228); it does not change which sectors are looked at."""
     shells: tuple = ()
     addresses: tuple = ()
+    wide_binaries: bool = False
 
     @property
     def everything(self):
@@ -432,8 +435,16 @@ class DeepEstimate:
                 "what": "the deep database check", "summary": self.summary()}
 
 
-def _system_ids(conn, scope):
+def _system_filter(scope):
+    """`(sql, params)`: the condition that picks the star systems the `--deep` pass validates."""
     where, params = scope.where("sector_id")
+    if scope.wide_binaries:
+        where += " AND binary_configuration = 'wide'"
+    return where, params
+
+
+def _system_ids(conn, scope):
+    where, params = _system_filter(scope)
     return [row["id"] for row in conn.execute(
         f"SELECT id FROM star_systems WHERE 1 = 1{where} ORDER BY id", params).fetchall()]
 
@@ -443,7 +454,7 @@ def deep_estimate(conn, config, scope=None):
     speed of the pass (`DEEP_STATS_KIND`), else `DEEP_FALLBACK_SECONDS_PER_SYSTEM` a system."""
     from planetgen.generation import run_common
 
-    where, params = (scope or Scope()).where("sector_id")
+    where, params = _system_filter(scope or Scope())
     count = conn.execute(f"SELECT COUNT(*) AS n FROM star_systems WHERE 1 = 1{where}", params).fetchone()["n"]
     stats = run_common._stats_for_config(config)
     seconds = steps.predict(stats, DEEP_STATS_KIND, count)

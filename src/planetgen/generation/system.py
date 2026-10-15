@@ -424,8 +424,11 @@ class StarSystem:
         # once here, after that loop has settled on a final planet/belt
         # layout, rather than inside it.
         with log.timed_phase("comet generation"):
-            self.comets = self._generate_comets(self.star)
-            self.secondary_comets = self._generate_comets(self.secondary_star) if self.binary_type == "wide" else []
+            wide = self.binary_type == "wide"
+            self.comets = self._generate_comets(
+                self.star, validation.orbit_ceiling_au(self.primary_star) if wide else None)
+            self.secondary_comets = self._generate_comets(
+                self.secondary_star, validation.orbit_ceiling_au(self.secondary_star)) if wide else []
 
         # Each hosting star's own reflex-offset "wobble" (schema v20) --
         # see `Star.reflex_offset_x`'s own docstring and
@@ -561,7 +564,7 @@ class StarSystem:
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
-    def _generate_comets(self, star):
+    def _generate_comets(self, star, ceiling_au=None):
         """
         Rolls this star's own native comet population (see
         `cometData.Comet` -- contrast the always-standalone, unbound
@@ -588,6 +591,12 @@ class StarSystem:
                  a close/P-type binary proxy, via `BinaryStarProxy.mass`)
                  drives each comet's own orbital period, the same
                  `star.mass` a `Planet`'s own period calculation reads.
+            ceiling_au (float, optional): For a star of a wide binary, its
+                 stable limit (`validation.orbit_ceiling_au`): every comet
+                 is an elliptical one whose whole orbit stays inside it
+                 (GEN.228), re-rolled up to
+                 `tuning.COMET_CEILING_ATTEMPTS` times and dropped when
+                 none fits, so no comet's path crosses the companion.
 
         Returns:
             list: Newly generated `Comet` objects, zero or more.
@@ -602,7 +611,16 @@ class StarSystem:
 
         count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
         primary_mass_solar = star.mass / constants.SOLAR_MASS_TO_KG
-        return [Comet(self.system_config, primary_mass_solar) for _ in range(count)]
+        if ceiling_au is None:
+            return [Comet(self.system_config, primary_mass_solar) for _ in range(count)]
+        comets = []
+        for _ in range(count):
+            for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
+                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical")
+                if validation.comet_fits_ceiling(comet, ceiling_au):
+                    comets.append(comet)
+                    break
+        return comets
 
     @staticmethod
     def _reflex_children(planets):
@@ -1067,8 +1085,8 @@ class StarSystem:
         (that's the entire reason `a_crit_au` exists in the first place).
 
         Computes the worst-case center-to-center separation between the two
-        stars' outermost planets as `a_bin - outer_primary.distance -
-        outer_secondary.distance` -- the conservative case where the two
+        stars' outermost planets as `the pair's periapsis -
+        outer_primary.distance - outer_secondary.distance` -- the conservative case where the two
         planets' independent, uncorrelated `orbital_phase_deg` happen to
         point directly at each other along the binary axis. This is
         deliberately the worst case, not an average: nothing in this

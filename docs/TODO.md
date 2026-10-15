@@ -489,40 +489,6 @@ with `clamp()`.
   (Boss, 2026-10-15 06:39Z).
   Prerequisites: none.
 
-- [ ] **UX.111 Reads, API and web wording on shells**
-  `query.py`, `store.py`, the API, the Galaxy and Sector pages, URLs and
-  bookmarks say shell, band and wedge; "layer" and "slab" mean nothing
-  any more. Done: pages and API keep working on a converted (DB.32)
-  small galaxy; after this item Boss can open the converted galaxy and
-  look at it before Maps work begins. Owner: Spherical Sector Coordinates thread.
-  Source: item 6 of section 6 of the plan. Boss decided the move
-  (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
-  wedge (vert), shell (radius), and band (horizontal), together they
-  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
-  ahead of every lane queue.
-  Progress: merged into the switch branch claude/spherical-switch with
-  UX.112 (PR #1601, 13:46Z). The item retires when the final switch PR
-  reaches main. Docs wording UX left behind is under DOC.46.
-  Prerequisites: DB.32, GEN.227.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
-- [ ] **UX.112 Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt**
-  Boss, 2026-10-15 08:01Z: "Make the galaxy map redirect to a page
-  saying that a correlative update is underway and give a general ETA on
-  when it should finish if one is available, in fact make the entire
-  site and database access unavailable to anyone but admin while the
-  maps are being rebuilt." Done: a maintenance mode that closes the site ONLY while the maps are being updated and leaves it open otherwise (Boss, 08:03Z: not "off by default"). It comes on automatically when the spherical switch is applied (the migration, or the update step right after it) and goes off automatically when Maps' new map lands; an admin command-line command and an admin page toggle stay as manual overrides, with a free-text ETA the admin can set. While on, every
-  non-admin web page answers with a 503 page that says an update is
-  underway and shows the ETA if one is set (the Galaxy Map redirects to
-  it), and every API call and database read answers with 503 JSON;
-  admins see the site normally with a banner saying maintenance mode is
-  on. The mode is stored where the web workers and the queue both see
-  it. Used by the spherical switch: MAP.205 and MAP.206 clear it when the new map lands. Owner: UX lane, in progress as part of the
-  spherical switch (PR into claude/spherical-switch).
-  Progress: merged into claude/spherical-switch with UX.111 (PR #1601,
-  13:46Z); the item retires when the final switch PR reaches main.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -941,10 +907,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   floors, and reconciling the per-tile cap
   (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
   2 flagged.
-  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
-  replaces the cylinder grid this item assumes. Held until the thread
-  reports; the TODO thread will reword or retire it when the new grid
-  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
+  Reread against the shell grid before starting: the spherical sector
+  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
+  docs/design/spherical-sector-coordinates.md section 4).
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
@@ -1365,7 +1330,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   make a wedge (vert), shell (radius), and band (horizontal), together
   they identify a single 3D segment of the sphere". TOP PRIORITY in
   Phase 1, ahead of every lane queue.
-  Prerequisites: none to start (Boss released Maps, 07:31Z): build in parallel on a branch and merge after the DB.32 + GEN.227 + UX.111 switch. Clears maintenance mode (UX.112) when the new map lands.
+  State on main after the switch (PR #1607): the Galaxy Map browser tests
+  are parked behind the MAPS_PENDING skip marker (src/tests/maps_pending.py;
+  remove it as each test is restored), geometry.py stays until the map stops
+  importing it, and /galaxy answers 500 (KeyError 'shell_index' at
+  galaxy_views.py:99), which is why the post-switch full run showed 96
+  Galaxy Map browser failures. Both are Maps' to fix with this item and
+  MAP.206; the site stays in maintenance mode until the new map lands.
+  Prerequisites: none to start (Boss released Maps, 07:31Z): built in parallel on a branch; the spherical switch (DB.32, GEN.227, UX.111, UX.112) merged in PR #1607. Clears maintenance mode when the new map lands.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **MAP.206 Galaxy Map drawing on shells**
@@ -1377,7 +1349,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wedge (vert), shell (radius), and band (horizontal), together they
   identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
   ahead of every lane queue.
-  Prerequisite: MAP.205 (build in parallel on a branch, merge after the DB.32 + GEN.227 + UX.111 switch). Clears maintenance mode (UX.112) when the new map lands, with MAP.205.
+  Prerequisite: MAP.205 (built in parallel on a branch; the spherical switch merged in PR #1607). Clears maintenance mode when the new map lands, with MAP.205.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## NAV: Navigation and courses
@@ -1801,10 +1773,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-11): the centre of the galaxy becomes one round disc sector, 4
   pc across and 4 pc tall (GEN.210); this item then fills that one
   sector instead of a set of core sectors.
-  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
-  replaces the cylinder grid this item assumes. Held until the thread
-  reports; the TODO thread will reword or retire it when the new grid
-  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
+  Reread against the shell grid before starting: the spherical sector
+  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
+  docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
   Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
@@ -2345,10 +2316,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Hilbert as approved, using the
   4-voxel-block variant so the first sector is the centre, or take the
   serpentine and greedy walk?
-  Held (2026-10-15): the spherical sector work (GEN.224 to UX.111)
-  replaces the cylinder grid this item assumes. Held until the thread
-  reports; the TODO thread will reword or retire it when the new grid
-  lands (plan: docs/design/spherical-sector-coordinates.md section 4).
+  Reread against the shell grid before starting: the spherical sector
+  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
+  docs/design/spherical-sector-coordinates.md section 4).
 
 - [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
   Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
@@ -3259,77 +3229,79 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
 
-- [ ] **GEN.223 The orbital update does not move the galaxy position of a star system that has no placed sector (bug)**
+- [ ] **GEN.223 The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug)**
   Boss (2026-10-15, asked "Does our orbital update include all objects
   that are not in a charted sector?", then said "Yes" to filing it as a
-  bug): the orbital update advances the phases and the clock for a star
-  system with no placed (charted) sector but skips the move of its
-  galactic position (`db/store.py` around line 5268, `sector_id not in
-  index.info`), and the follow-up refresh (`refresh_after_motion`,
-  around line 5471) covers only placed sectors, so such a system also
-  gets no containment, nearest-systems or location refresh. Planets,
-  moons, comets, facilities and every phenomenon type are already
-  selected by due time with no sector filter. Done: a system with no
-  placed sector moves with the rest at every update and gets the same
-  containment, nearest-systems and location refresh, with a test that
-  fails when it does not. Owner: Database (suggested; the
-  sector-index code changes with the Spherical Sector Coordinates work,
-  so check it first). Queued behind the Spherical Sector Coordinates
-  stop (Boss, 2026-10-15 06:39Z).
+  bug) and then rewrote the item (2026-10-15 16:03 EDT): "Modify GEN.223
+  to update so all objects within the galaxy move, that's one of the
+  biggest reasons we built the special coordinate with vector components
+  for speed and direction and such, the point in space object should be
+  used for everything in memory and should be stored part by part in the
+  table (no serialized JSON everything has its own column to rebuild the
+  point exactly as it was). We can even store the point mass of the
+  object inside the point structure if we need to, whatever we need.
+  That's why I made the point. Every single thing that exists in the
+  galaxy needs to move and be updated as needed (algorithm exists
+  already) by the nightly orbital update." Today the orbital update
+  advances the phases and the clock for a star system with no placed
+  (charted) sector but skips the move of its galactic position
+  (`db/store.py` around line 5268, `sector_id not in index.info`), and
+  the follow-up refresh (`refresh_after_motion`, around line 5471)
+  covers only placed sectors, so such a system gets no containment,
+  nearest-systems or location refresh. The unbuilt scatter placeholders
+  (`phenomenon_scatter`, `bright_stars`) and standalone phenomena are
+  not advanced either. Planets, moons, comets and facilities are
+  already selected by due time with no sector filter. Done: (1) the
+  nightly update moves every object that exists in the galaxy: star
+  systems with no placed sector, standalone phenomena, and the scatter
+  placeholders, which get point columns plus an epoch and a
+  `next_update_due` and are advanced with the rest; (2) the point in
+  space is the one in-memory representation of position for everything,
+  and it is stored as separate columns, one per component (position,
+  velocity vector, epoch, and mass if it is needed), with no JSON, so
+  the point is rebuilt exactly as it was; the migration is Core's, and
+  existing rows are converted without changing a position; (3)
+  `refresh_after_motion` (containment, nearest-systems, location) also
+  covers objects with no placed sector; with tests that fail when any
+  kind of object is skipped, and a round-trip test that a stored point
+  rebuilds bit for bit. The sector-index code changed with the
+  Spherical Sector Coordinates work, so reread it against the shell
+  grid first. Owner: Core. Bug and feature: the missing move is the bug,
+  the column layout is the change.
   Prerequisites: none.
 
-- [ ] **GEN.226 Addresses on shells: designation, sector ID, seeds and object ID**
-  Progress (2026-10-15): PR #1551 did the designation, the object-ID
-  shell, band and wedge fields and the geometry extras; the sector ID
-  function and the stored rows ride DB.32, so this item stays open until
-  they land.
-  `provisional_sector_designation`, `sector_uid`, the 40-bit
-  birth-sector field and the per-sector seed string use shell, band and
-  wedge; width checks are added to the plan step; the GEN.69 and GEN.170
-  rules are otherwise unchanged. Owner: Spherical Sector Coordinates
-  thread. Source: item 3 of section 6 of the plan. Boss decided the
-  move (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
-  wedge (vert), shell (radius), and band (horizontal), together they
-  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
-  ahead of every lane queue.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+- [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
+  GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
+  check-db --deep --wide-binaries`, which counts the existing unstable
+  ones. Boss (2026-10-15 07:44Z) saw two in his last galaxy whose
+  orbital paths overlap and would end in planetary collisions. Run the
+  count and report how many break the rule; the repair or re-roll itself
+  needs Boss's word before anything is changed. Owner: Core. Source:
+  Boss's report 2026-10-15 07:44Z.
+  Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
-- [ ] **GEN.227 Generation paths on shells**
-  Progress (2026-10-15): merged into the integration branch
-  `claude/spherical-switch` as PR #1576 (part 1 PR #1570); it retires when
-  the final switch PR reaches main. ADM.30's old "cylinder height = X
-  layers" no longer applies: `--radius-pc` is a pure ball. The block-totals
-  step and `--fill-block-stats` are gone until MAP.205. Three tests stay
-  red until other work lands: the Sector Map bounds test (Maps, MAP.205/
-  206), the Generate page span test (UX, UX.111) and a sandbox-only
-  migration test.
-  `run_plan`, `run_galaxy`, `bright_stars`, `phenomenon_scatter`,
-  regions, spans and fills use the new grid: GEN.24 core by whole
-  shells, ADM.29 and ADM.30 as shell and band ranges, GEN.101 fill
-  order. Owner: Spherical Sector Coordinates thread. Source: item 5 of
-  section 6 of the plan. Boss decided the move (2026-10-15 06:39Z): "two
-  meridian lines from pole to pole make a wedge (vert), shell (radius),
-  and band (horizontal), together they identify a single 3D segment of
-  the sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisites: GEN.226, DB.32.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
-- [ ] **GEN.228 Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug)**
-  Boss, 2026-10-15 07:44Z: binary star systems must be stable. Check the
-  Hill sphere of not only the two stars but of the farther orbit on
-  each, so the orbital paths of a wide binary never intersect. Boss has
-  seen two systems in his last generated galaxy whose wide-binary paths
-  overlap significantly and would eventually cause planetary collisions
-  and chaos, and does not want to deal with that. Done: generating a
-  binary rejects or moves any layout where the outermost stable orbit of
-  either star (limited by its Hill sphere in the pair) reaches the other
-  star's orbit region or planet paths; a test generates many wide
-  binaries and finds none whose orbital paths overlap. Follow-up check,
-  in this item: do the already generated wide binaries need a repair or
-  re-roll pass? Report how many break the rule; the repair itself needs
-  Boss's word. Owner: Generate lane, queued after the sector remapping
-  (after the DB.32 + GEN.227 + UX.111 switch merges).
-  Prerequisites: none.
+- [ ] **GEN.230 Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug)**
+  Found by Quality's grid fuzz tests (branch claude/test158, not merged
+  yet). `DESIGNATION_BAND_BITS` in `src/planetgen/galaxy/spherical.py`
+  is 12, so the band field holds -2048 to 2047, but a shell's top band
+  (the polar cap) is about 1.57 times the shell number. From shell 1304
+  outward every cap and high-latitude band is out of range, and the
+  default Milky Way reaches shell 3764 with bands up to about plus or
+  minus 5,900. For those cells `provisional_sector_designation` and
+  `describe_sector_cell` raise ValueError. Sectors in the disk plane are
+  unaffected, so the bug is latent: it shows in the halo and over the
+  poles and in `/api/galaxy/cell` lookups there. Done: the band field is
+  wide enough for the deepest shell the galaxy can reach (14 bits), the
+  birth-field layout is decided and documented (shell 12 + band 14 +
+  wedge 15 is 41 bits, one more than the 40-bit birth field, so the
+  layout needs a decision, and it may change the object ID design), the
+  designation round-trips for every cell of the default galaxy, and
+  `test_designation_rejects_bands_outside_its_bit_field` in
+  `src/tests/test_fuzz_galaxy_grid.py` is updated by whoever fixes it.
+  Owner: Core (2026-10-15). A layout change reaches stored designations,
+  so it is Core's migration and is decided before more sectors are
+  created in the halo. Bug.
+  Prerequisites: none. Related: GEN.229.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3687,24 +3659,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.101 No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug)**
-  Boss (2026-10-15 05:30Z): "Why is there no update going on for the
-  phenomena indexes? There has to be something we can track, during a
-  phase with no updates the whole task bar should also still have an
-  estimated time remaining based on previous statistics or how long the
-  run has taken per task so far." Today the phase "Building the
-  phenomena indexes" (run_plan.py, step phenomena-index) is one pass
-  over the whole phenomenon_scatter table and says outright that there
-  is no progress until it is done. Fix: build the indexes so something
-  is countable (one index at a time, or chunks), so the step reports
-  progress; and when any phase reports nothing, the whole task bar still
-  shows an estimated time remaining from earlier runs' stage timings, or
-  from the time per task so far in this run. The same fallback must be
-  part of PERF.96's ETA function (see its acceptance), so it survives
-  the move to the Redis run record. Owner: Database,
-  together with PERF.96 (Boss retired the bug lanes, 2026-10-15
-  05:39Z).
-  Prerequisites: none. Related: PERF.96 (done, PR #1553), PERF.33 (done, PR #1553).
+- [ ] **PERF.102 The migration progress display shows no estimated time remaining on either bar (bug)**
+  Boss (2026-10-15 15:54 EDT), on his test server: "migration ETA
+  doesn't work". During a migration run the progress bars and the
+  elapsed time show, but neither bar shows an estimated time remaining.
+  Owner: Core (2026-10-15), grouped with PERF.101 (done, PR #1620), which had the same
+  symptom for the phenomena index build. Done: the migration progress
+  display (`planetgen.cli.migrate`, run from update.sh) shows an estimated time
+  remaining on both bars from the first step that reports progress, and
+  a step with no progress updates says so instead of showing nothing; a
+  test covers the estimate for a step that reports progress and a step
+  that does not. Reuses the progress and ETA code PERF.101 fixed. Bug.
+  Prerequisites: none. Related: PERF.101 (done, PR #1620).
 
 ## DB: Database and schema
 
@@ -3871,62 +3837,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration and agrees its timing; Foundations Wording writes
   the code against it. The phi4* column names stay (decided default); a
   rename to phi6* is not planned.
-
-- [ ] **DB.32 Schema: rename ring, layer and slot to shell, band and wedge, and convert the existing galaxy in place without moving anything**
-  Progress (2026-10-15): merged into the integration branch
-  `claude/spherical-switch` as PR #1574 (not yet on main; it retires when
-  the final switch PR merges). Left for the others on that branch: Maps
-  (MAP.205, MAP.206) replaces the Galaxy Map queries that now raise
-  NotImplementedError (galaxy_bright_stars_in_box,
-  galaxy_scattered_points_in_box, galaxy_filled_in_box, galaxy_stage,
-  galaxy_block_sums, galaxy_block_stats, galaxy_window,
-  galaxy_stage_keys); Generate (GEN.227) moves run_plan.py off
-  store.get_galaxy_layers and fill_block_stats, and the test helpers in
-  tests/test_galaxy_gen.py off outer_ring_index. Sector-less star systems
-  stay unplaced with their IDs until GEN.223.
-  Switch (2026-10-15): DB.32, GEN.227 and UX.111 land as one switch,
-  because the schema rename breaks the store, queries, generation and the
-  Galaxy Map code at once. Structure: a shared integration branch
-  `claude/spherical-switch`, owned by the Spherical Sector Coordinates
-  thread; Database (DB.32), Generate (GEN.227) and UX (UX.111) each open
-  their PR into it, and one final PR goes to main after Boss's word.
-  GEN.224 (PR #1549) and GEN.225 (PR #1551) are merged; the wedge-count
-  rule is Boss's 07:17Z one (6 * m, primes 2, 3, 5, 7; shell 1 stays
-  hand-cut: 12 wedges, cap 37.5 degrees).
-  A new Alembic revision renames `ring_index`, `layer_index` and
-  `ring_slot_index` to `shell_index`, `band_index` and `wedge_index` in
-  the seven address-keyed tables, and adds the old-schema fixture. It
-  also carries the conversion plan (Boss, 2026-10-15 06:54Z): "it will
-  need to be able to wipe out all of the sector data without losing the
-  position coordinates of everything. Rebuild the galactic sector map,
-  then link everything back to the sector it belongs in. Now, planets
-  and moons that have a star can just anchor to that, they are whatever
-  sector the star is in. Nothing's position changes just what we call
-  it." Done: the old sector rows, outline and sector-keyed statistics
-  are emptied; every star system, free-floating object and phenomenon
-  keeps its stored position, velocity and epoch; the sector map is
-  rebuilt on the shell grid; each object is linked to the shell, band
-  and wedge its position falls in; planets and moons anchor to their
-  star's sector and are never placed by their own coordinates; a check
-  compares every position before and after (zero difference) and counts
-  objects per sector, and no object is left without a sector (an object
-  outside the old outline gets the address its position falls in,
-  because no space is undefined: Boss, 2026-10-15 06:59Z). Object IDs
-  are renumbered (Decided, Boss, 2026-10-15 07:32Z): every object gets a
-  new ID built from its new sector in the conversion, and every table
-  that stores an object ID is rewritten with it; positions are
-  unchanged. Nothing is regenerated and nothing is deleted except sector
-  rows. The final PR to main merges on a green gate without waiting for
-  Boss's word (Boss, 07:56Z: "Do not wait for my word to merge unless
-  there becomes an outstanding question that you do not have a reasonable
-  default for"), even though it rewrites the whole sector map. Owner: Spherical Sector Coordinates thread (the
-  only migration lane while this runs). Source: item 4 of section 6 of
-  the plan. Boss decided the move (2026-10-15 06:39Z): "two meridian
-  lines from pole to pole make a wedge (vert), shell (radius), and band
-  (horizontal), together they identify a single 3D segment of the
-  sphere". TOP PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisite: GEN.226.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 ## API: The JSON API
 
@@ -4240,6 +4150,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   when the grid has to be built; documented in the API docs and the
   compatibility data.
   Prerequisite: GEN.199. Related: MAP.167.
+
+- [ ] **API.26 Bump API_VERSION for the shell, band and wedge sector address**
+  Found by Quality after the switch (PR #1607). `API_VERSION` is still
+  3, but the switch changed the sector address parameters of the API
+  from ring, layer and slot to shell, band and wedge, which is a
+  breaking change (`src/tests/test_api_version.py` says to bump it and
+  add its line to the change list in `docs/api.md`). Owner: Core
+  (2026-10-15). Done: `API_VERSION` is 4, `docs/api.md` lists the
+  change, and the version header tests pass. Open question for Boss
+  (default: bump to 4; there is no backward compatibility and Boss is
+  the only user, so no 3 route is kept). Not a bug.
+  Prerequisites: none. Related: API.4.
 
 ## ADM: Admin tools
 
@@ -4807,6 +4729,18 @@ clears each one.
   ahead of every lane queue.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
+- [ ] **TEST.158 The math check tests the spherical shell, band and wedge grid**
+  Found by Quality after the switch (PR #1607). `physics/mathcheck.py`
+  still checks the old cylinder grid through
+  `geometry.ring_sector_count` and the ring and slot helpers, so it
+  passes or fails on code the map is about to stop using. Rewrite it to
+  check the shell grid: shell radii and the 4 pc depth, the core ball,
+  the pole caps, the 6*m wedge count of every band (m only 2, 3, 5, 7),
+  that the bands and wedges of a shell cover the shell exactly, and that
+  a point maps to the sector whose bounds contain it. Owner: Quality
+  (2026-10-15), taken alongside TEST.156. Not a bug.
+  Prerequisites: none. Related: TEST.156.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -5203,8 +5137,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the three map-ui design docs. Open the Boss-facing decisions these
   touch as they are made.
   Docs sweep (2026-10-09): Docs sweep (2026-10-14): the cli.md items are
-  covered by DOC.36, the database-schema.md ones by DOC.33 and DOC.32,
-  the html-interface.md ones by DOC.31 and the system-file format ones
+  covered by DOC.36 (done, PR #1616), the database-schema.md ones by DOC.33 and DOC.32 (done, PR #1625),
+  the html-interface.md ones by DOC.31 (done, PR #1625) and the system-file format ones
   by DOC.30; the docstring ones by DOC.21. This item stays only for what
   none of those cover (docs/deployment/macos.md 'Monthly orbit update'
   wording); retire it when the others are done. Note the bright-star
@@ -5435,128 +5369,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the switch.
   Prerequisites: none. Related: PERF.88.
 
-- [ ] **DOC.27 Update the architecture.md flows and add a design-notes index at docs/design/README.md**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  4, 7 and 9. Flow 3 still says localStorage and JSON tiles, but the map
-  uses IndexedDB and packed binary tiles (MAP.158, MAP.159); no design
-  note is listed in architecture.md or any index, and three imported
-  notes have no inbound link. Done: the flows match the code and
-  docs/design/README.md lists every note with its status line.
-  Progress (PR #1598, Quality): the design-notes index at docs/design/README.md
-  is done. The architecture.md flows wait for the spherical switch,
-  because they name the ring, layer and slot modules.
-  Prerequisites: none.
-
-- [ ] **DOC.28 Rewrite the code map in docs/design/architecture.md for the planetgen packages**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  1 to 3, 5, 6 and 8. The whole src/stellarObjects map (lines 124 to
-  253) and the Flow 1 names describe modules that no longer exist (the
-  folder holds only pycache) with 11 dead links; it still says astropy
-  is read for constants (dropped, GEN.211), CI runs Python 3.9 and 3.12
-  (it runs 3.12 and 3.13) and the Planned restructuring is still
-  planned; more than 130 planetgen modules are not mentioned. Done: one
-  line per real module, no dead link, and docs/design/architecture.html
-  (the architecture artifact) is rebuilt from it.
-  Prerequisites: none.
-
-- [ ] **DOC.31 Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  29 to 38, 40 and 42. Numberformat.js row is stale (the rule is 7 or
-  more whole digits with no decimals, 5 or more with decimals, UX.36);
-  mdconvert.py should be mdrender.py and api/app.py should be
-  web/app.py; the / and /systems rows describe pages UX.55 redesigned;
-  routes are missing (/nearby, /nav/chart, /table/name,
-  /galaxy/uncharted, /galaxy/nebula, the job stream and log routes,
-  several admin routes); the header section list lacks Nearby and
-  Species; search parameters omit equipment, moon_equipment, phenomenon,
-  phenomenon_class and phenomena_page; the 503 Busy and 504 pages are
-  not mentioned; config.md line 164 and api/limiter.py line 99 omit
-  /galaxy/window from the galaxy_tiles scope; the doc says DBUtils is
-  needed. Two PRs if it grows: routes, then the rest. Done: every route
-  in the web app is in the table. Covers the html-interface.md part of
-  DOC.4.
-  Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.32 Update database-schema.md: control schema, missing tables and columns, old module names**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  20 to 25. The control schema section says 13 tables at v9; the code
-  has 18 at v14 (version_key_history, work_job_args and
-  generation_stage_runs are undocumented). No section exists for
-  phenomenon_scatter, nebula_shape_balls, generation_run_arguments,
-  id_blocks, id_counters or sector_system_counts; generation_runs still
-  lists an arguments column that moved in v63;
-  system_configs.prevalence_* and sector_stats.bright_mass_sol are
-  missing; old module names remain (doubleStar.py, planetData.py,
-  systemData.py and others). Done: every table and column in
-  db/models.py is described and a test or script compares the doc with
-  the models.
-  Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.33 Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  18, 19 and 26 to 28. Versioning still says v52 and describes
-  _migrate_vN_to_vN+1 functions that no longer exist (databases below
-  v61 raise SchemaTooOldError); the Planned changes table lists mostly
-  built items (DB.7, GEN.69, GEN.70, GEN.85 to GEN.89, OPS.13 and
-  others). Done: a short Versioning section points to
-  db/migrations/versions and the old-schema fixtures, and Planned
-  changes lists only what is still open. Covers the database-schema.md
-  part of DOC.4.
-  Prerequisites: none. Related: DOC.4.
-
-- [ ] **DOC.34 Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  10 to 14 and 17. The Not done yet section lists NAV.12, NAV.11,
-  ADM.21, SEC.30 and API.9 although they are built (API.15 is genuinely
-  open); missing are /api/galaxy/uncharted, /api/admin/galaxy-settings
-  (and by name), /api/admin/generation-stats/reset and the
-  phenomena_offset search paging; /galaxy/window is a web route, not an
-  API route; examples still use row-number references such as planet:12
-  that API v2 and v3 refuse; the Errors section lacks 504 QUERY_TIMEOUT
-  and 503 BUSY. Done: each route in src/planetgen/api is in the doc and
-  each example runs; checked against
-  docs/design/api-design-standards.md.
-  Prerequisites: none.
-
-- [ ] **DOC.36 Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-B.md, findings
-  1 to 6 and 8. cli.md lists 8 of the 11 subcommands (versions, check-db
-  and benchmark are missing); its Planned commands table lists as
-  unbuilt things that exist (check-db, versions, --strict, --directive,
-  --avoid-filled-space, --neighborhoods, --rings, --layers, --slots,
-  --cylinder-*), leaving only repair-db, --resume and
-  scripts/maintenance.sh planned; the bright-star default is 9000 L_sun
-  with a range of 2500 to 4,000,000 (tuning.py), not 500 and 100 or more
-  (DOC.4 says 1,000, also stale); --force is no longer needed on the
-  scatter; plan --seed exists but the doc says it does not; --no-settle,
-  --phenomena-only, --star-mix, --then-scatter, --backfill-from, the
-  plan's shape flags and plan --redo-nebula-field (GEN.205, dry run by
-  default, apply to change; #1325) are undocumented. Done: cli.md
-  matches planetgen --help for every subcommand; any star count or run
-  time quoted is measured, not copied. Covers the cli.md part of DOC.4.
-  Prerequisites: none. Related: DOC.4.
-
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -5568,16 +5380,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
   Prerequisites: UX.105, GEN.218, GEN.219.
 
-- [ ] **DOC.46 Docs for the spherical sector grid**
-  `galaxy-coordinate-system.md` rewritten, the cylinder design archived,
-  README, INSTALL and the docs sweep updated. Owner: documentation,
-  after the reads item. Source: item 10 of section 6 of the plan. Boss
-  decided the move (2026-10-15 06:39Z): "two meridian lines from pole to
-  pole make a wedge (vert), shell (radius), and band (horizontal),
-  together they identify a single 3D segment of the sphere". TOP
-  PRIORITY in Phase 1, ahead of every lane queue.
-  Prerequisite: UX.111.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
+- [ ] **DOC.47 Rebuild docs/design/architecture.html from the new architecture.md**
+  Found by Quality after DOC.27 and DOC.28 (PR #1628) rewrote the code
+  map and flows in docs/architecture.md for the shell grid. The
+  illustrated snapshot `docs/design/architecture.html` is still dated
+  2026-10-07 and the README links it, so it shows the cylinder grid and
+  the old code map. Done: the page is rebuilt from the new
+  architecture.md (same layout, dated the day it is rebuilt), names
+  shells, bands and wedges instead of rings, layers and slots, and the
+  README link and every `architecture.html` reference in the docs still
+  point at it. Owner: Quality (2026-10-15), after the Core and Maps
+  changes settle, so the snapshot is not stale on the day it is made.
+  Not a bug.
+  Prerequisites: none. Related: DOC.27, DOC.28 (done, PR #1628).
 
 ## VIEW: The view from a planet
 

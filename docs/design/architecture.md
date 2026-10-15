@@ -19,12 +19,6 @@ flow below changes shape (a new step, a new cache, a new process), update
 its diagram too. Each module's own docstring stays the detailed source of
 truth; this file only needs one line per module.
 
-**Planned restructuring (2026-10-07).** The code is to be reorganized
-into importable packages and moved onto third-party libraries (RQ on
-Redis for the queue, SQLAlchemy and Alembic for the database, and
-others); see [library-migration.md](library-migration.md). Until those
-land, the map below describes the code as it is.
-
 ## Contents
 
 - [The big picture](#the-big-picture)
@@ -32,9 +26,7 @@ land, the map below describes the code as it is.
   - [Top level](#top-level)
   - [scripts/](#scripts)
   - [examples/](#examples)
-  - [src/stellarObjects/](#srcstellarobjects)
-  - [src/ command-line tools](#src-command-line-tools)
-  - [src/planetgen/wiki/](#srcplanetgenwiki)
+  - [src/planetgen/](#srcplanetgen)
   - [src/html/](#srchtml)
   - [src/tests/](#srctests)
   - [.github/workflows/ and changes/](#githubworkflows-and-changes)
@@ -48,24 +40,27 @@ land, the map below describes the code as it is.
 
 planetGen has three layers that share one Python package:
 
-1. **Generation.** `planetgen` and the `src/stellarObjects/` package
+1. **Generation.** `planetgen` and the `generation/`, `physics/`, `galaxy/`,
+   `population/`, `names/` and `describe/` packages under `src/planetgen/`
    build stars, planets, sectors and whole galaxies from physics models
    and random draws.
 2. **Storage.** `src/planetgen/db/store.py` writes those objects into a
    MySQL database (`schema.sql`), reads them back, and migrates old
    databases forward. A second, separate schema (`control_schema.sql`)
    holds admin logins.
-3. **Serving.** One Flask app (`src/html/`) serves both the JSON API
+3. **Serving.** One Flask app (`planetgen/web/app.py`, started by `src/html/wsgi.py`) serves both the JSON API
    (`/api/...`) and the HTML pages. The pages never query the database
    themselves; they call the API in-process through `planetgen/web/lib/apiclient.py`,
-   and the API reads through `planetgen.db.query` and `store.py`.
+   and the API reads through `planetgen.db.query` and `store.py`. Redis sits beside
+   MySQL: the work queue (RQ), the rate limits, the login throttle and a running job's
+   progress live there (see [redis-and-the-work-queue.md](redis-and-the-work-queue.md)).
 
 Around those sit the installers (`install.sh` and `update.sh`), maintenance tools (`planetgen.cli.orbits`,
 `planetgen.cli.migrate`, ...), the tests, and the release workflows.
 
 ```mermaid
 flowchart LR
-    CLI["planetgen<br/>(CLI)"] --> SO["src/stellarObjects/<br/>generation + physics"]
+    CLI["planetgen<br/>(CLI)"] --> SO["generation/, physics/, galaxy/<br/>(src/planetgen/)"]
     SO --> DB["store.py"]
     DB --> MySQL[("MySQL<br/>content schema<br/>+ control schema")]
     Browser["Browser"] --> WSGI["src/html/wsgi.py"]
@@ -88,10 +83,11 @@ flowchart LR
 | [`planetgen`](../../src/planetgen/cli/generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
 | [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `planetgen population` by hand). Safe to run on a schedule. |
-| `setup.py`, `pyproject.toml` | The Python package (`stellarObjects`, `generate`) and its dependency floors and extras (`api`, `test`, `browser`). |
+| `setup.py`, `pyproject.toml` | The Python package (`planetgen`, from `src/`) and its dependency floors and extras (`api`, `test`, `browser`). |
+| `INSTALL.md`, `config.schema.json` | The installation guide, and the JSON schema `config.json` is checked against. |
 | `requirements.lock`, `requirements-server.lock` | Hash-pinned dependency locks, written by `scripts/lock-requirements.sh`. |
 | `config.json.example` | Template for the per-deployment `config.json` (gitignored). See [config.md](../config.md). |
-| `pytest.ini` | Puts `.`, `src` and `src/html` on the path for the tests. |
+| `pytest.ini` | Puts `src` on the path for the tests, sets the 15-minute per-test timeout and declares the markers (`db`, `slow`, `browser`, `generation`, `heavy`, `area_*`, ...). |
 | `CHANGELOG.md`, `README.md` | Release history and the project front page. Both are stamped by the release flow, never edited for the version by hand. |
 | `changes/` | Pending release notes, one file per PR. See [Flow 5](#flow-5-install-update-and-releases). |
 | `docs/` | Reference docs, `design/` topic designs, `analysis/` reviews, `deployment/` server guides, `TODO.md` (open work) and `plan/` (one plan per phase of it). |
@@ -104,6 +100,13 @@ flowchart LR
 | [`scripts/install-python-deps.sh`](../../scripts/install-python-deps.sh) | Makes the libraries importable by the system Python: plain pip, or apt first on an externally managed (PEP 668) Python, or a venv on macOS. `--check` installs only what is missing or too old. |
 | `scripts/probe_requirements.py` | Reports each requirement as ok, missing, old or broken. Used by `install.sh` and `update.sh`. Standard library only. |
 | `scripts/lock_pins.py` | Reads `requirements.lock` for `install-python-deps.sh` (constraints, resolve). Standard library only. |
+| [`scripts/test.py`](../../scripts/test.py) | Picks and runs a slice of the test suite (`changed`, `quick`, `full --check`, `budget`, ...; TEST.139). See [testing.md](../testing.md). |
+| `scripts/generate_db_models.py` | Writes `planetgen/db/models.py` (SQLAlchemy `Table` declarations) from `schema.sql` (DB.11). |
+| `scripts/check_redis_settings.py` | Warns about Redis server settings that do not suit planetGen (OPS.48); run by `install.sh` and `update.sh`. |
+| `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
+| `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
+| `scripts/build_todo_docs.py`, `scripts/todo_docs/` | Builds the three browsable TODO pages from the TODO sources. |
+| `scripts/bench_nav.py`, `scripts/star_type_by_radius.py` | Developer tools: times `nav_between` on a large synthetic galaxy (NAV.10); star types against distance from the core (GEN.133). |
 | `scripts/lock-requirements.sh` | Rewrites `requirements.lock` with `uv`. Run by a developer after changing a requirement, never on a server. |
 | [`scripts/bump_version.py`](../../scripts/bump_version.py) | Turns `changes/` notes into releases: bumps `_version.py`, the README badge and `CHANGELOG.md` together. Also the PR check (`--check-pr`). |
 
@@ -115,259 +118,430 @@ Copy-and-edit configuration for each kind of server. The guides in
 | Path | What it holds |
 |---|---|
 | `examples/apache/` | The Apache vhost (`planetgen.conf.example`) and the helpers `install.sh`/`update.sh` call: `set-permissions.sh`, `create-cache-dir.sh` (tile cache and jobs directories, via `deploy-paths.py`), `setup-debug-log.sh`, `apache-identity.sh`. |
+| `examples/redis/` | The Redis settings planetGen needs (AOF every second, no eviction); `update.sh` only warns, it never edits the server's own config. |
+| `examples/fail2ban/` | A fail2ban filter and jail for repeated failed logins. |
 | `examples/nginx/`, `examples/caddy/` | Reverse-proxy configs for gunicorn behind nginx or Caddy. |
 | `examples/macos/` | launchd plists (gunicorn, orbit update, update) and the Homebrew nginx config. |
 | `examples/systemd/` | The gunicorn service and a drop-in that reloads the web server after an update. |
 | `examples/maintenance/` | Scheduled maintenance: systemd timers and units for `planetgen.cli.orbits` (per database) and `update.sh`, `install-maintenance-timer.sh` (also makes launchd daemons on macOS). |
 | `examples/systems/` | Sample system files for `planetgen system --system-file` (Solar System, Tatooine, ...). See [example-systems.md](../example-systems.md) and [system-file-format.md](../system-file-format.md). Checked by `test_examples.py`. |
 
-### src/stellarObjects/
+### src/planetgen/
 
-The core package. Generation code works in natural units and knows
-nothing about the database; `store.py` is the one place that converts and
-stores. The groups below are by role, not by folder (the package is flat).
+The package. Generation, physics, the galaxy, storage, the API and the pages all live under it; the groups below follow its folders.
 
-#### Systems, stars and bodies
+#### Package root
 
-| Path | What it holds |
-|---|---|
-| [`generation/system.py`](../../src/planetgen/generation/system.py) | `StarSystem`: builds a whole system (star or binary, planets, moons, belts, comets, life data) and renders it as wikitext or Markdown (`__str__`). |
-| [`generation/star.py`](../../src/planetgen/generation/star.py) | `Star`: mass, radius, temperature, luminosity, habitable zone, Hill sphere, galactic orbit. |
-| `doubleStar.py` | `BinaryStarProxy`: a close (P-type) binary treated as one central star for planet generation. |
-| `wideBinary.py` | `WideBinaryPair`: a wide (S-type) binary where each star keeps its own planets. |
-| `compactRemnant.py` | `BlackHole` and `NeutronStar`, which can anchor a system in place of a `Star`. |
-| [`generation/planet.py`](../../src/planetgen/generation/planet.py) | `Planet`: one planet or moon, its state and its description text. |
-| [`physics/planets.py`](../../src/planetgen/physics/planets.py) | What a planet physically is: zone, class, radius, mass, atmosphere, temperature, moons, orbital position. |
-| `planetLife.py` | Whether and how life arises (biochemistry, evolution speed, timeline). Applied after the whole system exists. |
-| `evolution.py` | The speculative evolutionary timeline text for a habitable planet. |
-| `asteroidData.py` | `AsteroidBelt` and the shared composition helpers. |
-| `cometData.py` | `Comet`: a star-bound comet on a real Kepler orbit. See [comet-orbital-realism.md](comet-orbital-realism.md). |
-| `keplerMotion.py` | Kepler/Barker orbit propagation for eccentric and parabolic orbits. |
-| `facilities.py` | Starbases, colonies and outposts: placement rules and orbit math (schema v42). |
-| `config.py` | `SystemConfig`: every generation option (mostly tri-state flags), from the CLI or a system file. |
-| `serialization.py` | The allowlist `to_dict`/`from_dict` helpers the classes above share. |
-
-#### Star population
+The package root. The groups below are by role.
 
 | Path | What it holds |
 |---|---|
-| `stellarEvolution.py` | Draws a star as physics: Kroupa IMF mass, age from the star-formation history, evolved state (main sequence through remnant). |
-| `stellarPopulation.py` | The population model split at a luminosity threshold: bright stars for plan time, dim stars for sector fill. |
-| [`generation/bright_stars.py`](../../src/planetgen/generation/bright_stars.py) | Galaxy-wide bright-star scatter after `planetgen plan` (ring by ring, into `bright_stars`), the per-block backfill around each generated sector (`backfill_cells`, GEN.23), and `FillContext`, which a sector fill uses to build systems around its pre-placed stars. |
+| [`_version.py`](../../src/planetgen/_version.py) | The package version, stamped by the release workflow (never edited by hand). |
+| [`tuning.py`](../../src/planetgen/tuning.py) | Constants specific to this program's design, not physical fact: generation-tuning knobs and probabilities. |
 
-#### Exotic phenomena (outside any system)
+#### src/planetgen/generation/
 
-| Path | What it holds |
-|---|---|
-| `nebulaData.py` | `Nebula`. See [nebula-and-asteroid-field-classes.md](nebula-and-asteroid-field-classes.md). |
-| `asteroidFieldData.py` | `AsteroidField`: asteroid debris in open space. |
-| `supernovaRemnantData.py` | `SupernovaRemnant`. |
-| `roguePlanetData.py` | `RoguePlanet` and `InterstellarComet`. See [interstellar-object-rates.md](interstellar-object-rates.md). |
-| `quasarData.py` | `Quasar`: the galaxy's active nucleus, only ever at the center sector. |
-
-#### Sectors and galaxy geometry
+Building the objects a run creates, and the commands that run it. Generation code works in natural units and knows nothing about the database; `db/store.py` is the one place that converts and stores.
 
 | Path | What it holds |
 |---|---|
-| [`galaxy/sector.py`](../../src/planetgen/galaxy/sector.py) | `SpaceSector` and `SectorSystemEntry`: a region of space holding placed systems and phenomena, with Hill-sphere spacing. |
-| [`galaxy/geometry.py`](../../src/planetgen/galaxy/geometry.py) | The cylindrical sector grid: ring, layer and slot addresses, `SectorCell`, sector positions, neighbors, designations. See [galaxy-coordinate-system.md](galaxy-coordinate-system.md). |
-| [`galaxy/density.py`](../../src/planetgen/galaxy/density.py) | The disk, bulge and spiral-arm density model (`GalaxyShape`, `relative_density`). See [galaxy-disk-density.md](galaxy-disk-density.md). |
-| `galaxySkeleton.py` | The galaxy's outline: which layers hold content and how far out each reaches. Stored by `planetgen plan`. |
-| `galaxyViewport.py` | The Galaxy Map's data layer: cube tile keys and what each tile holds. |
-| `galaxyDrill.py` | The Galaxy Map's drill-down block ladder (243, 27, 3, 1 sectors a side). Mirrored in `static/galaxyprisms.js`. See [galaxy-drilldown-navigation.md](galaxy-drilldown-navigation.md). |
+| [`__init__.py`](../../src/planetgen/generation/__init__.py) | Generation: building the objects a run creates, and the commands that run it. |
+| [`belt.py`](../../src/planetgen/generation/belt.py) | `AsteroidBelt`: an asteroid belt within a star system and its composition. |
+| [`binary.py`](../../src/planetgen/generation/binary.py) | `BinaryStarProxy`: a close (P-type) binary treated as one central star for planet generation. |
+| [`bright_stars.py`](../../src/planetgen/generation/bright_stars.py) | Bright-star pre-placement: every star at least `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` bright is drawn and placed galaxy-wide right after `planetgen plan`, into `bright_stars`, while every sector stays unfilled. |
+| [`comet.py`](../../src/planetgen/generation/comet.py) | `Comet`: a star-bound comet on a real Kepler or Barker orbit. |
+| [`config.py`](../../src/planetgen/generation/config.py) | `SystemConfig`: every generation option for a system (mostly tri-state flags), from the CLI or a system file. |
+| [`directives.py`](../../src/planetgen/generation/directives.py) | Generation directives for a sector (GEN.96): minimums a run asks of a sector, such as "at least 5 systems", "at least 2 habitable worlds" or "at least 3 G-type stars". |
+| [`evolution.py`](../../src/planetgen/generation/evolution.py) | The speculative evolutionary timeline for a habitable planet, from its host star's spectral class. |
+| [`life.py`](../../src/planetgen/generation/life.py) | Whether and how life arises on a planet or moon: biochemistry, evolution speed and timeline. |
+| [`limits.py`](../../src/planetgen/generation/limits.py) | Upper bounds on the generation inputs an admin can type, checked by the Generate pages, the API and `planetgen`'s own argument parsing alike. |
+| [`luminosity_floor.py`](../../src/planetgen/generation/luminosity_floor.py) | The luminosity floor presets (GEN.184): the brightness above which every star is scattered galaxy-wide. |
+| [`object_first.py`](../../src/planetgen/generation/object_first.py) | The object-first scatter (PERF.58): decide how many objects a shell holds, then where, instead of walking every band of every shell. |
+| [`object_timing.py`](../../src/planetgen/generation/object_timing.py) | How long each generated object takes, per object and per object type (PERF.92), on top of the per-stage and per-job records (PERF.67). |
+| [`phenomena_plausibility.py`](../../src/planetgen/generation/phenomena_plausibility.py) | The exotic-phenomena plausibility anomaly finder (a developer report). |
+| [`phenomenon_scatter.py`](../../src/planetgen/generation/phenomenon_scatter.py) | Phenomenon pre-placement (GEN.100): the black holes, neutron stars, planetary nebulae and supernova remnants of the whole galaxy, its hypervelocity stars and the nucleus, drawn and placed right after `planetgen plan`. |
+| [`planet.py`](../../src/planetgen/generation/planet.py) | `Planet`: one planet or moon, its state and its description text. |
+| [`plausibility.py`](../../src/planetgen/generation/plausibility.py) | The physical-plausibility anomaly finder (a developer report, not part of a run). |
+| [`prevalence.py`](../../src/planetgen/generation/prevalence.py) | Prevalence: how much more or less often a sector or galaxy run's systems get a feature than they would by chance (GEN.52). |
+| [`run_common.py`](../../src/planetgen/generation/run_common.py) | What every generation command shares: the console progress bar, the `--strict` refuse-or-warn rule, the run's counts, the work queue a run hands its sectors to, and the statistics and estimate a bulk run checks first. |
+| [`run_galaxy.py`](../../src/planetgen/generation/run_galaxy.py) | The `galaxy` command: many sectors placed as one galaxy, each at its shell/band/wedge address in the spherical grid, with its systems inside the sector's own cell. |
+| [`run_phenomenon.py`](../../src/planetgen/generation/run_phenomenon.py) | The `phenomenon` command: one exotic stellar phenomenon (a black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet or asteroid field), on demand. |
+| [`run_plan.py`](../../src/planetgen/generation/run_plan.py) | The `plan` command: the galaxy's density skeleton (`galaxy_shape`, `galaxy_shell`) that `ensure_sector_generated` consults, and the galaxy-wide star and phenomenon scatters with their per-sector bands. |
+| [`run_population.py`](../../src/planetgen/generation/run_population.py) | The `population` command: species, civilizations and territories from what is already stored (`planetgen.population.model`), also run after a `sector` or `galaxy` run given `--population`. |
+| [`run_sector.py`](../../src/planetgen/generation/run_sector.py) | The `sector` command and the sector build both it and `galaxy` use (`generate_sector`): one `SpaceSector` of systems, phenomena, star-hosted nebulae, fast stars and, at the center, the nucleus. |
+| [`run_system.py`](../../src/planetgen/generation/run_system.py) | The `system` command: one star system, built from `SystemConfig` (the tri-state `+name`/`-name` options and `--system-file`). |
+| [`stages.py`](../../src/planetgen/generation/stages.py) | The stages of a generation command, numbered and announced as the run reaches them (UX.89). |
+| [`star.py`](../../src/planetgen/generation/star.py) | `Star`: mass, radius, temperature, luminosity, habitable zone, Hill sphere and galactic orbit. |
+| [`star_labels.py`](../../src/planetgen/generation/star_labels.py) | How a run's logs name kinds of star: the sector fill's summary line ("3 G-type, 1 K-type giant") and the bright-star scatter's per-shell lines (GEN.131) use the same words, so a log reads the same whichever step wrote it. |
+| [`star_population.py`](../../src/planetgen/generation/star_population.py) | The star population model split at a luminosity threshold, so a galaxy's bright stars are drawn and placed at plan time and each sector is later filled with only the dimmer rest. |
+| [`stats.py`](../../src/planetgen/generation/stats.py) | How fast this server generates and how much space it takes (PERF.10), and the size and time estimate every bulk generation shows before it writes anything (PERF.3). |
+| [`steps.py`](../../src/planetgen/generation/steps.py) | Steps (PERF.51): the one way a generation or maintenance run reports the progress of a piece of work. |
+| [`system.py`](../../src/planetgen/generation/system.py) | `StarSystem`: builds a whole system (star or binary, planets, moons, belts, comets, life data) and renders it. |
+| [`validation.py`](../../src/planetgen/generation/validation.py) | One place to validate a planet, a lunar system (a planet and its moons) and a star system (TODO ADM.5). |
+| [`wide_binary.py`](../../src/planetgen/generation/wide_binary.py) | `WideBinaryPair`: a wide (S-type) binary where each star keeps its own planets. |
 
-#### Navigation
+#### src/planetgen/generation/phenomena/
 
-| Path | What it holds |
-|---|---|
-| `navigation.py` | Pure math for NAV: course (distance, bearing, mark) and warp/fold travel times. See [navigation-frames.md](navigation-frames.md). |
-| `navGraph.py` | k-nearest-neighbor graph and Dijkstra shortest route between systems. |
-
-#### Population and politics
-
-| Path | What it holds |
-|---|---|
-| [`population/model.py`](../../src/planetgen/population/model.py) | The population pass (schema v44): names the dominant species of each life world, gives technological civilizations an age and an era, founds one polity per spacefaring species, and splits the generated systems around them into territories. Works only from stored rows (the planets' evolution text and the systems' positions), so it runs on a galaxy generated before it existed. `run_pass` is the entry point; `population_status` and the `list_*`/`*_detail`/`territory_points` readers back the API. Optional and off by default. See [population-and-politics.md](population-and-politics.md). |
-
-#### Naming
-
-| Path | What it holds |
-|---|---|
-| `names.py`, `offensive_words.txt` | Name word lists and the blocklist used to reject generated names. |
-| `utils.py` (name part) | `generate_phoneme_salad_name`, `generate_sector_name`, `is_name_valid`. |
-| `nameUniqueness.py` | Pure functions that decorate a colliding sector or system name (Greek/Roman suffixes, diminutives). `store.py` applies them on insert. A new star system name stays within two words (`MAX_SYSTEM_NAME_WORDS`): a decoration that would add a third is skipped and a fresh name drawn. |
-| `bodyNames.py` | Names stars, planets and moons from their system's name (`Voranthis II`, `Voranthis IIa`). |
-
-#### Persistence
-
-| Path | What it holds |
-|---|---|
-| [`db/store.py`](../../src/planetgen/db/store.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and `migrate_database`, which runs the Alembic revisions. `SCHEMA_VERSION` (the head revision's number) is set here. |
-| `alembic_runner.py`, `migrations/` | Runs the Alembic revisions in `db/migrations/versions/` (a revision's id is its schema version, so `SCHEMA_VERSION` is the head revision's number); databases older than v61 are refused. Steps for a schema change are in `db/migrations/README.md`. |
-| `models.py` | SQLAlchemy table definitions, generated from `schema.sql` by `scripts/generate_db_models.py`. |
-| [`schema.sql`](../../src/planetgen/db/schema.sql) | The content schema DDL (one database per galaxy). Its header notes record what each schema version changed. See [database-schema.md](../database-schema.md). |
-| [`control_schema.sql`](../../src/planetgen/db/control_schema.sql) | The control schema: admin users, sessions, API keys, audit log. One per deployment, versioned separately. |
-| [`sector_paths.py`](../../src/planetgen/db/sector_paths.py) | Saved sector paths (GEN.123): `compute_sector_paths`, `load_sector_paths`, and `settle_sectors`, which a `galaxy` run calls as its last step (GEN.126). |
-| `adminAuth.py` | Password hashing, sessions, API keys, credential rotation, audit log, and `bootstrap_control_schema` (creates the control schema and seeds the first admin). |
-| `render.py` | Renders a stored system's page text (wikitext or Markdown) on demand from the database rows. No page text is stored since schema v29. |
-
-#### Shared infrastructure
+The standalone phenomena (outside any system).
 
 | Path | What it holds |
 |---|---|
-| `physics/constants.py` | Real physical and astronomical constants and unit conversions, read from `astropy.constants` (GEN.66). |
-| `program_constants.py` | Design and tuning constants and the big data tables (planet classes, life chemistry, flavor text, facility rules, sector edge). |
-| `generationLimits.py` | Upper bounds on admin inputs, shared by the CLI, the API and the Generate pages. |
-| `util/format.py` | Number and unit formatting (the distance, speed, duration and pressure ladders, scientific notation) and `properties_to_string`; see [units-and-number-formatting.md](units-and-number-formatting.md). |
-| `appconfig.py` | Loads `config.json`; the `PLANETGEN_*` environment variables override it. |
-| `log.py` | The one logging channel (`--debug`/`--quiet`/`--silent`, the debug log file). |
-| `progressFile.py` | Writes `progress.json` for a web-started run when `PLANETGEN_PROGRESS_FILE` is set. |
-| `plausibility.py`, `phenomenaPlausibility.py` | Anomaly finders: hard invariants (gated in tests) and statistical reviews (CLI wrappers in `src/tests/`). |
-| `_version.py` | `__version__`, kept dependency-free so `setup.py` can read it. Stamped by the release flow. |
-| `__init__.py` | Re-exports the public classes (`Star`, `Planet`, `StarSystem`, `SpaceSector`, ...). |
+| [`__init__.py`](../../src/planetgen/generation/phenomena/__init__.py) | The standalone phenomena: asteroid fields, compact remnants, nebulae, quasars, rogue planets, interstellar comets and supernova remnants. |
+| [`asteroid_field.py`](../../src/planetgen/generation/phenomena/asteroid_field.py) | `AsteroidField`: a standalone field of asteroid debris. |
+| [`compact_remnant.py`](../../src/planetgen/generation/phenomena/compact_remnant.py) | `BlackHole` and `NeutronStar`, the end states of a massive star's collapse, which can anchor a system in place of a star. |
+| [`nebula.py`](../../src/planetgen/generation/phenomena/nebula.py) | `Nebula`: a standalone interstellar gas and dust cloud. |
+| [`quasar.py`](../../src/planetgen/generation/phenomena/quasar.py) | `Quasar`: a galaxy's own central supermassive black hole in its active phase. |
+| [`rogue.py`](../../src/planetgen/generation/phenomena/rogue.py) | `RoguePlanet` and `InterstellarComet`: unbound objects between the stars. |
+| [`supernova_remnant.py`](../../src/planetgen/generation/phenomena/supernova_remnant.py) | `SupernovaRemnant`: the expanding wreckage of a star's supernova. |
 
-#### Packages added by the library migration
+#### src/planetgen/physics/
 
-Modules the older tables above do not list (the layout moved to `src/planetgen/`; the HTML version of this map is generated from the files).
+The constants and the maths behind every generated body.
 
 | Path | What it holds |
 |---|---|
-| [`stage_progress.py`](../../src/planetgen/cli/stage_progress.py) | The progress bar of the maintenance commands (`reset`, `orbits`). |
-| [`warm_map.py`](../../src/planetgen/cli/warm_map.py) | `python -m planetgen.cli.warm_map`: builds the Galaxy Map opening view into the tile cache (MAP.134). |
-| [`worker.py`](../../src/planetgen/cli/worker.py) | One RQ worker for planetGen queues, at the lowered priority generation workers run at (PERF.24). |
-| [`keepout.py`](../../src/planetgen/galaxy/keepout.py) | The keep-out radius of every kind of object for courses (NAV.24). |
-| [`nebula_shape.py`](../../src/planetgen/galaxy/nebula_shape.py) | A nebula's irregular shape and its containment test (GEN.75). |
-| [`objectref.py`](../../src/planetgen/galaxy/objectref.py) | One reference form for every object, `<kind>:<id>` (NAV.7). |
+| [`__init__.py`](../../src/planetgen/physics/__init__.py) | Physics: the constants and the maths behind every generated body. |
+| [`activity.py`](../../src/planetgen/physics/activity.py) | Stellar activity (GEN.86): each star's X-ray and XUV output, whether its corona is still saturated, how often it flares, and the XUV it has put out over its life. |
+| [`atmosphere.py`](../../src/planetgen/physics/atmosphere.py) | Mantle redox and atmosphere species for planets and moons (GEN.85). |
+| [`body_positions.py`](../../src/planetgen/physics/body_positions.py) | Where every body of a system is at any time (MAP.70), from the scene `GET /api/systems/<id>/scene` returns (`web/maps/systemscene.py`). |
+| [`constants.py`](../../src/planetgen/physics/constants.py) | Universal physical and mathematical constants and unit conversions. |
+| [`formation.py`](../../src/planetgen/physics/formation.py) | Protoplanetary disk physics: the snow line, the minimum-mass solar nebula's surface density, and the isolation mass a planet can grow to. |
+| [`habitability.py`](../../src/planetgen/physics/habitability.py) | The planetary habitability index (GEN.84): the reference maths of docs/design/habitability-index.md section 7, every constant with its source. |
+| [`habitability_explain.py`](../../src/planetgen/physics/habitability_explain.py) | The words behind a body's PHI-6 colours (UX.91): for each of the six factors its colour and score, the inputs that make it up and which one sets the colour. |
+| [`habitability_world.py`](../../src/planetgen/physics/habitability_world.py) | The habitability score of every planet and moon (GEN.89): turns a body's stored air, water, temperature, radiation and light into the `World` that `habitability.scores` reads (GEN.84) and stores the result. |
+| [`hii.py`](../../src/planetgen/physics/hii.py) | H II regions from their stars' ionizing photons (GEN.150). |
+| [`hydrosphere.py`](../../src/planetgen/physics/hydrosphere.py) | Water on planets, moons and rogue planets (GEN.88). |
+| [`insolation.py`](../../src/planetgen/physics/insolation.py) | Summed insolation of a planet in a multi-star system (GEN.148). |
+| [`kepler.py`](../../src/planetgen/physics/kepler.py) | Two-body Kepler and Barker propagation for eccentric and parabolic orbits. |
+| [`light_travel.py`](../../src/planetgen/physics/light_travel.py) | Light-travel positions (VIEW.5): where an object appears to be to an observer. |
+| [`magnetism.py`](../../src/planetgen/physics/magnetism.py) | Planetary magnetic fields and the star's radiation at the planet (GEN.86). |
+| [`mathcheck.py`](../../src/planetgen/physics/mathcheck.py) | A fixed list of checks that the generator's math gives the right answers (TEST.63): pytest runs it first and stops the suite if it fails, and the website runs it once at startup. |
+| [`orbits.py`](../../src/planetgen/physics/orbits.py) | Orbital mechanics for generated systems: the habitable zone, Hill spheres and mutual Hill radii, the stability limit and orbital positions. |
+| [`planets.py`](../../src/planetgen/physics/planets.py) | What a planet or moon physically is: zone, class, radius, mass, density, composition, atmosphere, temperature, moons and orbital position. |
+| [`position.py`](../../src/planetgen/physics/position.py) | `SpatialPosition3D` keeps where one body is in three frames at once, each in Cartesian, cylindrical and spherical form, and keeps all of them in step: setting any coordinate, in any frame and any form, recomputes the rest. |
+| [`protection.py`](../../src/planetgen/physics/protection.py) | The protective gear a visitor needs on a world, and the paragraph that says where each habitability category falls and why (GEN.208). |
+| [`protection_limits.py`](../../src/planetgen/physics/protection_limits.py) | Every limit of the human visitor's habitability bands and protective gear in one table (GEN.208), so that a later per-species limit (the canon has races that live in conditions humans cannot) replaces a row here and nothing else. |
+| [`radiation.py`](../../src/planetgen/physics/radiation.py) | Surface radiation dose, UV and galactic hazards (GEN.87). |
+| [`rogue_surface.py`](../../src/planetgen/physics/rogue_surface.py) | A rogue planet has no star, so its surface is set by its own heat alone (Boss's research, 2026-10-01; Stevenson 1999, Burrows et al. |
+| [`sector_path.py`](../../src/planetgen/physics/sector_path.py) | A body with no closed orbit (a star, a rogue planet, a hyperbolic or parabolic comet, an interstellar object) crosses a sector on a path that is not a straight line when it passes a heavy mass. |
+| [`species_limits.py`](../../src/planetgen/physics/species_limits.py) | A species' environment limits are the human visitor's table (`protection_limits.LIMIT_ROWS`) with some rows replaced: `overrides`, a dict `{limit name: value}`, empty for a species with the human limits. |
+| [`spin.py`](../../src/planetgen/physics/spin.py) | Every rotating body's spin: a unit axis (the direction of its angular velocity, right-handed) and a rate (its rotation period), so the spin vector is `axis * 2 pi / period`. |
+| [`state_vectors.py`](../../src/planetgen/physics/state_vectors.py) | Conversion between a two-body orbit's elements and its state vector, with the Kepler solver (GEN.122, GEN.66). |
+| [`stellar_evolution.py`](../../src/planetgen/physics/stellar_evolution.py) | Draws a star as physics: a Kroupa IMF mass, an age from the star-formation history and the evolved state, main sequence through remnant. |
+| [`units.py`](../../src/planetgen/physics/units.py) | Distance conversions between light-years, parsecs, milliparsecs and AU. |
+
+#### src/planetgen/galaxy/
+
+The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The sector grid is `spherical.py` (see [galaxy-coordinate-system.md](galaxy-coordinate-system.md)).
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/galaxy/__init__.py) | The galaxy: its sector grid, density model and outline, seeds and version keys, object IDs, sectors, nebula fields and navigation. |
+| [`density.py`](../../src/planetgen/galaxy/density.py) | The galaxy density model (`docs/design/galaxy-disk-density.md`): an exponential thin disk with spiral arms, a thick disk and a boxy bar bulge, fitted to published Milky Way structure (GEN.118, GEN.119). |
+| [`drill.py`](../../src/planetgen/galaxy/drill.py) | The Galaxy Map's drill-down ladder of nested blocks (243, 81, 27, 9, 3 and 1 sectors a side), still the cylinder's; rebuilt on shells with MAP.205 and MAP.206. |
+| [`frame.py`](../../src/planetgen/galaxy/frame.py) | Distances from the galactic axis and center, and the local axes a sector carries (`sector_orientation`), which the offsets of `star_systems.position_x/y/z_mpc` and the Sector Map's scenes are expressed in. |
+| [`galactic_orbit.py`](../../src/planetgen/galaxy/galactic_orbit.py) | A star system's circular orbit around the galactic center: its speed, period and phase, and the text every "Galactic Orbit" row shows. |
+| [`geometry.py`](../../src/planetgen/galaxy/geometry.py) | The cylindrical sector grid's geometry, kept only for what the Galaxy Map ladder (`drill.py`, `viewport.py`) and a few shared helpers (`binary_companion_offset_pc`) still use until MAP.205 and MAP.206 replace them; the sector grid is `spherical.py`. |
+| [`keepout.py`](../../src/planetgen/galaxy/keepout.py) | The keep-out radius of an object (NAV.24): how close a course should come before it counts as entering the object's gravity. |
+| [`nav_graph.py`](../../src/planetgen/galaxy/nav_graph.py) | A k-nearest-neighbor graph over systems' positions and its shortest hop-by-hop path (Dijkstra): the "optimal route via adjacent systems" half of NAV. |
+| [`navigation.py`](../../src/planetgen/galaxy/navigation.py) | Pure math for the NAV feature: the course (distance, bearing, mark) between two absolute 3D positions, and warp and fold travel times along that distance. |
+| [`nebula_field.py`](../../src/planetgen/galaxy/nebula_field.py) | Dark-family nebulae (giant molecular clouds, dark clouds, Bok globules and star-forming cores, classes M-Q) are tens of light-years across, far bigger than a 13 ly sector. |
+| [`nebula_shape.py`](../../src/planetgen/galaxy/nebula_shape.py) | A nebula's irregular shape: a few warped metaballs, its triangle mesh and its containment test (GEN.75). |
+| [`object_uid.py`](../../src/planetgen/galaxy/object_uid.py) | The object ID (GEN.170, docs/design/object-id-options.md section 0): one fixed-length ID for every object in the galaxy, made of where it was born and which birth it was. |
+| [`objectref.py`](../../src/planetgen/galaxy/objectref.py) | One reference form for every object (NAV.7): `<kind>:<id>`. |
+| [`region.py`](../../src/planetgen/galaxy/region.py) | Regions of the sector grid for the generation commands (a neighborhood, a block, a course's cells); the cylinder's block parts are rebuilt on shells with MAP.205 and MAP.206. |
+| [`remnant_distribution.py`](../../src/planetgen/galaxy/remnant_distribution.py) | Where neutron stars and black holes are, against where stars are (GEN.132). |
+| [`sector.py`](../../src/planetgen/galaxy/sector.py) | `SpaceSector` and `SectorSystemEntry` classes, which store a named collection of star systems laid out in three-dimensional space. |
+| [`seed.py`](../../src/planetgen/galaxy/seed.py) | The galaxy's 128-bit seed and the seeds derived from it (GEN.39; see docs/design/reproducible-galaxies.md, section 3). |
+| [`settings_file.py`](../../src/planetgen/galaxy/settings_file.py) | The galaxy's creation settings as a JSON file (ADM.18; docs/design/reproducible-galaxies.md, section 7). |
+| [`skeleton.py`](../../src/planetgen/galaxy/skeleton.py) | Finds, for a given `galaxyDensity.GalaxyShape`, the one structural fact worth precomputing about the whole galaxy: which cells of the spherical sector grid (`galaxy/spherical.py`) can hold any content, and how far out each shell reaches. |
+| [`span.py`](../../src/planetgen/galaxy/span.py) | A span of the galaxy's sector grid (ADM.29): a range of shells, a range of bands and, inside one shell and band, an arc of wedges -- the shape the Generate page's and `planetgen galaxy`'s span fills describe. |
+| [`spherical.py`](../../src/planetgen/galaxy/spherical.py) | Every galaxy-placed sector is one cell of a grid of spherical shells centred on the galactic origin (`docs/design/spherical-sector-coordinates.md`, the plan; Boss, 2026-10-15). |
+| [`straight_line.py`](../../src/planetgen/galaxy/straight_line.py) | Where an object that is not on a galactic orbit is at a given time (GEN.137). |
 | [`system_position.py`](../../src/planetgen/galaxy/system_position.py) | Where everything in a star system is in the galaxy (GEN.74). |
-| [`object_uid.py`](../../src/planetgen/galaxy/object_uid.py) | The 80-bit birth-location ID of every object: pack, unpack, print, parse, layout choice (GEN.170). |
-| [`uid.py`](../../src/planetgen/galaxy/uid.py) | A sector's ID, its designation as an integer (GEN.69). |
-| [`prevalence.py`](../../src/planetgen/generation/prevalence.py) | Prevalence: how much more or less often a run's systems get a feature than by chance (GEN.48). |
-| [`naming_key.py`](../../src/planetgen/names/naming_key.py) | The galaxy's naming key that turns an ID into a name (GEN.70). |
-| [`body_positions.py`](../../src/planetgen/physics/body_positions.py) | Where every body of a system is at any time (MAP.70). |
-| [`light_travel.py`](../../src/planetgen/physics/light_travel.py) | Light-travel positions: where an object appears to be to an observer (VIEW.5). |
-| [`position.py`](../../src/planetgen/physics/position.py) | `SpatialPosition3D`: one body's position in the galactic, sector and system frames, with its velocity (GEN.74). |
-| [`sector_path.py`](../../src/planetgen/physics/sector_path.py) | The path of a body without a closed orbit through its sector, as Hermite spline knots (GEN.123). |
-| [`state_vectors.py`](../../src/planetgen/physics/state_vectors.py) | Conversion between a two-body orbit's elements and its state vector, with the Kepler solver on scipy (GEN.122, GEN.66). |
-| [`api_jobs.py`](../../src/planetgen/queue/api_jobs.py) | Long API work on the Redis queue: the route answers 202 with a job id (PERF.24). |
-| [`redisclient.py`](../../src/planetgen/queue/redisclient.py) | The one place a Redis client is made (PERF.94): a shared, cached client per server and settings, with connect and read timeouts, a retry on a dropped connection, a health check and keepalive. |
-| [`redisqueue.py`](../../src/planetgen/queue/redisqueue.py) | The RQ queues, the JSON serializer the web queues use and the workers that run them (PERF.24). |
-| [`systemscene.py`](../../src/planetgen/web/maps/systemscene.py) | The 3D system view's data: one system as JSON with its orbits (MAP.69). |
+| [`uid.py`](../../src/planetgen/galaxy/uid.py) | A sector's ID (GEN.69): its designation (`spherical.provisional_sector_designation`), shell, biased band and wedge packed into one integer. |
+| [`version_check.py`](../../src/planetgen/galaxy/version_check.py) | The mixed-version warning (DB.7): a galaxy extended by a different release holds sectors made by more than one version, and reproduces only sector by sector. |
+| [`version_history.py`](../../src/planetgen/galaxy/version_history.py) | The version keys an update has run under (OPS.13; docs/design/reproducible-galaxies.md). |
+| [`version_key.py`](../../src/planetgen/galaxy/version_key.py) | The version key (DB.6; docs/design/reproducible-galaxies.md, section 4): 22 uppercase hex digits naming exactly what a galaxy seed needs to make the same galaxy again -- the PlanetGen release and the environment it ran in. |
+| [`viewport.py`](../../src/planetgen/galaxy/viewport.py) | The Galaxy Map's cube-tile arithmetic (the octree of 16 pc to 65,536 pc cubes, tile keys) and viewport queries. |
+| [`window.py`](../../src/planetgen/galaxy/window.py) | The Galaxy Map's data windows of cells (MAP.151); rebuilt on shells with MAP.205 and MAP.206. |
 
-### src/ command-line tools
+#### src/planetgen/population/
 
-Each is run as `python3 -m planetgen.cli.<name>`. They read the database settings
-from `config.json` or `PLANETGEN_MYSQL_*`, like every entry point.
+Species, civilizations, polities and facilities.
 
 | Path | What it holds |
 |---|---|
-| `planetgen.db.query` | The read layer and a list/query CLI. `open_readonly`, the listings, `sector_detail`/`system_detail`, `search`, `nav_between`, every Galaxy Map query (`galaxy_tiles`, `galaxy_stage`, `galaxy_content_stamp`, `galaxy_changes`, `galaxy_locate` for the address bar), and the bright-star reads (`bright_star_scatter_status`, `bright_stars_in_sector`, `galaxy_bright_stars_in_box` with `unfilled_only`). The API's read routes call these. |
-| `planetgen.cli.migrate` | Brings the content database to the current schema (`store.migrate_database`, with a progress bar), then bootstraps the control schema. `--status` reports without changing anything. Run by the installers. |
-| `planetgen.cli.reset` | Empties every generated table (`TRUNCATE`), keeping the schema and its version. |
-| `planetgen.cli.orbits` | Advances every orbit and galactic position by the real time elapsed since the last run. Meant for a monthly timer. |
-| `planetgen.db.stats` | Read-only statistics about a database (table sizes, schema version, decorated names, `bright_star_counts`) for the admin stats page. |
-| `planetgen.cli.dedupe` | One-off backfill that resolves duplicate sector and system names in an older database. |
-| `planetgen.cli.render_parity` | One-off pre-v29 check that on-demand rendering matches the stored page text. |
+| [`__init__.py`](../../src/planetgen/population/__init__.py) | Population: species, civilizations, polities and facilities. |
+| [`facilities.py`](../../src/planetgen/population/facilities.py) | Facilities: starbases, colonies and outposts (schema v42). |
+| [`facility_attrs.py`](../../src/planetgen/population/facility_attrs.py) | What a facility carries beyond its place (POP.10): a type with the values of that type's fields, an affiliation and five ratings. |
+| [`facility_icons.py`](../../src/planetgen/population/facility_icons.py) | The icons a facility type may use (POP.10). |
+| [`facility_ratings.py`](../../src/planetgen/population/facility_ratings.py) | The five ratings of a facility (POP.10): crime, housing, resources, maintenance and health, each Green, Yellow or Red. |
+| [`facility_suggest.py`](../../src/planetgen/population/facility_suggest.py) | Suggested ratings for a facility (POP.10). |
+| [`facility_types.py`](../../src/planetgen/population/facility_types.py) | Facility types and their typed fields (POP.10, schema v89). |
+| [`model.py`](../../src/planetgen/population/model.py) | The population pass (GEN.80): names the species of every world with a technological civilization, dates them and gives each spacefaring species a polity and its reach. |
+| [`tech.py`](../../src/planetgen/population/tech.py) | Six domain indices, each an integer 0 to 7 (Energy, Materials, Information, Medical, Propulsion, Defense), drawn from a species' age, and the tech level as their weighted sum. |
 
-### src/planetgen/wiki/
+#### src/planetgen/names/
 
-Publishes a page to Wiki.js or MediaWiki behind one `WikiClient` object.
-Used by the API's "Upload to Wiki" routes.
+How generated things are named.
 
 | Path | What it holds |
 |---|---|
-| `client.py` | `WikiClient`: dispatches to the backend named at construction. |
-| `wikijs.py`, `mediawiki.py` | The two backends (GraphQL with an API token; Action API with a bot password). Standard library only. |
-| `base.py`, `exceptions.py` | The shared result type, backend interface and exception hierarchy. |
+| [`__init__.py`](../../src/planetgen/names/__init__.py) | Names: how generated things are named. |
+| [`bodies.py`](../../src/planetgen/names/bodies.py) | Derived names for the stars, planets and moons inside one star system. |
+| [`gated_phoneme_codec.py`](../../src/planetgen/names/gated_phoneme_codec.py) | A reversible, deterministic codec from hexadecimal identifiers to pronounceable names. |
+| [`naming_key.py`](../../src/planetgen/names/naming_key.py) | The naming key (GEN.70; docs/design/object-ids.md, "Planned" step 3). |
+| [`object_id.py`](../../src/planetgen/names/object_id.py) | The 76-bit position ID every interstellar object is named by (GEN.64). |
+| [`uniqueness.py`](../../src/planetgen/names/uniqueness.py) | Name-uniqueness decoration -- pure functions, no database access. |
+| [`wordlists.py`](../../src/planetgen/names/wordlists.py) | The data for the procedural name generator: base names, prefixes, suffixes and syllables. |
+| [`wordsalad.py`](../../src/planetgen/names/wordsalad.py) | The syllable and phoneme-salad name generator, its validity checks, and sector names. |
+
+#### src/planetgen/describe/
+
+One description of a star system for every output that shows one (see [system-description.md](system-description.md)).
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/describe/__init__.py) | One description of a star system, for every output that shows one (docs/design/system-description.md, UX.104). |
+| [`build.py`](../../src/planetgen/describe/build.py) | `describe(system)`: the Document of a star system (docs/design/system-description.md). |
+| [`markdown.py`](../../src/planetgen/describe/markdown.py) | A Document as Markdown, on request (docs/design/system-description.md, section 4). |
+| [`model.py`](../../src/planetgen/describe/model.py) | The Document's node constructors and its checker (docs/design/system-description.md, section 3). |
+| [`quantity.py`](../../src/planetgen/describe/quantity.py) | Writes a Document's inline text and quantities as a string (docs/design/system-description.md, section 4). |
+| [`render.py`](../../src/planetgen/describe/render.py) | The walk the plain-string renderers share (docs/design/system-description.md, section 4): a Document's sections in order, each as a heading, its blocks and its child sections. |
+| [`text.py`](../../src/planetgen/describe/text.py) | A Document as plain text for a terminal, with no markup (docs/design/system-description.md, section 4). |
+| [`wikitext.py`](../../src/planetgen/describe/wikitext.py) | A Document as MediaWiki text, on request (docs/design/system-description.md, section 4). |
+
+#### src/planetgen/util/
+
+Helpers every package can use.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/util/__init__.py) | Shared helpers every planetgen package can use. |
+| [`checks.py`](../../src/planetgen/util/checks.py) | `finite_domain`, the decorator that gives a numeric physics helper one contract: it returns finite numbers or raises `ValueError`. |
+| [`draw.py`](../../src/planetgen/util/draw.py) | Every random draw generation makes goes through here (GEN.56; see docs/design/reproducible-galaxies.md, section 5). |
+| [`format.py`](../../src/planetgen/util/format.py) | The text every number, distance, speed, duration, temperature, pressure and age is shown in, for the generator's wikitext and Markdown and for the web pages. |
+| [`ladders.py`](../../src/planetgen/util/ladders.py) | The data behind every measurement the site shows (UX.23): for each quantity a ladder of units, smallest first, and the rule for which one a value is shown in. |
+| [`log.py`](../../src/planetgen/util/log.py) | A single, shared logging channel for `planetgen` and every planetGen module -- everything routes through here instead of bare `print()` calls, so `--debug`/`--quiet`/`--silent` behave consistently everywhere. |
+| [`logpaths.py`](../../src/planetgen/util/logpaths.py) | The debug switch and the two log locations, read straight from `config.json` (or the environment) with the standard library alone. |
+| [`poisson.py`](../../src/planetgen/util/poisson.py) | Poisson counts for any mean in constant time (PERF.60). |
+| [`random.py`](../../src/planetgen/util/random.py) | Seeded sampling helpers: power-law and bounded-bell draws and the one log-uniform draw. |
+| [`serialization.py`](../../src/planetgen/util/serialization.py) | The allowlist `to_dict`/`from_dict` helpers the generator's classes share. |
+| [`settings.py`](../../src/planetgen/util/settings.py) | One Pydantic model, `Settings`, describes every `config.json` option: its type, default, help text, unit, whether it is a secret, whether changing it needs a restart, which environment variable overrides it and whether the web may edit it. |
+| [`stagemark.py`](../../src/planetgen/util/stagemark.py) | The one wording for "where a job is": `"Stage 4 of 12"` for one stage and `"Stages 4 to 12 of 12"` for a run of them. |
+
+#### src/planetgen/queue/
+
+The work queue and the API's long jobs, on Redis with RQ.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/queue/__init__.py) | The work queue: runs of generation and the API's long jobs, on Redis with RQ. |
+| [`api_jobs.py`](../../src/planetgen/queue/api_jobs.py) | Long API work on the Redis queue (PERF.24 step 4): the route answers `202 Accepted` with a job id and the client reads the outcome from `GET /api/jobs/<id>`. |
+| [`load.py`](../../src/planetgen/queue/load.py) | The server's load for the admin queue page (ADM.10), as the three numbers "x / x / x" over the last 1, 5 and 15 minutes: the load average (`os.getloadavg`), runnable processes decaying over each window. |
+| [`progress_file.py`](../../src/planetgen/queue/progress_file.py) | Machine-readable progress for a run started from the web interface. |
+| [`progress_rate.py`](../../src/planetgen/queue/progress_rate.py) | The rate behind every generation progress bar's ETA (PERF.7, PERF.37): work finished per second as an exponentially weighted average over time. |
+| [`redisclient.py`](../../src/planetgen/queue/redisclient.py) | The one place a Redis client is made (PERF.94, finding F9 of docs/design/redis-and-the-work-queue.md). |
+| [`redishealth.py`](../../src/planetgen/queue/redishealth.py) | What the admin Stats page shows about Redis (ADM.54): whether it answers and the settings (append-only file, memory policy) that decide whether the queue survives a restart. |
+| [`redisqueue.py`](../../src/planetgen/queue/redisqueue.py) | The work queue on Redis with RQ (PERF.24, step 1): the connection, the queues, and the workers that run them. |
+| [`runeta.py`](../../src/planetgen/queue/runeta.py) | The time left in a run (PERF.96, PERF.33), a pure function of the counters `runrecord.read_run` returns, shared by the terminal bar, the Generate and Queue pages and the banner. |
+| [`runrecord.py`](../../src/planetgen/queue/runrecord.py) | A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/redis-and-the-work-queue.md 5.1 and 5.2): the one place a run lives. |
+| [`work.py`](../../src/planetgen/queue/work.py) | The generation work queue (PERF.8): runs independent units of work (a sector to fill, a run of shells to scatter) on a pool of worker processes, at most about 80% of the machine's cores. |
+| [`workers.py`](../../src/planetgen/queue/workers.py) | The workers of the two shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how many there are, and how a running job is stopped. |
+
+#### src/planetgen/db/
+
+The content database: writing, reading, migrating and checking it. `schema.sql` and `control_schema.sql` are the SQL; `migrations/versions/` holds one Alembic revision per schema version.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/db/__init__.py) | The content database (MySQL): writing, reading, migrating and checking it. |
+| [`alembic_runner.py`](../../src/planetgen/db/alembic_runner.py) | Runs the Alembic revisions in `planetgen/db/migrations/` against a planetGen content database (DB.11). |
+| [`check.py`](../../src/planetgen/db/check.py) | `planetgen check-db` (and the Admin dashboard's "Check the database" button, which runs it as a job) looks for damage in a galaxy database and changes nothing. |
+| [`corridor.py`](../../src/planetgen/db/corridor.py) | The objects near a straight segment of the galaxy, for routing and course steering. |
+| [`countcache.py`](../../src/planetgen/db/countcache.py) | Counts and filter-menu totals that are too big to take inside a web request (PERF.64). |
+| [`edits.py`](../../src/planetgen/db/edits.py) | Writes an admin's edits back to the content database (TODO ADM.1): a star system changed in memory (a body regenerated, removed, reclassified, or a new star), a phenomenon regenerated in place, and a sector deleted with everything in it. |
+| [`fingerprint.py`](../../src/planetgen/db/fingerprint.py) | A canonical SHA-256 digest of each sector's generated content, and one for a region, so two builds can be compared (`docs/design/reproducible-galaxies.md`). |
+| [`login.py`](../../src/planetgen/db/login.py) | `connect(...)` is `pymysql.connect(...)` that explains a failed login: the account's password is wrong, or its authentication plugin can't finish with this pymysql. |
+| [`models.py`](../../src/planetgen/db/models.py) | The content database's tables as SQLAlchemy `Table` objects on `metadata` (DB.11). |
+| [`near.py`](../../src/planetgen/db/near.py) | `objects_within`: what is within N parsecs of a place, for every kind of object (systems with their bodies, facilities and the standalone phenomena). |
+| [`query.py`](../../src/planetgen/db/query.py) | The read layer and a list/query CLI: listings, `sector_detail`/`system_detail`, `search`, `nav_between` and every Galaxy Map query. |
+| [`render.py`](../../src/planetgen/db/render.py) | On-demand rendering of a stored star system's text. |
+| [`sector_paths.py`](../../src/planetgen/db/sector_paths.py) | `compute_sector_paths` and `settle_sectors`: the path every system, rogue planet and interstellar comet takes from where it is now to where it leaves its sector, saved when a run settles. |
+| [`shell_specs.py`](../../src/planetgen/db/shell_specs.py) | The galaxy's outline as the Generate page shows it (ADM.28): how many shells it has, how far out they reach, and how many sectors are charted in each. |
+| [`species_fit.py`](../../src/planetgen/db/species_fit.py) | Which species could live where (POP.12). |
+| [`stats.py`](../../src/planetgen/db/stats.py) | Read-only statistics about one content database, for the admin stats page (`html/adminstats.py`, via `GET /api/admin/stats` and `GET /api/admin/duplicate-names` in `planetgen/api/admin.py`). |
+| [`stones.py`](../../src/planetgen/db/stones.py) | Stepping stones for a route from system to system (NAV). |
+| [`store.py`](../../src/planetgen/db/store.py) | The write path and the schema bookkeeping: saves generated objects, loads them back, allocates ids, migrates and checks versions. |
+
+#### src/planetgen/admin/
+
+Admin accounts and security: sign-in, lockouts, the activity log, edits and maintenance mode.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/admin/__init__.py) | Admin accounts and security: sign-in and its two-step codes, lockouts, the activity log, and admin edits to stored systems. |
+| [`activity_log.py`](../../src/planetgen/admin/activity_log.py) | The activity log: every admin and system action, separate from the debug log. |
+| [`auth.py`](../../src/planetgen/admin/auth.py) | Admin authentication/authorization: password hashing, web-session and API-key lifecycle, credential rotation, and the audit log -- all against the control schema (`control_schema.sql`), never the per-galaxy content schema. |
+| [`edits.py`](../../src/planetgen/admin/edits.py) | An admin's edits to a stored star system (ADM.1): regenerate or remove a planet, moon or belt (ADM.8), change a body's class (ADM.6) or a single star's type (ADM.7), made on the `StarSystem` that `store.load_star_system` returns and written back with `db/edits.py`'s `save_system_edits`; every edit is stabilized by `validation.stabilize_star_system`. |
+| [`maintenance.py`](../../src/planetgen/admin/maintenance.py) | One switch that makes the whole site, pages and API alike, unavailable to everyone but a signed-in admin (or an admin's API key): used while the sector maps are rebuilt. |
+| [`throttle.py`](../../src/planetgen/admin/throttle.py) | The login throttle: the per-address lockout and the per-username backoff. |
+
+#### src/planetgen/cli/
+
+The command-line tools, each run as `python3 -m planetgen.cli.<name>` (the generator is `planetgen`). They read the database settings from `config.json` or `PLANETGEN_MYSQL_*`.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/cli/__init__.py) | The command-line tools. |
+| [`benchmark.py`](../../src/planetgen/cli/benchmark.py) | `planetgen benchmark` (PERF.31): where a generation run spends its time, from the plan to a finished fill. |
+| [`config.py`](../../src/planetgen/cli/config.py) | Checks and documents the settings (`planetgen.cli.config`). |
+| [`dedupe.py`](../../src/planetgen/cli/dedupe.py) | One-off backfill that resolves duplicate sector and system names in an older database with the same decoration `store.py` applies on save. |
+| [`generate.py`](../../src/planetgen/cli/generate.py) | `planetgen`: the single entry point for every generator, dispatched by subcommand. |
+| [`lockouts.py`](../../src/planetgen/cli/lockouts.py) | Lists and lifts login lockouts (SEC.1, SEC.21) from the command line, for an admin locked out of the web interface itself: |
+| [`maintenance.py`](../../src/planetgen/cli/maintenance.py) | Turns maintenance mode on or off (UX.112). |
+| [`migrate.py`](../../src/planetgen/cli/migrate.py) | Brings the configured planetGen MySQL database's `schema_migrations` bookkeeping up to the current schema (`planetgen/db/schema.sql`), applying any migration step in between -- a no-op for a database that's already current. |
+| [`orbits.py`](../../src/planetgen/cli/orbits.py) | Advances every orbit and galactic position by the real time elapsed since the last run; meant for a monthly timer. |
+| [`query.py`](../../src/planetgen/cli/query.py) | List/query what's already stored in the planetGen database, from the command line; the queries themselves are `planetgen.db.query`'s. |
+| [`render_parity.py`](../../src/planetgen/cli/render_parity.py) | Pre-upgrade check for schema v29, which drops the stored page text (`star_systems.wikitext_content`/`markdown_content`) and renders both formats from the database rows instead (see `planetgen/db/schema.sql`'s "v29" header note). |
+| [`reset.py`](../../src/planetgen/cli/reset.py) | Empties every generated table (`TRUNCATE`), keeping the schema and its version, so a fresh galaxy can be generated. |
+| [`stage_progress.py`](../../src/planetgen/cli/stage_progress.py) | The progress bar of the maintenance commands: one bar over the command's steps and a second over the items inside the current step. |
+| [`version_history.py`](../../src/planetgen/cli/version_history.py) | Records the version key every galaxy database was updated under (OPS.13), or lists what was recorded. |
+| [`warm_map.py`](../../src/planetgen/cli/warm_map.py) | Builds the Galaxy Map's opening view ahead of time (MAP.134), into the tile cache the web site reads, so the first visitor after a release (or after the cache was cleared) isn't the one who waits for it. |
+| [`worker.py`](../../src/planetgen/cli/worker.py) | One RQ worker for planetGen's queues, at the lowered priority generation workers always run at. |
+
+#### src/planetgen/wiki/
+
+Publishes a page to Wiki.js or MediaWiki behind one `WikiClient` object, used by the API's "Upload to Wiki" routes.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/wiki/__init__.py) | A single library for publishing pages to either a Wiki.js or a MediaWiki instance, behind one `WikiClient` object -- see `client.py`'s module docstring for the full design, and `wikijs.py`/`mediawiki.py` for each backend's own notes. |
+| [`base.py`](../../src/planetgen/wiki/base.py) | Shared result type and backend interface every `planetgen.wiki` backend implements -- `client.WikiClient` is a thin dispatcher over whichever one of these it was constructed with. |
+| [`client.py`](../../src/planetgen/wiki/client.py) | `WikiClient`: constructed once per wiki target, a thin dispatcher over the backend named at construction (`wikijs` or `mediawiki`); callers use `create_page`. |
+| [`exceptions.py`](../../src/planetgen/wiki/exceptions.py) | Exception hierarchy shared by every `planetgen.wiki` backend. |
+| [`mediawiki.py`](../../src/planetgen/wiki/mediawiki.py) | `MediaWikiBackend`: publishes pages to a MediaWiki instance's Action API (a bot password); standard library only. |
+| [`wikijs.py`](../../src/planetgen/wiki/wikijs.py) | `WikiJsBackend`: a small GraphQL client for publishing pages to a [Wiki.js](https://js.wiki/) instance -- one of two `planetgen.wiki` backends (see `mediawiki.py` for the other), dispatched to by `client.WikiClient`. |
+
+#### src/planetgen/api/
+
+The JSON API under `/api` (see [api.md](../api.md)).
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/api/__init__.py) | The JSON API over the planetGen database (served under `/api`). |
+| [`admin.py`](../../src/planetgen/api/admin.py) | `/api/admin/stats` and `/api/admin/duplicate-names` (backed by `planetgen.db.stats`), `/api/admin/login-failures`, and `/api/admin/lockouts` (list and lift). |
+| [`auth.py`](../../src/planetgen/api/auth.py) | `/api/auth/*`: login, logout, me, change-credentials, API keys. Sets the session cookie. |
+| [`authz.py`](../../src/planetgen/api/authz.py) | Resolves the calling admin from the session cookie or a Bearer API key; the `require_admin` decorator; audit helper. |
+| [`common.py`](../../src/planetgen/api/common.py) | `ApiError` and the control-schema connection, shared by `routes.py` and `auth.py` without an import cycle. |
+| [`config.py`](../../src/planetgen/api/config.py) | API configuration: the MySQL config, cookie and rate-limit settings, from `config.json` and the environment. |
+| [`edits.py`](../../src/planetgen/api/edits.py) | Admin editing endpoints (TODO ADM.1): delete and regenerate one planet, moon, asteroid belt, phenomenon or sector (ADM.8), change a planet's or moon's class (ADM.6) and change a single-star system's star (ADM.7). |
+| [`facility_types.py`](../../src/planetgen/api/facility_types.py) | Facility types and their typed fields (POP.10, schema v89): anyone may read them, an admin defines them. |
+| [`idpaths.py`](../../src/planetgen/api/idpaths.py) | Where each API answer carries an object ID (API.23). |
+| [`ids.py`](../../src/planetgen/api/ids.py) | Object IDs as the API's public reference (API.23). |
+| [`limiter.py`](../../src/planetgen/api/limiter.py) | The shared Flask-Limiter instance and per-page limits; in-process calls from the pages skip the default limits. |
+| [`loginguard.py`](../../src/planetgen/api/loginguard.py) | The checks around every password check: the per-address lockout and per-username backoff (`planetgen/admin/throttle.py`, kept in Redis next to Flask-Limiter's counts, in memory only for a `memory://` storage or while Redis is down), and the log line and audit row for each refused sign-in. |
+| [`naming.py`](../../src/planetgen/api/naming.py) | Names from IDs in the API's answers (GEN.71). |
+| [`population.py`](../../src/planetgen/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `planetgen/population/model.py`; shares `routes.py`'s connection and pagination. |
+| [`routes.py`](../../src/planetgen/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, wiki upload, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
+| [`schemas.py`](../../src/planetgen/api/schemas.py) | Request bodies as Pydantic models (ADM.21). |
+| [`version.py`](../../src/planetgen/api/version.py) | The API version (API.22): one sequential integer, like the database schema number. |
+| [`workqueue.py`](../../src/planetgen/api/workqueue.py) | Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`): the queue's state (workers active, the server's load, the lease, the whole-queue pause), the job trees (ADM.12, `planetgen/queue/work.py`) and the controls on them. |
+
+#### src/planetgen/web/
+
+The HTML pages (see [html-interface.md](../html-interface.md)). `templates/` holds one Jinja2 template per page, all extending `base.html`, and `partials/` the shared fragments.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/web/__init__.py) | The pages blueprint and `init_app`: installs the in-process transport, the CSRF check and Jinja settings, builds the class reference catalog and registers every page module. |
+| [`admin_pages.py`](../../src/planetgen/web/admin_pages.py) | `/login`, `/logout`, `/account`, `/admin` (API keys, wiki links), `/admin/stats`. |
+| [`app.py`](../../src/planetgen/web/app.py) | `create_app`: the Flask application factory. Registers the API blueprints and the page blueprint, the rate limiter, proxy fix, security headers and error handlers (including the 503 BUSY and 504 QUERY_TIMEOUT answers). |
+| [`class_pages.py`](../../src/planetgen/web/class_pages.py) | `/classes`, `/classes/<type>` and `/classes/<type>/<code>`, from `planetgen/web/lib/classref.py`; `class_url` for the pages that link a class. |
+| [`csrf.py`](../../src/planetgen/web/csrf.py) | Signed double-submit CSRF protection for every page POST. |
+| [`edit_actions.py`](../../src/planetgen/web/edit_actions.py) | The admin Delete and Regenerate buttons (TODO ADM.8) on the sector, system and phenomenon pages, and the system page's Change class (ADM.6) and Change star (ADM.7) forms. |
+| [`errors.py`](../../src/planetgen/web/errors.py) | HTML error pages (404, 502, 500 without tracebacks). |
+| [`facility_type_pages.py`](../../src/planetgen/web/facility_type_pages.py) | The admin Facility types page (POP.10): `/admin/facility-types` lists every facility type with its typed fields and lets an admin add, change, retire and delete types and their fields. |
+| [`galaxy_views.py`](../../src/planetgen/web/galaxy_views.py) | `/galaxy` (the 3D Galaxy Map page and Quadrant tables; `?course=<from>,<to>` draws a NAV course), `/galaxy/tiles` and `/galaxy/stage` (JSON the map script fetches, through the tile cache), `/galaxy/locate` (the address bar's name lookup) and `/galaxy/territories` (the Territories overlay; its button shows only once a polity exists). |
+| [`generate_page.py`](../../src/planetgen/web/generate_page.py) | `/admin/generate` (new galaxy, plan, generate sectors, reset), `/admin/generate/status`, `/admin/generate/jobs/<id>`. |
+| [`helpers.py`](../../src/planetgen/web/helpers.py) | `render_page`, `db_name`, `page_url`, breadcrumbs, `current_admin`, `generate_target`. |
+| [`job_runner.py`](../../src/planetgen/web/job_runner.py) | Runs one admin Generate job's steps in order inside its RQ worker, writing `state.json` and `output.log`, honoring the `cancel` file. |
+| [`jobs.py`](../../src/planetgen/web/jobs.py) | Background job directories, the one-job lock, queuing the job on RQ with a burst worker started detached, cancel, listing. |
+| [`maintenance_gate.py`](../../src/planetgen/web/maintenance_gate.py) | The request hook for maintenance mode (UX.112; `admin/maintenance.py` holds the switch). |
+| [`maintenance_page.py`](../../src/planetgen/web/maintenance_page.py) | `/maintenance` (UX.112): what a visitor sees while maintenance mode is on (`admin/maintenance.py`, `web/maintenance_gate.py`). |
+| [`nav_page.py`](../../src/planetgen/web/nav_page.py) | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
+| [`nearby_page.py`](../../src/planetgen/web/nearby_page.py) | The What's nearby page, `/nearby` (NAV.44): pick a place, type a distance in parsecs, list what is there. |
+| [`old_urls.py`](../../src/planetgen/web/old_urls.py) | 301 redirects from the old CGI `/<name>.py` URLs. |
+| [`population_pages.py`](../../src/planetgen/web/population_pages.py) | The population pages (POP.1 to POP.4), read from the population API (`api/population.py`, schema v44): |
+| [`queue_page.py`](../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10): `/admin/queue` lists the job trees newest first, `/admin/queue/<id>` shows one. |
+| [`searchpage.py`](../../src/planetgen/web/searchpage.py) | Search page request parsing and URL building. |
+| [`sector_page.py`](../../src/planetgen/web/sector_page.py) | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (wiki upload, generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |
+| [`system_facilities.py`](../../src/planetgen/web/system_facilities.py) | The system page's Facilities panel and the admin facility form: `preview` (placement rules and orbit, nothing saved), `save` (`POST /api/facilities`) and `remove` (`DELETE /api/facilities/<id>`). |
+| [`system_page.py`](../../src/planetgen/web/system_page.py) | `/admin/generate/system`: a one-off system shown on the page, never saved (runs `planetgen system --output`). |
+| [`system_pages.py`](../../src/planetgen/web/system_pages.py) | `/system/<id>`, `/phenomena`, `/phenomenon/<type>/<id>`. Links class labels to `/classes`; hands a facility POST to `system_facilities.py`. |
+| [`system_species.py`](../../src/planetgen/web/system_species.py) | The system page's "Species that could live here" panel (POP.12): for each rocky planet and moon, the species that could live there unaided or with equipment. |
+| [`tables.py`](../../src/planetgen/web/tables.py) | The data tables' JSON route (`/table/<name>`, UX.41) and the helper list pages call to draw one. |
+| [`transport.py`](../../src/planetgen/web/transport.py) | The in-process transport that lets `apiclient` call the API routes without a socket. |
+| [`views.py`](../../src/planetgen/web/views.py) | `/` (home), `/sectors`, `/systems` and `/search`. |
+| [`warmup.py`](../../src/planetgen/web/warmup.py) | Builds the Galaxy Map's opening view ahead of time (MAP.134); `python -m planetgen.cli.warm_map` runs it. |
+
+#### src/planetgen/web/lib/
+
+Shared page-building code.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/web/lib/__init__.py) | Shared page-building code. |
+| [`apiclient.py`](../../src/planetgen/web/lib/apiclient.py) | The API client every page uses: in-process inside Flask (via `web/transport.py`), over HTTP (`api_base_url`) anywhere else. |
+| [`classref.py`](../../src/planetgen/web/lib/classref.py) | The class reference catalog behind `/classes`, built once per process from the generator's own tables, never hand-copied. |
+| [`datatable.py`](../../src/planetgen/web/lib/datatable.py) | The site's shared data table (UX.41): sortable columns, faceted filters and a page of rows fed by the API, 50 at a time. |
+| [`facility_display.py`](../../src/planetgen/web/lib/facility_display.py) | How a facility's type, affiliation, ratings and field values read on a page (POP.10): the rating chips and the small text cells of the Facilities table. |
+| [`fmt.py`](../../src/planetgen/web/lib/fmt.py) | Escaping and formatting helpers (`esc`, distances, UTC times). |
+| [`habitability_ref.py`](../../src/planetgen/web/lib/habitability_ref.py) | The text of the habitability levels page (`/classes/habitability`, UX.90): the five equipment levels, the six PHI-6 domains with their Blue, Green, Yellow and Red thresholds, the compact-host rule and the chips a planet row shows. |
+| [`mdrender.py`](../../src/planetgen/web/lib/mdrender.py) | Renders the generator's narrow Markdown subset to HTML with the `markdown` package (UX.39); anything outside the subset stays plain text and is escaped. |
+| [`modulegraph.py`](../../src/planetgen/web/lib/modulegraph.py) | The modules a page's script pulls in, for `<link rel="modulepreload">` hints (MAP.161). |
+| [`pagecache.py`](../../src/planetgen/web/lib/pagecache.py) | In-memory cache of the API's public GET answers for the pages (PERF.2): cleared by any API write in the process, checked against the galaxy content stamp, capped by age and size. `page_cache` in `config.json`; `PLANETGEN_PAGE_CACHE=off` turns it off. |
+| [`pagination.py`](../../src/planetgen/web/lib/pagination.py) | The site's one pager. |
+| [`privatedir.py`](../../src/planetgen/web/lib/privatedir.py) | Safe private fallback directories in the system temp folder. |
+| [`singleflight.py`](../../src/planetgen/web/lib/singleflight.py) | One build of each Galaxy Map tile or stage at a time (PERF.38). |
+| [`systempage.py`](../../src/planetgen/web/lib/systempage.py) | The system page's body list and data tables. |
+| [`tabledisplay.py`](../../src/planetgen/web/lib/tabledisplay.py) | Star and planet display strings computed from raw columns. |
+| [`tilecache.py`](../../src/planetgen/web/lib/tilecache.py) | On-disk cache of Galaxy Map tiles and drill stages, invalidated by `/api/galaxy/changes`. |
+| [`tilepack.py`](../../src/planetgen/web/lib/tilepack.py) | The packed form of a Galaxy Map tile (MAP.159): what the tile cache stores and what `/galaxy/tiles` sends. |
+
+#### src/planetgen/web/maps/
+
+The map panels and their data.
+
+| Path | What it holds |
+|---|---|
+| [`__init__.py`](../../src/planetgen/web/maps/__init__.py) | The map panels. |
+| [`galaxymap.py`](../../src/planetgen/web/maps/galaxymap.py) | Quadrant and Zone classification of sectors. |
+| [`galaxymap3d.py`](../../src/planetgen/web/maps/galaxymap3d.py) | Builds the Galaxy Map panel and its first embedded tiles. |
+| [`navmap.py`](../../src/planetgen/web/maps/navmap.py) | The NAV page's top-down SVG of origin, destination and route. |
+| [`phenomenonmap.py`](../../src/planetgen/web/maps/phenomenonmap.py) | A phenomenon's AU-scale SVG diagram (now only for nebulae and supernova remnants). |
+| [`phenomenonrender.py`](../../src/planetgen/web/maps/phenomenonrender.py) | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view. |
+| [`starmap.py`](../../src/planetgen/web/maps/starmap.py) | Data for the 3D Sector Map (systems, phenomena, neighbor indicators). |
+| [`systemmap.py`](../../src/planetgen/web/maps/systemmap.py) | The System Map: a top-down SVG of real body positions. |
+| [`systemscene.py`](../../src/planetgen/web/maps/systemscene.py) | The 3D system view's data (MAP.69): one star system as JSON that a client can draw with orbits in three dimensions. |
 
 ### src/html/
 
-One Flask app. `wsgi.py` is the entry point, `api/` is the JSON API, `web/`
-is the HTML pages, `lib/` is shared page-building code, `static/` is what
-the browser loads.
-
-#### Entry point
+`wsgi.py` is the entry point and `static/` is what the browser loads. The Flask app itself is `planetgen/web/app.py`, with the JSON API in `planetgen/api/` and the pages in `planetgen/web/`; they are listed above.
 
 | Path | What it holds |
 |---|---|
 | [`src/html/wsgi.py`](../../src/html/wsgi.py) | The WSGI `application` for mod_wsgi and gunicorn. Puts `src/html` and `src` on `sys.path`, calls `create_app()`, and undoes an older `/api` mount prefix. |
 
-#### src/planetgen/api/
-
-| Path | What it holds |
-|---|---|
-| [`app.py`](../../src/planetgen/web/app.py) | `create_app`: registers the API blueprints (`routes`, `auth`, `admin`, `population`), calls `web.init_app`, the rate limiter, proxy fix, security headers, request logging and the error handlers (JSON under `/api`, HTML pages elsewhere). |
-| [`routes.py`](../../src/planetgen/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, wiki upload, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
-| [`population.py`](../../src/planetgen/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `planetgen/population/model.py`; shares `routes.py`'s connection and pagination. |
-| [`naming.py`](../../src/planetgen/api/naming.py) | Names from IDs in the API's answers (GEN.71). |
-| [`schemas.py`](../../src/planetgen/api/schemas.py) | Request bodies as Pydantic models (ADM.21). |
-| `auth.py` | `/api/auth/*`: login, logout, me, change-credentials, API keys. Sets the session cookie. |
-| `authz.py` | Resolves the calling admin from the session cookie or a Bearer API key; the `require_admin` decorator; audit helper. |
-| `loginguard.py` | The checks around every password check: the per-address lockout and per-username backoff (`planetgen/admin/throttle.py`, kept in Redis next to Flask-Limiter's counts, in memory only for a `memory://` storage or while Redis is down), and the log line and audit row for each refused sign-in. |
-| `admin.py` | `/api/admin/stats` and `/api/admin/duplicate-names` (backed by `planetgen.db.stats`), `/api/admin/login-failures`, and `/api/admin/lockouts` (list and lift). |
-| `limiter.py` | The shared Flask-Limiter instance and per-page limits; in-process calls from the pages skip the default limits. |
-| `config.py` | API configuration: the MySQL config, cookie and rate-limit settings, from `config.json` and the environment. |
-| `common.py` | `ApiError` and the control-schema connection, shared by `routes.py` and `auth.py` without an import cycle. |
-
-#### src/planetgen/web/
-
-| Path | What it holds |
-|---|---|
-| [`__init__.py`](../../src/planetgen/web/__init__.py) | The pages blueprint and `init_app`: installs the in-process transport, the CSRF check and Jinja settings, builds the class reference catalog (`classref.catalog()`) at startup, and gives the app its page cache (`_install_page_cache`, see Flow 3). |
-| `views.py` | `/` (home), `/sectors`, `/systems`, `/search`. |
-| `searchpage.py` | Search page request parsing and URL building. |
-| `sector_page.py` | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (wiki upload, generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |
-| `system_pages.py` | `/system/<id>`, `/phenomena`, `/phenomenon/<type>/<id>`. Links class labels to `/classes`; hands a facility POST to `system_facilities.py`. |
-| `system_facilities.py` | The system page's Facilities panel and the admin facility form: `preview` (placement rules and orbit, nothing saved), `save` (`POST /api/facilities`) and `remove` (`DELETE /api/facilities/<id>`). |
-| `class_pages.py` | `/classes`, `/classes/<type>` and `/classes/<type>/<code>`, from `planetgen/web/lib/classref.py`; `class_url` for the pages that link a class. |
-| `galaxy_views.py` | `/galaxy` (the 3D Galaxy Map page and Quadrant tables; `?course=<from>,<to>` draws a NAV course), `/galaxy/tiles` and `/galaxy/stage` (JSON the map script fetches, through the tile cache), `/galaxy/locate` (the address bar's name lookup) and `/galaxy/territories` (the Territories overlay; its button shows only once a polity exists). |
-| `nav_page.py` | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
-| `admin_pages.py` | `/login`, `/logout`, `/account`, `/admin` (API keys, wiki links), `/admin/stats`. |
-| `generate_page.py` | `/admin/generate` (new galaxy, plan, generate sectors, reset), `/admin/generate/status`, `/admin/generate/jobs/<id>`. |
-| `system_page.py` | `/admin/generate/system`: a one-off system shown on the page, never saved (runs `planetgen system --output`). |
-| `jobs.py` | Background job directories, the one-job lock, queuing the job on RQ with a burst worker started detached, cancel, listing. |
-| `job_runner.py` | Runs one admin Generate job's steps in order inside its RQ worker, writing `state.json` and `output.log`, honoring the `cancel` file. |
-| `transport.py` | The in-process transport that lets `apiclient` call the API routes without a socket. |
-| `helpers.py` | `render_page`, `db_name`, `page_url`, breadcrumbs, `current_admin`, `generate_target`. |
-| `csrf.py` | Signed double-submit CSRF protection for every page POST. |
-| `errors.py` | HTML error pages (404, 502, 500 without tracebacks). |
-| `old_urls.py` | 301 redirects from the old CGI `/<name>.py` URLs. |
-| `templates/` | Jinja2 templates, one per page, all extending `base.html` (including `classes.html`, `class_type.html`, `class.html`); `partials/` holds shared fragments. |
-
-#### src/planetgen/web/lib/ and src/planetgen/web/maps/
-
-Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `src/planetgen/web/maps/`.
-
-| Path | What it holds |
-|---|---|
-| [`apiclient.py`](../../src/planetgen/web/lib/apiclient.py) | The API client every page uses: in-process inside Flask (via `web/transport.py`), over HTTP (`api_base_url`) anywhere else. |
-| [`tilecache.py`](../../src/planetgen/web/lib/tilecache.py) | On-disk cache of Galaxy Map tiles and drill stages, invalidated by `/api/galaxy/changes`. |
-| [`pagecache.py`](../../src/planetgen/web/lib/pagecache.py) | In-memory cache of the API's public GET answers for the pages (PERF.2): cleared by any API write in the process, checked against the galaxy content stamp, capped by age and size. `page_cache` in `config.json`; `PLANETGEN_PAGE_CACHE=off` turns it off. |
-| [`datatable.py`](../../src/planetgen/web/lib/datatable.py) | The site's shared data table (UX.41): sortable columns, faceted filters and a page of rows fed by the API, 50 at a time. |
-| [`tables.py`](../../src/planetgen/web/tables.py) | The data tables' JSON route (UX.41) and the helper list pages call to draw one. |
-| [`warmup.py`](../../src/planetgen/web/warmup.py) | Builds the Galaxy Map's opening view ahead of time (MAP.134); `python -m planetgen.cli.warm_map` runs it and update.sh starts it. |
-| `classref.py` | The class reference catalog behind `/classes`, built once per process from the generator's own tables, never hand-copied. |
-| `maps/galaxymap3d.py` | Builds the Galaxy Map panel and its first embedded tiles. |
-| `maps/galaxymap.py` | Quadrant and Zone classification of sectors. |
-| `maps/starmap.py` | Data for the 3D Sector Map (systems, phenomena, neighbor indicators). |
-| `maps/systemmap.py` | The System Map: a top-down SVG of real body positions. |
-| `systempage.py` | The system page's body list and data tables. |
-| `maps/phenomenonmap.py` | A phenomenon's AU-scale SVG diagram (now only for nebulae and supernova remnants). |
-| `maps/phenomenonrender.py` | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view. |
-| `maps/navmap.py` | The NAV page's top-down SVG of origin, destination and route. |
-| `tabledisplay.py` | Star and planet display strings computed from raw columns. |
-| `mdrender.py` | Renders the generator's narrow Markdown subset to HTML with the `markdown` package (UX.39); anything outside the subset stays plain text and is escaped. |
-| `pagination.py` | The site's one pager. |
-| `fmt.py` | Escaping and formatting helpers (`esc`, distances, UTC times). |
-| `privatedir.py` | Safe private fallback directories in the system temp folder. |
-
 #### src/html/static/
 
 | Path | What it holds |
 |---|---|
-| [`galaxymap3d.js`](../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, tile fetching from `/galaxy/tiles`, `localStorage` tile cache, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
+| [`galaxymap3d.js`](../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, tile fetching from `/galaxy/tiles` into an IndexedDB tile store, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
 | `galaxystages.js` | The drill-down's stage rules with no drawing: which blocks a stage holds, stage URLs (`?slab=`, `?at=`, `?sector=`), breadcrumb, labels, the flight path. No three.js import; tested under node. |
-| `galaxystageview.js` | The drill-down drawn and driven: the eight stages from galaxy to sector, camera flights, breadcrumb with sibling menus, slab slider, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
-| `galaxyprisms.js` | Sector-grid prisms, block level of detail, density shading and the `drill*` ladder rules (mirrors `galaxyGeometry.py` and `galaxyDrill.py`). No three.js import, so tests run it under node. |
+| `galaxystageview.js` | The drill-down drawn and driven: the eight stages from galaxy to sector (the cylinder's ladder, rebuilt on shells with MAP.205 and MAP.206), camera flights, breadcrumb with sibling menus, slab slider, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
+| `galaxyprisms.js` | Sector-grid prisms, block level of detail, density shading and the `drill*` ladder rules (mirrors `galaxy/geometry.py` and `galaxy/drill.py`, the cylinder's; rebuilt on shells with MAP.205 and MAP.206). No three.js import, so tests run it under node. |
 | `galaxyblocks.js` | Builds the block scene's typed arrays, in a Web Worker when it can. |
 | `sectorscene.js`, `galaxysector.js` | One sector's scene (stars, phenomena, bodies; three.js) and the stage that opens it in the Galaxy Map; the sector page's Sector Map is the Galaxy Map locked to its sector (MAP.66, MAP.68). |
 | `systemmap.js` | System Map clicks, moon drill-in and the 3D body spheres. |
@@ -382,6 +556,51 @@ Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `sr
 | `theme.js` | Light/dark/system theme switch and header menu closing. |
 | `copycode.js` | The system page's Copy button. |
 | `style.css`, `favicon.svg` | Site styles (CSS tokens for both themes) and icon. |
+| `bodyanchor.js` | A link to `/system/<id>#planet-12` (or `#star-`, `#moon-`, `#belt-`, `#comet-`) opens that body's row and selects it on the System Map (NAV.8). |
+| `bookmarks.js` | Bookmarks on the Galaxy Map (MAP.23): saved views kept in the browser. |
+| `breadcrumb.js` | The one breadcrumb every page and map uses (NAV.14). |
+| `components.js` | The shared Shoelace component set (UX.40): buttons, menus and, as pages adopt them, dialogs and form fields. |
+| `connectionnote.js` | When to tell the admin a live job-log stream was lost (ADM.40): the stream ends on purpose every few seconds to stay under the server's request timeout. |
+| `datatable.js` | The site's data table (UX.41), taking over the table a list page rendered (partials/datatable.html, web/lib/datatable.py). |
+| `datatablestate.js` | The data table's logic without the page (UX.41): the query a state turns into, which pages the visible rows need, and the store that keeps the pages already fetched. |
+| `dialogmenus.js` | What picking a menu item does: opens a dialog or goes to a page (UX.26, UX.27, UX.31). |
+| `facilityform.js` | The system page's "Place a facility" form (web/templates/system.html, web/system_facilities.py). |
+| `galaxysystem.js` | A star system opened in place on the Galaxy Map (MAP.125), using `systemview3d.js` at the system's position. |
+| `galaxytilecut.js` | The tiles the Galaxy Map fetches for a camera, chosen by distance (MAP.152). |
+| `generatecustomize.js` | The admin Generate page's "Customize" window (ADM.28). |
+| `generatefolds.js` | The Generate page's folding sections and its "Around a sector" finder (ADM.4). |
+| `generateranges.js` | The Generate page's sliders: shows a range input's value (GEN.183). |
+| `generatestarmix.js` | The Generate page's star mix: single stars, close binaries and wide pairs must total 100% (ADM.45). |
+| `gridopacity.js` | The translucent blocks of a drill-down stage add up along the line of sight (MAP.188). |
+| `joblog.js` | The job output box: a terminal (Xterm.js) that shows the job's raw output as it streams (ADM.22). |
+| `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |
+| `mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63). |
+| `mapnavpad.js` | The Galaxy Map's on-map controls (MAP.200): a slider for the zoom, a direction star of four arrows and a middle button that moves the center the view turns and zooms about, and a readout of where the center is while it moves. |
+| `mappick.js` | The picking, hover and info-panel layer every 3D map shares (MAP.65). |
+| `menuplace.js` | Button menus that open where they can be seen instead of out of the bottom of the window (UX.85). |
+| `navpick.js` | Picking a NAV course on the maps; the Galaxy Map and the Sector Map hold one pick state (NAV.29, NAV.33). |
+| `navtimes.js` | The NAV result page's travel-times table with a Warp/Fold switch (UX.70). |
+| `nearfield.js` | The near field of the fly-through map: what stands close to the camera dissolves and a see-through tube thins what stands between the camera and the focus (MAP.149). |
+| `nebulalook.js` | How a nebula is painted on the Galaxy Map, per theme (MAP.175). |
+| `nebulamesh.js` | A nebula drawn from its shape instead of a flat sprite (GEN.75, MAP.103). |
+| `nebulaview.js` | A nebula page's 3D view: its own shape with the brightest stars round it (MAP.105). |
+| `objectref.js` | The browser mirror of `planetgen/galaxy/objectref.py`'s public form (`parse_public`, `format_public`). |
+| `orbitclock.js` | The 3D system view's time control: the years past the scene's epoch (MAP.70). |
+| `orbitpositions.js` | Where every body of a system is at any time: the browser twin of `planetgen/physics/body_positions.py` (MAP.70). |
+| `pagecrumbs.js` | The breadcrumb of a server-rendered page. |
+| `picker.js` | The one selection every map and page shares: a reference to an object, moved by one of four calls (NAV.13). |
+| `shoelace-theme.css` | Shoelace in the site's own colours. |
+| `shoelaceicons.js` | Points Shoelace's icons at the files under `vendor/shoelace/assets/`. |
+| `starfade.js` | Stars fade in and out as the camera nears or leaves the tile that lists them (MAP.152, MAP.153). |
+| `starlight.js` | How much brighter a star's point of light is drawn than its luminosity alone would make it (MAP.87). |
+| `starmagnitude.js` | The Galaxy Map's star visibility law: opacity follows apparent magnitude against a limiting magnitude (MAP.148). |
+| `systemnav.js` | The NAV buttons of a body's info panel on the System Map, in both views (NAV.50). |
+| `systempage3d.js` | The system page's switch between the Diagram and the 3D view (MAP.74). |
+| `systemscale.js` | How the 3D system view maps real kilometres to what is drawn (MAP.71). |
+| `systemview3d.js` | The 3D system view: one star system from `GET /api/systems/<id>/scene` drawn with three.js (MAP.72, MAP.73). |
+| `tilepack.js` | Reads the packed Galaxy Map tiles `/galaxy/tiles` sends and the tile store keeps (MAP.159). |
+| `unitpreference.js` | The reader's unit preference: Automatic, Metric only or Customary (UX.78). |
+| `units.js` | Shows every server-rendered measurement in the reader's unit system (UX.78). |
 | `vendor/` | Vendored three.js and its license notices. |
 
 ### src/tests/
@@ -394,7 +613,7 @@ without it. See [testing.md](../testing.md).
 | `conftest.py` | The `mysql_config` fixture: a throwaway database per test. |
 | `webpage_support.py`, `bughunt_support.py`, `fuzz_support.py` | Shared fixtures: a live API on a background thread, bug-hunt helpers, Hypothesis profiles (`ci`, `deep`). |
 | Generation: `test_systems.py`, `test_planets.py`, `test_moons.py`, `test_star_*.py`, `test_wide_binary.py`, `test_evolution.py`, `test_comet_data.py`, `test_phenomena*.py`, `test_quasar.py`, `test_facilities.py`, `test_*_motion.py`, `test_heliosphere_model.py`, ... | Unit and behavior tests for one generation module each. |
-| Galaxy: `test_galaxy_*.py`, `test_galaxydrill.py`, `test_galaxyprisms.py`, `test_galaxystages.py`, `test_skeleton_shape.py`, `test_bright_star_*.py`, `test_sector_gen.py`, `test_space_sector.py` | Grid, density, skeleton, drill-down stages, bright stars, sector fill. `test_galaxyprisms.py` and `test_galaxystages.py` run the JS under node. |
+| Galaxy: `test_galaxy_*.py` (including `test_galaxy_spherical.py`, the shell/band/wedge grid), `test_galaxydrill.py`, `test_galaxyprisms.py`, `test_galaxystages.py`, `test_skeleton_shape.py`, `test_bright_star_*.py`, `test_sector_gen.py`, `test_space_sector.py` | Grid, density, skeleton, drill-down stages, bright stars, sector fill. `test_galaxyprisms.py` and `test_galaxystages.py` run the JS under node. |
 | Population: `test_population.py` | The population pass: timeline parsing, civilization odds, eras, reach, claims, the pass against MySQL, and the read routes. |
 | Names: `test_names.py`, `test_name_*.py`, `test_body_names.py`, `test_dedupe_names.py` | Name generation and uniqueness. |
 | Database: `test_db_persistence.py`, `test_query_db_*.py`, `test_migrate_progress.py`, `test_serialization.py` | Save, load, queries, migrations. |
@@ -409,8 +628,8 @@ without it. See [testing.md](../testing.md).
 
 | Path | What it holds |
 |---|---|
-| [`ci.yml`](../../.github/workflows/ci.yml) | On every push and PR: `pytest` on Python 3.9 and 3.12 with MySQL; browser accessibility tests in Chromium; macOS installer run under bash 3.2. |
-| `deep-fuzz.yml` | Weekly (and on demand): the fuzz tests with the `deep` profile. |
+| [`ci.yml`](../../.github/workflows/ci.yml) | Never on a push or PR (Boss, 2026-10-10): daily at 07:00 UTC on `main`, and by hand on any branch except `claude/*`. A math check (`planetgen.physics.mathcheck`) gates the rest: `pytest` on Python 3.12 and 3.13 against MySQL 8.0 and 8.4 and MariaDB 11.4 (with 2 and 4 generation workers in two legs), the browser layout and accessibility tests in Chromium, `install.sh` then `update.sh` run for real on Linux, the installers on macOS under bash 3.2, a dependency audit, and the dispatch of `dev-*` branches. |
+| `deep-fuzz.yml` | Weekly, Mondays 06:17 UTC (and on demand): the fuzz tests with the `deep` profile. |
 | `release-note.yml` | On every PR: `bump_version.py --check-pr` requires one valid note in `changes/` (or the `no-release` label). |
 | [`stamp-version.yml`](../../.github/workflows/stamp-version.yml) | After a merge to `main` that touches `changes/`: runs `bump_version.py --commit` and pushes `Release x.y.z`. |
 | [`changes/README.md`](../../changes/README.md) | How to write a note: `<short-name>.<patch|minor|major>.md`. |
@@ -418,67 +637,97 @@ without it. See [testing.md](../testing.md).
 ## Flow 1: generating a galaxy
 
 A galaxy is built in two passes. `planetgen plan` stores the galaxy's
-shape and outline and scatters its bright stars. Then sectors are filled
-one at a time, either in bulk (`planetgen galaxy`) or on demand when an
-admin asks for a neighborhood.
+shape and outline and scatters its bright stars and phenomena. Then
+sectors are filled, either in bulk (`planetgen galaxy`, with a mode for a
+random start, one sector, a shell, a span of addresses, a course or a
+neighborhood) or on demand when an admin asks for a neighborhood. Every
+sector is addressed by `(shell, band, wedge)` in the spherical grid
+([galaxy-coordinate-system.md](galaxy-coordinate-system.md)).
 
 ```mermaid
 flowchart TD
-    Plan["planetgen plan<br/>run_plan"] --> Skel["build_skeleton<br/>galaxyDensity.build_galaxy_shape<br/>galaxySkeleton.build_layer_extents"]
-    Skel --> SaveSkel["_db.clear_bright_stars<br/>store.replace_galaxy_layers<br/>store.save_galaxy_shape"]
-    SaveSkel --> Scatter["scatter_bright_stars<br/>brightStars.scatter<br/>(stellarPopulation, stellarEvolution)"]
-    Scatter --> BS[("bright_stars table")]
+    Plan["planetgen plan<br/>run_plan"] --> Skel["build_skeleton<br/>density.build_galaxy_shape<br/>skeleton.build_shell_extents"]
+    Skel --> SaveSkel["store.save_galaxy_shape<br/>galaxy_shape, galaxy_shell"]
+    SaveSkel --> Phen["scatter_phenomena<br/>phenomenon_scatter (per shell, on the queue)"]
+    Phen --> Scatter["scatter_bright_stars<br/>mass pass, then luminosity pass<br/>bright_stars.scatter_shell"]
+    Scatter --> BS[("bright_stars,<br/>phenomenon_scatter tables")]
+    Phen --> BS
 
-    Galaxy["planetgen galaxy<br/>run_galaxy"] --> Bounds["_db.get_galaxy_bounds<br/>(refuses if never planned)"]
-    Bounds --> Mode["mode: random start, ring, column,<br/>shell, one slot, neighborhood"]
-    Mode --> At["generate_and_save_sector_at<br/>(per address)"]
+    Galaxy["planetgen galaxy<br/>run_galaxy"] --> Bounds["store.get_galaxy_bounds<br/>(refuses if never planned)"]
+    Bounds --> Mode["mode: random start, one sector, shell,<br/>span, course, neighborhood"]
+    Mode --> At["generate_and_save_sector_at<br/>(per address, on the queue)"]
     OnDemand["API: generate-neighborhood<br/>generate_sector_neighborhood"] --> At
-    At --> Fill["_fill_context<br/>brightStars.FillContext"]
+    Lazy["ensure_sector_generated"] --> At
+    At --> Fill["_fill_context<br/>bright_stars.FillContext"]
     BS --> Fill
-    Fill --> GenSec["generate_sector<br/>SpaceSector in a galaxyGeometry.SectorCell"]
+    Fill --> GenSec["generate_directed_sector<br/>generate_sector: SpaceSector in a SectorCell"]
     GenSec --> Pre["_add_preplaced_systems<br/>StarSystem around each bright star"]
     GenSec --> Dim["StarSystem per Poisson draw<br/>(dim stars only)"]
-    GenSec --> Phen["generate_sector_phenomena<br/>nebulae, remnants, rogues, ..."]
-    Pre --> Save["_db.save_sector -> insert_sector"]
+    GenSec --> Ph["scattered and local phenomena<br/>nebulae, remnants, rogues, ..."]
+    Pre --> Save["store.save_sector -> insert_sector"]
     Dim --> Save
-    Phen --> Save
+    Ph --> Save
     Save --> DB[("sectors, star_systems, stars,<br/>planets, moons, phenomena")]
+    DB --> After["after the run: link_after_run,<br/>scatter (--then-scatter), backfill_after_run,<br/>population, settle_after_run"]
 ```
 
-**Plan.** `run_plan` in `planetgen` builds a `GalaxyShape`
-(`galaxyDensity.py`) and finds each layer's reach with
-`galaxySkeleton.build_layer_extents`. It clears old bright stars and stores
-the outline (`galaxy_layer`, `galaxy_column`) and shape (`galaxy_shape`).
-Sector positions are never stored up front; they are pure functions of the
-`(ring, layer, slot)` address (`galaxyGeometry.py`).
+**Plan.** `run_plan` in `planetgen/generation/run_plan.py` builds a
+`GalaxyShape` (`galaxy/density.py`) and finds each shell's reach with
+`skeleton.build_shell_extents`: the highest band the shell has to cover
+before the density drops under one star per sector. It stores the shape
+(`galaxy_shape`) and the outline (`galaxy_shell`, one row per shell) and
+then scatters the phenomena and bright stars. Sector positions are never
+stored up front; they are pure functions of the `(shell, band, wedge)`
+address (`galaxy/spherical.py`). The run's stages (`generation/stages.py`)
+are numbered and announced as it goes.
 
-**Bright-star scatter.** `scatter_bright_stars` draws every star above the
-luminosity threshold galaxy-wide, ring by ring (`brightStars.scatter`,
-using `stellarPopulation.sample_bright_stars`), and writes them to
-`bright_stars` in batches. It refuses if sectors are already filled,
-unless `--force`.
+**Scatter.** `scatter_phenomena` (`phenomenon_scatter.py`) places the
+galaxy's black holes, neutron stars, planetary nebulae and supernova
+remnants, plus the special objects, one task per run of shells, with the
+object-first rule (`object_first.py`): decide how many objects a shell
+holds, then where. `scatter_bright_stars` then draws the stars in two
+passes (GEN.185): the mass pass places every star born at or above the
+stellar mass limit, and the luminosity pass places every lighter star at
+least as bright as the luminosity floor, skipping sectors a pass-one star
+already marks (`bright_stars.scatter_shell`, `canonical_bands`). Both write
+`bright_stars` in batches, leave out sectors that are already filled, and
+can be redone alone (`--redo-scatters`).
 
-**Sector fill.** Every `galaxy` mode ends in `generate_and_save_sector_at`.
-It loads the sector's `FillContext` (population mix and its unfilled bright
-stars), then calls `generate_sector`. That builds a full `StarSystem`
-around each pre-placed bright star from its stored seed, draws the
-remaining systems from dim stars only (the expected count shrinks by the
-bright share), places each one with Hill-sphere spacing
-(`SpaceSector.add_system`), and adds phenomena. The center sector may also
-get a quasar (`add_galactic_nucleus`).
+**Sector fill.** Every `galaxy` mode ends in `generate_and_save_sector_at`
+(`run_galaxy.py`). It loads the sector's `FillContext` (population mix,
+its unfilled bright stars, its unbuilt scattered phenomena), then calls
+`generate_directed_sector` and `generate_sector` in `run_sector.py`, inside
+the sector's own seed (`galaxy/seed.py`) so the run's order and worker
+count do not matter. That builds a full `StarSystem` around each pre-placed
+bright star from its stored seed, draws the remaining systems from dim
+stars only (the expected count shrinks by the bright share), places each
+one with Hill-sphere spacing (`SpaceSector.add_system`), and adds
+phenomena. The center sector may also get a quasar
+(`add_galactic_nucleus`).
 
-**System.** `StarSystem` (`systemData.py`) builds its star or binary
-(`starData`, `doubleStar`, `wideBinary`, `compactRemnant`), then planets
-and moons (`planetData`, `planetPhysics`), belts and comets, then applies
-life data (`planetLife`). Names come from `wordsalad.generate_phoneme_salad_name`
-and `bodyNames.py`.
+**System.** `StarSystem` (`generation/system.py`) builds its star or binary
+(`star.py`, `binary.py`, `wide_binary.py`, `phenomena/compact_remnant.py`),
+then planets and moons (`planet.py` over `physics/planets.py`), belts and
+comets, then applies life data (`life.py`). Names come from
+`names/gated_phoneme_codec.py` and `names/bodies.py`. `object_timing.py`
+records how long each kind of object took.
 
-**Save.** `_db.save_sector` runs `insert_sector` in one transaction: it
-reserves a unique sector name (`nameUniqueness.py`), inserts the sector
-with its grid address, inserts every system (`insert_star_system`, which
-inserts stars, planets, moons, belts and comets), marks bright stars
-filled, inserts phenomena with their galaxy-frame placement, and refreshes
-cloud containment and nearest-system rows.
+**Save.** `store.save_sector` runs `insert_sector` in one transaction,
+with rows written in multi-row batches and ids taken from `id_blocks`: it
+reserves a unique sector name, inserts the sector with its grid address,
+inserts every system (`insert_star_system`, which inserts stars, planets,
+moons, belts and comets), marks bright stars filled, inserts phenomena
+with their galaxy-frame placement, and refreshes the sector's stats.
+
+**After the run.** A `galaxy` run saves its sectors without linking them
+and then does the shared steps once for the whole run: `link_after_run`
+(`store.link_sector_neighbors`: containment, nearest systems and quadrants
+for the new sectors and the lists of those around them),
+`--then-scatter`, `backfill_after_run` (the bright stars the new sectors
+need from the space around them), the population pass when asked for, and
+`settle_after_run` (`db/sector_paths.py`: the path of every body in the
+new sectors and their neighbours, so each path sees the final set of
+neighbours).
 
 `planetgen system` and `planetgen sector` build the same objects
 without a galaxy (a cube sector, no address). `planetgen system
@@ -525,11 +774,11 @@ accounts for the whole deployment. Each has its own version table.
 
 ```mermaid
 flowchart TD
-    Any["any writer<br/>(planetgen, tests)"] --> GC["_db.get_connection<br/>ensure_schema=True"]
+    Any["any writer<br/>(planetgen, tests)"] --> GC["store.get_connection<br/>ensure_schema=True"]
     GC --> ES["_ensure_schema<br/>runs schema.sql (CREATE IF NOT EXISTS)<br/>seeds schema_migrations = SCHEMA_VERSION"]
     ES --> Content[("content schema")]
 
-    RO["read-only callers<br/>(queryDb.open_readonly, API)"] --> NoDDL["get_connection<br/>ensure_schema=False"]
+    RO["read-only callers<br/>(db.query.open_readonly, API)"] --> NoDDL["get_connection<br/>ensure_schema=False"]
     NoDDL --> Content
 
     Inst["install.sh / update.sh<br/>deploy-common migrate_or_reset_db"] --> Status["planetgen.cli.migrate --status<br/>store.schema_status"]
@@ -539,11 +788,11 @@ flowchart TD
     Ask -->|"y"| Reset["planetgen.cli.reset --yes<br/>(admin logins kept)"]
     Reset --> Mig
     Mig --> Content
-    Mig --> Boot["adminAuth.bootstrap_control_schema<br/>CREATE DATABASE, control_schema.sql,<br/>seed first admin"]
+    Mig --> Boot["admin.auth.bootstrap_control_schema<br/>CREATE DATABASE, control_schema.sql,<br/>seed first admin"]
     Boot --> Control[("control schema")]
 ```
 
-**Creating.** Any read-write connection (`_db.get_connection` with its
+**Creating.** Any read-write connection (`store.get_connection` with its
 default `ensure_schema=True`) applies `schema.sql`. Every statement is
 `CREATE ... IF NOT EXISTS`, so a new database comes out at the current
 `SCHEMA_VERSION` and an existing one is untouched. Read-only callers pass
@@ -562,21 +811,27 @@ regenerated `planetgen/db/models.py` (`scripts/generate_db_models.py`), and
 `src/planetgen/db/migrations/README.md`.
 
 **Control schema.** After the content migration, `planetgen.cli.migrate` calls
-`adminAuth.bootstrap_control_schema`. It creates the control database if
+`admin.auth.bootstrap_control_schema`. It creates the control database if
 needed, applies `control_schema.sql`, and seeds an `admin` user with a
 random password when there is none. `planetgen.cli.migrate` prints that password
 once.
 
+**The sector-grid switch.** Revision `0091` converted the cylinder sector
+grid to shells, bands and wedges in place (renumbering the object IDs from
+the new sectors). The migration turns maintenance mode on, which closes the
+site and the API to everyone but the admin until the Galaxy Map has been
+rebuilt (`planetgen/admin/maintenance.py`, `planetgen.cli.maintenance`).
+
 **Other writers.** `planetgen.cli.reset` truncates generated tables.
-`planetgen.cli.orbits` advances orbits (`_db.advance_orbital_phases`,
+`planetgen.cli.orbits` advances orbits (`store.advance_orbital_phases`,
 `advance_galactic_positions`, `refresh_after_motion`). The population
 pass (Flow 1) writes `species`, `polities`, `system_owners` and
-`population_state` (schema v44). The API's system writes go through
-`_db.add_system_to_sector` (a new system in a stored sector, placed clear
+`population_state`; the work queue's progress and job counters live in Redis, not MySQL (see [redis-and-the-work-queue.md](redis-and-the-work-queue.md)). The API's system writes go through
+`store.add_system_to_sector` (a new system in a stored sector, placed clear
 of the others' Hill spheres, with containment and nearest systems filled
-in) and `_db.replace_star_system_content` (regenerate a system's bodies in
+in) and `store.replace_star_system_content` (regenerate a system's bodies in
 place, keeping its id, name, position and links). Page text is not
-stored; `render.py` renders it from rows when asked.
+stored; `db/render.py` renders it from rows when asked.
 
 ## Flow 3: serving a page and a map
 
@@ -588,30 +843,32 @@ in-process (`web/transport.py`).
 ```mermaid
 flowchart TD
     B["Browser GET /sector/42"] --> W["wsgi.py application"]
-    W --> App["api/app.py create_app<br/>security headers, limiter, CSRF"]
+    W --> App["web/app.py create_app<br/>maintenance gate, security headers,<br/>limiter, CSRF"]
     App --> View["web/sector_page.py"]
     View --> AC["lib/apiclient.get_sector"]
     AC --> PC{"lib/pagecache<br/>fresh copy?"}
     PC -->|"yes"| JSON
     PC -->|"no"| T["web/transport.py<br/>in_process_transport<br/>(no socket)"]
     T --> R["api/routes.py<br/>GET /api/sectors/42"]
-    R --> Q["queryDb.open_readonly<br/>queryDb.sector_detail"]
+    R --> Q["db.query.open_readonly<br/>db.query.sector_detail"]
     Q --> DB[("content schema")]
     R --> JSON["JSON"]
     JSON --> View
-    View --> Lib["planetgen/web/maps/starmap.py (scene data), galaxymap3d.py (the map panel), pagination.py, fmt.py"]
+    View --> Lib["web/maps/starmap.py (scene data),<br/>lib/pagination.py, lib/fmt.py"]
     Lib --> Tpl["templates/sector.html"]
     Tpl --> B
-    B -. "loads" .-> JS["static/galaxymap3d.js + three.js"]
+    B -. "loads" .-> JS["static/ map scripts + three.js"]
 ```
 
-**A page.** `wsgi.py` builds the app with `api/app.py`'s `create_app`,
-which registers the API blueprints and calls `web.init_app`. A page view
+**A page.** `wsgi.py` builds the app with `web/app.py`'s `create_app`,
+which installs the maintenance gate first (while maintenance mode is on
+anyone but a signed-in admin gets a 503 and the "being updated" page), then
+registers the API blueprints and calls `web.init_app`. A page view
 (for example `web/sector_page.py`) calls an `apiclient` function. Because
 `transport.install()` ran at startup, the call goes straight through the
 app's own WSGI callable: same route, validation and auth as over HTTP,
 without a socket. The API route reads through `planetgen.db.query` (listings,
-details, search, nav) or `_db.load_*`. The view then builds map data with
+details, search, nav) or `store.load_*`. The view then builds map data with
 `lib/` helpers and renders a Jinja template. Errors become HTML pages
 (`web/errors.py`); under `/api` they stay JSON.
 
@@ -634,62 +891,62 @@ tunes or disables it.
 with `DELETE /api/facilities/<id>`, each a plain CSRF-checked POST with a
 303 back to the page. Like every API write it clears the page cache.
 
-**The Galaxy Map.** `/galaxy` (`web/galaxy_views.py`) renders the panel
-from `planetgen/web/maps/galaxymap3d.py` with the first view's tiles embedded.
-`static/galaxymap3d.js` then fetches more tiles from `/galaxy/tiles` (and
-drill-down stages from `/galaxy/stage`) as the camera moves.
+**The Galaxy Map.** `/galaxy` (`web/galaxy_views.py`) is being rebuilt
+for the shell grid (UX.111, MAP.205, MAP.206): until then the page shows a
+notice in place of the 3D map (`helpers.map_rebuilding_html`; the sector
+page's Sector Map does the same), with the Quadrant tables working as
+before. While the maps are rebuilt, maintenance mode closes the site to all
+but the admin and `/galaxy` redirects to the update page. The pieces the
+rebuilt map uses are in place:
 
-The map opens on the drill-down (`static/galaxystageview.js`, with the
-rules in `galaxystages.js`): eight stages from the whole galaxy in blocks
-243 sectors a side, through 27 and 3, to one sector, alternating a 3D view
-of a block's children and a top-down view of one slab. Each stage has its
-own URL (`?slab=`, `?at=`, `?sector=`), so Back and Forward work. The
-counts per block come from `/galaxy/stage` (through the tile cache, from
-`queryDb.galaxy_stage`). The older free camera stays behind a Free look
-button. Three features ride on top:
-
-- **Address bar.** A sector designation, `ring/layer/slot`, `x, y, z` in
-  parsecs or a name. Addresses are parsed on the page; a name goes to
-  `/galaxy/locate`, which calls `queryDb.galaxy_locate` through the API.
+- **Tiles.** `static/galaxymap3d.js` fetches tiles from `/galaxy/tiles`, a
+  packed binary body (`web/lib/tilepack.py` writes it, `static/tilepack.js`
+  reads it; MAP.159), and keeps them in IndexedDB (`planetgen-tiles`), with
+  only a small record of the cache stamp in `localStorage`. Tiles are cubes
+  of space (the octree of `galaxy/viewport.py`), not sectors, so they do not
+  depend on the sector grid.
+- **The block ladder.** The drill-down's stages (`/galaxy/stage`) and data
+  windows (`/galaxy/window`, MAP.151) are the cylinder grid's; the query
+  functions behind them (`db.query.galaxy_stage`, `galaxy_window` and their
+  key helpers) raise `NotImplementedError` until the ladder is rebuilt on
+  shells, so those routes answer with an error until then.
+- **Address bar.** A sector designation (such as `C8030005`), `x, y, z` in
+  parsecs or a name. A name goes to `/galaxy/locate`, which calls
+  `db.query.galaxy_locate` through the API.
 - **NAV course.** The NAV result links to `/galaxy?course=<from>,<to>`.
   `galaxy_views._course_from_args` asks `nav_page.galaxy_course` for the
-  waypoints, and the map opens the smallest stage that holds both ends
-  and draws the line (a course inside one sector opens that sector).
-  The maps have the reverse: "Start Here" and "End Here" in an object's
-  panel keep the user on the map for the first end and open the plotted
-  course with the second (`static/navpick.js`, NAV.29), and a pick mode
-  (`?pick=to&from=...`) that the NAV page can begin.
+  waypoints. "Start Here" and "End Here" in an object's panel
+  (`static/navpick.js`, NAV.29) and a pick mode (`?pick=to&from=...`) work
+  as before.
 - **Territories.** `/galaxy/territories` merges `/api/territories` (owned
-  systems and capitals) with `/api/polities` (names, colors, counts), and
-  the map draws each polity's reach as a soft ball and its systems as
-  dots. The button and legend appear only when `/api/polities` counts at
-  least one polity, so a galaxy with no population pass shows nothing.
+  systems and capitals) with `/api/polities` (names, colors, counts); the
+  button and legend appear only when `/api/polities` counts at least one
+  polity.
 
 ```mermaid
 flowchart TD
-    JS["static/galaxymap3d.js"] --> LS{"tile in<br/>localStorage?"}
-    LS -->|"yes"| Draw["draw<br/>(galaxyprisms.js, galaxyblocks.js)"]
+    JS["static/galaxymap3d.js"] --> LS{"tile in<br/>IndexedDB?"}
+    LS -->|"yes"| Draw["draw<br/>(tilepack.js, galaxyblocks.js)"]
     LS -->|"no"| GT["GET /galaxy/tiles<br/>web/galaxy_views.py"]
-    GT --> TC["lib/tilecache.fetch_tiles"]
+    GT --> TC["lib/tilecache.fetch_tiles_wire"]
     TC --> Stamp["current_stamp<br/>(at most once per 60 s:<br/>GET /api/galaxy/changes)"]
     Stamp --> Disk{"tile on disk for<br/>this generation?"}
     Disk -->|"yes"| Out["JSON tiles"]
     Disk -->|"no"| API["apiclient.get_galaxy_tiles<br/>GET /api/galaxy/tiles"]
-    API --> QT["queryDb.galaxy_tiles<br/>galaxyViewport tile keys"]
+    API --> QT["db.query.galaxy_tiles<br/>galaxy.viewport tile keys"]
     QT --> DB[("content schema")]
     API --> Write["write tile file"]
     Write --> Out
     Out --> Draw
 ```
 
-There are three cache levels. The browser keeps tiles in `localStorage`,
-keyed by the cache generation. The web process keeps tile files under
+There are three cache levels. The browser keeps tiles in IndexedDB, keyed
+by the cache generation. The web process keeps tile files under
 `tile_cache.dir` (`planetgen/web/lib/tilecache.py`). The database is the source.
-Freshness comes from `queryDb.galaxy_changes`, which reads the
+Freshness comes from `db.query.galaxy_changes`, which reads the
 `modified_at` columns and names only the tiles that changed; a change it
-cannot pin down starts a new generation. The grid shading itself needs no
-server call: `galaxyprisms.js` evaluates the density model from the shape
-parameters embedded in the page.
+cannot pin down starts a new generation. `update.sh` ends by warming the
+map's opening view (`planetgen.cli.warm_map`, MAP.134).
 
 ## Flow 4: admin login and background Generate jobs
 
@@ -700,15 +957,15 @@ flowchart TD
     AL --> RL["per-IP limit<br/>10 per minute (limiter.py)"]
     RL --> BO{"loginguard:<br/>address or username locked?<br/>(Redis)"}
     BO -->|"yes"| E429["429 + Retry-After"]
-    BO -->|"no"| Auth["adminAuth.authenticate<br/>(control schema)"]
+    BO -->|"no"| Auth["admin.auth.authenticate<br/>(control schema)"]
     Auth -->|"fail"| Rec["count against address and username,<br/>log + audit row, 401"]
-    Auth -->|"ok"| Sess["adminAuth.create_session<br/>stores SHA-256 of token"]
+    Auth -->|"ok"| Sess["admin.auth.create_session<br/>stores SHA-256 of token"]
     Sess --> Cookie["Set-Cookie (HttpOnly, Secure, SameSite=Strict)<br/>relayed to the page response"]
 
     Gen["POST /admin/generate<br/>web/generate_page.py<br/>(CSRF + fresh admin)"] --> SJ["web/jobs.start_job<br/>job.json, take 'active' lock"]
     SJ --> Spawn["queue on RQ, start detached:<br/>python3 -m planetgen.cli.worker --burst"]
     Spawn --> Steps["each step in order:<br/>planetgen.cli.reset --yes, planetgen plan --no-bright-stars,<br/>planetgen plan --bright-stars-only, planetgen galaxy ..."]
-    Steps --> Files["state.json, output.log,<br/>progress.json (progressFile.py)"]
+    Steps --> Files["state.json, output.log,<br/>progress.json (queue/progress_file.py)"]
     Poll["static/generatejobs.js<br/>GET /admin/generate/status"] --> Files
 ```
 
@@ -718,8 +975,8 @@ checks the lockouts (`api/loginguard.py`, `planetgen/admin/throttle.py`):
 3 failures from one address lock it for 5 minutes, doubling up to a day,
 and 10 for one username lock it for 1 second, doubling up to 15 minutes,
 both kept in Redis (SEC.30). The
-password is checked against the control schema (`adminAuth.authenticate`).
-On success `adminAuth.create_session` stores only a hash of a new token,
+password is checked against the control schema (`admin.auth.authenticate`).
+On success `admin.auth.create_session` stores only a hash of a new token,
 and the raw token goes back as the session cookie. `admin_pages.py`
 relays that `Set-Cookie` onto the page response.
 
@@ -737,15 +994,15 @@ detached from the web server, so a request timeout or a
 server reload does not stop it. The runner runs each step with the site's
 database in `PLANETGEN_MYSQL_*` and `PLANETGEN_PROGRESS_FILE` set; it
 writes `state.json` and `output.log`, and `planetgen` writes
-`progress.json`. The page only reads those files
-(`/admin/generate/status`, polled by `static/generatejobs.js`). Cancel
+`progress.json`. The page only reads those files: the status (`/admin/generate/status`, polled by `static/generatejobs.js`) and the job's log (`/admin/generate/jobs/<id>/stream`, a live stream that ends on purpose every few seconds, and `.../log`, shown by `static/joblog.js` in a terminal box). Cancel
 writes a `cancel` file the runner watches. A lock left by a dead runner is
-cleared by the next `start_job`.
+cleared by the next `start_job`. (The job's progress and counters are
+moving to Redis; see [redis-and-the-work-queue.md](redis-and-the-work-queue.md) for the decision and how far it has come.)
 
 Planning runs the bright-star scatter as its own step (`planetgen plan
 --bright-stars-only` after `plan --no-bright-stars`), so the job shows its
 progress bar and count; "Skip the bright-star scatter" leaves it out, and
-"Rebuild the bright stars" runs it alone on the stored plan. Generate
+"Rebuild the bright stars" runs it alone on the stored plan. The sectors a job generates run on the same Redis work queue (`planetgen/queue/work.py`) in worker processes, so a sector or a shell's scatter is one unit of work. Generate
 neighborhood (on the Sector Map and the Galaxy Map, `static/generatebuttons.js`)
 asks for a radius in light years, 13 to 652, and asks again past about
 5,000 sectors.
@@ -764,6 +1021,8 @@ flowchart TD
         I --> PD["scripts/install-python-deps.sh<br/>probe_requirements.py, lock_pins.py"]
         U --> PDC["install-python-deps.sh --check"]
         DC --> NL["NLTK words corpus"]
+        DC --> RD["ensure_redis, check_redis_settings<br/>(warns, never edits Redis config)"]
+        DC --> WM["warm_galaxy_map<br/>planetgen.cli.warm_map"]
         DC --> MR["migrate_or_reset_db -> planetgen.cli.migrate"]
         I --> POP{"offer_population_pass<br/>run it? (y/N, 30 s;<br/>POPULATION=1 skips the question)"}
         POP -->|"y"| GP["planetgen population"]
@@ -789,7 +1048,7 @@ Shared steps live in `scripts/deploy-common.sh`, so install and update
 cannot drift.
 Libraries come from `scripts/install-python-deps.sh` (pip with
 `--require-hashes` from `requirements.lock`, or apt on an externally
-managed Python). The database step is `planetgen.cli.migrate` (Flow 2).
+managed Python). Redis must answer at `redis.url`: `ensure_redis` installs and starts `redis-server` on a local address when nothing does, and `check_redis_settings` only warns about settings that do not suit planetGen (`examples/redis/planetgen.conf`). The database step is `planetgen.cli.migrate` (Flow 2).
 After it (in `install.sh`, after the NLTK corpus, which the species names
 need), `offer_population_pass` asks whether to run `planetgen
 population`. The answer defaults to No after 30 seconds, and with no
@@ -803,7 +1062,7 @@ directory and debug log.
 **Update.** `update.sh` forces the checkout to the
 branch tip (untracked files such as `config.json` are kept), then run each
 check and change only what is missing. The maintenance timers in
-`examples/maintenance/` can run it, and `planetgen.cli.orbits`, on a schedule.
+`examples/maintenance/` can run it, and `planetgen.cli.orbits`, on a schedule. It ends by warming the Galaxy Map's opening view (`warm_galaxy_map`, `planetgen.cli.warm_map`, MAP.134).
 
 **Releases.** A PR never edits the version. It adds one note under
 `changes/` named `<short-name>.<patch|minor|major>.md`; `release-note.yml`

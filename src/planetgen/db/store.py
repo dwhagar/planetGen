@@ -5754,7 +5754,7 @@ PHENOMENON_SCATTER_INDEXES = {
     "idx_phenomenon_scatter_class": "kind, subtype, mass_solar",
 }
 """dict: The secondary indexes of `phenomenon_scatter` (as `schema.sql` has them) that a scatter drops while it
-writes and builds again once, sorted, at the end (PERF.73)."""
+writes and builds again at the end, one at a time, each sorted (PERF.73, PERF.101)."""
 
 
 def _scatter_value(value):
@@ -5799,16 +5799,21 @@ def drop_phenomenon_scatter_indexes(conn):
         conn.execute("ALTER TABLE phenomenon_scatter " + ", ".join(f"DROP INDEX {name}" for name in gone))
 
 
-def add_phenomenon_scatter_indexes(conn):
-    """Builds the secondary indexes `drop_phenomenon_scatter_indexes` took off (those missing), in one pass over the
-    table."""
+def missing_phenomenon_scatter_indexes(conn):
+    """The secondary indexes of `phenomenon_scatter` not built yet, as `(name, columns)` in build order."""
     present = {row["name"] for row in conn.execute(
         "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
         " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
-    missing = [(name, columns) for name, columns in PHENOMENON_SCATTER_INDEXES.items() if name not in present]
-    if missing:
-        conn.execute("ALTER TABLE phenomenon_scatter " + ", ".join(
-            f"ADD KEY {name} ({columns})" for name, columns in missing))
+    return [(name, columns) for name, columns in PHENOMENON_SCATTER_INDEXES.items() if name not in present]
+
+
+def add_phenomenon_scatter_indexes(conn, on_index=None):
+    """Builds the secondary indexes `drop_phenomenon_scatter_indexes` took off (those missing), one statement per
+    index so there is something to count: `on_index(name)` is called after each is built (PERF.101)."""
+    for name, columns in missing_phenomenon_scatter_indexes(conn):
+        conn.execute(f"ALTER TABLE phenomenon_scatter ADD KEY {name} ({columns})")
+        if on_index is not None:
+            on_index(name)
 
 
 def phenomena_for_sector(conn, shell_index, band_index, wedge_index):

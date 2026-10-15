@@ -20,7 +20,9 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sample_wide_binary_separation_au
-from planetgen.physics.orbits import holman_wiegert_critical_semimajor_axis, mutual_hill_radius_au
+from planetgen.generation import validation
+from planetgen.generation.comet import Comet
+from planetgen.physics.orbits import hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis, mutual_hill_radius_au
 
 STAR_TYPES = ["G2V", "M5V", "K3V", "A0V"]
 TRIALS = 3
@@ -225,6 +227,8 @@ class _StubPlanet:
 def _wide_system_for_clearance_test(separation_au, primary_a_crit_au, secondary_a_crit_au):
     system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, PLANETS=False))
     system.wide_binary.separation_au = separation_au
+    # A circular stand-in: the clearance rule reads the closest approach (GEN.228).
+    system.wide_binary.periapsis_au = separation_au
     system.primary_star.a_crit_au = primary_a_crit_au
     system.secondary_star.a_crit_au = secondary_a_crit_au
     return system
@@ -418,3 +422,101 @@ def test_close_binary_default_still_reachable_when_wide_binary_forced_false():
     assert system.binary_type == "close"
     assert system.secondary_planets == []
     assert system.wide_binary is None
+
+
+# ---------------------------------------------------------------------------
+# GEN.228: the two stars' orbit regions never overlap -- Hill sphere cap,
+# closest-approach clearance, and comets kept inside each star's limit.
+# ---------------------------------------------------------------------------
+
+def test_hill_radius_in_pair_equal_masses_circular():
+    # a * (1/2 / 3)^(1/3) = a * (1/6)^(1/3)
+    assert hill_radius_in_pair_au(100.0, 0.5, 0.0) == pytest.approx(100.0 * (1 / 6) ** (1 / 3))
+
+
+def test_hill_radius_in_pair_shrinks_at_periapsis():
+    assert hill_radius_in_pair_au(100.0, 0.5, 0.5) == pytest.approx(0.5 * hill_radius_in_pair_au(100.0, 0.5, 0.0))
+
+
+def test_each_star_limit_is_inside_its_hill_sphere_and_the_fit():
+    for _ in range(10):
+        system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True))
+        pair = system.wide_binary
+        total = pair.primary.mass + pair.secondary.mass
+        for star, other in ((pair.primary, pair.secondary), (pair.secondary, pair.primary)):
+            hill = hill_radius_in_pair_au(pair.separation_au, star.mass / total, pair.eccentricity)
+            fit = holman_wiegert_critical_semimajor_axis(pair.separation_au, other.mass / total, pair.eccentricity)
+            assert star.a_crit_au == pytest.approx(min(hill, fit))
+
+
+def test_cross_star_clearance_uses_the_closest_approach():
+    # Far apart on average (200 AU) but 100 AU at periapsis: two planets at
+    # 49.99 AU leave 0.02 AU between them when the stars are closest.
+    system = _wide_system_for_clearance_test(separation_au=200.0, primary_a_crit_au=50.0, secondary_a_crit_au=50.0)
+    system.wide_binary.periapsis_au = 100.0
+    system.planets = [_StubPlanet(distance=49.99)]
+    system.secondary_planets = [_StubPlanet(distance=49.99)]
+
+    removed = validation.cross_star_clearance(system)
+
+    assert len(removed) == 1
+    assert len(system.planets) + len(system.secondary_planets) == 1
+
+
+def _comet(perihelion_au, eccentricity, orbit_type="elliptical"):
+    comet = object.__new__(Comet)
+    comet.orbit_type = orbit_type
+    comet.perihelion_distance_au = perihelion_au
+    comet.eccentricity = eccentricity
+    return comet
+
+
+def test_comet_apoapsis():
+    assert validation.comet_apoapsis_au(_comet(1.0, 0.5)) == pytest.approx(3.0)
+    assert validation.comet_apoapsis_au(_comet(1.0, 0.999, "parabolic")) == float("inf")
+
+
+def test_trim_comets_keeps_only_those_inside_the_ceiling():
+    comets = [_comet(1.0, 0.5), _comet(1.0, 0.99), _comet(1.0, 0.999, "parabolic")]
+    removed = validation.trim_comets_to_orbit_ceiling(comets, 10.0)
+    assert comets == [comets[0]]
+    assert len(removed) == 2
+
+
+def test_check_star_system_flags_a_comet_beyond_the_limit_and_stabilize_removes_it():
+    system = _wide_system_for_clearance_test(separation_au=100.0, primary_a_crit_au=20.0, secondary_a_crit_au=20.0)
+    system.planets, system.secondary_planets = [], []
+    system.comets = [_comet(1.0, 0.99)]
+    system.secondary_comets = [_comet(1.0, 0.5)]
+    system.comets[0].name = "Far Comet"
+    problems = validation.check_star_system(system)
+    assert [problem.body for problem in problems] == ["Far Comet"]
+
+    report = validation.stabilize_star_system(system, allow_removal=True)
+
+    assert report.removed == ["Far Comet"]
+    assert not report.problems
+    assert len(system.secondary_comets) == 1
+
+
+def test_wide_binaries_never_overlap():
+    """Many random wide binaries, comets forced on: no planet or comet orbit
+    reaches the other star's region, and the system passes `check_star_system`."""
+    wide = 0
+    for _ in range(60):
+        system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, COMETS=True))
+        if system.binary_type != "wide":
+            continue
+        wide += 1
+        pair = system.wide_binary
+        for star, planets, comets in ((system.primary_star, system.planets, system.comets),
+                                      (system.secondary_star, system.secondary_planets, system.secondary_comets)):
+            for body in planets:
+                assert validation.reach_au(body) <= star.a_crit_au * (1 + 1e-9)
+            for comet in comets:
+                assert validation.comet_apoapsis_au(comet) <= star.a_crit_au * (1 + 1e-9)
+        reach_p = max((validation.reach_au(b) for b in system.planets), default=0.0)
+        reach_s = max((validation.reach_au(b) for b in system.secondary_planets), default=0.0)
+        assert reach_p + reach_s < pair.periapsis_au
+        assert not validation.check_star_system(system)
+    assert wide

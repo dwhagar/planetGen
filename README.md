@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.1343 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.1366 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -72,7 +72,7 @@ build order).
   and a speculative evolutionary timeline for each living world.
 - **A whole galaxy**: a density model of a spiral galaxy, with young,
   old and bulge star populations, cut into 4 pc (13 ly) sectors on a
-  cylindrical grid. Planning the galaxy also places every bright star
+  grid of spherical shells, bands and wedges around a round core. Planning the galaxy also places every bright star
   (500 times the Sun's luminosity or more, about 60 million in a Milky
   Way) so the spiral arms exist from the start. Sectors are then filled
   a neighborhood at a time, where and when you need them, with star
@@ -130,7 +130,7 @@ Once installed, the site's front page leads to:
   opens on a drill-down: pick a slab of the galaxy, then a block, then
   smaller blocks down to single sectors, with a breadcrumb, keyboard
   keys, and a link for every stage so Back and Forward work. Type a
-  sector, a `ring/layer/slot` address, coordinates or a name to fly
+  sector, a `shell/band/wedge` address, coordinates or a name to fly
   there. A NAV course can be drawn on it, and once population has run,
   a Territories overlay shows who holds what. As an admin, click an
   empty sector to generate it, a neighborhood of a radius you choose,
@@ -187,11 +187,14 @@ Common examples:
 # A random neighborhood: a random start and every sector within 100 ly of it
 planetgen galaxy
 
-# One whole ring of the galactic plane, one sector of it, or one column
-# of sectors through every layer
-planetgen galaxy --ring 12
-planetgen galaxy --ring 12 --layer 0 --slot 5
-planetgen galaxy --ring 12 --slot 5 --column
+# One whole shell, one band of it, or one sector (shell 12, the equatorial
+# band, wedge 5)
+planetgen galaxy --shell 12 --limit 500
+planetgen galaxy --shell 12 --band 0
+planetgen galaxy --shell 12 --band 0 --wedge 5
+
+# A span of shells and bands (negative bands lie south of the plane)
+planetgen galaxy --shells 10:12 --bands=-2:2 --limit 500
 
 # A quick test galaxy: plan with fewer pre-placed bright stars
 planetgen plan --bright-star-min-luminosity 5000

@@ -168,6 +168,29 @@ def holman_wiegert_critical_semimajor_axis(binary_separation_au, companion_mass_
     return ratio * binary_separation_au
 
 
+@finite_domain()
+def hill_radius_in_pair_au(binary_separation_au, own_mass_fraction, eccentricity):
+    """
+    The Hill radius of one star of a wide binary against its companion, at
+    the pair's closest approach (periapsis, the tightest the Hill sphere
+    ever gets):
+
+        r_H = a_bin * (1 - e) * (m_own / (3 * (m_own + m_companion)))^(1/3)
+
+    Nothing orbiting that star can stay bound beyond this, however
+    far the Holman & Wiegert fit would allow. `own_mass_fraction` is the
+    star's own share of the pair's mass, `m_own / (m_own + m_companion)`.
+
+    Args:
+        binary_separation_au (float): The pair's semi-major axis, in AU.
+        own_mass_fraction (float): The star's mass over the pair's total.
+        eccentricity (float): The pair's orbital eccentricity.
+
+    Returns:
+        float: The Hill radius, in AU.
+    """
+    return binary_separation_au * (1.0 - eccentricity) * (own_mass_fraction / 3.0) ** (1.0 / 3.0)
+
 
 @finite_domain(clamped=("secondary_mass_fraction", "eccentricity"))
 def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_fraction, eccentricity=0.0):

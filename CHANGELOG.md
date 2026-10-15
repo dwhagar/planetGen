@@ -2,6 +2,200 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1366] - 2026-10-15
+
+**Headline:** The plan files the bug that sector designations cannot name bands beyond 2047.
+
+### Changed
+- Filed GEN.230 (Core, bug): the 12-bit band field in sector designations and object-ID birth fields fails for the polar caps and high-latitude bands from shell 1304 outward.
+
+TODO items resolved: none / Added: GEN.230
+
+## [8.0.1365] - 2026-10-15
+
+**Headline:** The plan retires six more documentation items and files the rebuild of the architecture snapshot page.
+
+### Changed
+- Retired DOC.31, DOC.32 and DOC.33 (done, PR #1625), DOC.46 (done, PR #1627) and DOC.27 and DOC.28 (done, PR #1628).
+- Filed DOC.47 (Quality): rebuild `docs/design/architecture.html` from the new architecture.md.
+
+TODO items resolved: DOC.31, DOC.32, DOC.33, DOC.46, DOC.27, DOC.28 / Added: DOC.47
+
+## [8.0.1364] - 2026-10-15
+
+**Headline:** The plan retires PERF.101, the missing progress and time remaining while the phenomena indexes are built.
+
+### Changed
+- Retired PERF.101 (done, PR #1620); PERF.102 now follows it as the same progress and ETA fix for the migration bars.
+
+TODO items resolved: PERF.101 / Added: none
+
+## [8.0.1363] - 2026-10-15
+
+**Headline:** The architecture document describes the code as it is now, module by module.
+
+### Changed
+- `docs/design/architecture.md` has a code map built from the real `src/planetgen/` packages (generation, physics, galaxy, population, names, describe, util, queue, db, admin, cli, wiki, api, web) and the current static files and scripts, in place of the old flat `stellarObjects` map.
+- The generating flow now follows the shell, band and wedge grid, the two scatter passes and the steps after a run; the serving flow describes the Galaxy Map as it is while its block ladder is rebuilt on shells; the database, login, job and release flows use today's module names, and the CI row reflects the scheduled, manual-only workflow.
+
+## [8.0.1362] - 2026-10-15
+
+**Headline:** The sector grid is documented as the shells, bands and wedges it now is.
+
+### Changed
+- `docs/design/galaxy-coordinate-system.md` is rewritten for the spherical grid (the core ball, shells, bands, wedges and polar caps, the wedge rule, designations, seeds, the outline and the migration), the cylinder design moves to `docs/design/archive/`, and the README, the design index, the plan and the object ID notes say shell, band and wedge instead of ring, layer and slot.
+
+## [8.0.1361] - 2026-10-15
+
+**Headline:** The web interface guide now lists every page and route the site has.
+
+### Changed
+- `docs/html-interface.md` lists the routes it was missing (What's nearby, the NAV chart, the data table route, the maintenance page, the job stream and log, the uncharted and nebula map routes, the scene routes and the admin Stats actions), uses shell, band and wedge for sector addresses, names the real modules (`mdrender.py`, `web/app.py`), describes the 503 and 504 pages, the Nearby and Species header sections and the full set of search parameters, and no longer says `DBUtils` is needed. `docs/config.md` names every route the `galaxy_tiles` rate limit covers.
+
+## [8.0.1360] - 2026-10-15
+
+**Headline:** The database format guide now matches the v91 schema and the Alembic migrations.
+
+### Changed
+- `docs/database-schema.md` says the schema is at v91 and moves by Alembic revisions, adds the tables it was missing (`phenomenon_scatter`, `phenomenon_scatter_classes`, `sector_system_counts`, `object_timing_stats` and `object_timing_samples`, `id_blocks`, `id_counters`, `nebula_shape_balls`, `generation_run_arguments`, `alembic_version`) and the columns it lacked, describes the control schema's 18 tables at v14, and trims the planned-changes list to what is still open.
+
+## [8.0.1359] - 2026-10-15
+
+**Headline:** A new cloud session can now have MySQL 8, Apache, Redis and every test dependency ready from one pasted setup script.
+
+### Added
+
+- `examples/cloud-environment/setup-planetgen-env.sh`: a setup script for a Claude cloud environment that installs MySQL 8, Apache 2 with mod_wsgi, Redis, every Python dependency and the NLTK corpus, so a new session can run the test suite at once (`planetgen-env-up` starts the services). The README beside it says where to paste it; `docs/testing.md` links to both.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1358] - 2026-10-15
+
+**Headline:** Building the phenomena indexes now shows a progress bar with a time remaining.
+
+### Changed
+- Building the phenomena indexes after a plan run reports progress (PERF.101): the indexes are built one statement at a time, each worth the table's rows, so the bar moves after every index and its time left comes from the rows per second earlier runs recorded (`store.add_phenomenon_scatter_indexes(conn, on_index)`, `missing_phenomenon_scatter_indexes`). A phase that reports nothing already showed the earlier runs' time (PERF.96's `runeta`); this phase now has real counts as well.
+
+TODO items resolved: PERF.101 / Added: none
+
+## [8.0.1357] - 2026-10-15
+
+**Headline:** The plan retires DOC.34, the docs/api.md update.
+
+### Changed
+- Retired DOC.34 (done, PR #1623): docs/api.md follows the shell, band and wedge addresses and the current routes.
+
+TODO items resolved: DOC.34 / Added: none
+
+## [8.0.1356] - 2026-10-15
+
+**Headline:** The API reference now matches the routes the spherical switch left.
+
+### Changed
+- `docs/api.md` names sectors by shell, band and wedge everywhere, lists the routes it was missing (`/galaxy/made`, `/galaxy/uncharted`, the admin generation-stats reset and galaxy-settings routes), documents the `503 BUSY` and `504 QUERY_TIMEOUT` answers and `phenomena_offset`, and says which Galaxy Map routes are waiting for the new map.
+
+## [8.0.1355] - 2026-10-15
+
+**Headline:** The plan now has the nightly orbital update move every object in the galaxy, each stored as a point in space in its own columns.
+
+### Changed
+- Rewrote GEN.223 (Core) to Boss's wording of 2026-10-15 16:03 EDT: every object moves, including systems with no placed sector, standalone phenomena and the scatter placeholders; the point in space is stored one column per component, with no JSON; the post-motion refresh covers objects with no placed sector. Placed after PERF.102 in Core's group.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1354] - 2026-10-15
+
+**Headline:** The plan files the migration progress bug: neither bar shows an estimated time remaining.
+
+### Changed
+- Filed PERF.102 (Core, bug): the migration progress display shows no estimated time remaining on either bar; grouped with PERF.101.
+
+TODO items resolved: none / Added: PERF.102
+
+## [8.0.1353] - 2026-10-15
+
+**Headline:** The plan files two follow-ups from the spherical switch: a math check for the shell grid and an API version bump.
+
+### Changed
+- Filed TEST.158 (Quality): rewrite `physics/mathcheck.py` for the shell, band and wedge grid.
+- Filed API.26 (Core): bump `API_VERSION` to 4 for the new sector address parameters, with an open question for Boss (default: bump).
+
+TODO items resolved: none / Added: TEST.158, API.26
+
+## [8.0.1352] - 2026-10-15
+
+**Headline:** The plan no longer lists the cli.md sync (DOC.36), now done.
+
+### Changed
+
+- TODO: retired DOC.36 (done in PR #1616) from the plan and the phase file; DOC.4 notes that its cli.md part is covered.
+
+TODO items resolved: DOC.36 / Added: none
+
+## [8.0.1351] - 2026-10-15
+
+**Headline:** The command-line reference now matches `planetgen --help` for all 11 subcommands, on the new shell, band and wedge grid.
+
+### Changed
+- `docs/cli.md` lists every subcommand (adding `check-db`, `versions` and `benchmark`), documents the galaxy shell, band, wedge and span options, the random-start options, `--no-settle`, `--backfill-from`, `--then-scatter`, `--directive`, `--star-mix`, the plan's shape flags and the phenomenon `--name` and `--no-settle`, uses the real bright-star default (9000 solar luminosities, from 2500 to 4,000,000), and shortens the Planned table to what is still unbuilt (`repair-db`, `--resume`). No code changes (DOC.36).
+
+## [8.0.1350] - 2026-10-15
+
+**Headline:** The plan now records what the spherical switch left for the Galaxy Map (the 500 on /galaxy and the parked browser tests).
+
+### Changed
+
+- TODO: MAP.205 records the post-switch state of the Galaxy Map: tests parked behind MAPS_PENDING, geometry.py kept, /galaxy answering 500, the 96 browser failures in the post-switch full run.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1349] - 2026-10-15
+
+**Headline:** The object-timing test no longer fails when the machine is busy.
+
+### Fixed
+- `test_time_spent_in_an_inner_object_is_not_counted_twice` timed real `sleep` calls and failed when a sleep overshot (8.0 ms against a 4 ms limit on a loaded machine). It now drives a fake clock, so the check is exact and never depends on speed (TEST.156).
+
+## [8.0.1348] - 2026-10-15
+
+**Headline:** Every release note now has to open with a Headline line, so no release goes out without one.
+
+### Changed
+- `scripts/bump_version.py` refuses a release note that does not start with a `**Headline:**` line (the rule has been optional since it was restored on 2026-10-14). `--check`, `--check-pr` and the stamp all apply it; `changes/README.md` says so.
+
+## [8.0.1347] - 2026-10-15
+
+### Changed
+
+- TODO: retired GEN.228 (done in PR #1610) and filed GEN.229, the repair of the wide binaries that already break the stability rule (count first with `planetgen check-db --deep --wide-binaries`; the repair needs Boss's word).
+
+TODO items resolved: GEN.228 / Added: GEN.229
+
+## [8.0.1346] - 2026-10-15
+
+### Changed
+- Wide binaries keep both stars' orbit regions apart (GEN.228). Each star's stable limit is now the tighter of the Holman & Wiegert fit and its own Hill sphere in the pair at periapsis (`orbits.hill_radius_in_pair_au`), the clearance between the two stars' outermost planets is measured at the pair's closest approach, not its average separation, and every comet a wide binary's star gets is an elliptical one whose whole orbit stays inside that limit (re-rolled up to `COMET_CEILING_ATTEMPTS` times, dropped when none fits). Before, comets ignored the limit: with comets forced on, 1,266 of 1,500 generated wide binaries had a comet reaching past it, toward the companion's planets.
+- `validation.check_star_system` reports a comet that leaves its star's stable limit, and `stabilize_star_system` with removal drops it.
+- `planetgen check-db --deep --wide-binaries` validates only the wide binaries, to count the stored pairs that break the rule.
+
+TODO items resolved: GEN.228 (the count of existing broken pairs is `check-db --deep --wide-binaries`; repair waits for Boss) / Added: none
+
+## [8.0.1345] - 2026-10-15
+
+### Changed
+
+- TODO: the execution plan now has a Core (2026-10-15) lane section with its 46 open items; the Database and Generate lanes are marked retired. Interface waits for Maps.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1344] - 2026-10-15
+
+### Changed
+
+- TODO: retired DB.32, GEN.227, GEN.226, UX.111 and UX.112 (the spherical switch, PR #1607); the held items MAP.152, GEN.101, GEN.24 and GEN.27 are released to be reread against the shell grid.
+
+TODO items resolved: DB.32, GEN.227, GEN.226, UX.111, UX.112 / Added: none
+
 ## [8.0.1343] - 2026-10-15
 
 ### Added
