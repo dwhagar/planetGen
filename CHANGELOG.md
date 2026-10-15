@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1295] - 2026-10-15
+
+### Changed
+
+- TODO.md: retired the unit preference item (PR #1562, both parts); the all-visitors banner item no longer waits on the run record.
+
+TODO items resolved: UX.78 / Added: none
+
 ## [8.0.1294] - 2026-10-15
 
 ### Added
