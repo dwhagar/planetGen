@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1323] - 2026-10-15
+
+### Changed
+
+- TODO: recorded DOC.24 progress (PR #1592); one leftover waits for the spherical switch.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1322] - 2026-10-15
 
 ### Changed
