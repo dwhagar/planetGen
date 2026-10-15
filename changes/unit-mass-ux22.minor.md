@@ -1,3 +1,0 @@
-### Changed
-
-- Masses are shown on one ladder everywhere (system pages, the System Map panels, star and planet lists, black holes, neutron stars, rogue planets, the quasar, the Galaxy Map's point panel and the generator text): kilograms under 0.01 lunar mass, then lunar masses, Earth masses from 0.1, Jupiter masses from 0.1 Jupiter mass and solar masses from 0.075. Earth now reads "1 Earth mass", Mars "0.107 Earth masses", Saturn "0.299 Jupiter masses", Proxima Centauri "0.122 solar masses", and a heavy black hole "4.30 × 10⁶ solar masses". The kilogram figure and the "% of Sol" comparison are gone from mass rows.

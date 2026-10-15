@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1216] - 2026-10-15
+
+### Changed
+
+- Masses are shown on one ladder everywhere (system pages, the System Map panels, star and planet lists, black holes, neutron stars, rogue planets, the quasar, the Galaxy Map's point panel and the generator text): kilograms under 0.01 lunar mass, then lunar masses, Earth masses from 0.1, Jupiter masses from 0.1 Jupiter mass and solar masses from 0.075. Earth now reads "1 Earth mass", Mars "0.107 Earth masses", Saturn "0.299 Jupiter masses", Proxima Centauri "0.122 solar masses", and a heavy black hole "4.30 × 10⁶ solar masses". The kilogram figure and the "% of Sol" comparison are gone from mass rows.
+
 ## [8.0.1215] - 2026-10-15
 
 ### Changed
