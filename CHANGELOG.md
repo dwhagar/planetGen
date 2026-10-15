@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1296] - 2026-10-15
+
+### Added
+
+- TODO.md: filed GEN.228 (bug): wide binary star systems must be stable, with a check of the Hill sphere of the far orbit on each star, queued for the Generate lane after the sector remapping switch.
+
+TODO items resolved: none / Added: GEN.228
+
 ## [8.0.1295] - 2026-10-15
 
 ### Changed
