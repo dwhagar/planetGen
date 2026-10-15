@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1278] - 2026-10-15
+
+### Changed
+- **Two slow Galaxy Map browser tests find their spot in the page** (TEST.139 stage 4). `test_a_binary_picks_as_one_system_in_an_opened_sector` moved a real pointer to each of 400 bright spots (203 s on an idle machine, 340 s in the last full run) and `test_galaxy_map_buttons` did the same over a 21 x 21 grid for each choice it clicked (164 s idle). Both now send the pointer events from the page, skip any point where the map is not what a real pointer would meet, and move the real pointer only to the spots found: 13 s and 29 s on an idle machine, the same assertions.
+
 ## [8.0.1277] - 2026-10-15
 
 ### Changed
