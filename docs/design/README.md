@@ -36,6 +36,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [mass-backfill.md](mass-backfill.md) | Four rings of heavier stars around generated sectors | built |
 | [multiple-galaxies.md](multiple-galaxies.md) | Neighbour galaxies and a second galaxy | research |
 | [globular-clusters.md](globular-clusters.md) | Globular clusters in generation | research (no model exists) |
+| [intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) | What fills the sphere off the disk: the stellar halo, satellites, ejected stars, gas, and how to give every cell contents | research (proposal for Boss) |
 | [star-types-by-galactic-radius.md](star-types-by-galactic-radius.md) | How star types change with distance from the core | research (proposals for Boss) |
 | [compact-remnant-regions.md](compact-remnant-regions.md) | Where neutron stars and black holes are observed | reference (feeds GEN.100) |
 
