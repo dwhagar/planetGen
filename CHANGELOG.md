@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1289] - 2026-10-15
+
+### Changed
+
+- TODO.md and the spherical sector plan: recorded that the Galaxy Map ladder is built after the coordinates and the migration and that equal-volume bands were not adopted (both Decided by Boss); MAP.205 now depends on DB.32, GEN.227 and UX.111; MAP.204 is owned by Foundations Maps.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1288] - 2026-10-15
 
 ### Changed
