@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1378] - 2026-10-15
+
+**Headline:** The spherical-region database query now waits for its research and never blocks the grid or the whole-sphere work.
+
+### Changed
+- The Core group for the spherical-region database query is marked as waiting on its research note (Boss, 5:32 PM EDT); it is skipped if the research is not ready when the spherical layout is.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1377] - 2026-10-15
 
 **Headline:** The plan now finishes the spherical grid first, then the whole sphere with real stars for every nebula and Wolf-Rayet stars.
