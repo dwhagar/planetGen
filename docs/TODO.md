@@ -6085,6 +6085,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Prerequisite: none (POP.12 done, PR #1554). Related: POP.10 (done, PRs #1517 and #1524), POP.9, ADM.9.
 
 - [ ] **POP.14 A race is only placed where it can survive: a placement check and a consistency check over the data**
+  Progress (2026-10-15): Generate built it and saved it on the branch
+  `claude/pop14-held` (not merged, not started on main); the Core lane
+  starts from that branch. It waits on DB.30 for storage.
   Boss (2026-10-15 04:18Z): "Also add another POP item that we ensure
   consistency that if we put a race on a planet it is within the limits
   of what can survive there." Done: (1) one check, built on the species
