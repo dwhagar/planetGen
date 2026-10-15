@@ -920,7 +920,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   floors are gone and stars fade by distance. The client part (scale
   cross-fades, per-tile origins) is next, so this item stays open. The
   star-drawing items MAP.198 to MAP.203 (MAP.203 done, PR #1519; Bug 2's
-  MAP.199 (done, PR #1513) and MAP.200) are unblocked from the server side; they still
+  MAP.199 (done, PR #1513) and MAP.200 (done, PR #1556)) are unblocked from the server side; they still
   start from main and check the client part's branch before touching
   the shared camera and star code.
   Prerequisites: none (MAP.150 done, #1382). Related: MAP.102, MAP.125,
@@ -1320,18 +1320,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
 
-- [ ] **MAP.200 Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug)**
-  Boss, 2026-10-15 01:46Z: add on-map zoom controls. A slider for zoom.
-  A direction star (four arrows and a middle button) that moves the map
-  centre. An indicator on the map, while the centre is being moved that
-  way, showing where the centre is. The middle button resets the focus
-  to the centre of the region being viewed. Done: the three controls on
-  the Galaxy Map with keyboard paths and a browser test, using the
-  single shared centre of MAP.199 (done, PR #1513). Owner: Bugfixes lane 2. Coordinate
-  with MAP.152 (Foundations Maps). GitHub issue
-  [#1414](https://github.com/dwhagar/planetGen/issues/1414).
-  Prerequisite: MAP.199 (done, PR #1513). Related: MAP.198 (done, PR #1470), MAP.152, MAP.146.
-
 - [ ] **MAP.204 Regions under the galactic plane are hard to highlight and select on the Galaxy Map (bug)**
   Boss (2026-10-15 05:33Z): "BUG: Attempting to select a region under
   the galactic plane on the galaxy map is exceedingly difficult and the
@@ -1345,12 +1333,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is picked and highlighted wherever the cursor is over it. Done when a
   browser test selects and highlights regions below the plane from
   several camera angles. Owner: Bugfixes lane 2 (galaxystageview.js
-  selection work), queued after MAP.200 (MAP.199 done, PR #1513); it touches the same
-  selection and camera code as MAP.198 (done), MAP.199 (done), MAP.200 and the
+  selection work), queued after MAP.200 (done, PR #1556; MAP.199 done, PR #1513); it touches the same
+  selection and camera code as MAP.198 (done), MAP.199 (done), MAP.200 (done) and the
   MAP.152 hand-offs, so it follows them to avoid conflicts. GitHub issue
   to follow.
   Prerequisites: none. Related: MAP.198 (done, PR #1470), MAP.199 (done,
-  PR #1513), MAP.200, MAP.152.
+  PR #1513), MAP.200 (done, PR #1556), MAP.152.
 
 - [ ] **MAP.205 Galaxy Map block ladder for shells**
   A design note for nested blocks on shells (master rules in longitude
