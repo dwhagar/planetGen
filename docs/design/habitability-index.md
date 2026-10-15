@@ -511,14 +511,14 @@ Where the table the code had (`built`) and the research notes (`notes`) gave two
 values, Boss's rule (2026-10-14) is that the more permissive one wins. The six pairs
 decided, the value in use first:
 
-| Limit | In use | Other | Why this one |
+| Limit | In use | Other | Reading |
 |---|---|---|---|
 | Mask minimum pressure | 14.3 kPa | 20 kPa | A pure-oxygen mask still gives 8 kPa inspired O2 down to it. |
-| No-gear minimum pressure | 50 kPa | 70 kPa | A person works without gear at 50 kPa. |
-| Hyperbaric suit maximum | 10,000 kPa | 5,000 kPa | The suit works to the higher depth rating. |
-| Inspired O2 minimum | 8 kPa | 19.5 kPa | The consciousness limit, not the occupational one. |
-| Cold, insulated suit to | -50 C | -40 C | A suit with heating holds down to it. |
-| Wet-bulb limit | 31 C | 30 C | The higher uncompensable value. |
+| No-gear minimum pressure | 50 kPa | 70 kPa | Lower edge of gear-free air. |
+| Hyperbaric suit maximum | 10,000 kPa | 5,000 kPa | Higher edge of a hyperbaric suit. |
+| Inspired O2 minimum | 8 kPa | 19.5 kPa | The consciousness limit, not the 19.5 kPa working limit. |
+| Cold, insulated suit to | -50 C | -40 C | Colder edge of an insulated suit. |
+| Wet-bulb limit | 31 C | 30 C | The higher uncompensable wet-bulb value. |
 
 The one new row, a heat-shielded suit past 140 C, comes from the notes alone. The
 Armstrong limit (6.3 kPa against 6.27) is the same number to the notes' rounding.
