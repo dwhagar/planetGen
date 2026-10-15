@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.112 |
 | MAP | MAP.207 |
 | NAV | NAV.60 |
-| GEN | GEN.228 |
+| GEN | GEN.229 |
 | PERF | PERF.102 |
 | DB | DB.33 |
 | API | API.26 |
@@ -773,6 +773,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.225 | Outline and bounds on shells | none | done, PR #1551 |
 | GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | none | open |
 | GEN.227 | Generation paths on shells | none | open |
+| GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

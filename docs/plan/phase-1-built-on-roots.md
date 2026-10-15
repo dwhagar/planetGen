@@ -36,6 +36,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | MAP.206 | Galaxy Map drawing on shells | MAP.205 |  |
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
 | DOC.46 | Docs for the spherical sector grid | UX.111 |  |
+| GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) |  |  |
 
 ### References
 
