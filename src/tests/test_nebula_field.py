@@ -192,7 +192,7 @@ def test_a_cloud_is_born_in_the_sector_holding_its_centroid(monkeypatch):
         value = object_uid.unpack(nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC))
         mpc = nebula_field.centroid_mpc(nebula, center)
         assert value.serial_kind == object_uid.SERIAL_FIELD and value.body == 0
-        assert (value.ring, value.layer, value.slot) == sector_address_at(tuple(v / 1000.0 for v in mpc), EDGE_PC)
+        assert (value.shell, value.band, value.wedge) == sector_address_at(tuple(v / 1000.0 for v in mpc), EDGE_PC)
 
 
 def test_field_cloud_ids_are_unique_and_do_not_depend_on_the_order_asked():
@@ -214,7 +214,7 @@ def test_two_clouds_born_in_one_sector_take_ranks_in_cell_order(monkeypatch):
     by_sector = {}
     for nebula, center in clouds:
         value = object_uid.unpack(nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC))
-        by_sector.setdefault((value.ring, value.layer, value.slot), []).append(value.serial)
+        by_sector.setdefault((value.shell, value.band, value.wedge), []).append(value.serial)
     assert all(len(set(serials)) == len(serials) for serials in by_sector.values())
 
 
