@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1268] - 2026-10-15
+
+### Added
+
+- The plan for moving the galaxy's sector grid to spherical shells, bands and wedges with a 4 pc core ball and pole caps (`docs/design/spherical-sector-coordinates.md`), with measured rules and a work-item breakdown. No code changed.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1267] - 2026-10-15
 
 ### Changed
