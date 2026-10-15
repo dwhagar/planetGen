@@ -484,8 +484,8 @@ with `clamp()`.
   column, UX.101 swaps in the final shapes. Boss, 2026-10-11 01:35Z: the
   description text at the end should be in paragraph form, simply saying
   for each category where the planet falls and why, with no extra
-  information (GEN.208). Owner: Bugfixes lane 2 (interface), after the
-  generation items.
+  information (GEN.208). Owner: Foundations UX (moved from the
+  retired Bugfixes lane 2, Boss 2026-10-15 05:39Z), in its queue order.
   Prerequisites: none. Related: UX.30 (absorbed into UX.105), UX.32, UX.101, GEN.208 (done, PR #1433).
 
 - [ ] **UX.101 PHI-6 symbols in the planet and moon lists, coloured by rating**
