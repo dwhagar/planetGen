@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1253] - 2026-10-15
+
+### Fixed
+
+- The Sector Map's stars, black holes and other points of light are now drawn the same size as on the Galaxy Map (and no longer grow as the view closes in), so a sector looks like the map you just left (MAP.203, #1420).
+
 ## [8.0.1252] - 2026-10-15
 
 ### Changed
