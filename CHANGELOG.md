@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1226] - 2026-10-15
+
+### Fixed
+- **The Galaxy Map's lines between blocks and sectors were too strong at rest.**
+  They are now nearly invisible in both themes, and show in full only on the
+  block being chosen (hovered or selected), along with its outline.
+
 ## [8.0.1225] - 2026-10-15
 
 ### Changed
