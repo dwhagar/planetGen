@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1357] - 2026-10-15
+
+**Headline:** The plan retires DOC.34, the docs/api.md update.
+
+### Changed
+- Retired DOC.34 (done, PR #1623): docs/api.md follows the shell, band and wedge addresses and the current routes.
+
+TODO items resolved: DOC.34 / Added: none
+
 ## [8.0.1356] - 2026-10-15
 
 **Headline:** The API reference now matches the routes the spherical switch left.
