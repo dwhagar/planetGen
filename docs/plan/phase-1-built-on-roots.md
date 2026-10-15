@@ -98,7 +98,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars |  |  |
 
 ### Nearby search
 
