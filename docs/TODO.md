@@ -3290,6 +3290,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
 
 - [ ] **GEN.227 Generation paths on shells**
+  Progress (2026-10-15): merged into the integration branch
+  `claude/spherical-switch` as PR #1576 (part 1 PR #1570); it retires when
+  the final switch PR reaches main. ADM.30's old "cylinder height = X
+  layers" no longer applies: `--radius-pc` is a pure ball. The block-totals
+  step and `--fill-block-stats` are gone until MAP.205. Three tests stay
+  red until other work lands: the Sector Map bounds test (Maps, MAP.205/
+  206), the Generate page span test (UX, UX.111) and a sandbox-only
+  migration test.
   `run_plan`, `run_galaxy`, `bright_stars`, `phenomenon_scatter`,
   regions, spans and fills use the new grid: GEN.24 core by whole
   shells, ADM.29 and ADM.30 as shell and band ranges, GEN.101 fill
