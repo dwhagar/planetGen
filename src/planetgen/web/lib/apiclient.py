@@ -517,11 +517,11 @@ def get_bright_star_status(db):
     return _request("/galaxy/shape", {"db": db}).get("bright_stars")
 
 
-def get_layer_specs(db):
-    """`GET /api/galaxy/shape`'s `layers` (ADM.28): the galaxy's layer
-    count, height, extent and charted sectors, or `None` before a plan."""
+def get_shell_specs(db):
+    """`GET /api/galaxy/shape`'s `shells` (ADM.28): the galaxy's shell
+    count, reach and charted sectors, or `None` before a plan."""
     _require_db(db)
-    return _request("/galaxy/shape", {"db": db}).get("layers")
+    return _request("/galaxy/shape", {"db": db}).get("shells")
 
 
 def get_version_warning(db):
@@ -532,23 +532,23 @@ def get_version_warning(db):
     return _request("/galaxy/shape", {"db": db}).get("version_warning")
 
 
-def get_bright_stars_in_cell(db, ring_index, layer_index, ring_slot_index):
+def get_bright_stars_in_cell(db, shell_index, band_index, wedge_index):
     """`GET /api/galaxy/bright-stars`'s `items`: the pre-placed bright
     stars in one sector cell not yet built into a system, brightest
     first."""
     _require_db(db)
     return _request("/galaxy/bright-stars", {
-        "db": db, "ring": ring_index, "layer": layer_index, "slot": ring_slot_index,
+        "db": db, "shell": shell_index, "band": band_index, "wedge": wedge_index,
     })["items"]
 
 
-def get_uncharted_sector(db, ring_index, layer_index, ring_slot_index):
+def get_uncharted_sector(db, shell_index, band_index, wedge_index):
     """`GET /api/galaxy/uncharted`'s payload (MAP.162): one sector cell's
     place (`designation`, `center_pc`, `edge_pc`, `sector_id`) and what the
     scatters left in it (`stars`, `scattered`)."""
     _require_db(db)
     return _request("/galaxy/uncharted", {
-        "db": db, "ring": ring_index, "layer": layer_index, "slot": ring_slot_index,
+        "db": db, "shell": shell_index, "band": band_index, "wedge": wedge_index,
     })
 
 
@@ -1267,7 +1267,7 @@ def delete_facility(cookie_header, db, facility_id):
 
 _NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS = 1800
 """float: `generate_sector_neighborhood` below reads the whole region's
-density to count its candidate slots (and, with `estimate_only` off, to
+density to count its candidate cells (and, with `estimate_only` off, to
 refuse a run that won't fit), which on a large radius takes longer than a
 quick CRUD call; `_TIMEOUT_SECONDS` alone would make a working request
 look like a failure."""

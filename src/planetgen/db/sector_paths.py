@@ -29,7 +29,7 @@ comet follows the galaxy's rotation at its own `galactic_orbital_speed_kms`.
 import concurrent.futures
 import multiprocessing
 
-from planetgen.galaxy import geometry
+from planetgen.galaxy import spherical as geometry
 from planetgen.galaxy.system_position import galactic_velocity_ms
 from planetgen.physics import constants
 from planetgen.physics import sector_path as sp
@@ -47,7 +47,7 @@ _YEAR = constants.SECONDS_PER_YEAR
 
 def _sector(conn, sector_id):
     row = conn.execute(
-        "SELECT id, edge_mpc, ring_index, layer_index, ring_slot_index, center_x_pc, center_y_pc, center_z_pc"
+        "SELECT id, edge_mpc, shell_index, band_index, wedge_index, center_x_pc, center_y_pc, center_z_pc"
         " FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     if row is None:
         raise ValueError(f"no sectors row with id {sector_id}")
@@ -168,12 +168,12 @@ def compute_sector_paths(conn, sector_id, pool=None):
     """
     sector = _sector(conn, sector_id)
     _delete_paths(conn, "SELECT id FROM sector_paths WHERE sector_id = ?", (sector_id,))
-    if sector["center_x_pc"] is None or sector["ring_index"] is None or not sector["edge_mpc"]:
+    if sector["center_x_pc"] is None or sector["shell_index"] is None or not sector["edge_mpc"]:
         return 0
     edge_pc = sector["edge_mpc"] / 1000.0
     centers = _neighbour_centers(conn, sector, edge_pc)
     masses = _point_masses(conn, centers)
-    address = (sector["ring_index"], sector["layer_index"], sector["ring_slot_index"])
+    address = (sector["shell_index"], sector["band_index"], sector["wedge_index"])
     results = _integrate_bodies_in_pool(pool, _bodies(conn, sector_id, _center(sector)), masses, address, edge_pc)
     _save_paths(conn, sector_id, results)
     return len(results)
@@ -296,7 +296,7 @@ def settle_sectors(conn, sector_ids, on_progress=None, expand=True, workers=1):
 def sector_ids_since(conn, since):
     """The ids of every galaxy sector created at or after `since` (`database_now`), ascending."""
     return [row["id"] for row in conn.execute(
-        "SELECT id FROM sectors WHERE created_at >= ? AND ring_index IS NOT NULL ORDER BY id", (since,)).fetchall()]
+        "SELECT id FROM sectors WHERE created_at >= ? AND shell_index IS NOT NULL ORDER BY id", (since,)).fetchall()]
 
 
 def load_sector_paths(conn, sector_id):

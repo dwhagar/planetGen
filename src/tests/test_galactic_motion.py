@@ -10,9 +10,8 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import (
-    galaxy_to_local_pc, local_to_galaxy_pc, sector_position_pc, slot_angle_bounds,
-)
+from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
+from planetgen.galaxy.spherical import band_center_pc, sector_position_pc, wedge_longitude_bounds
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.straight_line import scatter_position_mpc, straight_line_position_pc
@@ -21,7 +20,7 @@ from planetgen.physics import constants as physical_constants
 from planetgen.physics.units import pc_to_ly
 
 EDGE_PC = 4.0
-RING = 10
+SHELL = 10
 
 
 def test_rotation_follows_galactic_phase():
@@ -32,8 +31,8 @@ def test_rotation_follows_galactic_phase():
     assert store._galactic_turn(1.0, None) == 0.0
 
 
-def _place(slot, positions_ly, name):
-    center = sector_position_pc(RING, 0, slot, EDGE_PC)
+def _place(wedge, positions_ly, name):
+    center = sector_position_pc(SHELL, 0, wedge, EDGE_PC)
     sector = SpaceSector(name, edge_ly=pc_to_ly(EDGE_PC))
     for position in positions_ly:
         cfg = SystemConfig()
@@ -42,15 +41,16 @@ def _place(slot, positions_ly, name):
         cfg.BINARY_SYSTEM = False
         sector.add_system(StarSystem(system_config=cfg), position=position, system_config=cfg)
     return sector, {"center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
-                    "galactic_radius_pc": math.hypot(*center), "ring_index": RING, "layer_index": 0,
-                    "ring_slot_index": slot}
+                    "galactic_radius_pc": math.hypot(*center), "shell_index": SHELL, "band_index": 0,
+                    "wedge_index": wedge}
 
 
 def test_a_system_that_drifts_across_a_boundary_is_refiled(mysql_config):
-    # A system just short of slot 0's leading edge (local +Y is the
-    # direction of travel), and a second sector ahead of it in slot 1.
-    edge_ly = pc_to_ly(EDGE_PC)
-    sector, position = _place(0, [(0.0, edge_ly / 2 - 0.3, 0.0), (0.0, -edge_ly / 2 + 0.5, 0.0)], "Trailing")
+    # A system just short of wedge 0's leading edge (local +Y is the
+    # direction of travel), and a second sector ahead of it in wedge 1.
+    start, end = wedge_longitude_bounds(SHELL, 0, 0)
+    half_ly = pc_to_ly(band_center_pc(SHELL, 0, EDGE_PC)[0] * math.sin((end - start) / 2))
+    sector, position = _place(0, [(0.0, half_ly - 0.3, 0.0), (0.0, -half_ly + 0.5, 0.0)], "Trailing")
     first = store.save_sector(sector, config=mysql_config, galaxy_position=position)
     sector, position = _place(1, [(0.0, 0.0, 0.0)], "Leading")
     second = store.save_sector(sector, config=mysql_config, galaxy_position=position)
@@ -62,7 +62,7 @@ def test_a_system_that_drifts_across_a_boundary_is_refiled(mysql_config):
         with conn:
             conn.execute("UPDATE stars SET galactic_orbital_period_gy = 1.0")
         # Turn far enough to carry the mover about a light-year forward.
-        radius_pc = math.hypot(*sector_position_pc(RING, 0, 0, EDGE_PC))
+        radius_pc = math.hypot(*sector_position_pc(SHELL, 0, 0, EDGE_PC))
         elapsed = 1e9 * (1.0 / 3.2616) / (2 * math.pi * radius_pc)
         with conn:
             motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, elapsed))
@@ -73,10 +73,10 @@ def test_a_system_that_drifts_across_a_boundary_is_refiled(mysql_config):
         assert row["location"].startswith("Leading")
         assert rewritten >= 1
         # It sits where the turn put it, in its new sector's frame.
-        center = sector_position_pc(RING, 0, 1, EDGE_PC)
+        center = sector_position_pc(SHELL, 0, 1, EDGE_PC)
         point = local_to_galaxy_pc(center, (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000,
                                             row["position_z_mpc"] / 1000))
-        low, high = slot_angle_bounds(RING, 1)
+        low, high = wedge_longitude_bounds(SHELL, 0, 1)
         assert low <= math.atan2(point[1], point[0]) <= high
         assert conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (stay,)).fetchone()["sector_id"] == first
         near = conn.execute("SELECT sector_id FROM nearest_systems WHERE object_table = 'star_systems'"
@@ -231,10 +231,10 @@ def test_a_hypervelocity_star_flies_a_straight_line_while_a_bound_star_orbits(my
         orbiting = conn.execute("SELECT velocity_x_kms, velocity_y_kms FROM star_systems WHERE id = ?",
                                 (bound,)).fetchone()
         assert (orbiting["velocity_x_kms"], orbiting["velocity_y_kms"]) != pytest.approx(velocity[:2])
-        found = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?",
+        found = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
                              (row["sector_id"],)).fetchone()
-        now = local_to_galaxy_pc(sector_position_pc(found["ring_index"], found["layer_index"],
-                                                    found["ring_slot_index"], EDGE_PC),
+        now = local_to_galaxy_pc(sector_position_pc(found["shell_index"], found["band_index"],
+                                                    found["wedge_index"], EDGE_PC),
                                  (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000,
                                   row["position_z_mpc"] / 1000))
     finally:

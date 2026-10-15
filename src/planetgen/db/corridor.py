@@ -27,7 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy.geometry import sector_address_at, sectors_along_segment
+from planetgen.galaxy.spherical import sector_address_at, sectors_along_segment
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
 
 _CHUNK = 500
@@ -75,20 +75,20 @@ def _sector_edge_pc(conn):
 
 
 def generated_cells(conn, cells):
-    """The subset of `(ring_index, layer_index, ring_slot_index)` cells that
+    """The subset of `(shell_index, band_index, wedge_index)` cells that
     hold a generated sector."""
     by_band = {}
-    for ring, layer, slot in cells:
-        by_band.setdefault((ring, layer), []).append(slot)
+    for shell, band, wedge in cells:
+        by_band.setdefault((shell, band), []).append(wedge)
     found = set()
-    for (ring, layer), slots in by_band.items():
-        for start in range(0, len(slots), _CHUNK):
-            chunk = slots[start:start + _CHUNK]
+    for (shell, band), wedges in by_band.items():
+        for start in range(0, len(wedges), _CHUNK):
+            chunk = wedges[start:start + _CHUNK]
             marks = ",".join("?" * len(chunk))
             rows = conn.execute(
-                f"SELECT ring_slot_index FROM sectors WHERE ring_index = ? AND layer_index = ? "
-                f"AND ring_slot_index IN ({marks})", (ring, layer, *chunk)).fetchall()
-            found.update((ring, layer, row["ring_slot_index"]) for row in rows)
+                f"SELECT wedge_index FROM sectors WHERE shell_index = ? AND band_index = ? "
+                f"AND wedge_index IN ({marks})", (shell, band, *chunk)).fetchall()
+            found.update((shell, band, row["wedge_index"]) for row in rows)
     return found
 
 
@@ -103,7 +103,7 @@ def unknown_cells(conn, points_ly):
 
     Returns:
         list[list[tuple]]: One list per hop (`len(points_ly) - 1`) of
-            `(ring_index, layer_index, ring_slot_index)` cells, in the order
+            `(shell_index, band_index, wedge_index)` cells, in the order
             the line enters them. Cells outside the galaxy's outline are
             listed like any other; the caller checks them against `GalaxyBounds`.
     """

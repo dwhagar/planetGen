@@ -35,7 +35,7 @@ The checks:
    first, from the speed this server recorded for it, and the pass draws
    its own progress bar.
 
-`--ring` and `--sector` scope the value, count and version-key checks to
+`--shell` and `--sector` scope the value, count and version-key checks to
 those sectors; the others always look at the whole database. A galaxy too
 big to check in one go is checked a region at a time.
 """
@@ -167,14 +167,14 @@ class Report:
 
 @dataclass
 class Scope:
-    """Which sectors the sector-scoped checks look at: whole `rings` and
-    single `addresses` (`(ring, layer, slot)`); neither means all."""
-    rings: tuple = ()
+    """Which sectors the sector-scoped checks look at: whole `shells` and
+    single `addresses` (`(shell, band, wedge)`); neither means all."""
+    shells: tuple = ()
     addresses: tuple = ()
 
     @property
     def everything(self):
-        return not self.rings and not self.addresses
+        return not self.shells and not self.addresses
 
     def where(self, sector_sql):
         """Returns `(sql, params)`: a condition on `sector_sql` (empty for
@@ -182,11 +182,11 @@ class Scope:
         if self.everything:
             return "", ()
         clauses, params = [], []
-        if self.rings:
-            clauses.append("ring_index IN (%s)" % ",".join(["%s"] * len(self.rings)))
-            params.extend(self.rings)
+        if self.shells:
+            clauses.append("shell_index IN (%s)" % ",".join(["%s"] * len(self.shells)))
+            params.extend(self.shells)
         for address in self.addresses:
-            clauses.append("(ring_index = %s AND layer_index = %s AND ring_slot_index = %s)")
+            clauses.append("(shell_index = %s AND band_index = %s AND wedge_index = %s)")
             params.extend(address)
         return f" AND {sector_sql} IN (SELECT id FROM sectors WHERE {' OR '.join(clauses)})", tuple(params)
 
@@ -379,10 +379,10 @@ def check_counts(ctx):
     """A sector's stats count the systems it holds (a warning only)."""
     scope_sql, params = ctx.scope.where("s.id")
     rows = ctx.rows(
-        "SELECT s.ring_index AS r, s.layer_index AS l, s.ring_slot_index AS p, st.actual_systems AS stated,"
+        "SELECT s.shell_index AS r, s.band_index AS l, s.wedge_index AS p, st.actual_systems AS stated,"
         " (SELECT COUNT(*) FROM star_systems y WHERE y.sector_id = s.id) AS actual"
-        " FROM sectors s JOIN sector_stats st ON st.ring_index = s.ring_index"
-        " AND st.layer_index = s.layer_index AND st.ring_slot_index = s.ring_slot_index"
+        " FROM sectors s JOIN sector_stats st ON st.shell_index = s.shell_index"
+        " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index"
         f" WHERE st.actual_systems IS NOT NULL{scope_sql}"
         " HAVING stated <> actual ORDER BY r, l, p", params)
     if not rows:

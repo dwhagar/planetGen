@@ -445,13 +445,13 @@ def _in_pc(point_pc, edge=EDGE_PC):
 
 
 def test_the_sector_address_is_the_cell_holding_the_position():
-    from planetgen.galaxy import geometry
+    from planetgen.galaxy import spherical
 
-    for address in ((10, 0, 3), (1500, -7, 4000), (0, 2, 0), (300, 40, 77)):
-        center = geometry.sector_position_pc(*address, EDGE_PC)
+    for address in ((10, 0, 3), (1500, -7, 4000), (2, 2, 0), (300, 40, 77)):
+        center = spherical.sector_position_pc(*address, EDGE_PC)
         assert _in_pc(center).sector_address == address
         near = tuple(c + 0.4 for c in center)
-        assert _in_pc(near).sector_address == geometry.sector_address_at(near, EDGE_PC)
+        assert _in_pc(near).sector_address == spherical.sector_address_at(near, EDGE_PC)
 
 
 def test_the_address_is_none_until_the_edge_is_known():
@@ -471,48 +471,48 @@ def test_the_address_is_none_until_the_edge_is_known():
 
 
 def test_every_way_of_changing_the_position_recalculates_the_address():
-    from planetgen.galaxy import geometry
+    from planetgen.galaxy import spherical
 
     p = _in_pc((100.0, 0.0, 0.0))
     first = p.sector_address
     p.set_galactic_cartesian(0.0, 100.0, 9.0)
-    assert p.sector_address == geometry.sector_address_at((0.0, 100.0, 9.0), EDGE_PC) != first
+    assert p.sector_address == spherical.sector_address_at((0.0, 100.0, 9.0), EDGE_PC) != first
     p.set_galactic_cylindrical(50.0, 2.0, -9.0)
-    assert p.sector_address == geometry.sector_address_at(p.get_coordinates("galactic", "cartesian"), EDGE_PC)
+    assert p.sector_address == spherical.sector_address_at(p.get_coordinates("galactic", "cartesian"), EDGE_PC)
     p.set_galactic_spherical(70.0, -1.0, 2.0)
-    assert p.sector_address == geometry.sector_address_at(p.get_coordinates("galactic", "cartesian"), EDGE_PC)
+    assert p.sector_address == spherical.sector_address_at(p.get_coordinates("galactic", "cartesian"), EDGE_PC)
     p.set_sector_cartesian(3.0, 1.0, 0.5)  # the sector center is the origin here
-    assert p.sector_address == geometry.sector_address_at((3.0, 1.0, 0.5), EDGE_PC)
+    assert p.sector_address == spherical.sector_address_at((3.0, 1.0, 0.5), EDGE_PC)
     p.set_sector_center((40.0, 40.0, 0.0))
-    assert p.sector_address == geometry.sector_address_at((3.0, 1.0, 0.5), EDGE_PC)  # the body stayed put
+    assert p.sector_address == spherical.sector_address_at((3.0, 1.0, 0.5), EDGE_PC)  # the body stayed put
     offset = p.get_coordinates("sector", "cartesian")
     p.carry_sector_center((100.0, 100.0, 0.0))
     moved = tuple(c + o for c, o in zip((100.0, 100.0, 0.0), offset))
-    assert p.sector_address == geometry.sector_address_at(moved, EDGE_PC)  # it went with the center
+    assert p.sector_address == spherical.sector_address_at(moved, EDGE_PC)  # it went with the center
 
 
 def test_setting_the_address_moves_the_body_to_that_cell_keeping_its_offset():
-    from planetgen.galaxy import geometry
+    from planetgen.galaxy import spherical
 
-    p = _in_pc(geometry.sector_position_pc(10, 0, 3, EDGE_PC))
-    p.set_sector_center(geometry.sector_position_pc(10, 0, 3, EDGE_PC))
+    p = _in_pc(spherical.sector_position_pc(10, 0, 3, EDGE_PC))
+    p.set_sector_center(spherical.sector_position_pc(10, 0, 3, EDGE_PC))
     p.set_sector_cartesian(0.5, 0.0, 0.5)
     assert p.sector_address == (10, 0, 3)
     p.set_sector_address(200, 3, 17)
     assert p.sector_address == (200, 3, 17)
     assert _close(p.get_coordinates("sector", "cartesian"), (0.5, 0.0, 0.5))  # the offset is in galactic axes
     assert _close(p.get_coordinates("galactic", "cartesian"),
-                  tuple(c + o for c, o in zip(geometry.sector_position_pc(200, 3, 17, EDGE_PC), (0.5, 0.0, 0.5))))
+                  tuple(c + o for c, o in zip(spherical.sector_position_pc(200, 3, 17, EDGE_PC), (0.5, 0.0, 0.5))))
     with pytest.raises(ValueError):
         p.set_sector_address(1, 0, 99)  # ring 1 has few slots
 
 
 def test_bodies_in_a_system_know_their_sector():
-    from planetgen.galaxy import geometry
+    from planetgen.galaxy import spherical
     from planetgen.galaxy.sector import SpaceSector
 
     edge_ly = EDGE_PC * constants.PARSEC_M / constants.LY_TO_M
-    center_pc = geometry.sector_position_pc(1200, 5, 321, EDGE_PC)
+    center_pc = spherical.sector_position_pc(1200, 5, 321, EDGE_PC)
     center_ly = tuple(c * constants.PARSEC_M / constants.LY_TO_M for c in center_pc)
     system = _system_with(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
     sector = SpaceSector("Addressed", edge_ly=edge_ly)

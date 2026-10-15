@@ -10,7 +10,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import query, stones, store
-from planetgen.galaxy.geometry import sector_address_at
+from planetgen.galaxy.spherical import sector_address_at
 from planetgen.physics.units import ly_to_pc
 from tests.publicids import pid
 from tests.test_api import client  # noqa: F401  (the fixture)
@@ -45,31 +45,31 @@ def _point(a, b, fraction, off=0.0):
 
 def _insert_star(config, point_ly, system_id=None):
     x, y, z = _mpc(point_ly)
-    ring, layer, slot = sector_address_at(tuple(ly_to_pc(c) for c in point_ly), EDGE_PC)
+    shell, band, wedge = sector_address_at(tuple(ly_to_pc(c) for c in point_ly), EDGE_PC)
     conn = store.get_connection(config)
     try:
         with conn:
             conn.execute(
-                "INSERT INTO bright_stars (ring_index, layer_index, ring_slot_index, position_x_mpc, position_y_mpc,"
+                "INSERT INTO bright_stars (shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc,"
                 " position_z_mpc, population, star_type, yerkes_class, mass_kg, radius_km, temperature_k,"
                 " luminosity_w, age_gy, initial_mass_sol, seed, star_system_id)"
                 " VALUES (?, ?, ?, ?, ?, ?, 'young', 'B2V', 'V', 1e31, 1e6, 20000, 1e30, 0.1, 5.0, 1, ?)",
-                (ring, layer, slot, x, y, z, system_id))
+                (shell, band, wedge, x, y, z, system_id))
     finally:
         conn.close()
 
 
 def _insert_scatter(config, kind, point_ly, built=False):
     x, y, z = _mpc(point_ly)
-    ring, layer, slot = sector_address_at(tuple(ly_to_pc(c) for c in point_ly), EDGE_PC)
+    shell, band, wedge = sector_address_at(tuple(ly_to_pc(c) for c in point_ly), EDGE_PC)
     conn = store.get_connection(config)
     try:
         with conn:
             conn.execute(
-                "INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, position_x_mpc,"
+                "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
                 " position_y_mpc, position_z_mpc, seed, built_at)"
                 f" VALUES (?, ?, ?, ?, ?, ?, ?, 1, {'CURRENT_TIMESTAMP' if built else 'NULL'})",
-                (ring, layer, slot, kind, x, y, z))
+                (shell, band, wedge, kind, x, y, z))
     finally:
         conn.close()
 
@@ -168,13 +168,13 @@ def test_a_hypervelocity_star_is_where_it_is_at_the_orbit_epoch(galaxy):  # noqa
         epoch = float(conn.execute("SELECT UNIX_TIMESTAMP(NOW(6)) AS now").fetchone()["now"])
         stored = (on_the_line[0], on_the_line[1], on_the_line[2] - behind_ly)
         x, y, z = _mpc(stored)
-        ring, layer, slot = sector_address_at(tuple(ly_to_pc(c) for c in on_the_line), EDGE_PC)
+        shell, band, wedge = sector_address_at(tuple(ly_to_pc(c) for c in on_the_line), EDGE_PC)
         with conn:
             conn.execute(
-                "INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, position_x_mpc,"
+                "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
                 " position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms, seed, epoch_unix)"
                 " VALUES (?, ?, ?, 'hypervelocity-star', ?, ?, ?, 0, 0, ?, 1, ?)",
-                (ring, layer, slot, x, y, z, speed_kms, epoch - seconds))
+                (shell, band, wedge, x, y, z, speed_kms, epoch - seconds))
     finally:
         conn.close()
 

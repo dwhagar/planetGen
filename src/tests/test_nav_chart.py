@@ -14,42 +14,42 @@ from planetgen import tuning
 from planetgen.db import query, store
 from planetgen.db.corridor import BypassBudgetExceeded, UnknownEdges
 from planetgen.galaxy.density import build_galaxy_shape
-from planetgen.galaxy.geometry import neighbor_addresses, sector_position_pc
+from planetgen.galaxy.spherical import neighbor_addresses, sector_position_pc
 from planetgen.galaxy.nav_graph import shortest_path
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import ly_to_pc
-from tests.test_route_edge_cases import EDGE_LY, RING, _cluster, _make_system
+from tests.test_route_edge_cases import EDGE_LY, RING as SHELL, _cluster, _make_system
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = build_galaxy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
-LAYERS = [(-1, RING + 20), (0, RING + 20), (1, RING + 20)]
-"""list: The test galaxy's outline: three layers reaching a little past the ring the sectors sit in."""
+OUTLINE = [(shell, 1) for shell in range(SHELL - 20, SHELL + 21)]
+"""list: The test galaxy's outline: bands -1 to 1 in the shells around the one the sectors sit in."""
 
 
 @pytest.fixture
 def galaxy(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=RING + 20,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=SHELL + 20,
                             expected_system_count_at_density_1=2000.0, config=mysql_config)
-    store.replace_galaxy_layers(LAYERS, config=mysql_config)
+    store.replace_galaxy_shells(OUTLINE, config=mysql_config)
     return mysql_config
 
 
 def _save_at(config, name, address, local_positions):
     """Saves one sector at `address` with systems at the given sector-local positions; returns their ids."""
-    ring, layer, slot = address
+    shell, band, wedge = address
     sector = SpaceSector(name, edge_ly=EDGE_LY)
     for position in local_positions:
         system, cfg = _make_system()
         sector.add_system(system, position=position, system_config=cfg)
-    center = sector_position_pc(ring, layer, slot, EDGE_PC)
+    center = sector_position_pc(shell, band, wedge, EDGE_PC)
     sector_id = store.save_sector(sector, config=config, galaxy_position={
         "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
         "galactic_radius_pc": math.hypot(center[0], center[1]),
         "vertices_pc": {"inner": [], "outer": []},
-        "ring_index": ring, "layer_index": layer, "ring_slot_index": slot,
+        "shell_index": shell, "band_index": band, "wedge_index": wedge,
     })
     conn = store.get_connection(config)
     try:
@@ -67,9 +67,9 @@ def _plan(config, west, east, **kwargs):
         conn.close()
 
 
-def _ends(config, west_slot=0, east_slot=5, east_layer=0):
-    west = _save_at(config, "West", (RING, 0, west_slot), _cluster((0.0, 0.0, 0.0)))
-    east = _save_at(config, "East", (RING, east_layer, east_slot), _cluster((0.0, 0.0, 0.0)))
+def _ends(config, west_wedge=0, east_wedge=5, east_band=0):
+    west = _save_at(config, "West", (SHELL, 0, west_wedge), _cluster((0.0, 0.0, 0.0)))
+    east = _save_at(config, "East", (SHELL, east_band, east_wedge), _cluster((0.0, 0.0, 0.0)))
     return west[0], east[0]
 
 
@@ -78,8 +78,8 @@ def test_the_plan_lists_the_unfilled_cells_the_unknown_hop_crosses(galaxy):
     plan = _plan(galaxy, west, east)
 
     assert plan["unknown_hops"] == 1
-    assert plan["cells"], "slots 1 to 4 between the two sectors were never generated"
-    assert (RING, 0, 3) in plan["cells"] and (RING, 0, 0) not in plan["cells"] and (RING, 0, 5) not in plan["cells"]
+    assert plan["cells"], "wedges 1 to 4 between the two sectors were never generated"
+    assert (SHELL, 0, 3) in plan["cells"] and (SHELL, 0, 0) not in plan["cells"] and (SHELL, 0, 5) not in plan["cells"]
     assert len(plan["cells"]) == len(set(plan["cells"]))
     assert plan["outside_galaxy"] == 0
     assert plan["route_distance_ly"] > 0
@@ -95,12 +95,12 @@ def test_charting_the_cells_leaves_nothing_to_chart(galaxy):
 
 
 def test_cells_past_the_galaxys_edge_are_counted_but_never_offered(galaxy):
-    west, east = _ends(galaxy, east_layer=2)    # layer 2 is outside the three-layer outline
+    west, east = _ends(galaxy, east_band=2)    # band 2 is outside the outline (bands -1 to 1)
     plan = _plan(galaxy, west, east)
 
     assert plan["unknown_hops"] == 1
     assert plan["outside_galaxy"] > 0
-    assert all(layer <= 1 for _ring, layer, _slot in plan["cells"])
+    assert all(band <= 1 for _shell, band, _wedge in plan["cells"])
 
 
 def test_the_border_adds_the_uncharted_cells_next_to_the_line(galaxy):
@@ -112,8 +112,8 @@ def test_the_border_adds_the_uncharted_cells_next_to_the_line(galaxy):
     assert len(bordered) > len(line) and len(bordered) == len(set(bordered))
     extra = set(bordered) - set(line)
     assert all(any(near in line for near in neighbor_addresses(*cell)) for cell in extra)
-    assert all(layer in (-1, 0, 1) for _ring, layer, _slot in bordered)
-    assert (RING, 0, 0) not in bordered and (RING, 0, 5) not in bordered   # the sectors that exist
+    assert all(band in (-1, 0, 1) for _shell, band, _wedge in bordered)
+    assert (SHELL, 0, 0) not in bordered and (SHELL, 0, 5) not in bordered   # the sectors that exist
 
 
 def test_the_bypass_test_says_no_route_through_known_space_exists(galaxy):
@@ -131,12 +131,12 @@ def test_unknown_edges_answers_per_hop_and_keeps_to_its_budget(galaxy):
             return tuple(c / ly_to_pc(1.0) + o for c, o in zip(sector_position_pc(*address, EDGE_PC), offset))
 
         edges = UnknownEdges(conn, 2)
-        assert edges(ly((RING, 0, 0)), ly((RING, 0, 5))) is True         # through slots 1 to 4
-        assert edges(ly((RING, 0, 5)), ly((RING, 0, 0))) is True         # the same hop, asked the other way
-        assert edges(ly((RING, 0, 0)), ly((RING, 0, 0), (1.0, 0.0, 0.0))) is False   # inside one cell
-        assert edges(ly((RING, 0, 0)), ly((RING, 0, 0), (1.0, 0.0, 0.0))) is False   # remembered, not counted again
+        assert edges(ly((SHELL, 0, 0)), ly((SHELL, 0, 5))) is True         # through wedges 1 to 4
+        assert edges(ly((SHELL, 0, 5)), ly((SHELL, 0, 0))) is True         # the same hop, asked the other way
+        assert edges(ly((SHELL, 0, 0)), ly((SHELL, 0, 0), (1.0, 0.0, 0.0))) is False   # inside one cell
+        assert edges(ly((SHELL, 0, 0)), ly((SHELL, 0, 0), (1.0, 0.0, 0.0))) is False   # remembered, not counted again
         with pytest.raises(BypassBudgetExceeded):
-            edges(ly((RING, 0, 0)), ly((RING, 0, 5), (0.0, 1.0, 0.0)))
+            edges(ly((SHELL, 0, 0)), ly((SHELL, 0, 5), (0.0, 1.0, 0.0)))
     finally:
         conn.close()
 
@@ -169,7 +169,7 @@ def test_the_command_line_takes_a_course_and_refuses_what_cannot_go_with_it(mysq
     args = _galaxy_args(mysql_config, ["--course", "system:1", "system:2", "--course-border"])
     assert args.course == ["system:1", "system:2"] and args.course_border
 
-    for argv in (["--course", "system:1", "system:2", "--ring", "3"],
+    for argv in (["--course", "system:1", "system:2", "--shell", "3"],
                  ["--course", "system:1", "system:2", "--limit", "5"],
                  ["--course-border"]):
         with pytest.raises(SystemExit):

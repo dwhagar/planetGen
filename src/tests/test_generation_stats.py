@@ -288,7 +288,7 @@ def test_without_the_stats_tables_nothing_is_recorded(mysql_config):
 # and the speed recorded after it
 # ---------------------------------------------------------------------------
 
-RING_0 = ["--ring", "0", "--num-systems", "2"]   # ring 0 holds 3 slots
+FIRST_THREE = ["--shell", "1", "--band", "0", "--limit", "3", "--num-systems", "2"]   # a band of shell 1 holds 12 wedges
 
 
 def _estimate_line(capsys):
@@ -299,10 +299,10 @@ def _estimate_line(capsys):
 
 def test_estimate_only_writes_nothing(mysql_config, capsys):
     _plan_wide_galaxy(mysql_config)
-    _run_cli(RING_0 + ["--estimate-only"] + _mysql_argv(mysql_config))
+    _run_cli(FIRST_THREE + ["--estimate-only"] + _mysql_argv(mysql_config))
     estimate_ = _estimate_line(capsys)
     assert estimate_["sectors"] == 3 and estimate_["systems"] == 6
-    assert estimate_["what"] == "ring 0 layer 0" and estimate_["refused"] is False
+    assert estimate_["what"] == "shell 1 band 0" and estimate_["refused"] is False
     assert _all_sectors(mysql_config) == []
 
 
@@ -312,7 +312,7 @@ def test_a_run_the_disk_cant_hold_is_refused_before_anything_is_written_under_st
     monkeypatch.setattr(generationStats, "database_disk",
                         lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
     with pytest.raises(SystemExit) as exit_info:
-        _run_cli(RING_0 + ["--yes", "--strict"] + _mysql_argv(mysql_config))
+        _run_cli(FIRST_THREE + ["--yes", "--strict"] + _mysql_argv(mysql_config))
     assert exit_info.value.code == 1
     assert _all_sectors(mysql_config) == []
     assert "at least 5.0 GB must stay free" in capsys.readouterr().out
@@ -323,7 +323,7 @@ def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(generationStats, "database_disk",
                         lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
-    _run_cli(RING_0 + ["--yes"] + _mysql_argv(mysql_config))
+    _run_cli(FIRST_THREE + ["--yes"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 3
     out = capsys.readouterr().out
     assert "WARNING:" in out and "at least 5.0 GB must stay free" in out
@@ -333,7 +333,7 @@ def test_estimate_only_reports_a_refusal(mysql_config, monkeypatch, capsys):
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(generationStats, "database_disk",
                         lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
-    _run_cli(RING_0 + ["--estimate-only"] + _mysql_argv(mysql_config))
+    _run_cli(FIRST_THREE + ["--estimate-only"] + _mysql_argv(mysql_config))
     assert _estimate_line(capsys)["refused"] is True
 
 
@@ -343,13 +343,13 @@ def test_a_terminal_is_asked_first_and_no_stops_the_run(mysql_config, monkeypatc
     questions = []
     monkeypatch.setattr("builtins.input", lambda prompt: questions.append(prompt) or "n")
     with pytest.raises(SystemExit) as exit_info:
-        _run_cli(RING_0 + _mysql_argv(mysql_config))
+        _run_cli(FIRST_THREE + _mysql_argv(mysql_config))
     assert exit_info.value.code == 0
     assert questions == ["Generate these 3 sectors? [y/N] "]
     assert _all_sectors(mysql_config) == []
 
     monkeypatch.setattr("builtins.input", lambda prompt: questions.append(prompt) or "y")
-    _run_cli(RING_0 + _mysql_argv(mysql_config))
+    _run_cli(FIRST_THREE + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 3
 
 
@@ -357,7 +357,7 @@ def test_yes_skips_the_question(mysql_config, monkeypatch):
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(run_common, "_interactive", lambda: True)
     monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("asked"))
-    _run_cli(RING_0 + ["--yes"] + _mysql_argv(mysql_config))
+    _run_cli(FIRST_THREE + ["--yes"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 3
 
 
@@ -368,7 +368,7 @@ def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypa
     # its --num-systems, so the per-task counts below are exact.
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *args, **kwargs: {"blocks": 0, "stars": 0})
     _plan_wide_galaxy(control_config)
-    _run_cli(RING_0 + _mysql_argv(control_config))
+    _run_cli(FIRST_THREE + _mysql_argv(control_config))
     stats = GenerationStats(control_config)
     (bucket,) = stats.rows("sector")
     assert bucket["samples"] == 3 and bucket["seconds_per_task"] > 0
@@ -379,7 +379,7 @@ def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypa
 
 def test_the_web_neighborhood_can_be_estimated_and_refused(mysql_config, monkeypatch):
     _plan_wide_galaxy(mysql_config)
-    _run_cli(RING_0 + _mysql_argv(mysql_config))
+    _run_cli(FIRST_THREE + _mysql_argv(mysql_config))
     center = _all_sectors(mysql_config)[0]["id"]
     result = run_galaxy.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config, estimate_only=True)
     assert result["generated"] == 0 and result["estimate"]["sectors"] >= 1

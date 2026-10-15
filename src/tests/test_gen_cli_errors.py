@@ -19,10 +19,10 @@ port range).
 Everything goes through `generate_cli.process_args()` with a patched
 `sys.argv`: validation runs in full and nothing connects to a database.
 
-TEST.29: `MAX_GENERATE_LIMIT` is `ring_sector_count(MAX_GENERATE_RING)`
-and `MAX_GENERATE_RING` is `skeleton.DEFAULT_MAX_RING`, so both are
-derived at import; reloading `generationLimits` under a patched
-`DEFAULT_MAX_RING` shows they follow it (and the CLI's messages with them).
+TEST.29: `MAX_GENERATE_LIMIT` is the cell count of the last allowed shell
+(`MAX_GENERATE_SHELL`), and `MAX_GENERATE_SHELL` is `skeleton.DEFAULT_MAX_SHELL`,
+so both are derived at import; reloading `generationLimits` under a patched
+`DEFAULT_MAX_SHELL` shows they follow it (and the CLI's messages with them).
 """
 
 import importlib
@@ -31,14 +31,11 @@ import sys
 import pytest
 
 from planetgen.cli import generate as generate_cli
-from planetgen.galaxy.skeleton import DEFAULT_MAX_RING
-from planetgen.generation import run_galaxy
+from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL
 from planetgen.generation import limits as generationLimits
-from planetgen.galaxy import skeleton
-from planetgen.galaxy.drill import parse_drill_key
-from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.galaxy import skeleton, spherical
 
-MAX_RING = generationLimits.MAX_GENERATE_RING
+MAX_SHELL = generationLimits.MAX_GENERATE_SHELL
 MAX_LIMIT = generationLimits.MAX_GENERATE_LIMIT
 MAX_RADIUS = generationLimits.MAX_GENERATE_RADIUS_PC
 MAX_ORBITS = generationLimits.MAX_NUM_ORBITS
@@ -68,67 +65,59 @@ def _error(monkeypatch, capsys, command, argv):
 # ---------------------------------------------------------------------------
 
 GALAXY_ERRORS = [
-    # --block
-    (["--block", "nope"], "--block: not a block key: 'nope'"),
-    (["--block", "3.2.1"], "--block: not a block key: '3.2.1'"),
-    (["--block", "1.0.0.0"], "--block: block size must be one of (243, 81, 27, 9, 3), got 1"),
-    (["--block", "729.0.0.0"], "--block: block size must be one of (243, 81, 27, 9, 3), got 729"),
-    (["--block", "3.0.99.0"], "--block: no such block: '3.0.99.0'"),
-    (["--block", "3.-1.0.0"], "--block: no such block: '3.-1.0.0'"),
-    (["--block", "3.2.1.0", "--layer", "0"], "--block can't be combined with --layer."),
-    (["--block", "3.2.1.0", "--slot", "0", "--radius-pc", "5", "--shell"],
-     "--block can't be combined with --slot, --radius-pc, --shell."),
-    (["--block", "3.2.1.0", "--max-ring", "5", "--min-start-density", "1", "--column"],
-     "--block can't be combined with --max-ring, --min-start-density, --column."),
-    (["--block", "3.2.1.0", "--block-layer", "5"], "--block-layer must be one of the block's layers, -1 to 1."),
-    (["--block", "3.2.1.0", "--limit", "0"], f"--limit must be between 1 and {MAX_LIMIT}."),
-    (["--block-layer", "0"], "--block-layer requires --block."),
-    (["--block-layer", "0", "--ring", "1"], "--block-layer requires --block."),
-    # --ring
-    (["--ring", "-1"], "--ring must be >= 0."),
-    (["--ring", MAX_RING + 1], f"--ring must be at most {MAX_RING}."),
-    # --column / --shell
-    (["--column", "--ring", "1"], "--column requires --ring and --slot."),
-    (["--column", "--slot", "1"], "--column requires --ring and --slot."),
-    (["--shell"], "--shell requires --ring."),
-    (["--column", "--shell", "--ring", "1", "--slot", "0"], "--column and --shell can't be combined."),
-    (["--column", "--ring", "1", "--slot", "0", "--layer", "0"],
-     "--column and --shell cover every layer, so they don't take --layer."),
-    (["--shell", "--ring", "1", "--layer", "0"],
-     "--column and --shell cover every layer, so they don't take --layer."),
-    (["--shell", "--ring", "1", "--slot", "0"], "--shell covers every slot of the ring; use --column for one slot."),
-    (["--column", "--ring", "1", "--slot", "-1"], "--slot must be >= 0."),
-    (["--column", "--ring", "1", "--slot", "0", "--limit", "2"], "--limit and --yes don't apply to --column."),
-    (["--column", "--ring", "1", "--slot", "0", "--yes"], "--limit and --yes don't apply to --column."),
-    # --layer / --slot (single-address mode)
-    (["--layer", "0"], "--layer requires --ring."),
-    (["--slot", "0"], "--slot requires --ring."),
-    (["--ring", "1", "--slot", "-1"], "--slot must be >= 0."),
-    (["--ring", "1", "--slot", "0", "--limit", "1"],
-     "--limit only applies to --ring (batch mode), not --ring --slot (single-address mode)."),
-    (["--ring", "1", "--slot", "0", "--yes"],
-     "--yes only applies to --ring (batch mode), not --ring --slot (single-address mode)."),
-    (["--ring", "1", "--slot", "0", "--density", "2"],
-     "--density/--num-systems can't be combined with --ring --slot (single-address mode)"),
+    # --block (refused until the ladder is rebuilt on shells)
+    (["--block", "3.2.1.0"], "--block: the Galaxy Map's blocks are being rebuilt on shells"),
+    # --shell
+    (["--shell", "-1"], "--shell must be >= 0."),
+    (["--shell", MAX_SHELL + 1], f"--shell must be at most {MAX_SHELL}."),
+    # --band / --wedge (single-address mode)
+    (["--band", "0"], "--band requires --shell."),
+    (["--wedge", "0"], "--wedge requires --shell and --band."),
+    (["--shell", "1", "--wedge", "0"], "--wedge requires --shell and --band."),
+    (["--shell", "1", "--band", "-1", "--wedge", "-1"], "--wedge must be >= 0."),
+    (["--shell", "1", "--band", "5"], "--band: shell 1 holds bands -1 to 1."),
+    (["--shell", "1", "--band", "0", "--wedge", "12"], "--wedge: shell 1 band 0 holds wedges 0 to 11."),
+    (["--shell", "1", "--band", "0", "--wedge", "0", "--limit", "1"],
+     "--limit only applies to --shell (batch mode), not --shell --band --wedge (single-address mode)."),
+    (["--shell", "1", "--band", "0", "--wedge", "0", "--yes"],
+     "--yes only applies to --shell (batch mode), not --shell --band --wedge (single-address mode)."),
+    (["--shell", "1", "--band", "0", "--wedge", "0", "--density", "2"],
+     "--density/--num-systems can't be combined with --shell --band --wedge (single-address mode)"),
     # --center-sector / --radius-pc
     (["--center-sector", "5"], "--center-sector requires --radius-pc."),
-    (["--ring", "1", "--radius-pc", "5"], "--radius-pc only applies to --center-sector, --ring --slot, or random-start"),
+    (["--shell", "1", "--radius-pc", "5"], "--radius-pc only applies to --center-sector, --shell --band --wedge, or random-start"),
     (["--radius-pc", "0"], "--radius-pc must be a positive number."),
     (["--center-sector", "5", "--radius-pc", "-1"], "--radius-pc must be a positive number."),
     (["--radius-pc", MAX_RADIUS * 1.0001], f"--radius-pc must be at most {MAX_RADIUS:g}."),
     # --limit / --yes
-    (["--limit", "5"], "--limit only applies to --ring."),
-    (["--center-sector", "5", "--radius-pc", "5", "--limit", "5"], "--limit only applies to --ring."),
-    (["--ring", "1", "--limit", "0"], "--limit must be a positive integer."),
-    (["--ring", "1", "--limit", "-3"], "--limit must be a positive integer."),
-    (["--ring", "1", "--limit", MAX_LIMIT + 1], f"--limit must be at most {MAX_LIMIT}."),
-    (["--yes"], "--yes only applies to --ring."),
+    (["--limit", "5"], "--limit only applies to --shell."),
+    (["--center-sector", "5", "--radius-pc", "5", "--limit", "5"], "--limit only applies to --shell."),
+    (["--shell", "1", "--limit", "0"], "--limit must be a positive integer."),
+    (["--shell", "1", "--limit", "-3"], "--limit must be a positive integer."),
+    (["--shell", "1", "--limit", MAX_LIMIT + 1], f"--limit must be at most {MAX_LIMIT}."),
+    (["--yes"], "--yes only applies to --shell."),
+    # spans
+    (["--wedges", "0:3"], "--wedges requires --shells and --bands (one shell, one band)."),
+    (["--shells", "2:1"], "shells 2:1 runs backwards"),
+    (["--shells", "x"], "--shells: expected whole numbers, got 'x'"),
+    (["--shells", "1:2:3"], "--shells: expected N or FIRST:LAST, got '1:2:3'"),
+    (["--shells", MAX_SHELL + 1], f"--shells must stay at or below shell {MAX_SHELL}."),
+    (["--shells", "1", "--bands", "0", "--wedges", "99"], "shell 1 band 0 holds wedges 0 to 11"),
+    (["--shells", "1:3", "--bands", "0", "--wedges", "1"], "a wedge arc needs exactly one shell and one band"),
+    (["--shells", "1", "--shell", "2"], "--shells/--bands/--wedges can't be combined with --shell."),
+    (["--shells", "1", "--radius-pc", "5"], "--shells/--bands/--wedges can't be combined with --radius-pc."),
+    (["--bands=-1:1", "--max-shell", "5"], "--shells/--bands/--wedges can't be combined with --max-shell."),
+    (["--shells", "1", "--limit", MAX_LIMIT + 1], f"--limit must be between 1 and {MAX_LIMIT}."),
+    # --course
+    (["--course", "1", "2", "--shell", "1"], "--course can't be combined with --shell."),
+    (["--course", "1", "2", "--shells", "1", "--limit", "3"], "--course can't be combined with --shells, --limit."),
+    (["--course-border"], "--course-border requires --course."),
     # random-start options
-    (["--ring", "1", "--max-ring", "10"],
-     "--max-ring only applies to random-start mode (neither --ring nor --center-sector)."),
-    (["--max-ring", "-1"], "--max-ring must be >= 0."),
-    (["--max-ring", MAX_RING + 1], f"--max-ring must be at most {MAX_RING}."),
-    (["--ring", "1", "--min-start-density", "1"], "--min-start-density only applies to random-start mode"),
+    (["--shell", "1", "--max-shell", "10"],
+     "--max-shell only applies to random-start mode (neither --shell nor --center-sector)."),
+    (["--max-shell", "-1"], "--max-shell must be >= 0."),
+    (["--max-shell", MAX_SHELL + 1], f"--max-shell must be at most {MAX_SHELL}."),
+    (["--shell", "1", "--min-start-density", "1"], "--min-start-density only applies to random-start mode"),
     (["--min-start-density", "0"], "--min-start-density must be a positive number."),
     (["--min-start-density", "1", "--num-systems", "3"],
      "--min-start-density cannot be combined with --density/--num-systems"),
@@ -144,55 +133,55 @@ def test_galaxy_error_messages(monkeypatch, capsys, argv, message):
     assert _error(monkeypatch, capsys, "galaxy", argv).startswith(message)
 
 
-def test_single_sector_block_message_is_unreachable_through_parse_drill_key():
-    """`--block takes a block, not a single sector` guards `m == 1`, but
-    `parse_drill_key` already refuses size 1 (`DRILL_LEVELS[:-1]`), so a
-    one-sector key gets the block-size message instead."""
-    with pytest.raises(ValueError, match="block size must be one of"):
-        parse_drill_key("1.0.0.0")
-
-
 # ---------------------------------------------------------------------------
 # galaxy: each limit at exactly its maximum
 # ---------------------------------------------------------------------------
 
-def test_ring_at_max_is_accepted_and_one_past_is_refused(monkeypatch, capsys):
-    args = _parse(monkeypatch, "galaxy", ["--ring", MAX_RING])
-    assert (args.ring, args.layer) == (MAX_RING, 0)
-    args = _parse(monkeypatch, "galaxy", ["--ring", MAX_RING, "--slot", ring_sector_count(MAX_RING) - 1])
-    assert args.ring == MAX_RING
-    assert _error(monkeypatch, capsys, "galaxy", ["--ring", MAX_RING + 1]) == f"--ring must be at most {MAX_RING}."
+def test_shell_at_max_is_accepted_and_one_past_is_refused(monkeypatch, capsys):
+    args = _parse(monkeypatch, "galaxy", ["--shell", MAX_SHELL])
+    assert (args.shell, args.band, args.wedge) == (MAX_SHELL, None, None)
+    top = spherical.band_range(MAX_SHELL)[1]
+    args = _parse(monkeypatch, "galaxy", ["--shell", MAX_SHELL, "--band", top, "--wedge", 0])
+    assert (args.shell, args.band, args.wedge) == (MAX_SHELL, top, 0)
+    assert _error(monkeypatch, capsys, "galaxy", ["--shell", MAX_SHELL + 1]) == f"--shell must be at most {MAX_SHELL}."
 
 
-def test_max_ring_at_max_is_accepted_and_one_past_is_refused(monkeypatch, capsys):
-    assert _parse(monkeypatch, "galaxy", ["--max-ring", MAX_RING]).max_ring == MAX_RING
-    assert _parse(monkeypatch, "galaxy", ["--max-ring", 0]).max_ring == 0
-    assert _error(monkeypatch, capsys, "galaxy", ["--max-ring", MAX_RING + 1]) == \
-        f"--max-ring must be at most {MAX_RING}."
+def test_max_shell_at_max_is_accepted_and_one_past_is_refused(monkeypatch, capsys):
+    assert _parse(monkeypatch, "galaxy", ["--max-shell", MAX_SHELL]).max_shell == MAX_SHELL
+    assert _parse(monkeypatch, "galaxy", ["--max-shell", 0]).max_shell == 0
+    assert _error(monkeypatch, capsys, "galaxy", ["--max-shell", MAX_SHELL + 1]) == \
+        f"--max-shell must be at most {MAX_SHELL}."
 
 
-@pytest.mark.parametrize("mode", [["--ring", "3"], ["--shell", "--ring", "3"], ["--block", "3.2.1.0"]])
+@pytest.mark.parametrize("mode", [["--shell", "3"], ["--shells", "2:3"]])
 def test_limit_at_max_is_accepted_and_one_past_is_refused(monkeypatch, capsys, mode):
     assert _parse(monkeypatch, "galaxy", mode + ["--limit", MAX_LIMIT]).limit == MAX_LIMIT
     assert _parse(monkeypatch, "galaxy", mode + ["--limit", 1]).limit == 1
     message = _error(monkeypatch, capsys, "galaxy", mode + ["--limit", MAX_LIMIT + 1])
-    if "--block" in mode:
+    if "--shells" in mode:
         assert message == f"--limit must be between 1 and {MAX_LIMIT}."
     else:
         assert message == f"--limit must be at most {MAX_LIMIT}."
 
 
-@pytest.mark.parametrize("key", ["3.2.1.0", "3.5.0.2", "3.0.0.-1", "27.1.0.0", "243.0.0.0"])
-def test_first_and_last_block_layer_are_accepted_and_their_neighbors_refused(monkeypatch, capsys, key):
-    layers = run_galaxy.block_layers(parse_drill_key(key))
-    first, last = layers[0], layers[-1]
-    assert layers == list(range(first, last + 1))
-    for layer in (first, last):
-        args = _parse(monkeypatch, "galaxy", ["--block", key, "--block-layer", layer])
-        assert args.block_layer == layer and args.block == parse_drill_key(key)
-    expected = f"--block-layer must be one of the block's layers, {first} to {last}."
-    for layer in (first - 1, last + 1):
-        assert _error(monkeypatch, capsys, "galaxy", ["--block", key, "--block-layer", layer]) == expected
+def test_the_first_and_last_band_and_wedge_of_a_shell_are_accepted(monkeypatch, capsys):
+    low, high = spherical.band_range(7)
+    for band in (low, high):
+        total = spherical.wedge_count(7, band)
+        for wedge in (0, total - 1):
+            args = _parse(monkeypatch, "galaxy", ["--shell", 7, "--band", band, "--wedge", wedge])
+            assert (args.shell, args.band, args.wedge) == (7, band, wedge)
+        assert f"holds wedges 0 to {total - 1}" in _error(
+            monkeypatch, capsys, "galaxy", ["--shell", 7, "--band", band, "--wedge", total])
+    assert f"holds bands {low} to {high}" in _error(monkeypatch, capsys, "galaxy", ["--shell", 7, "--band", high + 1])
+    assert f"holds bands {low} to {high}" in _error(monkeypatch, capsys, "galaxy", ["--shell", 7, "--band", low - 1])
+
+
+def test_a_span_becomes_a_span_object(monkeypatch):
+    args = _parse(monkeypatch, "galaxy", ["--shells", "2:5", "--bands=-1:2"])
+    assert (args.span.shells, args.span.bands, args.span.wedges) == ((2, 5), (-1, 2), None)
+    args = _parse(monkeypatch, "galaxy", ["--shells", "3", "--bands", "1", "--wedges", "10:2"])
+    assert args.span.wedges == (10, 2)
 
 
 def test_radius_at_max_is_accepted(monkeypatch, capsys):
@@ -219,7 +208,7 @@ PLAN_ERRORS = [
     (["--arm-density", "0", "--interarm-density", "0"], ARM_DENSITY_ERROR),
     (["--core-density", "-1"], "--core-density and --bulge-amplitude must be 0 or more."),
     (["--workers", "-1"], "--workers must be 0 (automatic) or more."),
-    (["--max-ring", "0"], "--max-ring must be a positive integer."),
+    (["--max-shell", "0"], "--max-shell must be a positive integer."),
     (["--disk-scale-length-pc", "0"], "--disk-scale-length-pc must be a positive number."),
     (["--disk-scale-height-pc", "-1"], "--disk-scale-height-pc must be a positive number."),
     (["--bulge-scale-radius-pc", "0"], "--bulge-scale-radius-pc must be a positive number."),
@@ -243,9 +232,9 @@ def test_plan_error_messages(monkeypatch, capsys, argv, message):
 
 def test_plan_shape_edges_that_are_allowed(monkeypatch):
     """The other side of each shape bound: amplitude 0, a 90 degree
-    pitch either way, one arm, one ring."""
+    pitch either way, one arm, one shell."""
     for argv in (["--arm-density", "1", "--interarm-density", "1"], ["--interarm-density", "0"], ["--pitch-angle-deg", "90"], ["--pitch-angle-deg", "-90"],
-                 ["--arm-count", "1"], ["--max-ring", "1"], ["--max-ring", MAX_RING]):
+                 ["--arm-count", "1"], ["--max-shell", "1"], ["--max-shell", MAX_SHELL]):
         _parse(monkeypatch, "plan", argv)
 
 
@@ -302,7 +291,7 @@ def test_mysql_port_range_ends_are_accepted(monkeypatch, command, port):
 def test_mysql_port_is_checked_before_the_subcommands_own_options(monkeypatch, capsys):
     """The port check runs first, so a bad port is what gets reported
     even alongside another bad option."""
-    assert _error(monkeypatch, capsys, "galaxy", ["--ring", "-1", "--mysql-port", "0"]) == \
+    assert _error(monkeypatch, capsys, "galaxy", ["--shell", "-1", "--mysql-port", "0"]) == \
         "argument --mysql-port: must be between 1 and 65535"
 
 
@@ -310,45 +299,48 @@ def test_mysql_port_is_checked_before_the_subcommands_own_options(monkeypatch, c
 # TEST.29: limits stay consistent
 # ---------------------------------------------------------------------------
 
-def test_limits_are_derived_from_the_skeletons_max_ring():
-    assert generationLimits.MAX_GENERATE_RING == skeleton.DEFAULT_MAX_RING
-    assert generationLimits.MAX_GENERATE_LIMIT == ring_sector_count(generationLimits.MAX_GENERATE_RING)
+def test_limits_are_derived_from_the_skeletons_max_shell():
+    assert generationLimits.MAX_GENERATE_SHELL == skeleton.DEFAULT_MAX_SHELL
+    top = spherical.band_range(generationLimits.MAX_GENERATE_SHELL)[1]
+    assert generationLimits.MAX_GENERATE_LIMIT == spherical.cells_in_band_range(generationLimits.MAX_GENERATE_SHELL, top)
     # The plan subcommand's own default scan cap is the same number.
-    assert DEFAULT_MAX_RING == skeleton.DEFAULT_MAX_RING
+    assert DEFAULT_MAX_SHELL == skeleton.DEFAULT_MAX_SHELL
 
 
-def test_no_ring_up_to_the_max_holds_more_slots_than_the_limit():
-    """`MAX_GENERATE_LIMIT` claims no ring up to `MAX_GENERATE_RING` holds
-    more slots: ring sizes never shrink outward, checked over every ring."""
+def test_no_shell_up_to_the_max_holds_more_cells_than_the_limit():
+    """`MAX_GENERATE_LIMIT` claims no shell up to `MAX_GENERATE_SHELL` holds
+    more cells: shell sizes never shrink outward, checked over the first
+    shells and a spread of later ones."""
+    shells = [*range(0, 400), *range(400, generationLimits.MAX_GENERATE_SHELL, 997), generationLimits.MAX_GENERATE_SHELL]
     previous = 0
-    for ring_index in range(generationLimits.MAX_GENERATE_RING + 1):
-        count = ring_sector_count(ring_index)
-        assert count >= previous, ring_index
+    for shell in shells:
+        count = spherical.cell_count(shell)
+        assert count >= previous, shell
         previous = count
     assert previous == generationLimits.MAX_GENERATE_LIMIT
 
 
-@pytest.mark.parametrize("max_ring", [0, 1, 7, 3900, 250_000])
-def test_limits_follow_a_changed_default_max_ring(monkeypatch, capsys, max_ring):
-    """Reloading `generationLimits` under another `DEFAULT_MAX_RING`
+@pytest.mark.parametrize("max_shell", [0, 1, 7, 3900, 25_000])
+def test_limits_follow_a_changed_default_max_shell(monkeypatch, capsys, max_shell):
+    """Reloading `generationLimits` under another `DEFAULT_MAX_SHELL`
     moves both limits together, and the command line's checks and messages
     (which read them through the module) move with them."""
     try:
-        monkeypatch.setattr(skeleton, "DEFAULT_MAX_RING", max_ring)
+        monkeypatch.setattr(skeleton, "DEFAULT_MAX_SHELL", max_shell)
         importlib.reload(generationLimits)
-        assert generationLimits.MAX_GENERATE_RING == max_ring
-        assert generationLimits.MAX_GENERATE_LIMIT == ring_sector_count(max_ring)
+        assert generationLimits.MAX_GENERATE_SHELL == max_shell
+        assert generationLimits.MAX_GENERATE_LIMIT == spherical.cell_count(max_shell)
         assert generate_cli.limits is generationLimits
 
         new_limit = generationLimits.MAX_GENERATE_LIMIT
-        assert _parse(monkeypatch, "galaxy", ["--ring", max_ring]).ring == max_ring
-        assert _error(monkeypatch, capsys, "galaxy", ["--ring", max_ring + 1]) == \
-            f"--ring must be at most {max_ring}."
-        assert _parse(monkeypatch, "galaxy", ["--ring", "0", "--limit", new_limit]).limit == new_limit
-        assert _error(monkeypatch, capsys, "galaxy", ["--ring", "0", "--limit", new_limit + 1]) == \
+        assert _parse(monkeypatch, "galaxy", ["--shell", max_shell]).shell == max_shell
+        assert _error(monkeypatch, capsys, "galaxy", ["--shell", max_shell + 1]) == \
+            f"--shell must be at most {max_shell}."
+        assert _parse(monkeypatch, "galaxy", ["--shell", "0", "--limit", new_limit]).limit == new_limit
+        assert _error(monkeypatch, capsys, "galaxy", ["--shell", "0", "--limit", new_limit + 1]) == \
             f"--limit must be at most {new_limit}."
     finally:
         monkeypatch.undo()
         importlib.reload(generationLimits)
-    assert generationLimits.MAX_GENERATE_RING == skeleton.DEFAULT_MAX_RING == MAX_RING
+    assert generationLimits.MAX_GENERATE_SHELL == skeleton.DEFAULT_MAX_SHELL == MAX_SHELL
     assert generationLimits.MAX_GENERATE_LIMIT == MAX_LIMIT

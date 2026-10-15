@@ -23,32 +23,33 @@ from planetgen.generation.star_population import bright_star_fraction
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
-from planetgen.galaxy.geometry import neighbor_addresses, sector_address_at, sector_position_pc
+from planetgen.galaxy.spherical import neighbor_addresses, sector_address_at, sector_position_pc
 from planetgen.physics.units import ly_to_pc
 from planetgen import tuning
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 THRESHOLD = 2500.0
-LIGHT_RING_MASSES = (5.0, 8.0, 12.0, 16.0)
-RING_MASSES = LIGHT_RING_MASSES
-"""The mass rings the tests backfill with (GEN.187). The toy galaxy holds about 2,000 systems per sector at density 1,
-so the real rings (1, 2, 5 and 8 solar masses; 9% of all stars at 1) would draw hundreds of thousands of stars in a
-backfill; heavier ones keep the same four-ring walk quick (`tests/test_mass_backfill.py` checks the real values)."""
+LIGHT_STEP_MASSES = (5.0, 8.0, 12.0, 16.0)
+STEP_MASSES = LIGHT_STEP_MASSES
+"""The mass steps the tests backfill with (GEN.187). The toy galaxy holds about 2,000 systems per sector at density 1,
+so the real steps (1, 2, 5 and 8 solar masses; 9% of all stars at 1) would draw hundreds of thousands of stars in a
+backfill; heavier ones keep the same four-step walk quick (`tests/test_mass_backfill.py` checks the real values)."""
 
 
 @pytest.fixture(autouse=True)
-def light_rings(monkeypatch):
-    monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_RING_MASSES_SOL", LIGHT_RING_MASSES)
+def light_steps(monkeypatch):
+    monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_RING_MASSES_SOL", LIGHT_STEP_MASSES)
 
 
 # A small toy galaxy (the same one test_galaxy_gen.py seeds), with a high
-# systems-per-sector value so a few rings hold enough bright stars to test.
+# systems-per-sector value so a few shells hold enough bright stars to test.
 SHAPE = build_galaxy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
 E_VALUE = 2000.0
-EXTENTS = [(1, 6), (0, 8), (-1, 6)]
+EXTENTS = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
+"""`(shell, highest band)` of the toy outline: a small ball, bands -3 to 3 from shell 3 out."""
 
 
 def _scatter(seed=7, **kwargs):
@@ -64,9 +65,9 @@ def test_scattered_stars_sit_in_their_own_cell_inside_the_outline_and_are_bright
     assert len(rows) > 20
     for row in map(_row_dict, rows):
         point = (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000, row["position_z_mpc"] / 1000)
-        address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
         assert sector_address_at(point, EDGE_PC) == address
-        assert address[1] in dict(EXTENTS) and address[0] <= dict(EXTENTS)[address[1]]
+        assert address[0] in dict(EXTENTS) and abs(address[1]) <= dict(EXTENTS)[address[0]]
         assert row["luminosity_w"] >= THRESHOLD * constants.SOLAR_LUMINOSITY * 0.99
         assert row["population"] in brightStars.POPULATIONS
 
@@ -83,19 +84,15 @@ def test_skipped_addresses_get_no_stars():
 
 
 def test_the_count_matches_the_expected_bright_share():
-    # Expected total = sum over qualifying cells of E * density * fraction;
-    # a Poisson total should land well within 5 sigma of it.
+    # Expected total = the sum over the outline's cells of E * cell volume * density * fraction (every band and
+    # angle bin sampled); the Poisson total lands within 5 sigma of it, plus the binning's own few percent.
     rows = _scatter(seed=3)
-    expected = 0.0
-    for layer_index, outer_ring in EXTENTS:
-        for ring_index in range(outer_ring + 1):
-            slots, bins = brightStars._ring_bins(ring_index, layer_index, SHAPE, E_VALUE, EDGE_PC)
-            for densities in bins:
-                if densities:
-                    expected += E_VALUE * slots / len(bins) * sum(
-                        density * bright_star_fraction(THRESHOLD, population)
-                        for population, density in densities.items())
-    assert abs(len(rows) - expected) < 5 * math.sqrt(expected) + 5
+    fractions = brightStars.band_fractions(THRESHOLD)
+    expected = sum(brightStars.shell_expected_stars(SHAPE, shell, high, EDGE_PC, E_VALUE, fractions,
+                                                    band_samples=2 * high + 1, angle_bins=brightStars.ANGLE_BINS)
+                   for shell, high in EXTENTS)
+    assert expected > 20
+    assert abs(len(rows) - expected) < 5 * math.sqrt(expected) + 0.1 * expected + 5
 
 
 def test_a_band_scatter_draws_only_stars_between_its_limits():
@@ -139,9 +136,9 @@ def _plan_args(mysql_config, *extra):
 
 
 def _seed_galaxy(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                           expected_system_count_at_density_1=E_VALUE, config=mysql_config)
-    store.replace_galaxy_layers(EXTENTS, config=mysql_config)
+    store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 
 def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
@@ -154,9 +151,9 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == summary["total"]
         assert store.bright_star_scatter_settings(conn)[0] == THRESHOLD
         target = conn.execute(
-            "SELECT ring_index, layer_index, ring_slot_index, COUNT(*) AS n FROM bright_stars"
-            " GROUP BY ring_index, layer_index, ring_slot_index ORDER BY n DESC LIMIT 1").fetchone()
-        address = (target["ring_index"], target["layer_index"], target["ring_slot_index"])
+            "SELECT shell_index, band_index, wedge_index, COUNT(*) AS n FROM bright_stars"
+            " GROUP BY shell_index, band_index, wedge_index ORDER BY n DESC LIMIT 1").fetchone()
+        address = (target["shell_index"], target["band_index"], target["wedge_index"])
         stars = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
@@ -183,18 +180,22 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
         assert row["built"] == pytest.approx(row["stored_w"])
 
 
-def test_the_scatter_reports_only_the_layers_that_drew_stars(mysql_config, monkeypatch):
+def test_the_scatter_reports_only_the_shells_that_drew_stars(mysql_config, monkeypatch):
     # GEN.79: "all 5685 layers were generated" hid that only the middle
-    # ones held any stars. Layer 1 here draws none.
+    # ones held any stars. Shell 8 here draws none.
     _seed_galaxy(mysql_config)
-    real = brightStars.scatter_layer
-    monkeypatch.setattr(brightStars, "scatter_layer",
-                        lambda shape, layer_index, *args, **kwargs:
-                        iter(()) if layer_index == 1 else real(shape, layer_index, *args, **kwargs))
+    real = brightStars.scatter_shell
+    monkeypatch.setattr(brightStars, "scatter_shell",
+                        lambda shape, shell_index, *args, **kwargs:
+                        iter(()) if shell_index == 8 else real(shape, shell_index, *args, **kwargs))
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
     run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
-    assert any("stars landed in 2 of 3 layers (layers -1 to 0)" in message for message in messages)
+    (line,) = [message for message in messages
+               if message.startswith("Bright stars: stars landed in ")]
+    landed = int(line.split("stars landed in ")[1].split(" of ")[0])
+    assert 0 < landed < len(EXTENTS) and f"of {len(EXTENTS)} shells" in line
+    assert not line.endswith("to 8).")
 
 
 def test_scatter_always_leaves_filled_sectors_out(mysql_config):
@@ -214,7 +215,7 @@ def test_scatter_always_leaves_filled_sectors_out(mysql_config):
         conn.close()
 
 
-def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_config, monkeypatch):
+def test_going_down_a_band_keeps_the_old_stars_and_adds_only_the_band(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
     first = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
     # No GEN.23 backfill here: in this small galaxy it would reach every
@@ -239,7 +240,7 @@ def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_con
     conn = store.get_connection(mysql_config)
     try:
         assert store.bright_star_scatter_settings(conn) == (100.0, seed)
-        rows = conn.execute("SELECT id, luminosity_w, ring_index, layer_index, ring_slot_index"
+        rows = conn.execute("SELECT id, luminosity_w, shell_index, band_index, wedge_index"
                             " FROM bright_stars").fetchall()
     finally:
         conn.close()
@@ -250,14 +251,14 @@ def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_con
     for row in added:
         assert row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY
         assert row["luminosity_w"] >= 100.0 * constants.SOLAR_LUMINOSITY * 0.99
-        assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) != address
+        assert (row["shell_index"], row["band_index"], row["wedge_index"]) != address
 
     # At or above the stored level there is nothing to add.
     assert run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
     assert run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "300")) is None
 
 
-def test_going_down_a_layer_needs_a_scatter_first(mysql_config):
+def test_going_down_a_band_needs_a_scatter_first(mysql_config):
     _seed_galaxy(mysql_config)
     assert run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
     conn = store.get_connection(mysql_config)
@@ -304,12 +305,12 @@ def test_band_stars_stay_inside_their_band():
 
 
 def test_backfilled_cells_get_band_stars_in_their_own_cell():
-    addresses = [(2, 0, slot) for slot in range(15)] + [(3, 1, slot) for slot in range(21)]
+    addresses = [(2, 0, wedge) for wedge in range(12)] + [(3, 1, wedge) for wedge in range(12)]
     rows = list(brightStars.backfill_cells(SHAPE, addresses, EDGE_PC, E_VALUE, FLOOR, THRESHOLD, 2))
     assert rows
     for row in map(_row_dict, rows):
         point = (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000, row["position_z_mpc"] / 1000)
-        address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
         assert address in addresses
         assert sector_address_at(point, EDGE_PC) == address
         assert FLOOR * 0.99 <= row["luminosity_w"] / constants.SOLAR_LUMINOSITY < THRESHOLD
@@ -328,19 +329,19 @@ def test_backfilled_cells_get_band_stars_in_their_own_cell():
 
 def _level_rows(conn):
     """Every sector a backfill took to its own level (GEN.44)."""
-    return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): row["bright_level_sol"]
+    return {(row["shell_index"], row["band_index"], row["wedge_index"]): row["bright_level_sol"]
             for row in conn.execute("SELECT * FROM sector_stats WHERE bright_level_sol > 0").fetchall()}
 
 
 def _mass_rows(conn):
     """Every sector a mass backfill took down (GEN.187), with its mass."""
-    return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): row["bright_mass_sol"]
+    return {(row["shell_index"], row["band_index"], row["wedge_index"]): row["bright_mass_sol"]
             for row in conn.execute("SELECT * FROM sector_stats WHERE bright_mass_sol IS NOT NULL").fetchall()}
 
 
 def _cell_stars(conn, address):
-    return conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
-                        " AND ring_slot_index = ?", address).fetchone()["n"]
+    return conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE shell_index = ? AND band_index = ?"
+                        " AND wedge_index = ?", address).fetchone()["n"]
 
 
 def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config, monkeypatch):
@@ -372,8 +373,8 @@ def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config, monkey
     assert etas[-1] == 0
 
 
-def test_a_single_slot_run_leaves_the_backfill_to_the_end_of_the_run(mysql_config, monkeypatch):
-    """PERF.28: `galaxy --slot` generates its sector without the inline
+def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_config, monkeypatch):
+    """PERF.28: `galaxy --wedge` generates its sector without the inline
     backfill (which stalled the sector bar at 0 of 1); `backfill_after_run`
     does it afterwards, with its own bar. A map visit still backfills."""
     _seed_galaxy(mysql_config)
@@ -396,29 +397,29 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
         limit = store.bright_star_mass_limit(conn)
     finally:
         conn.close()
-    assert limit is not None and limit > max(RING_MASSES)
+    assert limit is not None and limit > max(STEP_MASSES)
 
     first = run_galaxy.backfill_bright_stars(mysql_config, center)
     assert first["sectors"] > 0 and first["stars"] > 0
     conn = store.get_connection(mysql_config)
     try:
         masses = _mass_rows(conn)
-        assert len(masses) == first["sectors"] and set(masses.values()) == set(RING_MASSES)
-        # The nearest ring takes the lowest mass; each sector's level is the scatter's.
+        assert len(masses) == first["sectors"] and set(masses.values()) == set(STEP_MASSES)
+        # The nearest step takes the lowest mass; each sector's level is the scatter's.
         assert set(_level_rows(conn).values()) == {THRESHOLD}
         added = conn.execute(
-            "SELECT luminosity_w, initial_mass_sol, ring_index, layer_index, ring_slot_index FROM bright_stars"
+            "SELECT luminosity_w, initial_mass_sol, shell_index, band_index, wedge_index FROM bright_stars"
             " ORDER BY id").fetchall()[before:]
         assert len(added) == first["stars"]
         for row in added:
-            address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+            address = (row["shell_index"], row["band_index"], row["wedge_index"])
             assert masses[address] <= row["initial_mass_sol"] < limit
             assert row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY
         assert (4, 0, 5) not in masses  # the generated sector itself is not backfilled
-        neighbor = min(address for address, mass in masses.items() if mass == RING_MASSES[0])
-        assert store.bright_star_fill_mass_limit(conn, *neighbor) == RING_MASSES[0]
+        neighbor = min(address for address, mass in masses.items() if mass == STEP_MASSES[0])
+        assert store.bright_star_fill_mass_limit(conn, *neighbor) == STEP_MASSES[0]
         assert store.bright_star_fill_level(conn, *neighbor) == THRESHOLD
-        assert store.bright_star_fill_mass_limit(conn, 0, 3, 0) == limit  # a sector nobody reached
+        assert store.bright_star_fill_mass_limit(conn, 8, 0, 24) == limit  # a sector nobody reached
         # PERF.11: a row a backfill made carries the sector's expected density.
         stats = store.get_sector_stats(conn, *neighbor)
         assert stats["expected_systems"] == pytest.approx(stats["relative_density"] * E_VALUE)
@@ -435,7 +436,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         far_center = sector_position_pc(*far, EDGE_PC)
-        conn.execute("INSERT INTO sectors (name, edge_mpc, ring_index, layer_index, ring_slot_index,"
+        conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index,"
                      " center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                      ("Filled", EDGE_PC * 1000, *far, *far_center, math.hypot(far_center[0], far_center[1])))
         conn.commit()
@@ -459,7 +460,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
         conn.close()
 
 
-def test_going_down_a_layer_gives_backfilled_sectors_only_what_they_lack(mysql_config):
+def test_going_down_a_band_gives_backfilled_sectors_only_what_they_lack(mysql_config):
     # A staged scatter (PERF.5) after a mass backfill (GEN.187): a sector the
     # backfill took down to a mass already holds every star born from that
     # mass up, so a band below the scatter's floor adds there only the stars
@@ -476,7 +477,7 @@ def test_going_down_a_layer_gives_backfilled_sectors_only_what_they_lack(mysql_c
     def stars_since(last_id):
         conn = store.get_connection(mysql_config)
         try:
-            rows = conn.execute("SELECT id, luminosity_w, initial_mass_sol, ring_index, layer_index, ring_slot_index"
+            rows = conn.execute("SELECT id, luminosity_w, initial_mass_sol, shell_index, band_index, wedge_index"
                                 " FROM bright_stars WHERE id > ? ORDER BY id", (last_id,)).fetchall()
             top = conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM bright_stars").fetchone()["n"]
             return rows, top, _level_rows(conn), _mass_rows(conn)
@@ -488,10 +489,10 @@ def test_going_down_a_layer_gives_backfilled_sectors_only_what_they_lack(mysql_c
     added, last, levels, after = stars_since(last)
     assert added and after == masses
     assert {levels[address] for address in masses} == {400.0}
-    inside = [row for row in added if (row["ring_index"], row["layer_index"], row["ring_slot_index"]) in masses]
+    inside = [row for row in added if (row["shell_index"], row["band_index"], row["wedge_index"]) in masses]
     assert inside
     for row in inside:
-        mass = masses[(row["ring_index"], row["layer_index"], row["ring_slot_index"])]
+        mass = masses[(row["shell_index"], row["band_index"], row["wedge_index"])]
         assert row["initial_mass_sol"] < mass
         assert 400.0 * constants.SOLAR_LUMINOSITY * 0.99 <= row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY
 
@@ -500,7 +501,7 @@ def test_going_down_a_layer_gives_backfilled_sectors_only_what_they_lack(mysql_c
     assert len(added) == band["total"] and after == masses
     assert {levels[address] for address in masses} == {FLOOR}
     for row in added:
-        address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
         if address in masses:
             assert row["initial_mass_sol"] < masses[address]
             assert row["luminosity_w"] < 400.0 * constants.SOLAR_LUMINOSITY
@@ -519,7 +520,7 @@ def _distance_ly(a, b):
     return pc_to_ly(math.dist(sector_position_pc(*a, EDGE_PC), sector_position_pc(*b, EDGE_PC)))
 
 
-def test_the_backfill_waits_for_the_run_and_fills_down_to_the_ring_masses(mysql_config):
+def test_the_backfill_waits_for_the_run_and_fills_down_to_the_step_masses(mysql_config):
     _seed_galaxy(mysql_config)  # no plan scatter: the backfill draws every luminosity
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
@@ -533,38 +534,38 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_ring_masses(mysql_
     finally:
         conn.close()
 
-    args.ring, args.layer, args.slot = address
+    args.shell, args.band, args.wedge = address
     summary = run_galaxy.backfill_after_run(args, EDGE_PC, started)
     assert summary["sectors"] > 0 and summary["stars"] > 0
     conn = store.get_connection(mysql_config)
     try:
         masses = _mass_rows(conn)
-        # GEN.187: each ring a face further out takes the next mass up.
-        assert masses == run_galaxy.backfill_ring_targets({address}, store.get_galaxy_bounds(conn))
-        assert set(masses.values()) == set(RING_MASSES)
+        # GEN.187: each step a face further out takes the next mass up.
+        assert masses == run_galaxy.backfill_step_targets({address}, store.get_galaxy_bounds(conn))
+        assert set(masses.values()) == set(STEP_MASSES)
         assert _level_rows(conn) == {}  # no scatter, so no luminosity level to record
         assert _cell_stars(conn, address) == 0  # the generated sector itself never gets backfilled stars
         assert store.bright_stars_for_sector(conn, *address) == []
         assert store.get_sector_stats(conn, *address)["bright_level_sol"] == 0.0
-        for row in conn.execute("SELECT initial_mass_sol, ring_index, layer_index, ring_slot_index"
+        for row in conn.execute("SELECT initial_mass_sol, shell_index, band_index, wedge_index"
                                 " FROM bright_stars").fetchall():
-            assert row["initial_mass_sol"] >= masses[(row["ring_index"], row["layer_index"], row["ring_slot_index"])]
+            assert row["initial_mass_sol"] >= masses[(row["shell_index"], row["band_index"], row["wedge_index"])]
     finally:
         conn.close()
     assert not [entry for entry in sector.entries if entry.preplaced]
 
     neighbor = (3, 0, 5)
     fill = run_galaxy._fill_context(args, neighbor, sector_position_pc(*neighbor, EDGE_PC))
-    assert fill.star_mass_limit_sol == RING_MASSES[0] and fill.min_luminosity_sol is None
+    assert fill.star_mass_limit_sol == STEP_MASSES[0] and fill.min_luminosity_sol is None
 
 
 def test_backfill_does_nothing_below_the_scatters_mass_limit(mysql_config):
-    # Every star from the scatter's mass limit up is placed already, so a ring whose mass is not below it has
+    # Every star from the scatter's mass limit up is placed already, so a step whose mass is not below it has
     # nothing to add.
     _seed_galaxy(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
-        store.record_bright_star_scatter(conn, THRESHOLD, 1, mass_limit_sol=RING_MASSES[0])
+        store.record_bright_star_scatter(conn, THRESHOLD, 1, mass_limit_sol=STEP_MASSES[0])
         conn.commit()
     finally:
         conn.close()
@@ -572,7 +573,7 @@ def test_backfill_does_nothing_below_the_scatters_mass_limit(mysql_config):
         "sectors": 0, "stars": 0}
     conn = store.get_connection(mysql_config)
     try:
-        store.record_bright_star_scatter(conn, THRESHOLD, 1, mass_limit_sol=RING_MASSES[1])
+        store.record_bright_star_scatter(conn, THRESHOLD, 1, mass_limit_sol=STEP_MASSES[1])
         conn.commit()
     finally:
         conn.close()
@@ -580,7 +581,7 @@ def test_backfill_does_nothing_below_the_scatters_mass_limit(mysql_config):
     assert result["sectors"] > 0
     conn = store.get_connection(mysql_config)
     try:
-        assert set(_mass_rows(conn).values()) == {RING_MASSES[0]}
+        assert set(_mass_rows(conn).values()) == {STEP_MASSES[0]}
     finally:
         conn.close()
 
@@ -626,10 +627,10 @@ def test_a_sector_taken_down_in_steps_gets_the_stars_of_one_draw(mysql_config):
     target = (3, 0, 4)
     conn = store.get_connection(mysql_config)
     try:
-        around = run_galaxy.backfill_ring_targets({target}, store.get_galaxy_bounds(conn))
+        around = run_galaxy.backfill_step_targets({target}, store.get_galaxy_bounds(conn))
     finally:
         conn.close()
-    deep = min(address for address, mass in around.items() if mass == RING_MASSES[2])
+    deep = min(address for address, mass in around.items() if mass == STEP_MASSES[2])
     near = min(neighbor_addresses(*target))
 
     def target_stars():
@@ -641,10 +642,10 @@ def test_a_sector_taken_down_in_steps_gets_the_stars_of_one_draw(mysql_config):
 
     run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(*deep, EDGE_PC))
     held, first = target_stars()
-    assert held == RING_MASSES[2]
+    assert held == STEP_MASSES[2]
     second = run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(*near, EDGE_PC))
     held, stepped = target_stars()
-    assert held == RING_MASSES[0] and second["stars"] > 0 and len(stepped) > len(first)
+    assert held == STEP_MASSES[0] and second["stars"] > 0 and len(stepped) > len(first)
     assert all(row in stepped for row in first)
 
     conn = store.get_connection(mysql_config)
@@ -653,7 +654,7 @@ def test_a_sector_taken_down_in_steps_gets_the_stars_of_one_draw(mysql_config):
     finally:
         conn.close()
     run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(*near, EDGE_PC))
-    assert target_stars() == (RING_MASSES[0], stepped)
+    assert target_stars() == (STEP_MASSES[0], stepped)
 
 
 def test_a_sector_holding_stars_but_no_level_is_wiped_and_drawn_again(mysql_config):
@@ -668,7 +669,7 @@ def test_a_sector_holding_stars_but_no_level_is_wiped_and_drawn_again(mysql_conf
         clean = _stored_stars(conn)
         store.clear_bright_stars(conn)
         edges = brightStars.mass_band_edges(None)
-        stray = list(brightStars.backfill_mass_cells(SHAPE, [address], EDGE_PC, E_VALUE, RING_MASSES[0], None, None,
+        stray = list(brightStars.backfill_mass_cells(SHAPE, [address], EDGE_PC, E_VALUE, STEP_MASSES[0], None, None,
                                                      99, edges))[:1] or [
             (*address, 0, 0, 0, "young", "B", "III", 1e31, 1e6, 9000.0, 2000.0 * constants.SOLAR_LUMINOSITY,
              0.1, 0.2, 5.0, 0.15, 7)]
@@ -682,7 +683,7 @@ def test_a_sector_holding_stars_but_no_level_is_wiped_and_drawn_again(mysql_conf
     conn = store.get_connection(mysql_config)
     try:
         assert _stored_stars(conn) == clean
-        assert _mass_rows(conn)[address] == RING_MASSES[0]
+        assert _mass_rows(conn)[address] == STEP_MASSES[0]
     finally:
         conn.close()
 
@@ -706,7 +707,7 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
                                (sector_id,)).fetchone()["n"]
         stars = conn.execute("SELECT temperature_k, luminosity_w FROM stars st JOIN star_systems ss"
                              " ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,)).fetchall()
-        assert stats["bright_level_sol"] == 0.0 and stats["level_before_fill_sol"] == -1.0 and stats["bright_mass_sol"] == RING_MASSES[0]
+        assert stats["bright_level_sol"] == 0.0 and stats["level_before_fill_sol"] == -1.0 and stats["bright_mass_sol"] == STEP_MASSES[0]
         assert stats["actual_systems"] == systems > 0 and stats["actual_stars"] == len(stars)
         assert stats["expected_systems"] == pytest.approx(stats["relative_density"] * E_VALUE)
         assert stats["mean_temperature_k"] == pytest.approx(sum(row["temperature_k"] for row in stars) / len(stars))
@@ -737,7 +738,7 @@ def test_the_density_ratio_decays_toward_newer_fills(mysql_config):
     _seed_galaxy(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
-        conn.execute("INSERT INTO sectors (name, edge_mpc, ring_index, layer_index, ring_slot_index)"
+        conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index)"
                      " VALUES ('Empty', 13046, 1, 0, 0)")
         conn.execute("UPDATE galaxy_shape SET density_ratio_avg = 1.0, density_ratio_samples = ?",
                      (store.DENSITY_RATIO_WINDOW * 5,))
@@ -756,49 +757,49 @@ class _Everywhere:
     """Bounds that contain every cell."""
 
     @staticmethod
-    def contains(_ring, _layer):
+    def contains(_shell, _band):
         return True
 
 
-class _InsideRing(_Everywhere):
-    """Bounds that stop at one ring."""
+class _InsideShell(_Everywhere):
+    """Bounds that stop at one shell, and at the equator band."""
 
     def __init__(self, outer):
         self.outer = outer
 
-    def contains(self, ring, layer):
-        return ring <= self.outer and layer == 0
+    def contains(self, shell, band):
+        return shell <= self.outer and band == 0
 
 
 def test_the_default_luminosity_floor_is_9000():
     assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0
 
 
-def test_each_ring_a_face_further_out_takes_the_next_mass():
+def test_each_step_a_face_further_out_takes_the_next_mass():
     start = (6, 0, 9)
-    targets = run_galaxy.backfill_ring_targets({start}, _Everywhere())
+    targets = run_galaxy.backfill_step_targets({start}, _Everywhere())
     assert start not in targets
-    # Ring 1 is exactly the face neighbours (no diagonals); the others sit one face further each.
-    ring_one = {address for address, mass in targets.items() if mass == RING_MASSES[0]}
-    assert ring_one == set(neighbor_addresses(*start))
-    assert set(targets.values()) == set(RING_MASSES)
-    ring_two = {address for address, mass in targets.items() if mass == RING_MASSES[1]}
-    assert ring_two and ring_two.isdisjoint(ring_one)
-    for address in ring_two:
-        assert set(neighbor_addresses(*address)) & ring_one
+    # Step 1 is exactly the face neighbours (no diagonals); the others sit one face further each.
+    step_one = {address for address, mass in targets.items() if mass == STEP_MASSES[0]}
+    assert step_one == set(neighbor_addresses(*start))
+    assert set(targets.values()) == set(STEP_MASSES)
+    step_two = {address for address, mass in targets.items() if mass == STEP_MASSES[1]}
+    assert step_two and step_two.isdisjoint(step_one)
+    for address in step_two:
+        assert set(neighbor_addresses(*address)) & step_one
         assert not set(neighbor_addresses(*address)) & {start}
 
 
-def test_rings_count_from_every_sector_of_the_run_and_stop_at_the_outline():
+def test_steps_count_from_every_sector_of_the_run_and_stop_at_the_outline():
     run = {(3, 0, 4), (3, 0, 5)}
-    targets = run_galaxy.backfill_ring_targets(run, _Everywhere())
+    targets = run_galaxy.backfill_step_targets(run, _Everywhere())
     assert run.isdisjoint(targets)
-    # A sector next to either of the run's sectors is in ring 1.
-    assert all(targets[a] == RING_MASSES[0] for a in neighbor_addresses(3, 0, 4) if a not in run)
-    assert all(targets[a] == RING_MASSES[0] for a in neighbor_addresses(3, 0, 5) if a not in run)
-    bounded = run_galaxy.backfill_ring_targets(run, _InsideRing(5))
-    assert bounded and all(ring <= 5 and layer == 0 for ring, layer, _slot in bounded)
-    assert set(run_galaxy.backfill_ring_targets(run, _Everywhere(), ring_masses=(3.0,)).values()) == {3.0}
+    # A sector next to either of the run's sectors is in step 1.
+    assert all(targets[a] == STEP_MASSES[0] for a in neighbor_addresses(3, 0, 4) if a not in run)
+    assert all(targets[a] == STEP_MASSES[0] for a in neighbor_addresses(3, 0, 5) if a not in run)
+    bounded = run_galaxy.backfill_step_targets(run, _InsideShell(5))
+    assert bounded and all(shell <= 5 and band == 0 for shell, band, _wedge in bounded)
+    assert set(run_galaxy.backfill_step_targets(run, _Everywhere(), step_masses=(3.0,)).values()) == {3.0}
 
 
 def test_backfill_from_the_edge_of_every_generated_sector_or_none(mysql_config):
@@ -820,13 +821,13 @@ def test_backfill_from_the_edge_of_every_generated_sector_or_none(mysql_config):
         every = _mass_rows(conn)
         assert store.bright_stars_for_sector(conn, *far) == []
         assert store.bright_stars_for_sector(conn, *near) == []
-        expected = run_galaxy.backfill_ring_targets({near, far}, store.get_galaxy_bounds(conn))
+        expected = run_galaxy.backfill_step_targets({near, far}, store.get_galaxy_bounds(conn))
     finally:
         conn.close()
-    # The union of both runs' rings, the nearer ring winning where they overlap.
+    # The union of both runs' steps, the nearer step winning where they overlap.
     assert every == expected
-    assert every[min(neighbor_addresses(*near))] == RING_MASSES[0]
-    assert every[min(neighbor_addresses(*far))] == RING_MASSES[0]
+    assert every[min(neighbor_addresses(*near))] == STEP_MASSES[0]
+    assert every[min(neighbor_addresses(*far))] == STEP_MASSES[0]
 
 
 @pytest.fixture
@@ -896,11 +897,11 @@ def test_a_sector_built_around_a_bright_star_gives_it_planets_and_moons(mysql_co
     conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute(
-            "SELECT ring_index, layer_index, ring_slot_index, COUNT(*) AS n FROM bright_stars"
-            " GROUP BY ring_index, layer_index, ring_slot_index ORDER BY n DESC LIMIT 1").fetchall()
+            "SELECT shell_index, band_index, wedge_index, COUNT(*) AS n FROM bright_stars"
+            " GROUP BY shell_index, band_index, wedge_index ORDER BY n DESC LIMIT 1").fetchall()
     finally:
         conn.close()
-    address = (rows[0]["ring_index"], rows[0]["layer_index"], rows[0]["ring_slot_index"])
+    address = (rows[0]["shell_index"], rows[0]["band_index"], rows[0]["wedge_index"])
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
     position = sector_position_pc(*address, EDGE_PC)
@@ -919,13 +920,13 @@ def test_a_sector_built_around_a_bright_star_gives_it_planets_and_moons(mysql_co
     assert sum(row["planets"] for row in systems) > 0, [dict(row) for row in systems]
 
 
-def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_layer_by_type(mysql_config, monkeypatch):
-    # GEN.131: like the sector fill's summary, each layer says how many stars it was given and of what kind.
+def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_shell_by_type(mysql_config, monkeypatch):
+    # GEN.131: like the sector fill's summary, each shell says how many stars it was given and of what kind.
     _seed_galaxy(mysql_config)
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
     summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
-    lines = [message for message in messages if message.startswith(("Bright stars, layer ", "Massive stars, layer "))]
+    lines = [message for message in messages if message.startswith(("Bright stars, shell", "Massive stars, shell"))]
     assert lines and all(": added " in line and "-type" in line or "white dwarf" in line for line in lines)
     added = sum(int(line.split(": added ")[1].split(" stars")[0].replace(",", "")) for line in lines)
     assert added == summary["total"]
@@ -938,7 +939,7 @@ def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_layer_by_type(
     messages.clear()
     center = sector_position_pc(4, 0, 5, EDGE_PC)
     result = run_galaxy.backfill_bright_stars(mysql_config, center)
-    lines = [message for message in messages if message.startswith("Bright-star backfill, layer ")]
+    lines = [message for message in messages if message.startswith("Bright-star backfill, shell ")]
     assert result["stars"] > 0 and lines
     assert sum(int(line.split(": added ")[1].split(" stars")[0].replace(",", "")) for line in lines) == result["stars"]
 

@@ -4,11 +4,10 @@
 TEST.24 Bright-star scatter edge cases and TEST.25 Interrupted bright-star
 scatter (docs/TODO.md).
 
-TEST.24: `brightStars._place_one` running out of redraws (a point that
-always rounds out of its cell), a zero-weight bin picked by float
-rounding, a sparse layer far above the disk (which still has its chance
-since GEN.78), `outer_ring=0`, empty extents, and a threshold below every
-white dwarf.
+TEST.24: a shell whose stars all fail to place (a point that always rounds
+out of its cell), a sparse shell far outside the disk (which still has its
+chance since GEN.78), the core shell, empty extents, and a threshold below
+every white dwarf.
 
 TEST.25: a scatter worker that fails after some of its 10,000-row commits
 (the threshold and seed are written only at the end) leaves a partial
@@ -28,18 +27,27 @@ from planetgen.generation import run_plan
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed
-from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
+from planetgen.galaxy import spherical
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen import tuning
 
 from tests import worker_patches
 from tests.test_bright_star_scatter import (
-    light_rings,  # noqa: F401  (autouse: quick backfill rings)
+    light_steps,  # noqa: F401  (autouse: quick backfill steps)
     E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD, _plan_args, _seed_galaxy,
 )
 
-EMPTY_LAYER = 120
-"""A layer of the toy galaxy far above its disk, where only the halo floor
+EMPTY_SHELL = 300
+"""A shell of the toy galaxy far outside its disk, where only the halo floor
 is left (`tuning.MIN_RELATIVE_DENSITY`, GEN.78)."""
+
+HEAVIEST_SHELL = 8
+"""The toy outline's shell with the most expected work, so the first task of a plan scatter (a task is a run of
+consecutive shells, heaviest first, `run_plan.shell_chunks`; each shell of the toy outline is its own task but the
+core and shell 1)."""
+
+FAILING_SHELL = 6
+"""The third heaviest: the two heavier shells are drawn before it."""
 
 
 class _CountingRandom(random.Random):
@@ -72,39 +80,12 @@ class _ScriptedRandom(random.Random):
         return super().random()
 
 
-# --- TEST.24: _place_one ----------------------------------------------------
+# --- TEST.24: shells and extents ---------------------------------------------
 
-def test_place_one_places_a_star_in_a_slot_far_above_the_disk():
-    # GEN.78: a sparse slot is never turned away; the first try lands.
-    ring_index = 3
-    slots = ring_sector_count(ring_index)
-    rng = _CountingRandom(4)
-    spot = brightStars._place_one(rng, [1.0] * min(slots, brightStars.ANGLE_BINS), ring_index, EMPTY_LAYER,
-                                  slots, EDGE_PC)
-    assert spot is not None
-    # Two draws (bin, angle), then the point in the cell (angle, radius,
-    # height).
-    assert rng.draws == 5
-
-
-def test_place_one_gives_up_when_every_point_rounds_out_of_its_cell(monkeypatch):
-    calls = []
-
-    def never_inside(*args):
-        calls.append(args)
-        return None
-
-    monkeypatch.setattr(brightStars, "_point_in_cell", never_inside)
-    slots = ring_sector_count(1)
-    spot = brightStars._place_one(random.Random(2), [1.0] * slots, 1, 0, slots, EDGE_PC)
-    assert spot is None
-    assert len(calls) == brightStars.SLOT_REDRAWS
-
-
-def test_a_layer_whose_stars_all_fail_to_place_yields_nothing(monkeypatch):
+def test_a_shell_whose_stars_all_fail_to_place_yields_nothing(monkeypatch):
     monkeypatch.setattr(brightStars, "_stored_in_cell", lambda *args, **kwargs: False)
     reports = []
-    rows = list(brightStars.scatter_layer(SHAPE, 0, 3, EDGE_PC, E_VALUE, THRESHOLD, 9,
+    rows = list(brightStars.scatter_shell(SHAPE, 4, 3, EDGE_PC, E_VALUE, THRESHOLD, 9,
                                           on_progress=lambda done, estimate: reports.append((done, estimate))))
     assert rows == []
     # Every candidate was tried, and nothing was "done".
@@ -112,78 +93,48 @@ def test_a_layer_whose_stars_all_fail_to_place_yields_nothing(monkeypatch):
     assert reports[-1][1] == pytest.approx(0.0, abs=1e-6)
 
 
-def test_a_zero_weight_bin_is_never_picked_by_float_rounding():
-    # 0.1 + 0.2 + 0.3 rounds up, so the top of the range (`random()` just
-    # under 1) is left over after every positive bin, and the old walk fell
-    # through to the last bin, whose weight is zero. Only the weights keep
-    # a star out of bins 3..8.
-    ring_index, layer_index = 1, 0
-    slots = ring_sector_count(ring_index)
-    weights = [0.1, 0.2, 0.3] + [0.0] * (slots - 3)
-    rng = _ScriptedRandom([1.0 - 2.0 ** -53, 0.5])
-    spot = brightStars._place_one(rng, weights, ring_index, layer_index, slots, EDGE_PC)
-    assert spot is not None
-    assert spot[0] in (0, 1, 2)
-    # A walk that ends on the last bin by rounding lands in the last bin
-    # with weight, at its far edge.
-    assert spot[0] == 2
-
-
-def test_leading_and_trailing_zero_weight_bins_get_no_stars():
-    ring_index, layer_index = 1, 0
-    slots = ring_sector_count(ring_index)
-    weights = [0.0, 0.0, 0.5, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0]
-    assert len(weights) == slots
-    rng = random.Random(17)
-    picked = set()
-    for _ in range(300):
-        spot = brightStars._place_one(rng, weights, ring_index, layer_index, slots, EDGE_PC)
-        assert spot is not None
-        picked.add(spot[0])
-    assert picked == {2, 3}
-
-
-# --- TEST.24: layers and extents ---------------------------------------------
-
-def test_a_layer_far_above_the_disk_keeps_a_small_chance_of_a_bright_star():
-    # GEN.78: no bin is zeroed for being sparse; the halo floor is old stars.
-    slots, bins = brightStars._ring_bins(5, EMPTY_LAYER, SHAPE, E_VALUE, EDGE_PC)
-    assert bins and all(sum(densities.values()) == pytest.approx(tuning.MIN_RELATIVE_DENSITY) for densities in bins)
-    assert all(densities["old"] > 0.99 * tuning.MIN_RELATIVE_DENSITY for densities in bins)
+def test_a_shell_far_outside_the_disk_keeps_a_small_chance_of_a_bright_star():
+    # GEN.78: no cell is zeroed for being sparse; the halo floor is old stars.
+    top = spherical.band_range(EMPTY_SHELL)[1]
+    densities = []
+    for band in range(top - 3, top + 1):
+        plane, z = brightStars.band_center_pc(EMPTY_SHELL, band, EDGE_PC)
+        densities.append(brightStars._densities_at([(plane, 0.0)], z, SHAPE)[0])
+    assert all(sum(item.values()) == pytest.approx(tuning.MIN_RELATIVE_DENSITY) for item in densities)
+    assert all(item["old"] > 0.99 * tuning.MIN_RELATIVE_DENSITY for item in densities)
     fractions = brightStars.band_fractions(THRESHOLD)
-    expected = brightStars.layer_expected_stars(SHAPE, EMPTY_LAYER, 8, EDGE_PC, E_VALUE, fractions)
-    assert 0.0 < expected < 1.0
-    # A scatter whose outline is only that layer finishes it.
+    expected = brightStars.shell_expected_stars(SHAPE, EMPTY_SHELL, top, EDGE_PC, E_VALUE, fractions)
+    assert expected > 0.0
+    # A scatter whose outline is only that shell finishes it.
     done = []
-    list(brightStars.scatter(SHAPE, [(EMPTY_LAYER, 8)], EDGE_PC, E_VALUE, THRESHOLD, 3,
-                             on_layer=lambda *report: done.append(report)))
+    list(brightStars.scatter(SHAPE, [(EMPTY_SHELL, top)], EDGE_PC, E_VALUE, THRESHOLD, 3,
+                             on_shell=lambda *report: done.append(report)))
     assert done == [(1, 1)]
 
 
-def test_outer_ring_zero_places_exactly_the_ring_zero_stars_of_a_wider_layer():
-    only = [row for seed in range(21, 61) for row in brightStars.scatter_layer(SHAPE, 0, 0, EDGE_PC, E_VALUE, THRESHOLD, seed)]
-    assert only, "the bulge's ring 0 should hold a bright star at some of these seeds"
-    assert {row[0] for row in only} == {0}
-    assert {row[2] for row in only} <= set(range(ring_sector_count(0)))
+def test_the_core_shell_places_exactly_the_core_stars_of_a_wider_outline():
+    only = [row for seed in range(21, 101) for row in brightStars.scatter_shell(SHAPE, 0, 0, EDGE_PC, E_VALUE,
+                                                                                  THRESHOLD, seed)]
+    assert only, "the bulge's core should hold a bright star at some of these seeds"
+    assert {row[:3] for row in only} == {(0, 0, 0)}
 
     fractions = brightStars.band_fractions(THRESHOLD)
-    weight, expected = brightStars.layer_weight(SHAPE, 0, 0, EDGE_PC, E_VALUE, fractions)
+    weight, expected = brightStars.shell_weight(SHAPE, 0, 0, EDGE_PC, E_VALUE, fractions)
     assert expected > 0.0
-    assert weight == pytest.approx(expected + brightStars.OBJECT_FIRST_RING_WEIGHT_STARS)
-    assert run_plan._layer_slots(0) == ring_sector_count(0)
+    assert weight == pytest.approx(expected + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS)
 
 
 def test_empty_extents_scatter_nothing():
     done = []
     assert list(brightStars.scatter(SHAPE, [], EDGE_PC, E_VALUE, THRESHOLD, 1,
-                                    on_layer=lambda *report: done.append(report))) == []
+                                    on_shell=lambda *report: done.append(report))) == []
     assert done == []
 
 
-def test_a_plan_with_no_layers_records_an_empty_scatter(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=0,
+def test_a_plan_with_no_shells_records_an_empty_scatter(mysql_config):
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=0,
                           expected_system_count_at_density_1=E_VALUE, config=mysql_config)
-    store.replace_galaxy_layers([], config=mysql_config)
+    store.replace_galaxy_shells([], config=mysql_config)
     summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     assert summary["total"] == 0
     assert set(summary["counts"]) == set(brightStars.POPULATIONS)
@@ -269,71 +220,71 @@ def _expected_scatter(mysql_config, seed):
 
 
 ROWS_BEFORE_FAILURE = 25_000
-"""Rows the failing layer yields: two 10,000-row commits, then 5,000 lost."""
+"""Rows the failing shell yields: two 10,000-row commits, then 5,000 lost."""
 
 
-def _yielded_rows(scatter_layer):
-    """What `layer_zero_fails_after_commits` yields before it fails, from
-    the real `scatter_layer`."""
-    template = list(scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 5))
+def _yielded_rows(scatter_shell):
+    """What `heaviest_shell_fails_after_commits` yields before it fails, from
+    the real `scatter_shell`."""
+    template = list(scatter_shell(SHAPE, HEAVIEST_SHELL, 3, EDGE_PC, E_VALUE, THRESHOLD, 5))
     assert template
     return list(itertools.islice(itertools.cycle(template), ROWS_BEFORE_FAILURE))
 
 
-def layer_zero_fails_after_commits(real):
-    """A `brightStars.scatter_layer` whose layer 0 yields
-    `ROWS_BEFORE_FAILURE` real layer-0 rows over and over, then fails
+def heaviest_shell_fails_after_commits(real):
+    """A `brightStars.scatter_shell` whose heaviest shell yields
+    `ROWS_BEFORE_FAILURE` real rows over and over, then fails
     (`worker_patches.patch_everywhere` builds it in the workers too)."""
 
-    def failing_layer(shape, layer_index, *args, **kwargs):
-        if layer_index != 0:
-            yield from real(shape, layer_index, *args, **kwargs)
+    def failing_shell(shape, shell_index, *args, **kwargs):
+        if shell_index != HEAVIEST_SHELL:
+            yield from real(shape, shell_index, *args, **kwargs)
             return
         yield from _yielded_rows(real)
         raise RuntimeError("scatter worker died")
 
-    return failing_layer
+    return failing_shell
 
 
-def layer_fails(real, layer):
-    """A `brightStars.scatter_layer` that fails on `layer` before drawing."""
+def shell_fails(real, shell):
+    """A `brightStars.scatter_shell` that fails on `shell` before drawing."""
 
-    def failing_layer(shape, layer_index, *args, **kwargs):
-        if layer_index == layer:
+    def failing_shell(shape, shell_index, *args, **kwargs):
+        if shell_index == shell:
             raise RuntimeError("scatter worker died")
-        yield from real(shape, layer_index, *args, **kwargs)
+        yield from real(shape, shell_index, *args, **kwargs)
 
-    return failing_layer
+    return failing_shell
 
 
 def _interrupt_after_commits(mysql_config, monkeypatch):
-    """Runs a plan scatter whose first layer (layer 0, the densest, goes
-    first) yields `ROWS_BEFORE_FAILURE` real layer-0 rows over and over,
-    then fails. Returns the rows it yielded."""
-    yielded = _yielded_rows(brightStars.scatter_layer)
-    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
-                                           "tests.test_gen_bright_scatter_edges:layer_zero_fails_after_commits")
+    """Runs a plan scatter whose first task (the heaviest shell) yields
+    `ROWS_BEFORE_FAILURE` real rows over and over, then fails. Returns the
+    rows it yielded."""
+    yielded = _yielded_rows(brightStars.scatter_shell)
+    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_shell",
+                                           "tests.test_gen_bright_scatter_edges:heaviest_shell_fails_after_commits")
     with pytest.raises(RuntimeError, match="scatter worker died"):
         run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     undo()
     return yielded
 
 
-def _layer_rows(rows, layer_index):
-    return [row for row in rows if row[1] == layer_index]
+def _shell_rows(rows, shell_index):
+    return [row for row in rows if row[0] == shell_index]
 
 
 def test_a_scatter_that_fails_after_two_commits_keeps_them_and_no_seed(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
     yielded = _interrupt_after_commits(mysql_config, monkeypatch)
     stored = _stored_rows(mysql_config)
-    # Layer 0 keeps its two commits and loses the rest. With one worker
-    # the run stops there; with more, the layers other workers were
+    # The heaviest shell keeps its two commits and loses the rest. With one
+    # worker the run stops there; with more, the shells other workers were
     # drawing at the time finish and keep their stars.
-    assert _comparable(_layer_rows(stored, 0)) == _comparable(yielded[:20_000])
+    assert _comparable(_shell_rows(stored, HEAVIEST_SHELL)) == _comparable(yielded[:20_000])
     if worker_patches.workers() == 1:
         assert len(stored) == 20_000
-    # The threshold and seed are written only once every layer is in.
+    # The threshold and seed are written only once every shell is in.
     assert _settings(mysql_config) is None
 
 
@@ -355,30 +306,30 @@ def test_a_re_plan_after_an_interrupted_scatter_holds_exactly_one_scatter(mysql_
 def _leftover_cells(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
-        rows = conn.execute("SELECT ring_index, layer_index, ring_slot_index, COUNT(*) AS n, MAX(id) AS top"
-                            " FROM bright_stars GROUP BY ring_index, layer_index, ring_slot_index").fetchall()
+        rows = conn.execute("SELECT shell_index, band_index, wedge_index, COUNT(*) AS n, MAX(id) AS top"
+                            " FROM bright_stars GROUP BY shell_index, band_index, wedge_index").fetchall()
     finally:
         conn.close()
-    return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): row["n"] for row in rows}
+    return {(row["shell_index"], row["band_index"], row["wedge_index"]): row["n"] for row in rows}
 
 
 def _reached(mysql_config):
     """The sectors a backfill took to their own level or mass (GEN.44, GEN.187)."""
     conn = store.get_connection(mysql_config)
     try:
-        masses = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sector_stats"
+        masses = conn.execute("SELECT shell_index, band_index, wedge_index FROM sector_stats"
                               " WHERE bright_mass_sol IS NOT NULL").fetchall()
         return set(store.sector_bright_level_keys(conn)) | {
-            (row["ring_index"], row["layer_index"], row["ring_slot_index"]) for row in masses}
+            (row["shell_index"], row["band_index"], row["wedge_index"]) for row in masses}
     finally:
         conn.close()
 
 
-def _backfill_rings(mysql_config, address):
+def _backfill_steps(mysql_config, address):
     """The sectors a backfill around `address` reaches (GEN.187), with their masses."""
     conn = store.get_connection(mysql_config)
     try:
-        return run_galaxy.backfill_ring_targets({address}, store.get_galaxy_bounds(conn))
+        return run_galaxy.backfill_step_targets({address}, store.get_galaxy_bounds(conn))
     finally:
         conn.close()
 
@@ -397,8 +348,8 @@ def _fill(mysql_config, address):
 
 
 def _backfill_around(mysql_config, address):
-    """The backfill a `galaxy --slot` run of `address` ends with
-    (`backfill_after_run`, GEN.30): around that sector, the default mass rings."""
+    """The backfill a `galaxy --wedge` run of `address` ends with
+    (`backfill_after_run`, GEN.30): around that sector, the default mass steps."""
     return run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(*address, EDGE_PC))
 
 
@@ -406,8 +357,8 @@ def _unbuilt_leftover_cells(mysql_config, last_leftover):
     conn = store.get_connection(mysql_config)
     try:
         return {
-            (row["ring_index"], row["layer_index"], row["ring_slot_index"])
-            for row in conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM bright_stars"
+            (row["shell_index"], row["band_index"], row["wedge_index"])
+            for row in conn.execute("SELECT shell_index, band_index, wedge_index FROM bright_stars"
                                     " WHERE id <= ? AND star_system_id IS NULL", (last_leftover,)).fetchall()
         }
     finally:
@@ -419,8 +370,8 @@ def _cells_with_stars_after(mysql_config, last_id):
     conn = store.get_connection(mysql_config)
     try:
         return {
-            (row["ring_index"], row["layer_index"], row["ring_slot_index"])
-            for row in conn.execute("SELECT DISTINCT ring_index, layer_index, ring_slot_index FROM bright_stars"
+            (row["shell_index"], row["band_index"], row["wedge_index"])
+            for row in conn.execute("SELECT DISTINCT shell_index, band_index, wedge_index FROM bright_stars"
                                     " WHERE id > ?", (last_id,)).fetchall()
         }
     finally:
@@ -433,41 +384,41 @@ def _built_in(mysql_config, address):
     try:
         built = [row["id"] for row in conn.execute(
             "SELECT b.id FROM bright_stars b JOIN star_systems s ON s.id = b.star_system_id"
-            " WHERE b.ring_index = ? AND b.layer_index = ? AND b.ring_slot_index = ?", address).fetchall()]
+            " WHERE b.shell_index = ? AND b.band_index = ? AND b.wedge_index = ?", address).fetchall()]
         unlinked = conn.execute(
-            "SELECT COUNT(*) AS n FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
-            " AND ring_slot_index = ? AND star_system_id IS NULL", address).fetchone()["n"]
+            "SELECT COUNT(*) AS n FROM bright_stars WHERE shell_index = ? AND band_index = ?"
+            " AND wedge_index = ? AND star_system_id IS NULL", address).fetchone()["n"]
     finally:
         conn.close()
     return built, unlinked
 
 
-def test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star(mysql_config, monkeypatch):
-    # Layers 0 and -1 are written and committed, layer 1 fails: no
+def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_config, monkeypatch):
+    # The two heaviest shells are written and committed, the third fails: no
     # threshold is recorded. A run's fill then builds none of its cell's
     # leftovers (no level to fill down to), and the backfill after it
-    # (GEN.30) draws its sectors from their ring masses with no ceiling.
+    # (GEN.30) draws its sectors from their step masses with no ceiling.
     # Every other cell it reaches must lose its leftovers then (GEN.44: no
     # level anywhere, yet stars), or a later fill there would build them
     # as well as the backfill's stars (every bright star twice).
     _seed_galaxy(mysql_config)
-    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
-                                           "tests.test_gen_bright_scatter_edges:layer_fails", layer=1)
+    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_shell",
+                                           "tests.test_gen_bright_scatter_edges:shell_fails", shell=FAILING_SHELL)
     with pytest.raises(RuntimeError, match="scatter worker died"):
         run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     undo()
     assert _settings(mysql_config) is None
 
     leftovers = _leftover_cells(mysql_config)
-    # With more than one worker, layers handed out beside layer 1 may
-    # finish too; layer 1 itself holds nothing.
-    layers = {address[1] for address in leftovers}
-    assert leftovers and {0, -1} <= layers and 1 not in layers
+    # With more than one worker, shells handed out beside the failing one
+    # may finish too; the failing shell itself holds nothing.
+    shells = {address[0] for address in leftovers}
+    assert leftovers and {8, 7} <= shells and FAILING_SHELL not in shells
     if worker_patches.workers() == 1:
-        assert layers == {0, -1}
+        assert shells == {8, 7}
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
     address = max((address for address in leftovers if address[1] == 0), key=lambda a: (leftovers[a], a))
-    ring_cells = [cell for cell in _backfill_rings(mysql_config, address) if cell in leftovers]
+    ring_cells = [cell for cell in _backfill_steps(mysql_config, address) if cell in leftovers]
 
     _sector_id, _name, sector = _fill(mysql_config, address)
     assert [entry for entry in sector.entries if entry.preplaced] == []
@@ -497,12 +448,12 @@ def test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers(mysql_
     _seed_galaxy(mysql_config)
     _interrupt_after_commits(mysql_config, monkeypatch)
     leftovers = _leftover_cells(mysql_config)
-    # The layer-0 cell with the fewest leftovers, so the fill stays small
+    # The heaviest shell's equator cell with the fewest leftovers, so the fill stays small
     # even if it did build them.
     address = min((cell for cell in leftovers if cell[1] == 0), key=lambda cell: (leftovers[cell], cell))
-    neighbor = _nearest([cell for cell in _backfill_rings(mysql_config, address) if cell in leftovers], address)
+    neighbor = _nearest([cell for cell in _backfill_steps(mysql_config, address) if cell in leftovers], address)
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
-    # With more workers, the layers drawn beside layer 0 left theirs too.
+    # With more workers, the shells drawn beside the heaviest left theirs too.
     assert last_leftover == 20_000 if worker_patches.workers() == 1 else last_leftover >= 20_000
     _sector_id, _name, sector = _fill(mysql_config, address)
     assert [entry for entry in sector.entries if entry.preplaced] == []
@@ -526,15 +477,15 @@ BAND_FLOOR = 300.0
 
 
 def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkeypatch):
-    # GEN.32: the re-run starts the band over, so the layers the first
+    # GEN.32: the re-run starts the band over, so the shells the first
     # run finished don't hold it twice.
     _seed_galaxy(mysql_config)
     seed = _scatter_seed(mysql_config)
     run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
     first = _count(mysql_config)
     first_rows = _stored_rows(mysql_config)
-    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
-                                           "tests.test_gen_bright_scatter_edges:layer_fails", layer=1)
+    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_shell",
+                                           "tests.test_gen_bright_scatter_edges:shell_fails", shell=FAILING_SHELL)
     with pytest.raises(RuntimeError, match="scatter worker died"):
         run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(BAND_FLOOR)))
     undo()

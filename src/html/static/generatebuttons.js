@@ -25,9 +25,9 @@ export function lyToPc(ly) {
   return (ly * LIGHTYEAR_M) / PARSEC_M;
 }
 
-// About how many sector slots a sphere of `radiusLy` covers, at sectors
+// About how many sectors a sphere of `radiusLy` covers, at sectors
 // `edgeLy` light years a side: the sphere's volume over a sector's. An
-// estimate for the dialog, not a count -- the real job skips slots the
+// estimate for the dialog, not a count -- the real job skips sectors the
 // galaxy's density leaves out, so it is an upper bound.
 export function neighborhoodSectors(radiusLy, edgeLy) {
   if (!(edgeLy > 0) || !(radiusLy > 0)) {
@@ -72,12 +72,12 @@ export function generateForm(target, label, fields, confirmText) {
 // NEIGHBORHOOD_MIN_LY and NEIGHBORHOOD_MAX_LY, with about how many
 // sectors that reaches when the sector size is known (`edgeLy`), and a
 // confirmation past NEIGHBORHOOD_CONFIRM_SECTORS.
-export function neighborhoodForm(target, ring, layer, slot, edgeLy) {
+export function neighborhoodForm(target, shell, band, wedge, edgeLy) {
   var form = generateForm(target, "Generate neighborhood",
-    [["mode", "slot"], ["slot_ring", ring], ["slot_layer", layer], ["slot", slot]]);
+    [["mode", "address"], ["address_shell", shell], ["address_band", band], ["address_wedge", wedge]]);
   var radiusPc = document.createElement("input");
   radiusPc.type = "hidden";
-  radiusPc.name = "slot_radius_pc";
+  radiusPc.name = "address_radius_pc";
   form.insertBefore(radiusPc, form.firstChild);
 
   var field = document.createElement("label");
@@ -126,22 +126,20 @@ export function neighborhoodForm(target, ring, layer, slot, edgeLy) {
   return form;
 }
 
-// The four buttons for sector (ring, layer, slot): it alone, its
-// neighborhood (with a radius to set), its column, and its whole shell
-// (after a confirm). `edgeLy` (the sector edge, light years) is optional:
-// without it the neighborhood shows its reach in parsecs rather than
-// about how many sectors it covers.
-export function generateButtons(target, ring, layer, slot, edgeLy) {
-  var address = [["slot_ring", ring], ["slot_layer", layer], ["slot", slot]];
+// The three buttons for sector (shell, band, wedge): it alone, its
+// neighborhood (with a radius to set), and its whole shell (after a
+// confirm). `edgeLy` (the sector edge, light years) is optional: without
+// it the neighborhood shows its reach in parsecs rather than about how
+// many sectors it covers.
+export function generateButtons(target, shell, band, wedge, edgeLy) {
+  var address = [["address_shell", shell], ["address_band", band], ["address_wedge", wedge]];
   var box = document.createElement("div");
   box.className = "starmap-generate";
-  box.appendChild(generateForm(target, "Generate this sector", [["mode", "slot"]].concat(address)));
-  box.appendChild(neighborhoodForm(target, ring, layer, slot, edgeLy));
-  box.appendChild(generateForm(target, "Generate column",
-    [["mode", "column"], ["column_ring", ring], ["column_slot", slot]]));
+  box.appendChild(generateForm(target, "Generate this sector", [["mode", "address"]].concat(address)));
+  box.appendChild(neighborhoodForm(target, shell, band, wedge, edgeLy));
   box.appendChild(generateForm(target, "Generate the entire shell (not recommended)",
-    [["mode", "shell"], ["shell_ring", ring], ["whole_shell", "1"]],
-    "This generates every sector of ring " + ring + " through every layer, often thousands of " +
+    [["mode", "shell"], ["shell_index", shell], ["whole_shell", "1"]],
+    "This generates every sector of shell " + shell + " through every band, often thousands of " +
     "sectors, and can run for hours. Start it anyway?"));
   var hint = document.createElement("p");
   hint.className = "hint";

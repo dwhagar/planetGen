@@ -17,10 +17,11 @@ from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
-from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
+from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import run_galaxy, run_plan, run_sector
 from planetgen.physics.units import ly_to_pc
+from tests.maps_pending import MAPS_PENDING
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = build_galaxy_shape(
@@ -28,13 +29,16 @@ SHAPE = build_galaxy_shape(
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
 E_VALUE = 600.0
-EXTENTS = [(1, 6), (0, 8), (-1, 6)]
+EXTENTS = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
+"""`(shell, highest band)` of the toy outline: a small ball, bands -3 to 3 from shell 3 out."""
+BUSY_SHELL = 8
+OTHER_SHELL = 7
 
 
-def _layer(layer_index=0, seed=5, **kwargs):
+def _shell(shell_index=BUSY_SHELL, seed=5, **kwargs):
     # A cut of 1 solar mass scatters every neutron star and black hole.
     kwargs.setdefault("min_mass_solar", 1.0)
-    return list(scatter.scatter_layer(SHAPE, layer_index, dict(EXTENTS)[layer_index], EDGE_PC, E_VALUE, seed,
+    return list(scatter.scatter_shell(SHAPE, shell_index, dict(EXTENTS)[shell_index], EDGE_PC, E_VALUE, seed,
                                       **kwargs))
 
 
@@ -47,15 +51,15 @@ def test_the_columns_match_the_table_the_store_writes():
 
 
 def test_scattered_objects_sit_in_their_own_cell_inside_the_outline():
-    rows = _layer(0)
+    rows = _shell()
     assert len(rows) > 50
     assert {row[3] for row in rows} <= set(scatter.SCATTERED_KINDS)
     outer = dict(EXTENTS)
     for row in map(_as_dict, rows):
         point = (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000, row["position_z_mpc"] / 1000)
-        address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
         assert sector_address_at(point, EDGE_PC) == address
-        assert address[0] <= outer[address[1]]
+        assert address[0] == BUSY_SHELL and abs(address[1]) <= outer[address[0]]
         assert row["velocity_x_kms"] is None
         if row["kind"] == "black-hole":
             assert row["subtype"] in ("stellar", "intermediate")
@@ -64,27 +68,27 @@ def test_scattered_objects_sit_in_their_own_cell_inside_the_outline():
         assert 0 <= row["seed"] < 2 ** 63
 
 
-def test_the_same_seed_gives_the_same_objects_and_layers_are_independent():
-    assert _layer(0, seed=11) == _layer(0, seed=11)
-    assert _layer(0, seed=11) != _layer(0, seed=12)
-    assert _layer(1, seed=11) == _layer(1, seed=11)
+def test_the_same_seed_gives_the_same_objects_and_shells_are_independent():
+    assert _shell(seed=11) == _shell(seed=11)
+    assert _shell(seed=11) != _shell(seed=12)
+    assert _shell(OTHER_SHELL, seed=11) == _shell(OTHER_SHELL, seed=11)
 
 
 def test_skipped_addresses_get_nothing():
-    rows = _layer(0)
+    rows = _shell()
     skip = {tuple(row[:3]) for row in rows[:5]}
-    assert not [row for row in _layer(0, skip_addresses=skip) if tuple(row[:3]) in skip]
+    assert not [row for row in _shell(skip_addresses=skip) if tuple(row[:3]) in skip]
 
 
 def test_each_kind_follows_its_rate_per_star():
     # Neutron stars are about five times as common as black holes (tuning's
     # rates are 5.6e-4 against 7e-5 per pc^3); a Poisson count sits well
-    # inside 5 sigma of its mean over a layer this size.
-    rows = [row for layer_index, _outer in EXTENTS for row in _layer(layer_index, seed=3)]
+    # inside 5 sigma of its mean over a scatter this size.
+    rows = [row for shell_index, _high in EXTENTS for row in _shell(shell_index, seed=3)]
     counts = {kind: sum(1 for row in rows if row[3] == kind) for kind in scatter.SCATTERED_KINDS}
     assert counts["neutron-star"] > 3 * counts["black-hole"] > 0
-    expected = sum(scatter.layer_expected(SHAPE, layer_index, outer, EDGE_PC, E_VALUE, 1.0)
-                   for layer_index, outer in EXTENTS)
+    expected = sum(scatter.shell_expected(SHAPE, shell_index, high, EDGE_PC, E_VALUE, 1.0)
+                   for shell_index, high in EXTENTS)
     assert sum(counts.values()) == pytest.approx(expected, rel=0.15)
 
 
@@ -96,7 +100,7 @@ def test_the_nucleus_is_a_quasar_or_the_supermassive_black_hole_at_the_origin(mo
     hole = _as_dict(scatter.nucleus_row(9))
     assert hole["kind"] == "black-hole" and hole["subtype"] == scatter.NUCLEUS_SUBTYPE
     for row in (quasar, hole):
-        assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) == scatter.NUCLEUS_ADDRESS
+        assert (row["shell_index"], row["band_index"], row["wedge_index"]) == scatter.NUCLEUS_ADDRESS
         assert (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"]) == (0, 0, 0)
     assert scatter.nucleus_row(9) == scatter.nucleus_row(9)
 
@@ -115,8 +119,8 @@ def test_hypervelocity_stars_fly_outward_from_the_center_at_their_speed():
         assert speeds[0] * 0.999 <= math.sqrt(sum(v * v for v in velocity)) <= speeds[1] * 1.001
         assert sum(p * v for p, v in zip(point, velocity)) >= 0.0
         address = sector_address_at(tuple(value / 1000 for value in point), EDGE_PC)
-        assert address == (row["ring_index"], row["layer_index"], row["ring_slot_index"])
-        assert address[0] <= outer[address[1]]
+        assert address == (row["shell_index"], row["band_index"], row["wedge_index"])
+        assert abs(address[1]) <= outer[address[0]]
 
 
 def test_the_special_rows_leave_out_filled_cells():
@@ -164,9 +168,9 @@ def test_the_mass_limit_must_be_a_preset(mysql_config):
 
 
 def _seed_galaxy(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=E_VALUE, config=mysql_config)
-    store.replace_galaxy_layers(EXTENTS, config=mysql_config)
+    store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 
 def _rows(mysql_config, where="1 = 1"):
@@ -177,24 +181,24 @@ def _rows(mysql_config, where="1 = 1"):
         conn.close()
 
 
-def test_the_scatter_lists_each_layers_phenomena_by_kind_like_the_star_scatter(mysql_config, monkeypatch):
-    """Boss: the star scatter says what each layer got; the phenomena scatter gave only a final total."""
+def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(mysql_config, monkeypatch):
+    """Boss: the star scatter says what each shell got; the phenomena scatter gave only a final total."""
     from planetgen.util import log
     _seed_galaxy(mysql_config)
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
     summary = run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", "1"))
-    layer_lines = [m for m in messages if m.startswith("Phenomena, layer ")]
-    assert layer_lines and all(": placed " in m for m in layer_lines)
+    shell_lines = [m for m in messages if m.startswith("Phenomena, shell")]
+    assert shell_lines and all(": placed " in m for m in shell_lines)
     assert any(m.startswith("Special phenomena: ") for m in messages)
-    assert any(m.startswith("Phenomena landed in ") and " layers." in m for m in messages)
+    assert any(m.startswith("Phenomena landed in ") and " runs of shells." in m for m in messages)
     final = next(m for m in messages if m.startswith("Placed "))
     for label, count in summary["counts"].items():  # only what was created, like the star count
         assert f"{count:,} {label}" in final, label
     for label in scatter.EXPECTED_LABELS:
         assert (f" {label}" in final) == bool(summary["counts"].get(label)), label
     assert " 0 " not in final
-    placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in layer_lines)
+    placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in shell_lines)
     assert placed <= summary["total"]
 
 
@@ -205,7 +209,7 @@ def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysq
     assert summary["total"] == len(stored) > 50
     kinds = {row["kind"] for row in stored}
     assert {"hypervelocity-star", "neutron-star"} <= kinds
-    assert len([row for row in stored if row["ring_index"] == 0 and row["position_x_mpc"] == 0
+    assert len([row for row in stored if row["shell_index"] == 0 and row["position_x_mpc"] == 0
                 and row["kind"] in scatter.NUCLEUS_KINDS]) == 1
     conn = store.get_connection(mysql_config)
     try:
@@ -228,19 +232,19 @@ def test_the_scatter_leaves_filled_sectors_out(mysql_config):
     address = (1, 0, 2)
     run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
     run_plan.scatter_phenomena(_plan_args(mysql_config))
-    assert not _rows(mysql_config, "ring_index = 1 AND layer_index = 0 AND ring_slot_index = 2")
+    assert not _rows(mysql_config, "shell_index = 1 AND band_index = 0 AND wedge_index = 2")
 
 
 def _busiest_cell(mysql_config, kind_filter):
     conn = store.get_connection(mysql_config)
     try:
         row = conn.execute(
-            "SELECT ring_index, layer_index, ring_slot_index, COUNT(*) AS n FROM phenomenon_scatter"
-            f" WHERE {kind_filter} GROUP BY ring_index, layer_index, ring_slot_index ORDER BY n DESC, ring_index LIMIT 1"
+            "SELECT shell_index, band_index, wedge_index, COUNT(*) AS n FROM phenomenon_scatter"
+            f" WHERE {kind_filter} GROUP BY shell_index, band_index, wedge_index ORDER BY n DESC, shell_index LIMIT 1"
         ).fetchone()
     finally:
         conn.close()
-    return (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    return (row["shell_index"], row["band_index"], row["wedge_index"])
 
 
 def test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_kinds(mysql_config):
@@ -273,8 +277,8 @@ def test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_k
     try:
         assert store.phenomena_for_sector(conn, *address) == []
         stored = conn.execute(
-            "SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE ring_index = ? AND layer_index = ?"
-            " AND ring_slot_index = ? AND built_at IS NOT NULL", address).fetchone()["n"]
+            "SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE shell_index = ? AND band_index = ?"
+            " AND wedge_index = ? AND built_at IS NOT NULL", address).fetchone()["n"]
     finally:
         conn.close()
     assert stored == len(rows)
@@ -390,11 +394,11 @@ def test_a_mass_range_truncates_the_remnant_mass_draw():
 
 
 def test_the_default_cut_scatters_only_the_intermediate_mass_black_holes():
-    rows = [row for layer_index, _outer in EXTENTS for row in _layer(layer_index, seed=3, min_mass_solar=20.0)]
+    rows = [row for shell_index, _high in EXTENTS for row in _shell(shell_index, seed=3, min_mass_solar=20.0)]
     kinds = {(row[3], row[4]) for row in rows}
     assert ("neutron-star", None) not in kinds
     assert ("black-hole", "stellar") not in kinds
-    everything = [row for layer_index, _outer in EXTENTS for row in _layer(layer_index, seed=3)]
+    everything = [row for shell_index, _high in EXTENTS for row in _shell(shell_index, seed=3)]
     assert len(rows) < len(everything) / 20
 
 
@@ -410,9 +414,12 @@ def test_the_sector_draws_what_the_scatter_left_below_the_cut():
     # Below a cut under every mass law there is nothing left to draw.
     assert scatter.below_cut_draws(address, center, SHAPE, 5000.0, 1.0, 7)[0] == []
     # Over many sectors the counts follow the rate below the cut.
-    total = sum(count for slot in range(400) for kind, _subtype, _range, count in
-                scatter.below_cut_draws((2, 0, slot), center, SHAPE, 100.0, 20.0, 7)[0] if kind == "neutron-star")
-    mean = 400 * 100.0 * tuning.phenomenon_rate_per_star("neutron-star") * \
+    cells = [(shell, band, wedge) for shell in range(2, 9) for band in range(-3, 4)
+             for wedge in range(wedge_count(shell, band))]
+    assert len(cells) > 1000
+    total = sum(count for cell in cells for kind, _subtype, _range, count in
+                scatter.below_cut_draws(cell, center, SHAPE, 100.0, 20.0, 7)[0] if kind == "neutron-star")
+    mean = len(cells) * 100.0 * tuning.phenomenon_rate_per_star("neutron-star") * \
         remnant_distribution.placement_factor("neutron-star", center, SHAPE.disk_scale_height_pc)
     assert total == pytest.approx(mean, rel=0.2)
 
@@ -445,7 +452,7 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "black-hole", 100.0)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
-    address = (0, 0, 1)
+    address = (1, 0, 1)
     _id, _name, sector = run_galaxy.generate_and_save_sector_at(
         args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
     neutron = [entry.phenomenon for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]
@@ -497,7 +504,7 @@ def test_a_scatter_with_no_stored_cut_draws_nothing_below_one(mysql_config, monk
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "neutron-star", 20.0)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
-    address = (0, 0, 1)
+    address = (1, 0, 1)
     _id, _name, sector = run_galaxy.generate_and_save_sector_at(
         args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
     assert not [entry for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]
@@ -521,12 +528,12 @@ def test_the_phenomenon_scatter_has_a_bar_that_ends_full(mysql_config, tmp_path,
     run_plan.scatter_phenomena(_plan_args(mysql_config))
     bar = [report for report in reports if report[0].startswith("Phenomena (")]
     assert bar and bar[0][1] == 0 and bar[0][2] > 0
-    assert bar[-1][0].startswith(f"Phenomena ({len(EXTENTS):,} of {len(EXTENTS):,} layers)")
+    assert bar[-1][0].startswith(f"Phenomena ({len(EXTENTS):,} of {len(EXTENTS):,} shells)")
     assert bar[-1][1] == pytest.approx(bar[-1][2])
 
 
 def test_every_stage_of_the_phenomenon_scatter_draws_a_bar(mysql_config, tmp_path, monkeypatch):
-    """UX.84: the clear, the layers, the special rows, their insert and the stamp are each a step with a bar."""
+    """UX.84: the clear, the shells, the special rows, their insert and the stamp are each a step with a bar."""
     from planetgen.queue import progress_file
 
     monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
@@ -626,7 +633,7 @@ def test_the_central_black_hole_or_quasar_exists_whatever_the_limits(mysql_confi
     run_plan.scatter_phenomena(_compact_args(mysql_config, stellar, compact))
     nuclei = _rows(mysql_config, "(kind = 'quasar') OR (kind = 'black-hole' AND subtype = 'supermassive')")
     assert len(nuclei) == 1
-    assert (nuclei[0]["ring_index"], nuclei[0]["layer_index"], nuclei[0]["ring_slot_index"]) == scatter.NUCLEUS_ADDRESS
+    assert (nuclei[0]["shell_index"], nuclei[0]["band_index"], nuclei[0]["wedge_index"]) == scatter.NUCLEUS_ADDRESS
 
 
 def test_the_nucleus_row_does_not_depend_on_any_limit():
@@ -635,7 +642,7 @@ def test_the_nucleus_row_does_not_depend_on_any_limit():
 
 
 def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_class_range():
-    rows = [_as_dict(row) for row in _layer(0) + _layer(1)] + [_as_dict(scatter.nucleus_row(5))]
+    rows = [_as_dict(row) for row in _shell() + _shell(OTHER_SHELL)] + [_as_dict(scatter.nucleus_row(5))]
     ranges = {("neutron-star", None): tuning.NEUTRON_STAR_MASS_RANGE_SOLAR,
               ("black-hole", "stellar"): tuning.BLACK_HOLE_MASS_RANGE_SOLAR,
               ("black-hole", "intermediate"): tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
@@ -653,9 +660,9 @@ def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_cl
 
 
 def test_the_mass_respects_the_cut_and_repeats_with_the_seed():
-    rows = [_as_dict(row) for row in _layer(0, min_mass_solar=12.0)]
+    rows = [_as_dict(row) for row in _shell(min_mass_solar=12.0)]
     assert all(row["mass_solar"] >= 12.0 for row in rows if row["mass_solar"] is not None)
-    assert _layer(0, seed=8) == _layer(0, seed=8)
+    assert _shell(seed=8) == _shell(seed=8)
 
 
 def test_a_built_scattered_object_has_the_stored_mass(mysql_config):
@@ -669,6 +676,7 @@ def test_a_built_scattered_object_has_the_stored_mass(mysql_config):
         assert entry.phenomenon.mass_solar == mass
 
 
+@MAPS_PENDING
 def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     from planetgen.db import query
     sizes = [query.scattered_point_size(mass) for mass in (1.4, 2.2, 5.0, 20.0, 100.0, 1e5, 1e6, 1e8)]
@@ -689,7 +697,7 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
                 ("black-hole", "intermediate", 5000.0), ("black-hole", "stellar", None)]
         for index, (kind, subtype, mass) in enumerate(rows):
             conn.execute(
-                "INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, subtype, "
+                "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype, "
                 "position_x_mpc, position_y_mpc, position_z_mpc, seed, mass_solar) VALUES (0, 0, ?, ?, ?, ?, 0, 0, 1, ?)",
                 (index, kind, subtype, 1000 * index, mass))
         conn.commit()

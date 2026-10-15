@@ -786,8 +786,8 @@ class SpaceSector:
         entries (list): The `SectorSystemEntry` instances the sector contains.
         phenomena (list): The `SectorPhenomenonEntry` instances the sector
                           contains -- see `add_phenomenon`.
-        cell (galaxyGeometry.SectorCell or None): For a galaxy-placed
-            sector, its real cylindrical cell in light-years (sector-local
+        cell (spherical.SectorCell or None): For a galaxy-placed
+            sector, its real shell cell in light-years (sector-local
             axes, origin at the sector center). New positions are then
             sampled inside that cell instead of the cube, and its volume
             replaces `edge_ly ** 3`. `None` (the default, every standalone
@@ -1370,12 +1370,7 @@ class SpaceSector:
         if self.cell is not None:
             # Only a galaxy-placed sector has one; without it a reload would
             # come back as a cube (different volume, contains(), density).
-            data["cell"] = {
-                "r_inner": self.cell.r_inner,
-                "r_outer": self.cell.r_outer,
-                "half_angle": self.cell.half_angle,
-                "half_height": self.cell.half_height,
-            }
+            data["cell"] = self.cell.to_dict()
         return data
 
     def save(self, path):
@@ -1412,8 +1407,8 @@ class SpaceSector:
         """
         cell = None
         if data.get("cell") is not None:
-            from planetgen.galaxy.geometry import SectorCell
-            cell = SectorCell(**{key: data["cell"][key] for key in ("r_inner", "r_outer", "half_angle", "half_height")})
+            from planetgen.galaxy.spherical import SectorCell
+            cell = SectorCell.from_dict(data["cell"])
         sector = cls(data["name"], edge_ly=data.get("edge_ly", program_constants.DEFAULT_SECTOR_EDGE_LY),
                      cell=cell)
 

@@ -730,17 +730,17 @@ def test_phenomena_near_sector_leaves_out_a_neighbors_point_objects_but_keeps_it
     assert matches[("nebula", nebula_id)]["home"] is False
 
 
-def test_sector_reach_holds_every_corner_of_a_small_rings_cell():
-    # A ring-0 pie wedge's outer corners sit a whole edge from its center,
+def test_sector_reach_holds_every_corner_of_a_cell():
+    # A core or cap cell's outer corners sit a whole edge or more from its center,
     # past the cube's half diagonal the neighbor-cloud search used to use.
-    from planetgen.galaxy.geometry import sector_cell_vertices_pc, sector_position_pc
+    from planetgen.galaxy.spherical import sector_cell_vertices_pc, sector_position_pc
 
     edge_pc = 4.0
-    for address in ((0, 0, 0), (1, 2, 4), (40, -1, 7)):
+    for address in ((0, 0, 0), (1, 0, 4), (5, 2, 4), (40, -1, 7)):
         center = sector_position_pc(*address, edge_pc)
         sector = {
             "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
-            "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+            "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
         }
         reach = query._sector_reach_pc(sector, edge_pc)
         assert reach >= edge_pc * math.sqrt(3) / 2
@@ -748,5 +748,5 @@ def test_sector_reach_holds_every_corner_of_a_small_rings_cell():
             assert math.dist(vertex, center) <= reach + 1e-9
     assert query._sector_reach_pc(
         {"center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
-         "ring_index": None, "layer_index": None, "ring_slot_index": None}, edge_pc,
+         "shell_index": None, "band_index": None, "wedge_index": None}, edge_pc,
     ) == pytest.approx(edge_pc * math.sqrt(3) / 2)

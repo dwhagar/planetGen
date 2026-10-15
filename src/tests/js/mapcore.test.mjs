@@ -44,7 +44,7 @@ test("readSceneData parses the JSON block, null when missing or broken", () => {
 });
 
 test("formatAddress", () => {
-  assert.equal(M.formatAddress(5, -1, 20), "ring 5 layer -1 slot 20");
+  assert.equal(M.formatAddress(5, -1, 20), "shell 5 band -1 wedge 20");
 });
 
 test("nearestOnScreen picks the nearest entry within its reach", () => {

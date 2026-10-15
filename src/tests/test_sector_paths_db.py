@@ -8,7 +8,7 @@ import sys
 import pytest
 
 from planetgen.db import sector_paths, store
-from planetgen.galaxy import geometry
+from planetgen.galaxy import frame, spherical
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole
@@ -21,7 +21,7 @@ EDGE_PC = EDGE_LY * constants.LIGHTYEAR_M / constants.PARSEC_M
 
 
 def _save(mysql_config, with_black_hole=True, systems=2):
-    center_pc = geometry.sector_position_pc(*ADDRESS, EDGE_PC)
+    center_pc = spherical.sector_position_pc(*ADDRESS, EDGE_PC)
     sector = SpaceSector("Path Round Trip", edge_ly=EDGE_LY)
     for index in range(systems):
         cfg = SystemConfig()
@@ -36,7 +36,7 @@ def _save(mysql_config, with_black_hole=True, systems=2):
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": math.sqrt(sum(c * c for c in center_pc)),
-        "ring_index": ADDRESS[0], "layer_index": ADDRESS[1], "ring_slot_index": ADDRESS[2],
+        "shell_index": ADDRESS[0], "band_index": ADDRESS[1], "wedge_index": ADDRESS[2],
     })
     return sector_id, center_pc
 
@@ -56,7 +56,7 @@ def test_bodies_with_nothing_near_them_get_straight_two_knot_paths(mysql_config)
     for row in systems:
         path = paths[("star_systems", row["id"])]
         assert len(path.knots) == 2 and path.duration_s > 0
-        start = geometry.local_to_galaxy_pc(center_pc, tuple(row[f"position_{a}_mpc"] / 1000.0 for a in "xyz"))
+        start = frame.local_to_galaxy_pc(center_pc, tuple(row[f"position_{a}_mpc"] / 1000.0 for a in "xyz"))
         assert path.start.position == pytest.approx(tuple(c * constants.PARSEC_M for c in start), rel=1e-9)
         speed = math.sqrt(sum(v * v for v in path.start.velocity))
         assert speed > 1.0e5  # a star on the galaxy's rotation
@@ -65,7 +65,7 @@ def test_bodies_with_nothing_near_them_get_straight_two_knot_paths(mysql_config)
 
 def test_a_heavy_black_hole_bends_the_path_of_a_slow_neighbour_and_recomputing_replaces_the_rows(mysql_config):
     sector_id, center_pc = _save(mysql_config, systems=1)
-    ex, _ey, _ez = geometry.sector_orientation(center_pc)
+    ex, _ey, _ez = frame.sector_orientation(center_pc)
     conn = store.get_connection(mysql_config)
     try:
         # A stellar black hole made heavy, at the sector's center; the star 0.8 pc from it drifts at 20 km/s.

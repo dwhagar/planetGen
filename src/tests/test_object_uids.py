@@ -3,14 +3,14 @@
 """
 Object IDs in the database (GEN.69, DB.20, GEN.171, `galaxy/uid.py`,
 `galaxy/object_uid.py`, `store.assign_uids`): a saved sector's rows checked
-against the layout, the run-time counters and the migration's numbering.
+against the layout and the run-time counters.
 """
 
 import pytest
 
 from planetgen.db import store
 from planetgen.galaxy import object_uid as ids, uid as galaxy_uid
-from planetgen.galaxy.geometry import provisional_sector_designation
+from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
@@ -37,7 +37,7 @@ def _sector(name, count, rogue):
 
 
 PLACE = {"center_x_pc": 1000.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 1000.0,
-         "ring_index": 250, "layer_index": 0, "ring_slot_index": 5}
+         "shell_index": 250, "band_index": 0, "wedge_index": 5}
 
 
 def _rows(config, sql):
@@ -171,37 +171,6 @@ def test_the_issuer_numbers_systems_then_bodies():
     assert foreign is None and issuer.complete
 
 
-def test_the_migration_numbers_existing_rows_by_row_order(mysql_config):
-    import importlib
-
-    migration = importlib.import_module("planetgen.db.migrations.versions.0078_object_ids")
-    from planetgen.db import alembic_runner
-
-    store.save_sector(_sector("Uid Migrated", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
-    tables = ("star_systems", *store.BODY_UID_TABLES, *store.PHENOMENON_UID_TABLES)
-    conn = store.get_connection(mysql_config)
-    try:
-        for table in tables:
-            conn.execute(f"UPDATE {table} SET uid = NULL")
-        conn.commit()
-    finally:
-        conn.close()
-    with alembic_runner._engine(mysql_config).begin() as connection:
-        migration._number_bodies(connection, migration._number_top_level(connection))
-
-    systems = _rows(mysql_config, "SELECT id, uid FROM star_systems ORDER BY id")
-    assert [(_decoded(r).serial_kind, _decoded(r).serial, _decoded(r).body) for r in systems] == [
-        (ids.SERIAL_GENERATED, n, 0) for n in range(3)]
-    [rogue] = _rows(mysql_config, "SELECT uid FROM rogue_planets")
-    assert _decoded(rogue).serial == 3
-    by_system = {}
-    for table in store.BODY_UID_TABLES:
-        for row in _rows(mysql_config, f"SELECT star_system_id, uid FROM {table} ORDER BY id"):
-            by_system.setdefault(row["star_system_id"], []).append(ids.body_of(ids.from_bytes(row["uid"])))
-    assert all(sorted(numbers) == list(range(1, len(numbers) + 1)) for numbers in by_system.values())
-    assert [numbers[0] for numbers in by_system.values()] == [1] * len(by_system)
-
-
 def test_a_body_deleted_through_an_edit_keeps_its_number_used(mysql_config):
     from planetgen.db import edits
 
@@ -279,7 +248,7 @@ def test_a_run_time_number_is_not_given_again_after_its_object_is_deleted(mysql_
 
 def test_a_facility_is_a_run_time_birth_in_its_hosts_sector(mysql_config):
     sector = SpaceSector("Uid Harbor", edge_ly=13.0)
-    place = dict(PLACE, ring_slot_index=9)
+    place = dict(PLACE, wedge_index=9)
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=place)
     conn = store.get_connection(mysql_config)
     try:

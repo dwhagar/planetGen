@@ -2,207 +2,202 @@
 planetgen/galaxy/region.py
 
 The round region (MAP.151, docs/design/drilldown-region-sizes.md section
-5.2): a cylinder of sectors around a centre -- the shape the radial fills
-(ADM.30) cut -- described as ranges: the layers either side of the
-centre's, the rings the circle reaches and, in each ring, one arc of slots
-that may wrap past slot 0 or be the whole ring. That is `span.Span`'s
-vocabulary, so stats, fills, backfills and the Galaxy Map's data windows
-can all read a region the same way, and its count and its cells cost a
-few arithmetic steps per ring, never a walk of the sphere around it.
+5.2): a ball of sectors around a centre -- the shape the radial fills
+(ADM.30) cut -- described as ranges: in each shell the ball reaches, in
+each band of it, one arc of wedges that may wrap past wedge 0 or be the
+whole band. That is `span.Span`'s vocabulary, so stats, fills, backfills and
+the Galaxy Map's data windows can all read a region the same way, and its
+count and its cells cost a few arithmetic steps per band, never a walk of
+the ball around it.
 
-A sector is inside when its centre is within `horizontal_pc` of the centre
-across the plane and its layer is within `half_layers` of the centre's.
+A sector is inside when its centre is within `reach_pc` of the centre. (The
+cylinder this replaced had a second height limit; on shells a ball is the
+natural shape and the height option is gone.)
 """
 import math
 from collections import namedtuple
 
-from planetgen.galaxy.geometry import (
-    layer_center_z_pc, layer_index_at, ring_radius_pc, ring_sector_count, sector_position_pc,
-)
+from planetgen.galaxy import spherical
 from planetgen.galaxy.span import Span
 
-CYLINDER_EDGE_ALLOWANCE = 0.385
-"""float: Edges added to a radial fill's radius in sectors. A disc of exactly
-x edges holds only the centre and two neighbours at x = 1, because most face
-neighbours sit 1.0 to 1.38 edges away; x + 0.385 returns the centre and its
-in-plane face neighbours at x = 1 and a round shape joined by face adjacency
-above it (docs/design/fill-order-curves-and-core.md section 3.3)."""
+BALL_EDGE_ALLOWANCE = 0.75
+"""float: Edges added to a radial fill's radius in sectors. A ball of exactly
+x edges holds only the centre at x = 1, because the centres of face
+neighbours sit 0.75 to 1.76 edges away (99% within 1.71); x + 0.75 returns
+the centre and its face neighbours at x = 1 and a round shape joined by face
+adjacency above it."""
 
 _EPS = 1e-9
 
-RingArc = namedtuple("RingArc", ["ring", "first", "count", "whole"])
-"""One ring's slots in a region: `count` slots from `first` counterclockwise,
-wrapping past the ring's last slot when `first + count` passes it; `whole`
-when that is every slot of the ring."""
+BandArc = namedtuple("BandArc", ["shell", "band", "first", "count", "whole"])
+"""One band's wedges in a region: `count` wedges from `first`, counterclockwise
+as the longitude grows, wrapping past the band's last wedge when `first +
+count` passes it; `whole` when that is every wedge of the band."""
 
 
 class Region:
-    """A cylinder of sectors; see the module docstring."""
+    """A ball of sectors; see the module docstring."""
 
-    def __init__(self, center_pc, horizontal_pc, half_layers, edge_pc, slot_count=ring_sector_count):
+    def __init__(self, center_pc, reach_pc, edge_pc, wedge_count=spherical.wedge_count):
         """
         Args:
-            center_pc (tuple): `(x, y, z)` parsecs, the centre of the round
-                shape; its layer is the middle of the layers.
-            horizontal_pc (float): `>= 0`, the reach across the plane.
-            half_layers (int): `>= 0`, layers either side of the centre's.
+            center_pc (tuple): `(x, y, z)` parsecs, the centre of the ball.
+            reach_pc (float): `>= 0`, how far from the centre a sector's
+                own centre may be.
             edge_pc (float): `> 0`, a cell's edge: sectors for the sector
                 grid, or `m` sector edges for a lattice of blocks `m` a side.
-            slot_count (callable): `ring -> slots in that ring`; the sector
-                grid's `ring_sector_count` unless the cells are blocks
-                (`galaxy.drill.drill_wedge_count`).
+            wedge_count (callable): `(shell, band) -> wedges in that band`;
+                the sector grid's `spherical.wedge_count` unless the cells
+                are blocks.
 
         Raises:
-            ValueError: On a negative reach or layer count or a non-positive edge.
+            ValueError: On a negative reach or a non-positive edge.
         """
-        if horizontal_pc < 0:
-            raise ValueError(f"horizontal_pc must be >= 0, got {horizontal_pc}")
-        if half_layers < 0:
-            raise ValueError(f"half_layers must be >= 0, got {half_layers}")
+        if reach_pc < 0:
+            raise ValueError(f"reach_pc must be >= 0, got {reach_pc}")
         if edge_pc <= 0:
             raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
         self.center_pc = tuple(float(v) for v in center_pc)
-        self.horizontal_pc = float(horizontal_pc)
-        self.half_layers = int(half_layers)
+        self.reach_pc = float(reach_pc)
         self.edge_pc = float(edge_pc)
-        self.slot_count = slot_count
-        self.center_layer = layer_index_at(self.center_pc[2], self.edge_pc)
+        self.wedge_count = wedge_count
         self._arcs = None
 
     @classmethod
-    def around_sector(cls, ring, layer, slot, sectors, layers, edge_pc):
-        """The region `sectors` sectors across the plane (plus
-        `CYLINDER_EDGE_ALLOWANCE`) and `layers` layers either side of the
-        sector at `(ring, layer, slot)`, centred on that sector's own centre."""
-        return cls(sector_position_pc(ring, layer, slot, edge_pc),
-                   (sectors + CYLINDER_EDGE_ALLOWANCE) * edge_pc, layers, edge_pc)
+    def around_sector(cls, shell, band, wedge, sectors, edge_pc, wedge_count=spherical.wedge_count):
+        """The region `sectors` sectors across (plus `BALL_EDGE_ALLOWANCE`)
+        around the sector at `(shell, band, wedge)`, centred on that sector's
+        own centre."""
+        return cls(spherical.sector_position_pc(shell, band, wedge, edge_pc),
+                   (sectors + BALL_EDGE_ALLOWANCE) * edge_pc, edge_pc, wedge_count)
 
-    @property
-    def layer_range(self):
-        """`(lowest, highest)` layer, inclusive."""
-        return self.center_layer - self.half_layers, self.center_layer + self.half_layers
+    def _position(self, shell, band, wedge):
+        """The centre of one cell, as `spherical.sector_position_pc` puts it, for this region's wedge count."""
+        plane, z = spherical.band_center_pc(shell, band, self.edge_pc)
+        if plane == 0.0:
+            return 0.0, 0.0, z
+        n = self.wedge_count(shell, band)
+        lon = (wedge + 0.5) * 2 * math.pi / n
+        return plane * math.cos(lon), plane * math.sin(lon), z
 
-    def _planar_distance(self, ring, slot):
-        n = self.slot_count(ring)
-        r = ring_radius_pc(ring, self.edge_pc)
-        theta = (slot + 0.5) * 2 * math.pi / n
-        return math.hypot(r * math.cos(theta) - self.center_pc[0], r * math.sin(theta) - self.center_pc[1])
+    def _inside(self, shell, band, wedge):
+        return math.dist(self._position(shell, band, wedge), self.center_pc) <= self.reach_pc + _EPS
 
-    def _inside(self, ring, slot):
-        return self._planar_distance(ring, slot) <= self.horizontal_pc + _EPS
-
-    def _ring_arc(self, ring):
-        """The slots of `ring` inside the circle, as a `RingArc`, or `None`."""
-        n = self.slot_count(ring)
-        r_m = ring_radius_pc(ring, self.edge_pc)
-        cx, cy = self.center_pc[0], self.center_pc[1]
-        r_c = math.hypot(cx, cy)
-        reach = self.horizontal_pc
-        if abs(r_m - r_c) > reach + _EPS:
+    def _band_arc(self, shell, band, cos_delta, delta, colat_c, lon_c):
+        """The wedges of `band` of `shell` inside the ball, as a `BandArc`, or `None`; `delta` is the angle on the
+        shell's centreline sphere the ball cuts out around the centre's direction, `cos_delta` its cosine."""
+        n = self.wedge_count(shell, band)
+        plane, z = spherical.band_center_pc(shell, band, self.edge_pc)
+        if n == 1 or plane == 0.0:
+            return BandArc(shell, band, 0, 1, True) if self._inside(shell, band, 0) else None
+        denominator = math.sin(math.atan2(plane, z)) * math.sin(colat_c)
+        if delta >= math.pi or denominator < 1e-12:
+            candidates = range(n)
+        else:
+            cos_width = (cos_delta - math.cos(math.atan2(plane, z)) * math.cos(colat_c)) / denominator
+            if cos_width > 1.0 + 1e-6:
+                return None
+            width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, max(-1.0, cos_width)))
+            candidates = spherical._wedges_near_longitude(n, lon_c, width + 1e-6)
+        inside = {wedge for wedge in candidates if self._inside(shell, band, wedge)}
+        if not inside:
             return None
-        if r_c < _EPS or r_m + r_c <= reach:
-            return RingArc(ring, 0, n, True)
-        theta_c = math.atan2(cy, cx)
-        cos_max = (r_m * r_m + r_c * r_c - reach * reach) / (2 * r_m * r_c)
-        half_width = math.acos(max(-1.0, min(1.0, cos_max)))
-        step = 2 * math.pi / n
-        first = math.ceil((theta_c - half_width) / step - 0.5 - _EPS)
-        last = math.floor((theta_c + half_width) / step - 0.5 + _EPS)
-        count = last - first + 1
-        # The angles above can be a hair off at the arc's ends; the exact
-        # distance decides the end slots, one step either way.
-        while count < n and self._inside(ring, (first - 1) % n):
-            first -= 1
-            count += 1
-        while count < n and self._inside(ring, (first + count) % n):
-            count += 1
-        while count > 0 and not self._inside(ring, first % n):
-            first += 1
-            count -= 1
-        while count > 0 and not self._inside(ring, (first + count - 1) % n):
-            count -= 1
-        if count <= 0:
-            return None
-        if count >= n:
-            return RingArc(ring, 0, n, True)
-        return RingArc(ring, first % n, count, False)
+        if len(inside) >= n:
+            return BandArc(shell, band, 0, n, True)
+        # The wedges inside one band form one arc of longitude; it starts at the one whose predecessor is out.
+        first = next(wedge for wedge in sorted(inside) if (wedge - 1) % n not in inside)
+        return BandArc(shell, band, first, len(inside), False)
 
-    def ring_arcs(self):
-        """Every ring the region reaches and its slots, ring 0 outward:
-        `[RingArc, ...]`. The layers are the same for every ring
-        (`layer_range`)."""
+    def band_arcs(self):
+        """Every band the ball reaches and its wedges, the core outward and
+        north to south in a shell: `[BandArc, ...]`."""
         if self._arcs is None:
-            r_c = math.hypot(self.center_pc[0], self.center_pc[1])
-            low = max(0, math.ceil((r_c - self.horizontal_pc) / self.edge_pc - 0.5 - _EPS))
-            high = math.floor((r_c + self.horizontal_pc) / self.edge_pc - 0.5 + _EPS)
-            arcs = (self._ring_arc(ring) for ring in range(low, high + 1))
-            self._arcs = [arc for arc in arcs if arc is not None]
+            self._arcs = list(self._compute_arcs())
         return list(self._arcs)
 
-    def slot_ranges(self, arc):
-        """`arc`'s slots as inclusive `(first, last)` pairs that never wrap --
-        one pair, or two where the arc passes slot 0 (what SQL `BETWEEN`
+    def _compute_arcs(self):
+        cx, cy, cz = self.center_pc
+        reach = math.sqrt(cx * cx + cy * cy + cz * cz)
+        if reach <= self.reach_pc + _EPS:
+            yield BandArc(0, 0, 0, 1, True)
+        colat_c = math.atan2(math.hypot(cx, cy), cz)
+        lon_c = math.atan2(cy, cx) % (2 * math.pi)
+        edge = self.edge_pc
+        shell_min = max(1, math.ceil((reach - self.reach_pc) / edge - _EPS))
+        shell_max = math.floor((reach + self.reach_pc) / edge + _EPS)
+        for shell in range(shell_min, shell_max + 1):
+            radius = shell * edge
+            if reach < 1e-9:
+                cos_delta = -2.0 if radius <= self.reach_pc + _EPS else 2.0
+            else:
+                cos_delta = (radius * radius + reach * reach - self.reach_pc ** 2) / (2 * radius * reach)
+            if cos_delta > 1.0 + 1e-9:
+                continue
+            delta = math.pi if cos_delta <= -1.0 else math.acos(min(1.0, max(-1.0, cos_delta)))
+            low, high = spherical.band_range(shell)
+            layout = spherical.shell_layout(shell)
+            lo_colat = max(0.0, colat_c - delta)
+            hi_colat = min(math.pi, colat_c + delta)
+            first = max(0, int(math.floor((lo_colat - layout.cap_colatitude) / layout.band_step)) - 1)
+            last = min(layout.band_count - 1, int(math.ceil((hi_colat - layout.cap_colatitude) / layout.band_step)) + 1)
+            bands = [high] if lo_colat <= layout.cap_colatitude + 1e-9 else []
+            bands += [layout.high_band - i for i in range(first, last + 1)]
+            if hi_colat >= math.pi - layout.cap_colatitude - 1e-9:
+                bands.append(low)
+            for band in bands:
+                arc = self._band_arc(shell, band, cos_delta, delta, colat_c, lon_c)
+                if arc is not None:
+                    yield arc
+
+    def wedge_ranges(self, arc):
+        """`arc`'s wedges as inclusive `(first, last)` pairs that never wrap --
+        one pair, or two where the arc passes wedge 0 (what SQL `BETWEEN`
         takes)."""
-        n = self.slot_count(arc.ring)
+        n = self.wedge_count(arc.shell, arc.band)
         last = arc.first + arc.count - 1
         if last < n:
             return [(arc.first, last)]
         return [(arc.first, n - 1), (0, last - n)]
 
     def spans(self):
-        """The region as `span.Span`s, one per ring: its layers, that ring
-        and its slot arc (`None`, all slots, for a whole ring). Only for the
-        sector grid: a `Span` counts slots as `ring_sector_count` does."""
-        if self.slot_count is not ring_sector_count:
+        """The region as `span.Span`s, one per band arc: that shell, that
+        band and its wedge arc (`None`, all wedges, for a whole band). Only
+        for the sector grid: a `Span` counts wedges as `spherical.wedge_count`
+        does."""
+        if self.wedge_count is not spherical.wedge_count:
             raise ValueError("spans describe the sector grid, not a lattice of blocks")
-        layers = self.layer_range
         return [
-            Span(rings=(arc.ring, arc.ring), layers=layers,
-                 slots=None if arc.whole else (arc.first, (arc.first + arc.count - 1) % self.slot_count(arc.ring)))
-            for arc in self.ring_arcs()
+            Span(shells=(arc.shell, arc.shell), bands=(arc.band, arc.band),
+                 wedges=None if arc.whole else (arc.first, (arc.first + arc.count - 1) % self.wedge_count(arc.shell, arc.band)))
+            for arc in self.band_arcs()
         ]
 
-    def _layers(self, bounds):
-        low, high = self.layer_range
-        if bounds is None:
-            return range(low, high + 1)
-        return [layer for layer in range(low, high + 1) if layer in bounds.outer_ring]
+    def _within(self, arc, bounds):
+        return bounds is None or bounds.contains(arc.shell, arc.band)
 
     def count(self, bounds=None):
         """How many sectors the region holds, inside the outline when
         `bounds` (a `skeleton.GalaxyBounds`) is given."""
-        arcs = self.ring_arcs()
-        total = 0
-        for layer in self._layers(bounds):
-            outer = None if bounds is None else bounds.outer_ring[layer]
-            total += sum(arc.count for arc in arcs if outer is None or arc.ring <= outer)
-        return total
+        return sum(arc.count for arc in self.band_arcs() if self._within(arc, bounds))
 
     def addresses(self, bounds=None):
-        """Every `(ring, layer, slot)` in the region: a layer at a time, rings
-        out from the centre, an arc's slots from its first."""
-        arcs = self.ring_arcs()
-        for layer in self._layers(bounds):
-            outer = None if bounds is None else bounds.outer_ring[layer]
-            for arc in arcs:
-                if outer is not None and arc.ring > outer:
-                    break
-                n = self.slot_count(arc.ring)
-                for k in range(arc.count):
-                    yield arc.ring, layer, (arc.first + k) % n
+        """Every `(shell, band, wedge)` in the region: a shell at a time from
+        the core out, bands north to south, an arc's wedges from its first."""
+        for arc in self.band_arcs():
+            if not self._within(arc, bounds):
+                continue
+            n = self.wedge_count(arc.shell, arc.band)
+            for k in range(arc.count):
+                yield arc.shell, arc.band, (arc.first + k) % n
 
     def cells(self, bounds=None):
         """`addresses` with each sector's own centre and its distance from
-        the region's centre, as `geometry.enumerate_sectors_within_radius`
-        yields them: `(ring, layer, slot, x, y, z, distance_pc)`."""
-        for ring, layer, slot in self.addresses(bounds):
-            n = self.slot_count(ring)
-            r = ring_radius_pc(ring, self.edge_pc)
-            theta = (slot + 0.5) * 2 * math.pi / n
-            x, y, z = r * math.cos(theta), r * math.sin(theta), layer_center_z_pc(layer, self.edge_pc)
-            yield ring, layer, slot, x, y, z, math.dist((x, y, z), self.center_pc)
+        the region's centre, as `spherical.enumerate_sectors_within_radius`
+        yields them: `(shell, band, wedge, x, y, z, distance_pc)`."""
+        for shell, band, wedge in self.addresses(bounds):
+            x, y, z = self._position(shell, band, wedge)
+            yield shell, band, wedge, x, y, z, math.dist((x, y, z), self.center_pc)
 
-    def contains(self, ring, layer, slot):
-        """Whether the sector at `(ring, layer, slot)` is in the region."""
-        low, high = self.layer_range
-        return low <= layer <= high and self._inside(ring, slot)
+    def contains(self, shell, band, wedge):
+        """Whether the sector at `(shell, band, wedge)` is in the region."""
+        return self._inside(shell, band, wedge)

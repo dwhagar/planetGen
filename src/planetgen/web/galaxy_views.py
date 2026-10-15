@@ -24,21 +24,20 @@ from flask import Response, jsonify, redirect, request, url_for
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
-from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
 from planetgen.web.maps.starmap import uncharted_scene_data
-from planetgen.web.warmup import opening_request
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
-from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.physics.units import pc_to_ly
 from planetgen.web.lib import tilepack
 from planetgen.galaxy.window import DEFAULT_WINDOW
-from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire, fetch_window
+from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles_wire, fetch_window
 
 from planetgen.api.limiter import page_limit
 
+from planetgen.admin import maintenance
+
 from . import bp, tables
-from .helpers import crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
+from .helpers import crumb, current_admin, db_name, generate_target, map_rebuilding_html, page_url, render_page
 
 _ID_PLACEHOLDER = 987654321987
 """int: Stands in for a sector id while building the map's sector-link
@@ -57,13 +56,13 @@ def sector_url_template():
 def uncharted_scene_url_template():
     """
     The URL of an uncharted sector's scene JSON (`galaxy_uncharted_scene`)
-    with `{ring}`, `{layer}` and `{slot}` where the address goes, for the
+    with `{shell}`, `{band}` and `{wedge}` where the address goes, for the
     Galaxy Map to open a cell nothing was generated in (MAP.162).
     """
-    return url_for("web.galaxy_uncharted_scene", ring=_ID_PLACEHOLDER, layer=_ID_PLACEHOLDER + 1,
-                   slot=_ID_PLACEHOLDER + 2).replace(
-        str(_ID_PLACEHOLDER + 1), "{layer}").replace(str(_ID_PLACEHOLDER + 2), "{slot}").replace(
-        str(_ID_PLACEHOLDER), "{ring}")
+    return url_for("web.galaxy_uncharted_scene", shell=_ID_PLACEHOLDER, band=_ID_PLACEHOLDER + 1,
+                   wedge=_ID_PLACEHOLDER + 2).replace(
+        str(_ID_PLACEHOLDER + 1), "{band}").replace(str(_ID_PLACEHOLDER + 2), "{wedge}").replace(
+        str(_ID_PLACEHOLDER), "{shell}")
 
 
 def system_url_template():
@@ -97,9 +96,9 @@ def _quadrant_summary_rows(sectors):
     for label in QUADRANT_LABELS:
         members = by_quadrant[label]
         extent = None
-        rings = [s["ring_index"] for s in members if s["ring_index"] is not None]
-        if rings:
-            _inner, outer_ly = zone_bounds_ly(sector_zone(max(rings)))
+        shells = [s["shell_index"] for s in members if s["shell_index"] is not None]
+        if shells:
+            _inner, outer_ly = zone_bounds_ly(sector_zone(max(shells)))
             extent = f"out to ~{format_distance_ly(outer_ly)}"
         rows.append({
             "label": label,
@@ -112,7 +111,7 @@ def _quadrant_summary_rows(sectors):
 
 
 def _zone_label(sector):
-    return f"Zone {sector_zone(sector['ring_index'])}" if sector["ring_index"] is not None else None
+    return f"Zone {sector_zone(sector['shell_index'])}" if sector["shell_index"] is not None else None
 
 
 def _quadrant_cells(sector):
@@ -173,35 +172,16 @@ def _has_territories(db):
 @page_limit("galaxy")
 def galaxy():
     """The 3D Galaxy Map plus the Quadrant table (`?quadrant=`, `?page=`)."""
+    if maintenance.is_on():  # UX.112: the map is being rebuilt; one page says so
+        return redirect(url_for("web.maintenance_page"), code=302)
     db = db_name()
     quadrant = _parse_quadrant(request.args.get("quadrant"))
 
     sectors = apiclient.get_galaxy_sectors(db)
-    galaxy_shape = apiclient.get_galaxy_shape(db)
-    edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-    initial_view = fetch_tiles(db, opening_request(galaxy_shape))
-    course = _course_from_args()
-    made = _made_from_args()
-    pick = _pick_from_args()
-    map_html = render_galaxy_map3d_panel(
-        db, galaxy_shape, edge_pc, initial_view,
-        fetch_path=url_for("web.galaxy_tiles"),
-        stage_path=url_for("web.galaxy_stage"),
-        window_path=url_for("web.galaxy_window"),
-        locate_path=url_for("web.galaxy_locate"),
-        territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
-        course=course,
-        made=made,
-        sector_url=sector_url_template(),
-        generate=generate_target(current_admin()),
-        pick=pick,
-        phenomenon_url=phenomenon_url_template(),
-        system_url=system_url_template(),
-        nav_url=page_url("nav"),
-        uncharted_scene_url=uncharted_scene_url_template(),
-    )
+    # UX.111: the 3D map is rebuilt for the shell grid (Maps); a notice stands in for it.
+    map_html = map_rebuilding_html("Galaxy Map")
 
-    context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}
+    context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": map_html}
     if quadrant:
         context["sector_table"] = tables.render(QUADRANT_TABLE, request.path, anchor="galaxy-table",
                                                 keep=("quadrant",), quadrant=quadrant)
@@ -388,9 +368,9 @@ def galaxy_locate():
 galaxy_locate.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
-@bp.route("/galaxy/uncharted/<int:ring>/<int:layer>/<int:slot>/scene")
+@bp.route("/galaxy/uncharted/<int:shell>/<int:band>/<int:wedge>/scene")
 @page_limit("galaxy_tiles")
-def galaxy_uncharted_scene(ring, layer, slot):
+def galaxy_uncharted_scene(shell, band, wedge):
     """
     The scene JSON of a sector cell nothing was generated in
     (`starmap.uncharted_scene_data`, MAP.162): the waiting bright stars and
@@ -400,7 +380,7 @@ def galaxy_uncharted_scene(ring, layer, slot):
     404 and an API failure a 502, both as `{"error": ...}` JSON.
     """
     try:
-        cell = apiclient.get_uncharted_sector(db_name(), ring, layer, slot)
+        cell = apiclient.get_uncharted_sector(db_name(), shell, band, wedge)
     except apiclient.NotFoundError as exc:
         return _json_error(str(exc) or "Not found.", 404)
     except apiclient.ApiError as exc:
@@ -411,7 +391,7 @@ def galaxy_uncharted_scene(ring, layer, slot):
     if cell["sector_id"] is not None:
         return redirect(url_for("web.sector_scene", sector_id=cell["sector_id"]), code=302)
     scene = uncharted_scene_data(
-        (ring, layer, slot), cell["designation"], cell["center_pc"], cell["edge_pc"],
+        (shell, band, wedge), cell["designation"], cell["center_pc"], cell["edge_pc"],
         {"stars": cell["stars"], "scattered": cell["scattered"]}, generate=generate_target(current_admin()))
     response = jsonify(scene)
     response.headers["Cache-Control"] = "no-store"

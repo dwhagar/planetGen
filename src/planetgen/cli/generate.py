@@ -40,14 +40,13 @@ from planetgen.db import check as db_check, fingerprint, store
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
-from planetgen.galaxy import seed as galaxySeed, version_check, version_key
+from planetgen.galaxy import seed as galaxySeed, spherical, version_check, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy.density import arm_terms, build_galaxy_shape
-from planetgen.galaxy.drill import parse_drill_key
-from planetgen.galaxy.skeleton import DEFAULT_MAX_RING
+from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation import run_common
@@ -208,11 +207,11 @@ def validate_logging_args(args, parser):
                      "(there's nowhere else for debug output to go).")
 
 
-_RING_LIMIT = f"{run_galaxy.LARGE_RING_WARNING_THRESHOLD:,}"
-"""str: The ring size past which a run needs `--limit` or `--yes`, as the help says it."""
+_RING_LIMIT = f"{run_galaxy.LARGE_RUN_WARNING_THRESHOLD:,}"
+"""str: The size past which a shell or block run needs `--limit` or `--yes`, as the help says it."""
 
 STRICT_HELP = ("Stop instead of warning: a run the console would otherwise go ahead with after a "
-               "warning (the database disk too small, a ring or block past "
+               "warning (the database disk too small, a shell or block past "
                f"{_RING_LIMIT} sectors without --limit or --yes, an address outside the "
                "galaxy's outline, --min-habitable above a sector's drawn count, a forced body no "
                "system had room for) ends with an error and nothing generated.")
@@ -473,7 +472,7 @@ def validate_shared_generation_args(args, parser):
 
     if args.density is None and args.num_systems is None:
         # `galaxy` mode leaves both None rather than defaulting to a flat
-        # count here -- run_ring_batch/run_local_neighborhood compute each
+        # count here -- run_shell_batch/run_local_neighborhood compute each
         # sector's own --density from the galaxy skeleton's real
         # position-based relative_density instead (see their own
         # docstrings and `_resolve_batch_density`), the same mechanism
@@ -569,47 +568,40 @@ def add_galaxy_arguments(parser):
     """
     Adds the `galaxy` subcommand's own mode/placement options -- on top
     of whatever `add_shared_generation_options` already added -- to
-    `parser`: the `--ring`/`--block`/`--center-sector` mode-selection
-    group, `--layer`, `--slot`, `--block-layer`, `--limit`, `--yes`,
-    `--radius-pc`, `--max-ring`,
+    `parser`: the `--shell`/`--block`/`--center-sector` mode-selection
+    group, `--band`, `--wedge`, the `--shells`/`--bands`/`--wedges` span,
+    `--limit`, `--yes`, `--radius-pc`, `--max-shell`,
     `--min-start-density`, and the MySQL connection args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
     """
     mode_group = parser.add_mutually_exclusive_group(required=False)
-    mode_group.add_argument('--ring', type=int, metavar='I',
-                            help="Batch mode: generate every not-yet-generated sector in ring I (0-indexed "
-                                 "cylindrical radius band, one sector edge wide) at --layer J.")
+    mode_group.add_argument('--shell', type=int, metavar='I',
+                            help="Batch mode: generate every not-yet-generated sector in shell I (0-indexed "
+                                 "distance from the galactic center, one sector edge deep; shell 0 is the "
+                                 "core ball) that the galaxy's outline holds. Narrow it with --band (one "
+                                 "band of the shell) and --wedge (one sector).")
     mode_group.add_argument('--block', metavar='M.I.S.SLAB',
                             help="Block mode: generate every not-yet-generated sector the galaxy's outline "
                                  "allows inside one Galaxy Map drill-down block, given by its key "
-                                 "(size.ring.wedge.slab, as in the map's stage links, e.g. 3.40.7.0). "
-                                 f"Needs --limit or --yes past {_RING_LIMIT} sectors.")
+                                 "(size.shell.wedge.slab, as in the map's stage links). Refused until "
+                                 "the Galaxy Map's ladder is rebuilt on shells.")
     mode_group.add_argument('--center-sector', type=int, metavar='SECTOR_ID',
                             help="Local-neighborhood mode: generate every not-yet-generated sector "
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
                                  "stored center.")
 
-    parser.add_argument('--layer', type=int, metavar='J',
-                        help="With --ring: the height band (signed; 0 is centered on the galactic "
-                             "plane). Default: 0.")
-    parser.add_argument('--slot', type=int, metavar='K',
-                        help="Requires --ring I: single-address mode, generating exactly the one "
-                             "not-yet-generated sector at (ring I, layer J, slot K) -- e.g. the address "
+    parser.add_argument('--band', type=int, metavar='J',
+                        help="With --shell: only this band of the shell (signed; 0 is the equatorial band, "
+                             "positive is north, and the two end bands are the polar caps).")
+    parser.add_argument('--wedge', type=int, metavar='K',
+                        help="Requires --shell I and --band J: single-address mode, generating exactly the "
+                             "one not-yet-generated sector at (shell I, band J, wedge K) -- e.g. the address "
                              "behind a designation copied from the interactive Galaxy Map. Skips it "
                              "(exit status 1) if it is outside the galaxy's stored outline, or reports its "
                              "existing sector_id if it was already generated. A sparse address still "
                              "generates (it may hold no systems).")
-    parser.add_argument('--column', action='store_true',
-                        help="With --ring I --slot K: column mode, generating every not-yet-generated "
-                             "sector at that ring and slot through every layer the galaxy's stored "
-                             "outline reaches there (galaxy_column).")
-    parser.add_argument('--shell', action='store_true',
-                        help="With --ring I: shell mode, generating every not-yet-generated sector in "
-                             "ring I through every layer the outline reaches (a cylindrical shell). Far "
-                             "larger than one ring at one layer, so it needs --limit or --yes past "
-                             f"{_RING_LIMIT} sectors.")
     course_group = parser.add_argument_group("course mode")
     course_group.add_argument('--course', nargs=2, metavar=('FROM', 'TO'),
                               help="Course mode: generate the uncharted sectors that block the NAV course "
@@ -621,27 +613,24 @@ def add_galaxy_arguments(parser):
                               help="With --course: also generate the uncharted cells that share a face "
                                    "with those on the course.")
     span_group = parser.add_argument_group("span mode")
-    span_group.add_argument('--rings', metavar='FIRST:LAST',
-                            help="Span mode: generate every not-yet-generated sector in these rings (N or "
-                                 "FIRST:LAST, inclusive). Default: every ring the outline reaches.")
-    span_group.add_argument('--layers', metavar='FIRST:LAST',
-                            help="Span mode: only these layers (N or FIRST:LAST, inclusive; negative below "
-                                 "the plane, so write --layers=-2:2). Default: every layer in the outline. "
-                                 "Alone it fills those layers out to the galaxy's edge; with --rings, the "
-                                 "columns of those rings through these layers.")
-    span_group.add_argument('--slots', metavar='FIRST:LAST',
-                            help="Span mode, with exactly one ring: only this arc of slots, inclusive; "
-                                 "FIRST past LAST wraps through slot 0 (50:5). Default: the whole ring.")
-    parser.add_argument('--block-layer', type=int, metavar='J',
-                        help="With --block: only the block's sectors on sector layer J (one layer of a "
-                             "size-3 block is about 9 sectors).")
+    span_group.add_argument('--shells', metavar='FIRST:LAST',
+                            help="Span mode: generate every not-yet-generated sector in these shells (N or "
+                                 "FIRST:LAST, inclusive). Default: every shell the outline reaches.")
+    span_group.add_argument('--bands', metavar='FIRST:LAST',
+                            help="Span mode: only these bands (N or FIRST:LAST, inclusive; negative south of "
+                                 "the equator, so write --bands=-2:2). Default: every band in the outline. "
+                                 "Alone it fills those bands out to the galaxy's edge.")
+    span_group.add_argument('--wedges', metavar='FIRST:LAST',
+                            help="Span mode, with exactly one shell and one band: only this arc of wedges, "
+                                 "inclusive; FIRST past LAST wraps through wedge 0 (50:5). Default: the "
+                                 "whole band.")
     parser.add_argument('--limit', type=int,
-                        help="With --ring (or --ring --shell, or --block): generate only the first N "
-                             "not-yet-generated slots.")
+                        help="With --shell (or --block, or a span): generate only the first N "
+                             "not-yet-generated sectors.")
     parser.add_argument('--yes', action='store_true',
                         help="Don't ask before generating: skips the size and time question asked on a "
-                             "terminal before filling more than one sector, and with --ring (or --ring "
-                             "--shell, or --block) the confirmation normally required before generating "
+                             "terminal before filling more than one sector, and with --shell (or --block, "
+                             "or a span) the confirmation normally required before generating "
                              f"more than {_RING_LIMIT} sectors. A run the database disk "
                              "can't hold is still refused.")
     parser.add_argument('--estimate-only', action='store_true',
@@ -650,18 +639,18 @@ def add_galaxy_arguments(parser):
                              "line. In random-start mode the estimate is for one random start.")
     parser.add_argument('--radius-pc', type=finite_float,
                         help="With --center-sector: the neighborhood search radius, in parsecs. With "
-                             "--ring --slot: after generating that address, also generate its "
+                             "--shell --band --wedge: after generating that address, also generate its "
                              "neighborhood within this radius. With "
-                             "neither --ring nor --center-sector (random-start mode): overrides the "
+                             "neither --shell nor --center-sector (random-start mode): overrides the "
                              "default 12 pc neighborhood radius around the randomly chosen starting "
                              "sector. Once every sector is generated, the bright stars within 100 ly "
                              "of the run's edge are backfilled (see --backfill-from).")
-    parser.add_argument('--max-ring', type=int,
-                        help="With neither --ring nor --center-sector (random-start mode): the highest "
-                             "ring the randomly chosen starting sector may land in. Default: anywhere "
+    parser.add_argument('--max-shell', type=int,
+                        help="With neither --shell nor --center-sector (random-start mode): the highest "
+                             "shell the randomly chosen starting sector may land in. Default: anywhere "
                              "inside the galaxy's stored outline.")
     parser.add_argument('--min-start-density', type=finite_float,
-                        help="With neither --ring nor --center-sector (random-start mode): require the "
+                        help="With neither --shell nor --center-sector (random-start mode): require the "
                              "randomly chosen starting sector's own real relative_density (the same "
                              "'expected' figure printed alongside each saved sector) to be at least this "
                              "value before accepting it -- e.g. 1.0 for at least as dense as the galaxy's "
@@ -682,13 +671,6 @@ def add_galaxy_arguments(parser):
                              "sector that is already generated, so every neighborhood grows in empty space. "
                              "Logs how many candidate centres qualified. Without it, a neighborhood may "
                              "overlap filled space (the sectors already there are kept, not redone).")
-    parser.add_argument('--cylinder-sectors', type=finite_float, metavar='X',
-                        help="Instead of --radius-pc, with --center-sector or --ring --slot: a radial fill: "
-                             "a round disc X sectors across the plane (1 is the centre and its "
-                             "face neighbours) through --cylinder-layers layers either side.")
-    parser.add_argument('--cylinder-layers', type=int, metavar='H',
-                        help="With --cylinder-sectors: layers above and below the centre's to include. "
-                             "Default: the same as --cylinder-sectors, rounded down.")
     parser.add_argument('--no-settle', action='store_true',
                         help="Skip the last step of the run, which saves the path every star system, "
                              "rogue planet and comet takes through its sector (for the sectors the run "
@@ -697,9 +679,9 @@ def add_galaxy_arguments(parser):
     backfill_group.add_argument('--backfill-from', choices=run_galaxy.BACKFILL_FROM_CHOICES, default="edge",
                                 help="Once every sector of the run is generated, backfill the bright stars "
                                      "out from the run's edge ('edge', the default) -- or not at all "
-                                     "('none'). Four rings of sectors (a face apart, no diagonals) "
-                                     "around the generated ones get every star born from 1 solar mass "
-                                     "up in the nearest ring, 2 in the next, then 5, then 8, and the "
+                                     "('none'). Four steps outward (a face apart, no diagonals) "
+                                     "around the generated sectors get every star born from 1 solar mass "
+                                     "up in the nearest step, 2 in the next, then 5, then 8, and the "
                                      "backfill never adds stars to a sector already generated.")
     backfill_group.add_argument('--then-scatter', action='store_true',
                                 help="After the sectors and before the backfill, scatter the bright stars "
@@ -740,30 +722,9 @@ def validate_galaxy_args(args, parser):
             args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
         except ValueError as exc:
             parser.error(f"--bright-star-min-luminosity: {exc}")
-    block = getattr(args, "block", None)
-    block_layer = getattr(args, "block_layer", None)
-    if block is not None:
-        try:
-            args.block = parse_drill_key(block)
-        except ValueError as exc:
-            parser.error(f"--block: {exc}")
-        if args.block.m == 1:
-            parser.error("--block takes a block, not a single sector; use --ring --layer --slot.")
-        others = [flag for flag, value in (
-            ("--layer", args.layer), ("--slot", args.slot), ("--radius-pc", args.radius_pc),
-            ("--max-ring", args.max_ring), ("--min-start-density", args.min_start_density),
-        ) if value is not None] + [flag for flag, on in (("--column", args.column), ("--shell", args.shell)) if on]
-        if others:
-            parser.error(f"--block can't be combined with {', '.join(others)}.")
-        if block_layer is not None and block_layer not in run_galaxy.block_layers(args.block):
-            layers = run_galaxy.block_layers(args.block)
-            parser.error(f"--block-layer must be one of the block's layers, {layers[0]} to {layers[-1]}.")
-        if args.limit is not None and not 1 <= args.limit <= limits.MAX_GENERATE_LIMIT:
-            parser.error(f"--limit must be between 1 and {limits.MAX_GENERATE_LIMIT}.")
-        args.sector_name = args.system_file = args.num_orbits = args.name = None
-        return
-    if block_layer is not None:
-        parser.error("--block-layer requires --block.")
+    if getattr(args, "block", None) is not None:
+        parser.error("--block: the Galaxy Map's blocks are being rebuilt on shells; until then fill "
+                     "a --shell, a --shell --band, or a span (--shells/--bands/--wedges).")
 
     course = getattr(args, "course", None)
     if course is not None:
@@ -772,90 +733,58 @@ def validate_galaxy_args(args, parser):
     if getattr(args, "course_border", False):
         parser.error("--course-border requires --course.")
 
-    if any(value is not None for value in (args.rings, args.layers, args.slots)):
+    if any(value is not None for value in (args.shells, args.bands, args.wedges)):
         _validate_span(args, parser)
         return
-    random_start = args.ring is None and args.center_sector is None
+    random_start = args.shell is None and args.center_sector is None
 
-    if args.ring is not None and args.ring < 0:
-        parser.error("--ring must be >= 0.")
-    if args.ring is not None and args.ring > limits.MAX_GENERATE_RING:
-        parser.error(f"--ring must be at most {limits.MAX_GENERATE_RING}.")
-    if args.column and (args.ring is None or args.slot is None):
-        parser.error("--column requires --ring and --slot.")
-    if args.shell and args.ring is None:
-        parser.error("--shell requires --ring.")
-    if args.column and args.shell:
-        parser.error("--column and --shell can't be combined.")
-    if (args.column or args.shell) and args.layer is not None:
-        parser.error("--column and --shell cover every layer, so they don't take --layer.")
-    if args.shell and args.slot is not None:
-        parser.error("--shell covers every slot of the ring; use --column for one slot.")
-    if args.column and args.slot is not None and args.slot < 0:
-        parser.error("--slot must be >= 0.")
-    if args.column:
-        # Validated as column mode below, not single-address mode.
-        column_slot, args.slot = args.slot, None
-    if args.layer is not None and args.ring is None:
-        parser.error("--layer requires --ring.")
-    if args.ring is not None and args.layer is None:
-        args.layer = 0
-
-    if args.slot is not None and args.ring is None:
-        parser.error("--slot requires --ring.")
-    if args.slot is not None and args.slot < 0:
-        parser.error("--slot must be >= 0.")
-    if args.slot is not None and args.limit is not None:
-        parser.error("--limit only applies to --ring (batch mode), not --ring --slot (single-address mode).")
-    if args.slot is not None and args.yes:
-        parser.error("--yes only applies to --ring (batch mode), not --ring --slot (single-address mode).")
-    if args.slot is not None and (args.density is not None or args.num_systems is not None):
-        parser.error("--density/--num-systems can't be combined with --ring --slot (single-address "
+    if args.shell is not None and args.shell < 0:
+        parser.error("--shell must be >= 0.")
+    if args.shell is not None and args.shell > limits.MAX_GENERATE_SHELL:
+        parser.error(f"--shell must be at most {limits.MAX_GENERATE_SHELL}.")
+    if args.band is not None and args.shell is None:
+        parser.error("--band requires --shell.")
+    if args.wedge is not None and (args.shell is None or args.band is None):
+        parser.error("--wedge requires --shell and --band.")
+    if args.wedge is not None and args.wedge < 0:
+        parser.error("--wedge must be >= 0.")
+    if args.band is not None:
+        try:
+            low, high = spherical.band_range(args.shell)
+        except ValueError as exc:
+            parser.error(f"--shell: {exc}")
+        if not low <= args.band <= high:
+            parser.error(f"--band: shell {args.shell} holds bands {low} to {high}.")
+        if args.wedge is not None and args.wedge >= spherical.wedge_count(args.shell, args.band):
+            parser.error(f"--wedge: shell {args.shell} band {args.band} holds wedges "
+                         f"0 to {spherical.wedge_count(args.shell, args.band) - 1}.")
+    if args.wedge is not None and args.limit is not None:
+        parser.error("--limit only applies to --shell (batch mode), not --shell --band --wedge (single-address mode).")
+    if args.wedge is not None and args.yes:
+        parser.error("--yes only applies to --shell (batch mode), not --shell --band --wedge (single-address mode).")
+    if args.wedge is not None and (args.density is not None or args.num_systems is not None):
+        parser.error("--density/--num-systems can't be combined with --shell --band --wedge (single-address "
                      "mode) -- ensure_sector_generated always uses this address's own real predicted "
                      "density, the same as when the galaxy map's own live view found it.")
 
-    if args.cylinder_layers is not None and args.cylinder_sectors is None:
-        parser.error("--cylinder-layers requires --cylinder-sectors.")
-    if args.cylinder_sectors is not None:
-        if args.radius_pc is not None:
-            parser.error("--cylinder-sectors replaces --radius-pc; give one.")
-        if args.center_sector is None and args.slot is None:
-            parser.error("--cylinder-sectors needs --center-sector or --ring --layer --slot.")
-        if args.cylinder_sectors <= 0:
-            parser.error("--cylinder-sectors must be a positive number.")
-        if args.cylinder_layers is None:
-            args.cylinder_layers = int(args.cylinder_sectors)
-        if args.cylinder_layers < 0:
-            parser.error("--cylinder-layers must be 0 or more.")
-        edge = program_constants.DEFAULT_SECTOR_EDGE_PC
-        # The search sphere that holds the whole can; the fill trims it to the can.
-        args.radius_pc = run_galaxy.cylinder_extent(args.cylinder_sectors, args.cylinder_layers, edge)[2]
-        if args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
-            parser.error("That radial fill is larger than the most a run may cover "
-                         f"({limits.MAX_GENERATE_RADIUS_PC:g} pc across its longest reach); use a smaller "
-                         "--cylinder-sectors or --cylinder-layers.")
     if args.center_sector is not None and args.radius_pc is None:
         parser.error("--center-sector requires --radius-pc.")
-    if args.radius_pc is not None and args.ring is not None and args.slot is None:
-        parser.error("--radius-pc only applies to --center-sector, --ring --slot, or random-start mode "
-                     "(neither --ring nor --center-sector), not --ring alone.")
+    if args.radius_pc is not None and args.shell is not None and args.wedge is None:
+        parser.error("--radius-pc only applies to --center-sector, --shell --band --wedge, or random-start mode "
+                     "(neither --shell nor --center-sector), not --shell alone.")
     if args.radius_pc is not None and args.radius_pc <= 0:
         parser.error("--radius-pc must be a positive number.")
     if args.radius_pc is not None and args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
         parser.error(f"--radius-pc must be at most {limits.MAX_GENERATE_RADIUS_PC:g}.")
 
-    if args.limit is not None and args.ring is None:
-        parser.error("--limit only applies to --ring.")
+    if args.limit is not None and args.shell is None:
+        parser.error("--limit only applies to --shell.")
     if args.limit is not None and args.limit < 1:
         parser.error("--limit must be a positive integer.")
     if args.limit is not None and args.limit > limits.MAX_GENERATE_LIMIT:
         parser.error(f"--limit must be at most {limits.MAX_GENERATE_LIMIT}.")
-    if args.yes and args.ring is None:
-        parser.error("--yes only applies to --ring.")
-    if args.column:
-        if args.limit is not None or args.yes:
-            parser.error("--limit and --yes don't apply to --column.")
-        args.slot = column_slot
+    if args.yes and args.shell is None:
+        parser.error("--yes only applies to --shell.")
 
     if args.neighborhoods < 1 or args.neighborhoods > limits.MAX_GENERATE_NEIGHBORHOODS:
         parser.error(f"--neighborhoods must be between 1 and {limits.MAX_GENERATE_NEIGHBORHOODS}.")
@@ -863,18 +792,18 @@ def validate_galaxy_args(args, parser):
         parser.error("--neighborhood-gamma must be 0 or more.")
     if (args.neighborhoods > 1 or args.neighborhood_gamma) and not random_start:
         parser.error("--neighborhoods and --neighborhood-gamma only apply to random-start mode (neither "
-                     "--ring nor --center-sector).")
+                     "--shell nor --center-sector).")
     if args.avoid_filled_space and not random_start:
-        parser.error("--avoid-filled-space only applies to random-start mode (neither --ring nor --center-sector).")
-    if args.max_ring is not None and not random_start:
-        parser.error("--max-ring only applies to random-start mode (neither --ring nor --center-sector).")
-    if args.max_ring is not None and args.max_ring < 0:
-        parser.error("--max-ring must be >= 0.")
-    if args.max_ring is not None and args.max_ring > limits.MAX_GENERATE_RING:
-        parser.error(f"--max-ring must be at most {limits.MAX_GENERATE_RING}.")
+        parser.error("--avoid-filled-space only applies to random-start mode (neither --shell nor --center-sector).")
+    if args.max_shell is not None and not random_start:
+        parser.error("--max-shell only applies to random-start mode (neither --shell nor --center-sector).")
+    if args.max_shell is not None and args.max_shell < 0:
+        parser.error("--max-shell must be >= 0.")
+    if args.max_shell is not None and args.max_shell > limits.MAX_GENERATE_SHELL:
+        parser.error(f"--max-shell must be at most {limits.MAX_GENERATE_SHELL}.")
 
     if args.min_start_density is not None and not random_start:
-        parser.error("--min-start-density only applies to random-start mode (neither --ring nor "
+        parser.error("--min-start-density only applies to random-start mode (neither --shell nor "
                      "--center-sector).")
     if args.min_start_density is not None and args.min_start_density <= 0:
         parser.error("--min-start-density must be a positive number.")
@@ -895,39 +824,37 @@ def validate_galaxy_args(args, parser):
 def _validate_course(args, parser):
     """Refuses what can't go with `--course` (NAV.48) and shapes `args` like the other modes."""
     others = [flag for flag, value in (
-        ("--ring", args.ring), ("--layer", args.layer), ("--slot", args.slot),
+        ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
         ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
-        ("--max-ring", args.max_ring), ("--min-start-density", args.min_start_density),
-        ("--cylinder-sectors", args.cylinder_sectors), ("--rings", args.rings), ("--layers", args.layers),
-        ("--slots", args.slots), ("--limit", args.limit),
-    ) if value is not None] + [flag for flag, on in (("--column", args.column), ("--shell", args.shell)) if on]
+        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
+        ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges), ("--limit", args.limit),
+    ) if value is not None]
     if others:
         parser.error(f"--course can't be combined with {', '.join(others)}.")
     args.sector_name = args.system_file = args.num_orbits = args.name = None
 
 
 def _validate_span(args, parser):
-    """Turns `--rings/--layers/--slots` into `args.span` (a `Span`) and
+    """Turns `--shells/--bands/--wedges` into `args.span` (a `Span`) and
     refuses what can't go with a span (ADM.29)."""
     others = [flag for flag, value in (
-        ("--ring", args.ring), ("--layer", args.layer), ("--slot", args.slot),
+        ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
         ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
-        ("--max-ring", args.max_ring), ("--min-start-density", args.min_start_density),
-        ("--cylinder-sectors", args.cylinder_sectors),
-    ) if value is not None] + [flag for flag, on in (("--column", args.column), ("--shell", args.shell)) if on]
+        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
+    ) if value is not None]
     if others:
-        parser.error(f"--rings/--layers/--slots can't be combined with {', '.join(others)}.")
-    if args.slots is not None and args.rings is None:
-        parser.error("--slots requires --rings (one ring).")
+        parser.error(f"--shells/--bands/--wedges can't be combined with {', '.join(others)}.")
+    if args.wedges is not None and (args.shells is None or args.bands is None):
+        parser.error("--wedges requires --shells and --bands (one shell, one band).")
     try:
         span = Span(
-            rings=parse_range(args.rings, "--rings") if args.rings is not None else None,
-            layers=parse_range(args.layers, "--layers") if args.layers is not None else None,
-            slots=parse_range(args.slots, "--slots") if args.slots is not None else None)
+            shells=parse_range(args.shells, "--shells") if args.shells is not None else None,
+            bands=parse_range(args.bands, "--bands") if args.bands is not None else None,
+            wedges=parse_range(args.wedges, "--wedges") if args.wedges is not None else None)
     except SpanError as exc:
         parser.error(str(exc))
-    if span.rings is not None and span.rings[1] > limits.MAX_GENERATE_RING:
-        parser.error(f"--rings must stay at or below ring {limits.MAX_GENERATE_RING}.")
+    if span.shells is not None and span.shells[1] > limits.MAX_GENERATE_SHELL:
+        parser.error(f"--shells must stay at or below shell {limits.MAX_GENERATE_SHELL}.")
     if args.limit is not None and not 1 <= args.limit <= limits.MAX_GENERATE_LIMIT:
         parser.error(f"--limit must be between 1 and {limits.MAX_GENERATE_LIMIT}.")
     args.span = span
@@ -987,8 +914,8 @@ def add_plan_arguments(parser):
                         help="The galaxy's 128-bit seed, as 32 hex digits: the same seed makes the same galaxy "
                              "on the same PlanetGen release. Default: the seed already stored, or one drawn at "
                              "random for a new galaxy. Changing it needs a galaxy with no sectors.")
-    parser.add_argument('--max-ring', type=int, default=DEFAULT_MAX_RING,
-                        help=f"Hard cap on how far out a layer is scanned. Default: {DEFAULT_MAX_RING}.")
+    parser.add_argument('--max-shell', type=int, default=DEFAULT_MAX_SHELL,
+                        help=f"Hard cap on how far out the shells are walked. Default: {DEFAULT_MAX_SHELL}.")
 
     bright_group = parser.add_argument_group("bright-star pre-placement (planetgen.generation.bright_stars)")
     bright_group.add_argument('--bright-star-min-luminosity', type=finite_float,
@@ -1008,11 +935,11 @@ def add_plan_arguments(parser):
     bright_group.add_argument('--force', action='store_true',
                               help="No longer needed: the scatter always leaves filled sectors out.")
     bright_group.add_argument('--workers', type=int, default=None,
-                              help="How many layers of bright stars to draw at once, each in its own "
+                              help="How many shells of bright stars to draw at once, each in its own "
                                    "low-priority worker process. Default: 80%% of this machine's cores "
                                    "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
     bright_group.add_argument('--bright-stars-down-to', type=finite_float, default=None, metavar='L_SUN',
-                              help="Go one layer dimmer on the stored plan: keep the bright stars already "
+                              help="Go one level dimmer on the stored plan: keep the bright stars already "
                                    "placed and add only those from L_SUN up to the level already scattered. "
                                    "Sectors already filled are left out (their own systems already reach "
                                    "that bright). Does nothing when L_SUN is not below the current level.")
@@ -1055,10 +982,6 @@ def add_plan_arguments(parser):
                                       "the note) of every planet and moon from its stored conditions, so a galaxy "
                                       "generated before a change to the rules agrees with a new one. Only those "
                                       "columns change; it can be stopped and run again.")
-    phenomena_group.add_argument('--fill-block-stats', action='store_true',
-                                 help="Rebuild the stored block totals the Galaxy Map's block ladder reads, "
-                                      "from the generated sectors and their stats. A `galaxy` run keeps them "
-                                      "current; this is for a table that is missing rows.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1080,8 +1003,8 @@ def validate_plan_args(args, parser):
         parser.error("--core-density and --bulge-amplitude must be 0 or more.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
-    if args.max_ring < 1:
-        parser.error("--max-ring must be a positive integer.")
+    if args.max_shell < 1:
+        parser.error("--max-shell must be a positive integer.")
     for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):
         if getattr(args, option) <= 0:
             parser.error(f"--{option.replace('_', '-')} must be a positive number.")
@@ -1130,17 +1053,11 @@ def validate_plan_args(args, parser):
                                      or args.no_bright_stars):
         parser.error("--fill-map-luminosity can't be combined with --redo-scatters, --redo-nebula-field, "
                      "--phenomena-only, --bright-stars-only, --bright-stars-down-to or --no-bright-stars.")
-    if args.fill_block_stats and (args.redo_scatters or args.redo_nebula_field or args.fill_map_luminosity
-                                  or args.phenomena_only or args.bright_stars_only
-                                  or args.bright_stars_down_to is not None or args.no_bright_stars):
-        parser.error("--fill-block-stats can't be combined with --redo-scatters, --redo-nebula-field, "
-                     "--fill-map-luminosity, --phenomena-only, --bright-stars-only, --bright-stars-down-to or "
-                     "--no-bright-stars.")
     if args.fill_habitability and (args.redo_scatters or args.redo_nebula_field or args.fill_map_luminosity
-                                   or args.fill_block_stats or args.phenomena_only or args.bright_stars_only
+                                   or args.phenomena_only or args.bright_stars_only
                                    or args.bright_stars_down_to is not None or args.no_bright_stars):
         parser.error("--fill-habitability can't be combined with --redo-scatters, --redo-nebula-field, "
-                     "--fill-map-luminosity, --fill-block-stats, --phenomena-only, --bright-stars-only, "
+                     "--fill-map-luminosity, --phenomena-only, --bright-stars-only, "
                      "--bright-stars-down-to or --no-bright-stars.")
     if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
         parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
@@ -1189,7 +1106,7 @@ def add_phenomenon_arguments(parser):
                               "planetgen.db.store.compute_phenomenon_placement). Also links a "
                               "supernova-remnant/rogue-planet/comet to that sector, without a computed "
                               "galaxy position (those types have no placement columns of their own). A "
-                              "quasar needs a ring-0, layer-0 (galactic core) sector and is placed at the galactic "
+                              "quasar needs a shell-0 (galactic core) sector and is placed at the galactic "
                               "center; only one per galaxy. Omit to generate it unplaced/unlinked, as before.")
 
     parser.add_argument('--no-settle', action='store_true',
@@ -1236,16 +1153,16 @@ def validate_phenomenon_args(args, parser):
 
 def add_fingerprint_arguments(parser):
     """
-    Adds the `fingerprint` subcommand's options: the region (`--ring`,
+    Adds the `fingerprint` subcommand's options: the region (`--shell`,
     `--sector`; the whole galaxy without either), and the MySQL connection
     and logging args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
     """
-    parser.add_argument('--ring', type=int, action='append', metavar='RING',
-                        help="Fingerprint every sector on this ring (repeatable).")
-    parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('RING', 'LAYER', 'SLOT'),
+    parser.add_argument('--shell', type=int, action='append', metavar='SHELL',
+                        help="Fingerprint every sector in this shell (repeatable).")
+    parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('SHELL', 'BAND', 'WEDGE'),
                         help="Fingerprint the sector at this address (repeatable).")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
@@ -1254,15 +1171,15 @@ def add_fingerprint_arguments(parser):
 def add_check_db_arguments(parser):
     """
     Adds the `check-db` subcommand's options: the sectors to scope the
-    value, count and version-key checks to (`--ring`, `--sector`), `--deep`,
+    value, count and version-key checks to (`--shell`, `--sector`), `--deep`,
     `--no-check-table`, and the MySQL connection and logging args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
     """
-    parser.add_argument('--ring', type=int, action='append', metavar='RING',
-                        help="Check only this ring's sectors for values, counts and version keys (repeatable).")
-    parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('RING', 'LAYER', 'SLOT'),
+    parser.add_argument('--shell', type=int, action='append', metavar='SHELL',
+                        help="Check only this shell's sectors for values, counts and version keys (repeatable).")
+    parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('SHELL', 'BAND', 'WEDGE'),
                         help="Check only the sector at this address for values, counts and version keys "
                              "(repeatable).")
     parser.add_argument('--deep', action='store_true',
@@ -1373,7 +1290,7 @@ def build_parser():
     fingerprint_parser = subparsers.add_parser(
         'fingerprint',
         description="Prints a canonical SHA-256 digest of each sector's generated content, and one for the "
-                    "region (the whole galaxy, plan included, without --ring or --sector), skipping row ids, "
+                    "region (the whole galaxy, plan included, without --shell or --sector), skipping row ids, "
                     "timestamps and what is rebuilt from positions (docs/design/reproducible-galaxies.md). "
                     "Two builds of one galaxy are the same when their digests match. Writes nothing.",
         help="Print a digest of the generated content, to compare two builds.")
@@ -1483,7 +1400,7 @@ def run_fingerprint(args):
     (`planetgen.db.fingerprint`, GEN.58)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        result = fingerprint.region_fingerprint(conn, rings=args.ring, addresses=args.sector)
+        result = fingerprint.region_fingerprint(conn, shells=args.shell, addresses=args.sector)
         warning = version_check.galaxy_warning(conn)
     finally:
         conn.close()
@@ -1497,7 +1414,7 @@ def run_check_db(args):
     """`planetgen check-db`: prints the database check's report; exits 1 on
     damage, 2 when a check could not run (DB.8)."""
     config = store.mysql_config_from_args(args)
-    scope = db_check.Scope(tuple(args.ring or ()), tuple(tuple(a) for a in args.sector or ()))
+    scope = db_check.Scope(tuple(args.shell or ()), tuple(tuple(a) for a in args.sector or ()))
     if args.estimate_only and not args.deep:
         raise SystemExit("check-db: --estimate-only is for --deep.")
     conn = store.get_connection(config, ensure_schema=False)

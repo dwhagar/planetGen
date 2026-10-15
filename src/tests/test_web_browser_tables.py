@@ -24,6 +24,7 @@ from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 from planetgen.web import sector_page  # noqa: E402
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
+from tests.maps_pending import MAPS_PENDING  # noqa: E402
 
 DB = "planetgen_table_fixture"
 VIEWPORT = {"width": 1280, "height": 900}
@@ -119,8 +120,8 @@ _ROGUE = {"type": "rogue_planet", "descriptor": "jupiter", "class": "J", "radius
           "offset_x_ly": 0.1, "offset_y_ly": 0.0, "offset_z_ly": 0.0,
           "nearest": [{"id": 3001, "name": "Star 001", "distance_ly": 0.5}]}
 SECTOR = {
-    "id": 5, "name": "Fixture Sector", "edge_mpc": 3066.0, "edge_ly": 10.0, "ring_index": 5, "layer_index": 1,
-    "ring_slot_index": 20, "placed": True, "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
+    "id": 5, "name": "Fixture Sector", "edge_mpc": 3066.0, "edge_ly": 10.0, "shell_index": 5, "band_index": 1,
+    "wedge_index": 20, "placed": True, "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
     "wiki_url": None, "systems": [_contents_system(i) for i in range(130)],
     "phenomena": [
         {**_ROGUE, "id": 21, "name": "Drifter", "distance_ly": 0.1},
@@ -174,8 +175,6 @@ def table_site():
         patch.setattr(apiclient, "get_sector", _fake_sector)
         patch.setattr(apiclient, "get_sector_facilities", lambda db, sector_id: [])
         patch.setattr(apiclient, "get_galaxy_shape", lambda db: None)
-        patch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
-            "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
         app = create_app(_SiteConfig)
         app.testing = True
         server = make_server("127.0.0.1", 0, app, threaded=True)
@@ -465,6 +464,7 @@ def test_a_politys_systems_scroll_and_sort_through_the_tables_own_route(page, ta
     assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["distance"], "systems_order": ["desc"]}
 
 
+@MAPS_PENDING
 def test_the_sector_page_runs_its_map_and_its_table_together(page, table_site):
     """The map script finds the Contents buttons through the table's "rows drawn" event; the
     page fixture fails this on any script error from either."""

@@ -23,7 +23,8 @@ import pytest
 
 from planetgen.db import query
 from planetgen.db import store
-from planetgen.galaxy.geometry import galactic_radius_pc, neighbor_addresses, sector_position_pc
+from planetgen.galaxy.frame import galactic_radius_pc
+from planetgen.galaxy.spherical import neighbor_addresses, sector_position_pc
 from planetgen.galaxy.sector import SpaceSector
 
 EDGE_PC = 4.0  # DEFAULT_SECTOR_EDGE_PC.
@@ -35,13 +36,13 @@ def _insert_placed_sector(conn, name, address):
     galaxy_position = {
         "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
         "galactic_radius_pc": galactic_radius_pc(position),
-        "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+        "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
     }
     return store.insert_sector(conn, SpaceSector(name=name), galaxy_position=galaxy_position)
 
 
 def _address(neighbor):
-    return neighbor["ring_index"], neighbor["layer_index"], neighbor["ring_slot_index"]
+    return neighbor["shell_index"], neighbor["band_index"], neighbor["wedge_index"]
 
 
 def test_sector_neighbors_reports_an_existing_neighbor_as_such(mysql_config):
@@ -86,10 +87,12 @@ def test_sector_neighbors_reports_every_not_yet_generated_neighbor_with_its_addr
 
     assert [_address(n) for n in neighbors] == neighbor_addresses(*ADDRESS)
     reported = {_address(n) for n in neighbors}
-    assert (ADDRESS[0], ADDRESS[1] + 1, ADDRESS[2]) in reported
-    assert (ADDRESS[0], ADDRESS[1] - 1, ADDRESS[2]) in reported
-    assert any(ring == ADDRESS[0] + 1 for ring, _layer, _slot in reported)
-    assert any(ring == ADDRESS[0] - 1 for ring, _layer, _slot in reported)
+    assert (ADDRESS[0], ADDRESS[1], ADDRESS[2] - 1) in reported
+    assert (ADDRESS[0], ADDRESS[1], ADDRESS[2] + 1) in reported
+    assert any(shell == ADDRESS[0] and band == ADDRESS[1] + 1 for shell, band, _wedge in reported)
+    assert any(shell == ADDRESS[0] and band == ADDRESS[1] - 1 for shell, band, _wedge in reported)
+    assert any(shell == ADDRESS[0] + 1 for shell, _band, _wedge in reported)
+    assert any(shell == ADDRESS[0] - 1 for shell, _band, _wedge in reported)
 
 
 def test_sector_neighbors_direction_points_at_the_neighbor(mysql_config):
@@ -102,8 +105,11 @@ def test_sector_neighbors_direction_points_at_the_neighbor(mysql_config):
     finally:
         conn.close()
 
-    above = next(n for n in neighbors if _address(n) == (ADDRESS[0], ADDRESS[1] + 1, ADDRESS[2]))
-    assert above["direction_pc"] == pytest.approx([0.0, 0.0, EDGE_PC], abs=1e-3)
+    beside = next(n for n in neighbors if _address(n) == (ADDRESS[0], ADDRESS[1], ADDRESS[2] + 1))
+    here = sector_position_pc(*ADDRESS, EDGE_PC)
+    there = sector_position_pc(*_address(beside), EDGE_PC)
+    assert beside["direction_pc"] == pytest.approx([there[i] - here[i] for i in range(3)], abs=1e-6)
+    assert beside["direction_pc"] != pytest.approx([0.0, 0.0, 0.0], abs=1e-3)
 
 
 def test_sector_neighbors_is_empty_for_a_sector_with_no_galaxy_placement(mysql_config):

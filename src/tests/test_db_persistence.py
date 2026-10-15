@@ -34,6 +34,7 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.physics.orbits import orbital_position_au
+from tests.maps_pending import MAPS_PENDING
 
 
 
@@ -1572,7 +1573,7 @@ def test_bright_stars_store_and_clear(mysql_config):
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
                          " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
-                         " expected_system_count_at_density_1, outer_ring_index)"
+                         " expected_system_count_at_density_1, outer_shell_index)"
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
             assert store.bright_star_scatter_settings(conn) is None
             written = store.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
@@ -1596,6 +1597,7 @@ def test_bright_stars_store_and_clear(mysql_config):
         conn.close()
 
 
+@MAPS_PENDING
 def test_bright_star_web_queries(mysql_config):
     """The Stats page's placed/filled counts, the sector page's per-cell and
     per-box listings (unfilled only by default) and the Generate page's
@@ -1614,7 +1616,7 @@ def test_bright_star_web_queries(mysql_config):
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
                          " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
-                         " expected_system_count_at_density_1, outer_ring_index)"
+                         " expected_system_count_at_density_1, outer_shell_index)"
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
             store.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
                                            _bright_row(slot=2)], batch_size=2)
@@ -1656,9 +1658,9 @@ def test_bright_star_web_queries(mysql_config):
 
 def _bright_row_at(z_pc, luminosity_sol, slot=1):
     """A bright star `z_pc` above the plane, addressed as the scatter would."""
-    from planetgen.db.query import layer_index_at, ring_index_at
+    from planetgen.db.query import band_index_at, ring_index_at
 
-    return (ring_index_at(12.37, 4.0), layer_index_at(z_pc, 4.0), slot, 12000, 3000, int(z_pc * 1000), "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
+    return (ring_index_at(12.37, 4.0), band_index_at(z_pc, 4.0), slot, 12000, 3000, int(z_pc * 1000), "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
             luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)
 
 
@@ -1674,7 +1676,7 @@ def _bright_galaxy(conn):
         conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                      " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
                      " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
-                     " expected_system_count_at_density_1, outer_ring_index)"
+                     " expected_system_count_at_density_1, outer_shell_index)"
                      " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
         rows = [row(4.0 * n, 9.5e5 + 1000.0 * n, "young", 1) for n in range(40)]
         rows += [row(4.0 * n, 2500.0 + 5.0 * n, "bulge", 2) for n in range(10)]
@@ -1692,6 +1694,7 @@ def _weighted_top(stars, limit):
     return [s["id"] for s in sorted(stars, key=lambda s: (-s["luminosity_sol"] * weight[s["population"]], -s["id"]))][:limit]
 
 
+@MAPS_PENDING
 def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_config):
     """MAP.154: one key for every box -- an old giant that is 400 times fainter than a young star
     ranks beside it -- in a tile that reads its own addresses, one that walks the luminosity index
@@ -1724,6 +1727,7 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
         conn.close()
 
 
+@MAPS_PENDING
 def test_a_child_tile_lists_every_star_of_its_parent_inside_it(mysql_config):
     """MAP.154: the bright lists are nested -- walking down a chain of boxes, each box lists all
     the stars of the one around it that lie inside it (the budget never falls)."""

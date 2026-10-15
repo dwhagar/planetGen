@@ -25,7 +25,7 @@ standard, unlike the 8-region octant workaround -- see `spaceSector.py`'s
 own module docstring).
 """
 
-from planetgen.galaxy import geometry
+from planetgen.galaxy import spherical
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 
 QUADRANT_LABELS = ("I", "II", "III", "IV")
@@ -36,19 +36,19 @@ sector-internal octant's Roman-numeral scheme."""
 
 ZONE_TARGET_LY = 100.0
 """float: The approximate light-year width a Zone should aim for.
-`ZONE_RING_WIDTH` is derived from this so Zone boundaries land close to
+`ZONE_SHELL_DEPTH` is derived from this so Zone boundaries land close to
 round light-year milestones (~100 ly, ~200 ly, ...) while still being a
-fixed number of the sector grid's own rings (`sectors.ring_index`, one
-sector edge wide) end to end."""
+fixed number of the sector grid's own shells (`sectors.shell_index`, one
+sector edge deep) end to end."""
 
-ZONE_RING_WIDTH = max(1, round(ZONE_TARGET_LY / DEFAULT_SECTOR_EDGE_LY))
-"""int: How many consecutive `ring_index` values make up one Zone."""
+ZONE_SHELL_DEPTH = max(1, round(ZONE_TARGET_LY / DEFAULT_SECTOR_EDGE_LY))
+"""int: How many consecutive `shell_index` values make up one Zone."""
 
 
 def sector_quadrant(x_pc, y_pc):
     """
     Labels a galaxy-frame `(x, y)` position with its Quadrant:
-    `planetgen.galaxy.geometry.sector_quadrant`'s 1-4 (four 90-degree
+    `planetgen.galaxy.spherical.sector_quadrant`'s 1-4 (four 90-degree
     bands of `theta = atan2(y, x)` starting at `+X`, matching
     `docs/design/galaxy-coordinate-system.md`'s own theta convention) as
     `"I"`-`"IV"`. Blind to `z`/height by design -- a Quadrant is purely
@@ -61,24 +61,25 @@ def sector_quadrant(x_pc, y_pc):
     Returns:
         str: One of `QUADRANT_LABELS` (`"I"`, `"II"`, `"III"`, `"IV"`).
     """
-    return QUADRANT_LABELS[geometry.sector_quadrant(x_pc, y_pc) - 1]
+    return QUADRANT_LABELS[spherical.sector_quadrant(x_pc, y_pc) - 1]
 
 
-def sector_zone(ring_index):
-    """The Zone index (a group of `ZONE_RING_WIDTH` consecutive rings)
-    that `ring_index` falls in (`planetgen.galaxy.geometry.sector_zone`)."""
-    return geometry.sector_zone(ring_index, DEFAULT_SECTOR_EDGE_LY, ZONE_TARGET_LY)
+def sector_zone(shell_index):
+    """The Zone index (a group of `ZONE_SHELL_DEPTH` consecutive shells)
+    that `shell_index` falls in (`planetgen.galaxy.spherical.sector_zone`)."""
+    return spherical.sector_zone(shell_index, DEFAULT_SECTOR_EDGE_LY, ZONE_TARGET_LY)
 
 
 def zone_bounds_ly(zone_index):
     """
-    The `(inner_ly, outer_ly)` cylindrical-radius bounds of Zone
-    `zone_index` -- ring `i` spans `[i * edge, (i + 1) * edge)`, so these
-    are exact ring boundaries, not the Zone's average radius.
+    The `(inner_ly, outer_ly)` distance-from-the-center bounds of Zone
+    `zone_index` -- shell `k` spans `[(k - 1/2) * edge, (k + 1/2) * edge)`
+    (shell 0 is the core ball), so these are exact shell boundaries, not
+    the Zone's average radius.
 
     Returns:
         tuple[float, float]: `(inner_ly, outer_ly)`.
     """
-    inner_ly = zone_index * ZONE_RING_WIDTH * DEFAULT_SECTOR_EDGE_LY
-    outer_ly = (zone_index + 1) * ZONE_RING_WIDTH * DEFAULT_SECTOR_EDGE_LY
+    inner_ly = max(0.0, (zone_index * ZONE_SHELL_DEPTH - 0.5) * DEFAULT_SECTOR_EDGE_LY)
+    outer_ly = ((zone_index + 1) * ZONE_SHELL_DEPTH - 0.5) * DEFAULT_SECTOR_EDGE_LY
     return inner_ly, outer_ly

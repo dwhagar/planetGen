@@ -46,8 +46,9 @@ VALUES_FUNCTION_ALLOWED = {
         "diminutive_index", "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
         "bulge_amplitude", "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "core_amplitude", "spiral_reference_radius_pc",
         "spiral_reference_angle_rad", "k_norm", "edge_pc", "expected_system_count_at_density_1",
-        "outer_ring_index",
+        "outer_shell_index",
     },
+    "planetgen/db/migrations/versions/0091_spherical_sectors.py": {"container"},
     "planetgen/population/model.py": {"scanned_planet_id"},
     "planetgen/generation/stats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
 }

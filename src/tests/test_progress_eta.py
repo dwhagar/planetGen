@@ -132,13 +132,13 @@ def test_the_generate_page_counts_the_eta_down(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# The bright-star scatter, one layer per task
+# The bright-star scatter, one shell per task
 # ---------------------------------------------------------------------------
 
-def test_layers_drawn_in_any_order_give_the_same_stars():
+def test_shells_drawn_in_any_order_give_the_same_stars():
     together = brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, 21)
-    apart = [row for layer, outer in reversed(EXTENTS)
-             for row in brightStars.scatter_layer(SHAPE, layer, outer, EDGE_PC, E_VALUE, THRESHOLD, 21)]
+    apart = [row for shell, high_band in reversed(EXTENTS)
+             for row in brightStars.scatter_shell(SHAPE, shell, high_band, EDGE_PC, E_VALUE, THRESHOLD, 21)]
     assert sorted(together) == sorted(apart)
 
 

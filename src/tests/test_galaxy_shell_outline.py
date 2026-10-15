@@ -2,10 +2,9 @@
 
 """
 Tests for the spherical-shell outline in `planetgen.galaxy.skeleton`
-(`build_shell_extents`, `ShellBounds`): one band range per shell, built by
+(`build_shell_extents`, `GalaxyBounds`): one band range per shell, built by
 bisection from the density bound, checked against an exhaustive scan of every
-band of a sample of shells and against the cylinder's outline for the default
-galaxy.
+band of a sample of shells and pinned for the default galaxy.
 """
 
 import math
@@ -17,11 +16,9 @@ from planetgen import tuning
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import build_galaxy_shape, relative_density
 from planetgen.galaxy.skeleton import (
-    ShellBounds,
+    GalaxyBounds,
     _band_qualifies,
-    build_layer_extents,
     build_shell_extents,
-    candidate_sector_count,
     expected_system_count_at_density_1,
     shell_candidate_counts,
     shell_candidate_sector_count,
@@ -71,16 +68,14 @@ def test_the_outline_narrows_with_distance_and_is_a_run_about_the_plane(milky_wa
     assert highs[3764] <= 3
 
 
-def test_candidate_cells_match_the_cylinder_within_the_polar_dip(milky_way):
-    """The cylinder holds 23,920,622,421 candidates. The study counted about 23.93 billion qualifying cells shell by
-    shell; the outline is one band range per shell, so it also holds the cells of shells 928 to 1020 between the
-    equatorial run and the polar one (the bound dips near the pole there), 1.2% more."""
+def test_the_default_galaxy_holds_about_the_study_s_cell_count(milky_way):
+    """The study counted about 23.93 billion qualifying cells shell by shell; the outline is one band range per
+    shell, so it also holds the cells of shells 928 to 1020 between the equatorial run and the polar one (the bound
+    dips near the pole there), 1.2% more."""
     extents, _outer, _confirmed = milky_way
-    cylinder = candidate_sector_count(build_layer_extents(MILKY_WAY, EDGE_PC, THRESHOLD)[0])
     shells = shell_candidate_sector_count(extents)
-    assert cylinder == 23_920_622_421
-    assert 0.99 * cylinder < shells < 1.02 * cylinder
-    assert shells == pytest.approx(24_204_797_995, rel=1e-9)
+    assert 0.99 * 23_930_000_000 < shells < 1.02 * 23_930_000_000
+    assert shells == 24_204_797_995
 
 
 @pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 927, 928, 960, 1000, 1020, 1021, 1500, 2500, 3500, 3764])
@@ -102,7 +97,7 @@ def test_walk_from_a_small_galaxy_matches_a_scan_of_every_shell():
 
 def test_every_sector_that_clears_the_threshold_is_inside_the_outline():
     extents, _outer, _confirmed = build_shell_extents(SMALL, EDGE_PC, THRESHOLD)
-    bounds = ShellBounds(extents, EDGE_PC)
+    bounds = GalaxyBounds(extents, EDGE_PC)
     rng = random.Random(1)
     inside = 0
     for _ in range(4000):
@@ -144,9 +139,9 @@ def test_nth_cell_walks_a_range_in_order():
         spherical.nth_cell_in_band_range(shell, high, len(cells))
 
 
-def test_shell_bounds_contains_describes_misses_and_counts():
+def test_galaxy_bounds_contains_describes_misses_and_counts():
     extents = [(0, 0), (1, 1), (2, 3), (3, 1)]
-    bounds = ShellBounds(extents, EDGE_PC)
+    bounds = GalaxyBounds(extents, EDGE_PC)
     assert bounds and bounds.outer_shell_index == 3
     assert bounds.contains(2, -3) and bounds.contains(2, 0) and not bounds.contains(3, 2) and not bounds.contains(4, 0)
     assert "shell 4" in bounds.describe_miss(4, 0)
@@ -155,20 +150,20 @@ def test_shell_bounds_contains_describes_misses_and_counts():
     assert [row[2] for row in shell_candidate_counts(extents)] == [1, 14, 50, spherical.cells_in_band_range(3, 1)]
 
 
-def test_shell_bounds_takes_stored_counts():
-    bounds = ShellBounds([(0, 0, 7), (1, 1, 11)], EDGE_PC)
+def test_galaxy_bounds_takes_stored_counts():
+    bounds = GalaxyBounds([(0, 0, 7), (1, 1, 11)], EDGE_PC)
     assert bounds.cell_count() == 18
 
 
 def test_an_empty_outline_is_falsy_and_offers_no_address():
-    bounds = ShellBounds([], EDGE_PC)
+    bounds = GalaxyBounds([], EDGE_PC)
     assert not bounds and bounds.outer_shell_index == -1 and bounds.cell_count() == 0
     assert bounds.random_address(random.Random(1)) is None
 
 
 def test_random_addresses_are_inside_the_outline_and_uniform_by_cell():
     extents, _outer, _confirmed = build_shell_extents(SMALL, EDGE_PC, THRESHOLD)
-    bounds = ShellBounds(extents, EDGE_PC)
+    bounds = GalaxyBounds(extents, EDGE_PC)
     rng = random.Random(9)
     first_shells = 0
     draws = 6000
@@ -183,7 +178,7 @@ def test_random_addresses_are_inside_the_outline_and_uniform_by_cell():
 
 def test_random_address_can_be_limited_to_inner_shells():
     extents, _outer, _confirmed = build_shell_extents(SMALL, EDGE_PC, THRESHOLD)
-    bounds = ShellBounds(extents, EDGE_PC)
+    bounds = GalaxyBounds(extents, EDGE_PC)
     rng = random.Random(4)
     assert all(bounds.random_address(rng, max_shell=2)[0] <= 2 for _ in range(300))
     assert bounds.random_address(rng, max_shell=0) == (0, 0, 0)

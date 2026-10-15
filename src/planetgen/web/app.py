@@ -41,6 +41,7 @@ def create_app(config_object=Config):
     # The HTML pages (planetgen/web/), imported here rather than at the top so
     # `import planetgen.web.app` stays cheap for callers that never build an app.
     from planetgen import web
+    from planetgen.web import maintenance_gate
 
     # /static/ is src/html/static/ -- Apache serves it directly in
     # production (examples/apache/); this only matters for the dev server
@@ -52,6 +53,7 @@ def create_app(config_object=Config):
                 static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
     naming.install(app)
+    maintenance_gate.install(app)  # UX.112: first, so a refused visitor reaches nothing behind it
     app.before_request(_reject_undecodable_query_string)
     app.before_request(_reject_oversized_body)
     ids.install(app)

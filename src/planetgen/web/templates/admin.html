@@ -16,6 +16,31 @@
     <li><a href="{{ page_url('account') }}">Account</a> <span class="hint">Change username or password.</span></li>
   </ul>
 </section>
+<section class="panel" id="maintenance" aria-labelledby="maintenance-heading">
+  <h2 id="maintenance-heading">Maintenance mode</h2>
+  {%- if maintenance.enabled %}
+  <p><strong>On.</strong> Every page and API call answers "being updated" to anyone but an admin
+    {%- if maintenance.since %}, since <time datetime="{{ maintenance.since }}">{{ maintenance.since }}</time>{% endif %}
+    {%- if maintenance.by %} (switched on by {{ maintenance.by }}){% endif %}.
+    {%- if maintenance.eta %} Visitors are told to expect it back: {{ maintenance.eta }}.{% endif %}</p>
+  {%- else %}
+  <p class="hint">Off. Turn it on while the maps are rebuilt: every page and API call then answers "being updated" to anyone but an admin, who signs in as usual.</p>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.admin') }}" class="search-form">
+    {{ csrf_field() }}
+    <div class="search-fields">
+      <label class="search-field">Expected finish (shown to visitors)
+        <input type="text" name="eta" maxlength="200" value="{{ maintenance.eta }}" placeholder="optional, e.g. about two hours" autocomplete="off">
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" name="action" value="maintenance_on" class="btn">{{ "Update the message" if maintenance.enabled else "Turn maintenance mode on" }}</button>
+      {%- if maintenance.enabled %}
+      <button type="submit" name="action" value="maintenance_off" class="btn">Turn maintenance mode off</button>
+      {%- endif %}
+    </div>
+  </form>
+</section>
 {%- if new_key %}
 <section class="panel" id="new-key">
   <h2>New API key: {{ new_key.label }}</h2>

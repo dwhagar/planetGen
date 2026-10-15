@@ -76,7 +76,7 @@ in the test suite's small fill. Moons are about 40%, then planets,
 the whole database, galaxy-wide tables and empty ones included."""
 
 GALAXY_WIDE_TABLES = frozenset({
-    "bright_stars", "galaxy_column", "galaxy_layer", "galaxy_shape", "generation_runs", "id_blocks",
+    "bright_stars", "galaxy_shape", "galaxy_shell", "generation_runs", "id_blocks",
     "schema_migrations", "sector_stats",
 })
 """frozenset: Tables a plan or the bright-star scatter fills for the
@@ -768,18 +768,18 @@ def stage_seconds(conn, stage_key, settings, limit=50):
     return found
 
 
-def job_layers_per_second(conn, settings=None, limit=50):
+def job_shells_per_second(conn, settings=None, limit=50):
     """
-    How many layers a whole generation job gets through in a second (PERF.55): the mean of the stored
-    whole-job rows (`stages.JOB_KEY`: every layer the scatter stages visited, the ones that placed nothing
+    How many shells a whole generation job gets through in a second (PERF.55): the mean of the stored
+    whole-job rows (`stages.JOB_KEY`: every shell the scatter stages visited, the ones that placed nothing
     included, over all the seconds of the run) whose settings match on every setting named in both, else
     the mean of all of them; `None` when none is stored.
     """
-    runs = [run for run in stage_history(conn, "job", limit) if run["metrics"].get("layers_per_second")]
+    runs = [run for run in stage_history(conn, "job", limit) if run["metrics"].get("shells_per_second")]
     if not runs:
         return None
     settings = settings or {}
     matching = [run for run in runs if all(run["settings"].get(name) == value
                                            for name, value in settings.items() if name in run["settings"])]
     pool = matching or runs
-    return sum(run["metrics"]["layers_per_second"] for run in pool) / len(pool)
+    return sum(run["metrics"]["shells_per_second"] for run in pool) / len(pool)

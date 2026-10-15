@@ -1,0 +1,39 @@
+{#- planetgen/web/templates/maintenance.html -- the page a visitor sees while maintenance mode is on (UX.112).
+
+A complete page of its own, not an extension of base.html: base.html's menus ask the galaxy database
+what to show, and this page has to work while that database is being rebuilt. Context: state
+(`admin/maintenance.read()`), message, refresh (seconds), admin (an admin is looking). -#}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Being updated - {{ site_name }}</title>
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<meta http-equiv="refresh" content="{{ refresh }}">
+<link rel="icon" type="image/svg+xml" href="{{ static_url('favicon.svg') }}">
+<script src="{{ static_url('theme.js') }}"></script>
+<link rel="stylesheet" href="{{ static_url('style.css') }}">
+</head>
+<body class="app">
+<main id="main" class="app-main" tabindex="-1">
+  <h1 class="page-title">{{ site_name }} is being updated</h1>
+  <section class="panel maintenance-panel">
+    <p>{{ message }}</p>
+    {%- if state.eta %}
+    <p><strong>Expected back:</strong> {{ state.eta }}</p>
+    {%- else %}
+    <p class="hint">There is no estimate for when it will finish yet.</p>
+    {%- endif %}
+    <p class="hint">This page checks again by itself every {{ refresh // 60 }} minutes and takes you to the site as soon as it is open.</p>
+    {%- if admin %}
+    <p>You are signed in as an admin, so the rest of the site works for you.
+      <a href="{{ url_for('web.admin') }}#maintenance">Maintenance mode switch</a></p>
+    {%- else %}
+    <p><a href="{{ url_for('web.login') }}">Admin login</a></p>
+    {%- endif %}
+  </section>
+</main>
+</body>
+</html>

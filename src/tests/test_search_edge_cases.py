@@ -40,7 +40,7 @@ def _insert_sectors(config, names, addressed=False):
                     x, y, z = sector_position_pc(5, 0, slot, 4.0)
                     conn.execute(
                         "INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc,"
-                        " galactic_radius_pc, ring_index, layer_index, ring_slot_index)"
+                        " galactic_radius_pc, shell_index, band_index, wedge_index)"
                         " VALUES (?, 4000, ?, ?, ?, ?, 5, 0, ?)",
                         (name, x, y, z, (x * x + y * y) ** 0.5, slot),
                     )

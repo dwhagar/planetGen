@@ -50,7 +50,7 @@ def test_without_then_scatter_the_three_scatter_stages_are_skipped_and_still_num
 
 
 def test_a_galaxy_run_with_an_address_has_one_sector_stage():
-    found = stages.galaxy_stages(_galaxy("--ring", "3", "--layer", "0"))
+    found = stages.galaxy_stages(_galaxy("--shell", "3", "--band", "0"))
     assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 8
 
 
@@ -152,7 +152,7 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     stages.begin(stages.galaxy_stages(args), args, "galaxy")
     stages.enter("start")
     stages.enter("mass")
-    stages.note(layers=40, layers_modified=7, objects=120)
+    stages.note(shells=40, shells_modified=7, objects=120)
     stages.enter("luminosity")
     stages.finish()
     conn = _control(mysql_config)
@@ -162,8 +162,8 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
         conn.close()
     assert history["mass"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0}
     metrics = dict(history["mass"]["metrics"])
-    assert metrics.pop("seconds_per_layer") == pytest.approx(history["mass"]["seconds"] / 40)
-    assert metrics == {"layers": 40, "layers_modified": 7, "objects": 120}
+    assert metrics.pop("seconds_per_shell") == pytest.approx(history["mass"]["seconds"] / 40)
+    assert metrics == {"shells": 40, "shells_modified": 7, "objects": 120}
     assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
     assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
     assert history["population"]["skipped"] and "population pass" in history["population"]["skip_reason"]
@@ -224,7 +224,7 @@ def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(contr
 
 # --- PERF.55: the whole job's layers per second, and the command line's overall bar -------
 
-def test_the_whole_job_stores_its_layers_per_second_over_all_its_layers(control_config, monkeypatch):
+def test_the_whole_job_stores_its_shells_per_second_over_all_its_layers(control_config, monkeypatch):
     mysql_config = control_config
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
@@ -233,20 +233,20 @@ def test_the_whole_job_stores_its_layers_per_second_over_all_its_layers(control_
                    "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
     stages.begin(stages.galaxy_stages(args), args, "galaxy")
     stages.enter("mass")
-    stages.note(layers=40, layers_modified=0, objects=0)    # a pass that placed nothing still visited its layers
+    stages.note(shells=40, shells_modified=0, objects=0)    # a pass that placed nothing still visited its layers
     stages.enter("luminosity")
-    stages.note(layers=60, layers_modified=5, objects=9)
+    stages.note(shells=60, shells_modified=5, objects=9)
     stages.finish()
     conn = _control(mysql_config)
     try:
         (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
-        rate = generation_stats.job_layers_per_second(conn, {"workers": 2, "mass_limit_sol": 16.0})
-        fallback = generation_stats.job_layers_per_second(conn, {"workers": 2})
+        rate = generation_stats.job_shells_per_second(conn, {"workers": 2, "mass_limit_sol": 16.0})
+        fallback = generation_stats.job_shells_per_second(conn, {"workers": 2})
     finally:
         conn.close()
-    assert job["metrics"]["layers"] == 100 and job["seconds"] > 0
-    assert job["metrics"]["layers_per_second"] == pytest.approx(100 / job["seconds"])
-    assert job["settings"]["mass_limit_sol"] == 16.0 and rate == pytest.approx(job["metrics"]["layers_per_second"])
+    assert job["metrics"]["shells"] == 100 and job["seconds"] > 0
+    assert job["metrics"]["shells_per_second"] == pytest.approx(100 / job["seconds"])
+    assert job["settings"]["mass_limit_sol"] == 16.0 and rate == pytest.approx(job["metrics"]["shells_per_second"])
     assert fallback == pytest.approx(rate)
 
 
@@ -263,9 +263,9 @@ def test_a_run_that_visited_no_layers_still_stores_its_whole_process_row(control
     conn = _control(mysql_config)
     try:
         (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
-        assert job["metrics"] == {"stages_run": 1, "layers": 0} and job["seconds"] >= 0
+        assert job["metrics"] == {"stages_run": 1, "shells": 0} and job["seconds"] >= 0
         assert generation_stats.stage_history(conn, stages.SCATTER_KEY) == []
-        assert generation_stats.job_layers_per_second(conn) is None
+        assert generation_stats.job_shells_per_second(conn) is None
     finally:
         conn.close()
 
@@ -279,10 +279,10 @@ def test_the_scatters_are_stored_on_their_own_and_added_up_for_a_scatter_with_no
                    "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
     stages.begin(stages.galaxy_stages(args), args, "galaxy")
     stages.enter("mass")
-    stages.note(layers=40, objects=10)
+    stages.note(shells=40, objects=10)
     time.sleep(0.02)
     stages.enter("luminosity")
-    stages.note(layers=60, objects=5)
+    stages.note(shells=60, objects=5)
     time.sleep(0.02)
     stages.finish()
     conn = _control(mysql_config)
@@ -294,9 +294,9 @@ def test_the_scatters_are_stored_on_their_own_and_added_up_for_a_scatter_with_no
         link = generation_stats.stage_seconds(conn, "link", {"workers": 2})
     finally:
         conn.close()
-    assert scatter["metrics"]["operations"] == 2 and scatter["metrics"]["layers"] == 100
+    assert scatter["metrics"]["operations"] == 2 and scatter["metrics"]["shells"] == 100
     assert scatter["metrics"]["objects"] == 15
-    assert scatter["metrics"]["seconds_per_layer"] == pytest.approx(scatter["seconds"] / 100)
+    assert scatter["metrics"]["seconds_per_shell"] == pytest.approx(scatter["seconds"] / 100)
     assert mass != luminosity                      # each kind keeps its own figure
     assert phenomena == pytest.approx(scatter["seconds"] / 2)    # a scatter never run takes the common one
     assert link is None                            # any other stage has no common figure

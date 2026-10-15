@@ -127,14 +127,14 @@ def _generate(mysql_config, monkeypatch, *argv):
 
 def test_every_run_that_changes_the_galaxy_is_recorded(mysql_config, monkeypatch):
     monkeypatch.setattr(secrets, "randbits", lambda bits: 0xABC)
-    _generate(mysql_config, monkeypatch, "plan", "--no-bright-stars", "--max-ring", "40",
+    _generate(mysql_config, monkeypatch, "plan", "--no-bright-stars", "--max-shell", "40",
               "--seed", galaxySeed.format_seed(SEED))
-    _generate(mysql_config, monkeypatch, "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
+    _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
               "--backfill-from", "none")
     runs = _runs(mysql_config)
     assert [run["command"] for run in runs] == ["plan", "galaxy"]
     plan, galaxy = runs
-    assert _arguments(mysql_config, plan["id"]) == ["plan", "--no-bright-stars", "--max-ring", "40",
+    assert _arguments(mysql_config, plan["id"]) == ["plan", "--no-bright-stars", "--max-shell", "40",
                                                     "--seed", galaxySeed.format_seed(SEED)]
     assert "--mysql-password" not in _arguments(mysql_config, galaxy["id"])
     # The plan ran before the galaxy had a seed; the galaxy run against it.
@@ -150,11 +150,11 @@ def test_every_run_that_changes_the_galaxy_is_recorded(mysql_config, monkeypatch
 def test_a_failed_run_says_so_and_an_estimate_writes_nothing(mysql_config, monkeypatch):
     with pytest.raises(SystemExit):
         # No plan yet: the galaxy run refuses.
-        _generate(mysql_config, monkeypatch, "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1")
+        _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1")
     assert [(run["command"], run["outcome"]) for run in _runs(mysql_config)] == [("galaxy", "failed")]
 
-    _seed_skeleton(mysql_config, layers=[(0, 5)])
-    _generate(mysql_config, monkeypatch, "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
+    _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
               "--estimate-only")
     assert len(_runs(mysql_config)) == 1
 
@@ -164,8 +164,8 @@ def test_the_history_never_stops_a_run(mysql_config, monkeypatch):
         raise RuntimeError("no history table")
 
     monkeypatch.setattr(store, "start_generation_run", broken)
-    _seed_skeleton(mysql_config, layers=[(0, 5)])
-    _generate(mysql_config, monkeypatch, "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
+    _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
               "--backfill-from", "none")
     assert _runs(mysql_config) == []
 
@@ -181,11 +181,11 @@ def test_the_run_line():
     assert versionKey.run_line(None, "plan").startswith("Galaxy seed none yet, PlanetGen ")
 
 
-GALAXY_RUN = ["galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1", "--backfill-from", "none"]
+GALAXY_RUN = ["galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1", "--backfill-from", "none"]
 
 
 def test_a_run_writes_its_seed_and_version_first(mysql_config, monkeypatch, capsys):
-    _seed_skeleton(mysql_config, galaxy_seed=SEED, layers=[(0, 5)])
+    _seed_skeleton(mysql_config, galaxy_seed=SEED, shells=[(0, 0), (1, 1)])
     capsys.readouterr()
     _generate(mysql_config, monkeypatch, *GALAXY_RUN)
     lines = capsys.readouterr().out.splitlines()
@@ -195,7 +195,7 @@ def test_a_run_writes_its_seed_and_version_first(mysql_config, monkeypatch, caps
 
 
 def test_a_plan_names_the_seed_it_was_given_or_none_yet(mysql_config, monkeypatch, capsys):
-    plan = ["plan", "--no-bright-stars", "--max-ring", "40"]
+    plan = ["plan", "--no-bright-stars", "--max-shell", "40"]
     _generate(mysql_config, monkeypatch, *plan)
     assert capsys.readouterr().out.splitlines()[0] == versionKey.run_line(None, " ".join(plan))
     # A new seed for a galaxy with no sectors yet: the line names the one given.
@@ -206,7 +206,7 @@ def test_a_plan_names_the_seed_it_was_given_or_none_yet(mysql_config, monkeypatc
 
 
 def test_the_line_is_first_in_a_debug_file_too(mysql_config, monkeypatch, tmp_path, capsys):
-    _seed_skeleton(mysql_config, galaxy_seed=SEED, layers=[(0, 5)])
+    _seed_skeleton(mysql_config, galaxy_seed=SEED, shells=[(0, 0), (1, 1)])
     debug = tmp_path / "run.log"
     _generate(mysql_config, monkeypatch, *GALAXY_RUN, "--debug", str(debug))
     first = debug.read_text(encoding="utf-8").splitlines()[0]

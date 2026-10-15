@@ -8,8 +8,8 @@ system around each of its pre-placed stars (`fill_context`, used by
 stars only, so its expected total is unchanged.
 
 The scatter is object first, never sector by sector (a full galaxy has
-billions of cells): a layer draws one Poisson count of candidates from a
-certified density bound, gives each a ring, a slot and a point, and keeps it
+billions of cells): a shell draws one Poisson count of candidates from a
+certified density bound, gives each a band, a wedge and a point, and keeps it
 with probability true density over bound (`generation/object_first.py`,
 PERF.58). Every cell inside the outline can hold one, however sparse
 (GEN.78): the density never falls below the halo floor
@@ -39,14 +39,15 @@ backfill took deeper) are split into fixed luminosity bands
 random stream and then cut to the range asked for (GEN.44). So a
 sector's stars between two levels never depend on the steps taken to get
 there: down to 1000 Lsun and later down to 500 gives exactly the stars
-one draw down to 500 gives. The galaxy-wide layer scatter keeps one
-stream per layer and band run: splitting it the same way would cost
+one draw down to 500 gives. The galaxy-wide shell scatter keeps one
+stream per shell and band run: splitting it the same way would cost
 about four times the draws (a narrow band is drawn by redrawing the
 stars that overshoot it).
 """
 
 import bisect
 import collections
+import functools
 import math
 
 import numpy as np
@@ -54,15 +55,16 @@ import numpy as np
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.galaxy.density import population_densities, population_densities_array
-from planetgen.galaxy.geometry import (
+from planetgen.galaxy.spherical import (
+    band_center_pc,
+    band_colatitude_bounds,
+    cell_volume,
     galaxy_to_local_pc,
-    layer_bounds_pc,
-    layer_center_z_pc,
-    ring_bounds_pc,
-    ring_radius_pc,
-    ring_sector_count,
     sector_address_at,
     sector_position_pc,
+    shell_bounds_pc,
+    wedge_count,
+    wedge_longitude_bounds,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import object_first
@@ -79,12 +81,12 @@ POPULATIONS = ("young", "intermediate", "old", "bulge")
 splits a position's density into, each scattered on its own."""
 
 ANGLE_BINS = 32
-"""int: How many angle bins a ring's density is averaged over (fewer when
-the ring has fewer slots). The spiral arms' density varies smoothly over
+"""int: How many longitude bins a band's density is averaged over (fewer when
+the band has fewer wedges). The spiral arms' density varies smoothly over
 a bin this size."""
 
 CANDIDATE_REPORT = 512
-"""int: How many candidates a layer tries between progress reports (PERF.4)."""
+"""int: How many candidates a shell tries between progress reports (PERF.4)."""
 
 SLOT_REDRAWS = 8
 """int: How many points a star tries before giving up when rounding to
@@ -163,69 +165,55 @@ def _densities_at(points, z, shape):
     return [{population: column[i] for population, column in columns.items()} for i in range(len(points))]
 
 
-def _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc):
-    """Per angle bin, the population densities at the ring's centerline.
-    No bin is zeroed for being sparse (GEN.78): every cell in the outline
-    keeps its chance of a bright star."""
-    slots = ring_sector_count(ring_index)
-    count = min(slots, ANGLE_BINS)
-    radius = ring_radius_pc(ring_index, edge_pc)
-    z = layer_center_z_pc(layer_index, edge_pc)
-    points = []
-    for k in range(count):
-        theta = (k + 0.5) * 2 * math.pi / count
-        points.append((radius * math.cos(theta), radius * math.sin(theta)))
-    return slots, _densities_at(points, z, shape)
+def _band_bins(shell_index, band_index, high_band, shape, edge_pc, bins=ANGLE_BINS):
+    """
+    Per band `-high_band .. high_band` of a shell, the population densities at the band's centreline
+    in `bins` longitude bins (fewer where the band has fewer wedges): `[(wedges, [densities per bin])]`.
+    No bin is zeroed for being sparse (GEN.78): every cell in the outline keeps its chance of a bright star.
+    """
+    out = []
+    for band in range(-high_band, high_band + 1):
+        wedges = wedge_count(shell_index, band)
+        count = min(wedges, bins)
+        plane, z = band_center_pc(shell_index, band, edge_pc)
+        points = [(plane * math.cos(theta), plane * math.sin(theta))
+                  for theta in ((k + 0.5) * 2 * math.pi / count for k in range(count))]
+        out.append((wedges, _densities_at(points, z, shape)))
+    return out
 
 
-def _place_one(rng, weights, ring_index, layer_index, slots, edge_pc):
-    """A uniform point in a slot of a bin picked by `weights`, as `(slot,
-    (x, y, z))` in whole milliparsecs (as stored), or `None` if rounding
-    carried every try over its cell's edge (a point that does is redrawn)."""
-    total = sum(weights)
-    bin_width = 2 * math.pi / len(weights)
-    slot_width = 2 * math.pi / slots
-    for _ in range(SLOT_REDRAWS):
-        pick = rng.random() * total
-        for k, weight in enumerate(weights):
-            if pick < weight:
-                break
-            pick -= weight
-        else:
-            # Rounding left `pick` past every bin: the last one with any
-            # weight, never a trailing zero-weight one (TEST.24).
-            k = max(index for index, weight in enumerate(weights) if weight > 0)
-        theta = (k + rng.random()) * bin_width
-        slot = min(int(theta / slot_width), slots - 1)
-        stored = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
-        if stored is not None:
-            return slot, stored
-    return None
+@functools.lru_cache(maxsize=65536)
+def volume_ratio(shell_index, band_index, edge_pc):
+    """A cell of the band's volume in edge cubes (the cells of a shell differ a little, and near the poles a lot);
+    every expected count scales with it, as a sector's own does."""
+    return cell_volume(shell_index, band_index, 0, edge_pc) / edge_pc ** 3
 
 
-def _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
+def _point_in_cell(rng, shell_index, band_index, wedge, edge_pc):
     """A uniform point in one cell in whole milliparsecs, or `None` when
     rounding carried it over the cell's edge."""
-    stored = _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
-    return stored if _stored_in_cell(stored, ring_index, layer_index, slot, edge_pc) else None
+    stored = _draw_point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
+    return stored if _stored_in_cell(stored, shell_index, band_index, wedge, edge_pc) else None
 
 
-def _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
+def _draw_point_in_cell(rng, shell_index, band_index, wedge, edge_pc):
     """A uniform point in one cell in whole milliparsecs, not yet checked to have stayed in it after rounding
     (`_stored_in_cell`): the object-first scatter checks only the candidates it keeps."""
-    slot_width = 2 * math.pi / slots
-    r_low, r_high = ring_bounds_pc(ring_index, edge_pc)
-    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
-    theta = (slot + rng.random()) * slot_width
-    # Uniform over the cell's area, which grows with radius.
-    radius = math.sqrt(rng.uniform(r_low * r_low, r_high * r_high))
-    point = (radius * math.cos(theta), radius * math.sin(theta), rng.uniform(z_low, z_high))
+    r_low, r_high = shell_bounds_pc(shell_index, edge_pc)
+    north, south = band_colatitude_bounds(shell_index, band_index)
+    start, end = wedge_longitude_bounds(shell_index, band_index, wedge)
+    # Uniform over the cell's volume: the cube of the radius and the cosine of the colatitude are uniform.
+    radius = rng.uniform(r_low ** 3, r_high ** 3) ** (1.0 / 3.0)
+    cos_colat = rng.uniform(math.cos(south), math.cos(north))
+    lon = rng.uniform(start, end)
+    plane = radius * math.sqrt(max(0.0, 1.0 - cos_colat * cos_colat))
+    point = (plane * math.cos(lon), plane * math.sin(lon), radius * cos_colat)
     return tuple(round(value * MPC_PER_PC) for value in point)
 
 
-def _stored_in_cell(stored, ring_index, layer_index, slot, edge_pc):
+def _stored_in_cell(stored, shell_index, band_index, wedge, edge_pc):
     """Whether a stored point (whole milliparsecs) is still in the cell after rounding."""
-    return sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (ring_index, layer_index, slot)
+    return sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (shell_index, band_index, wedge)
 
 
 def _finite_or_none(value):
@@ -234,11 +222,11 @@ def _finite_or_none(value):
     return value if value is None or math.isfinite(value) else None
 
 
-def _row(ring_index, layer_index, slot, point, population, params, rng):
+def _row(shell_index, band_index, wedge, point, population, params, rng):
     """One star in `_db.BRIGHT_STAR_COLUMNS` order."""
     x, y, z = point
     return (
-        ring_index, layer_index, slot,
+        shell_index, band_index, wedge,
         x, y, z,
         population, params["type"], params["yerkes_class"], params["mass_kg"],
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
@@ -248,26 +236,26 @@ def _row(ring_index, layer_index, slot, point, population, params, rng):
 
 
 def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
-            skip_addresses=None, on_layer=None, max_luminosity_sol=None, mass_range=None):
+            skip_addresses=None, on_shell=None, max_luminosity_sol=None, mass_range=None):
     """
     Draws and places every bright star in the galaxy's outline, one
-    layer after another (`scatter_layer`), or, with `max_luminosity_sol`,
-    only the band below it (a staged scatter going one layer dimmer keeps
+    shell after another (`scatter_shell`), or, with `max_luminosity_sol`,
+    only the band below it (a staged scatter going one level dimmer keeps
     the brighter stars already placed).
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
-        extents (list): `(layer_index, outer_ring_index)` per layer, as
-            `galaxySkeleton.build_layer_extents` returns.
+        extents (list): `(shell_index, high_band)` per shell, as
+            `galaxySkeleton.build_shell_extents` returns them.
         edge_pc (float): The sector edge.
         expected_at_density_1 (float): Systems per sector at density 1.
         min_luminosity_sol (float): The threshold, in solar luminosities.
         seed (int): The scatter's seed; the same seed and outline give the
             same stars.
-        skip_addresses (set, optional): `(ring, layer, slot)` cells to leave
+        skip_addresses (set, optional): `(shell, band, wedge)` cells to leave
             out (sectors already filled).
-        on_layer (callable, optional): Called as `on_layer(done, total)`
-            after each layer.
+        on_shell (callable, optional): Called as `on_shell(done, total)`
+            after each shell.
         max_luminosity_sol (float, optional): The band's upper limit
             (exclusive), the level already scattered; `None` for every
             star at or above the threshold.
@@ -279,12 +267,12 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    for done, (layer_index, outer_ring) in enumerate(extents, start=1):
-        yield from scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
+    for done, (shell_index, high_band) in enumerate(extents, start=1):
+        yield from scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                                  min_luminosity_sol, seed, skip_addresses, max_luminosity_sol=max_luminosity_sol,
                                  mass_range=mass_range)
-        if on_layer is not None:
-            on_layer(done, len(extents))
+        if on_shell is not None:
+            on_shell(done, len(extents))
 
 
 def band_fractions(min_luminosity_sol, max_luminosity_sol=None, mass_range=None):
@@ -294,82 +282,89 @@ def band_fractions(min_luminosity_sol, max_luminosity_sol=None, mass_range=None)
             for population in POPULATIONS}
 
 
-RING_WEIGHT_STARS = 5.0
-"""float: What walking one ring of a layer costs, in stars drawn: a
-ring's density bins take about as long as placing and drawing five
+BAND_WEIGHT_STARS = 5.0
+"""float: What walking one band of a shell costs, in stars drawn: a
+band's density bins take about as long as placing and drawing five
 stars (measured 2026-10-01: 0.2 ms a ring against about 40 us a star),
-so an empty edge layer still counts for something (PERF.9). The phenomena
-pass still walks its rings; the star passes do not (`OBJECT_FIRST_RING_WEIGHT_STARS`)."""
+so an empty edge shell still counts for something (PERF.9). The phenomena
+pass still walks its bands; the star passes do not (`OBJECT_FIRST_BAND_WEIGHT_STARS`)."""
 
-OBJECT_FIRST_RING_WEIGHT_STARS = 0.02
-"""float: What one ring of a star layer costs, in stars drawn, with the
-object-first sampler (PERF.58): its density bound, about 1.2 us a ring
+OBJECT_FIRST_BAND_WEIGHT_STARS = 0.02
+"""float: What one band of a star shell costs, in stars drawn, with the
+object-first sampler (PERF.58): its density bound, about 1.2 us a band
 against about 60 us a star."""
 
-WEIGHT_RING_SAMPLES = 48
-"""int: Rings sampled per layer by `layer_weight` (evenly spaced)."""
+WEIGHT_BAND_SAMPLES = 48
+"""int: Bands sampled per shell by `shell_weight` (evenly spaced)."""
 
 WEIGHT_ANGLE_BINS = 8
-"""int: Angle bins per sampled ring in `layer_weight`."""
+"""int: Angle bins per sampled band in `shell_weight`."""
 
 
-def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions,
-                         ring_samples=WEIGHT_RING_SAMPLES, angle_bins=WEIGHT_ANGLE_BINS):
+def sampled_band_expectations(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions,
+                              band_samples=WEIGHT_BAND_SAMPLES, angle_bins=WEIGHT_ANGLE_BINS):
     """
-    About how many bright stars `scatter_layer` will place in one layer:
-    the same per-ring expected counts it draws its Poisson counts from,
-    on `ring_samples` evenly spaced rings with `angle_bins` bins each
-    instead of every ring with `ANGLE_BINS`, so the whole galaxy takes a
-    second or two rather than as long as a scatter (PERF.9).
+    The expected bright stars of a shell on `band_samples` evenly spaced bands with `angle_bins` bins each:
+    `[(band, plane_radius_pc, z_pc, expected)]`, each `expected` scaled up by the bands it stands for, so they
+    add up to the shell's.
+    """
+    bands = 2 * high_band + 1
+    if high_band < 0 or sum(fractions.values()) <= 0.0:
+        return []
+    count = min(bands, band_samples)
+    step = bands / count
+    out = []
+    for k in range(count):
+        band = -high_band + min(int((k + 0.5) * step), bands - 1)
+        wedges = wedge_count(shell_index, band)
+        bins = min(wedges, angle_bins)
+        plane, z = band_center_pc(shell_index, band, edge_pc)
+        points = [(plane * math.cos(theta), plane * math.sin(theta))
+                  for theta in ((j + 0.5) * 2 * math.pi / bins for j in range(bins))]
+        band_expected = 0.0
+        for densities in _densities_at(points, z, shape):
+            band_expected += sum(densities[population] * fractions[population] for population in POPULATIONS)
+        out.append((band, plane, z, expected_at_density_1 * wedges * volume_ratio(shell_index, band, edge_pc) / bins
+                    * band_expected * step))
+    return out
+
+
+def shell_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions,
+                         band_samples=WEIGHT_BAND_SAMPLES, angle_bins=WEIGHT_ANGLE_BINS):
+    """
+    About how many bright stars `scatter_shell` will place in one shell:
+    the same per-band expected counts it draws its Poisson counts from,
+    on `band_samples` evenly spaced bands with `angle_bins` bins each, so the
+    whole galaxy takes a second or two rather than as long as a scatter (PERF.9).
 
     Args:
         fractions (dict): `band_fractions`.
     """
-    rings = outer_ring + 1
-    if rings <= 0:
-        return 0.0
-    count = min(rings, ring_samples)
-    step = rings / count
-    total_fraction = sum(fractions.values())
-    if total_fraction <= 0.0:
-        return 0.0
-    z = layer_center_z_pc(layer_index, edge_pc)
-    expected = 0.0
-    for k in range(count):
-        ring_index = min(int((k + 0.5) * step), rings - 1)
-        slots = ring_sector_count(ring_index)
-        bins = min(slots, angle_bins)
-        radius = ring_radius_pc(ring_index, edge_pc)
-        ring_expected = 0.0
-        points = [(radius * math.cos(theta), radius * math.sin(theta))
-                  for theta in ((j + 0.5) * 2 * math.pi / bins for j in range(bins))]
-        for densities in _densities_at(points, z, shape):
-            ring_expected += sum(densities[population] * fractions[population] for population in POPULATIONS)
-        expected += expected_at_density_1 * slots / bins * ring_expected * step
-    return expected
+    return sum(item[3] for item in sampled_band_expectations(
+        shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, band_samples, angle_bins))
 
 
-def layer_weight(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions):
+def shell_weight(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions):
     """
-    The work one layer of the scatter is expected to take, in stars: its
-    expected stars (`layer_expected_stars`) plus `OBJECT_FIRST_RING_WEIGHT_STARS`
-    per ring bounded. The bright-star progress bar and its ETA count these, so
-    the near-empty layers at the top and bottom of the disk no longer
+    The work one shell of the scatter is expected to take, in stars: its
+    expected stars (`shell_expected_stars`) plus `OBJECT_FIRST_BAND_WEIGHT_STARS`
+    per band bounded. The bright-star progress bar and its ETA count these, so
+    the near-empty shells at the edge of the disk no longer
     count as much as the dense ones in the middle (PERF.9).
 
     Returns:
         tuple: `(weight, expected_stars)`.
     """
-    expected = layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions)
-    return expected + OBJECT_FIRST_RING_WEIGHT_STARS * (outer_ring + 1), expected
+    expected = shell_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions)
+    return expected + OBJECT_FIRST_BAND_WEIGHT_STARS * (2 * high_band + 1), expected
 
 
-def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
+def _spots(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
            check=False, on_candidates=None):
     """
-    The stars of one layer, object first (PERF.58, `generation/object_first.py`):
-    one Poisson count of candidates from the layer's density majorant, each
-    given a ring, a slot and a point, and kept with probability true density
+    The stars of one shell, object first (PERF.58, `generation/object_first.py`):
+    one Poisson count of candidates from the shell's density majorant, each
+    given a band, a wedge and a point, and kept with probability true density
     over majorant. A star in a skipped sector is dropped (thinning); a sector
     takes up to its capacity (`object_first.sector_capacity`).
 
@@ -380,13 +375,15 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
             candidates.
 
     Yields:
-        tuple: `(ring_index, slot, point, population)`, `point` in whole milliparsecs.
+        tuple: `(band_index, wedge, point, population)`, `point` in whole milliparsecs.
     """
-    if sum(fractions.values()) <= 0.0 or outer_ring < 0:
+    if sum(fractions.values()) <= 0.0 or high_band < 0:
         return
-    majorants = object_first.ring_majorants(shape, layer_index, outer_ring, edge_pc, fractions)
-    slot_counts = [ring_sector_count(ring_index) for ring_index in range(outer_ring + 1)]
-    cumulative = np.cumsum(expected_at_density_1 * np.array(slot_counts, dtype=float) * majorants)
+    majorants = object_first.band_majorants(shape, shell_index, high_band, edge_pc, fractions)
+    bands = list(range(-high_band, high_band + 1))
+    wedge_counts = [wedge_count(shell_index, band) for band in bands]
+    volumes = np.array([volume_ratio(shell_index, band, edge_pc) for band in bands])
+    cumulative = np.cumsum(expected_at_density_1 * np.array(wedge_counts, dtype=float) * volumes * majorants)
     total_mean = float(cumulative[-1])
     if not total_mean > 0.0:
         return
@@ -398,26 +395,27 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
     for done in range(candidates):
         if on_candidates is not None and done % CANDIDATE_REPORT == 0:
             on_candidates(done, candidates, taken)
-        ring_index = min(bisect.bisect_right(cumulative, rng.random() * total_mean), outer_ring)
-        slots = slot_counts[ring_index]
-        slot = min(int(rng.random() * slots), slots - 1)
-        point = _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+        pick = min(bisect.bisect_right(cumulative, rng.random() * total_mean), len(bands) - 1)
+        band_index = bands[pick]
+        wedges = wedge_counts[pick]
+        wedge = min(int(rng.random() * wedges), wedges - 1)
+        point = _draw_point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
         densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
         weights = [densities[population] * fractions[population] for population in POPULATIONS]
         wanted = sum(weights)
-        if check and wanted > bounds[ring_index] * (1.0 + 1e-9):
-            raise AssertionError(f"majorant violated in ring {ring_index} of layer {layer_index}: "
-                                 f"{wanted} > {bounds[ring_index]}")
-        if rng.random() * bounds[ring_index] >= wanted:
+        if check and wanted > bounds[pick] * (1.0 + 1e-9):
+            raise AssertionError(f"majorant violated in band {band_index} of shell {shell_index}: "
+                                 f"{wanted} > {bounds[pick]}")
+        if rng.random() * bounds[pick] >= wanted:
             continue
-        address = (ring_index, layer_index, slot)
-        if address in skip_addresses or not _stored_in_cell(point, ring_index, layer_index, slot, edge_pc):
+        address = (shell_index, band_index, wedge)
+        if address in skip_addresses or not _stored_in_cell(point, shell_index, band_index, wedge, edge_pc):
             continue
         held = kept.get(address, 0)
         if held:
-            centre = _densities(sector_position_pc(ring_index, layer_index, slot, edge_pc), shape)
-            expected = expected_at_density_1 * sum(centre[population] * fractions[population]
-                                                    for population in POPULATIONS)
+            centre = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
+            expected = (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc)
+                        * sum(centre[population] * fractions[population] for population in POPULATIONS))
             if held >= object_first.sector_capacity(expected):
                 continue
         kept[address] = held + 1
@@ -429,25 +427,25 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
                 break
         else:
             population = max(zip(POPULATIONS, weights), key=lambda item: item[1])[0]
-        yield ring_index, slot, point, population
+        yield band_index, wedge, point, population
     if on_candidates is not None:
         on_candidates(candidates, candidates, taken)
 
 
-def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
+def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
                   skip_addresses=None, max_luminosity_sol=None, on_progress=None, mass_range=None, check=False):
     """
-    One layer of `scatter`: every bright star from ring 0 out to
-    `outer_ring` at `layer_index`, placed object first (`_spots`, PERF.58).
-    Each layer draws from its own random stream (the scatter's seed and the
-    layer index), so layers can be drawn in any order, or side by side in
+    One shell of `scatter`: every bright star of shell `shell_index` in the
+    bands `-high_band .. high_band`, placed object first (`_spots`, PERF.58).
+    Each shell draws from its own random stream (the scatter's seed and the
+    shell index), so shells can be drawn in any order, or side by side in
     worker processes (PERF.7), and still give the same stars.
 
     Args:
         on_progress (callable, optional): PERF.4: called as `on_progress(done,
             estimate)`, in stars. Stars are placed, then drawn (their type and
             luminosity), and count half at each step, so `done` reaches the
-            layer's count when it is finished. `estimate` is the stars placed
+            shell's count when it is finished. `estimate` is the stars placed
             so far scaled up by the share of candidates tried, then the placed
             total once all are.
         check (bool): Assert that the density never exceeds the majorant (tests).
@@ -455,7 +453,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    rng = draw.Stream(f"{seed}:objects:{layer_index}")
+    rng = draw.Stream(f"{seed}:objects:shell:{shell_index}")
     skip_addresses = skip_addresses or set()
     fractions = band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
     placed = {population: [] for population in POPULATIONS}
@@ -465,10 +463,10 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             estimate = taken * total / done if done else float(total)
             on_progress(taken / 2, max(estimate, float(taken)))
 
-    for ring_index, slot, point, population in _spots(
-            shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
+    for band_index, wedge, point, population in _spots(
+            shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
             check=check, on_candidates=candidates_done):
-        placed[population].append((ring_index, slot, point))
+        placed[population].append((band_index, wedge, point))
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
     for population, spots in placed.items():
@@ -476,11 +474,11 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             continue
         stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng,
                                     max_luminosity_sol=max_luminosity_sol, mass_range=mass_range)
-        for (ring_index, slot, point), params in zip(spots, stars):
+        for (band_index, wedge, point), params in zip(spots, stars):
             drawn += 1
             if on_progress is not None:
                 on_progress((total_placed + drawn) / 2, total_placed)
-            yield _row(ring_index, layer_index, slot, point, population, params, rng)
+            yield _row(shell_index, band_index, wedge, point, population, params, rng)
 
 
 def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
@@ -492,7 +490,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
 
     Per cell (every one, however sparse: GEN.78), fixed band (`canonical_bands`) and population, a
     Poisson count with mean `expected_at_density_1 * density * band
-    share` at the cell's center (the per-cell rate `scatter` averages over
+    share` at the cell's center, times the cell's volume in edge cubes (the per-cell rate `scatter` averages over
     a bin), each star uniform in the cell. Each cell and band draws from
     its own stream (the seed, the address and the band), cut to the band
     asked for afterwards, so a cell taken down to 1000 Lsun and later to
@@ -500,7 +498,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
-        addresses (iterable): `(ring, layer, slot)` cells to fill.
+        addresses (iterable): `(shell, band, wedge)` cells to fill.
         edge_pc (float): The sector edge.
         expected_at_density_1 (float): Systems per sector at density 1.
         min_luminosity_sol (float): The band's floor (Lsun).
@@ -517,16 +515,16 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
     shares = {(k, population): bright_band_fraction(low, high, population, mass_range)
               for k, low, high in bands for population in POPULATIONS}
-    for ring_index, layer_index, slot in addresses:
-        center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
+    for shell_index, band_index, wedge in addresses:
+        center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
         densities = _densities(center, shape)
-        slots = ring_sector_count(ring_index)
+        volume = volume_ratio(shell_index, band_index, edge_pc)
         for k, low, high in bands:
-            means = {population: expected_at_density_1 * densities[population] * shares[(k, population)]
+            means = {population: expected_at_density_1 * volume * densities[population] * shares[(k, population)]
                      for population in POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
-            rng = draw.Stream(f"{seed}:{ring_index}:{layer_index}:{slot}:{k}")
+            rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:{k}")
             for population in POPULATIONS:
                 if means[population] <= 0.0:
                     continue
@@ -536,9 +534,9 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                 for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high,
                                                 mass_range=mass_range):
                     for _ in range(SLOT_REDRAWS):
-                        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+                        point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
                         if point is not None:
-                            row = _row(ring_index, layer_index, slot, point, population, params, rng)
+                            row = _row(shell_index, band_index, wedge, point, population, params, rng)
                             if _in_range(row, min_luminosity_sol, max_luminosity_sol):
                                 yield row
                             break
@@ -601,7 +599,7 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
-        addresses (iterable): `(ring, layer, slot)` cells to fill.
+        addresses (iterable): `(shell, band, wedge)` cells to fill.
         edge_pc (float): The sector edge.
         expected_at_density_1 (float): Systems per sector at density 1.
         target_mass_sol (float): The lightest mass to place.
@@ -619,16 +617,16 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population)
               for low, high in bands for population in POPULATIONS}
-    for ring_index, layer_index, slot in addresses:
-        center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
+    for shell_index, band_index, wedge in addresses:
+        center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
         densities = _densities(center, shape)
-        slots = ring_sector_count(ring_index)
+        volume = volume_ratio(shell_index, band_index, edge_pc)
         for low, high in bands:
-            means = {population: expected_at_density_1 * densities[population] * shares[(low, population)]
+            means = {population: expected_at_density_1 * volume * densities[population] * shares[(low, population)]
                      for population in POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
-            rng = draw.Stream(f"{seed}:{ring_index}:{layer_index}:{slot}:m{low:g}")
+            rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:m{low:g}")
             for population in POPULATIONS:
                 if means[population] <= 0.0:
                     continue
@@ -638,9 +636,9 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
                 for params in sample_mass_band_stars(count, low, high, population, rng,
                                                      max_luminosity_sol=max_luminosity_sol):
                     for _ in range(SLOT_REDRAWS):
-                        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+                        point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
                         if point is not None:
-                            yield _row(ring_index, layer_index, slot, point, population, params, rng)
+                            yield _row(shell_index, band_index, wedge, point, population, params, rng)
                             break
 
 
@@ -671,7 +669,7 @@ def local_position_ly(row, center_pc):
 
 class BelowCut(collections.namedtuple("BelowCut", "address min_mass_solar seed expected_stars")):
     """A galaxy sector's share of the phenomenon scatter's mass cut
-    (GEN.168): its `(ring, layer, slot)` address, the cut in solar masses,
+    (GEN.168): its `(shell, band, wedge)` address, the cut in solar masses,
     the scatter's seed, and the stars the plan expects there (relative
     density times the calibration constant)."""
 

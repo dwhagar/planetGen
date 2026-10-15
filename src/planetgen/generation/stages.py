@@ -7,7 +7,7 @@ them (UX.89).
 A command that does several things in turn (`galaxy`, `plan`) declares its
 stages up front with `begin`; each is entered with `enter(key)` as the run
 reaches it. A stage the run will not do (the scatter without `--then-scatter`,
-the backfill with `--backfill-from none`, no layers to scatter) is still
+the backfill with `--backfill-from none`, no shells to scatter) is still
 numbered and announced, as "skipped" with its reason, so the count of stages is
 always the whole list. Each announcement is a log line ("Stage 4 of 9: ...")
 and goes into the progress file (`progress_file.set_stage`), where the Generate
@@ -25,7 +25,7 @@ import time
 from planetgen.queue import progress_file
 from planetgen.util import log, stagemark
 
-SECTOR_MODES = ("block", "span", "course", "column", "shell", "slot", "ring", "center_sector")
+SECTOR_MODES = ("block", "span", "course", "shell", "center_sector")
 
 STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
 """str: Set by a web job's runner to the number of stages the job's earlier steps hold, so this run's stages
@@ -45,9 +45,9 @@ SCATTER_KEYS = ("mass", "luminosity", "phenomena", "backfill")
 backfill, each also stored on its own."""
 
 _state = {"stages": [], "next": 0, "args": None, "command": None, "open": None,
-          "job_layers": 0, "job_seconds": 0.0, "overall": None, "ran": 0, "scatters": []}
+          "job_shells": 0, "job_seconds": 0.0, "overall": None, "ran": 0, "scatters": []}
 """The run's stage list, the next one to enter, its arguments (for the settings each stage is recorded
-with), its command, the stage open now (`_open`), the layers and seconds of the stages finished so far (the
+with), its command, the stage open now (`_open`), the shells and seconds of the stages finished so far (the
 whole-job stat), the command-line overall bar's clock and estimate (`overall`) and how many stages have
 finished running (`ran`, skipped ones not counted)."""
 
@@ -97,8 +97,6 @@ def plan_stages(args):
         return [Stage("map-luminosity", "Fill the map luminosity")]
     if getattr(args, "fill_habitability", False):
         return [Stage("habitability", "Re-score the habitability")]
-    if getattr(args, "fill_block_stats", False):
-        return [Stage("block-stats", "Rebuild the block totals")]
     if getattr(args, "redo_nebula_field", None):
         return [Stage("nebula-field", "Clean up the nebula field")]
     redo = getattr(args, "redo_scatters", None)
@@ -147,7 +145,7 @@ def stage_settings(key, args):
     floor = tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL if floor is None else float(floor)
     settings = {"workers": int(workers)}
     if key in ("start", "neighborhood", "sectors"):
-        for name in ("radius_pc", "neighborhoods", "max_ring", "min_start_density"):
+        for name in ("radius_pc", "neighborhoods", "max_shell", "min_start_density"):
             value = getattr(args, name, None)
             if value is not None:
                 settings[name] = value
@@ -163,7 +161,7 @@ def stage_settings(key, args):
     elif key == "backfill":
         settings["backfill_from"] = getattr(args, "backfill_from", "edge") or "edge"
     elif key == "skeleton":
-        for name in ("max_ring", "seed"):
+        for name in ("max_shell", "seed"):
             value = getattr(args, name, None)
             if value is not None:
                 settings[name] = str(value) if name == "seed" else value
@@ -171,7 +169,7 @@ def stage_settings(key, args):
 
 
 def note(**metrics):
-    """Adds what the stage open now did (layers visited, layers that placed something, objects ...)."""
+    """Adds what the stage open now did (shells visited, shells that placed something, objects ...)."""
     if _state["open"] is not None:
         _state["open"]["metrics"].update(metrics)
 
@@ -217,10 +215,10 @@ def _close_open():
         _state["ran"] += 1
         record["seconds"] = time.perf_counter() - record["t0"]
         _state["job_seconds"] += record["seconds"]
-        layers = int(record["metrics"].get("layers") or 0)
-        _state["job_layers"] += layers
-        if layers > 0 and record["seconds"] > 0:
-            record["metrics"]["seconds_per_layer"] = record["seconds"] / layers
+        shells = int(record["metrics"].get("shells") or 0)
+        _state["job_shells"] += shells
+        if shells > 0 and record["seconds"] > 0:
+            record["metrics"]["seconds_per_shell"] = record["seconds"] / shells
         if record["key"] in SCATTER_KEYS:
             _state["scatters"].append(record)
         _write(record)
@@ -229,31 +227,31 @@ def _close_open():
 def _write_job():
     """
     Stores the totals of the run: the whole process under `JOB_KEY` (its seconds, the stages it ran, and the
-    layers per second of the stages that visited layers, PERF.55) and, when scatter stages ran, one row under
-    `SCATTER_KEY` that adds them all up (operations, layers, objects, seconds, seconds per layer and per
+    shells per second of the stages that visited shells, PERF.55) and, when scatter stages ran, one row under
+    `SCATTER_KEY` that adds them all up (operations, shells, objects, seconds, seconds per shell and per
     operation), so a later estimate has the scatter kinds' common figure when one kind has no record of its
     own. Both carry the settings the run had; nothing when no stage ran.
     """
-    layers, seconds = _state["job_layers"], _state["job_seconds"]
+    shells, seconds = _state["job_shells"], _state["job_seconds"]
     if _state["ran"] < 1 or not _state["stages"]:
         return
     total = len(_state["stages"])
     args = _state["args"]
     settings = stage_settings(JOB_KEY, args) if args is not None else {}
-    metrics = {"stages_run": _state["ran"], "layers": layers}
-    if layers > 0 and seconds > 0:
-        metrics["layers_per_second"] = layers / seconds
+    metrics = {"stages_run": _state["ran"], "shells": shells}
+    if shells > 0 and seconds > 0:
+        metrics["shells_per_second"] = shells / seconds
     _write({"key": JOB_KEY, "n": total, "total": total, "label": "Whole job", "skipped": None,
             "settings": settings, "metrics": metrics, "seconds": seconds})
     scatters = _state["scatters"]
     if scatters:
         scatter_seconds = sum(record["seconds"] for record in scatters)
-        scatter_layers = sum(int(record["metrics"].get("layers") or 0) for record in scatters)
-        scatter_metrics = {"operations": len(scatters), "layers": scatter_layers,
+        scatter_shells = sum(int(record["metrics"].get("shells") or 0) for record in scatters)
+        scatter_metrics = {"operations": len(scatters), "shells": scatter_shells,
                            "objects": sum(int(record["metrics"].get("objects") or 0) for record in scatters),
                            "seconds_per_operation": scatter_seconds / len(scatters)}
-        if scatter_layers > 0 and scatter_seconds > 0:
-            scatter_metrics["seconds_per_layer"] = scatter_seconds / scatter_layers
+        if scatter_shells > 0 and scatter_seconds > 0:
+            scatter_metrics["seconds_per_shell"] = scatter_seconds / scatter_shells
         _write({"key": SCATTER_KEY, "n": total, "total": total, "label": "All scatters", "skipped": None,
                 "settings": settings, "metrics": scatter_metrics, "seconds": scatter_seconds})
 
@@ -364,7 +362,7 @@ def _numbering():
 def begin(stages, args=None, command=None):
     """Starts a run's stage list and logs it (skipped ones with their reasons). With `args`, each stage's time
     is stored with the settings it ran with (PERF.56)."""
-    _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_layers=0,
+    _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_shells=0,
                   job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[])
     if not stages:
         return
@@ -429,7 +427,7 @@ def finish(reason=None):
         _announce(index, _state["stages"][index].skip or reason or "not needed")
     _close_open()
     _write_job()
-    _state.update(stages=[], next=0, args=None, command=None, open=None, job_layers=0, job_seconds=0.0,
+    _state.update(stages=[], next=0, args=None, command=None, open=None, job_shells=0, job_seconds=0.0,
                   overall=None, ran=0, scatters=[])
 
 

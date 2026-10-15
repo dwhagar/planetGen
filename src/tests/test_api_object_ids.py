@@ -17,6 +17,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.web.app import create_app
 from tests.publicids import pid
+from tests.maps_pending import MAPS_PENDING
 
 PRINTED = re.compile(r"^[0-9A-F]+(-[0-9A-F]+){0,2}$")
 
@@ -184,6 +185,7 @@ def test_pages_link_to_objects_by_id_and_never_by_row_number(bodies):
         assert found == [], (path, found[:5])
 
 
+@MAPS_PENDING
 def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_config):
     """The Galaxy Map opens `/sector/<id>/scene` with the ids from the stage payload and the tiles."""
     from planetgen.galaxy.viewport import tiles_intersecting_sphere

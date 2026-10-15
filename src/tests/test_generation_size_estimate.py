@@ -46,7 +46,7 @@ def filled(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         before = _table_bytes(conn)
-        _run_cli(["--ring", "40", "--layer", "0", "--limit", "12", "--num-systems", "40", "--yes"]
+        _run_cli(["--shell", "40", "--band", "0", "--limit", "12", "--num-systems", "40", "--yes"]
                  + _mysql_argv(mysql_config))
         after = _table_bytes(conn)
         systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]

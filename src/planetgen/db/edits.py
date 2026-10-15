@@ -329,22 +329,22 @@ def delete_phenomenon(conn, phenomenon_type, phenomenon_id):
 # ---------------------------------------------------------------------
 
 def sector_address(conn, sector_id):
-    """`(ring, layer, slot)` of a sector, `None` for one off the grid, or
+    """`(shell, band, wedge)` of a sector, `None` for one off the grid, or
     raises `EditError` when there's no such sector."""
-    row = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?",
+    row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
                        (sector_id,)).fetchone()
     if row is None:
         raise EditError("not found")
-    if row["ring_index"] is None:
+    if row["shell_index"] is None:
         return None
-    return row["ring_index"], row["layer_index"], row["ring_slot_index"]
+    return row["shell_index"], row["band_index"], row["wedge_index"]
 
 
 def delete_sector_with_contents(conn, sector_id):
     """
     Deletes a sector and everything filed under it: its star systems
     (with their bodies and facilities), the standalone phenomena whose
-    home is this sector, and facilities parked in it. Its grid slot is
+    home is this sector, and facilities parked in it. Its grid cell is
     left unfilled, so it can be generated again. The neighboring
     sectors' nearest-system lists are refreshed.
 
@@ -352,7 +352,7 @@ def delete_sector_with_contents(conn, sector_id):
         dict: `{"systems": n, "phenomena": n}` deleted, or `None` when
         there was no such sector.
     """
-    row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, ring_index, layer_index, ring_slot_index"
+    row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, shell_index, band_index, wedge_index"
                        " FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     if row is None:
         return None
@@ -365,8 +365,8 @@ def delete_sector_with_contents(conn, sector_id):
     conn.execute("DELETE FROM nearest_systems WHERE sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
     store.note_sector_deleted(conn)
-    # GEN.44: the slot goes back to the bright-star level it had unfilled.
-    store.forget_sector_fill(conn, (row["ring_index"], row["layer_index"], row["ring_slot_index"]))
+    # GEN.44: the cell goes back to the bright-star level it had unfilled.
+    store.forget_sector_fill(conn, (row["shell_index"], row["band_index"], row["wedge_index"]))
     if row["center_x_pc"] is not None:
         refresh_nearest_around(conn, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]))
     return {"systems": systems, "phenomena": phenomena}

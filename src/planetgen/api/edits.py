@@ -396,7 +396,7 @@ def regenerate_phenomenon_job(config, phenomenon_type, phenomenon_id):
 def delete_sector_with_contents(sector_id):
     """`DELETE /api/sectors/<id>/contents` -- deletes the sector together
     with its star systems, the phenomena filed under it and facilities
-    parked in it, leaving its slot in the galaxy unfilled so it can be
+    parked in it, leaving its cell in the galaxy unfilled so it can be
     generated again. (`DELETE /api/sectors/<id>` deletes only the sector
     row and keeps its systems as standalone ones.)"""
     _options()
@@ -429,12 +429,12 @@ def delete_sector_job(config, sector_id):
 def regenerate_sector(sector_id):
     """`POST /api/sectors/<id>/regenerate` -- deletes a galaxy-placed
     sector with everything in it (as `DELETE .../contents`) and generates
-    its slot again from the galaxy's density plan. 409 for a sector off the
+    its cell again from the galaxy's density plan. 409 for a sector off the
     galaxy grid or before `planetgen plan` has run, 404 for an unknown one;
     both answer before anything is queued. The delete and the generation
     run as a queued job (PERF.24): `202` with the job's id, and
     `GET /api/jobs/<id>` gives its `result`: `deleted`, and the new
-    sector's `sector_id` and `sector_name` (`null` if the slot is outside
+    sector's `sector_id` and `sector_name` (`null` if the cell is outside
     the galaxy's outline)."""
     _options()
     config = _resolve_requested_write_db_config()

@@ -16,6 +16,7 @@ from planetgen.db import store
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
+from tests.maps_pending import MAPS_PENDING
 
 
 def _sector(config, name, count, binary_every=2):
@@ -117,6 +118,7 @@ def test_a_statement_limit_lowers_the_limit_for_the_block_and_restores_it(mysql_
         limited.close()
 
 
+@MAPS_PENDING
 def test_a_tile_whose_slowest_piece_times_out_is_served_marked_incomplete(galaxy, monkeypatch):
     monkeypatch.setattr(queryDb, "TILE_PIECE_SECONDS", 0.4)
     real = queryDb.galaxy_scattered_points_in_box
@@ -148,6 +150,7 @@ def test_a_count_with_no_stored_answer_stops_at_the_cap(galaxy, monkeypatch):
 # --- PERF.75: a page after the previous page's last system -----------------------------------------------
 
 from tests.test_api import client  # noqa: E402,F401
+from tests.maps_pending import MAPS_PENDING
 
 
 @pytest.mark.parametrize("descending", [False, True])

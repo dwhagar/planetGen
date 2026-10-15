@@ -11,7 +11,7 @@ import pytest
 from planetgen import tuning
 from planetgen.db import store
 from planetgen.galaxy import nebula_field
-from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import run_galaxy, run_plan
 
 from tests.test_nebula_field import SHAPE
@@ -28,9 +28,9 @@ no class M or N cloud reaching any of the sampled sectors, so the tests that nee
 
 
 def _seed_galaxy(mysql_config):
-    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=E_VALUE, config=mysql_config, galaxy_seed=GALAXY_SEED)
-    store.replace_galaxy_layers(EXTENTS, config=mysql_config)
+    store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 
 @pytest.fixture(autouse=True)
@@ -62,7 +62,7 @@ def _centers(rows):
 
 
 def _sectors():
-    return [(ring, layer, slot) for layer, outer in EXTENTS for ring in (0, outer // 2, outer) for slot in (0,)]
+    return sorted({(shell, band, 0) for shell, high in EXTENTS for band in (0, high // 2, high)})
 
 
 def test_the_table_holds_the_kept_classes_m_and_n_and_the_rows_equal_the_fields_clouds(mysql_config):
@@ -184,8 +184,8 @@ def test_apply_deletes_the_rejected_clouds_and_draws_the_table_again(mysql_confi
 
 # --- GEN.222: the log says what each slab of the field was given --------------------------------------------------
 
-def test_each_slab_line_lists_its_nebula_classes_and_the_layers_they_reach(mysql_config, monkeypatch):
-    """Boss: the nebula field step gave only a final total; each slab says its kinds of nebula and its layers."""
+def test_each_slab_line_lists_its_nebula_classes_and_the_shells_they_reach(mysql_config, monkeypatch):
+    """Boss: the nebula field step gave only a final total; each slab says its kinds of nebula and its shells."""
     from planetgen.util import log
     _seed_galaxy(mysql_config)
     messages = []
@@ -194,20 +194,20 @@ def test_each_slab_line_lists_its_nebula_classes_and_the_layers_they_reach(mysql
     lines = [m for m in messages if m.startswith("Nebula field, slab ")]
     table = _table(mysql_config)
     assert table and lines
-    top = max(abs(layer) for layer, _outer in EXTENTS)
+    top = max(shell for shell, _high in EXTENTS)
     total = 0
     for line in lines:
         head, tail = line.split(" clouds in ")
         total += int(head.rsplit(": ", 1)[1].replace(",", ""))
-        layers, kinds = tail.split(": ", 1)
-        numbers = [int(word) for word in layers.replace("layers ", "").replace("layer ", "").split(" to ")]
-        assert numbers == sorted(numbers) and all(-top <= number <= top for number in numbers)
+        shells, kinds = tail.split(": ", 1)
+        numbers = [int(word) for word in shells.replace("shells ", "").replace("shell ", "").split(" to ")]
+        assert numbers == sorted(numbers) and all(0 <= number <= top for number in numbers)
         assert " (class M)" in kinds or " (class N)" in kinds
     assert total == len(table)
     for letter in {row["nebula_class"] for row in table}:
         assert any(f"{tuning.NEBULA_CLASSES[letter]['name']} (class {letter})" in line for line in lines), letter
 
 
-def test_a_slab_reports_the_layers_its_clouds_reach_within_the_galaxys_layers():
-    text = run_plan._layer_range_text
-    assert text((2, 2)) == "layer 2" and text((-1, 3)) == "layers -1 to 3"
+def test_a_slab_reports_the_shells_its_clouds_reach_within_the_galaxys_shells():
+    text = run_plan._shell_range_text
+    assert text((2, 2)) == "shell 2" and text((1, 3)) == "shells 1 to 3"

@@ -16,7 +16,7 @@ import pytest
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.geometry import ring_sector_count, sector_address_at, sector_position_pc
+from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.physics import constants
 from planetgen import tuning
 from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, SHAPE, THRESHOLD, _row_dict
@@ -67,7 +67,7 @@ def test_sampled_stars_lie_in_their_band_and_under_the_luminosity_cap():
     assert all(star["initial_mass_sol"] >= 8.0 * 0.999999 for star in young_heavy)
 
 
-def test_the_edges_hold_the_ring_masses_and_the_galaxys_limit():
+def test_the_edges_hold_the_step_masses_and_the_galaxys_limit():
     assert brightStars.mass_band_edges(None) == [1.0, 2.0, 5.0, 8.0]
     assert brightStars.mass_band_edges(20.0) == EDGES
     assert brightStars.mass_band_edges(3.0) == [1.0, 2.0, 3.0, 5.0, 8.0]
@@ -88,7 +88,7 @@ def test_the_bands_a_draw_is_made_of_do_not_depend_on_where_it_started():
         bands(3.0, 20.0, EDGES)
 
 
-ADDRESSES = [(3, 0, slot) for slot in range(ring_sector_count(3))] + [(5, 0, 7), (5, 0, 8)]
+ADDRESSES = [(3, 0, wedge) for wedge in range(wedge_count(3, 0))] + [(5, 0, 7), (5, 0, 8)]
 
 
 def _cells(target, held, cap, seed=11, addresses=ADDRESSES):
@@ -100,7 +100,7 @@ def test_a_mass_backfill_places_stars_in_their_cell_between_its_masses():
     assert len(rows) > 50
     for row in map(_row_dict, rows):
         point = (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000, row["position_z_mpc"] / 1000)
-        address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
         assert address in ADDRESSES and sector_address_at(point, EDGE_PC) == address
         assert 2.0 * 0.999999 <= row["initial_mass_sol"] < 8.0
         assert row["yerkes_class"] == "VII" or row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY
@@ -120,8 +120,9 @@ def test_the_count_matches_the_bands_expected_share():
     for address in ADDRESSES:
         center = sector_position_pc(*address, EDGE_PC)
         densities = brightStars._densities(center, SHAPE)
+        volume = brightStars.volume_ratio(address[0], address[1], EDGE_PC)
         for low, high in brightStars.canonical_mass_bands(1.0, 8.0, EDGES):
-            expected += E_VALUE * sum(density * sp.mass_band_fraction(low, high, THRESHOLD, population)
+            expected += E_VALUE * volume * sum(density * sp.mass_band_fraction(low, high, THRESHOLD, population)
                                       for population, density in densities.items())
     assert abs(len(rows) - expected) < 5 * math.sqrt(expected) + 5
 

@@ -457,7 +457,7 @@ def _charted_spot(page):
     a click or a hover there lands on the cell holding generated sectors, at
     every size of window (a block of 243 sectors is too big to find them by
     scanning: the window it opens is round the point clicked)."""
-    from planetgen.galaxy.geometry import sector_position_pc
+    from planetgen.galaxy.spherical import sector_position_pc
     ring, layer, slot = next((r, l, s) for _id, r, l, s, name in SECTORS if name == "Fixture Prime")
     x, y, z = sector_position_pc(ring, layer, slot, 4.0)
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
@@ -701,7 +701,7 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
     assert "Uncharted: not charted yet" in info.inner_text()
     assert _query(page) == OPEN_UNCHARTED[1:]
     page.wait_for_timeout(500)
-    from planetgen.galaxy.geometry import sector_position_pc
+    from planetgen.galaxy.spherical import sector_position_pc
     cx, cy, cz = sector_position_pc(0, 0, 0, 4.0)
     picked = None
     # Its bright star, black hole and nebula, each by where it sits.

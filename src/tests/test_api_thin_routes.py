@@ -64,7 +64,7 @@ def test_galaxy_reads_on_an_empty_galaxy(client, mysql_config):
     assert client.get("/api/galaxy/phenomena").get_json() == {"items": []}
     shape = client.get("/api/galaxy/shape").get_json()
     assert shape["shape"] is None and shape["bright_stars"]["scattered"] is False
-    assert client.get("/api/galaxy/bright-stars?ring=0&layer=0&slot=0").get_json() == {"items": []}
+    assert client.get("/api/galaxy/bright-stars?shell=0&band=0&wedge=0").get_json() == {"items": []}
 
 
 def test_galaxy_listings_ignore_paging_parameters(client, mysql_config):
@@ -84,9 +84,9 @@ def test_galaxy_listings_ignore_paging_parameters(client, mysql_config):
 
 
 @pytest.mark.parametrize("query", [
-    "", "ring=0", "ring=0&layer=0", "ring=1.5&layer=0&slot=0", "ring=&layer=0&slot=0",
-    "ring=nan&layer=0&slot=0", "ring=inf&layer=0&slot=0", "ring=0&layer=0&slot=%E2%91%A0",
-    "ring=0x10&layer=0&slot=0",
+    "", "shell=0", "shell=0&band=0", "shell=1.5&band=0&wedge=0", "shell=&band=0&wedge=0",
+    "shell=nan&band=0&wedge=0", "shell=inf&band=0&wedge=0", "shell=0&band=0&wedge=%E2%91%A0",
+    "shell=0x10&band=0&wedge=0",
 ])
 def test_bright_stars_bad_address_is_400(client, mysql_config, query):
     _schema(mysql_config)
@@ -94,8 +94,8 @@ def test_bright_stars_bad_address_is_400(client, mysql_config, query):
 
 
 @pytest.mark.parametrize("query", [
-    "ring=-1&layer=0&slot=0", "ring=0&layer=-99&slot=0", f"ring={HUGE_ID}&layer=0&slot=0",
-    f"ring=0&layer=0&slot=-{HUGE_ID}", "ring=+3&layer=0&slot=0&all=1", "ring=3&layer=0&slot=0&all=maybe",
+    "shell=-1&band=0&wedge=0", "shell=0&band=-99&wedge=0", f"shell={HUGE_ID}&band=0&wedge=0",
+    f"shell=0&band=0&wedge=-{HUGE_ID}", "shell=+3&band=0&wedge=0&all=1", "shell=3&band=0&wedge=0&all=maybe",
 ])
 def test_bright_stars_out_of_range_address_is_an_empty_list(client, mysql_config, query):
     """Integers no cell has (negative, past BIGINT) are still integers:
@@ -415,6 +415,6 @@ def test_galaxy_made_lists_sectors_created_in_a_window(client, mysql_config):
     body = client.get(f"/api/galaxy/made?since={now - 3600}&until={now + 3600}").get_json()
     assert body["total"] == 2
     assert {i["name"] for i in body["items"]} == {"Made One", "Made Two"}
-    assert {(i["ring_index"], i["layer_index"], i["ring_slot_index"]) for i in body["items"]} == {(30, 0, 0), (30, 0, 5)}
+    assert {(i["shell_index"], i["band_index"], i["wedge_index"]) for i in body["items"]} == {(30, 0, 0), (30, 0, 5)}
     assert client.get(f"/api/galaxy/made?since={now + 3600}").get_json() == {"total": 0, "items": []}
     assert client.get("/api/galaxy/made?since=soon").status_code == 400

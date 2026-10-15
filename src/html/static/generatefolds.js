@@ -88,9 +88,9 @@ function setUpFinder(box) {
   box.hidden = false;
 
   function address(item) {
-    return item.ring === null || item.ring === undefined
+    return item.shell === null || item.shell === undefined
       ? "no address"
-      : `ring ${item.ring}, layer ${item.layer}, slot ${item.slot}`;
+      : `shell ${item.shell}, band ${item.band}, wedge ${item.wedge}`;
   }
 
   function pick(id, text) {

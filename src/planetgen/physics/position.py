@@ -33,7 +33,7 @@ in galactic coordinates (about 1e20 m from the center) cannot.
 
 Sector address: with the sector edge known (`sector_edge_pc`), the position
 also knows which cell of the galaxy's sector grid it is in (`sector_address`:
-ring, layer, slot; `planetgen.galaxy.geometry`). It is worked out from the
+shell, band, wedge; `planetgen.galaxy.spherical`). It is worked out from the
 galactic position whenever the position changes, by any setter or anchor
 move, so it is never stale. `set_sector_address` moves the body to another
 cell the way `carry_sector_center` does, keeping its offset from the
@@ -62,7 +62,7 @@ axis the angles are not defined and read as 0.
 
 import math
 
-from planetgen.galaxy import geometry
+from planetgen.galaxy import spherical
 from planetgen.physics import constants as physical_constants
 from planetgen.physics import state_vectors
 
@@ -241,7 +241,7 @@ class SpatialPosition3D:
 
     @property
     def sector_address(self):
-        """tuple or None: The `(ring, layer, slot)` of the sector cell the
+        """tuple or None: The `(shell, band, wedge)` of the sector cell the
         position is in; `None` when the sector edge is not known."""
         self._fresh()
         return self._sector_address
@@ -258,14 +258,14 @@ class SpatialPosition3D:
         self._sector_address = None
         self._sync()
 
-    def set_sector_address(self, ring_index, layer_index, slot_index):
-        """Moves the body to the sector cell `(ring, layer, slot)`, keeping
+    def set_sector_address(self, shell_index, band_index, wedge_index):
+        """Moves the body to the sector cell `(shell, band, wedge)`, keeping
         its offset from the sector's center (`carry_sector_center` to that
         cell's center). Raises `ValueError` without a sector edge or for a
-        slot the ring does not have."""
+        wedge the band does not have."""
         if self._sector_edge_pc is None:
             raise ValueError("the sector edge is not known, so there is no sector address to set")
-        center_pc = geometry.sector_position_pc(ring_index, layer_index, slot_index, self._sector_edge_pc)
+        center_pc = spherical.sector_position_pc(shell_index, band_index, wedge_index, self._sector_edge_pc)
         from_pc = physical_constants.PARSEC_M / self.length_unit_m
         self.carry_sector_center(tuple(c * from_pc for c in center_pc))
 
@@ -311,7 +311,7 @@ class SpatialPosition3D:
             }
         if self._sector_edge_pc is not None:
             to_pc = self.length_unit_m / physical_constants.PARSEC_M
-            self._sector_address = geometry.sector_address_at(tuple(c * to_pc for c in gal), self._sector_edge_pc)
+            self._sector_address = spherical.sector_address_at(tuple(c * to_pc for c in gal), self._sector_edge_pc)
 
     def _set(self, frame, xyz):
         _finite(xyz, "coordinates")

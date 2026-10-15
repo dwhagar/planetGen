@@ -15,11 +15,11 @@ needs a terminal on the server. Four actions, each a background job
   count it placed; a checkbox on either form skips it.
 - Rebuild bright stars: the scatter alone, on the stored plan (filled
   sectors are always left out).
-- Add a dimmer layer: keep the bright stars already placed and add only
+- Add a dimmer step: keep the bright stars already placed and add only
   those from a lower level up to the current one
   (`planetgen plan --bright-stars-down-to N`).
 - Generate sectors: `planetgen galaxy` in any of its modes (random
-  start, a whole ring, around a sector, one address, ...). "Around a
+  start, a whole shell, around a sector, one address, ...). "Around a
   sector" names its center as a filled sector (searched by name or
   picked from `/admin/generate/sectors`'s list), a sector address, or a
   galaxy-frame position in pc. The bright-star backfill runs once the
@@ -66,13 +66,12 @@ from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
 from planetgen.util import log, stagemark
 from planetgen.galaxy import objectref
-from planetgen.galaxy.drill import format_drill_key, parse_drill_key
-from planetgen.galaxy.geometry import sector_address_at
+from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.format import format_number
 from planetgen.generation.limits import (
-    MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
+    MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_SHELL,
 )
 
 from . import bp, jobs
@@ -106,53 +105,45 @@ COMPACT_STORAGE_WARNINGS = ((1.0, "about 1.2 billion rows (161 GB)"), (2.0, "abo
 
 
 def _backfill_text():
-    """The backfill rings in words ("down to 1 solar mass in the ring of
+    """The backfill steps in words ("down to 1 solar mass in the step of
     sectors around the generated ones, 2 in the next, ... and 8 in the
     fourth")."""
     masses = tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL
     ordinals = ("first", "second", "third", "fourth", "fifth", "sixth")
     parts = [f"{mass:g} in the {ordinals[index]}" for index, mass in enumerate(masses[1:], start=1)]
-    first = f"down to {masses[0]:g} solar mass{'' if masses[0] == 1 else 'es'} in the ring of sectors around the generated ones"
-    return ", ".join([first, *parts[:-1]]) + (f" and {parts[-1]} ring" if parts else "")
+    first = f"down to {masses[0]:g} solar mass{'' if masses[0] == 1 else 'es'} in the first step out from the generated sectors"
+    return ", ".join([first, *parts[:-1]]) + (f" and {parts[-1]} step" if parts else "")
 
 
 BACKFILL_TEXT = _backfill_text()
 """str: How far down the bright-star backfill around the generated sectors
-goes, ring by ring (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
+goes, step by step (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
 
 GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "
-     "(12 pc, about 39 ly, when the radius is left blank; the four rings of sectors around every "
+     "(12 pc, about 39 ly, when the radius is left blank; the four steps of sectors out from every "
      f"generated one get their heavier stars either way, {BACKFILL_TEXT})."),
-    ("ring", "A whole ring",
-     "Every not-yet-generated sector in one ring at one height layer (0 is the galactic plane), "
-     "or only the first few with a limit."),
+    ("shell", "A whole shell",
+     "Every not-yet-generated sector in one shell, the 4 pc deep sphere of cells at one distance from the "
+     "center (shell 0 is the core ball), optionally only one band of it. A shell holds up to thousands of "
+     "sectors, so it needs a limit or the confirmation box past 2,000."),
     ("center", "Around a sector",
      "Every not-yet-generated sector within a radius of a center: an existing filled sector "
      "(found by name or picked from the list), a sector address, or a position in the galaxy."),
-    ("slot", "One address",
-     "Exactly one sector, by ring, layer and slot (the address the Galaxy Map shows). "
+    ("address", "One address",
+     "Exactly one sector, by shell, band and wedge (the address the Galaxy Map shows). "
      "With a radius, its neighborhood too."),
-    ("column", "A column",
-     "Every sector at one ring and slot, through every layer the galaxy reaches there."),
-    ("block", "A Galaxy Map block",
-     "Every sector the galaxy allows inside one drill-down block, by its key (size.ring.wedge.slab, "
-     "as in the Galaxy Map's links), or only one of its layers. A size-3 block holds about 9 sectors "
-     "a layer; bigger ones need a limit or the confirmation box past 2,000."),
-    ("span", "A span of rings, layers or slots",
-     "Every not-yet-generated sector in a range of rings, a range of layers, or both (the columns of "
-     "those rings through those layers), or one arc of slots in a single ring. Leave a box blank for "
-     "all of it. Ranges are FIRST:LAST, both included; a single number is just that one. Large spans "
-     "need a limit or the confirmation box past 2,000."),
-    ("shell", "A shell (not recommended)",
-     "Every sector of one ring through every layer: a whole cylinder, usually thousands of sectors, "
-     "so it needs a limit or the confirmation box."),
+    ("span", "A span of shells, bands or wedges",
+     "Every not-yet-generated sector in a range of shells, a range of bands, or both, or one arc of "
+     "wedges in a single band of a single shell. Leave a box blank for all of it. Ranges are "
+     "FIRST:LAST, both included; a single number is just that one. Large spans need a limit or the "
+     "confirmation box past 2,000."),
 )
 
 CENTER_CHOICES = (
     ("sector", "A filled sector", "Find it by name, pick it from the list, or type its ID."),
-    ("address", "A sector address", "Ring, layer and slot, as the Galaxy Map shows them. "
+    ("address", "A sector address", "Shell, band and wedge, as the Galaxy Map shows them. "
                                     "The sector there is generated first if it isn't yet."),
     ("position", "A position (pc)", "Galaxy-frame x, y and z in parsecs (the center is 0, 0, 0; "
                                     "z is height above the plane). The sector holding that point is the center."),
@@ -173,7 +164,7 @@ pages 50 rows)."""
 
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
 
-BAND_LABEL = "Add a dimmer layer of bright stars"
+BAND_LABEL = "Add a dimmer step of bright stars"
 
 SCATTER_LABEL = "Scatter the bright stars"
 
@@ -230,7 +221,7 @@ def run_estimate(argv, env):
 
     Raises:
         FormError: The estimate couldn't be made; the message says why
-            (`planetgen`'s own last lines, e.g. a ring too large to
+            (`planetgen`'s own last lines, e.g. a shell too large to
             generate without a limit).
     """
     done = api_jobs.command_and_wait(argv + ["--estimate-only"], {**os.environ, **env}, jobs.REPO_DIR,
@@ -364,9 +355,9 @@ def random_start_argv(form):
     radius = _number(form, "radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
     if radius is not None:
         argv += ["--radius-pc", str(radius)]
-    max_ring = _number(form, "max_ring", "Highest ring", int, minimum=0, maximum=MAX_GENERATE_RING)
-    if max_ring is not None:
-        argv += ["--max-ring", str(max_ring)]
+    max_shell = _number(form, "max_shell", "Highest shell", int, minimum=0, maximum=MAX_GENERATE_SHELL)
+    if max_shell is not None:
+        argv += ["--max-shell", str(max_shell)]
     density = _number(form, "min_start_density", "Minimum start density", float, minimum=0.001)
     if density is not None:
         argv += ["--min-start-density", str(density)]
@@ -391,22 +382,22 @@ MAX_GENERATE_RADIUS_LY = int(pc_to_ly(MAX_GENERATE_RADIUS_PC))
 
 def _neighborhood_radius_pc(form):
     """
-    The "One address" neighborhood radius in parsecs: `slot_radius_ly`
+    The "One address" neighborhood radius in parsecs: `address_radius_ly`
     (light-years, 13 to about 652, as the page and the Galaxy Map's
     dialog send it), converted with `ly_to_pc` and rounded to 0.1 pc, or
-    the older `slot_radius_pc`. `None` for just the one sector.
+    the older `address_radius_pc`. `None` for just the one sector.
     """
-    radius_ly = _number(form, "slot_radius_ly", "Neighborhood radius (ly)", float,
+    radius_ly = _number(form, "address_radius_ly", "Neighborhood radius (ly)", float,
                         minimum=MIN_NEIGHBORHOOD_RADIUS_LY, maximum=MAX_GENERATE_RADIUS_LY)
     if radius_ly is not None:
         return min(round(ly_to_pc(radius_ly), 1), MAX_GENERATE_RADIUS_PC)
-    return _number(form, "slot_radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
+    return _number(form, "address_radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
 
 
 def center_argv(form, edge_pc=None):
     """
     "Around a sector": `--center-sector` for a filled sector, or the
-    One address arguments with a radius (`--ring --layer --slot
+    One address arguments with a radius (`--shell --band --wedge
     --radius-pc`, which generates that sector first when it's empty) for
     an address or a galaxy-frame position, the position turned into the
     address of the cell holding it with the plan's sector edge
@@ -421,11 +412,11 @@ def center_argv(form, edge_pc=None):
         description = f"around sector {sector_id}"
         argv = ["--center-sector", str(sector_id)]
     elif by == "address":
-        ring = _number(form, "center_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
-        layer = _number(form, "center_layer", "Layer", int) or 0
-        slot = _number(form, "center_slot", "Slot", int, required=True, minimum=0)
-        description = f"around ring {ring} layer {layer} slot {slot}"
-        argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
+        shell = _number(form, "center_shell", "Shell", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
+        band = _number(form, "center_band", "Band", int) or 0
+        wedge = _number(form, "center_wedge", "Wedge", int, required=True, minimum=0)
+        description = f"around shell {shell} band {band} wedge {wedge}"
+        argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
     elif by == "position":
         point = (_number(form, "center_x_pc", "x (pc)", float, required=True),
                  _number(form, "center_y_pc", "y (pc)", float, required=True),
@@ -433,23 +424,16 @@ def center_argv(form, edge_pc=None):
         if None in point:
             return [], ""
         edge = float(edge_pc or tuning.DEFAULT_SECTOR_EDGE_PC)
-        if max(abs(v) for v in point) > (MAX_GENERATE_RING + 1) * edge:
+        if sum(v * v for v in point) ** 0.5 > (MAX_GENERATE_SHELL + 0.5) * edge:
             raise FormError("That position is outside the galaxy grid.")
-        ring, layer, slot = sector_address_at(point, edge)
-        if ring > MAX_GENERATE_RING:
+        shell, band, wedge = sector_address_at(point, edge)
+        if shell > MAX_GENERATE_SHELL:
             raise FormError("That position is outside the galaxy grid.")
         description = (f"around {', '.join(f'{v:g}' for v in point)} pc "
-                       f"(ring {ring} layer {layer} slot {slot})")
-        argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
+                       f"(shell {shell} band {band} wedge {wedge})")
+        argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
     else:
         raise FormError("Choose how to name the center sector.")
-    sectors = _number(form, "center_cylinder_sectors", "Radius (sectors)", float, minimum=0.5, maximum=40)
-    if sectors is not None:
-        argv += ["--cylinder-sectors", f"{sectors:g}"]
-        layers = _number(form, "center_cylinder_layers", "Layers either side", int, minimum=0, maximum=40)
-        if layers is not None:
-            argv += ["--cylinder-layers", str(layers)]
-        return argv, f"{description} ({sectors:g} sectors across, {int(sectors) if layers is None else layers} layers either side)"
     radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1,
                      maximum=MAX_GENERATE_RADIUS_PC)
     return argv + ["--radius-pc", str(radius)], description
@@ -466,69 +450,37 @@ def galaxy_argv(form, edge_pc=None):
     mode = form.get("mode") or "random"
     if mode == "random":
         return random_start_argv(form), "around a random start"
-    if mode == "ring":
-        ring = _number(form, "ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
-        layer = _number(form, "layer", "Layer", int)
-        argv = ["--ring", str(ring), "--layer", str(layer or 0)]
-        limit = _number(form, "limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
-        if limit is not None:
-            argv += ["--limit", str(limit)]
-        elif form.get("whole_ring"):
-            argv.append("--yes")
-        return argv, f"in ring {ring} layer {layer or 0}"
     if mode == "center":
         return center_argv(form, edge_pc)
-    if mode == "slot":
-        ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
-        layer = _number(form, "slot_layer", "Layer", int) or 0
-        slot = _number(form, "slot", "Slot", int, required=True, minimum=0)
-        argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
-        description = f"at ring {ring} layer {layer} slot {slot}"
+    if mode == "address":
+        shell = _number(form, "address_shell", "Shell", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
+        band = _number(form, "address_band", "Band", int) or 0
+        wedge = _number(form, "address_wedge", "Wedge", int, required=True, minimum=0)
+        argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
+        description = f"at shell {shell} band {band} wedge {wedge}"
         radius = _neighborhood_radius_pc(form)
         if radius is not None:
             argv += ["--radius-pc", str(radius)]
-            description = f"around ring {ring} layer {layer} slot {slot}"
-        return argv, description
-    if mode == "column":
-        ring = _number(form, "column_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
-        slot = _number(form, "column_slot", "Slot", int, required=True, minimum=0)
-        return (["--ring", str(ring), "--slot", str(slot), "--column"],
-                f"in the column at ring {ring} slot {slot}")
-    if mode == "block":
-        key = (form.get("block") or "").strip()
-        if not key:
-            raise FormError("Block is required.")
-        try:
-            block = parse_drill_key(key)
-        except ValueError:
-            raise FormError("Block must be a Galaxy Map block key, size.ring.wedge.slab (e.g. 3.40.7.0).") from None
-        if block.m == 1:
-            raise FormError("That is a single sector; use One address instead.")
-        argv = ["--block", format_drill_key(block)]
-        description = f"in block {format_drill_key(block)}"
-        layer = _number(form, "block_layer", "Layer", int)
-        if layer is not None:
-            argv += ["--block-layer", str(layer)]
-            description += f" layer {layer}"
-        limit = _number(form, "block_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
-        if limit is not None:
-            argv += ["--limit", str(limit)]
-        elif form.get("whole_block"):
-            argv.append("--yes")
+            description = f"around shell {shell} band {band} wedge {wedge}"
         return argv, description
     if mode == "span":
         return span_argv(form)
     if mode == "course":
         return course_argv(form)
     if mode == "shell":
-        ring = _number(form, "shell_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
-        argv = ["--ring", str(ring), "--shell"]
+        shell = _number(form, "shell_index", "Shell", int, required=True, minimum=0, maximum=MAX_GENERATE_SHELL)
+        argv = ["--shell", str(shell)]
+        description = f"in shell {shell}"
+        band = _number(form, "shell_band", "Band", int)
+        if band is not None:
+            argv += ["--band", str(band)]
+            description += f" band {band}"
         limit = _number(form, "shell_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
         if limit is not None:
             argv += ["--limit", str(limit)]
         elif form.get("whole_shell"):
             argv.append("--yes")
-        return argv, f"in the shell at ring {ring}"
+        return argv, description
     raise FormError("Choose what to generate.")
 
 
@@ -566,18 +518,18 @@ def course_argv(form):
 
 def span_argv(form):
     """
-    `planetgen galaxy` arguments for the span mode (ADM.29): the Rings,
-    Layers and Slots ranges, each blank for all, and the limit.
+    `planetgen galaxy` arguments for the span mode (ADM.29): the Shells,
+    Bands and Wedges ranges, each blank for all, and the limit.
 
     Returns:
         tuple: `(argv, description)`.
 
     Raises:
         FormError: A range that can't be read, nothing asked for, or a
-            slot arc without exactly one ring.
+            wedge arc without exactly one shell and band.
     """
     argv, ranges = [], {}
-    for key, label in (("rings", "Rings"), ("layers", "Layers"), ("slots", "Slots")):
+    for key, label in (("shells", "Shells"), ("bands", "Bands"), ("wedges", "Wedges")):
         text = (form.get(f"span_{key}") or "").strip()
         if not text:
             continue
@@ -587,7 +539,7 @@ def span_argv(form):
         except SpanError as exc:
             raise FormError(str(exc)) from None
     if not argv:
-        raise FormError("Give at least one range: rings, layers or slots.")
+        raise FormError("Give at least one range: shells, bands or wedges.")
     try:
         span = Span(**ranges)
     except SpanError as exc:
@@ -962,12 +914,12 @@ def _admin_or_403():
 def _galaxy_summary(database):
     """Whether the galaxy is planned and how many sectors it holds.
     Fails open: the page still works when the database doesn't answer."""
-    summary = {"shape": None, "sectors": None, "bright": None, "layers": None, "version_warning": None,
+    summary = {"shape": None, "sectors": None, "bright": None, "shells": None, "version_warning": None,
                "error": None}
     try:
         summary["shape"] = apiclient.get_galaxy_shape(database)
         summary["bright"] = apiclient.get_bright_star_status(database)
-        summary["layers"] = apiclient.get_layer_specs(database)
+        summary["shells"] = apiclient.get_shell_specs(database)
         summary["version_warning"] = apiclient.get_version_warning(database)
         summary["sectors"] = apiclient.get_sectors(database, limit=1, offset=0)["total"]
     except (apiclient.ApiError, apiclient.NotFoundError) as exc:
@@ -1213,7 +1165,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
         min_radius_ly=MIN_NEIGHBORHOOD_RADIUS_LY,
         max_radius_ly=MAX_GENERATE_RADIUS_LY,
-        max_ring=MAX_GENERATE_RING,
+        max_shell=MAX_GENERATE_SHELL,
         max_limit=MAX_GENERATE_LIMIT,
         max_neighborhoods=MAX_GENERATE_NEIGHBORHOODS,
         center_choices=CENTER_CHOICES,
@@ -1485,7 +1437,7 @@ def generate_sectors():
         return _no_store(make_response(jsonify({"error": "The sector list could not be loaded."}), 502))
     items = [{
         "id": row["id"], "name": row["name"], "systems": row.get("system_count"),
-        "ring": row.get("ring_index"), "layer": row.get("layer_index"), "slot": row.get("ring_slot_index"),
+        "shell": row.get("shell_index"), "band": row.get("band_index"), "wedge": row.get("wedge_index"),
     } for row in found["items"]]
     return _no_store(jsonify({"items": items, "total": found["total"], "page": page,
                               "pages": max(1, -(-found["total"] // FINDER_PAGE_SIZE))}))

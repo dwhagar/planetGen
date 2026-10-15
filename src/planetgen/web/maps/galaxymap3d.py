@@ -62,7 +62,7 @@ out:
   dolly -- the floor sits just past a couple of sector-widths (so
   approaching one specific sector never has to overshoot past clicking
   distance), the ceiling is far enough back that this galaxy's own real
-  outer edge (its stored skeleton's `outer_ring_index`, or a real
+  outer edge (its stored skeleton's `outer_shell_index`, or a real
   Milky-Way-scale radius as a starting-point default when no skeleton has
   been built yet) fits inside the camera's field of view.
 - Left/right-click zoom is **logarithmic**, not a flat step: the closer
@@ -158,7 +158,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
 def galaxy_extent_pc(edge_pc, galaxy_shape):
     """
     The galaxy's own outer edge, parsecs, padded by
-    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_ring_index`,
+    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_shell_index`,
     or `GALAXY_RADIUS_PC` when no skeleton has been built yet. The camera
     target is kept inside this radius (`galaxyRadiusPc`), and
     `view_radius_bounds` backs the camera off far enough to fit it.
@@ -177,7 +177,7 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
 def galaxy_edge_pc(edge_pc, galaxy_shape):
     """
     The galaxy's own outer edge, parsecs, unpadded: the outside of its
-    stored skeleton's outermost ring (`outer_ring_index`), or
+    stored skeleton's outermost ring (`outer_shell_index`), or
     `GALAXY_RADIUS_PC` when no skeleton has been built yet. Every ring is
     a full circle, so this is the edge at every bearing; the wedge lines
     stop here (`galaxyEdgePc`, MAP.43).
@@ -190,8 +190,8 @@ def galaxy_edge_pc(edge_pc, galaxy_shape):
     Returns:
         float: The outer radius, parsecs.
     """
-    if galaxy_shape and galaxy_shape.get("outer_ring_index") is not None:
-        return (galaxy_shape["outer_ring_index"] + 1) * edge_pc
+    if galaxy_shape and galaxy_shape.get("outer_shell_index") is not None:
+        return (galaxy_shape["outer_shell_index"] + 1) * edge_pc
     return GALAXY_RADIUS_PC
 
 

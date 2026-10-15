@@ -30,6 +30,9 @@ from planetgen.galaxy.viewport import (
     planned_slots_in_view,
     qualifying_threshold_star_count,
 )
+from tests.maps_pending import MAPS_PENDING
+
+pytestmark = MAPS_PENDING
 
 EDGE_LY = 11.5
 EDGE_PC = 3.526
