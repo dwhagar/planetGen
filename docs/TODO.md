@@ -3636,38 +3636,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.101 No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug)**
-  Boss (2026-10-15 05:30Z): "Why is there no update going on for the
-  phenomena indexes? There has to be something we can track, during a
-  phase with no updates the whole task bar should also still have an
-  estimated time remaining based on previous statistics or how long the
-  run has taken per task so far." Today the phase "Building the
-  phenomena indexes" (run_plan.py, step phenomena-index) is one pass
-  over the whole phenomenon_scatter table and says outright that there
-  is no progress until it is done. Fix: build the indexes so something
-  is countable (one index at a time, or chunks), so the step reports
-  progress; and when any phase reports nothing, the whole task bar still
-  shows an estimated time remaining from earlier runs' stage timings, or
-  from the time per task so far in this run. The same fallback must be
-  part of PERF.96's ETA function (see its acceptance), so it survives
-  the move to the Redis run record. Owner: Database,
-  together with PERF.96 (Boss retired the bug lanes, 2026-10-15
-  05:39Z).
-  Prerequisites: none. Related: PERF.96 (done, PR #1553), PERF.33 (done, PR #1553).
-
 - [ ] **PERF.102 The migration progress display shows no estimated time remaining on either bar (bug)**
   Boss (2026-10-15 15:54 EDT), on his test server: "migration ETA
   doesn't work". During a migration run the progress bars and the
   elapsed time show, but neither bar shows an estimated time remaining.
-  Owner: Core (2026-10-15), grouped with PERF.101, which has the same
+  Owner: Core (2026-10-15), grouped with PERF.101 (done, PR #1620), which had the same
   symptom for the phenomena index build. Done: the migration progress
   display (`planetgen.cli.migrate`, run from update.sh) shows an estimated time
   remaining on both bars from the first step that reports progress, and
   a step with no progress updates says so instead of showing nothing; a
   test covers the estimate for a step that reports progress and a step
-  that does not. Shares the progress and ETA code with PERF.101: fix
-  them together or in order. Bug.
-  Prerequisites: none. Related: PERF.101.
+  that does not. Reuses the progress and ETA code PERF.101 fixed. Bug.
+  Prerequisites: none. Related: PERF.101 (done, PR #1620).
 
 ## DB: Database and schema
 
