@@ -258,7 +258,9 @@ with worlds thousands of AU out; edit those by hand before using them.
 
 Every pull request adds a release note under [`changes/`](changes/README.md)
 instead of bumping the version; a workflow stamps the version after
-merge. Run the tests with `pytest` ([`docs/testing.md`](docs/testing.md)).
+merge. Run the tests with `scripts/test.py changed` while you work and `scripts/test.py full --check` before
+merging a finished piece of work; both need MySQL or MariaDB and Redis ([`docs/testing.md`](docs/testing.md)).
+Plain `pytest -n auto` still works.
 
 ## License
 

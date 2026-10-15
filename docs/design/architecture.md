@@ -85,7 +85,7 @@ flowchart LR
 
 | Path | What it holds |
 |---|---|
-| [`planetgen`](../.planetgen) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
+| [`planetgen`](../../src/planetgen/cli/generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
 | [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `planetgen population` by hand). Safe to run on a schedule. |
 | `setup.py`, `pyproject.toml` | The Python package (`stellarObjects`, `generate`) and its dependency floors and extras (`api`, `test`, `browser`). |
@@ -131,13 +131,13 @@ stores. The groups below are by role, not by folder (the package is flat).
 
 | Path | What it holds |
 |---|---|
-| [`systemData.py`](../../src/stellarObjects/systemData.py) | `StarSystem`: builds a whole system (star or binary, planets, moons, belts, comets, life data) and renders it as wikitext or Markdown (`__str__`). |
-| [`starData.py`](../../src/stellarObjects/starData.py) | `Star`: mass, radius, temperature, luminosity, habitable zone, Hill sphere, galactic orbit. |
+| [`generation/system.py`](../../src/planetgen/generation/system.py) | `StarSystem`: builds a whole system (star or binary, planets, moons, belts, comets, life data) and renders it as wikitext or Markdown (`__str__`). |
+| [`generation/star.py`](../../src/planetgen/generation/star.py) | `Star`: mass, radius, temperature, luminosity, habitable zone, Hill sphere, galactic orbit. |
 | `doubleStar.py` | `BinaryStarProxy`: a close (P-type) binary treated as one central star for planet generation. |
 | `wideBinary.py` | `WideBinaryPair`: a wide (S-type) binary where each star keeps its own planets. |
 | `compactRemnant.py` | `BlackHole` and `NeutronStar`, which can anchor a system in place of a `Star`. |
-| [`planetData.py`](../../src/stellarObjects/planetData.py) | `Planet`: one planet or moon, its state and its description text. |
-| [`planetPhysics.py`](../../src/stellarObjects/planetPhysics.py) | What a planet physically is: zone, class, radius, mass, atmosphere, temperature, moons, orbital position. |
+| [`generation/planet.py`](../../src/planetgen/generation/planet.py) | `Planet`: one planet or moon, its state and its description text. |
+| [`physics/planets.py`](../../src/planetgen/physics/planets.py) | What a planet physically is: zone, class, radius, mass, atmosphere, temperature, moons, orbital position. |
 | `planetLife.py` | Whether and how life arises (biochemistry, evolution speed, timeline). Applied after the whole system exists. |
 | `evolution.py` | The speculative evolutionary timeline text for a habitable planet. |
 | `asteroidData.py` | `AsteroidBelt` and the shared composition helpers. |
@@ -153,7 +153,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 |---|---|
 | `stellarEvolution.py` | Draws a star as physics: Kroupa IMF mass, age from the star-formation history, evolved state (main sequence through remnant). |
 | `stellarPopulation.py` | The population model split at a luminosity threshold: bright stars for plan time, dim stars for sector fill. |
-| [`brightStars.py`](../../src/stellarObjects/brightStars.py) | Galaxy-wide bright-star scatter after `planetgen plan` (ring by ring, into `bright_stars`), the per-block backfill around each generated sector (`backfill_cells`, GEN.23), and `FillContext`, which a sector fill uses to build systems around its pre-placed stars. |
+| [`generation/bright_stars.py`](../../src/planetgen/generation/bright_stars.py) | Galaxy-wide bright-star scatter after `planetgen plan` (ring by ring, into `bright_stars`), the per-block backfill around each generated sector (`backfill_cells`, GEN.23), and `FillContext`, which a sector fill uses to build systems around its pre-placed stars. |
 
 #### Exotic phenomena (outside any system)
 
@@ -169,9 +169,9 @@ stores. The groups below are by role, not by folder (the package is flat).
 
 | Path | What it holds |
 |---|---|
-| [`spaceSector.py`](../../src/stellarObjects/spaceSector.py) | `SpaceSector` and `SectorSystemEntry`: a region of space holding placed systems and phenomena, with Hill-sphere spacing. |
-| [`galaxyGeometry.py`](../../src/stellarObjects/galaxyGeometry.py) | The cylindrical sector grid: ring, layer and slot addresses, `SectorCell`, sector positions, neighbors, designations. See [galaxy-coordinate-system.md](galaxy-coordinate-system.md). |
-| [`galaxyDensity.py`](../../src/stellarObjects/galaxyDensity.py) | The disk, bulge and spiral-arm density model (`GalaxyShape`, `relative_density`). See [galaxy-disk-density.md](galaxy-disk-density.md). |
+| [`galaxy/sector.py`](../../src/planetgen/galaxy/sector.py) | `SpaceSector` and `SectorSystemEntry`: a region of space holding placed systems and phenomena, with Hill-sphere spacing. |
+| [`galaxy/geometry.py`](../../src/planetgen/galaxy/geometry.py) | The cylindrical sector grid: ring, layer and slot addresses, `SectorCell`, sector positions, neighbors, designations. See [galaxy-coordinate-system.md](galaxy-coordinate-system.md). |
+| [`galaxy/density.py`](../../src/planetgen/galaxy/density.py) | The disk, bulge and spiral-arm density model (`GalaxyShape`, `relative_density`). See [galaxy-disk-density.md](galaxy-disk-density.md). |
 | `galaxySkeleton.py` | The galaxy's outline: which layers hold content and how far out each reaches. Stored by `planetgen plan`. |
 | `galaxyViewport.py` | The Galaxy Map's data layer: cube tile keys and what each tile holds. |
 | `galaxyDrill.py` | The Galaxy Map's drill-down block ladder (243, 27, 3, 1 sectors a side). Mirrored in `static/galaxyprisms.js`. See [galaxy-drilldown-navigation.md](galaxy-drilldown-navigation.md). |
@@ -187,7 +187,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 
 | Path | What it holds |
 |---|---|
-| [`population.py`](../../src/stellarObjects/population.py) | The population pass (schema v44): names the dominant species of each life world, gives technological civilizations an age and an era, founds one polity per spacefaring species, and splits the generated systems around them into territories. Works only from stored rows (the planets' evolution text and the systems' positions), so it runs on a galaxy generated before it existed. `run_pass` is the entry point; `population_status` and the `list_*`/`*_detail`/`territory_points` readers back the API. Optional and off by default. See [population-and-politics.md](population-and-politics.md). |
+| [`population/model.py`](../../src/planetgen/population/model.py) | The population pass (schema v44): names the dominant species of each life world, gives technological civilizations an age and an era, founds one polity per spacefaring species, and splits the generated systems around them into territories. Works only from stored rows (the planets' evolution text and the systems' positions), so it runs on a galaxy generated before it existed. `run_pass` is the entry point; `population_status` and the `list_*`/`*_detail`/`territory_points` readers back the API. Optional and off by default. See [population-and-politics.md](population-and-politics.md). |
 
 #### Naming
 
@@ -202,7 +202,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 
 | Path | What it holds |
 |---|---|
-| [`store.py`](../../src/stellarObjects/store.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and `migrate_database`, which runs the Alembic revisions. `SCHEMA_VERSION` (the head revision's number) is set here. |
+| [`db/store.py`](../../src/planetgen/db/store.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and `migrate_database`, which runs the Alembic revisions. `SCHEMA_VERSION` (the head revision's number) is set here. |
 | `alembic_runner.py`, `migrations/` | Runs the Alembic revisions in `db/migrations/versions/` (a revision's id is its schema version, so `SCHEMA_VERSION` is the head revision's number); databases older than v61 are refused. Steps for a schema change are in `db/migrations/README.md`. |
 | `models.py` | SQLAlchemy table definitions, generated from `schema.sql` by `scripts/generate_db_models.py`. |
 | [`schema.sql`](../../src/planetgen/db/schema.sql) | The content schema DDL (one database per galaxy). Its header notes record what each schema version changed. See [database-schema.md](../database-schema.md). |
