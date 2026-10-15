@@ -78,7 +78,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings |  |  |
 | POP.12 | List every species that could live in a given environment, and give every species its environment limits | DB.30, POP.9 |  |
 | POP.14 | A race is only placed where it can survive: a placement check and a consistency check over the data | POP.12 |  |
-| DB.28 | One migration for the facility type tables and the new facility columns |  |  |
 | DB.29 | A database migration refuses to start while jobs are active and asks the user to cancel them first |  |  |
 | DB.30 | One migration for the per-species environment limits | DB.29 |  |
 
@@ -114,11 +113,21 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | MAP.199 |  |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) |  |  |
-| MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) |  |  |
 | MAP.203 | Stars in the sector view look too big next to the Galaxy Map, and the sector map should match (bug) |  |  |
-| GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) |  |  |
-| GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) |  |  |
-| GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) |  |  |
+| GEN.217 | Refresh the stored habitability numbers on existing planets and moons |  |  |
+| UX.103 | Design note for the description layer |  |  |
+| UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | UX.103 |  |
+| UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.104, UX.23 |  |
+| API.25 | A structured description endpoint, and Markdown and wikitext on request only | UX.104 |  |
+| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | UX.104 |  |
+| GEN.218 | One habitability describer, in the short wording | UX.104 |  |
+| GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
+| GEN.220 | "Habitable" means the index | UX.104, GEN.218 |  |
+| TEST.155 | Wording and index agree: property test | GEN.218 |  |
+| GEN.221 | Short plain prose for the fixed text | UX.104 |  |
+| UX.107 | Units in the description go through the ladders | UX.23 |  |
+| DB.31 | Store structure, not prose, for life and flavour | UX.104 |  |
+| DOC.45 | Reference docs follow the description layer | UX.105, API.25, UX.106, GEN.218, GEN.219 |  |
 | MAP.202 | Galaxy Map sector and slab borders are nearly invisible unless a block is being selected (bug) |  |  |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) |  |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
@@ -197,9 +206,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
-| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build |  |  |
-| TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) |  |  |
-| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | TEST.151 |  |
+| TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming |  |  |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |

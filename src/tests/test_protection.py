@@ -97,7 +97,7 @@ def test_radiation_needs_a_shelter_not_a_suit():
     assert protection.radiation_need(_world(surface_dose_sv_yr=0.05))[1] is None
     assert protection.radiation_need(_world(surface_dose_sv_yr=0.5))[1] == "a shielded shelter for long stays"
     rank, gear, why = protection.radiation_need(_world(surface_dose_sv_yr=50.0))
-    assert gear == "a hardened, shielded habitat" and "no suit shields" in why
+    assert gear == "a hardened, shielded habitat" and "past the Yellow band" in why and "no suit shields" in why
 
 
 def test_no_liquid_water_means_it_has_to_be_brought():
@@ -109,47 +109,69 @@ def test_no_liquid_water_means_it_has_to_be_brought():
 # --- the paragraph ----------------------------------------------------------------------
 
 @pytest.mark.parametrize("name", list(EXAMPLES))
-def test_every_example_world_gets_one_paragraph_naming_each_category_and_its_colour(name):
+def test_every_example_world_gets_one_paragraph_naming_each_category_its_colour_and_value(name):
     world = EXAMPLES[name][0]
     scores = hab.scores(world)
-    paragraphs = (protection.paragraph(world, _bold),)
-    text = paragraphs[0]
+    text = protection.paragraph(world, _bold)
     assert "\n" not in text
-    assert text.startswith(f"**Habitability** is {scores['PHI-4']:.2f} ({hab.tier(scores['PHI-4'])}).")
+    assert text.startswith(f"**PHI-6 habitability** is {scores['PHI-4']:.2f}, and a visitor needs ")
+    assert "PHI-4" not in text
     for domain in hab.DOMAINS:
-        assert f"**{domain}: {scores[domain][1]}**." in text, domain
+        assert f"**{domain}: {scores[domain][1]}** ({scores[domain][0]:.2f})." in text, domain
     assert text.index("**Pressure:") < text.index("**Temperature:") < text.index("**Air:") < text.index(
         "**Water:") < text.index("**Radiation:") < text.index("**Suitability:")
 
 
-def test_a_red_temperature_makes_the_air_moot_and_the_paragraph_says_so():
-    cold = _world(temperature_c=-80.0, gases={"N2": 0.78, "O2": 0.21, "CO2": 0.03})
-    text = protection.paragraph(cold, _bold)
-    assert "**Temperature: Red**" in text and "**Air: Yellow**" in text
-    assert "already calls for a sealed suit with its own air, so this changes nothing" in text
-
-
-def test_one_category_that_makes_the_surface_impossible_while_others_are_fine_is_named():
-    cold = _world(temperature_c=-80.0)
-    text = protection.paragraph(cold, _bold)
-    assert "The temperature makes the surface impossible without protection, even though the pressure, air, water " \
-           "and radiation are fine." in text
-    assert text.count("so a visitor needs a sealed suit with active heating") >= 1
-
-
-def test_the_gear_of_a_hot_high_pressure_world_names_each_suit_and_why():
-    world = _world(pressure_kpa=2_000.0, temperature_c=80.0)
+def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave():
+    """GEN.216: Boss's own example lines (2026-10-15) are the wording."""
+    world = _world(pressure_kpa=0.0, temperature_c=-227.0, gases={}, solvent=None, life_stage="none",
+                   water_source=None, surface_dose_sv_yr=0.742)
     text = protection.paragraph(world, _bold)
-    assert "so a visitor needs a hyperbaric pressure suit" in text
-    assert "so a visitor needs an actively cooled sealed suit" in text
-    assert "A visitor needs a hyperbaric pressure suit, an actively cooled sealed suit and a sealed suit with its own " \
-           "air, because of the pressure, temperature and air." in text
+    for line in (
+            "**PHI-6 habitability** is 0.00, and a visitor needs a sealed suit.",
+            "**Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure suit is needed.",
+            "**Temperature: Red** (0.00). The air temperature is -227 C, so an environment suit is needed.",
+            "**Air: Red** (0.00). There is no atmosphere (0.0 kPa).",
+            "**Water: Red** (0.00). There is no liquid water to support life.",
+            "**Radiation: Yellow** (0.45). The radiation dose is a mean of 742 mSv a year, inside the Yellow band "
+            "(up to 1 Sv a year)."):
+        assert line in text, line
+    assert text.index("Suitability: Red") > text.index("**Radiation:")
+    assert "There is no food or water readily available, and only limited shelter." in text
+
+
+def test_a_habitable_world_says_it_needs_no_equipment_in_the_first_line():
+    text = protection.paragraph(_world(), _bold)
+    assert text.startswith("**PHI-6 habitability** is 1.00, and a visitor needs no equipment. **Pressure: Blue** (1.00).")
+    assert "**Suitability: Blue** (1.00). Water, food and shelter are all readily available." in text
+    assert "Also considered" not in text
+
+
+def test_the_suitability_line_names_what_is_and_is_not_readily_available():
+    text = protection.paragraph(_world(life_stage="none", water_source="liquid"), _bold)
+    assert "There is no food readily available, but there is water and shelter available." in text
+    dry = protection.paragraph(_world(life_stage="none", solvent=None, water_source=None), _bold)
+    assert "There is no food or water readily available" in dry
+    assert "Suitability: Red**" in dry
+
+
+def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_says_a_sealed_suit():
+    text = protection.paragraph(_world(temperature_c=-80.0), _bold)
+    assert "The air temperature is -80 C, so an environment suit is needed." in text
+    assert "and a visitor needs a sealed suit." in text
+
+
+def test_the_gear_of_a_hot_high_pressure_world_names_each_suit():
+    text = protection.paragraph(_world(pressure_kpa=2_000.0, temperature_c=80.0), _bold)
+    assert "The air pressure is 2,000 kPa, so a hyperbaric suit is needed." in text
+    assert "The air temperature is 80 C, so an environment suit is needed." in text
+    assert "and a visitor needs a sealed suit." in text
 
 
 def test_a_planet_of_a_compact_host_says_its_dose_is_rated_lethal():
     world = _world(surface_dose_sv_yr=1000.0)
     text = protection.paragraph(world, _bold, compact_host="pulsar")
-    assert "A planet of a pulsar is rated as a lethal dose." in text and "a hardened, shielded habitat" in text
+    assert "A planet of a pulsar is rated as a lethal dose." in text and "so a hardened habitat is needed" in text
 
 
 def test_a_sample_of_generated_planets_and_moons_each_have_one_consistent_paragraph():
@@ -172,7 +194,7 @@ def test_a_sample_of_generated_planets_and_moons_each_have_one_consistent_paragr
             world = hw.world_from(values, lethal_host=None)
             scores = hab.phi4(world)
             for domain in hab.DOMAINS:
-                assert f"**{domain}: {scores[domain][1]}**." in paragraphs[0]
+                assert f"**{domain}: {scores[domain][1]}** (" in paragraphs[0]
             seen += 1
     assert seen > 10
 
@@ -182,4 +204,12 @@ def test_the_paragraph_lengths_stay_short_enough_to_read():
     for _ in range(200):
         world = _world(pressure_kpa=10 ** rng.uniform(-2, 5), temperature_c=rng.uniform(-200, 400),
                        surface_dose_sv_yr=10 ** rng.uniform(-3, 3), life_stage=rng.choice(hab.LIFE_STAGES))
-        assert len(protection.paragraph(world, _bold)) < 1700
+        assert len(protection.paragraph(world, _bold)) < 1100
+
+
+def test_the_air_line_of_a_world_with_no_atmosphere_says_so_and_is_red():
+    """GEN.215: Air is Red and the text says there is no atmosphere, never that the gases are fine."""
+    world = _world(pressure_kpa=0.0, gases={})
+    text = protection.paragraph(world, _bold)
+    assert "**Air: Red** (0.00). There is no atmosphere (0.0 kPa). **Water:" in text
+    assert "within their long-term limits" not in text

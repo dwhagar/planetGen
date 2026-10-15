@@ -1,7 +1,7 @@
 # planetgen/physics/habitability_explain.py
 
 """
-The words behind a body's PHI-4 colours (UX.91): for each of the six
+The words behind a body's PHI-6 colours (UX.91): for each of the six
 factors (pressure, temperature, air, water, radiation, suitability) its colour and score,
 the inputs that make it up with this world's value for each, and which input
 sets the colour. It reads the same `habitability.World` the stored numbers
@@ -149,6 +149,8 @@ def _temperature_items(world):
 
 
 def _air_items(world):
+    if not habitability.has_atmosphere(world):
+        return [_item("air", f"none ({world.pressure_kpa:.1f} kPa)", 0.0, "there is no atmosphere, which is Red")]
     items = [_oxygen_item(world)]
     for gas, kpa, band in gas_inputs(world):
         item = _banded(GAS_NAMES[gas], kpa, band, _kpa, log=True)

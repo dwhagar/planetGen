@@ -32,6 +32,11 @@ _EMPTY_TABLE_ROWS = {
     "moon_reflection_spectrum": (
         "INSERT INTO moon_reflection_spectrum (moon_id, spectrum_type, position, value)"
         " VALUES ((SELECT MIN(id) FROM moons), 'visible', 0, 'blue')"),
+    # Admin-defined (POP.10); none in a generated galaxy.
+    "facility_types": "INSERT INTO facility_types (name, kind) VALUES ('Test type', 'colony')",
+    "facility_type_fields": (
+        "INSERT INTO facility_type_fields (type_id, `key`, label, datatype)"
+        " VALUES (1, 'crop', 'Crop', 'text')"),
     # Only a `planetgen plan` scatter writes these.
     "phenomenon_scatter": (
         "INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, position_x_mpc,"

@@ -51,7 +51,7 @@ NOT_NUMBER_FORMATTERS = {
 """set: Public functions that aren't one-number formatters; each has its
 own test below."""
 
-_UTILS_HELPERS = {"format_body_radius_km", "format_relative_to_sol", "format_distance_km", "format_period_years",
+_UTILS_HELPERS = {"format_body_radius_km", "format_power_w", "format_distance_km", "format_mass_kg", "format_period_years",
                   "to_scientific_notation"}
 """set: `planetgen.util.format` functions `tabledisplay` imports for its own
 use (they take a `SystemConfig`, or are wrapped by `tabledisplay`'s own
@@ -108,7 +108,7 @@ def _clean(text):
 def test_the_sweep_finds_the_formatters():
     names = {(m.__name__.rpartition(".")[2], n) for m, n, _f in FORMATTERS}
     assert {("fmt", "format_number"), ("fmt", "format_distance_km"), ("fmt", "format_density"),
-            ("fmt", "format_temperature_k"), ("tabledisplay", "format_star_mass"),
+            ("fmt", "format_temperature_k"), ("tabledisplay", "format_mass"),
             ("tabledisplay", "format_body_distance")} <= names
     assert {n for m, n, _f in FORMATTERS} - {n for m, n, _f in ONE_ARG} == {"format_density"}
 
@@ -144,7 +144,7 @@ def test_zero_and_ordinary_values_still_format(module, name, formatter):
 
 
 @pytest.mark.parametrize("value", [-1.0, -5e10, -1e300])
-@pytest.mark.parametrize("formatter", [tabledisplay.format_star_mass, tabledisplay.format_star_luminosity])
+@pytest.mark.parametrize("formatter", [tabledisplay.format_mass, tabledisplay.format_luminosity])
 def test_a_negative_mass_or_luminosity_is_a_dash(formatter, value):
     assert formatter(value) == "–"
 

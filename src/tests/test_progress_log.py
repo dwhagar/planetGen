@@ -221,3 +221,98 @@ def test_the_runner_starts_a_log_for_the_build_and_hands_its_path_to_pytest(tmp_
         f.write(json.dumps({"kind": "test", "nodeid": "a", "outcome": "passed"}) + "\n")
     assert runner.main(["quick"]) == 0
     assert progress_log.read(path)[1] == {}
+
+
+# --- resuming (TEST.151) --------------------------------------------------------------------------------------------
+
+def _runner(tmp_path, monkeypatch):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("planetgen_test_runner_resume", os.path.join(os.path.dirname(SRC), "scripts", "test.py"))
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    monkeypatch.setattr(runner, "PROGRESS_DIR", str(tmp_path / "progress"))
+    monkeypatch.setattr(runner, "save_run", lambda *args: pytest.fail("a resumed run must not store its time"))
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)
+    return runner
+
+
+def _finished(path, nodeid, outcome):
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps({"kind": "test", "nodeid": nodeid, "outcome": outcome}) + "\n")
+
+
+def test_skip_passed_leaves_out_those_tests_in_a_run_with_workers(tmp_path):
+    (tmp_path / "test_sample.py").write_text("def test_a(): pass\ndef test_b(): pass\ndef test_c(): pass\n")
+    skip = tmp_path / "skip.json"
+    skip.write_text(json.dumps(["test_sample.py::test_a", "test_sample.py::test_c"]))
+    log = tmp_path / "progress.jsonl"
+    result = subprocess.run([sys.executable, "-m", "pytest", "-p", "tests.progress_log", "-p", "no:cacheprovider", "-n", "2", "-q",
+                             "--rootdir", str(tmp_path), "-c", os.devnull, "--skip-passed", str(skip), str(tmp_path / "test_sample.py")],
+                            cwd=tmp_path, env=dict(os.environ, PLANETGEN_PROGRESS_LOG=str(log), PYTHONPATH=SRC),
+                            capture_output=True, text=True)
+    assert "1 passed" in result.stdout, result.stdout
+    assert list(progress_log.read(str(log))[1]) == ["test_sample.py::test_b"]
+
+
+def test_a_resume_keeps_the_log_lists_what_passed_and_adds_a_resume_line(tmp_path, monkeypatch):
+    runner = _runner(tmp_path, monkeypatch)
+    directory = str(tmp_path / "progress")
+    first = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
+    for nodeid, outcome in (("a", "passed"), ("b", "failed"), ("c", "passed"), ("d", "skipped"), ("a", "passed")):
+        _finished(first.path, nodeid, outcome)
+    again = runner.start_progress_log("quick", [], "", directory=directory, now=NOW + datetime.timedelta(minutes=5), resume=True)
+    assert again.problem is None and again.identifier == first.identifier and again.passed == 2
+    assert json.load(open(again.skip_file)) == ["a", "c"]
+    assert again.earlier_started == "2026-10-15T12:00:00Z"
+    header, tests = progress_log.read(again.path)
+    assert header["build"] == first.identifier and set(tests) == {"a", "b", "c", "d"}  # kept, not emptied
+    lines = [json.loads(text) for text in open(again.path)]
+    assert lines[-1] == {"kind": "resume", "at": "2026-10-15T12:05:00Z", "skipped": 2}
+    # a new run of the same build without --resume starts the log again
+    fresh = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
+    assert progress_log.read(fresh.path)[1] == {}
+
+
+def test_a_resume_with_nothing_to_resume_says_why(tmp_path, monkeypatch):
+    runner = _runner(tmp_path, monkeypatch)
+    directory = str(tmp_path / "progress")
+    os.makedirs(directory)
+    nothing = runner.start_progress_log("quick", [], "", directory=directory, now=NOW, resume=True)
+    assert "no earlier run of `quick`" in nothing.problem
+    first = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
+    _finished(first.path, "a", "passed")
+    tomorrow = runner.start_progress_log("quick", [], "", directory=directory, now=NOW + datetime.timedelta(days=1), resume=True)
+    assert tomorrow.problem and "another build" in tomorrow.problem and "date" in tomorrow.problem
+    other = runner.start_progress_log("full", [], "", directory=directory, now=NOW, resume=True)
+    assert "no earlier run of `full`" in other.problem
+    empty = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
+    assert runner.start_progress_log("quick", [], "", directory=directory, now=NOW, resume=True).problem.endswith(
+        "records no test that passed")
+    assert empty.identifier == first.identifier
+
+
+def test_main_resumes_with_a_skip_list_and_says_so_on_its_last_line(tmp_path, monkeypatch, capsys):
+    runner = _runner(tmp_path, monkeypatch)
+    commands = []
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: commands.append(command) or (0, {"passed": 4}))
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    assert runner.main(["quick"]) == 0
+    [log] = [name for name in os.listdir(tmp_path / "progress") if name.endswith(".jsonl")]
+    _finished(str(tmp_path / "progress" / log), "src/tests/test_a.py::test_a", "passed")
+    monkeypatch.setattr(runner, "save_run", lambda *args: pytest.fail("a resumed run must not store its time"))
+    commands.clear()
+    capsys.readouterr()
+    assert runner.main(["quick", "--resume"]) == 0
+    assert commands[0][-2] == "--skip-passed" and commands[0][-1].endswith(".skip")
+    out = capsys.readouterr().out.splitlines()
+    assert any("RESUMING build" in line and "1 tests that passed there are skipped" in line for line in out)
+    assert "quick: PASS in" in out[-1] and "(RESUMED build" in out[-1] and "1 more passed" in out[-1]
+
+
+def test_main_runs_nothing_when_the_build_has_no_log_to_resume(tmp_path, monkeypatch, capsys):
+    runner = _runner(tmp_path, monkeypatch)
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment: pytest.fail("nothing may run"))
+    assert runner.main(["quick", "--resume"]) == 2
+    out = capsys.readouterr().out
+    assert "cannot resume build" in out and "Nothing was run" in out

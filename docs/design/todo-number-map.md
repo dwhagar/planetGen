@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.103 |
+| UX | UX.108 |
 | MAP | MAP.204 |
 | NAV | NAV.60 |
-| GEN | GEN.217 |
+| GEN | GEN.222 |
 | PERF | PERF.101 |
-| DB | DB.31 |
-| API | API.25 |
+| DB | DB.32 |
+| API | API.26 |
 | ADM | ADM.55 |
 | SEC | SEC.33 |
-| TEST | TEST.155 |
+| TEST | TEST.156 |
 | USR | USR.12 |
 | OPS | OPS.51 |
-| DOC | DOC.45 |
+| DOC | DOC.46 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -467,6 +467,7 @@ Parents marked "new parent" had no old number of their own.
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | done, PR #1119 |
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | done, PR #1133 |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | none | open |
+| API.25 | A structured description endpoint, and Markdown and wikitext on request only | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -494,9 +495,10 @@ Parents marked "new parent" had no old number of their own.
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) | none | done, PR #1376 |
 | DB.26 | One migration for the habitability columns: flux variation and the air, water and suitability ratings | none | done, PR #1423 |
 | DB.27 | One migration for the species tech-level columns: six indices, tech level and tech source | none | done, PR #1446 |
-| DB.28 | One migration for the facility type tables and the new facility columns | none | open |
+| DB.28 | One migration for the facility type tables and the new facility columns | none | done, PR #1476 |
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | none | open |
 | DB.30 | One migration for the per-species environment limits | none | open |
+| DB.31 | Store structure, not prose, for life and flavour | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -541,6 +543,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | open |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | open |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | open |
+| DOC.45 | Reference docs follow the description layer | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -754,9 +757,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process | none | done, PR #1310 |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | none | open |
 | GEN.213 | Mercury-like bodies never keep their magnetic field (bug) | none | done, PR #1412 |
-| GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) | none | open |
-| GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) | none | open |
-| GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) | none | open |
+| GEN.214 | Planet descriptions still say PHI-4 where they should say PHI-6 (bug) | none | done, PR #1472 |
+| GEN.215 | Air shows Green with 0 Air when the air pressure is 0 (bug) | none | done, PR #1478 |
+| GEN.216 | Habitability text is too wordy and the Suitability sentence is oddly worded (bug) | none | done, PR #1482 |
+| GEN.217 | Refresh the stored habitability numbers on existing planets and moons | none | open |
+| GEN.218 | One habitability describer, in the short wording | none | open |
+| GEN.219 | The habitability levels page and tooltips are generated from the limits | none | open |
+| GEN.220 | "Habitable" means the index | none | open |
+| GEN.221 | Short plain prose for the fixed text | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -954,7 +962,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
 | MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | done, PR #1331 |
 | MAP.197 | Remove the obsolete drill container code left by the map flip | none | done, PR #1455 |
-| MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | open |
+| MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | done, PR #1470 |
 | MAP.199 | Galaxy Map zoom and rotation share one centre, and the user can choose a new one (bug) | none | open |
 | MAP.200 | Galaxy Map on-map controls: a zoom slider, a direction star and a centre indicator (bug) | none | open |
 | MAP.201 | A selected sector that is not filled stays highlighted on the map until something else is selected (bug) | none | open |
@@ -1256,7 +1264,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | done, PR #539 |
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
-| UX.30 | Planet information without the Markdown render | none | open |
+| UX.30 | Planet information without the Markdown render | none | absorbed into UX.105 |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | done, PR #606 |
@@ -1329,6 +1337,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
 | UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | none | open |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
+| UX.103 | Design note for the description layer | none | open |
+| UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | open |
+| UX.105 | The system page builds every body's detail from the document model as HTML tables | none | open |
+| UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | open |
+| UX.107 | Units in the description go through the ladders | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1576,10 +1589,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
 | TEST.149 | Two physics tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.150 | Test run progress log and build id for resuming a run | none | done, PR #1431 |
-| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | open |
+| TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | done, PR #1484 |
 | TEST.152 | Clear leftover Redis keys at the start of a resumed run; merge the dependency map; document resuming | none | open |
 | TEST.153 | A single hung test can stall a whole run (bug) | none | done, PR #1451 |
-| TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | open |
+| TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | done, PR #1486 |
+| TEST.155 | Wording and index agree: property test | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

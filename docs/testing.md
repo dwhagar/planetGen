@@ -212,11 +212,29 @@ in a test that waits for something must still do what lets the test go on if the
 Every `scripts/test.py` run works out the id of its build (printed on the first line: `build 1a2b3c4d5e6f7a8b`) and
 keeps `.test-progress/<id>.jsonl`: a header with the parts the id is made of, then one line for every test that
 finished (node id, outcome, seconds, worker), written as the test finishes, so a killed run loses only the tests that
-were running. This is the record a later `--resume` reads (TEST.151); nothing uses it yet. The id changes when the
+were running. `--resume` reads it (below). The id changes when the
 git tree, an uncommitted or untracked file (git-ignored files do not count), an installed package, the Python,
 MySQL or Redis version, the command and its pytest arguments, the commit `changed` compares with, a `PLANETGEN_*`
 or `PYTEST_*` variable or the UTC date changes, and not otherwise. A new run of the same build starts its log
 again; logs older than a day are removed.
+
+### Resuming a run
+
+After a run was killed, hung or stopped (its last line says `INTERRUPTED`, or there is no last line), run the same
+command again with `--resume`:
+
+    scripts/test.py full --resume
+
+If nothing that makes up the build id has changed (same commit and files, packages, Python, MySQL and Redis versions,
+command, arguments and day), the tests that passed in the earlier run are skipped (`--skip-passed`, a list of node
+ids) and the rest run. It prints `RESUMING build <id> from the run started <time>: the N tests that passed there are
+skipped` first, and its last line ends `(RESUMED build <id>: N more passed in the run started <time>)`, so the
+verdict can be read as: the tests run now passed, and N more passed before. A resumed run's duration is not
+stored as the command's usual time. With any other build it runs nothing, exits with 2 and names the parts that
+changed since the last run of that command. Resuming is never automatic, and a PR that was merged on a resumed
+run says which build and run it continued. Tests that failed, errored, were running when the run stopped or never
+started run again; a test that passed earlier is not run again, so a test that only passes after another test
+ran before it is not checked again either.
 
 ### Only the tests a change touches, `scripts/test.py changed`
 

@@ -33,7 +33,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.util.format import format_distance_km, format_distance_ly, format_number
+from planetgen.util.format import format_distance_km, format_distance_ly, format_mass_solar, format_number, format_power_w
 from planetgen.util.random import log_uniform
 
 
@@ -169,10 +169,10 @@ class Quasar(LazySaladName):
 
         description = (
             f"{self.name} is the galaxy's active nucleus: a supermassive black hole of "
-            f"{self.black_hole_mass_solar:.2e} solar masses, its event horizon "
+            f"{format_mass_solar(self.black_hole_mass_solar)}, its event horizon "
             f"{format_distance_km(self.event_horizon_radius_km)} in radius, swallowing "
             f"about {format_number(self.accretion_rate_solar_per_year, ',.1f')} solar masses of gas every year. Its accretion disk "
-            f"radiates {self.luminosity_w:.2e} W ({self.eddington_ratio:.0%} of its Eddington limit), "
+            f"radiates {format_power_w(self.luminosity_w)} ({self.eddington_ratio:.0%} of its Eddington limit), "
             f"roughly {format_number(self.galaxy_luminosity_multiple, ',.0f')} times the combined light of every star in a "
             f"galaxy like the Milky Way. Gas in its broad-line region, about "
             f"{format_number(self.broad_line_region_light_days, ',.0f')} light-days out, orbits fast enough to smear its "

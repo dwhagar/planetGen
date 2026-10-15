@@ -2,6 +2,148 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1225] - 2026-10-15
+
+### Changed
+
+- UX.22 progress recorded: step 5 (luminosity, power and heat flow on unit ladders) merged in #1488; steps 6 and 7 remain.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1224] - 2026-10-15
+
+### Changed
+
+- Luminosities, powers and heat flows share a unit ladder: watts to exawatts, then solar luminosities from a millionth of the Sun's ("1 L☉" for the Sun, "0.00155 L☉" for a red dwarf, "47 TW" for Earth's interior, "9.01 × 10⁻³¹ W" for a black hole's Hawking glow), and heat flow in W/m² with SI prefixes (Earth's "87 mW/m²"). Stars, black holes, neutron stars, the quasar, rogue planets, the Galaxy Map's point panel and filter labels, and the generator text all use it; the "% of Sol" and "× Sol" comparisons are gone.
+
+## [8.0.1223] - 2026-10-15
+
+### Changed
+
+- TEST.154 retired (merged in #1486: the flaky object-id test reads the host from the facility).
+
+TODO items resolved: TEST.154 / Added: none
+
+## [8.0.1222] - 2026-10-15
+
+### Fixed
+- **The API object-ID test takes the facility's host from the data** (TEST.154). `test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing` expected the facility's host to be the first planet the API lists, but its fixture puts the facility on the lowest planet row, and a random system lists its planets in another order about 1 time in 20 (4 of 80 on an idle machine). It now reads the host from the facility, checks it is one of the system's own planets and reaches every planet by its id; 0 failures in 150 draws.
+
+## [8.0.1221] - 2026-10-15
+
+### Changed
+
+- TEST.151 retired (merged in #1484: `scripts/test.py --resume`).
+
+TODO items resolved: TEST.151 / Added: none
+
+## [8.0.1220] - 2026-10-15
+
+### Added
+- **`scripts/test.py <command> --resume` continues a run that was killed or stopped** (TEST.151). With the same build id (same code and files, packages, Python, MySQL and Redis versions, command and day) it skips the tests that passed in the earlier run and runs the rest. It says RESUMING first and `(RESUMED build ...: N more passed ...)` on its last line, runs nothing and exits 2 if the build changed (naming the parts that did), and never stores its short duration as the command's usual time. An interrupted run's last line now says how many tests had passed and that `--resume` continues it.
+
+## [8.0.1219] - 2026-10-15
+
+### Changed
+
+- GEN.216 retired (merged in #1482). GEN.217 also fixes a lifeless moon keeping a stale first habitability score.
+
+TODO items resolved: GEN.216 / Added: none
+
+## [8.0.1218] - 2026-10-15
+
+### Changed
+
+- **The habitability description is short (GEN.216).** It opens "PHI-6 habitability is 0.00, and a visitor needs a sealed suit." Each category then reads "Pressure: Red (0.00). The air pressure is 0 kPa, so a pressure suit is needed." with its value, the number and its consequence. Suitability says which of food, water and shelter are readily available instead of listing what else was considered, and the lines no longer repeat what the other categories already say. Bodies generated before this release keep their old description until regenerated.
+
+## [8.0.1217] - 2026-10-15
+
+### Changed
+
+- UX.22 progress recorded: step 4 (masses on the unit ladder) merged in #1480; steps 5 to 7 remain.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1216] - 2026-10-15
+
+### Changed
+
+- Masses are shown on one ladder everywhere (system pages, the System Map panels, star and planet lists, black holes, neutron stars, rogue planets, the quasar, the Galaxy Map's point panel and the generator text): kilograms under 0.01 lunar mass, then lunar masses, Earth masses from 0.1, Jupiter masses from 0.1 Jupiter mass and solar masses from 0.075. Earth now reads "1 Earth mass", Mars "0.107 Earth masses", Saturn "0.299 Jupiter masses", Proxima Centauri "0.122 solar masses", and a heavy black hole "4.30 × 10⁶ solar masses". The kilogram figure and the "% of Sol" comparison are gone from mass rows.
+
+## [8.0.1215] - 2026-10-15
+
+### Changed
+
+- GEN.215 retired (merged in #1478). GEN.217 notes that the fill will change some moon chips; TEST.154 records a third sighting of the flaky test.
+
+TODO items resolved: GEN.215 / Added: none
+
+## [8.0.1214] - 2026-10-15
+
+### Fixed
+
+- **A world with no atmosphere now rates Red in Air, with a score of 0 (GEN.215).** It rated Green because the air had no toxins. Under 0.05 kPa (it prints as 0.0 kPa) there is no air to breathe, and the description says there is no atmosphere. Bodies generated before this release keep their stored Air rating until regenerated.
+
+## [8.0.1213] - 2026-10-15
+
+### Changed
+
+- DB.28 retired (merged in #1476, schema v89).
+
+TODO items resolved: DB.28 / Added: none
+
+## [8.0.1212] - 2026-10-15
+
+### Added
+- Schema v89: facility types, their typed fields and values (`facility_types`, `facility_type_fields`, `facility_field_values`), and on `facilities` a type, an affiliation, five Green/Yellow/Red ratings and how they were set, ready for the facility work.
+
+## [8.0.1211] - 2026-10-15
+
+### Added
+
+- Plan entries for the Foundations Wording list: description layer, system page tables, description endpoint, CLI format, one habitability describer, levels page from limits, stored text, docs. UX.30 is absorbed into UX.105.
+
+TODO items resolved: UX.30 (absorbed into UX.105) / Added: UX.103, UX.104, UX.105, API.25, UX.106, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, UX.107, DB.31, DOC.45
+
+## [8.0.1210] - 2026-10-15
+
+### Added
+
+- GEN.217: `plan --fill-habitability` refreshes the stored habitability numbers on existing planets and moons (plan entry only).
+
+TODO items resolved: none / Added: GEN.217
+
+## [8.0.1209] - 2026-10-15
+
+### Changed
+
+- GEN.214 retired (merged in #1472).
+
+TODO items resolved: GEN.214 / Added: none
+
+## [8.0.1208] - 2026-10-15
+
+### Changed
+
+- MAP.198 retired (merged in #1470).
+
+TODO items resolved: MAP.198 / Added: none
+
+## [8.0.1207] - 2026-10-15
+
+### Fixed
+
+- **Planet and moon descriptions, their tooltips and the Habitability levels page name the index PHI-6 (GEN.214).** They still said PHI-4. The description's first line now reads "PHI-6 habitability is ...". The stored columns keep their `phi4` names.
+
+## [8.0.1206] - 2026-10-15
+
+### Fixed
+- **The Galaxy Map did not show clearly which region a click would zoom into.**
+  The block under the pointer is now outlined all round (top and bottom edges
+  and up its corners, at every level) and shaded a little, in both the light
+  and dark themes, so a block holding the star or group you are after can be
+  told from its neighbours.
+
 ## [8.0.1205] - 2026-10-15
 
 ### Changed

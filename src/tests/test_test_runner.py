@@ -185,7 +185,7 @@ def test_the_last_line_says_pass_fail_or_interrupted(monkeypatch, capsys):
     monkeypatch.setattr(runner, "run_phase", stopped)
     assert runner.main(["quick"]) == 130
     last = capsys.readouterr().out.splitlines()[-1]
-    assert "quick: INTERRUPTED (SIGTERM) in the quick phase" in last and "not finished" in last
+    assert "quick: INTERRUPTED (SIGTERM) in the quick phase" in last and "not finished" in last and "with --resume continues it" in last
 
 
 def test_run_phase_passes_the_output_through_and_returns_the_counts(capfd):

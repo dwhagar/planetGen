@@ -31,7 +31,7 @@ from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_
 from planetgen.web.lib.fmt import esc, format_distance_km, format_gravity_g_short, format_number, format_speed_kms
 from planetgen.web.lib.mdrender import markdown_to_html
 from planetgen.web.lib.tabledisplay import (
-    format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
+    format_body_distance, format_period, format_luminosity, format_mass, format_star_radius,
 )
 
 
@@ -64,10 +64,10 @@ def stars_html(stars, class_url=None, notes_html=""):
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
-        f'<td data-label="Mass">{format_star_mass(star["mass_kg"])}</td>'
+        f'<td data-label="Mass">{format_mass(star["mass_kg"])}</td>'
         f'<td data-label="Radius">{format_star_radius(star["radius_km"])}</td>'
         f'<td data-label="Temp">{format_number(star["temperature_k"])} K</td>'
-        f'<td data-label="Luminosity">{format_star_luminosity(star["luminosity_w"])}</td>'
+        f'<td data-label="Luminosity">{format_luminosity(star["luminosity_w"])}</td>'
         "</tr>"
         for star in stars
     )
@@ -273,26 +273,26 @@ def _stat(text):
 
 def _habitability_chip(body):
     """GEN.89: the equipment a human needs on this body, coloured by its
-    worst PHI-4 domain (Blue to Red), with the score and what limits it in
+    worst PHI-6 domain (Blue to Red), with the score and what limits it in
     its tooltip; empty for a gas giant or a body saved before v76."""
     tier = body.get("equipment_tier")
     if tier is None:
         return ""
     worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
-    title = f'PHI-4 {body["phi4"]:.2f}. {body.get("hab_note") or ""}'.strip()
+    title = f'PHI-6 {body["phi4"]:.2f}. {body.get("hab_note") or ""}'.strip()
     return (f'<span class="flag flag-tier flag-tier-{worst}" title="{esc(title)}">'
             f'{esc(EQUIPMENT_LABELS[tier])}</span>')
 
 
 TIER_NAMES = ("Blue", "Green", "Yellow", "Red")
-"""tuple: The PHI-4 tier colours, best first."""
+"""tuple: The PHI-6 tier colours, best first."""
 
 HABITABILITY_SCORES = (("phi_bio", "Microbial"), ("phi_cpx", "Complex life"), ("phi_tech", "Human operability"))
-"""tuple: The stored PHI-4 scores and their names (UX.90)."""
+"""tuple: The stored PHI-6 scores and their names (UX.90)."""
 
 
 def _habitability_detail(body):
-    """UX.90: each PHI-4 factor's colour (Blue to Red) and the three stored
+    """UX.90: each PHI-6 factor's colour (Blue to Red) and the three stored
     scores, as visible text under the equipment chip; empty when unscored."""
     if body.get("equipment_tier") is None:
         return ""

@@ -53,7 +53,7 @@ from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.physics.orbits import calculate_habitable_zone
 from planetgen.util.format import (
-    format_age_string, format_number, format_body_radius_km, format_distance_km, format_duration_seconds, format_length_km, format_relative_to_sol, properties_to_string,
+    format_age_string, format_number, format_body_radius_km, format_distance_km, format_duration_seconds, format_length_km, format_mass_kg, properties_to_string,
 )
 from planetgen.util.random import log_uniform
 
@@ -374,7 +374,7 @@ class BlackHole(CompactRemnant):
             dict: Keys `type`, `mass`, `event_horizon`, `spin`, `disk`,
                  `orbit`, `loc`, each an already-formatted display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
+        mass_string = format_mass_kg(self.mass)
         radius_string = format_length_km(
             self.system_config, self.radius,
             tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
@@ -554,7 +554,7 @@ class NeutronStar(CompactRemnant):
                  `magnetic_field`, `surface_temp`, `orbit`, `loc`, each an
                  already-formatted display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
+        mass_string = format_mass_kg(self.mass)
         radius_string = format_length_km(
             self.system_config, self.radius,
             tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
