@@ -713,7 +713,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | done, PR #987 |
 | GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) | none | done, PR #960 |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | none | done, PR #1075 |
-| GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | open |
+| GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | done, PR #1410 |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | none | open |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector | none | open |
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws | none | open |
