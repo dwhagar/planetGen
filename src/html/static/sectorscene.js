@@ -35,7 +35,7 @@ const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
 
 // What an object in an uncharted sector says of itself (MAP.162).
-const UNCHARTED_NOTE = "Uncharted: its sector is not generated yet";
+const UNCHARTED_NOTE = "Uncharted: its sector is not charted yet";
 
 // A cloud entry carries `kind` (its phenomenon-texture recipe, see
 // `CLOUD_KIND_RECIPES` below); a star entry never does; a neighboring-

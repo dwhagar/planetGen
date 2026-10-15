@@ -491,7 +491,7 @@ def phenomena():
         title="Phenomena",
         section="phenomena",
         breadcrumbs=[crumb("Phenomena")],
-        description="Every nebula, black hole, neutron star and other exotic phenomenon in this generated galaxy.",
+        description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.",
         table=table,
         total=table["total"],
     )
@@ -795,7 +795,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         title=detail["name"],
         section="phenomena",
         breadcrumbs=[crumb("Phenomena", "phenomena"), crumb(detail["name"])],
-        description=f"{detail['name']}, a {type_label.lower()} in this generated galaxy.",
+        description=f"{detail['name']}, a {type_label.lower()} in this charted galaxy.",
         type_label=type_label,
         distance=distance,
         sector=sector,

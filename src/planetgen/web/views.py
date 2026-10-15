@@ -189,7 +189,7 @@ def index():
     return render_page(
         "index.html",
         title="Home",
-        description="Every sector, star system and phenomenon in this generated galaxy.",
+        description="Every sector, star system and phenomenon in this charted galaxy.",
         counts=[{"total": total, "noun": nouns[0] if total == 1 else nouns[1], "url": url}
                 for total, nouns, url in counts],
         tools=[{"label": "Galaxy Map", "hint": "Fly through the whole galaxy.", "url": page_url("galaxy")},
@@ -207,7 +207,7 @@ def sectors():
         title="Sectors",
         section="sectors",
         breadcrumbs=[crumb("Sectors")],
-        description="Every sector in this generated galaxy.",
+        description="Every sector in this charted galaxy.",
         sectors=tables.render(SECTORS_TABLE, request.path, anchor="sectors"),
     )
 
@@ -227,7 +227,7 @@ def systems():
         title="Uncharted stars" if show_uncharted else "Systems",
         section="systems",
         breadcrumbs=[crumb("Systems", "systems"), crumb("Uncharted stars")] if show_uncharted else [crumb("Systems")],
-        description="Every star system in this generated galaxy.",
+        description="Every star system in this charted galaxy.",
         all_systems=table,
         show_uncharted=show_uncharted,
         uncharted_url=page_url("systems", uncharted="1", _anchor="all-systems"),
@@ -283,7 +283,7 @@ def search():
         "search.html",
         title="Search",
         breadcrumbs=[crumb("Search")],
-        description="Search this generated galaxy by name, size and type.",
+        description="Search this charted galaxy by name, size and type.",
         state=state,
         name_fields=searchpage.NAME_FIELDS,
         size_entities=searchpage.SIZE_ENTITIES,

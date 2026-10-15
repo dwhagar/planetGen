@@ -89,7 +89,7 @@ def _place_pickers(sector_raw):
     """The sector-then-system picker."""
     if not sector_raw:
         return [_picker("Choose a sector", "sector", "Sector", _sector_options(), {},
-                        empty="No sectors have been generated yet.")]
+                        empty="No sectors have been charted yet.")]
     sector = apiclient.get_sector(db_name(), _sector_id(sector_raw))
     return [_picker(f"Choose a system in {sector['name']}", "place", "System",
                     _system_options(sector["systems"]), {}, start_over=nearby_url(),

@@ -38,7 +38,7 @@ _TITLES = {
     504: "Took too long",
 }
 
-TIMEOUT_MESSAGE = ("The database is busy (a generation run may be using it) and could not answer this page in "
+TIMEOUT_MESSAGE = ("The database is busy (a charting run may be using it) and could not answer this page in "
                    "time, so it was stopped. The page asks again by itself in a few seconds; a narrower search "
                    "or a smaller page is quicker.")
 """str: What a page whose query hit the statement time limit (PERF.17) says."""

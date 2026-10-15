@@ -48,7 +48,7 @@ def classes():
         title="Classes",
         section="classes",
         breadcrumbs=[crumb("Classes")],
-        description="Every class of star, planet, nebula and other object this galaxy generator assigns.",
+        description="Every class of star, planet, nebula and other object this galaxy survey assigns.",
         rows=rows,
         habitability_url=page_url("habitability_levels"),
         population=_population_links(),

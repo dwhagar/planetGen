@@ -1442,7 +1442,7 @@ export function createStageView(host) {
   }
 
   function optionText(index) {
-    return blockText(display.options[index].blocks[0], display.data) + (pickable(index) ? "" : " (nothing generated here to pick)");
+    return blockText(display.options[index].blocks[0], display.data) + (pickable(index) ? "" : " (nothing charted here to pick)");
   }
 
   // The block the panel on arrival describes: the cell the window is
@@ -1548,8 +1548,8 @@ export function createStageView(host) {
   function baseHint(r) {
     if (!r || !r.kind) return "";
     if (isSectorView(r)) {
-      return "Click a sector to open it; a sector that isn't generated yet shows where it is"
-        + (host.canGenerate ? " and how to generate it." : ".");
+      return "Click a sector to open it; a sector that isn't charted yet shows where it is"
+        + (host.canGenerate ? " and how to chart it." : ".");
     }
     return "Click a block to zoom in on it; Up zooms out again.";
   }
