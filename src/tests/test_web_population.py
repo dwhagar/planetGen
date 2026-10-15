@@ -91,6 +91,12 @@ class FakePopulation:
         self.calls.append(("planet_species", planet_id))
         return SPECIES if planet_id == SPECIES["homeworld_planet_id"] else None
 
+    habitable = []
+
+    def get_system_habitable_species(self, db, system_id):
+        self.calls.append(("habitable", system_id))
+        return self.habitable
+
     def get_system_owner(self, db, system_id):
         self.calls.append(("owner", system_id))
         return {"polity_id": 2, "polity_name": "Velar Concord", "color": "#3366cc", "distance_ly": 0.0}
@@ -103,7 +109,7 @@ NONE = dict(apiclient.POPULATION_NONE)
 def _install(monkeypatch, status):
     data = FakePopulation(status)
     for name in ("get_population_status", "get_species_list", "get_species", "get_polities", "get_polity",
-                 "get_planet_species", "get_system_owner"):
+                 "get_planet_species", "get_system_owner", "get_system_habitable_species"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 
@@ -285,3 +291,44 @@ def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
     assert real_client.get("/polities").status_code == 200
     system = real_client.get(f"/system/{pid('system', galaxy['a'])}").get_data(as_text=True)
     assert "Dominant species:" in system and "Territory of" in system
+
+
+LIMITS = [
+    {"name": "comfort_high_c", "unit": "C", "meaning": "greatest temperature with no gear (Blue)", "human": 31.0,
+     "value": 55.0, "changed": True},
+    {"name": "pressure_no_gear_kpa", "unit": "kPa", "meaning": "least pressure with no gear at all (Blue)",
+     "human": 50.0, "value": 50.0, "changed": False},
+]
+
+
+def test_species_page_lists_the_environment_limits(monkeypatch, client, fake):
+    data = _install(monkeypatch, ALL)
+    monkeypatch.setattr(data, "get_species", lambda db, species_id: {**SPECIES, "limits": LIMITS})
+    monkeypatch.setattr(apiclient, "get_species", data.get_species)
+    page = client.get("/species/3").get_data(as_text=True)
+    assert "Environment Limits" in page
+    assert re.search(r"Comfort high</th><td>55 \u00b0C</td><td>31 \u00b0C</td><td>Yes</td>", page)
+    assert re.search(r"Pressure no gear</th><td>50 kPa</td><td>50 kPa</td><td>No</td>", page)
+
+
+def _habitable(name, ids):
+    domains = {d: {"score": 1.0, "tier": "Blue"} for d in ("pressure", "temperature", "air", "water", "radiation")}
+    domains["suitability"] = {"score": 0.6, "tier": "Yellow"}
+    return {"id": ids, "name": name, "homeworld_planet_id": 11, "tech_level": 4.0, "equipment": "ideal",
+            "unaided": True, "equipped": False, "failing": [], "phi4": 0.8, "domains": domains}
+
+
+def test_system_page_lists_the_species_that_could_live_on_each_world(monkeypatch, client, fake):
+    data = _install(monkeypatch, ALL)
+    data.habitable = [{"kind": "planet", "id": 11, "name": "Home<b>", "unaided": [_habitable("Vel<ar>", 3)],
+                       "equipped": [_habitable("Other", 4)]}]
+    page = client.get("/system/5").get_data(as_text=True)
+    assert "Species that could live here" in page and "Home&lt;b&gt;" in page
+    assert '<a href="/species/3">Vel&lt;ar&gt;</a>' in page and '<a href="/species/4">Other</a>' in page
+    assert "Suitability: Yellow" in page and "Pressure: Blue" in page
+    assert "<caption>Unaided</caption>" in page and "<caption>With equipment</caption>" in page
+
+
+def test_system_page_has_no_species_panel_when_none_could_live_there(monkeypatch, client, fake):
+    _install(monkeypatch, ALL)
+    assert "Species that could live here" not in client.get("/system/5").get_data(as_text=True)
