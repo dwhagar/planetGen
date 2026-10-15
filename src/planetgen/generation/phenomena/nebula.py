@@ -22,6 +22,7 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
+from planetgen.physics import hii, stellar_evolution
 from planetgen.util.format import format_distance_ly, format_number
 from planetgen.util.random import log_uniform
 
@@ -31,6 +32,10 @@ NEBULA_CLASS_LETTERS = tuple(
     if data["family"] != "supernova-remnant"
 )
 """tuple: The nebula classes (A-Q); R-W are supernova remnants."""
+
+IONIZED_CLASS_LETTERS = ("C", "D", "E", "G")
+"""tuple: The classes an H II region's size follows from its stars' photons
+(`physics.hii`); the reflection class F has hosts but nothing ionized."""
 
 REMNANT_CLASS_LETTERS = tuple(
     letter for letter, data in tuning.NEBULA_CLASSES.items()
@@ -139,6 +144,12 @@ class Nebula(LazySaladName):
         temperature_k (float): Gas temperature, kelvin.
         extinction_av (float): Optical extinction through the cloud,
             magnitudes.
+        age_myr (float or None): The age of a nebula with host stars (classes C
+            to G), Myr: the age of its stars.
+        q_total (float or None): The host stars' total ionizing photon rate,
+            photons a second; `None` for classes with no ionized gas.
+        hosts (str or None): The host stars as counts by spectral type, hottest
+            first (`"O5V x1, O9V x4, B0V x9"`), `None` for a class with none.
         galactic_orbital_speed_kms (float): Circular orbital speed around
             the galactic center, km/s -- a nebula is still gravitationally
             part of the galaxy even though it isn't bound to any star (see
@@ -157,6 +168,7 @@ class Nebula(LazySaladName):
     SERIALIZABLE_FIELDS = [
         "name", "nebula_class", "nebula_type", "radius_ly", "composition", "formation_cause",
         "dominant_species", "density_cm3", "temperature_k", "extinction_av",
+        "age_myr", "q_total", "hosts",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
@@ -164,7 +176,8 @@ class Nebula(LazySaladName):
     shared back-reference, threaded into `from_dict` rather than
     serialized redundantly)."""
 
-    def __init__(self, system_config: SystemConfig, name=None, nebula_type=None, nebula_class=None):
+    def __init__(self, system_config: SystemConfig, name=None, nebula_type=None, nebula_class=None,
+                 host=None, age_myr=None):
         """
         Initializes a Nebula object.
 
@@ -177,6 +190,11 @@ class Nebula(LazySaladName):
                 asks for `"planetary"`, the one family with a point rate).
             nebula_class (str, optional): An explicit class letter A-Q.
                 Drawn by frequency if omitted.
+            host (tuple, optional): The `(letter, subclass)` of the main-sequence
+                star the nebula is built around (`("O", 5)` for an O5V star), for a
+                class that has hosts (C to G); one is drawn from the IMF if omitted.
+            age_myr (float, optional): The nebula's age in Myr (its host star's);
+                drawn up to the class's limit if omitted.
         """
         self.system_config = system_config
         # A draft name: `_db.insert_nebula` reserves it through the
@@ -203,10 +221,49 @@ class Nebula(LazySaladName):
         self.formation_cause = family_data["formation_cause"]
         (self.dominant_species, self.density_cm3, self.temperature_k,
          self.extinction_av) = draw_class_contents(self.nebula_class)
+        self.age_myr = self.q_total = self.hosts = None
+        if self.nebula_class in tuning.NEBULA_CLASS_MAX_AGE_MYR:
+            self._draw_hosts(host, age_myr)
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields()
+
+    def _draw_hosts(self, host, age_myr):
+        """
+        Gives a nebula of a class with host stars (C to G) its age, host list and
+        photon rate (GEN.150), and sizes an ionized one from them. The age is the
+        host's or drawn up to the class's limit; the host is the star the nebula is
+        built around (drawn from the IMF if none is given), and classes D and E add a
+        cluster behind it, drawn from the IMF (`physics.hii.cluster_hosts`); the H II
+        radius and density follow from the photon rate and the age (Stromgren sphere
+        and Spitzer expansion, `physics.hii.region`) and are kept inside the class's
+        ranges. A reflection nebula (F) has the host but no photons to size it by.
+        """
+        letter = self.nebula_class
+        self.age_myr = age_myr if age_myr is not None else draw.uniform(0.0, tuning.NEBULA_CLASS_MAX_AGE_MYR[letter])
+        if host is not None:
+            name, seed_log_q = f"{host[0]}{host[1]}V", hii.log_q_of_type(*host)
+        else:
+            mass = stellar_evolution.sample_imf_mass_sol(*tuning.NEBULA_SEED_MASS_RANGE_SOL[letter])
+            name, seed_log_q = hii.type_name_of_mass(mass), hii.log_q_of_mass(mass)
+        counts = {name: 1}
+        others = []
+        if letter in tuning.NEBULA_CLUSTER_MASS_RANGE_SOL:
+            others = hii.cluster_hosts(log_uniform(*tuning.NEBULA_CLUSTER_MASS_RANGE_SOL[letter]), self.age_myr)
+            for kind, count in hii.host_counts(others).items():
+                counts[kind] = counts.get(kind, 0) + count
+        self.hosts = hii.host_summary(counts)
+        if letter not in IONIZED_CLASS_LETTERS:
+            return
+        log_q = hii.total_log_q(others, extra_log_q=(() if seed_log_q is None else (seed_log_q,)))
+        if log_q is None:
+            return
+        self.q_total = 10.0 ** log_q
+        radius_ly, density = hii.region(self.q_total, self.density_cm3, self.age_myr)
+        class_data = tuning.NEBULA_CLASSES[letter]
+        self.radius_ly = min(max(radius_ly, class_data["radius_range_ly"][0]), class_data["radius_range_ly"][1])
+        self.density_cm3 = min(max(density, class_data["density_range_cm3"][0]), class_data["density_range_cm3"][1])
 
     def to_dict(self):
         """
@@ -234,6 +291,7 @@ class Nebula(LazySaladName):
         """
         nebula = object.__new__(cls)
         nebula.system_config = system_config
+        nebula.age_myr = nebula.q_total = nebula.hosts = None  # a nebula saved before GEN.150 has none
         data = dict(data)
         if data.get("nebula_class") is None:
             # Saved before classes existed (schema v38): infer one, and
@@ -292,7 +350,13 @@ class Nebula(LazySaladName):
             f"{self.extinction_av:.2g} magnitudes."
         )
 
-        return [header, description, contents]
+        paragraphs = [header, description, contents]
+        if self.hosts:
+            lit = f"Its stars are {self.hosts}, about {format_number(self.age_myr, ',.3g')} million years old"
+            if self.q_total:
+                lit += f", giving off {format_number(self.q_total, ',.2g')} ionizing photons a second"
+            paragraphs.append(lit + ".")
+        return paragraphs
 
     def __str__(self):
         """

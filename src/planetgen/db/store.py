@@ -3229,16 +3229,17 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         """
         INSERT INTO nebulae (
             sector_id, name, nebula_class, nebula_type, radius_ly, composition, formation_cause,
-            dominant_species, density_cm3, temperature_k, extinction_av,
+            dominant_species, density_cm3, temperature_k, extinction_av, age_myr, q_total, hosts,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, nebula.name, nebula.nebula_class, nebula.nebula_type, nebula.radius_ly,
             nebula.composition, nebula.formation_cause,
             nebula.dominant_species, nebula.density_cm3, nebula.temperature_k, nebula.extinction_av,
+            nebula.age_myr, nebula.q_total, nebula.hosts,
             nebula.galactic_orbital_speed_kms, nebula.galactic_orbital_period_gy,
             nebula.galactic_orbital_phase_deg, nebula.galactic_min_update_interval_years,
             placement.get("center_x_pc"), placement.get("center_y_pc"),

@@ -1,0 +1,3 @@
+### Changed
+
+- **Nebula sizes from their stars (GEN.150).** An emission, cluster or reflection nebula (classes C to G) now has an age, a list of host stars and, when it is ionized, a photon rate, and its radius and density follow from them (a Stromgren sphere grown as the front expands for the nebula's age) instead of being drawn on their own. A star hosts a nebula only while its birth cloud lasts: the star's age must be under the class limit (1 Myr for C, 10 for D, 20 for E, 50 for F, 5 for G), so old O stars light nothing. The odds are now 0.25 for O and B0 to B2 stars, 0.05 for B3 to B9 and 0.01 for A, and B0 to B2 stars no longer make D nebulae. D and E add a cluster drawn from the IMF. Nebulae stored before this release keep their sizes.

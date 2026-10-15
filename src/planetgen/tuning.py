@@ -2075,22 +2075,49 @@ remnant's can have left it entirely (class V's "far off-center")."""
 
 NEBULA_HOST_RULES = (
     ("O", 0, 9, ("C", "D", "E"), 0.25),
-    ("B", 0, 2, ("C", "D", "G"), 0.1),
-    ("B", 3, 9, ("F", "G"), 0.05),
+    ("B", 0, 2, ("C", "G"), 0.25),
+    ("B", 3, 9, ("F",), 0.05),
     ("A", 0, 9, ("F",), 0.01),
 )
 """tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
 for a main-sequence primary. Only O and early-B stars put out enough
 ultraviolet below 91.2 nm to ionize hydrogen (Osterbrock & Ferland 2006),
-but a catalogued H II region is about one per four O stars: about 8,000
-are known against some 270,000 O stars, so an O star hosts one with
-chance 0.25 and a B0-B2 star 0.1 (GEN.204; the nebula density study,
-docs/design/nebula-density-vs-reality.md). They are ratios, so they stay
-right when the O and B counts change with the mass cut. Later B and A stars light dust without ionizing it, a reflection
-nebula (F, or G for the hotter ones) when a dusty cloud happens to be near
-(van den Bergh 1966, AJ 71:990 catalogs ~150 within a few kpc). The class
-is drawn among `classes` by NEBULA_CLASSES frequency."""
+and a catalogued H II region is about one per four O stars: about 8,000
+are known against some 270,000 O stars (GEN.204; the nebula density study,
+docs/design/nebula-density-vs-reality.md). The `chance` is that the star
+still sits in its natal cloud (the one number the catalogues fix, 0.25 for
+O and B0-B2 stars), and whether it hosts a class is then decided by the
+star's own age against `NEBULA_CLASS_MAX_AGE_MYR`: a B1V of 20 Myr is too
+old for a class G region, an O star always young enough. The rows used to
+carry a chance per spectral type (B0-B2 0.1); the age test now thins B0-B2
+to about 0.06 of them with no number of its own (GEN.150). A single B0-B2
+star cannot ionize 10 to 100 ly (one B2V ionizes about 0.8 ly), so class D
+is no longer one of their classes, and G needs an early-B star, so it left
+the B3-B9 row. Later B and A stars light dust without ionizing it, a
+reflection nebula (F) when a dusty cloud happens to be near (van den Bergh
+1966, AJ 71:990 catalogs ~150 within a few kpc); their chance is that of
+the cloud. The class is drawn among the classes the star is young enough
+for, by NEBULA_CLASSES frequency."""
+
+NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0}
+"""dict: The oldest a host star can be and still sit in a nebula of the class, Myr
+(design note, "Lifetimes by class": C 0.1 to 1, D 3 to 10, E 5 to 20, F 1 to 50, G 1
+to 5). Only the upper limits are used: the lower ones come out of the physics, a
+young region has not grown to the class's radius (`physics.hii`)."""
+
+NEBULA_CLUSTER_MASS_RANGE_SOL = {"D": (300.0, 1.0e4), "E": (1.0e4, 1.0e5)}
+"""dict: The mass of the cluster behind a class D or E region, solar masses, log-uniform:
+a small O/B cluster of 300 to 10,000 Msun (log Q 49.2 to 50.7) and a young massive
+cluster of 10,000 to 100,000 (50.7 to 51.7). The other ionized classes are one star's
+(design note, "Q needed by class" and the cluster mass table)."""
+
+NEBULA_SEED_MASS_RANGE_SOL = {
+    "C": (11.0, 60.0), "D": (18.0, 150.0), "E": (18.0, 150.0), "F": (2.0, 8.5), "G": (11.0, 25.0),
+}
+"""dict: The star a nebula built with no host star of its own is given (a nebula the
+phenomenon mode makes), solar masses, from the IMF: one O or early-B star for
+class C, an O star for D and E, an early B star for G, a B or A star for F."""
 
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
