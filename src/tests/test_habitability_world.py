@@ -38,7 +38,7 @@ def _earth(**changes):
 def test_earth_is_blue_everywhere_and_needs_no_kit():
     scored = hw.compute(_earth())
     assert scored["equipment_tier"] == 0
-    assert [scored[f"tier_{domain}"] for domain in hw.DOMAINS] == [0, 0, 0, 0]
+    assert [scored[f"tier_{hw.STORED_AS[domain]}"] for domain in hw.DOMAINS] == [0, 0, 0, 0]
     assert scored["phi4"] == pytest.approx(1.0)
     assert scored["phi_bio"] > 0.8 and scored["phi_cpx"] > 0.8 and scored["phi_tech"] > 0.95
     assert scored["hab_note"] == "All four domains Blue"
@@ -145,7 +145,7 @@ def test_every_generated_body_is_scored_consistently():
             assert 0 <= body.equipment_tier <= 4
             assert body.energy_flux_w_m2 >= 0.0
             for domain in hw.DOMAINS:
-                score, tier = getattr(body, f"phi4_{domain}"), getattr(body, f"tier_{domain}")
+                score, tier = getattr(body, f"phi4_{hw.STORED_AS[domain]}"), getattr(body, f"tier_{hw.STORED_AS[domain]}")
                 assert 0.0 <= score <= 1.0 and tier in (0, 1, 2, 3)
                 assert (tier == 0) == (score >= 1.0)
             for name in ("phi4", "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad"):

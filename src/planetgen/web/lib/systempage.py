@@ -26,7 +26,7 @@ disclosure button would be a control nested in a control); it opens the
 row's detail instead.
 """
 
-from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS
+from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS, STORED_AS
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import esc, format_distance_km, format_number, format_speed_kms
 from planetgen.web.lib.mdrender import markdown_to_html
@@ -278,7 +278,7 @@ def _habitability_chip(body):
     tier = body.get("equipment_tier")
     if tier is None:
         return ""
-    worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
+    worst = max(body.get(f"tier_{STORED_AS[domain]}") or 0 for domain in DOMAINS)
     title = f'PHI-4 {body["phi4"]:.2f}. {body.get("hab_note") or ""}'.strip()
     return (f'<span class="flag flag-tier flag-tier-{worst}" title="{esc(title)}">'
             f'{esc(EQUIPMENT_LABELS[tier])}</span>')
@@ -297,8 +297,8 @@ def _habitability_detail(body):
     if body.get("equipment_tier") is None:
         return ""
     chips = "".join(
-        f'<span class="flag flag-tier flag-tier-{body.get(f"tier_{domain}") or 0}">'
-        f'{domain.capitalize()}: {esc(TIER_NAMES[body.get(f"tier_{domain}") or 0])}</span>'
+        f'<span class="flag flag-tier flag-tier-{body.get(f"tier_{STORED_AS[domain]}") or 0}">'
+        f'{domain.capitalize()}: {esc(TIER_NAMES[body.get(f"tier_{STORED_AS[domain]}") or 0])}</span>'
         for domain in DOMAINS)
     scores = " &middot; ".join(f'{label} {body[key]:.2f}' for key, label in HABITABILITY_SCORES
                                if body.get(key) is not None)

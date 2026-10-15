@@ -63,9 +63,13 @@ EQUIPMENT_LABELS = (
 
 DOMAINS = ("pressure", "temperature", "chemistry", "radiation")
 
+STORED_AS = {"pressure": "pressure", "temperature": "temperature", "chemistry": "air", "radiation": "radiation"}
+"""dict: The suffix of a domain's `phi4_<suffix>` and `tier_<suffix>` columns (v87 renamed chemistry to air,
+    GEN.207 / PHI-6; the page keeps the name "Chemistry" until GEN.207 relabels it)."""
+
 BODY_FIELDS = (
-    "phi4", "phi4_pressure", "phi4_temperature", "phi4_chemistry", "phi4_radiation",
-    "tier_pressure", "tier_temperature", "tier_chemistry", "tier_radiation",
+    "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_radiation",
+    "tier_pressure", "tier_temperature", "tier_air", "tier_radiation",
     "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
     "equipment_tier", "hab_note", "energy_flux_w_m2",
 )
@@ -277,8 +281,8 @@ def compute(values, compact_host=None):
     limits = []
     for domain in DOMAINS:
         score, colour = result[domain.capitalize()]
-        out[f"phi4_{domain}"] = score
-        out[f"tier_{domain}"] = TIER_INDEX[colour]
+        out[f"phi4_{STORED_AS[domain]}"] = score
+        out[f"tier_{STORED_AS[domain]}"] = TIER_INDEX[colour]
         if colour != "Blue":
             limits.append(f"{domain.capitalize()} {colour}")
     out["equipment_tier"] = EQUIPMENT_NAMES.index(result["equipment"])
