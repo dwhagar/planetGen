@@ -25,7 +25,7 @@ automatically on first connection. See `TODO.md` for the full roadmap.
 
 ## Persistence layer
 
-`src/planetgen/db/store.py` owns every unit conversion at the point of writing
+`src/planetgen/db/store.py` (imported as `_db` in the older code and docs below) owns every unit conversion at the point of writing
 a value into the database; nothing else in the package imports it, and it
 never mutates the generation/physics code's own native units. Its shape:
 
@@ -33,7 +33,7 @@ never mutates the generation/physics code's own native units. Its shape:
   the two entry points most callers need. `save_sector` connects (pooled —
   see `MySQLConfig`/`_get_pool`), applies the schema if needed (idempotent —
   `CREATE TABLE IF NOT EXISTS`/`CREATE OR REPLACE VIEW` throughout
-  `schema.sql`), and writes the whole sector in one transaction.
+  `schema.sql`, which also adds any table an older database lacks), and writes the whole sector in one transaction.
   `config` (a `MySQLConfig`) defaults to `DEFAULT_MYSQL_CONFIG`, itself
   built from the `$PLANETGEN_MYSQL_*` environment variables above.
 - `insert_sector` / `insert_star_system` / `insert_star` / `insert_planet`
@@ -42,13 +42,14 @@ never mutates the generation/physics code's own native units. Its shape:
   blocks, callable individually for a standalone system with no sector
   (`insert_star_system(conn, star_system, system_config, sector_id=None,
   position=None)`).
-- `migrate_database(config=None)` — brings a database's `schema_migrations`
-  bookkeeping up to `SCHEMA_VERSION`, applying any migration step in
-  between. A brand-new database is created at the current schema, so this
-  is a no-op there; a database created by an older release gets one
-  `_migrate_vN_to_vN+1` step per version it is behind (see "Versioning"
-  below). `planetgen.cli.migrate` is its CLI. There is no import from a
-  pre-MySQL-port SQLite database (see "Versioning" below).
+- `migrate_database(config=None)` — brings a database up to
+  `SCHEMA_VERSION`, the number of the newest Alembic revision in
+  `src/planetgen/db/migrations/versions/` (see "Versioning" below). A
+  brand-new database is created at the current schema by `schema.sql`, so
+  this is a no-op there; a database made by an older release gets one
+  revision per version it is behind, and one older than the baseline (v61)
+  is refused with `SchemaTooOldError`. `planetgen.cli.migrate` is its CLI
+  (`install.sh` and `update.sh` run it on every deploy).
 - `load_star_system(conn, star_system_id)` / `load_sector(conn, sector_id)`
   / `load_system_config(conn, config_id)` — the read-path counterparts,
   reconstructing a live `StarSystem`/`SpaceSector`/`SystemConfig` from
@@ -141,8 +142,11 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `52`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
-  equivalent — see `schema.sql`'s "MySQL port" header note.
+  `91`, `store.SCHEMA_VERSION`, which is the number of the newest Alembic
+  revision). `alembic_version` holds the same number as four digits
+  (`0091`), kept in step by `alembic_runner.upgrade`. Replaces SQLite's
+  `PRAGMA user_version`, which has no MySQL equivalent — see `schema.sql`'s
+  "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
   Independent of the DDL version because a JSON export/import could bring
@@ -363,411 +367,36 @@ generation time (never within a neighboring star system's or another
 compact remnant's own Hill sphere), converted from a sector-relative
 offset rather than independently re-randomized.
 
-The SQLite-specific machinery that once converted an existing database
-between these versions in place (gzip-compressed file backups, a
-`_migrate_vN_to_vN+1` function per version) was removed during the MySQL
-port (TODO.md Phase 5) on the assumption that every MySQL database this
-project creates starts at the current schema directly, with no "upgrade
-an older MySQL database" case to handle — true until v9, whose
-`_migrate_v8_to_v9` (`planetgen/db/store.py`) is the first real migration
-function of the MySQL era, reviving the same per-version-step pattern
-(minus the file backups, which made no sense for a live database anyway)
-for a database created under the v8 schema; `_migrate_v9_to_v10` follows
-the same pattern for the v10 galactic-orbit columns, `_migrate_v10_to_v11`
-for the v11 planet/moon position columns, `_migrate_v11_to_v12` for
-the v12 floating-point update-guard column, `_migrate_v12_to_v13` for the
-v13 star-motion/binary-mutual-orbit columns, `_migrate_v13_to_v14` for
-the v14 binary-mutual-orbit-position columns, `_migrate_v14_to_v15`
-for the v15 S-type/wide-binary columns, `_migrate_v15_to_v16` for
-v16's exotic-phenomenon tables (needing no `ALTER TABLE` at all — six
-brand-new tables are already created by `_ensure_schema`'s
-`CREATE TABLE IF NOT EXISTS` regardless of the database's recorded
-version; this step exists purely to keep the `schema_migrations`
-bookkeeping counter itself accurate), `_migrate_v16_to_v17` for v17's
-galactic-orbital-motion columns (real `ALTER TABLE` steps this time, since
-v16's tables already existed with a fixed shape), `_migrate_v17_to_v18`
-for v18's galaxy-frame placement columns on `nebulae`/`asteroid_fields`
-(also real `ALTER TABLE` steps, left NULL on every pre-existing row --
-there's no way to recover a legacy phenomenon's intended galaxy placement
-after the fact, the same situation `sectors.center_x/y/z_pc` is in for a
-`_migrate_v3_to_v4`-migrated sector), `_migrate_v18_to_v19` for v19's
-new `comets`/`comet_composition` tables (needing no `ALTER TABLE` either,
-for the same "brand-new tables, bookkeeping-only step" reason as
-`_migrate_v15_to_v16`), `_migrate_v19_to_v20` for v20's binary/star/
-planet trajectory columns (also real `ALTER TABLE` steps, on
-`star_systems`/`stars`/`planets`), `_migrate_v20_to_v21` for v21's
-sector-placement columns on `black_holes`/`neutron_stars` (also real
-`ALTER TABLE` steps, left NULL on every pre-existing row — same
-"nothing to recover" situation v18's migration is in), and
-`_migrate_v21_to_v22` for v22's search-facing indexes on `sectors`/
-`star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
-columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
-steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v52_to_v53`. `migrate_database`
-applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
-`planetgen.cli.migrate` wraps as a CLI (also run automatically by
-`install.sh`/`update.sh` on every deploy). A SQLite database from before
-the MySQL port can't be brought in: the one-time import script that used
-to be here (`src/migrateSqliteToMysql.py`) was retired (TEST.61), because
-it only accepted a file already at the current `SCHEMA_VERSION`, which no
-SQLite database ever was (SQLite stopped at v5, and the MySQL migration
-steps start at v8). Generate the galaxy again instead.
+**How a database is brought up to date (DB.11).** Every schema change is an
+Alembic revision (`src/planetgen/db/migrations/versions/`, one file per
+version: `0061_baseline.py` to `0091_spherical_sectors.py`), numbered by the
+schema version it produces. `schema.sql` is kept at the current shape, so a
+new database is created from it directly and recorded at `SCHEMA_VERSION`; an
+older one gets its missing tables from `schema.sql` and then each revision
+after its recorded version in order (`alembic_runner.upgrade`, run by
+`store.migrate_database`), under a schema lock so a first connection
+elsewhere waits instead of stamping the database current half way. The
+per-version `_migrate_vN_to_vN+1` functions the entries below mention
+(v8 to v60) are gone: v61 is the baseline, and a database older than that is
+refused (`SchemaTooOldError`) and has to be generated again. A database newer
+than the code is refused too (`SchemaTooNewError`). Every released schema from v61
+is kept as a fixture (`src/tests/fixtures/old_schemas/`) and
+`tests/test_db_old_schemas.py` migrates each to the current shape and checks
+it against `db/models.py` (the SQLAlchemy models that mirror `schema.sql`).
+`planetgen check-db` (`db/check.py`) compares the live tables against those
+models and reports any difference. A SQLite database from before the MySQL
+port can't be brought in (SQLite stopped at v5); generate the galaxy again.
 
-**v19 to v26, in brief.** v19 added star-bound comets (`comets`,
-`comet_composition`; see that table below). v22 added the search-facing
-indexes above. v23 wired up wiki publishing (`sectors.wiki_url`, and
-`star_systems.wikijs_url`/`mediawiki_url` for existing databases). v24
-added the name-uniqueness registries (`sector_name_registry`,
-`system_name_registry` and a planet/moon `body_name_registry` that v34
-later dropped), so no two sectors or systems share a display name. v25
-and v26 added composite `(center_x_pc, center_y_pc, center_z_pc)` indexes
-on `sectors` and the placeable phenomenon tables, so bounding-box queries
-range-scan instead of reading every row.
-
-**Row timestamps (v27).** `sectors`, `star_systems` and the seven
-exotic-phenomenon tables each carry `created_at` and `modified_at`
-(millisecond precision), with an index on `modified_at`. MySQL bumps
-`modified_at` itself on any `UPDATE` that changes the row. Child rows
-(stars, planets, moons, belts, comets) have no timestamps of their own;
-changing one bumps its system's `modified_at` (`_db.touch_star_system`),
-and deleting a system bumps its sector's (`_db.touch_sector`). Orbit
-ticks from `planetgen.cli.orbits` deliberately don't count as a change; see
-`orbit_simulation_state.last_updated_at` for those. `_migrate_v26_to_v27`
-adds the columns with `ALGORITHM=INSTANT` where the server supports it
-and builds the indexes online, so it's safe on a large, live database.
-It then backfills in small batches: each system's `modified_at` starts at
-its own `created_at`, and each sector takes its oldest system's
-`created_at` for both columns. Phenomena and empty sectors have no record
-of when they were made, so they keep the migration's own time. The full
-reasoning is in `schema.sql`'s "v27" header note.
-
-**Phenomenon placement (v28).** `supernova_remnants`, `rogue_planets`
-and `interstellar_comets` gain the same `center_x_pc`/`center_y_pc`/
-`center_z_pc`/`galactic_radius_pc` columns the other four phenomenon
-tables have, so every phenomenon type can appear on the Sector Map and be
-a NAV endpoint. A supernova remnant's embedded black hole or neutron star
-takes the remnant's own sector and center. `_migrate_v27_to_v28` adds the
-columns and indexes online like v27, then gives each existing row that is
-linked to a galaxy-placed sector a random point inside that sector's
-cube (its real generated position was never saved), seeded by the row's
-id. Rows with no placed sector stay unplaced. The full reasoning is in
-`schema.sql`'s "v28" header note.
-
-**Page text rendered on demand (v29).** `_migrate_v28_to_v29` drops
-`star_systems.wikitext_content`/`markdown_content`; see "Rendered wiki
-text and URLs" below.
-
-**Data cleanup (v30).** No shape change. `_migrate_v29_to_v30` clears the
-atmosphere-only columns on planets and moons reclassified into an
-airless class (and on `atmosphere = 'None'` rows), and raises any surface
-temperature below the cosmic microwave background (2.725 K) to it.
-
-**Quasars (v31).** A new `quasars` table holds a galaxy's active nucleus
-(`quasarData.Quasar`). A quasar is only ever generated at the galactic
-center, by the core sector at ring 0, layer 0, slot 0 (`generate.add_galactic_nucleus`,
-rolled against `program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`), so a
-placed row always sits at (0, 0, 0) and a galaxy has at most one. It has
-the usual placement columns and row timestamps, but no galactic-orbit
-columns: it is the point everything else orbits. A brand-new table needs
-no `ALTER TABLE`, so `_migrate_v30_to_v31` only records the version.
-
-**Cylindrical sector grid (v32).** Galaxy-placed sectors moved from
-spherical shells to rings, layers and slots: `sectors.shell_index`/
-`shell_slot_index` became `ring_index`/`layer_index`/`ring_slot_index`,
-`sector_vertices` was dropped, `galaxy_shell_band` became
-`galaxy_ring_band`, and `galaxy_shape.outer_shell_index` became
-`outer_ring_index`. Old addresses have no matching cell, so
-`_migrate_v31_to_v32` deletes every galaxy-placed sector with its systems
-and phenomena (never-placed sectors stay). See `schema.sql`'s "v32"
-header note.
-
-**One sector standard (v33).** The sector edge became a whole number of
-parsecs, 4 pc (~13.05 ly) instead of 11.5 ly; ring `i` holds
-`round(2*pi*(i + 1/2))` slots on every layer instead of a multiple of 4;
-and `galaxy_ring_band` became `galaxy_layer`, one row per layer with the
-last ring it reaches, plus `galaxy_column`, one row per ring with the
-highest and lowest layer it reaches. Almost every address moves, so `_migrate_v32_to_v33`
-again deletes every galaxy-placed sector with its systems and phenomena,
-and rebuilds the skeleton from the stored shape at 4 pc (rewriting
-`galaxy_shape.edge_pc`, `expected_system_count_at_density_1` and
-`outer_ring_index`). See `schema.sql`'s "v33" header note and
-`docs/design/galaxy-coordinate-system.md`.
-
-**Planets and moons named from their system (v34).** Only the system
-draws a generated name. Planets are `<star> I`, `<star> II` in orbit
-order, moons add a letter (`<star> IIa`), and a binary's stars are
-`<system> <word>`. The system name is already unique, so these are too,
-and `body_name_registry` (v24's planet/moon registry, which gave
-colliding names a companion suffix like `"Kin"`) is dropped by
-`_migrate_v33_to_v34`. Existing rows keep their names until regenerated.
-See `planetgen/names/bodies.py`.
-
-**Hybrid master-wedge slots (v35).** Ring `i` now holds the multiple of
-its master wedge count (3 at the center, doubling once each master wedge
-would hold 8 slots) nearest `2*pi*(i + 1/2)`: 3, 9, 15, 21, 27, 36, ...
-(`galaxyGeometry.ring_sector_count`/`ring_master_count`). Slot boundaries
-then line up on the master lines from the center out, which the Galaxy
-Map's mega-blocks cut on. No column changes, but a stored
-`ring_slot_index` changes meaning in all but 15 of 3,856 rings, so
-`_migrate_v34_to_v35` deletes every sector in a changed ring with its
-systems and phenomena; the skeleton (`galaxy_layer`, `galaxy_column`) is
-keyed by ring and layer and stays. See `schema.sql`'s "v35" header note
-and `docs/design/galaxy-coordinate-system.md`.
-
-**A black hole at every galaxy's center (v36).** When the nucleus roll
-finds no quasar, `generate.add_galactic_nucleus` places a quiescent
-supermassive black hole there instead, so every galaxy has one.
-`black_holes.mass_class` records whether a row is stellar-mass,
-intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
-row's mass.
-
-**Id blocks (v45, PERF.13).** `id_blocks` holds one row per table in
-`_db.ID_BLOCK_TABLES` (sectors, star systems, their configs, stars,
-planets, moons, belts, comets and every phenomenon table): `table_name`
-and the `next_id` no writer has reserved yet. A new row in one of those
-tables gets its `id` from this process's current block
-(`_db._allocate_id`), not from AUTO_INCREMENT, so a sector's rows can be
-written many at a time (`Connection.batched`) with each child already
-knowing its parent's id. A block is reserved on its own autocommitted
-connection with `UPDATE ... SET next_id = LAST_INSERT_ID(GREATEST(next_id,
-MAX(id) + 1) + n)`, 64 ids at first and doubling up to 4,096, so writers
-never wait on each other's transactions; unused ids and rolled-back
-sectors only leave gaps. `_migrate_v44_to_v45` creates it empty, and a
-database without it yet simply falls back to AUTO_INCREMENT.
-
-**Full-text name search (v46, PERF.16).** `sectors`, `star_systems`,
-`stars`, `planets` and `moons` each carry a `FULLTEXT KEY
-ft_<table>_name (name)` beside their plain `idx_<table>_name`. Search
-(`queryDb._name_match`) matches whole words in boolean mode, so a
-search never scans every row with `LIKE '%term%'`; words below the
-server's `innodb_ft_min_token_size` or on its stopword list fall back
-to a whole-word `REGEXP` on the rows the other words narrowed.
-`_migrate_v45_to_v46` adds the indexes in place (`ALGORITHM=INPLACE,
-LOCK=SHARED`): reads keep working, but writes to those tables wait
-until each index is built, which on a large galaxy can take minutes.
-
-**Rogue planet classes (v47, GEN.8).** `rogue_planets.planet_class` is a
-rogue's `PLANET_CLASSES` letter, drawn from the classes whose `"r"` flag
-says they can be rogue (C, D, I, J and T) and that fit its type, radius
-and mass. NULL for a brown dwarf. `_migrate_v46_to_v47` gives every
-stored rogue its most probable fitting class.
-
-**Rogue planet surface conditions (v48).** `rogue_planets` gains
-`age_gy`, `internal_heat_flux_w_m2`, `effective_temperature_k`,
-`surface_regime`, `surface_temperature_k`, `surface_pressure_pa`,
-`ice_shell_thickness_km`, `ocean_depth_km` and `has_liquid_water`, from
-`rogueSurface.rogue_surface_conditions` (see
-`docs/design/rogue-planet-surface.md`). `_migrate_v47_to_v48` fills them
-for every stored rogue, seeded by its name, and resets
-`has_internal_heat` to the computed answer.
-
-**Population and politics (v44).** Filled by `planetgen population`
-(or `--population` on a `sector`/`galaxy` run, or the optional question
-the install and update scripts ask) from what is already stored; see
-docs/design/population-and-politics.md. `species` holds one dominant
-species per life world (a planet whose evolutionary milestone is
-multicellularity or a technological civilization): a galaxy-unique
-`name`, its homeworld (`homeworld_planet_id`, `star_system_id`, both
-cascading), `life_chemical`, `life_stage`, `build`/`climate`/`size`, and
-for a civilization its `civilization_age_years`, `era` and `spacefaring`.
-`polities` holds one government per spacefaring species (`species_id`
-and `capital_system_id` cascade) with its `government`, map `color` and
-territory `reach_ly`. `system_owners` maps each owned system to its
-polity and `distance_ly` from the capital, rebuilt from scratch by every
-pass. `population_state` keeps the highest planet id scanned.
-`_migrate_v43_to_v44` creates all four, empty.
-
-**Bright-star pre-placement (v43).** `bright_stars` holds every star at
-least `galaxy_shape.bright_star_min_luminosity_sol` bright, generated and
-placed galaxy-wide by `planetgen plan` before any sector is filled: its
-cell (`ring_index`, `layer_index`, `ring_slot_index`), galaxy-frame
-position in milliparsecs, population (young, intermediate, old or
-bulge), the finished star's properties (including `initial_mass_sol`,
-which a companion's mass is drawn from, and `phase_end_age_gy`) and a
-seed for its later system. Rows carry no name until their sector is
-filled, which builds a system around each and sets `star_system_id`
-(`ON DELETE SET NULL`). `galaxy_shape.bright_star_seed` and the threshold
-record the scatter; a fill reads them, not the constant. A plan re-run
-truncates the table (`_db.clear_bright_stars`). `_migrate_v42_to_v43`
-adds both, empty.
-
-**Bright-star backfill per sector block (v49, GEN.23).** Generating any
-galaxy sector first backfills the stars around it
-(`generate.backfill_bright_stars`): every sector block (a level-3 block
-of `galaxyDrill`, 3 rings by 3 layers by its wedge's slots) with a sector
-within 100 ly gets every star from 100 L_sun up to the level it already
-holds, in its sectors that aren't filled yet, as new `bright_stars` rows.
-`bright_star_blocks` keeps, per block (`block_ring`, `block_wedge`,
-`block_slab`), the dimmest luminosity it now goes down to
-(`min_luminosity_sol`), so a block already at 100 L_sun is skipped and no
-star is drawn twice. A block with no row is at the galaxy scatter's
-threshold. A sector's fill caps its own dim stars at its block's level
-(`_db.bright_star_fill_level`). A backfill takes the block's row lock
-(`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
-level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
-truncates it with `bright_stars`. `_migrate_v48_to_v49` creates it empty.
-v53 replaced the table with per-sector levels in `sector_stats`.
-
-**What made the galaxy, and every run (v52).** `_migrate_v51_to_v52`
-adds `galaxy_shape`'s version columns (NULL on an existing galaxy) and
-the empty `generation_runs` table (DB.6).
-
-**Velocity (v60, GEN.121).** `planets`, `moons` and `comets` each gain
-`velocity_x_kms`, `velocity_y_kms` and `velocity_z_kms`: the body's velocity,
-km/s, relative to its orbital anchor and on the same axes as its
-`position_x/y/z_km`. `advance_orbital_phases` (planets and moons, from the
-new phase) and `advance_comet_orbits` (Kepler or Barker) move it with the
-position. `_migrate_v59_to_v60` works it out for rows saved before.
-
-**A system's galactic velocity (v61, GEN.121).** `star_systems` gains
-`velocity_x_kms`, `velocity_y_kms` and `velocity_z_kms`, km/s on the galactic
-axes: the rotation curve's tangent at the system's place
-(`galactic_orbital_speed_kms`) plus, for a runaway or hypervelocity system,
-`runaway_speed_kms` along a random direction (`StarSystem.runaway_direction`,
-drawn by `flag_fast_stars`). `advance_galactic_positions` turns it with the
-position and a loaded sector puts it on the entry, its stars and its bodies
-(`system_position.place_system`). `_migrate_v60_to_v61` works it out for rows
-saved before, drawing a runaway's direction from its id. A placed phenomenon
-stores none: it only follows the rotation curve, which its
-`galactic_orbital_speed_kms` gives.
-
-**A nebula's shape (v56, GEN.75).** `nebulae.shape_*` hold the single
-values of its shape (`galaxy/nebula_shape.py`: the ellipsoid's stretch
-and turn, the noise warp, the isovalue and the scale that puts the
-surface's farthest point at the radius) and `nebula_shape_balls` its 4-8
-metaballs, one row each (`ON DELETE CASCADE`). `_migrate_v55_to_v56`
-leaves them NULL for a nebula already saved; `queryDb.nebula_shape` then
-draws the same shape from the nebula's own properties.
-
-**Per-sector stats (v53, GEN.44, PERF.11).** `sector_stats` holds one
-row per sector address a backfill reached or a fill generated (an
-unfilled sector has no `sectors` row, so the key is the address). Its
-`bright_level_sol` replaces v49's per-block levels: -1 untouched (the
-sector follows the galaxy scatter's threshold), a positive L_sun for the
-dimmest a backfill drew every star down to, 0 once the sector is
-generated. The backfill (`generate.backfill_bright_stars`) works sector
-by sector: each sector in range gets the stars from its own distance
-tier's floor up to its level, a few hundred sectors per transaction under
-their rows' locks (`_db.lock_sector_stats`), and its new level is written
-with its stars, so a crash leaves either the old level or none. A sector
-holding unbuilt stars with no level anywhere (no row level and no
-finished scatter) is left over from a failed run: the backfill deletes
-them and draws it whole. A band run (`plan --bright-stars-down-to`)
-leaves sectors with their own level out of its layers and tops each up
-from its own level. A sector's draws come in fixed luminosity bands
-(`brightStars.canonical_bands`, eight to a decade), each from its own
-stream, so down to 1000 L_sun and later to 500 gives exactly the stars of
-one draw to 500. A fill (`_db.record_sector_stats`) sets level 0, keeps
-the level it found in `level_before_fill_sol` (deleting the sector puts
-it back), and records the sector's expected density and what it got.
-`galaxy_shape.density_ratio_avg` is a decaying average of actual against
-expected systems over every fill. `_migrate_v52_to_v53` creates the
-table, gives every filled grid sector a row at level 0, moves each
-`bright_star_blocks` level onto its block's sectors, and drops that
-table. Density stats start empty for sectors filled before.
-
-**The galaxy seed (v51).** `_migrate_v50_to_v51` adds
-`galaxy_shape.galaxy_seed` (`BINARY(16)`: half the bytes of a
-32-character hex string and no letter case to normalize), NULL on an
-existing galaxy, which has no seed and can't be given one: GEN.39 starts
-from a wiped galaxy.
-
-**Matching a new database (v50).** `_migrate_v49_to_v50` adds
-`system_configs.comets` and `.wide_binary`, and brings a database
-migrated from an old version to exactly the shape `schema.sql` gives a
-new one: it drops the placeholder DEFAULTs older steps left on NOT NULL
-columns and makes `nebulae`/`asteroid_fields`' `sector_id` keys ON
-DELETE SET NULL. Every migration step can be re-run after a crash
-(`_MigrationConnection` skips the clauses already applied).
-`tests/test_db_old_schemas.py` migrates every released schema and
-compares it with a new database.
-
-**Facilities (v42).** `facilities` holds starbases, colonies and outposts,
-each on one host named by `host_type`: a star, planet, moon, asteroid belt,
-asteroid field, or open space in a sector (`sector_id` plus a galaxy-frame
-center). `star_system_id` is set for every in-system host. An orbital
-facility stores its circular orbit (`orbit_distance_km`,
-`orbit_period_years`, `orbital_speed_kms`, `orbit_phase_deg`). Every host
-key cascades. `program_constants.FACILITY_RULES` decides which kinds go
-where, checked by `_db.add_facility` (MySQL refuses a CHECK on a cascading
-column). `_migrate_v41_to_v42` creates the table.
-
-**Octants and nearest systems (v41).** Every placeable phenomenon
-table gains `quadrant`, the sector octant its center sits in (the labels
-`star_systems.quadrant` uses, in the `sector_orientation` frame).
-`nearest_systems` holds up to 3 rows per placed system or phenomenon:
-`object_table`/`object_id`, `neighbor_rank`, `neighbor_system_id` and
-`distance_pc`, searched across sector boundaries out to
-`_db.NEAREST_SYSTEMS_SEARCH_PC` (4 pc). `sector_id` (the object's
-sector) and `star_system_id` (set for a system) cascade deletes.
-`insert_sector` fills a new sector's rows and merges its systems into
-its neighbors' lists; `refresh_nearest_systems` recomputes whole
-sectors. `_migrate_v40_to_v41` adds both and fills them.
-
-**Object IDs (GEN.64).** (A star system built around a bright-sweep star is named like any system once its sector is generated, and keeps its position ID as its unique ID: GEN.72.) Every placed interstellar object (a rogue
-planet, standalone black hole or neutron star, nebula, supernova remnant
-and its collapsed core, quasar, interstellar comet or asteroid field)
-is named by its 76-bit position ID, 19 hex digits, instead of the rules below:
-`planetgen/names/object_id.py` packs type, distance unit, distance,
-bearing, mark and a 4-bit collision number from the galactic center,
-and `_db._claim_object_ids` hands out collision numbers in generation
-order. These names never go through `system_name_registry`. A name given
-by hand and an unplaced object still follow the rules below, and rows
-saved before this keep their names. See `docs/design/object-ids.md`.
-
-**Names (v40).** Black holes, neutron stars, nebulae, supernova
-remnants, rogue planets and quasars draw their names through
-`system_name_registry`, the same collision rules star systems use, so
-none shares a name with a system, a sector or each other.
-`system_name_registry.first_star_system_id` is nullable and
-`first_object_table`/`first_object_id` name a phenomenon holder. A
-remnant's core is named `"<remnant> Core"` and follows its remnant; an
-anchored black hole or neutron star shares its system's name. Comets and
-asteroid fields get designations instead: `P/<host>-<n>` (periodic,
-under 200 years) or `C/<host>-<n>` for a star-bound comet, which follow
-a rename of their star, `I/<sector>-<n>` for an interstellar comet and
-`AF <field_class>-<sector>-<nn>` for an asteroid field, where
-`<sector>` is the sector's grid designation (or its name off the grid).
-Each named phenomenon table indexes `name`, and `_db.name_in_use`
-searches them. `_migrate_v39_to_v40` renames and registers existing rows.
-
-**Containment (v39).** `star_systems`, `rogue_planets`,
-`interstellar_comets`, `black_holes`, `neutron_stars`, `asteroid_fields`
-and `nebulae` get `inside_nebula_id` and `inside_remnant_id`, foreign keys
-(`ON DELETE SET NULL`) to the innermost nebula or supernova remnant whose
-sphere holds the object; at most one is set. `_db.refresh_containment`
-sets them by a 3D distance test when a sector is generated and, for
-every sector it reaches, when a nebula or remnant is placed. Since GEN.75 a
-nebula holds a point only inside its stored shape (the sphere is the quick
-first test, then `NebulaShape.contains`); a remnant is still a sphere.
-`_migrate_v38_to_v39` adds the columns and fills them. A nebula only
-nests inside a larger cloud. `queryDb.containing_cloud` names the cloud,
-and `sector_detail` returns it per system as `inside`. `schema.sql` turns
-foreign key checks off while it runs, since these tables are created
-before `nebulae`.
-
-**Letter classes (v38).** Nebulae (A-Q) and supernova remnants (R-W)
-get a class from `program_constants.NEBULA_CLASSES` with their contents
-(`dominant_species`, `density_cm3`, `temperature_k`, `extinction_av`),
-and asteroid fields a `field_class` such as `C3` (letter from composition
-and density, digit from size). `_migrate_v37_to_v38` infers classes for
-existing rows (old asteroid fields become the `mixed` family) and fills
-each class's typical contents. See
-`docs/design/nebula-and-asteroid-field-classes.md`.
-
-**Research-based interstellar rates (v37).** Phenomena are now drawn per
-star from Boss's research densities (`program_constants.
-PHENOMENON_DENSITY_PC3`, `docs/design/interstellar-object-rates.md`).
-`rogue_planets.mass_bin` records a rogue's mass bin (`terrestrial`,
-`sub-neptune`, `saturn`, `jupiter`) or `brown-dwarf` (free-floating brown
-dwarfs share the table), and `star_systems.runaway_class`/
-`runaway_speed_kms` flag runaway and hypervelocity stars.
-`_migrate_v36_to_v37` fills `mass_bin` from each existing row's mass.
+The entries from "Schema history" down describe each version as it was when
+it was built. In particular the cylindrical sector grid they mention (rings,
+layers and slots; `galaxy_layer`, `galaxy_column`, the block ladder) was
+replaced by shells, bands and wedges in v91, which the `sectors` section and
+the v91 entry at the end of this document describe.
 
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`planetgen/db/control_schema.sql`,
-`control_schema_migrations`, currently version 7) — see "The control
+`control_schema_migrations`, currently version 14) — see "The control
 schema" below. `SCHEMA_VERSION`/`schema_migrations` above only ever
 describe the per-galaxy content schema this whole document is otherwise
 about.
@@ -783,14 +412,15 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Thirteen tables, versioned independently via `control_schema_migrations`
-(currently version 9, mirroring `schema_migrations`'s own shape; v2 added
+Eighteen tables, versioned independently via `control_schema_migrations`
+(currently version 14, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
-tree and pause columns, and v9 `galaxy_naming`; v2 to v6 and v9 are new tables, which `CREATE TABLE IF
-NOT EXISTS` adds to an older schema on the next `planetgen.cli.migrate` run, and
-v7 adds columns, see below):
+tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
+`version_key_history`, v12 the `version_key` column of `generation_stats` and v14
+`generation_stage_runs`; the new tables are added to an older schema by
+`CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per admin (`username`, `password_hash`,
   `must_change_credentials`). No roles/permissions column — every admin
@@ -838,7 +468,7 @@ v7 adds columns, see below):
   run that used worker processes (`title`, `holder` host:pid:token,
   `state` waiting/running/done/failed/cancelled, `workers`, task
   counts, timings, `heartbeat_at`); `work_tasks` one per sector it
-  handed out (`kind`, `task_key` such as "ring,layer,slot", `state`,
+  handed out (`kind`, `task_key` such as "shell,band,wedge", `state`,
   the worker's `seconds`, a short JSON `result` or the `error`);
   `work_lease` the single row naming the run whose workers are using
   the machine, refreshed every 5 s. A lease or job not refreshed for
@@ -873,6 +503,25 @@ v7 adds columns, see below):
   phoneme codec names are computed from their ID and this key
   (`planetgen/names/naming_key.py`), so changing it rewrites no row. A
   galaxy reset keeps the row until the next plan draws a new key.
+- **`work_job_args`** (v10, DB.13) — a job's command line, one row per
+  argument in order (`job_id`, `position`, `value`), without the `--mysql-*`
+  options. It replaced the JSON text column `work_jobs.argv`.
+- **`version_key_history`** (v11, OPS.13) — the version key each update ran
+  under, per galaxy database, newest last: `database_name`, `galaxy_seed`
+  (32 hex digits), `version_key` (22), `planetgen_version`,
+  `requirements_sha256` (NULL with no `requirements.lock`), `recorded_at`.
+  Every update adds a row per galaxy and keeps the last 10 per database
+  (`planetgen/galaxy/version_history.py`), so an admin can see which
+  release and environment a seed was last known to make the same galaxy under.
+- **`generation_stage_runs`** (v14, PERF.56) — how long each stage of a
+  generation run took, with the settings it ran with
+  (`planetgen/generation/stages.py` writes a row as a stage ends):
+  `database_name`, `command` (`galaxy` or `plan`), `stage_key`, `stage_n` of
+  `stage_total`, `label`, `skipped` and `skip_reason` (a skipped stage gets a row
+  with no time), `started_at`, `finished_at`, `seconds`, `workers`, `settings`
+  and `metrics` (JSON text: the arguments that shape the stage, and what it did)
+  and `version_key`. Estimates use only rows of the running version key.
+  Shown on the Stats page.
 - **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
   how fast this server generates and how big a galaxy gets
   (`planetgen/generation/stats.py`, see
@@ -881,7 +530,11 @@ v7 adds columns, see below):
   stars) and density `bucket` (`floor(2 * log10(density / 0.01))`: two
   per decade from 0.01, with no top edge, `density_low`/`density_high`
   its edges), each column a decaying average over every task that ever
-  finished in it (each new task weighs 5%): `seconds_per_task` (a
+  finished in it with that many `workers` (each new task weighs 5%; `version_key`
+  names the release, Python and platform that measured it, v12, PERF.32: rows
+  of any other key are deleted by the next run, so a new release starts from
+  nothing, and an admin can delete them all; a benchmark's rows use a `bench:`
+  `kind` prefix and never feed a live estimate): `seconds_per_task` (a
   worker's wall time), `seconds_per_system`, `systems_per_task`,
   `stars_per_system`, plus `samples` and the densest task seen
   (`max_density`). `generation_size` has one row per galaxy database:
@@ -930,51 +583,40 @@ than persisted the way a system's is.
 
 ## Planned changes (not built)
 
-Schema changes the open TODO items plan, as of 2026-10-07 (galaxy
-schema v53, control schema v7). None of these exists yet; each
-lands as a numbered migration when its item is built, and this section
-moves into the table descriptions below. Writers of the galaxy schema go
-one at a time in this order: GEN.44, PERF.11 with MAP.86, NAV.10,
-API.11; of the control schema, API.9 first, then USR.2, USR.4, USR.7 and
-NAV.19 ([plan/notes.md](plan/notes.md)). Why and how the reproducibility
-pieces fit together is in
+Schema changes the open TODO items plan, as of 2026-10-15 (galaxy
+schema v91, control schema v14). None of these exists yet; each lands as
+a numbered Alembic revision when its item is built, and this section moves
+into the table descriptions below. The galaxy schema's revisions are
+written one lane at a time, and the second of two branches to reach main
+renumbers its revision ([plan/notes.md](plan/notes.md)). Why and how the
+reproducibility pieces fit together is in
 [design/reproducible-galaxies.md](design/reproducible-galaxies.md).
-
-From 2026-10-07 every schema change is an Alembic migration (DB.11, phase
-0: SQLAlchemy models replace the hand-written SQL in `store.py`, and
-Alembic replaces `planetgen.cli.migrate` and the `schema_vNN.sql.gz` fixtures,
-starting from a baseline at the current schema). DB.13 (phase 0) moves
-every value kept in a JSON or serialized column into real, indexed
-columns or child tables. `sector_stats.bright_level_sol` = 0 is the one
-"generated" flag for a sector (GEN.76). Redis (OPS.21) holds the work
-queue and rate-limit counters, not galaxy data.
 
 Galaxy schema:
 
-| Item | Phase | Change |
-|---|---|---|
-| DB.7 | 1 | Each `sectors` row records the version key and full version string that generated it. |
-| DB.9 | 1 | Each sector gets a content checksum (the hash of GEN.58's fingerprint); the Reed-Solomon parity itself lives in a file outside the database. |
-| NAV.10 | 1 | Indexes on positions, for the route corridor query. |
-| GEN.69 | 0 | A unique ID column on every object kind, and an ID for every sector address whether or not it is filled; the name registry tables go (GEN.71). |
-| GEN.74 | 0 | Each positioned object's position stored for the point-in-space object, with mass and mu beside it. |
-| GEN.75 | 0 | Each nebula's shape (centres, radii, warp settings) and a low-poly mesh. |
-| GEN.85 to GEN.89 | 1 | Per planet: mantle redox, partial pressures of each gas, magnetic field, surface dose, hydrosphere and ocean class, and the habitability scores; per star: activity. |
-| GEN.100 | 1 | Black holes, neutron stars, quasars and nebulae placed galaxy-wide in the bright-star table with a type column. |
-| GEN.104, GEN.106 | 1 | A spin axis and rate per rotating body; an indexed `next_update_due` per moving object. |
-| GEN.109 | 2 | A per-sector point-mass table for the orbital update. |
-| PERF.29 | 1 | Which fill steps each sector has finished, so partial runs resume. |
-| POP.9, POP.10 | 1 | Tech-level indices per technological species; facility types, affiliation and Green/Yellow/Red ratings per facility. |
-| API.10, API.11 | 2 | Run reservations (claimed sectors and id ranges per run) and staging tables for uploaded batches. |
+| Item | Change |
+|---|---|
+| DB.9 | Each sector gets a content checksum (the hash of GEN.58's fingerprint); the Reed-Solomon parity itself lives in a file outside the database. |
+| DB.30 | One revision for the per-species environment limits. |
+| DB.31 | Structure instead of prose for life and flavour text. |
+| GEN.109 | A per-sector point-mass table for the orbital update. |
+| PERF.29 | Which fill steps each sector has finished, so partial runs resume. |
+| API.10, API.11 | Run reservations (claimed sectors and id ranges per run) and staging tables for uploaded batches. |
 
 Control schema:
 
-| Item | Phase | Change |
-|---|---|---|
-| API.15 | 0 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is settled when it is built. |
-| GEN.70 | 0 | The galaxy's naming key, drawn at creation and changeable by an admin. |
-| OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of the lock files, and the date (the nltk corpus and name-list hashes are dropped with GEN.71); only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
-| USR.2, USR.4, USR.7, NAV.19 | 3+ | Accounts with roles, invite links, per-account bookmarks and `user_courses`. |
+| Item | Change |
+|---|---|
+| PERF.100 | `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` are dropped once the work queue lives in Redis only (PERF.86); the Redis keys are not part of this schema. |
+| API.15 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is decided with that item. |
+| USR.2, USR.4, USR.7, USR.11, NAV.19, API.6 | Accounts with roles, invite links, per-account bookmarks and saved courses, a home field, and API keys owned by accounts. |
+
+Everything else the earlier plan listed (the version key and unique IDs
+on every object, the point-in-space object, nebula shapes, the
+atmosphere, activity, radiation, hydrosphere and habitability columns, the
+phenomenon scatter, spin and next-update columns, species tech levels,
+facility types, the naming key, and the version-key history) is built:
+see "Schema history" and the table descriptions.
 
 ## Tables
 
@@ -1010,7 +652,7 @@ A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
 `galactic_radius_pc` being NULL together (see "v3 → v4" in "Schema
 history" above for why that addition needed a wholesale table rewrite
 rather than an incremental `ALTER TABLE`). A cell's corners are
-closed-form (`galaxyGeometry.sector_cell_vertices_pc`), so none are
+closed-form (`spherical.sector_cell_vertices_pc`), so none are
 stored (v32 dropped the old `sector_vertices` table). A
 `UNIQUE (shell_index, band_index, wedge_index)` constraint
 (`uq_sectors_address`) guarantees at most one sector per galaxy address —
@@ -1025,9 +667,9 @@ duplicate row at the same address.
 The galaxy-wide density "skeleton" (v8) — a singleton row (`id` pinned to
 `1`) holding everything needed to recompute any sector's exact position
 and density on demand, built by `planetgen plan`. Deliberately **not** one
-row per sector: a sector's position (`planetgen.galaxy.geometry.
+row per sector: a sector's position (`planetgen.galaxy.spherical.
 sector_position_pc`), density (`planetgen.galaxy.density.
-relative_density`), and corners (`galaxyGeometry.sector_cell_vertices_pc`)
+relative_density`), and corners (`spherical.sector_cell_vertices_pc`)
 are all pure deterministic functions of its `(shell_index, band_index,
 wedge_index)`
 address plus this handful of galaxy-wide numbers — cheaper to recompute
@@ -1054,7 +696,7 @@ billions of candidates).
 | `phenomenon_scatter_seed` | BIGINT UNSIGNED | nullable | Added in v64 (GEN.100). The phenomenon scatter's seed (`phenomenon_scatter`); NULL until one has run, when a sector fill rolls its own black holes, neutron stars, planetary nebulae and supernova remnants. |
 | `phenomenon_min_mass_solar` | DOUBLE | nullable | Added in v71 (GEN.167). The lowest mass of the neutron stars and black holes the phenomenon scatter placed (`planetgen plan --compact-min-mass`: 1, 2, 4 or 6 solar masses, or the stellar mass limit, GEN.195; before that `--phenomenon-min-mass`). A sector fill draws the ones below it from its own stream (GEN.168). NULL on a scatter drawn before v71, which placed every mass. |
 | `galaxy_seed` | BINARY(16) | nullable | Added in v51 (GEN.39). The galaxy's 128-bit seed, shown and typed as 32 hex digits (`planetgen plan --seed`), written by the first plan and kept by every later one. Every sector, bright-star scatter, band and backfill block draws from SHA-256 of it and the unit's `kind:address` (`galaxySeed.unit_seed`). NULL only on a galaxy planned before v51. |
-| `version_key` | CHAR(22) | nullable | Added in v52 (DB.6). The version key of the code that wrote `galaxy_seed` (`versionKey.version_key`): MAJOR 4, REVISION 4, BUILD 6, Python major, minor and micro 2 each, OS 1 (0 Linux, 1 Windows, 2 other Unix, 3 macOS, F unknown) and architecture 1 (0 x86-64, 1 ARM64, 2 x86, 3 ARM32, 4 RISC-V 64, F unknown) hex digits, for example `0007007F000160030C0300`. Written with a new seed; a later plan keeping the seed keeps it. |
+| `version_key` | CHAR(22) | nullable | Added in v52 (DB.6). The version key of the code that wrote `galaxy_seed` (`version_key.version_key`): MAJOR 4, REVISION 4, BUILD 6, Python major, minor and micro 2 each, OS 1 (0 Linux, 1 Windows, 2 other Unix, 3 macOS, F unknown) and architecture 1 (0 x86-64, 1 ARM64, 2 x86, 3 ARM32, 4 RISC-V 64, F unknown) hex digits, for example `0007007F000160030C0300`. Written with a new seed; a later plan keeping the seed keeps it. |
 | `planetgen_version`, `python_version`, `platform` | VARCHAR(32) / VARCHAR(16) / VARCHAR(64) | nullable | Added in v52 (DB.6). The same code's full release (`7.127.352`), Python version (`3.12.3`) and `platform.system()` and `.machine()` (`Linux x86_64`). |
 | `density_ratio_avg` | DOUBLE | nullable | Added in v53 (PERF.11). Systems a fill got against systems expected (`sector_stats`), as a mean over the first 1,000 fills, then a decaying average weighing each new fill 1 in 1,000 (`_db.DENSITY_RATIO_WINDOW`). NULL before any fill. |
 | `density_ratio_samples` | BIGINT UNSIGNED | NOT NULL, default 0 | Added in v53 (PERF.11). How many fills went into `density_ratio_avg`. |
@@ -1080,7 +722,7 @@ plane. A shell with no row has no content at all.
 | `cell_count` | BIGINT UNSIGNED | NOT NULL | The cells that is (every wedge of every band), stored so a count of the galaxy's candidate sectors needs no recount. |
 
 Together with `galaxy_shape` this is the galaxy's bounds.
-`_db.get_galaxy_bounds` loads it as a `galaxySkeleton.ShellBounds`,
+`_db.get_galaxy_bounds` loads it as a `skeleton.GalaxyBounds`,
 and every generation path checks an address against it before generating
 anything there, so a sector is never placed outside the galaxy.
 
@@ -1167,6 +809,7 @@ One row per `SystemConfig` "recipe" — the generation parameters a
 | `binary_system` | INTEGER (0/1) | tri-state | |
 | `wide_binary` | INTEGER (0/1) | tri-state | Force a wide (S-type) or close binary (v50). |
 | `num_orbits` | INTEGER | nullable | Explicit orbital slot count override. |
+| `prevalence_habitable_world`, `prevalence_asteroid_belt`, `prevalence_comets`, `prevalence_large_star`, `prevalence_moons`, `prevalence_max_planets`, `prevalence_intelligent_life`, `prevalence_binary_system`, `prevalence_wide_binary`, `prevalence_planets` | DOUBLE | NOT NULL, default 0 | Added in v54 (GEN.52). One per forcing option above: a sector or galaxy run's percentage deviation from that feature's normal chance, 0 for none. |
 
 ### `system_config_slots`
 
@@ -1836,7 +1479,8 @@ row per sector address a backfill reached or a fill generated. See
 | `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | PK | The sector's grid address. |
 | `bright_level_sol` | DOUBLE | NOT NULL, default -1 | How deep its bright stars go: -1 untouched (follows `galaxy_shape.bright_star_min_luminosity_sol`), a positive L_sun for a backfill's floor, 0 generated. Indexed. |
 | `level_before_fill_sol` | DOUBLE | nullable | The level a fill found, put back when the sector is deleted. |
-| `relative_density` | DOUBLE | nullable | The galaxy model's density at the sector's center (`galaxyDensity.relative_density`). |
+| `bright_mass_sol` | DOUBLE | nullable | Added in v79 (GEN.187). The initial mass, in solar masses, down to which a backfill placed every living star of the unfilled sector; NULL where none did, so the sector holds only the galaxy scatter's mass pass (stars born at or above `galaxy_shape.bright_star_mass_limit_sol`). A new plan scatter clears it. |
+| `relative_density` | DOUBLE | nullable | The galaxy model's density at the sector's center (`density.relative_density`). |
 | `expected_systems` | DOUBLE | nullable | `relative_density` times `galaxy_shape.expected_system_count_at_density_1`. |
 | `actual_systems`, `actual_stars` | INT | nullable | What the fill gave it; NULL before. |
 | `mean_temperature_k`, `mean_luminosity_sol` | DOUBLE | nullable | The mean temperature and luminosity (L_sun) of its systems' stars. |
@@ -1893,12 +1537,13 @@ replays. Writing them never stops a run.
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK, AUTO_INCREMENT | |
 | `command` | VARCHAR(32) | NOT NULL | The subcommand (`plan`, `galaxy`, ...). |
-| `arguments` | TEXT | NOT NULL | The command line as a JSON list, without `--mysql-*` and `--debug` (`generate._run_argv`). |
 | `run_seed` | BINARY(16) | nullable | The run's own 128-bit seed: what draws outside a galaxy unit (a random start's address, a one-off system) come from. |
 | `galaxy_seed` | BINARY(16) | nullable | The galaxy seed when the run started; NULL for the plan that drew it. |
 | `version_key`, `planetgen_version`, `python_version`, `platform` | CHAR(22) / VARCHAR | NOT NULL | The running code, as in `galaxy_shape`. |
 | `started_at`, `finished_at` | TIMESTAMP(3) | `finished_at` nullable | |
 | `outcome` | VARCHAR(16) | nullable | `ok`, `failed` or `interrupted`; NULL while it runs, or when it died without saying. |
+
+The command line is in `generation_run_arguments` (v63, DB.13), which replaced a JSON text column of `generation_runs`: `run_id` (FK -> `generation_runs.id`, `ON DELETE CASCADE`), `position` (the argument's place, from 0) and `value` (VARCHAR(1024)), primary key `(run_id, position)`. It leaves out the `--mysql-*` and `--debug` options (`generate._run_argv`).
 
 ### `species` / `polities` / `system_owners` / `population_state`
 
@@ -1948,6 +1593,72 @@ inside some polity's reach, rebuilt from scratch by every pass.
 
 **`population_state`**: a singleton row (`id = 1`) holding
 `scanned_planet_id`, the highest `planets.id` the pass has scanned.
+
+### `phenomenon_scatter` / `phenomenon_scatter_classes`
+
+Added in v64 (GEN.100) and v77. `planetgen plan` places every black hole, neutron star, planetary nebula and supernova remnant of the galaxy, its hypervelocity stars, its quasar and its nucleus galaxy-wide in `phenomenon_scatter`, just before the bright-star scatter and before any sector is filled. A row is a point in its sector's cell and the seed the object is built from; filling the sector builds the object at that point and sets `built_at`, so what was placed stays where it was put. A plan re-run or reset empties the table.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK, AUTO_INCREMENT | |
+| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | NOT NULL | The sector cell the point is in. Indexed together (`idx_phenomenon_scatter_address`). |
+| `kind` | VARCHAR(24) | NOT NULL, CHECK | `black-hole`, `neutron-star`, `planetary-nebula`, `supernova-remnant`, `hypervelocity-star` or `quasar`. |
+| `subtype` | VARCHAR(16) | nullable | `supermassive` for the nucleus black hole, NULL for the rest (the object draws its own class from `seed`). |
+| `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | The point, in milliparsecs, galaxy frame. |
+| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | nullable | A hypervelocity star's galactic velocity (km/s); NULL for the rest. |
+| `seed` | BIGINT UNSIGNED | NOT NULL | The 63-bit seed the object is built from. |
+| `built_at` | TIMESTAMP | nullable | When a sector fill built the object; NULL while it is only a point. |
+| `epoch_unix` | DOUBLE | nullable | Added in v69 (GEN.137). When the position holds (see the v69 entry). |
+| `mass_solar` | DOUBLE | nullable | Added in v80 (MAP.165). The solar mass a scattered black hole or neutron star was drawn with. |
+| `map_luminosity_sol` | FLOAT | nullable | Added in v84 (DB.23). The luminosity the Galaxy Map draws the point with (see the v84 entry). |
+
+`idx_phenomenon_scatter_class (kind, subtype, mass_solar)` (v82, PERF.68) serves the Galaxy Map's coarse tiles.
+
+`phenomenon_scatter_classes` (v77) counts the scatter per class so the Phenomena table counts and pages it without scanning its rows: `kind`, `subtype` (`''` where a class has none), `placed` (written when the scatter ends, `store.record_phenomenon_scatter_classes`) and `built` (goes up as `store.mark_phenomena_built` stamps rows); primary key `(kind, subtype)`. A plan re-run or reset empties it with the scatter.
+
+### `sector_system_counts`
+
+Added in v82 (PERF.74). How many star systems each sector holds, as of the last refresh (`query.refresh_sector_system_counts`), so the Sectors list and its sorts by systems and density read this table instead of counting every system per request. A sector with no systems has no row.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `sector_id` | BIGINT UNSIGNED | PK | FK-like to `sectors.id` (no constraint). |
+| `system_count` | INT UNSIGNED | NOT NULL | The systems it holds. Indexed with `sector_id` (`idx_sector_system_counts_count`). |
+
+### `object_timing_stats` / `object_timing_samples`
+
+Added in v85 (PERF.92). How long each kind of generated object takes to build, exclusive of the objects inside it (`planetgen/generation/object_timing.py`), saved under the run (`run_id` -> `generation_runs.id`, `ON DELETE CASCADE`; `sector_id` -> `sectors.id`, `ON DELETE CASCADE`, NULL for work not tied to one sector). Written unless `PLANETGEN_GENERATION_STATS` is set to 0.
+
+`object_timing_stats` has one row per object kind a run built in a sector:
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK, AUTO_INCREMENT | |
+| `run_id`, `sector_id` | BIGINT UNSIGNED | `sector_id` nullable | As above. |
+| `kind` | VARCHAR(24) | NOT NULL | The object kind (`object_timing.KINDS`). |
+| `object_count` | INT UNSIGNED | NOT NULL | Objects of that kind built. |
+| `total_us`, `min_us`, `max_us` | BIGINT UNSIGNED | NOT NULL | Their own time in microseconds: the total, the fastest and the slowest. |
+| `histogram` | VARCHAR(255) | NOT NULL | 24 comma-separated counts in doubling-microsecond buckets (`object_timing.HISTOGRAM_BUCKETS`). |
+
+A run's figures for a kind are the sum of its sector rows.
+
+`object_timing_samples` keeps single objects with their full timing: `id`, `run_id`, `sector_id`, `kind`, `ordinal` (the object's number within its kind in that sector), `own_us` (its own time), `total_us` (including the objects inside it) and `sampled` (1 for the repeatable 1-in-1,000 sample, a hash of the unit, kind and `ordinal`; 0 for the extra rows a benchmark run asks for).
+
+### `id_blocks` / `id_counters`
+
+Bookkeeping that hands out ids. Neither describes a generated object, and `planetgen reset` keeps both.
+
+`id_blocks` (v45, PERF.13): `table_name` (PK, a table in `store.ID_BLOCK_TABLES`) and `next_id` (BIGINT UNSIGNED), the next unreserved row id. `store._allocate_id` moves `next_id` up by a block at a time (never below the table's own `MAX(id) + 1`) on a separate autocommitted connection, so writers don't queue behind each other, and the writer names those ids in its INSERTs.
+
+`id_counters` (v78, DB.20): `kind` (VARCHAR(8)), `scope` (VARBINARY(16)) and `next_value` (BIGINT UNSIGNED), primary key `(kind, scope)`. `kind = 'sector'`: `scope` is a birth sector's 5-byte address and the number is the next run-time serial there. `kind = 'system'`: `scope` is a system's 10-byte ID and the number the next body number in it. `kind = 'sdel'` (PERF.38), empty `scope`: the deletion epoch, one more with every sector deleted, so the Galaxy Map's stamp tells a deletion without counting the placed sectors. A row only moves up, on its own autocommitted connection (`store._reserve_counter`), and survives the deletion of the object or sector, so a number is never given twice.
+
+### `nebula_shape_balls`
+
+Added in v56 (GEN.75). The 4 to 8 metaballs of a nebula's shape, one row each, in order (`galaxy/nebula_shape.py`; the single shape values are the `nebulae.shape_*` columns): `nebula_id` (FK -> `nebulae.id`, `ON DELETE CASCADE`), `ball_index`, `center_x`, `center_y`, `center_z` and `radius` (DOUBLE, in the shape's own units), primary key `(nebula_id, ball_index)`. Absent for a nebula saved before v56; `queryDb.nebula_shape` then draws the same shape from the nebula's own properties.
+
+### `alembic_version`
+
+Alembic's own record of the revision a database is at (DB.11), declared in `schema.sql` as Alembic would create it so that a new and a migrated database have the same shape. One row, `version_num` (VARCHAR(32), PK): the schema version as four digits (`0091`). `alembic_runner.upgrade` keeps it in step with `schema_migrations`.
 
 ### `sector_objects` (view, not a table)
 
@@ -2013,6 +1724,12 @@ planet, with `polities` and `system_owners` hanging off `species` and
 `star_systems`. `nearest_systems` links systems and phenomena to their
 nearest systems; `bright_stars` points at the system built around each
 star once its sector is filled.
+
+`generation_runs` owns its `generation_run_arguments`, `object_timing_stats`
+and `object_timing_samples` rows (`ON DELETE CASCADE`); the two timing
+tables also point at `sectors`. `nebula_shape_balls` hangs off `nebulae`.
+`phenomenon_scatter` and `phenomenon_scatter_classes` carry a sector address
+but no foreign key, like `sector_stats`.
 
 `galaxy_shape`/`galaxy_shell` stand apart from the tree above —
 neither has a foreign key to `sectors` or anything else. They describe the
