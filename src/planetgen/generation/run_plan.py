@@ -1069,6 +1069,54 @@ def fill_map_luminosity(args):
         conn.close()
 
 
+HABITABILITY_BATCH_SYSTEMS = 500
+"""int: Systems per batch of the habitability fill: one transaction each, so readers never wait."""
+
+
+def fill_habitability(args):
+    """
+    Re-derives the stored habitability numbers of an existing galaxy (GEN.217) from each body's stored conditions
+    (`store.refresh_habitability`): the flux swing of a body in a double-star system and the whole score (index,
+    six domains, tiers, equipment, note). For a galaxy generated before a change to the rules (GEN.148, GEN.207,
+    GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is always
+    worked out from the same conditions when the page is drawn. Nothing but those columns is touched. Each batch of
+    `HABITABILITY_BATCH_SYSTEMS` systems is its own transaction, in id order, and the recomputation is the same
+    whenever it is run, so a stopped run is started again and ends in the same place.
+
+    Returns:
+        int: The bodies updated.
+    """
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM star_systems").fetchone()["n"])
+        total = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
+        log.normal(f"Habitability: {total:,} systems to re-score.")
+        updated = 0
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                with steps.Step("Re-scoring habitability", "habitability", max(top, 1), args=args,
+                                progress=progress) as bar:
+                    low = 0
+                    while True:
+                        ids = [row["id"] for row in conn.execute(
+                            "SELECT id FROM star_systems WHERE id > ? ORDER BY id LIMIT ?",
+                            (low, HABITABILITY_BATCH_SYSTEMS)).fetchall()]
+                        if not ids:
+                            break
+                        for system_id in ids:
+                            updated += store.refresh_habitability(conn, system_id)
+                        conn.commit()
+                        bar.update(advance=ids[-1] - low)
+                        low = ids[-1]
+            finally:
+                log.reset_console()
+        log.normal(f"Re-scored the habitability of {updated:,} bodies.")
+        return updated
+    finally:
+        conn.close()
+
+
 def fill_block_stats(args):
     """
     Rebuilds the stored block totals (DB.25, `galaxy_block_stats`) from the generated sectors and their stats, a ring
@@ -1359,6 +1407,12 @@ def run_plan(args):
         stages.enter("map-luminosity")
         with workQueue.job_node("map-luminosity", "Map luminosity"):
             fill_map_luminosity(args)
+        stages.finish()
+        return
+    if getattr(args, "fill_habitability", False):
+        stages.enter("habitability")
+        with workQueue.job_node("habitability", "Habitability"):
+            fill_habitability(args)
         stages.finish()
         return
     if getattr(args, "fill_block_stats", False):
