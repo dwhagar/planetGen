@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.115 |
 | MAP | MAP.208 |
 | NAV | NAV.62 |
-| GEN | GEN.277 |
+| GEN | GEN.278 |
 | PERF | PERF.104 |
 | DB | DB.36 |
 | API | API.28 |
@@ -833,6 +833,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | none | open |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets | none | open |
 | GEN.276 | planetgen/galaxy/cellkey.py: the cell key function and the sphere-to-key-runs cover, numpy only | none | open |
+| GEN.277 | Design note: which of the later phenomena are scattered, backfilled or stay sector-fill-only | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

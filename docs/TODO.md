@@ -4615,6 +4615,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.233.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
+- [ ] **GEN.277 Design note: which of the later phenomena are scattered, backfilled or stay sector-fill-only**
+  Boss (2026-10-16, 12:30 AM EDT), to Core 3: "Core 3 also needs to
+  provide recommendations on how to apply these new phenomena to the
+  scatter and back scatter phases, recommend what stays sector-fill-only
+  (like comets and rogue planets) and what gets scattered." Done: a
+  design note (docs/design, linked from here) recommends, for every
+  phenomenon of goal issue #1677 (planetary-nebula central stars,
+  supernova remnant sizes, magnetars and pulsars, Einstein radius, GRB
+  and AGN ozone loss, young clusters and OB associations, debris disks,
+  luminous blue variables and hypergiants, superbubbles, jets, the
+  radiation hazard score, the Fermi bubbles) and for the anomalies
+  GEN.113 analyses, whether it is drawn in the scatter pass, the
+  backfill pass or only at sector fill, with the reason (rate, locality,
+  whether it needs a neighbourhood, cost per cell) and the effect on the
+  one rule set and the per-sector profile of GEN.235; the note says
+  which rows need new columns, so Core 1 can fold them into a migration.
+  Owner: Core 3, after GEN.113 and GEN.153; the recommendations are
+  Boss's to approve before anything is built from them.
+  Prerequisites: none. Related: GEN.113, GEN.235, GEN.240, GEN.244,
+  GEN.254, GEN.255, GEN.256, GEN.257.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
