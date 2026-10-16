@@ -2132,7 +2132,7 @@ relationship.
 
 ### v101 (DB.54): the scatter limits by place
 
-Migration 0101 (renumbered when it merges) adds three columns to `galaxy_shape`: `core_min_luminosity_sol` and `core_mass_limit_sol` (`DOUBLE`, NULL until set, and then the core follows the baseline's limits times 1.1) and `halo_min_luminosity_sol` (`DOUBLE NOT NULL`, default 500 solar luminosities), with the CHECK `chk_galaxy_shape_scatter_limits` (the halo floor at least 50, the core's two more than 0 when set), by which the version is detected. The halo has no mass limit of its own. A galaxy planned before it takes the defaults, which change nothing until GEN.333 reads them. Each step is skipped when it is already done.
+Migration 0101 adds three columns to `galaxy_shape`: `core_min_luminosity_sol` and `core_mass_limit_sol` (`DOUBLE`, NULL until set, and then the core follows the baseline's limits times 1.1) and `halo_min_luminosity_sol` (`DOUBLE NOT NULL`, default 500 solar luminosities), with the CHECK `chk_galaxy_shape_scatter_limits` (the halo floor at least 50, the core's two more than 0 when set), by which the version is detected. The halo has no mass limit of its own. A galaxy planned before it takes the defaults, which change nothing until GEN.333 reads them. Each step is skipped when it is already done.
 
 ### v100 (GEN.281): the cell star ceiling defaults to 5,000
 

@@ -1,6 +1,6 @@
 """The scatter limits by place as three settings of the galaxy (DB.54).
 
-Schema v101 (the revision is renumbered to the next free one when it merges). `galaxy_shape.core_min_luminosity_sol`
+Schema v101. `galaxy_shape.core_min_luminosity_sol`
 and `core_mass_limit_sol` (DOUBLE, NULL until set: the core follows the baseline's limits times 1.1,
 `galaxy/scatter_limits.py`) and `halo_min_luminosity_sol` (DOUBLE NOT NULL, default 500 solar luminosities, at least
 50), with one CHECK on all three. The halo has no mass limit of its own. A galaxy planned before this takes the
