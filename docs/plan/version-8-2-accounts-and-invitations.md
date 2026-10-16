@@ -12,17 +12,16 @@ User accounts, with sign-up by an email invitation that only an admin can send (
 
 ## Phase 1: Accounts, invitations and bookmarks
 
-Roles, SMTP, invitations, password emails, owner transfer and the bookmark manager.
+Roles, the Owner tier of the settings page, SMTP, invitations, password emails, owner transfer and the bookmark manager.
 
 ### Accounts and sign-up
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
-| ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix |  | Research: before USR.2. |
-| USR.2 | Accounts with roles: user, admin and Owner |  | Control schema; no blockers, placed late by priority. |
-| USR.3 | SMTP settings in the admin config | USR.2 |  |
+| USR.2 | Accounts with roles: user, moderator, admin and Owner |  | Control schema; no blockers, placed late by priority. |
+| ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | ADM.84, USR.2 | Boss 1:43 PM EDT: the settings page moved to 8.1; its Owner tier needs the Owner account of USR.2. |
+| USR.3 | SMTP settings in the admin config | USR.2, ADM.86 |  |
 | USR.4 | Invite-only sign-up by unique link | USR.2, USR.3 |  |
 | USR.5 | Email loop for setting and resetting passwords | USR.3 |  |
 | USR.6 | Owner transfer | USR.5 |  |

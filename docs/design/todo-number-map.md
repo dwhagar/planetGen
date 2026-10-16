@@ -16,16 +16,16 @@ release is stamped.
 | UX | UX.119 |
 | MAP | MAP.213 |
 | NAV | NAV.62 |
-| GEN | GEN.303 |
+| GEN | GEN.304 |
 | PERF | PERF.106 |
-| DB | DB.39 |
+| DB | DB.40 |
 | API | API.29 |
-| ADM | ADM.83 |
+| ADM | ADM.87 |
 | SEC | SEC.33 |
-| TEST | TEST.178 |
-| USR | USR.12 |
+| TEST | TEST.180 |
+| USR | USR.26 |
 | OPS | OPS.55 |
-| DOC | DOC.55 |
+| DOC | DOC.56 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -471,6 +471,10 @@ Parents marked "new parent" had no old number of their own.
 | ADM.80 | Regenerate a sector or a region keeping chosen aspects: locked objects, positions, names | none | open |
 | ADM.81 | Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue | none | open |
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons | none | open |
+| ADM.83 | Settings writer: validate, write and back up the settings overlay, with an audit row per change | none | open |
+| ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | open |
+| ADM.85 | Settings backups, restore, import and export on the settings page | none | open |
+| ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -537,6 +541,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.36 | Tables for change plans, their operations and the edit journal (migration only) | none | open |
 | DB.37 | Lock marks table (migration only) | none | open |
 | DB.38 | Region density overrides table (migration only) | none | open |
+| DB.39 | Edit request support tables (migration only): request comments and notification records | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -591,6 +596,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
 | DOC.53 | The tuning module header names the rule for a new signed constant: the fuzz tests accept only a dict or a positive "fall" | none | open |
 | DOC.54 | Admin help: how to edit, regenerate, lock, approve and undo | none | open |
+| DOC.55 | Help: roles, edit requests and how an approval works | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -893,6 +899,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | open |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | none | open |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | none | open |
+| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1372,7 +1379,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix | none | open |
 | USR.1 | User accounts | none | open |
-| USR.2 | Accounts with roles: user, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
+| USR.2 | Accounts with roles: user, moderator, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.4 | Invite-only sign-up by unique link | 66 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.5 | Email loop for setting and resetting passwords | 67 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -1382,6 +1389,20 @@ Parents marked "new parent" had no old number of their own.
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | none | open |
 | USR.10 | Users add their own objects (ships and stations) and track their movement on the map | none | open |
 | USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | none | open |
+| USR.12 | Permission catalogue and one `can()` check: user, moderator, admin and Owner as data | none | open |
+| USR.13 | Moderator role: assign and remove it on the admin accounts page, with the audit entry | none | open |
+| USR.14 | Move every route, page and command from "is admin" checks to permission checks | none | open |
+| USR.15 | Submit an edit request: a user proposes an edit and the plan engine computes what it would change | none | open |
+| USR.16 | Request queue: who sees what | none | open |
+| USR.17 | Approve, reject or send back a request, by role: moderators decide user requests, admins decide moderator requests | none | open |
+| USR.18 | Approver screen: the requester's note, the plan preview and the decision buttons | none | open |
+| USR.19 | Comments on a request between the requester and the approver | none | open |
+| USR.20 | "My requests" in the user interface: state of each request and withdraw | none | open |
+| USR.21 | Request lifecycle: stale, withdrawn and expired requests | none | open |
+| USR.22 | Request limits: a per-user cap on open requests, a rate limit, and blocking a user from requesting | none | open |
+| USR.23 | Email notices: a request was submitted, decided or sent back | none | open |
+| USR.24 | Audit view for roles and requests: who changed a role, who asked, who decided | none | open |
+| USR.25 | Headline of 10.0: roles and permissions, user edit requests and moderators | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
@@ -1775,6 +1796,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | none | open |
 | TEST.176 | Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row | none | open |
 | TEST.177 | Edited sectors survive repair, regeneration and the golden seed | none | open |
+| TEST.178 | Roles end to end: user, moderator and admin through the whole request chain | none | open |
+| TEST.179 | Permission matrix test: every route and page checked for every role against the catalogue | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
