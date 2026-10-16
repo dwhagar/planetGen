@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1469] - 2026-10-16
+
+**Headline:** The to-do list retires GEN.265, built by the system member tree change.
+
+### Changed
+
+- Retired GEN.265 (the nightly motion of a multi-star system from its stored member tree), done by #1766, and removed it from the goal table. Noted on GEN.109 that its influence rule reads the stored point masses of a scatter system.
+
+TODO items resolved: GEN.265 / Added: none
+
 ## [8.0.1468] - 2026-10-16
 
 **Headline:** A scattered multi-star system moves as one point and its members are placed from their stored orbits.
