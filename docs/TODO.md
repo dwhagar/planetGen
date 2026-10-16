@@ -7754,6 +7754,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   existing galaxy, plan stores and shows the three settings, a value
   below 50 for the halo floor is refused with the reason, and the
   settings round-trip.
+  Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0103, after 0102
+  (DB.59).
   Prerequisites: none. Related: GEN.283.
 
 - [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
@@ -7845,6 +7847,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
   phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
   PERF.97). Core 1 only hands out the migration revision number.
+  Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0102, after 0099
+  (GEN.280), 0100 (cell_star_ceiling) and 0101 (DB.55).
   Prerequisites: none. Related: GEN.95.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
