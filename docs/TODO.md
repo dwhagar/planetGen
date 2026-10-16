@@ -1716,9 +1716,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.311 (Core 3, after DB.53)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.311. Related: GEN.129.
 
 - [ ] **MAP.214 Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space**
@@ -4560,9 +4561,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; ready: no blocker). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: none. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4586,9 +4588,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.318.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4860,9 +4863,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisite: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4894,9 +4898,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3) and GEN.253). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.269, GEN.253. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4926,9 +4931,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
@@ -5005,9 +5011,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.329 and GEN.330 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.275 Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets**
@@ -5043,9 +5050,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.331 and GEN.332 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.331, GEN.332. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
