@@ -142,6 +142,7 @@ item has no row there.
 | 9.1 | [version-9-1-gravity-map.md](plan/version-9-1-gravity-map.md) | The gravity map |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
+| 10.0 | [version-10-0-roles-and-permissions.md](plan/version-10-0-roles-and-permissions.md) | Roles and permissions |
 | later | [version-later-future-features.md](plan/version-later-future-features.md) | Future features (not scheduled) |
 
 Version 8.0 is the finished Phase 0 and has no file. Version "later" holds
@@ -162,9 +163,10 @@ Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
 (MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
 sign-up by an email invitation only an admin can send (USR.1), 8.3 the
 orbital update system (GEN.105), 8.5 courses that bend around gravity wells
-(NAV.59), 8.6 edit everything (ADM.57), 9.1 the gravity map (MAP.167). 9.0
-has no chosen headline yet (the view from a planet is proposed) and there
-is no 10.0 headline; multiple galaxies is a possible future feature. A
+(NAV.59), 8.6 edit everything (ADM.57), 9.1 the gravity map (MAP.167),
+10.0 roles and permissions with user edit requests and moderators
+(USR.25, Boss 1:43 PM EDT). 9.0 has no chosen headline yet (the view from
+a planet is proposed); multiple galaxies is a possible future feature. A
 headline feature carries a `Headline: VERSION (name).` line in its item;
 `scripts/build_todo_docs.py` reads it and shows, in every plan page, each
 headline with all the open items it needs in build order. Every release in
@@ -4825,6 +4827,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.276. Related: ADM.57, NAV.60.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
+- [ ] **GEN.303 Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000**
+  Boss (2026-10-16, 1:47 PM EDT, in the GEN.280 thread): "cell cap
+  should be a configuration option." The per-cell cap of systems
+  (GEN.281, now the adaptive cap that GEN.280 builds) becomes one named
+  option `generation.cell_cap` in the ADM.42 model: default 5,000,
+  lowest 500, highest 50,000, with help text that says what it limits
+  and that changing it affects only later fills, not stored cells. The
+  fill code reads it at the start of a run instead of a constant, and
+  the settings page of ADM.84 lists it with no extra screen. Core 3
+  keeps the cap in one named setting so this item only wires it. The
+  bounds are defaults for Boss to change. Done: the option, the read at
+  run start, a test that a run with a lower cap stores fewer systems per
+  cell, and the entry in docs/config.md.
+  Prerequisites: GEN.280, ADM.84. Related: GEN.281, GEN.283, ADM.43.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -5424,9 +5441,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
   the admin approves the generation plan. One Alembic migration adds
-  `change_plans` (who asked, the request, the state: draft, proposed,
-  approved, applied, undone, stale or rejected, who approved and when,
-  the job that applied it), `change_plan_ops` (plan, order, operation
+  `change_plans` (who asked and in which role, the request, the state:
+  draft, requested, proposed, approved, applied, undone, stale, rejected
+  or withdrawn, the role that must approve it, who approved or rejected
+  it and when with a note, the job that applied it; 10.0 adds only
+  request comments and notices, DB.39, so the plan tables hold requests
+  from the start and need no rebuild), `change_plan_ops` (plan, order,
+  operation
   kind, target object ID, before and after values as JSON, status) and
   `edit_journal` (an append-only list of every applied operation: plan,
   object ID, aspect, before, after and the generator epoch, indexed by
@@ -5459,6 +5480,21 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   models and an idempotent upgrade with a round-trip test.
   Prerequisites: none. Related: MAP.119, ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **DB.39 Edit request support tables (migration only): request comments and notification records**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. The requester, the required approver role and the decision are
+  columns of the change plan tables (DB.36), so a request is a plan. One
+  Alembic migration adds `request_comments` (request, author, body,
+  created) and `request_notifications` (request, recipient, kind, sent).
+  Core 1 owns the migration number. Done: the migration, models and an
+  idempotent upgrade with a round-trip test.
+  Prerequisites: none. Related: USR.25, DB.36.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 ## API: The JSON API
 
@@ -5920,9 +5956,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515), 2026-10-08 00:39Z): "A page under admin is
   needed to configure everything EXCEPT for the database information.
   All other settings should be accessed and changeable from there."
-  Done: an Admin page generated from ADM.42's model lists every option
-  with its help text, edits and validates it, saves config.json, and
-  says which changes need a restart.
+  Moved from 8.2 to 8.1 phase 1 (Boss, 2026-10-16, 1:43 PM EDT: "that
+  needs to get bumped up because we're starting to desperately need
+  that"), and broken into ADM.83 (the validated writer with backups and
+  audit rows), ADM.84 (the page, the diff before save and the restart
+  banner) and ADM.85 (backups, restore, import and export). Done when
+  those three are: an Admin page generated from ADM.42's model lists
+  every option with its help text, edits and validates it, saves the
+  overlay, and says which changes need a restart. The Owner tier (the
+  recent-password prompt) is ADM.86 in 8.2, because it needs the Owner
+  account of USR.2.
   Research (2026-10-09, settings-seo-and-accounts.md): re-scope to three
   tiers (admin, Owner, read-only host-level). `jobs.python`, `jobs.dir`,
   log paths, `secret_key`, `proxy_fix`, `admin_cookie_insecure`,
@@ -5941,6 +5984,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `util/appconfig.py` is gone (log paths are in `util/logpaths.py`);
   `docs/config.md` has a generated table (`python -m planetgen.cli.config
   docs`).
+  Prerequisites: ADM.83, ADM.84, ADM.85.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
   Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
@@ -5962,6 +6006,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   generated system and sector pages
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
+  Moved from 8.2 to 8.1 phase 1 with ADM.43, in the same thread right
+  after it (Boss, 2026-10-16, 1:43 PM EDT).
+  Prerequisites: ADM.43.
 
 - [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
   Boss (2026-10-10 21:14Z): 'remove the galaxy seed JSON files
@@ -6049,8 +6096,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   end: one shell and navigation, the same table, form, confirmation and
   job-log pattern on every page, clear feedback and error messages, and
   nothing left that is doubled or dead. The new admin items of the chain
-  (ADM.43, ADM.44, ADM.13, ADM.35, ADM.32, ADM.36, ADM.52) are built
-  inside this shell.
+  (ADM.13, ADM.35, ADM.32, ADM.36, ADM.52) are built inside this shell;
+  the settings page (ADM.43, ADM.44) is built earlier, in 8.1, in the
+  admin layout of the day, and this item moves it into the shell.
   Prerequisites: ADM.55, ADM.50. Related: ADM.43, ADM.44, ADM.13,
   ADM.35, UX.102, UX.49.
 
@@ -6074,6 +6122,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120,
   POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.78, ADM.79,
   ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54.
+  Boss (2026-10-16, 1:49 PM EDT): an admin approves their own plan at
+  the time, so an admin confirms rather than requests; there is no
+  second approver and the plan preview stays. The roles of 10.0 (USR.25)
+  add requests from users and moderators on the same plans.
 
 - [ ] **ADM.58 Change plan engine: operations, the effect diff and the plan states, as a library**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
@@ -6084,8 +6136,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   operation types, validation of each against the stored object (Hill
   spheres, spacing, bounds), the computed effect diff (every row that
   would change, with before and after, and every object touched
-  indirectly), the state machine (draft, proposed, approved, applied,
-  undone, stale, rejected) and the stale check (a plan is stale when any
+  indirectly), the state machine (draft, requested, proposed, approved,
+  applied, undone, stale, rejected, withdrawn: `requested` is a plan
+  someone below the approving role submitted, used by 10.0 and built
+  here so no state is added later; an admin's own plan goes from draft
+  to proposed and the same admin confirms it, with no second approver,
+  Boss 2026-10-16, 1:49 PM EDT; every transition records who and in
+  which role) and the stale check (a plan is stale when any
   object it touches changed after the plan was proposed). An operation
   serialises in the versioned envelope the remote upload uses
   (`StarSystem.to_dict()`, API.13), so a plan and an upload describe a
@@ -6111,8 +6168,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
   the admin approves the generation plan. Each unit is written through
-  the unit finalizer (ADM.82). An approved plan is applied as a visible
-  queue job (the Generate page job log): operations run in order inside
+  the unit finalizer (ADM.82). An approved plan is applied, under the
+  approver's identity, as a visible queue job (the journal and the
+  activity log name the requester and the approver) (the Generate page
+  job log): operations run in order inside
   one transaction per sector, each writes its journal rows and an
   activity-log entry, and a failure rolls the whole plan back and leaves
   it proposed with the reason. An applied plan can be undone as long as
@@ -6213,7 +6272,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   sectors it changes, and buttons to approve the whole plan, reject
   single operations (which re-validates the rest), or cancel. Done: the
   screen, per-operation reject with re-validation, approval stored with
-  who and when, and a browser test.
+  who and when, and a browser test. An admin confirms their own plan on
+  this screen (no second approver, Boss 2026-10-16, 1:49 PM EDT); when a
+  plan came from a request the same screen shows the requester, their
+  note and the role that must approve, which is how 10.0 reuses it
+  (USR.18).
   Prerequisites: ADM.60. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -6232,7 +6295,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
   the admin approves the generation plan. An admin page lists plans by
-  state, object and admin, opens any plan as it was approved, and undoes
+  state, object, requester and approver, opens any plan as it was
+  approved, and undoes
   an applied plan when nothing newer touched its objects (the undo
   itself is a plan that goes through approval). Done: the page, undo
   through approval, and a browser test.
@@ -6434,6 +6498,80 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   it.
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.83 Settings writer: validate, write and back up the settings overlay, with an audit row per change**
+  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
+  somewhere, that needs to get bumped up because we're starting to
+  desperately need that." Part of the configuration page of ADM.43
+  (GitHub issue
+  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
+  8.2 to 8.1 phase 1. The read side exists (ADM.42, `settings.json`
+  overlay, `x-editable` and `x-min_role` marks); nothing writes it.
+  Build `planetgen.config.writer` beside the reader: it takes a set of
+  option changes, validates each against the ADM.42 model (type, range,
+  enum, read-only options refused), returns per-field errors, and
+  otherwise writes the overlay atomically (temporary file, fsync,
+  rename) after copying the old file to a timestamped backup (the last
+  20 are kept). Each changed option gets an activity-log row (who,
+  option, old and new value; passwords and keys are never logged), and
+  the result lists which changes need a restart. `planetgen.cli.config
+  set`, `get` and `restore` use the same writer. `set-permissions.sh`
+  and the installers create the settings folder for the web user. Done:
+  the writer and the CLI with tests for every error kind, the atomic
+  write, the backup rotation and the restart list.
+  Prerequisites: none. Related: ADM.43, ADM.42.
+
+- [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
+  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
+  somewhere, that needs to get bumped up because we're starting to
+  desperately need that." Part of the configuration page of ADM.43
+  (GitHub issue
+  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
+  8.2 to 8.1 phase 1. An Admin page generated from the ADM.42 model:
+  sections, then every option with its help text, default, current value
+  and where the value comes from (default, config file or overlay);
+  editable options as controls by type; read-only options
+  (`jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix`,
+  `admin_cookie_insecure`, `redis.url`, `api_base_url`, the database
+  settings) shown with the reason they are file-only. Save shows a
+  before-and-after diff of the changed options, confirms, saves through
+  ADM.83 and shows per-field errors; a pending-restart banner on every
+  admin page comes from a snapshot taken at startup. Options marked for
+  the Owner tier are shown and disabled until ADM.86. It is built in the
+  admin layout of the day; ADM.56 moves it into the one admin shell.
+  Done: the page, the diff and confirm step, the banner and a browser
+  test that edits, saves and restores one option of each type.
+  Prerequisites: ADM.83. Related: ADM.43, ADM.56.
+
+- [ ] **ADM.85 Settings backups, restore, import and export on the settings page**
+  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
+  somewhere, that needs to get bumped up because we're starting to
+  desperately need that." Part of the configuration page of ADM.43
+  (GitHub issue
+  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
+  8.2 to 8.1 phase 1. The settings page lists the timestamped backups
+  (time, who), shows the diff between one and the current settings, and
+  restores one after a confirmation and an audit row. Export downloads
+  the overlay as JSON without secrets or read-only options; import reads
+  such a file through the same validation and diff as an edit. Done: the
+  list, restore, export and import with a browser test and a test that
+  an import with one bad value changes nothing.
+  Prerequisites: ADM.84. Related: ADM.43.
+
+- [ ] **ADM.86 Owner-tier settings: Owner-only options behind a recent-password prompt**
+  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
+  somewhere, that needs to get bumped up because we're starting to
+  desperately need that." Part of the configuration page of ADM.43
+  (GitHub issue
+  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
+  8.2 to 8.1 phase 1. Options marked `x-min_role` owner (SMTP,
+  `web.base_url`, the From address) are editable only by the Owner, and
+  only after the Owner re-entered their password within the last 10
+  minutes; admins see them disabled with the reason. This needs the
+  Owner account that USR.2 creates, so it belongs to 8.2 and not to the
+  umbrella ADM.43. Done: the prompt, the tier check in the writer, and
+  tests that an admin and a stale-password Owner are both refused.
+  Prerequisites: ADM.84, USR.2. Related: ADM.43, USR.3.
 
 ## SEC: Security
 
@@ -7138,6 +7276,34 @@ clears each one.
   Prerequisites: ADM.61, ADM.80. Related: ADM.57, TEST.77.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
+- [ ] **TEST.178 Roles end to end: user, moderator and admin through the whole request chain**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. Browser and server tests: a user requests, a moderator
+  approves and it applies; a moderator requests and only an admin can
+  approve; an admin edits with preview and confirm and no second
+  approver; a self-approval is refused; a role change takes effect at
+  once; a hidden request stays hidden. Done: one test per case.
+  Prerequisites: USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24.
+  Related: USR.25.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **TEST.179 Permission matrix test: every route and page checked for every role against the catalogue**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. A generated test walks the route map and the page list and
+  asserts the response for user, moderator, admin and Owner matches the
+  catalogue, so a new route without a permission fails. Done: the test
+  in the gate.
+  Prerequisites: USR.14. Related: USR.25.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -7169,13 +7335,16 @@ clears each one.
 
   Headline: 8.2 (user accounts, with sign-up by an email invitation that
   only an admin can send).
-  - [ ] **USR.2 Accounts with roles: user, admin and Owner**
+  - [ ] **USR.2 Accounts with roles: user, moderator, admin and Owner**
     Boss: "Admin can
     then make a user admin or take away admin rights on everything but the
     primary 1st admin account generated at install, that'll have a
     designation of 'Owner' and no other account can override that." Done:
     one accounts table in the control database (with an email address)
-    holding a role per account (user, admin, Owner); exactly one Owner,
+    holding a role per account (user, moderator, admin, Owner; moderator
+    is stored and valid from the start, has no permissions until 10.0
+    and no page assigns it, Boss 2026-10-16, 1:43 PM EDT); exactly one
+    Owner,
     which is the account install creates; an admin page where admins
     promote a user to admin or demote an admin to user, refused for the
     Owner; sessions and API keys that work for every role while the
@@ -7200,6 +7369,14 @@ clears each one.
     Decided (2026-10-10): Boss (19:16Z, Accept all): one accounts table
     with a role column (add the columns now, rename later); the lowest
     id is the Owner.
+    Roles must fit 10.0 (roles and permissions, USR.25) without a
+    rebuild: the role is one text column holding one of the four values;
+    every admin-only page, route and command goes through one guard
+    (`require_role`) so 10.0 swaps that single function for the
+    permission check `can()` (USR.12, USR.14); no code outside that
+    guard compares a role; the role change page of this item writes the
+    audit row through one function that 10.0 reuses for the moderator
+    role (USR.13).
 
   - [ ] **USR.3 SMTP settings in the admin config**
     Boss: "We'll use SMTP for
@@ -7220,6 +7397,9 @@ clears each one.
     file, no SMTP means invites show the link only; sent from an RQ job.
     Decided (2026-10-10): Boss (19:16Z, Accept all): SMTP settings are
     Owner-only; the password lives in a 0600 file, not the database.
+    The SMTP form sits on the settings page of 8.1 (ADM.84) and its
+    Owner-only tier is ADM.86 (Boss, 2026-10-16, 1:43 PM EDT).
+    Prerequisites: ADM.86.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -7369,6 +7549,210 @@ clears each one.
   to it instead of the largest group of created sectors (MAP.190); users
   without a home get the default. Owner: not assigned.
   Prerequisites: MAP.189, MAP.190. Related: MAP.189, MAP.190, USR.8.
+
+- [ ] **USR.12 Permission catalogue and one `can()` check: user, moderator, admin and Owner as data**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. Name every permission the site checks (edit own account,
+  request an edit, approve a user request, approve a moderator request,
+  confirm and apply a plan, manage roles, change settings, see the audit
+  log) and the role-to-permission map for user, moderator, admin and
+  Owner, as data in `planetgen/admin/permissions.py` with one
+  `can(account, permission, object=None)` that every route, page and CLI
+  command will call. Owner keeps everything an admin has plus the
+  Owner-only options of the settings page. Done: the catalogue and the
+  check with tests for every role and permission, and a generated table
+  in docs.
+  Prerequisites: USR.2. Related: USR.2, ADM.86.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.13 Moderator role: assign and remove it on the admin accounts page, with the audit entry**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. USR.2 stores the role in one column and already accepts
+  "moderator". Admins promote a user to moderator and demote a moderator
+  to user on the accounts page; each change is audited (who, whom, from,
+  to); the Owner and admins are not affected. Done: the page actions,
+  the audit rows and tests that a moderator holds exactly the moderator
+  permissions.
+  Prerequisites: USR.12. Related: USR.2, USR.6.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.14 Move every route, page and command from "is admin" checks to permission checks**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. Replace every direct role test (`role == "admin"`, admin-only
+  decorators, template checks) in the API, the web pages and the CLI
+  with `can()`, so a new role needs no edit to a route. Done: no raw
+  role comparison is left in `src/planetgen` (a test scans for them),
+  and the existing admin and user tests pass unchanged.
+  Prerequisites: USR.12. Related: USR.2.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.15 Submit an edit request: a user proposes an edit and the plan engine computes what it would change**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. A user (or a moderator) chooses an object and an edit from the
+  operations their role may request (the catalogue lists them; a user
+  starts with text aspects such as names and descriptions, and no
+  structural changes), writes a short reason, and the plan engine
+  (ADM.58) validates it and stores it as a plan in state requested, with
+  the requester, their role and the role that must approve. Done: the
+  submit flow for the object pages, validation that refuses an operation
+  the role may not request, the stored plan with its computed diff, and
+  tests for each role.
+  Prerequisites: USR.12, ADM.58, ADM.59. Related: USR.25, ADM.57.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.16 Request queue: who sees what**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. A page listing requests: a user sees their own; a moderator
+  sees every user request and their own; an admin sees every request;
+  filters by state, object and requester. Done: the queue page and API
+  route with the visibility rules checked through `can()`, and tests
+  that nobody sees a request the rules hide.
+  Prerequisites: USR.15. Related: USR.25.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.17 Approve, reject or send back a request, by role: moderators decide user requests, admins decide moderator requests**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. The decision rule: a user request is decided by a moderator or
+  an admin, a moderator request by an admin, an admin needs none; nobody
+  decides their own request. Approve applies the plan through ADM.60
+  (the audit shows the requester and the approver); reject and send-back
+  keep the reason. Done: the decision rules with tests for every role
+  pair (including the refused self-approval), and the apply through the
+  plan job.
+  Prerequisites: USR.16, ADM.60. Related: USR.25, ADM.60.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.18 Approver screen: the requester's note, the plan preview and the decision buttons**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. The page an approver opens: the reason, the object, the plan
+  preview of ADM.66 (before and after, objects touched, warnings), the
+  requester's earlier requests, and approve, reject and send-back with a
+  note. Done: the screen reusing the approval screen, and a browser test
+  for a moderator approving a user request and an admin approving a
+  moderator request.
+  Prerequisites: USR.17, ADM.66. Related: USR.25, ADM.66.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.19 Comments on a request between the requester and the approver**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. A short thread on each request (DB.39): the approver asks, the
+  requester answers; the requester can edit and resubmit, which
+  recomputes the plan. Done: the thread on the request page, resubmit,
+  and tests for ordering and permissions.
+  Prerequisites: DB.39, USR.17. Related: USR.25.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.20 "My requests" in the user interface: state of each request and withdraw**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. The account page of USR.7 lists the user's own requests with
+  their state and lets them withdraw a pending one. Done: the page
+  section with a browser test.
+  Prerequisites: USR.16, USR.7. Related: USR.25, USR.7.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.21 Request lifecycle: stale, withdrawn and expired requests**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. A request is stale when an object it touches changed after it
+  was submitted (the stale check of ADM.59); a stale request goes back
+  to the requester to resubmit; a pending request expires after 30 days.
+  Done: the three transitions with tests, and the queue marks them.
+  Prerequisites: USR.17. Related: USR.25, ADM.59.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.22 Request limits: a per-user cap on open requests, a rate limit, and blocking a user from requesting**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. A user may hold at most 5 open requests and submit at most 20
+  a day (settings on the settings page); a moderator or admin can stop
+  an account from requesting, with the reason in the audit. Done: the
+  limits and the block with tests, using the same pattern as the login
+  rate limit.
+  Prerequisites: USR.15. Related: USR.25, SEC.1.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.23 Email notices: a request was submitted, decided or sent back**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. Approvers are emailed when a request needs them, and
+  requesters when it is decided, through the queue-job mail module of
+  USR.3; each account chooses on or off. Done: the notices as queue
+  jobs, the setting on the account page, and a test with a captured
+  mailbox.
+  Prerequisites: USR.17, USR.3. Related: USR.25, USR.3.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.24 Audit view for roles and requests: who changed a role, who asked, who decided**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. One admin page, and a section on the account page, listing
+  every role change and every request with its decision, filterable by
+  account, object and date, read from the audit log and the plan history
+  of ADM.68. Done: the view with tests that each row names the requester
+  and the approver.
+  Prerequisites: USR.17, ADM.68. Related: USR.25, ADM.68.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **USR.25 Headline of 10.0: roles and permissions, user edit requests and moderators**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. Umbrella of 10.0, broken into items in the 10.0 version file;
+  it is done when its items are. Headline: 10.0 (roles and permissions:
+  user edit requests, moderators and admins).
+  Prerequisites: USR.13, USR.14, DB.39, TEST.178, TEST.179, DOC.55.
+  Related: USR.1, ADM.57.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 ## OPS: Installers, hosting, CI, releases
 
@@ -7859,6 +8243,18 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and regen screen.
   Prerequisites: TEST.175, ADM.68. Related: ADM.57, DOC.6.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **DOC.55 Help: roles, edit requests and how an approval works**
+  Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three
+  roles, User, Moderator and Admin; users submit edit requests,
+  moderators approve user requests, admins approve moderator requests,
+  and an admin's own edits need no approval (only the preview and
+  confirm of ADM.66). Build on the accounts of 8.2 and the change plans
+  of 8.6. A help page for the roles, what each can request and approve,
+  how to submit a request and follow it, and what moderators and admins
+  see. Done: the page in the help section (DOC.6 template).
+  Prerequisites: TEST.178. Related: USR.25, DOC.6.
+  Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 ## VIEW: The view from a planet
 

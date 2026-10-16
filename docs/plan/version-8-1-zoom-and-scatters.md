@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Phase 1: Foundations and open trees
 
-Everything with no blocker outside its own thread: the queue steps, reproducible galaxies, the description layer, tech levels, directives, housekeeping, the bugs and the backfill weeding.
+Everything with no blocker outside its own thread: the queue steps, reproducible galaxies, the description layer, tech levels, the settings page (moved up from 8.2, Boss 1:43 PM EDT), directives, housekeeping, the bugs and the backfill weeding.
 
 ### Queue, caches and performance
 
@@ -93,6 +93,16 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere |  |  |
+
+### Settings page
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| ADM.83 | Settings writer: validate, write and back up the settings overlay, with an audit row per change |  | Boss 1:43 PM EDT: the configuration page moved up from 8.2 (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515)). |
+| ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | ADM.83 |  |
+| ADM.85 | Settings backups, restore, import and export on the settings page | ADM.84 |  |
+| ADM.43 | A full configuration page under Admin | ADM.83, ADM.84, ADM.85 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
+| ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). Moved from 8.2 with ADM.43. |
 
 ### Generate page and directives
 
@@ -272,6 +282,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 |  | Core 3; step 1 of the galactic core note; needs a Core 1 migration revision |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.237, GEN.244 | Core 3; step 3 of the galactic core note |
 | GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else |  | Core 3; step 3b of the galactic core note; shares one Core 1 migration with GEN.281 |
+| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | GEN.280, ADM.84 | Core 3 wires it; Boss 1:47 PM EDT. |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.280, GEN.162 | Core 3; step 4 of the galactic core note |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.280 | Core 3; step 5 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |

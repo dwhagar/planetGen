@@ -82,7 +82,7 @@ def test_the_release_roadmap_is_in_build_order_with_a_headline_per_release():
     assert road["unplaced"] == [] and road["unlisted"] == []
     versions = [r["version"] for r in road["releases"]]
     assert versions[0] == "8.1" and versions[-1] == "later" and len(set(versions)) == len(versions)
-    assert "10.0" not in versions, "Boss (2026-10-16): no 10.0 headline"
+    assert "10.0" in versions, "Boss (2026-10-16, 1:43 PM EDT): 10.0 is roles and permissions"
     for rel in road["releases"]:
         assert rel["fields"].get("Headline"), f"release {rel['version']} has no headline"
         prefix = "SL-" if rel["version"] == "later" else f"S{rel['version']}-"
