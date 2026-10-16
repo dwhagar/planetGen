@@ -117,8 +117,8 @@ For one band (`canonical_bands`, eight to a decade) and one block, a (ring,
 layer, 256-slot chunk):
 
 1. `bound = E x bound_relative_density_at(shape, ring radius, layer z) x s_max`,
-   `s_max` the largest population share of the band, taken as at least the
-   `MIN_RELATIVE_DENSITY` floor (GEN.78). Valid because every cell of the block
+   `s_max` the largest population share of the band (the stellar halo, GEN.234, replaced the
+   flat floor GEN.78 put under it). Valid because every cell of the block
    sits at the ring radius and layer height the bound is evaluated at.
 2. Draw the candidate count n ~ Poisson(bound x cells in the chunk) from one
    keyed uniform by inversion.
@@ -325,7 +325,7 @@ ledger and the visits) come from exact block-first.
 to be exact thinning of the candidate process, which is skip-ahead.
 
 **GEN.43.** Satisfied by construction: every cell keeps its own mean, and
-`MIN_RELATIVE_DENSITY = 1e-3` (GEN.78) plus the outline minimum of 0.069 mean no
+the outline minimum of 0.069 (and, beyond it, the stellar halo, GEN.234) mean no
 cell has zero density. The test is section 3.3.
 
 **PERF.18.**

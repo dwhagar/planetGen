@@ -12,8 +12,9 @@ billions of cells): a shell draws one Poisson count of candidates from a
 certified density bound, gives each a band, a wedge and a point, and keeps it
 with probability true density over bound (`generation/object_first.py`,
 PERF.58). Every cell inside the outline can hold one, however sparse
-(GEN.78): the density never falls below the halo floor
-(`tuning.MIN_RELATIVE_DENSITY`).
+(GEN.78): the outline keeps only cells that expect at least one system, and
+outside it the stellar halo (GEN.234, `galaxy.density.halo_terms`) is the
+density, a measured spheroid and not a flat floor.
 
 The backfill goes the other way: around the generated sectors it adds the
 stars the scatter left out, sector by sector and by initial mass
@@ -76,7 +77,7 @@ from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 
-POPULATIONS = ("young", "intermediate", "old", "bulge")
+POPULATIONS = tuple(tuning.STELLAR_POPULATION_AGE_RANGES_GY)
 """tuple: The stellar populations `galaxy.density.population_densities`
 splits a position's density into, each scattered on its own."""
 

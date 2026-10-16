@@ -62,7 +62,8 @@ def _shape_with_threshold():
 
 def test_density_matches_the_python_model():
     points = [(8000.0, 100.0, 50.0), (0.0, 0.0, 0.0), (300.0, -200.0, 10.0), (-12000.0, 4000.0, -600.0),
-              (5.0, 5.0, 900.0), (20000.0, -3.0, 0.0)]
+              (5.0, 5.0, 900.0), (20000.0, -3.0, 0.0),
+              (0.0, 0.0, 60000.0), (90000.0, 40000.0, -30000.0), (300.0, 0.0, 400.0)]    # the last ones: the stellar halo (GEN.234)
     got = _run(f"console.log(JSON.stringify({json.dumps(points)}.map(p => P.relativeDensity(...p, shape))));")
     for point, value in zip(points, got):
         assert value == pytest.approx(relative_density(point, SHAPE), rel=1e-12)

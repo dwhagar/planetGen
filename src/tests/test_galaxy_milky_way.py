@@ -93,7 +93,9 @@ def test_the_disks_have_the_milky_ways_scale_heights_at_the_sun():
 
     assert _local_scale(part(1), 1000.0, 2000.0) == pytest.approx(300.0, abs=50.0)
     assert _local_scale(part(2), 3000.0, 4500.0) == pytest.approx(900.0, abs=180.0)
-    assert _local_scale(lambda z: _ring_mean(SOLAR_RADIUS_PC, z, steps=36), 3000.0, 4500.0) == pytest.approx(
+    # The stellar halo (GEN.234) is a third of the density up there; take it out to see the thick disk.
+    assert _local_scale(lambda z: _ring_mean(SOLAR_RADIUS_PC, z, steps=36)
+                        - density.halo_density((SOLAR_RADIUS_PC, 0.0, z), SHAPE), 3000.0, 4500.0) == pytest.approx(
         900.0, abs=180.0)
 
 

@@ -594,9 +594,11 @@ WD_PROGENITOR_ENGULFMENT_AU = 1.5
 # Way (BHG16), young ~50 pc (OB stars, Reed 2000) and intermediate
 # ~150 pc (A to F dwarfs, Bovy 2017). The bulge is old
 # (8-12 Gy), and so is the thick disk, whose stars count as "old"
-# (`galaxy.density.population_densities`).
+# (`galaxy.density.population_densities`). The halo and the globular clusters are older still, 10 to 13 Gy
+# (GEN.234; a cluster's density comes with the component table, GEN.237, and is 0 until then).
 STELLAR_POPULATION_AGE_RANGES_GY = {
     "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
+    "halo": (10.0, 13.0), "cluster": (10.0, 13.0),
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
@@ -655,13 +657,34 @@ centre, on top of the bulge (`core_amplitude`; 0, the default, is none)."""
 # Wegg & Gerhard 2013, BHG16: 28-33 for the long bar).
 BULGE_BAR_ANGLE_DEG = 27.0
 
-# The lowest relative density anywhere (GEN.78): the exponential disk and
-# bulge fall toward zero far off the plane and toward the edge, but a sparse
-# stellar halo fills the space between, at about a thousandth of the local
-# disk density near the Sun (Juric et al. 2008, ApJ 673:864). So every
-# sector inside the galaxy's outline has some chance of a star, and of a
-# bright one. The floor's stars are old (`galaxy.density.population_densities`).
-MIN_RELATIVE_DENSITY = 1.0e-3
+# The stellar halo (GEN.234, docs/design/intergalactic-and-halo-contents.md 2.1 and 4) replaces the flat
+# floor GEN.78 put under the density (0.1% of the local density everywhere, half the real halo at the Sun
+# and 200 to 340,000 times too much at 50 to 262 kpc). It is a spheroid with a broken power law,
+# `A * (max(m, core) / break) ** -n` with `m = sqrt(R**2 + (z / q)**2)`, `n` the inner slope inside the break and
+# the outer slope beyond it. Radii are ratios to the thin disk's scale length (2.6 kpc in the Milky Way), so a
+# galaxy of any size gets a halo that scales with it. Sources: Deason et al. 2019 (1.5e9 solar masses), SDSS
+# fits (inner slope 2.3 to 3.3, outer 4.6 to 4.8, break 17 to 27 kpc, flattening 0.6 to 0.8), all in the design
+# note.
+HALO_SCALE_LENGTH_PC = 2600.0
+HALO_BREAK_RATIO = 25000.0 / HALO_SCALE_LENGTH_PC
+"""float: The break radius over the disk scale length (25 kpc, 9.6 scale lengths)."""
+HALO_CORE_RATIO = 500.0 / HALO_SCALE_LENGTH_PC
+"""float: The radius inside which the halo is flat, over the disk scale length (500 pc; the bulge dominates there)."""
+HALO_INNER_SLOPE = 2.5
+HALO_OUTER_SLOPE = 4.5
+HALO_AXIS_RATIO = 0.7
+HALO_MEAN_SYSTEM_MASS_SOLAR = 0.4
+"""float: Solar masses a halo system holds on average (docs/design/globular-clusters.md)."""
+HALO_MASS_SOLAR = 1.5e9
+"""float: The Milky Way's stellar halo (Deason et al. 2019), 3% of the visible mass."""
+HALO_SYSTEM_FRACTION = HALO_MASS_SOLAR / HALO_MEAN_SYSTEM_MASS_SOLAR / 3.0e11
+"""float: The halo's systems over the visible systems (bulge, thin and thick disk): 3.75e9 against the default
+galaxy's 3.0e11, 1.25%. It is the halo's amount for a galaxy of any size; the amplitude is solved from it like
+`k_norm` (`galaxy.density.halo_terms`)."""
+HALO_LOCAL_DENSITY_FRACTION = 5.0e-3
+"""float: The alternative normalisation the note keeps (Juric et al. 2008): the halo at the Sun is 0.5% of the
+local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not used by the generator;
+`halo_local_density_scale` is the factor that would switch to it."""
 
 # Pre-placed bright stars (star_population.sample_bright_stars): the
 # mass grid, in log-spaced cells over the IMF's range, on which the chance

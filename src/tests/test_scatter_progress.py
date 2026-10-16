@@ -72,7 +72,7 @@ def test_dense_shells_weigh_more_than_edge_shells_and_bands_count_too():
     assert middle > 0 and edge > 0
     assert middle == pytest.approx(middle_stars + bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS * 7)
     empty, empty_stars = bright_stars.shell_weight(SHAPE, 300, 3, EDGE_PC, E_VALUE, fractions)
-    # Far outside the disk only the halo floor is left (GEN.78): a small
+    # Far outside the disk only the stellar halo is left (GEN.234, once GEN.78's flat floor): a small
     # chance, never none.
     assert 0.0 < empty_stars < 1.0
     assert empty == pytest.approx(empty_stars + bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS * 7)

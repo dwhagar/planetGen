@@ -275,9 +275,11 @@ reads."""
 MODEL_TERM_FIELDS = (
     "thick_disk_amplitude", "thick_disk_scale_length_pc", "thick_disk_scale_height_pc",
     "bulge_scale_y_pc", "bulge_scale_z_pc", "core_scale_radius_pc", "bar_cos", "bar_sin",
+    "halo_amplitude", "halo_core_pc", "halo_break_pc", "halo_axis_ratio", "halo_inner_slope", "halo_outer_slope",
 )
-"""The `galaxy.density.model_terms` it reads too (the thick disk and the
-bar), which `db.query.galaxy_density_shape` serves alongside the shape."""
+"""The `galaxy.density.model_terms` and `halo_terms` it reads too (the thick
+disk, the bar and the stellar halo), which `db.query.galaxy_density_shape`
+serves alongside the shape."""
 
 
 def _density_shape(galaxy_shape):

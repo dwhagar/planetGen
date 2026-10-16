@@ -89,6 +89,13 @@ function bulgeBound(r, z, shape) {
     + core(r * r + z * z, shape);
 }
 
+// The stellar halo (galaxyDensity._halo): a broken power law on a spheroid of axis ratio q, flat inside the core.
+function halo(rCyl, z, shape) {
+  var m = Math.hypot(rCyl, z / shape.halo_axis_ratio);
+  var ratio = Math.max(m, shape.halo_core_pc) / shape.halo_break_pc;
+  return shape.halo_amplitude * Math.pow(ratio, -(ratio < 1 ? shape.halo_inner_slope : shape.halo_outer_slope));
+}
+
 function thickDisk(rCyl, z, shape) {
   return shape.thick_disk_amplitude * Math.exp(-rCyl / shape.thick_disk_scale_length_pc)
     * vertical(z, shape.thick_disk_scale_height_pc);
@@ -100,7 +107,7 @@ function thickDisk(rCyl, z, shape) {
 // arm factor's pull.
 function densityParts(x, y, z, shape) {
   var rCyl = Math.hypot(x, y);
-  var rest = bulge(x, y, z, shape) + thickDisk(rCyl, z, shape);
+  var rest = bulge(x, y, z, shape) + thickDisk(rCyl, z, shape) + halo(rCyl, z, shape);
   var disk = shape.arm_level * Math.exp(-rCyl / shape.disk_scale_length_pc) * vertical(z, shape.disk_scale_height_pc);
   var armFactor = 1;
   if (rCyl > 1e-9) {

@@ -54,7 +54,7 @@ def test_threshold_must_be_at_least_every_white_dwarf():
     with pytest.raises(ValueError):
         sp.sample_bright_stars(1, float("nan"))
     with pytest.raises(ValueError):
-        sp.bright_star_fraction(THRESHOLD, "halo")
+        sp.bright_star_fraction(THRESHOLD, "mystery")
 
 
 def test_bright_fraction_matches_the_whole_model(young_brute_force):

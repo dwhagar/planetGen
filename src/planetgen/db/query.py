@@ -3210,7 +3210,7 @@ def galaxy_density_shape(conn):
 
     Returns:
         dict or None: Every `GalaxyShape` field and
-            `galaxy.density.model_terms` entry, plus `edge_pc`,
+            `galaxy.density.model_terms` and `halo_terms` entry, plus `edge_pc`,
             `outer_shell_index`, `expected_system_count_at_density_1` and
             `half_height_pc` (how far above and below the plane the
             layers reach; left out before the layers are stored).

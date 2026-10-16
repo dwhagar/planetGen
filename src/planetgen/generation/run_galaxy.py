@@ -620,7 +620,7 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
 
     An address outside the galaxy's stored outline is generated only with
     `outside_ok` (`planetgen galaxy --shell --band --wedge` naming it outright, GEN.81),
-    at the halo floor's density.
+    at the stellar halo's density (GEN.234).
 
     A new sector's paths (and its neighbours') are saved by a queued job
     unless `settle` is false (GEN.126): the caller that settles at the end
