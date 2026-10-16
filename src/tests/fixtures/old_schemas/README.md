@@ -52,3 +52,4 @@ Commit each file came from:
 - v97: fd18454 (GEN.159 galaxy_components, before GEN.281 cell star ceiling and fill luminosity cap)
 - v98: d320eba5 (GEN.281 cell star ceiling and fill luminosity cap, before GEN.280 nuclear structures)
 - v99: 47705939 (GEN.280 nuclear structures, before GEN.281 cell star ceiling default and CHECK)
+- v100: 11f94908 (GEN.281 cell star ceiling default and CHECK, before DB.55 point columns)
