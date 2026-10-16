@@ -32,7 +32,7 @@ from planetgen.generation.phenomena.compact_remnant import (BlackHole, CompactRe
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
-from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, sedov_taylor_radius_ly
 from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
@@ -217,11 +217,7 @@ def test_supernova_remnant_morphology_and_sedov_taylor_radius():
         remnant = SupernovaRemnant(make_config())
         assert remnant.morphology in tuning.SUPERNOVA_REMNANT_MORPHOLOGIES
         assert tuning.SUPERNOVA_REMNANT_AGE_RANGE_YEARS[0] <= remnant.age_years <= tuning.SUPERNOVA_REMNANT_AGE_RANGE_YEARS[1]
-        expected_radius = (
-            tuning.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
-            * (remnant.age_years ** tuning.SEDOV_TAYLOR_TIME_EXPONENT)
-        )
-        assert remnant.radius_ly == pytest.approx(expected_radius)
+        assert remnant.radius_ly == pytest.approx(sedov_taylor_radius_ly(remnant.age_years, remnant.density_cm3))
         assert remnant.progenitor_type in ("Type Ia", "core-collapse")
         if remnant.progenitor_type == "Type Ia":
             # A Type Ia progenitor is thermonuclearly disrupted entirely --
@@ -705,3 +701,27 @@ def test_a_supernova_remnants_neutron_star_core_is_as_old_as_the_remnant():
     for remnant in cores:
         assert remnant.compact_remnant.age == pytest.approx(remnant.age_years / 1e9)
         assert remnant.compact_remnant.pulsar_type in ("young", "magnetar", "non-pulsing")
+
+
+def test_sedov_taylor_radius_follows_the_density_and_stops_at_the_snowplow():
+    # 5.0 pc (16.3 ly) at 1,000 yr in n = 1 (E51 = 1).
+    assert sedov_taylor_radius_ly(1000.0, 1.0) == pytest.approx(1.03 * 1000.0 ** 0.4)
+    assert sedov_taylor_radius_ly(1000.0, 1.0) / 3.2616 == pytest.approx(5.0, rel=0.1)
+    # A hundred times denser gas slows the blast by 100^(1/5) = 2.51.
+    assert sedov_taylor_radius_ly(300.0, 100.0) == pytest.approx(sedov_taylor_radius_ly(300.0, 1.0) / 100 ** 0.2)
+    # A tenfold energy widens it by 10^(1/5).
+    assert sedov_taylor_radius_ly(1000.0, 1.0, energy_e51=10.0) == pytest.approx(sedov_taylor_radius_ly(1000.0, 1.0) * 10 ** 0.2)
+    # Past the end of the Sedov phase the radius no longer grows.
+    onset = 45.66
+    assert sedov_taylor_radius_ly(1.0e5, 1.0) == pytest.approx(onset)
+    assert sedov_taylor_radius_ly(2.0e5, 1.0) == sedov_taylor_radius_ly(1.0e5, 1.0)
+    assert sedov_taylor_radius_ly(1.0e5, 100.0) == pytest.approx(onset * 100 ** (-3 / 7))
+
+
+def test_supernova_remnant_radius_grows_with_age_and_shrinks_with_density():
+    young, old = SupernovaRemnant(make_config()), SupernovaRemnant(make_config())
+    for remnant, age in ((young, 100.0), (old, 10000.0)):
+        remnant.age_years = age
+        remnant.density_cm3 = 1.0
+        remnant.radius_ly = sedov_taylor_radius_ly(remnant.age_years, remnant.density_cm3)
+    assert young.radius_ly < old.radius_ly

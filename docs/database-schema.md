@@ -1581,7 +1581,7 @@ white dwarf).
 | `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | Fixed by the class since v38. |
 | `dominant_species`, `density_cm3`, `temperature_k`, `extinction_av` | VARCHAR(255) / DOUBLE | NOT NULL | Added in v38, as on `nebulae`. |
 | `age_years` | DOUBLE | NOT NULL | |
-| `radius_ly` | DOUBLE | NOT NULL | Derived from `age_years` via the Sedov-Taylor blast-wave relation (`radius ∝ age^(2/5)`). |
+| `radius_ly` | DOUBLE | NOT NULL | Derived from `age_years` and `density_cm3` via the Sedov-Taylor blast-wave relation (`radius ∝ (1e51 erg / density)^(1/5) age^(2/5)`), held at the snowplow onset radius. |
 | `progenitor_type` | TEXT | NOT NULL, CHECK IN ('Type Ia','core-collapse') | |
 | `compact_remnant_kind` | TEXT | nullable, CHECK IN ('black_hole','neutron_star') | NULL when no compact remnant is embedded. |
 | `compact_remnant_black_hole_id` | INTEGER | FK -> `black_holes.id`, `ON DELETE SET NULL`, nullable | |
