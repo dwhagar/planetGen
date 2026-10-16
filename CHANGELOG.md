@@ -2,6 +2,84 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1540] - 2026-10-16
+
+**Headline:** The top blockers on the tree page now count a chain once, GEN.99 is dropped, and the migration numbers and lane owners are corrected.
+
+### Changed
+
+- The top 5 blockers (overall and per phase) list one entry per chain, with the members of its chain named under it, so an umbrella and its pieces no longer fill the list.
+- GEN.335 to GEN.337, DB.55 and GEN.294 are Core 1's. Migration 0099 is GEN.280's fields, 0100 is Core 3's cell_star_ceiling change, DB.55 takes 0101, and GEN.237 needs no migration.
+- GEN.297 is the item that updates the globular clusters from Boss's Harris file once supplied, after the synthetic generator that ships first (Boss's decision).
+- GEN.99 is dropped (Boss chose Retire): the required nebula stars are made with the nebula.
+
+TODO items resolved: GEN.99 (dropped, none built) / Added: none
+
+## [8.0.1539] - 2026-10-16
+
+**Headline:** Every open TODO item is now in a GitHub goal issue, and five new goal issues cover edit everything (8.6), roles (10.0), backups, the single configuration file and map labels.
+
+### Added
+
+- Goal issues #1842 (edit everything, 8.6), #1843 (roles and permissions, 10.0), #1844 (backups), #1845 (one configuration file and the settings page) and #1846 (map labels).
+
+### Changed
+
+- The issue table in `docs/plan/issue-groups.md` now lists the split children and the new foundation items under the issues of their parents, so no open item is left without a goal issue.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1538] - 2026-10-16
+
+**Headline:** MAP.152, the scale hand-offs, is retired as built.
+
+### Changed
+
+- MAP.152 is closed in the TODO and the progress ledger (merged in #1832 and #1838); MAP.146 no longer waits on it.
+
+TODO items resolved: MAP.152 / Added: none
+
+## [8.0.1537] - 2026-10-16
+
+**Headline:** The fly-through camera pieces that MAP.146 still lacked, map labels and the single configuration file are now planned.
+
+### Added
+
+- MAP.225 to MAP.228: the wheel zooming toward the cursor, the double-click flight, the container named from the camera position and the camera in the address, each a subitem of MAP.146 in 8.1 phase 2.
+- MAP.229 to MAP.233: a map label engine (priority, no overlaps, show and hide by zoom), names for stars, systems and sectors, the Sector and System Maps on the same engine, names for the big features (8.8) and for nebulae (8.8).
+- ADM.96: one configuration file, the user's own `config.json`, with no `settings.json` overlay; the example is never written and updates never overwrite the user's copy.
+
+### Changed
+
+- ADM.43, ADM.44, ADM.83 to ADM.85, ADM.87, USR.3, GEN.303 and the settings design note now say one file: secrets can be replaced but never read back, archive downloads are Owner-only, a web restore puts back only admin-changeable options, and the writer is `planetgen.util.settings_writer`.
+
+TODO items resolved: none / Added: MAP.225, MAP.226, MAP.227, MAP.228, MAP.229, MAP.230, MAP.231, MAP.232, MAP.233, ADM.96
+
+## [8.0.1536] - 2026-10-16
+
+**Headline:** Every open item was reviewed for smaller chunks and shared foundations, so the version plan now builds shared work once and in the right phase.
+
+### Added
+
+- 138 new TODO items, all in the plan only: 50 splits of oversized items into children (a pure library, the code that applies it, a Core 1 migration, a page), among them GEN.129, GEN.294, GEN.115, GEN.109, GEN.110, GEN.28, GEN.95, USR.2, ADM.56, MAP.119, DOC.6, API.11 and VIEW.2, and five new shared foundations: GEN.334 (pair closest-approach library), USR.28 (account tokens), UX.129 (saved-list store), MAP.217 (map layer registry) and TEST.186 (census audit harness).
+- A new 8.1 phase 6 (the headline closes), an 8.8 phase 2 (zoom windows), and new threads for the galactic gravity potential, the admin shell, the help framework and the star-system storage.
+
+### Changed
+
+- Umbrella items are done when their children are; dependents now name the specific child they need.
+- Items moved so blockers sit in the same thread earlier, an earlier phase or an earlier version (GEN.144, GEN.212, GEN.139, GEN.140, GEN.197, GEN.253, ADM.32, ADM.36, ADM.52, POP.13, NAV.54, NAV.55 and others); overlapping items were narrowed (GEN.142, GEN.247, GEN.249, TEST.169, ADM.71, ADM.72 and others).
+- PERF.88 widened into the shared field kernel; TEST.168 into the shared browser-test harness; DB.56 and GEN.197 into one orbital event record.
+
+TODO items resolved: none / Added: 138 items (see docs/design/todo-number-map.md)
+
+## [8.0.1535] - 2026-10-16
+
+**Headline:** On the Galaxy Map a star's system fades in as the camera comes up to it, and opens from that scene with one more wheel tick.
+
+### Changed
+- In an opened sector, a star's system (its planets, moons and orbits) is fetched once its disc would be about 20 pixels across, fades in to 40 pixels, and is dropped below 10 pixels. It is not opened by that: the address and the panel stay the sector's, and one more wheel tick at the nearest zoom opens the system from the scene already up, with no second fetch.
+- In an opened sector the camera can now come right up to a star near the middle of the view (to where its disc is 60 pixels across), instead of stopping at an eighth of the sector's fit. Move the middle onto the star first (Shift-click or right-click on it).
+
 ## [8.0.1534] - 2026-10-16
 
 **Headline:** A nightly full backup from the daily maintenance run is planned for 9.0, with its own schedule and retention settings.

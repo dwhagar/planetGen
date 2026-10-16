@@ -18,27 +18,35 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds |  | Later (Boss 2026-10-08 01:59Z colors). |
-| MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
+| MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind |  | Split from MAP.132. |
+| MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | MAP.219 | Split from MAP.132. |
+| MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173, MAP.219 | Phase 2. Foundations lane 2. |
+| MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
-| MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | MAP.176 | Phase 2. Foundations lane 2. |
 | MAP.181 | Dust colour for the dark nebula family on both themes |  | Phase 2. Foundations lane 2. |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
-| MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.176 |  |
+| MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | MAP.176 | Split from MAP.194. |
+| MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | MAP.176, MAP.142 | Split from MAP.191. |
+| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.214, MAP.215 |  |
+| MAP.233 | Names for nebulae on the Galaxy Map | MAP.229, MAP.176 | Map labels, Boss 2:30 PM EDT. |
 
 ### Clusters and satellites on the map
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled |  |  |
+| DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) |  | Split from GEN.209. Core 1 owns migrations. |
+| GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill | DB.61 | Split from GEN.209. |
+| MAP.224 | Cluster pages and the Galaxy Map use the parent link | GEN.359 | Split from GEN.209. |
+| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | DB.61, GEN.359, MAP.224 |  |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
 | GEN.248 | Tidal streams as placed components of the halo (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars |  |  |
-| GEN.297 | Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters |  |  |
-| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.237, GEN.238 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
+| GEN.297 | Update the globular clusters from Boss's Harris file once it is supplied: the catalogue rows replace the synthetic ones, the generator stays as the fallback |  | Waits on Boss's file (Boss, 2026-10-16, 2:52 PM EDT). |
+| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.237, GEN.238, MAP.217 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
+| MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | MAP.229, MAP.207 | Map labels, Boss 2:30 PM EDT. |
 
 ### Rare stars and phenomena
 
@@ -46,9 +54,19 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 |---|---|---|---|
 | GEN.245 | Debris disks around A and F stars (later) | GEN.242 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.246 | Luminous blue variables and hypergiants (later) | GEN.243 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
-| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | GEN.129, GEN.130 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
-| GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
-| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
+| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | GEN.271, GEN.272, GEN.318 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | GEN.270 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 7b, later. Core and Interface. |
 | GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | GEN.243 | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
-| GEN.257 | A Fermi-bubble overlay on the Galaxy Map |  | Phenomena catalogue, Boss 2026-10-15. Step 7d, later. Interface. |
+| GEN.257 | A Fermi-bubble overlay on the Galaxy Map | MAP.217 | Phenomena catalogue, Boss 2026-10-15. Step 7d, later. Interface. |
+
+## Phase 2: Windows into nebulae and clusters
+
+The zoom windows: a nebula alone, and the stars of a globular cluster. They come after the nebula drawing and the cluster parent link of phase 1.
+
+### Zoom windows
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | MAP.222, MAP.224 | Split from MAP.194. |
+| MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.222, MAP.223 |  |
