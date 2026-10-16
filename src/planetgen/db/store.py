@@ -66,7 +66,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, login
+from planetgen.db import alembic_runner, login, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
@@ -1514,6 +1514,8 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (96, _check_marker("neutron_stars_chk_1", "magnetar")),
+    (95, _column_marker("bright_stars", "metallicity_fe_h")),
     (94, _check_marker("chk_bright_stars_population", "halo")),
     (93, _column_marker("galaxy_shape", "reach_shell_index")),
     (92, _column_marker("galaxy_block_stats", "shell_index")),
@@ -2743,9 +2745,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
             rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg,
             log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j,
-            lethal_event_rate_per_gyr
+            lethal_event_rate_per_gyr, metallicity_fe_h
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?, ?)
+                  ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2766,6 +2768,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             getattr(star, "rotation_period_hours", None),
             *spin.spin_values(star),
             *(getattr(star, name, None) for name in activity.STAR_ACTIVITY_FIELDS),
+            getattr(star, "metallicity_fe_h", None),
         ),
     )
     return cur.lastrowid
@@ -5673,7 +5676,7 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
 BRIGHT_STAR_COLUMNS = (
     "shell_index", "band_index", "wedge_index", "position_x_mpc", "position_y_mpc", "position_z_mpc",
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
-    "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed",
+    "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
 )
 """tuple: The `bright_stars` columns a scatter writes, in the order
 `insert_bright_stars` expects each row's values."""
@@ -5689,12 +5692,23 @@ def clear_bright_stars(conn):
     scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
+    scatter_systems.delete_all_member_trees(conn, "bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
     conn.commit()
+
+
+def delete_unbuilt_bright_stars(conn, address):
+    """Deletes the stars of one cell that no system was built around, with their members: what a run that failed
+    before it recorded a level left behind, drawn again whole. `address` is `(shell, band, wedge)`."""
+    where = "shell_index = ? AND band_index = ? AND wedge_index = ? AND star_system_id IS NULL"
+    scatter_systems.delete_member_trees_where(
+        conn, "bright_stars", "t.shell_index = ? AND t.band_index = ? AND t.wedge_index = ? AND t.star_system_id IS NULL",
+        tuple(address))
+    conn.execute(f"DELETE FROM bright_stars WHERE {where}", tuple(address))
 
 
 def clear_bright_star_pass(conn, part, mass_limit_sol):
@@ -5707,9 +5721,11 @@ def clear_bright_star_pass(conn, part, mass_limit_sol):
     forgotten: the mass limit for "mass", the floor and seed for "luminosity".
     """
     if part == "mass":
+        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (mass_limit_sol,))
         conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (mass_limit_sol,))
         forget = "bright_star_mass_limit_sol = NULL"
     elif part == "luminosity":
+        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol < ?", (mass_limit_sol,))
         conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol < ?", (mass_limit_sol,))
         forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
     else:
@@ -5791,6 +5807,7 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
     conn.commit()
@@ -6312,6 +6329,10 @@ def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_si
     for start in range(0, len(cells), batch_size):
         chunk = cells[start:start + batch_size]
         placeholders = ", ".join("(?, ?, ?)" for _ in chunk)
+        scatter_systems.delete_member_trees_where(
+            conn, "bright_stars", "t.luminosity_w < ? AND t.star_system_id IS NULL"
+            f" AND (t.shell_index, t.band_index, t.wedge_index) IN ({placeholders})",
+            (below_luminosity_w, *[value for cell in chunk for value in cell]))
         cur = conn.execute(
             "DELETE FROM bright_stars WHERE luminosity_w < ? AND star_system_id IS NULL"
             f" AND (shell_index, band_index, wedge_index) IN ({placeholders})",

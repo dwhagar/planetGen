@@ -114,6 +114,24 @@ def _rogue_gas_giant_fraction():
 
 _ROGUE_GAS_GIANT_FRACTION = _rogue_gas_giant_fraction()
 
+
+def _neutron_star_type_shares():
+    """The expected `pulsar_type` shares of a neutron star with a uniform age
+    in `COMPACT_REMNANT_AGE_RANGE_GY` (GEN.153): magnetars are the young ones
+    that were born as one, young pulsars the rest that still pulse
+    (`exp(-age / PULSAR_ACTIVE_LIFETIME_YR)`, averaged over the range),
+    recycled millisecond pulsars a fixed share of the others."""
+    low, high = prog_c.COMPACT_REMNANT_AGE_RANGE_GY
+    scale = prog_c.PULSAR_RATE_SCALE
+    lifetime_gy = prog_c.PULSAR_ACTIVE_LIFETIME_YR / 1e9
+    magnetar_age_gy = min(max(prog_c.MAGNETAR_ACTIVE_LIFETIME_YR / 1e9, low), high)
+    magnetar = (magnetar_age_gy - low) / (high - low) * prog_c.MAGNETAR_BIRTH_FRACTION
+    mean_active = lifetime_gy * (math.exp(-low / lifetime_gy) - math.exp(-high / lifetime_gy)) / (high - low)
+    young = min(1.0, mean_active * scale) * (1 - magnetar)
+    millisecond = min(1.0, prog_c.PULSAR_RECYCLED_CHANCE * scale) * (1 - magnetar - young)
+    return {"magnetar": magnetar, "young": young, "millisecond": millisecond,
+            "non-pulsing": 1 - magnetar - young - millisecond}
+
 CATEGORY_EXPECTATIONS = {
     "black-hole": {
         "has_accretion_disk": {
@@ -126,11 +144,7 @@ CATEGORY_EXPECTATIONS = {
         },
     },
     "neutron-star": {
-        "pulsar_type": {
-            "millisecond": prog_c.NEUTRON_STAR_PULSAR_CHANCE * prog_c.PULSAR_MILLISECOND_CHANCE,
-            "young": prog_c.NEUTRON_STAR_PULSAR_CHANCE * (1 - prog_c.PULSAR_MILLISECOND_CHANCE),
-            "non-pulsing": 1 - prog_c.NEUTRON_STAR_PULSAR_CHANCE,
-        },
+        "pulsar_type": _neutron_star_type_shares(),
     },
     "nebula": {
         "nebula_class": _NEBULA_CLASS_SHARES,
@@ -397,7 +411,7 @@ def check_hard_invariants(record):
                 f"surface_temperature_k={record['surface_temperature_k']!r} outside "
                 f"{prog_c.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K}"
             )
-        if record["pulsar_type"] not in ("young", "millisecond", "non-pulsing"):
+        if record["pulsar_type"] not in ("young", "millisecond", "magnetar", "non-pulsing"):
             issues.append(f"pulsar_type={record['pulsar_type']!r} is not a recognized value")
         radius_m = record["radius_km"] * pc.KM_TO_M_FACTOR
         expected_luminosity_w = (

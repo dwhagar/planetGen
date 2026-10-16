@@ -46,3 +46,5 @@ Commit each file came from:
 - v91: c8fec05c (DB.32 spherical sectors, before the MAP.205 block totals on shells)
 - v92: 0980a8e (MAP.205 block totals on shells, before GEN.230/GEN.233/GEN.223 96-bit IDs)
 - v93: 1936db3 (GEN.230/GEN.233/GEN.223 96-bit IDs, before GEN.234 halo populations)
+- v94: a91a7156 (GEN.234 halo populations, before GEN.158 metallicity_fe_h)
+- v95: 74ff7e3 (GEN.158 metallicity_fe_h, before GEN.153 magnetar pulsar type)

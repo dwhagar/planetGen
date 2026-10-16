@@ -1291,6 +1291,7 @@ anything.
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. |
 | `log_lx_lbol`, `l_xuv_w`, `xuv_saturated`, `flare_n33_per_yr`, `flare_alpha`, `xuv_fluence_j` | DOUBLE (`xuv_saturated` BOOLEAN) | nullable | Added in v72 (GEN.86). Stellar activity: log10 of the coronal X-ray share of the luminosity (saturated at 7.4e-4 for G, K and M stars, decaying after a mass-dependent saturation age; NULL for a white dwarf or compact remnant), the X-ray plus EUV luminosity in W (a hot photosphere's output above 13.6 eV included; a neutron star's thermal or spin-down X-rays; a black hole's disk), whether the corona is still saturated, flares above 1e33 erg a year and their energy slope, and the XUV given off over the star's age, J. See `planetgen/physics/activity.py` and docs/design/activity-magnetism-radiation-hydrosphere.md section 2. NULL on a row generated before v72. |
 | `lethal_event_rate_per_gyr` | DOUBLE | nullable | Added in v75 (GEN.87). Supernovae within 8 pc per Gyr here: 1.5 at the Sun's 8 kpc, rising as exp((8 kpc - R) / 1.45 kpc) to at most 250 times that at the centre. NULL for a star with no galaxy placement and on a row generated before v75. |
+| `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic centre; a binary's secondary shares its primary's. NULL on a row generated before v95. |
 
 ### `planets`
 
@@ -1527,7 +1528,7 @@ standalone (no owning `StarSystem` at all).
 | `name` | TEXT | NOT NULL | |
 | `mass_solar`, `radius_km` | DOUBLE | NOT NULL | |
 | `spin_period_ms`, `magnetic_field_gauss` | DOUBLE | NOT NULL | |
-| `pulsar_type` | TEXT | NOT NULL, CHECK IN ('young','millisecond','non-pulsing') | |
+| `pulsar_type` | TEXT | NOT NULL, CHECK IN ('young','millisecond','magnetar','non-pulsing') | `magnetar` since v96 (GEN.153). |
 | `surface_temperature_k`, `luminosity_w` | DOUBLE | NOT NULL | `luminosity_w` is thermal blackbody emission (Stefan-Boltzmann), always nonzero. |
 | `age_gy` | DOUBLE | NOT NULL | Time since the core-collapse supernova. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. Same nullable-when-anchored convention as `black_holes` above. |
@@ -1811,6 +1812,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `seed` | BIGINT UNSIGNED | NOT NULL | Seed for the system built around it later. |
 | `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE SET NULL`, nullable | Set when its sector is filled. |
 | `created_at` | TIMESTAMP | NOT NULL | |
+| `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex, drawn at scatter time from its population and position on a stream of its own seed; the fill that builds its system keeps it. NULL on older rows and on a cluster star until GEN.159. |
 | `off_plane` | TINYINT | virtual | Added in v57 (GEN.117): 1 when `|position_z_mpc|` is 250 pc or more. Computed; nothing writes it. |
 
 Indexes: the address (`shell_index`, `band_index`, `wedge_index`),
@@ -2095,6 +2097,14 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v96 (GEN.153): the magnetar pulsar type
+
+Migration 0096 replaces the CHECK on `neutron_stars.pulsar_type` (`neutron_stars_chk_1`, the name MySQL gave it) with one that also allows `magnetar`: a neutron star younger than a magnetar's active life may be born one (`tuning.MAGNETAR_*`). The quadrant CHECK beside it stays `neutron_stars_chk_2` and no row is touched. The version is detected from the text of `neutron_stars_chk_1`.
+
+### v95 (GEN.158): the stored [Fe/H]
+
+Migration 0095 adds `metallicity_fe_h` (DOUBLE, nullable) to `stars` and to `bright_stars`: the star's metallicity in dex against the Sun, drawn from its population and its distance from the galactic centre (`planetgen/physics/metallicity.py`). A scattered star's value is drawn at scatter time, on a stream of its own seed, and the fill that builds its system keeps it; a binary's secondary shares its primary's. It is NULL on rows made before v95 and on a cluster star until the cluster table (GEN.159) gives it its cluster's value; a star built from a NULL draws its own as before. The columns go on the end of each table, so MySQL adds them without copying the rows. The version is detected from `bright_stars.metallicity_fe_h`. The sector page's map shows it in a star's info panel.
+
 ### v94 (GEN.234): the halo and cluster populations
 
 Migration 0094 widens the CHECK on `bright_stars.population` from the four disk and bulge populations to also allow `halo` and `cluster`: the stellar halo replaces the flat density floor, so a pre-placed star can belong to it. Nothing is renumbered. The version is detected from that constraint's text (`store._check_marker`).
@@ -2106,7 +2116,7 @@ One migration (0093) for the changes that renumber or reshape the same rows. It 
 - **Object IDs are 96 bits** (GEN.230): the birth sector's shell, biased band and wedge are 19, 18 and 19 bits (the serial is 28 bits, the body 12), the layout is fixed for the whole galaxy (`object_uid.LAYOUT`; the outline no longer fits one), and every `uid` is `BINARY(12)`. `sectors.uid` (the designation) is the 56-bit sector field, and an unplaced sector counts up from `1 << 56`. `id_counters` scopes follow (a sector's is 7 bytes, a system's 12). The migration builds the new IDs in a `uid_new` column in pieces of 20,000 rows, then swaps the column in one rebuild.
 - **Reach** (GEN.233): `galaxy_shape.reach_shell_index` (INT, default 65,535 = 262 kpc). The grid can be named out to that shell and a little past it (`spherical.MAX_ADDRESSABLE_SHELL`); `GalaxyBounds.qualifies` is the disk outline that limits what `generate` builds, `contains` the reach.
 - **Scatter points** (GEN.223): `bright_stars` and `phenomenon_scatter` keep their point like every other object: `position_x/y/z_mpc` (DOUBLE, galaxy frame), `velocity_x/y/z_kms`, `epoch_unix`, an indexed `next_update_due`. The nightly orbit update moves every unbuilt point (`store.advance_scatter_points`) and refiles it when it crosses a cell; the quasar stays at the center and a built row is left to the object built from it.
-- **Companions of a scattered system** (GEN.260): `member_count` and `system_mass_solar` on both scatters (the row's point is the barycentre), and `scatter_members` / `scatter_nodes` (docs/design/multi-star-systems.md sections 5, 13, 14), empty until the member-tree generator writes them: a member's `kind`, `state`, `flags`, masses, seed, and for a young group its offset, velocity and `decay_age_yr`; a node's orbit, `kind` (`close`, `wide`, `compact`, `group`), `interaction` and `flags`; `slot` is SMALLINT on both. No foreign keys (the parent is one of two tables). The nightly update (GEN.265) moves only the row's point, the barycentre; it never writes a member or node row, and a member's place is computed on read from the node phase and epoch (`planetgen/physics/system_tree.py`, `planetgen/db/scatter_systems.py`).
+- **Companions of a scattered system** (GEN.260): `member_count` and `system_mass_solar` on both scatters (the row's point is the barycentre), and `scatter_members` / `scatter_nodes` (docs/design/multi-star-systems.md sections 5, 13, 14), written by the scatter passes (GEN.262, `planetgen/generation/scatter_companions.py`: a star row always draws its tree, a black hole, neutron star or planetary nebula row at the table's odds, and deleting a scatter row or clearing a scatter deletes its members and nodes): a member's `kind`, `state`, `flags`, masses, seed, and for a young group its offset, velocity and `decay_age_yr`; a node's orbit, `kind` (`close`, `wide`, `compact`, `group`), `interaction` and `flags`; `slot` is SMALLINT on both. No foreign keys (the parent is one of two tables). The nightly update (GEN.265) moves only the row's point, the barycentre; it never writes a member or node row, and a member's place is computed on read from the node phase and epoch (`planetgen/physics/system_tree.py`, `planetgen/db/scatter_systems.py`).
 - **Cell key** (DB.34, DB.35; docs/design/spherical-region-queries.md): `cell_key` BIGINT UNSIGNED, a stored generated column holding the Morton key of the object's 0.25 pc cube over plus or minus 262,144 pc (NULL outside), and the covering index `idx_<table>_cell (cell_key, x, y, z)`, on `star_systems`, the eight phenomenon tables, `facilities`, `nebula_field`, `bright_stars` and `phenomenon_scatter`. MySQL computes it from the position columns (`galaxy/cellkey.py` has the same function, tested against it), so it cannot disagree with them. `star_systems` keeps its position relative to its sector, so it also has `galaxy_x/y/z_pc`, its point in the galaxy frame, written by every save and by the orbit update.
 
 ### v92 (MAP.205): `galaxy_block_stats` on shells

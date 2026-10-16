@@ -2,6 +2,67 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1494] - 2026-10-16
+
+**Headline:** Stars, black holes, neutron stars and planetary nebulae in the scatter now come with their companions.
+
+### Added
+- **The scatter writes member trees (GEN.262).** The mass pass, the luminosity pass, their backfills and the phenomenon pass give each placed object that has company its stars, brown dwarfs, white dwarfs, neutron stars and black holes in `scatter_members` and `scatter_nodes`, with the row's `member_count` and `system_mass_solar` set (the row's point is the system's barycentre). A star row always draws its tree. A stellar black hole has a companion 1.25% of the time (a star 1.0%, a black hole 0.2%, a neutron star 0.05%), an intermediate-mass black hole a star 1%, a neutron star and a planetary nebula's central white dwarf at their tables. The tree is a function of the row's seed alone, and its nodes' phases are stamped with the orbit epoch (a fixed origin before any orbit update), so two scatters with the same seed store the same members. `planetgen plan` says how many of the stars and phenomena it placed have companions.
+
+### Changed
+- **The black-hole and neutron-star rates are rates of rows.** A row is a system keyed by its placed object, so a class's object rate is divided by one plus the same-class companions per row (1.002 for a stellar black hole), which keeps the density of the class. Seeded scatters therefore differ from before by about 0.2% of their black holes.
+- **Deleting scatter rows deletes their members.** Clearing a scatter, one star pass, an unfinished band or the unbuilt stars of a cell takes the rows' members and nodes with them.
+- **A pre-main-sequence member's `state` is `PMS`**, which fits the 16-character column (the first tree to be written exposed that `pre-main-sequence` did not).
+
+TODO items resolved: GEN.262. Added: none.
+
+## [8.0.1493] - 2026-10-16
+
+**Headline:** Neutron stars can now be magnetars, and only young ones pulse, as in the real Galaxy.
+
+### Added
+- **Magnetars.** A neutron star younger than 10,000 years has a 10% chance of being born a magnetar: a field of 1e14 to 1e15 gauss, a spin of 2 to 12 seconds, listed as "Neutron Star (Magnetar)". Older ones have decayed to ordinary neutron stars.
+- `PULSAR_RATE_SCALE` multiplies the pulsar share (1.0 is the physical rate, 0 turns pulsars off).
+
+### Changed
+- **Migration 0096** widens the CHECK on `neutron_stars.pulsar_type` to allow `magnetar` (no row is touched).
+- **The pulsar fraction followed no physics (a flat chance for every age).** A neutron star now pulses with probability `exp(-age / 10 million years)`, plus a small share of recycled millisecond pulsars among the old ones, so almost all neutron stars are dark, as observed. The core of a supernova remnant is as old as the remnant, so the young remnants still hold pulsars and magnetars.
+- Compact-remnant ages may start at 100 years (was 1 million) so young neutron stars exist.
+- `NEUTRON_STAR_PULSAR_CHANCE` and `PULSAR_MILLISECOND_CHANCE` are gone, replaced by `PULSAR_ACTIVE_LIFETIME_YR`, `PULSAR_RECYCLED_CHANCE` and the `MAGNETAR_*` settings in `tuning.py`.
+
+TODO items resolved: GEN.153 / Added: none
+
+## [8.0.1492] - 2026-10-16
+
+**Headline:** The to-do list records the new migration revision order: 0096 magnetar CHECK, 0097 galactic core, 0098 globular-cluster component table.
+
+### Changed
+
+- Updated GEN.153, GEN.159, GEN.237, GEN.280, GEN.281, GEN.283, GEN.289 and GEN.294 with the revision numbers Core 1 reassigned (GEN.237 reuses the GEN.159 component table and takes the next free number).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1491] - 2026-10-16
+
+**Headline:** The to-do list retires the stored star metallicity (GEN.158) and files the uncharted-star panel gap.
+
+### Changed
+
+- Retired GEN.158 (#1789), added notes on GEN.159, GEN.236 and GEN.269, and filed GEN.296 (the uncharted-star panel shows [Fe/H]).
+
+TODO items resolved: GEN.158 / Added: GEN.296
+
+## [8.0.1490] - 2026-10-16
+
+**Headline:** Every star now has a stored metallicity, and the sector map shows it.
+
+### Changed
+- Migration 0095 adds `metallicity_fe_h` (DOUBLE, nullable) to `stars` and `bright_stars`: the star's [Fe/H] in dex against the Sun. A scattered star draws its own at scatter time from its population and its distance from the galactic centre, on a stream of its own seed, so no other scatter draw moves; the fill that builds its system keeps it, and the two stars of a binary share one. Rows made before 0095 hold NULL, and so does a cluster star until the cluster table (GEN.159) gives it its cluster's value; a star built from a NULL draws its own as it did before.
+- The info panel of a star on the Sector Map and in an opened sector now has a "Metallicity [Fe/H]" row (for example "−0.12 dex") when one is stored.
+- `store.BRIGHT_STAR_COLUMNS` ends with `metallicity_fe_h`, so a scatter row has one more value.
+
+TODO items resolved: GEN.158 (the stored column and the display) / Added: none
+
 ## [8.0.1489] - 2026-10-16
 
 **Headline:** The to-do list retires MAP.211, the information page for hypervelocity and scattered objects.

@@ -176,7 +176,8 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     try:
         assert store.bright_stars_for_sector(conn, *address) == []
         linked = conn.execute(
-            "SELECT b.luminosity_w AS stored_w, s.luminosity_w AS built FROM bright_stars b"
+            "SELECT b.luminosity_w AS stored_w, s.luminosity_w AS built, b.metallicity_fe_h AS stored_fe_h,"
+            " s.metallicity_fe_h AS built_fe_h FROM bright_stars b"
             " JOIN stars s ON s.star_system_id = b.star_system_id AND s.role IN ('primary', 'single')"
             " JOIN star_systems ss ON ss.id = b.star_system_id WHERE ss.sector_id = ?", (sector_id,)).fetchall()
     finally:
@@ -184,6 +185,8 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     assert len(linked) == len(preplaced)
     for row in linked:
         assert row["built"] == pytest.approx(row["stored_w"])
+        # GEN.158: the system built around a scattered star keeps the [Fe/H] the scatter drew it.
+        assert row["stored_fe_h"] is not None and row["built_fe_h"] == pytest.approx(row["stored_fe_h"])
 
 
 def test_the_scatter_reports_only_the_shells_that_drew_stars(mysql_config, monkeypatch):

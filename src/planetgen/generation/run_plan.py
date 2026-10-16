@@ -21,6 +21,7 @@ from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import phenomenon_scatter
+from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed, settings_file
@@ -124,8 +125,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
                 # this cell is left over from a run that failed before it
                 # recorded one (TEST.25, GEN.44). This draw has no ceiling,
                 # so it is wiped and drawn again whole.
-                conn.execute("DELETE FROM bright_stars WHERE shell_index = ? AND band_index = ?"
-                             " AND wedge_index = ? AND star_system_id IS NULL", address)
+                store.delete_unbuilt_bright_stars(conn, address)
             if ceiling_cap is not None:
                 ceiling = ceiling_cap if ceiling is None else min(ceiling, ceiling_cap)
             held = held_masses.get(address)
@@ -136,7 +136,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             new_levels[address] = floor
             if on_sector is not None:
                 on_sector()
-        store.insert_bright_stars(conn, rows)
+        scatterCompanions.insert_bright_stars(conn, rows)
         store.set_sector_bright_levels(conn, new_levels)
         conn.commit()
         if counts is not None:
@@ -198,15 +198,14 @@ def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed,
                 # Nothing was placed here by any pass: an unbuilt star in this
                 # cell is left over from a run that failed before it recorded
                 # a level (TEST.25, GEN.44), so it is wiped and drawn again.
-                conn.execute("DELETE FROM bright_stars WHERE shell_index = ? AND band_index = ?"
-                             " AND wedge_index = ? AND star_system_id IS NULL", address)
+                store.delete_unbuilt_bright_stars(conn, address)
             rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
                                                         target, held, ceiling, seed, edges))
             own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
             states[address] = (target, own)
             if on_sector is not None:
                 on_sector()
-        store.insert_bright_stars(conn, rows)
+        scatterCompanions.insert_bright_stars(conn, rows)
         store.set_sector_bright_masses(conn, states)
         conn.commit()
         if shells is not None:
@@ -726,6 +725,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     """
     counts = {population: 0 for population in brightStars.POPULATIONS}
     drew = set()
+    systems = [0]
     fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
     e_value = skeleton.expected_system_count_at_density_1
     skip_by_shell = collections.defaultdict(set)
@@ -764,6 +764,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                     _log_shell_range(label, chunk, types)
                     for population, count in task_counts.items():
                         counts[population] += count
+                    systems[0] += result.get("systems", 0)
                     tracker.task_done(key)
                     stars = sum(task_counts.values())
                     for shell_index, shell_stars in result["shells"]:
@@ -816,7 +817,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     # holding any (GEN.79).
     if drew:
         log.normal(f"{label}: stars landed in {len(drew):,} of {len(extents):,} shells "
-                   f"(shells {min(drew)} to {max(drew)}).")
+                   f"(shells {min(drew)} to {max(drew)}); {systems[0]:,} of them have companions.")
     else:
         log.normal(f"{label}: no stars landed in any of the {len(extents):,} shells.")
     stages.note(shells=len(extents), shells_modified=len(drew), objects=sum(counts.values()))
@@ -920,8 +921,9 @@ def _scatter_shells_task(payload):
 
     Returns:
         dict: `counts` (stars written per population), `types` (stars
-            per kind, `[label, plural, count]` triples, GEN.131) and
-            `shells` (`[shell_index, stars]` per shell).
+            per kind, `[label, plural, count]` triples, GEN.131),
+            `shells` (`[shell_index, stars]` per shell) and `systems` (the
+            stars written with members, GEN.262).
     """
     counts = {population: 0 for population in brightStars.POPULATIONS}
     types = collections.Counter()
@@ -945,6 +947,8 @@ def _scatter_shells_task(payload):
 
     conn = store.get_connection(payload["mysql_config"])
     try:
+        epoch = scatterCompanions.default_epoch_unix(conn)
+        systems = 0
         batch = []
         for shell_index, high_band in payload["shells"]:
             remaining[0] -= expected_by_shell[shell_index]
@@ -960,18 +964,18 @@ def _scatter_shells_task(payload):
                 drawn += 1
                 batch.append(row)
                 if len(batch) >= 10000:
-                    store.insert_bright_stars(conn, batch)
+                    systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
                     conn.commit()
                     batch = []
             per_shell.append([shell_index, drawn])
             before[0] += drawn
         if batch:
-            store.insert_bright_stars(conn, batch)
+            systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
         conn.commit()
     finally:
         conn.close()
     return {"counts": counts, "types": [[label, plural, count] for (label, plural), count in types.items()],
-            "shells": per_shell}
+            "shells": per_shell, "systems": systems}
 
 
 def _phenomenon_scatter_seed(skeleton):
@@ -1026,13 +1030,16 @@ def _log_phenomena_shells(shells, counts):
 def _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config, skeleton, e_value, seed,
                               min_mass_solar, filled):
     """The shells of the phenomenon scatter through the work queue, a task to a run of consecutive shells, the step
-    `bar` credited with each task's expected work as it finishes (UX.83, PERF.51)."""
+    `bar` credited with each task's expected work as it finishes (UX.83, PERF.51). Returns the rows written with
+    members (GEN.262)."""
     shells_done = [0]
+    systems = [0]
     total_shells = sum(len(chunk) for chunk in tasks.values())
 
     def done_with(key):
         def on_done(result, seconds, weight):
             task_counts = result["counts"]
+            systems[0] += result.get("systems", 0)
             task_done(task_counts, result["write_seconds"], seconds, weight)
             _log_phenomena_shells(tasks[key], task_counts)
             shells_done[0] += len(tasks[key])
@@ -1049,6 +1056,7 @@ def _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config
                 "skip": {address for address in filled if address[0] in {shell for shell, _h, _w in chunk}},
             }, weights[key], done_with(key))
             for key, chunk in tasks.items()], _phenomenon_shells_task)
+    return systems[0]
 
 
 def _nebula_field_task(payload):
@@ -1342,6 +1350,7 @@ def scatter_phenomena(args):
         filled = store.filled_sector_addresses(conn)
         seed = _phenomenon_scatter_seed(skeleton)
         min_mass_solar = _compact_mass_limit(args, conn)
+        companions = 0
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:
@@ -1391,8 +1400,8 @@ def scatter_phenomena(args):
                 with steps.Step(f"Phenomena (0 of {len(extents):,} shells)", "phenomena",
                                 max(sum(weights.values()), 1.0), args=args, progress=progress,
                                 workers=run_common._worker_count(args), percent=True, record=False) as bar:
-                    _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config, skeleton,
-                                              e_value, seed, min_mass_solar, filled)
+                    companions = _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config,
+                                                           skeleton, e_value, seed, min_mass_solar, filled)
             finally:
                 log.reset_console()
         with run_common._generation_progress() as progress:
@@ -1451,7 +1460,7 @@ def scatter_phenomena(args):
     labels = [label for label in list(phenomenon_scatter.EXPECTED_LABELS) + sorted(
         set(counts) - set(phenomenon_scatter.EXPECTED_LABELS)) if counts.get(label)]
     listed = ": " + ", ".join(f"{counts[label]:,} {label}" for label in labels) if labels else ""
-    log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s{listed}.")
+    log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s{listed}; {companions:,} of them have companions.")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
 
 
@@ -1459,7 +1468,7 @@ def _phenomenon_shells_task(payload):
     """
     A run of consecutive shells of the phenomenon scatter -- a work queue
     task: draws each shell (`phenomenon_scatter.scatter_shell`) and writes its
-    rows, committing every 10,000.
+    rows with their members (`scatter_companions`), committing every 10,000.
 
     Returns:
         dict: `counts` (rows written per kind) and `write_seconds` (the time spent writing them, the rest of the
@@ -1467,8 +1476,10 @@ def _phenomenon_shells_task(payload):
     """
     counts = {}
     write_seconds = 0.0
+    systems = 0
     conn = store.get_connection(payload["mysql_config"])
     try:
+        epoch = scatterCompanions.default_epoch_unix(conn)
         batch = []
         for shell_index, high_band in payload["shells"]:
             for row in phenomenon_scatter.scatter_shell(
@@ -1481,18 +1492,18 @@ def _phenomenon_shells_task(payload):
                 batch.append(row)
                 if len(batch) >= 10000:
                     started = time.perf_counter()
-                    store.insert_phenomenon_scatter(conn, batch)
+                    systems += scatterCompanions.insert_phenomenon_scatter(conn, batch, epoch).systems
                     conn.commit()
                     write_seconds += time.perf_counter() - started
                     batch = []
         started = time.perf_counter()
         if batch:
-            store.insert_phenomenon_scatter(conn, batch)
+            systems += scatterCompanions.insert_phenomenon_scatter(conn, batch, epoch).systems
         conn.commit()
         write_seconds += time.perf_counter() - started
     finally:
         conn.close()
-    return {"counts": counts, "write_seconds": write_seconds}
+    return {"counts": counts, "write_seconds": write_seconds, "systems": systems}
 
 
 def run_plan(args):

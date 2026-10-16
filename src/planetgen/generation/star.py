@@ -1148,6 +1148,9 @@ class Star(LazySaladName):
         computes them. Accepts `__init__`'s `galactic_center_dist_ly` and
         `galactic_orbital_phase_deg` keywords.
         """
+        # GEN.158: a stored [Fe/H] is kept; none (or an old row) leaves the star to draw its own.
+        if params.get("metallicity_fe_h") is not None:
+            kwargs.setdefault("metallicity_fe_h", params["metallicity_fe_h"])
         star = cls(system_config, name=name, _skip_property_init=True, **kwargs)
         star._apply_params(params)
         star._finish_init(kwargs)

@@ -139,7 +139,7 @@ def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
         assert tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[0] <= ns.mass_solar <= tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[1]
         assert tuning.NEUTRON_STAR_RADIUS_RANGE_KM[0] <= ns.radius <= tuning.NEUTRON_STAR_RADIUS_RANGE_KM[1]
         assert tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[0] <= ns.surface_temperature_k <= tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[1]
-        assert ns.pulsar_type in ("young", "millisecond", "non-pulsing")
+        assert ns.pulsar_type in ("young", "millisecond", "magnetar", "non-pulsing")
         assert ns.yerkes_class == "NS"
         assert ns.lifespan == float('inf')
         assert ns.luminosity > 0  # nonzero even at the coolest end -- see NeutronStar.__init__
@@ -655,3 +655,53 @@ def test_a_core_collapse_core_drifts_by_its_kick_and_a_type_ia_has_none():
         distance = math.hypot(*remnant.compact_offset_ly)
         speed_kms = distance / remnant.age_years * 299792.458
         assert low * 0.999 <= speed_kms <= high * 1.001
+
+
+def _neutron_stars(count, age_gy):
+    return [NeutronStar(make_config(), age_gy=age_gy) for _ in range(count)]
+
+
+def test_a_neutron_star_younger_than_a_magnetars_active_life_may_be_born_one(monkeypatch):
+    monkeypatch.setattr(tuning, "MAGNETAR_BIRTH_FRACTION", 1.0)
+    star = NeutronStar(make_config(), age_gy=1e-6)  # 1,000 yr
+    assert star.pulsar_type == "magnetar" and star.type == "Neutron Star (Magnetar)"
+    assert tuning.MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE[0] <= star.magnetic_field_gauss <= tuning.MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE[1]
+    assert tuning.MAGNETAR_SPIN_PERIOD_MS_RANGE[0] <= star.spin_period_ms <= tuning.MAGNETAR_SPIN_PERIOD_MS_RANGE[1]
+    assert "magnetar" in " ".join(star.to_paragraph_list()).lower()
+    # Past the active life the field has decayed to an ordinary neutron star.
+    assert all(old.pulsar_type != "magnetar" for old in _neutron_stars(40, 1e-4))
+
+
+def test_about_a_tenth_of_young_neutron_stars_are_magnetars():
+    stars = _neutron_stars(400, 1e-6)
+    share = sum(star.pulsar_type == "magnetar" for star in stars) / len(stars)
+    assert 0.05 <= share <= 0.16
+
+
+def test_the_pulsing_chance_falls_with_age():
+    young = _neutron_stars(200, 1e-4)  # 100,000 yr: exp(-0.01) of them still pulse
+    assert sum(star.pulsar_type == "young" for star in young) >= 185
+    middle = _neutron_stars(200, 2e-2)  # 20 Myr: exp(-2) = 13.5%
+    assert 10 <= sum(star.pulsar_type == "young" for star in middle) <= 50
+    old = _neutron_stars(200, 5.0)
+    assert not any(star.pulsar_type == "young" for star in old)
+    assert sum(star.pulsar_type != "non-pulsing" for star in old) <= 3  # only recycled pulsars
+
+
+def test_the_pulsar_rate_scale_overrides_the_physical_fraction(monkeypatch):
+    monkeypatch.setattr(tuning, "PULSAR_RATE_SCALE", 0.0)
+    assert all(star.pulsar_type == "non-pulsing" for star in _neutron_stars(100, 1e-4))
+    monkeypatch.setattr(tuning, "PULSAR_RATE_SCALE", 1e6)
+    assert all(star.pulsar_type in ("young", "millisecond") for star in _neutron_stars(100, 5.0))
+
+
+def test_a_supernova_remnants_neutron_star_core_is_as_old_as_the_remnant():
+    cores = []
+    for _ in range(400):
+        remnant = SupernovaRemnant(make_config())
+        if isinstance(remnant.compact_remnant, NeutronStar):
+            cores.append(remnant)
+    assert cores
+    for remnant in cores:
+        assert remnant.compact_remnant.age == pytest.approx(remnant.age_years / 1e9)
+        assert remnant.compact_remnant.pulsar_type in ("young", "magnetar", "non-pulsing")

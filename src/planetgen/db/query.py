@@ -1781,7 +1781,8 @@ def sector_detail(conn, sector_id):
     nearest = nearest_systems(conn, "star_systems", [row["id"] for row in system_rows])
     stars_by_system = {}
     for star in conn.execute(
-        "SELECT st.star_system_id, st.role, st.name, st.star_type, st.temperature_k, st.radius_km, st.luminosity_w"
+        "SELECT st.star_system_id, st.role, st.name, st.star_type, st.temperature_k, st.radius_km, st.luminosity_w,"
+        " st.metallicity_fe_h"
         " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?"
         " ORDER BY st.star_system_id, CASE st.role WHEN 'secondary' THEN 1 ELSE 0 END, st.id",
         (sector_id,),

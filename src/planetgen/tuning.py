@@ -1920,12 +1920,26 @@ PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND = (1.4, 10.0)
 PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG = (1e11, 1e13)
 PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND = (1e8, 1e9)
 
-# Chance a generated neutron star is actively pulsing (vs. a quiescent/
-# non-pulsing remnant, e.g. an old isolated neutron star whose beam no
-# longer sweeps past this vantage point), and the chance a pulsing one
-# is specifically a recycled millisecond pulsar rather than a young one.
-NEUTRON_STAR_PULSAR_CHANCE = 0.02
-PULSAR_MILLISECOND_CHANCE = 0.1
+# Whether a neutron star is actively pulsing follows its age (GEN.153): a
+# young radio pulsar stays active about 1e7 years, so the chance it still
+# pulses is exp(-age / PULSAR_ACTIVE_LIFETIME_YR); older stars that pulse
+# are recycled millisecond pulsars, spun up by a companion, at a small
+# fixed share (about 1e5 known beamed radio pulsars among about 5e8
+# isolated neutron stars; Lorimer 2008, Living Rev. Relativ. 11:8). The
+# result is scaled by PULSAR_RATE_SCALE (1.0 is the physical rate).
+PULSAR_ACTIVE_LIFETIME_YR = 1.0e7
+PULSAR_RECYCLED_CHANCE = 1.0e-4
+PULSAR_RATE_SCALE = 1.0
+
+# Magnetars (GEN.153), a subtype of neutron star: B of 1e14 to 1e15 G and a
+# spin of 2 to 12 s, active only about 1e4 years (an older one has decayed
+# to an ordinary high-field star), born in 1 to 10% of core collapses,
+# default 10% (Olausen & Kaspi 2014, ApJS 212:6; Gill & Heyl 2007). With a
+# uniform 1e-7 to 10 Gyr age that gives tens to hundreds in the Galaxy.
+MAGNETAR_ACTIVE_LIFETIME_YR = 1.0e4
+MAGNETAR_BIRTH_FRACTION = 0.10
+MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE = (1e14, 1e15)
+MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 
 # Neutron star surface temperature range in Kelvin, from thermal
 # X-ray emission measurements of young-to-middle-aged isolated
@@ -1938,7 +1952,12 @@ NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K = (5e4, 3e6)
 # remnant, in billions of years -- capped well below
 # UNIVERSE_AGE_GY since these are always described as galactic
 # (Population I/II), not primordial, remnants.
-COMPACT_REMNANT_AGE_RANGE_GY = (0.001, 10.0)
+COMPACT_REMNANT_AGE_RANGE_GY = (1.0e-7, 10.0)
+
+# The time the node phases of a scatter drawn before any orbit update hold at (GEN.262): 2000-01-01 00:00 UTC. The
+# orbit clock does not exist until the first update, and a fixed origin keeps one galaxy seed's members identical in
+# every run; the nightly update never writes a node, and a member's place at time t advances from its phase here.
+SCATTER_PHASE_ORIGIN_UNIX = 946684800.0
 
 # --- Nebulae and supernova remnants (nebulaData.Nebula,
 # supernovaRemnantData.SupernovaRemnant) ---

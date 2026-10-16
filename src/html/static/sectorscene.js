@@ -74,8 +74,8 @@ export function infoSpec(entry, data, navPick) {
     }
     return spec;
   }
-  spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Octant", entry.quadrant],
-    ["Location", entry.location]];
+  spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Metallicity [Fe/H]", entry.metallicity],
+    ["Octant", entry.quadrant], ["Location", entry.location]];
   spec.bookmark = endpointBookmark(entry.endpoint, entry.name, entry.href);
   if (navPick) spec.nav = navPick.actionsFor(entry.endpoint, entry.name);
   if (!picking) {

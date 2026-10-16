@@ -53,7 +53,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants
+from planetgen.physics import constants, metallicity
 from planetgen import tuning
 from planetgen.galaxy.density import population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
@@ -223,16 +223,27 @@ def _finite_or_none(value):
     return value if value is None or math.isfinite(value) else None
 
 
+def star_fe_h(population, point, seed):
+    """A bright star's [Fe/H] (GEN.158): drawn from its population and its distance from the galactic centre (its
+    stored point, whole milliparsecs), on a stream of its own seed so no scatter draw moves. `None` for a cluster
+    star, which carries its cluster's value (GEN.159)."""
+    if population == "cluster":
+        return None
+    distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in point)))
+    return metallicity.sample_fe_h(population, distance_ly, draw.Stream(f"metallicity:bright:{seed}"))
+
+
 def _row(shell_index, band_index, wedge, point, population, params, rng):
     """One star in `store.BRIGHT_STAR_COLUMNS` order."""
     x, y, z = point
+    seed = rng.getrandbits(63)
     return (
         shell_index, band_index, wedge,
         x, y, z,
         population, params["type"], params["yerkes_class"], params["mass_kg"],
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
         params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
-        _finite_or_none(params["phase_end_age_gy"]), rng.getrandbits(63),
+        _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(population, point, seed),
     )
 
 
@@ -657,6 +668,7 @@ def star_params(row):
         "radius_km": row["radius_km"], "temperature_k": row["temperature_k"],
         "luminosity_w": row["luminosity_w"], "age_gy": row["age_gy"], "lifespan_gy": lifespan,
         "initial_mass_sol": row["initial_mass_sol"], "phase_end_age_gy": phase_end,
+        "metallicity_fe_h": row.get("metallicity_fe_h"),
     }
 
 

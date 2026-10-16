@@ -1281,6 +1281,12 @@
 -- v94 (GEN.234): `bright_stars.population` also takes 'halo' and 'cluster' (the stellar halo
 --   replaces the flat density floor; the globular clusters get their own population).
 --
+-- v95 (GEN.158): `stars.metallicity_fe_h` and `bright_stars.metallicity_fe_h` (DOUBLE, nullable), a star's [Fe/H]
+--   in dex against the Sun (`planetgen/physics/metallicity.py`); NULL on rows made before v95.
+--
+-- v96 (GEN.153): `neutron_stars.pulsar_type` also takes 'magnetar' (its CHECK, `neutron_stars_chk_1`, is
+--   replaced; the quadrant CHECK stays `neutron_stars_chk_2`).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1829,6 +1835,8 @@ CREATE TABLE IF NOT EXISTS stars (
     lethal_event_rate_per_gyr   DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
+    -- v95 (GEN.158): the star's [Fe/H] in dex against the Sun; NULL for a row saved before v95.
+    metallicity_fe_h      DOUBLE,
 
     UNIQUE KEY uq_stars_uid (uid),
     CONSTRAINT fk_stars_star_system
@@ -2486,7 +2494,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     radius_km                 DOUBLE NOT NULL,
     spin_period_ms            DOUBLE NOT NULL,
     magnetic_field_gauss      DOUBLE NOT NULL,
-    pulsar_type               VARCHAR(16) NOT NULL CHECK (pulsar_type IN ('young', 'millisecond', 'non-pulsing')),
+    -- v96 (GEN.153): 'magnetar' joins the pulsar types.
+    pulsar_type               VARCHAR(16) NOT NULL CHECK (pulsar_type IN ('young', 'millisecond', 'magnetar', 'non-pulsing')),
     surface_temperature_k     DOUBLE NOT NULL,
     luminosity_w              DOUBLE NOT NULL,
     age_gy                    DOUBLE NOT NULL,
@@ -3219,6 +3228,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     next_update_due      DOUBLE,
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
+    metallicity_fe_h     DOUBLE,  -- v95 (GEN.158): [Fe/H] in dex, NULL for a cluster star until GEN.159 and for older rows
 
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
