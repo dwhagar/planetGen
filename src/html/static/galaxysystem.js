@@ -22,7 +22,8 @@
 // - viewport (optional): the map's viewport element, where the
 //   screen-reader list of the open system's bodies goes;
 // - picked(ref) (optional): a body was picked, or (null) the pick cleared;
-// - opened() / closed() (optional).
+// - opened() / closed() (optional): called when a system is added to or removed from the map as the system
+//   opened in place (not for a scene up only for the camera coming near it, MAP.152: `ambient`, below).
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createRing } = await import(`./mappick.js${VERSION_QUERY}`);
@@ -30,6 +31,7 @@ const { buildSystemScene } = await import(`./systemview3d.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED, MODE_TRUE, UNIT_KM } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { createOrbitClock } = await import(`./orbitclock.js${VERSION_QUERY}`);
 const { relativeAt } = await import(`./orbitpositions.js${VERSION_QUERY}`);
+const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 const KM_PER_PC = 3.0856775814913673e13;
@@ -199,22 +201,38 @@ export function createSystemStage(host) {
   function close() {
     token += 1;
     if (!open) return;
-    host.picker.removeLayer(open.layer);
+    if (open.layer) host.picker.removeLayer(open.layer);
     if (open.list && open.list.parentNode) open.list.parentNode.removeChild(open.list);
     host.scene.remove(open.wrapper);
     open.built.dispose();
     selectionRing.hide();
     hoverRing.hide();
+    const wasAmbient = open.ambient;
     open = null;
-    if (host.closed) host.closed();
+    if (host.closed && !wasAmbient) host.closed();
+  }
+
+  // Whether a system is open in place (what the panels and keys read); a scene up only for the camera
+  // coming near it (MAP.152) is not.
+  function live() {
+    return !!open && !open.ambient;
   }
 
   // Loads the system at `href` (its page, whose /scene this fetches) at
   // `center` in the map's world (parsecs) and puts it in the scene:
   // resolves with {center, radiusPc, fitPoints}, or null when it is
   // replaced meanwhile or fails to load.
-  function openSystem(href, name, center, mode) {
+  //
+  // `ambient` (MAP.152) loads the scene for the camera coming near it, without the system being opened: it
+  // starts at no strength (`setFade` brings it in), cannot be picked, and `opened`/`closed` are not called.
+  // Opening the system that is up this way takes it over as it is (no second fetch).
+  function openSystem(href, name, center, mode, ambient) {
     const mine = ++token;
+    if (open && open.ambient && open.href === href) {
+      if (ambient) return Promise.resolve(fitOf(open));
+      adopt(open);
+      return Promise.resolve(fitOf(open));
+    }
     return host.fetchScene(href).then(function (data) {
       if (mine !== token || !data) return null;
       if (open) {
@@ -225,22 +243,46 @@ export function createSystemStage(host) {
       const state = {
         href: href, id: data.system.id, name: name || data.system.name, data: data, mode: mode || MODE_COMPRESSED,
         center: center.slice(), built: null, wrapper: new THREE.Group(), world: [], selected: null, hovered: null,
+        ambient: !!ambient, fade: 1,
         clock: createOrbitClock({ epochUnix: data.epoch_unix, nowMs: Date.now() }),
       };
       state.wrapper.position.set(center[0], center[1], center[2]);
       host.scene.add(state.wrapper);
       open = state;
       rebuild(state);
-      state.layer = layerFor(state);
-      state.list = bodyList(state);
-      if (host.opened) host.opened();
-      return { center: state.center, radiusPc: state.radiusPc, fitPoints: cubeAround(state.center, state.radiusPc) };
+      if (ambient) {
+        setFade(0);
+      } else {
+        state.layer = layerFor(state);
+        state.list = bodyList(state);
+        if (host.opened) host.opened();
+      }
+      return fitOf(state);
     });
+  }
+
+  function fitOf(state) {
+    return { center: state.center, radiusPc: state.radiusPc, fitPoints: cubeAround(state.center, state.radiusPc) };
+  }
+
+  // The system up for the camera coming near it becomes the system opened in place.
+  function adopt(state) {
+    state.ambient = false;
+    setFade(1);
+    state.layer = layerFor(state);
+    state.list = bodyList(state);
+    if (host.opened) host.opened();
+  }
+
+  // MAP.152: how much of the open system shows (0 to 1).
+  function setFade(share) {
+    if (!open) return;
+    open.fade = fadeGroup(open.wrapper, share);
   }
 
   // Changes the scale mode; resolves with the new fit like openSystem.
   function setMode(mode) {
-    if (!open || open.mode === mode) return null;
+    if (!live() || open.mode === mode) return null;
     open.mode = mode;
     const keep = open.selected ? open.selected.ref : null;
     selectionRing.hide();
@@ -279,25 +321,32 @@ export function createSystemStage(host) {
     update: update,
     setMode: setMode,
     deselect: deselect,
-    isOpen: function () { return !!open; },
-    systemId: function () { return open ? open.id : null; },
-    name: function () { return open ? open.name : null; },
+    isOpen: function () { return live(); },
+    // MAP.152: the system whose scene is up for the camera coming near it, and how much of it shows.
+    isAmbient: function () { return !!open && open.ambient; },
+    ambientHref: function () { return open && open.ambient ? open.href : null; },
+    setFade: setFade,
+    fade: function () { return open ? open.fade : 0; },
+    // The real radius (pc) of the system that is up, once its scene is known.
+    radiusPc: function () { return open ? open.radiusPc : null; },
+    systemId: function () { return live() ? open.id : null; },
+    name: function () { return live() ? open.name : null; },
     mode: function () { return open ? open.mode : MODE_COMPRESSED; },
     // The open system's body with this ref ("planet:12"), or null.
-    entry: function (ref) { return open ? open.world.find(function (w) { return w.ref === ref; }) || null : null; },
-    entries: function () { return open ? open.world : []; },
+    entry: function (ref) { return live() ? open.world.find(function (w) { return w.ref === ref; }) || null : null; },
+    entries: function () { return live() ? open.world : []; },
     select: function (ref) {
-      const entry = open && open.world.find(function (w) { return w.ref === ref; });
+      const entry = live() && open.world.find(function (w) { return w.ref === ref; });
       if (entry) open.layer.select(entry);
     },
-    selected: function () { return open && open.selected ? open.selected.ref : null; },
+    selected: function () { return live() && open.selected ? open.selected.ref : null; },
     // The opacity of a body's orbit line, for tests (MAP.126).
     trailOpacity: function (ref) { return open ? open.built.trailOpacity(ref) : null; },
     // How far a body's orbit line reaches from what it goes round, for tests (MAP.136).
     trailRadius: function (ref) { return open ? open.built.trailRadius(ref) : null; },
     // Where a body is in the map's world now: {center, radius}, for flying to it.
     where: function (ref) {
-      const entry = open && open.world.find(function (w) { return w.ref === ref; });
+      const entry = live() && open.world.find(function (w) { return w.ref === ref; });
       return entry ? { center: [entry.x, entry.y, entry.z], radius: entry.r } : null;
     },
   };

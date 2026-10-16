@@ -19,7 +19,7 @@ The saved course record and its list, open and rename.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.17 | A saved course record with both forms |  |  |
-| NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
+| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | NAV.17, UX.129 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
 | NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
 | NAV.21 | Fit the view to the whole course |  | Same fit as MAP.53, exempt from any zoom limit (MAP.58 was superseded by MAP.125). |
@@ -34,23 +34,23 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.22 | Courses inside a sector and a system |  |  |
-| NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
-| NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.22 | Courses inside a sector and a system | MAP.217 |  |
+| NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23, MAP.217 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
+| NAV.36 | Unknown-space jumps drawn red and glowing | MAP.217 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
 
 ### Steering clear of gravity wells
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.25 | Find the obstacles along a path |  | Corridor query from NAV.10; sectors along the line from NAV.38. |
-| NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
-| NAV.27 | Moving bodies inside a system | NAV.26 |  |
-| NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
-| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
-| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
-| NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | NAV.51 | Research: NAV.24 (built) follow-ups. |
 | NAV.55 | A tuning block for the keep-out knobs |  | Research: keep-out knobs. |
-| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | NAV.51 | Research: decides the overlap policy. |
+| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | NAV.55 | Research: NAV.24 (built) follow-ups. |
+| NAV.25 | Find the obstacles along a path | NAV.54 | Corridor query from NAV.10; sectors along the line from NAV.38. |
+| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | NAV.54 | Research: decides the overlap policy. |
+| NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.55, NAV.56 |  |
+| NAV.27 | Moving bodies inside a system | NAV.26, GEN.289 |  |
+| NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
+| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26, NAV.54 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
+| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
 
 ## Phase 3: Waypoints and the headline
 

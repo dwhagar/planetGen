@@ -97,6 +97,8 @@ A note's own status line, at its top, is the authority; this page only points at
 | [galaxy-drilldown-navigation.md](galaxy-drilldown-navigation.md) | The Galaxy Map's drill-down | built (partly replaced by the fly-through) |
 | [drilldown-region-sizes.md](drilldown-region-sizes.md) | Step sizes and region shapes for the drill-down | built (MAP.151) |
 | [edit-everything.md](edit-everything.md) | The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger | plan |
+| [roles-and-requests.md](roles-and-requests.md) | The 10.0 headline: user, moderator and admin roles; edit requests are change plans that the role above approves | plan |
+| [backups-and-repair.md](backups-and-repair.md) | One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 9.0) | plan |
 | [fly-through-view-distance.md](fly-through-view-distance.md) | The fly-through map: view distance, near field, free camera | partly built |
 | [zoom-star-visibility.md](zoom-star-visibility.md) | Smoother star visibility while zooming | research (superseded in part by MAP.152) |
 | [galaxy-map-wire-format.md](galaxy-map-wire-format.md) | What the browser downloads for the map | built |

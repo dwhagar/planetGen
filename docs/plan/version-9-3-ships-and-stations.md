@@ -18,5 +18,10 @@ Users add their own objects and the scatter of vessels and stations for the race
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| USR.10 | Users add their own objects (ships and stations) and track their movement on the map |  |  |
-| POP.11 | Scatter space vessels and stations for the races in their territories | USR.10 |  |
+| DB.63 | Table for ships and stations, user-owned or generated (migration only) | GEN.294 | Split from USR.10. Core 1 owns migrations. |
+| USR.29 | Vessel and station objects: add, move along a course and list, with ownership | DB.63, NAV.4, GEN.105 | Split from USR.10. |
+| POP.11 | Scatter space vessels and stations for the races in their territories | DB.63, USR.29 |  |
+| USR.30 | Add a ship or station from a page and see it and its track on the maps | USR.29 | Split from USR.10. |
+| USR.10 | Users add their own objects (ships and stations) and track their movement on the map | DB.63, USR.29, USR.30 |  |
+| MAP.221 | Station and vessel icons on the Galaxy Map | MAP.219, USR.29, POP.11 | Split from MAP.132. |
+| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | MAP.219, MAP.220, MAP.221 | Later (Boss 2026-10-08 01:59Z colors). |

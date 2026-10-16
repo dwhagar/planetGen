@@ -82,7 +82,7 @@ def test_the_release_roadmap_is_in_build_order_with_a_headline_per_release():
     assert road["unplaced"] == [] and road["unlisted"] == []
     versions = [r["version"] for r in road["releases"]]
     assert versions[0] == "8.1" and versions[-1] == "later" and len(set(versions)) == len(versions)
-    assert "10.0" not in versions, "Boss (2026-10-16): no 10.0 headline"
+    assert "10.0" in versions, "Boss (2026-10-16, 1:43 PM EDT): 10.0 is roles and permissions"
     for rel in road["releases"]:
         assert rel["fields"].get("Headline"), f"release {rel['version']} has no headline"
         prefix = "SL-" if rel["version"] == "later" else f"S{rel['version']}-"
@@ -144,3 +144,13 @@ def test_blocker_weight_counts_a_chain_once_per_item():
     items = {"A.1": item("A.2", "A.3"), "A.2": item("A.4"), "A.3": item("A.4"), "A.4": item()}
     rows = {r["id"]: r for r in build_todo_docs.build_blockers(items, [])["overall"]}
     assert rows["A.1"]["blocks"] == 3 and rows["A.1"]["direct"] == 2 and "A.4" not in rows
+
+
+def test_blocker_ranking_lists_a_chain_once():
+    def item(*unblocks):
+        return {"status": "open", "unblocks": list(unblocks), "phase": "8.1-1"}
+    items = {"A.1": item("A.3"), "A.2": item("A.3"), "A.3": item("A.4", "A.5"), "A.4": item(), "A.5": item(),
+             "B.1": item("B.2"), "B.2": item()}
+    rows = build_todo_docs.build_blockers(items, [])["overall"]
+    ids = [r["id"] for r in rows]
+    assert ids == ["A.1", "B.1"] and rows[0]["chain"] == ["A.2", "A.3"]

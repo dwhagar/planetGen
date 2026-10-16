@@ -12,6 +12,11 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
+| [#1846](https://github.com/dwhagar/planetGen/issues/1846) | open | Map labels: names for stars, systems, sectors, big features and nebulae | MAP.229, MAP.230, MAP.231, MAP.232, MAP.233 |
+| [#1845](https://github.com/dwhagar/planetGen/issues/1845) | open | One configuration file and the settings page (8.1) | ADM.43, ADM.44, ADM.50, ADM.83, ADM.84, ADM.85, ADM.86, ADM.87, ADM.96, GEN.303 |
+| [#1844](https://github.com/dwhagar/planetGen/issues/1844) | open | Backups: the archive, parity data, control database and repair from an archive | ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.40, DB.41, DB.42, DOC.56, OPS.55, TEST.180 |
+| [#1843](https://github.com/dwhagar/planetGen/issues/1843) | open | Roles and permissions: requests, reviews, lifecycle and audit (10.0) | DB.39, DOC.55, TEST.178, TEST.179, USR.12, USR.13, USR.14, USR.15, USR.16, USR.17, USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24, USR.25 |
+| [#1842](https://github.com/dwhagar/planetGen/issues/1842) | open | Edit everything: change plans, regions, regeneration and locks (8.6) | ADM.57, ADM.58, ADM.59, ADM.60, ADM.61, ADM.62, ADM.63, ADM.64, ADM.65, ADM.66, ADM.67, ADM.68, ADM.69, ADM.70, ADM.71, ADM.72, ADM.73, ADM.74, ADM.75, ADM.76, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81, ADM.82, ADM.92, ADM.93, ADM.94, API.28, DB.36, DB.37, DB.38, DB.60, DOC.54, DOC.57, GEN.302, MAP.212, MAP.218, TEST.175, TEST.176, TEST.177 |
 | [#1828](https://github.com/dwhagar/planetGen/issues/1828) | open | Slow pages queue their data in Redis and show a progress bar | PERF.105, UX.118 |
 | [#1750](https://github.com/dwhagar/planetGen/issues/1750) | closed | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | closed | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
@@ -23,34 +28,34 @@ Rules:
 | [#1758](https://github.com/dwhagar/planetGen/issues/1758) | open | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170) | TEST.170 |
 | [#1726](https://github.com/dwhagar/planetGen/issues/1726) | open | Interface update: every control works on the whole sphere | UX.115, TEST.168 |
 | [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144 |
-| [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10 |
+| [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10, DB.64, VIEW.11, VIEW.12, VIEW.13, VIEW.14, VIEW.15, VIEW.16, VIEW.17 |
 | [#1691](https://github.com/dwhagar/planetGen/issues/1691) | open | Documentation corrections and the docs index | DOC.4, DOC.21, DOC.24, DOC.52, DOC.53 |
-| [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18 |
-| [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82 |
-| [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, ADM.55, ADM.56, TEST.169, UX.3 |
+| [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18, DOC.57, DOC.58 |
+| [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82, TEST.183, UX.121, UX.122, UX.123, UX.124, UX.125, UX.126, UX.130, UX.131, UX.132 |
+| [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, ADM.55, ADM.56, TEST.169, UX.3, ADM.92, ADM.93 |
 | [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.30, OPS.35 |
-| [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31 |
-| [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.20, PERF.41, PERF.47, PERF.48, PERF.75 |
+| [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31, DB.43, DB.44, DB.45, DB.46, DB.47, DB.48, DB.50, DB.51, DB.52 |
+| [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.20, PERF.41, PERF.47, PERF.48, PERF.75, PERF.109, PERF.110 |
 | [#1684](https://github.com/dwhagar/planetGen/issues/1684) | open | API keys, call log and compatibility data | API.4, API.6, API.15 |
-| [#1683](https://github.com/dwhagar/planetGen/issues/1683) | open | Remote generation: generate locally and upload through the API | API.3, API.5, API.7, API.8, API.10, API.11, API.12, API.13, API.14, API.17, API.18, API.19 |
-| [#1682](https://github.com/dwhagar/planetGen/issues/1682) | open | Bookmarks and the user-level interface | USR.7, UX.45, UX.46, UX.47, UX.48, UX.92 |
-| [#1681](https://github.com/dwhagar/planetGen/issues/1681) | open | User accounts, roles, invitations and password security | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.8, USR.9, SEC.32 |
+| [#1683](https://github.com/dwhagar/planetGen/issues/1683) | open | Remote generation: generate locally and upload through the API | API.3, API.5, API.7, API.8, API.10, API.11, API.12, API.13, API.14, API.17, API.18, API.19, ADM.95, API.29, API.30, DB.62 |
+| [#1682](https://github.com/dwhagar/planetGen/issues/1682) | open | Bookmarks and the user-level interface | USR.7, UX.45, UX.46, UX.47, UX.48, UX.92, UX.129 |
+| [#1681](https://github.com/dwhagar/planetGen/issues/1681) | open | User accounts, roles, invitations and password security | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.8, USR.9, SEC.32, DB.58, USR.26, USR.27, USR.28 |
 | [#1680](https://github.com/dwhagar/planetGen/issues/1680) | open | Courses that steer around gravity wells and keep-out spheres | NAV.6, NAV.25, NAV.26, NAV.27, NAV.28, NAV.51, NAV.54, NAV.55, NAV.56 |
 | [#1679](https://github.com/dwhagar/planetGen/issues/1679) | open | Saved courses and waypoints (headline of 8.5) | NAV.4, NAV.5, NAV.17, NAV.18, NAV.19, NAV.21, NAV.22, NAV.23, NAV.36, NAV.39, NAV.49, NAV.58, NAV.59 |
-| [#1678](https://github.com/dwhagar/planetGen/issues/1678) | open | Same seed, same data: determinism, fingerprint and generator version | GEN.55, GEN.57, GEN.135, GEN.136, OPS.15, OPS.28, OPS.37, DB.16, TEST.77 |
-| [#1677](https://github.com/dwhagar/planetGen/issues/1677) | open | Later catalogue additions and compact-object details (low priority) | GEN.280, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.244, GEN.245, GEN.246, GEN.298, GEN.255, GEN.256, GEN.257 |
-| [#1676](https://github.com/dwhagar/planetGen/issues/1676) | open | One description layer for habitability, units and every object page | GEN.218, GEN.219, GEN.220, GEN.221, UX.32, UX.105, UX.107, UX.108, UX.109, DOC.45, TEST.155, GEN.299, GEN.300 |
-| [#1675](https://github.com/dwhagar/planetGen/issues/1675) | open | Planet classes refactored around the habitability index | GEN.27, GEN.28, GEN.29, GEN.33, GEN.90, GEN.91, GEN.92, GEN.145, GEN.146 |
-| [#1674](https://github.com/dwhagar/planetGen/issues/1674) | open | Fill planning: order, directives, density and sector weeding | GEN.9, GEN.40, GEN.42, GEN.102, GEN.103, GEN.134, GEN.144, GEN.179, GEN.180, GEN.181, PERF.35, PERF.36 |
+| [#1678](https://github.com/dwhagar/planetGen/issues/1678) | open | Same seed, same data: determinism, fingerprint and generator version | GEN.55, GEN.57, GEN.135, GEN.136, OPS.15, OPS.28, OPS.37, DB.16, TEST.77, DB.49, GEN.304, GEN.305, GEN.306, GEN.307, OPS.56, OPS.57, OPS.58, TEST.181 |
+| [#1677](https://github.com/dwhagar/planetGen/issues/1677) | open | Later catalogue additions and compact-object details (low priority) | GEN.280, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.244, GEN.245, GEN.246, GEN.298, GEN.255, GEN.256, GEN.257, DB.54, GEN.333, GEN.24 |
+| [#1676](https://github.com/dwhagar/planetGen/issues/1676) | open | One description layer for habitability, units and every object page | GEN.218, GEN.219, GEN.220, GEN.221, UX.32, UX.105, UX.107, UX.108, UX.109, DOC.45, TEST.155, GEN.299, GEN.300, GEN.348, GEN.349, UX.119, UX.120, UX.128 |
+| [#1675](https://github.com/dwhagar/planetGen/issues/1675) | open | Planet classes refactored around the habitability index | GEN.27, GEN.28, GEN.29, GEN.33, GEN.90, GEN.91, GEN.92, GEN.145, GEN.146, GEN.350, GEN.351, GEN.352, GEN.353, GEN.354, GEN.355, GEN.356 |
+| [#1674](https://github.com/dwhagar/planetGen/issues/1674) | open | Fill planning: order, directives, density and sector weeding | GEN.9, GEN.40, GEN.42, GEN.102, GEN.103, GEN.134, GEN.144, GEN.179, GEN.180, GEN.181, PERF.35, PERF.36, GEN.308, GEN.309, TEST.182 |
 | [#1673](https://github.com/dwhagar/planetGen/issues/1673) | open | Neighbour galaxies, satellites, wanderers and intergalactic frame | GEN.157, GEN.238, GEN.239, GEN.248, MAP.145, MAP.207, NAV.57 |
-| [#1672](https://github.com/dwhagar/planetGen/issues/1672) | open | Nebulae on the Galaxy Map and in generation | MAP.171, MAP.172, MAP.173, MAP.174, MAP.176, MAP.177, MAP.178, MAP.179, MAP.180, MAP.181, MAP.183, GEN.93, GEN.95, GEN.99, GEN.202, TEST.135, GEN.295 |
-| [#1671](https://github.com/dwhagar/planetGen/issues/1671) | open | Fly-through Galaxy Map and scale hand-offs | MAP.59, MAP.75, MAP.119, MAP.120, MAP.121, MAP.122, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, MAP.146, MAP.147, MAP.152, MAP.156, MAP.160, MAP.195, MAP.209, MAP.210 |
-| [#1670](https://github.com/dwhagar/planetGen/issues/1670) | open | Gravity field and the gravity map | GEN.115, GEN.198, GEN.199, MAP.167, MAP.168, MAP.169, MAP.170, API.24, UX.94, PERF.72, TEST.131 |
-| [#1669](https://github.com/dwhagar/planetGen/issues/1669) | open | Orbital update: solver, thresholds, collisions and the nightly ceiling | GEN.105, GEN.109, GEN.110, GEN.111, GEN.112, GEN.139, GEN.140, GEN.141, GEN.142, GEN.143, GEN.197, ADM.36, TEST.129, TEST.130, GEN.289, GEN.290, GEN.291, GEN.292, GEN.293, GEN.294 |
+| [#1672](https://github.com/dwhagar/planetGen/issues/1672) | open | Nebulae on the Galaxy Map and in generation | MAP.171, MAP.172, MAP.173, MAP.174, MAP.176, MAP.177, MAP.178, MAP.179, MAP.180, MAP.181, MAP.183, GEN.93, GEN.95, GEN.99, GEN.202, TEST.135, GEN.295, DB.59, GEN.357, GEN.358 |
+| [#1671](https://github.com/dwhagar/planetGen/issues/1671) | open | Fly-through Galaxy Map and scale hand-offs | MAP.59, MAP.75, MAP.119, MAP.120, MAP.121, MAP.122, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, MAP.146, MAP.147, MAP.152, MAP.156, MAP.160, MAP.195, MAP.209, MAP.210, ADM.94, DB.60, MAP.218, MAP.217, MAP.225, MAP.226, MAP.227, MAP.228 |
+| [#1670](https://github.com/dwhagar/planetGen/issues/1670) | open | Gravity field and the gravity map | GEN.115, GEN.198, GEN.199, MAP.167, MAP.168, MAP.169, MAP.170, API.24, UX.94, PERF.72, TEST.131, GEN.338, GEN.339, GEN.340 |
+| [#1669](https://github.com/dwhagar/planetGen/issues/1669) | open | Orbital update: solver, thresholds, collisions and the nightly ceiling | GEN.105, GEN.109, GEN.110, GEN.111, GEN.112, GEN.360, GEN.361, GEN.362, GEN.363, GEN.139, GEN.140, GEN.141, GEN.142, GEN.143, GEN.197, ADM.36, TEST.129, TEST.130, GEN.289, GEN.290, GEN.291, GEN.292, GEN.293, GEN.294, DB.55, DB.56, GEN.335, GEN.336, GEN.337, GEN.341, GEN.342, GEN.343, GEN.344, GEN.345, GEN.346, GEN.347, GEN.334 |
 | [#1668](https://github.com/dwhagar/planetGen/issues/1668) | open | Nearby-object queries by cell key (stage C) | GEN.276, NAV.45, NAV.60, NAV.61, TEST.165, TEST.166, DOC.51 |
-| [#1667](https://github.com/dwhagar/planetGen/issues/1667) | open | Multi-star systems and the scatter member tree (stage M) | GEN.261, GEN.263, GEN.264, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, GEN.130, TEST.162, TEST.164, DOC.50, UX.114 |
+| [#1667](https://github.com/dwhagar/planetGen/issues/1667) | open | Multi-star systems and the scatter member tree (stage M) | GEN.261, GEN.263, GEN.264, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, GEN.130, TEST.162, TEST.164, DOC.50, UX.114, DB.53, GEN.311, GEN.312, GEN.313, GEN.314, GEN.315, GEN.316, GEN.317, GEN.318, GEN.327, GEN.328, GEN.329, GEN.330, GEN.331, GEN.332, MAP.213 |
 | [#1666](https://github.com/dwhagar/planetGen/issues/1666) | open | Phenomena registry, fill stages and the remaining star types | GEN.250, GEN.252, GEN.253, GEN.247, GEN.249, GEN.258, GEN.259, DOC.49 |
-| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
+| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161, GEN.310, GEN.322, GEN.323, GEN.324, TEST.184, TEST.185, UX.127, TEST.186, GEN.301 |
 | [#1657](https://github.com/dwhagar/planetGen/issues/1657) | closed | GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for min | GEN.232 |
 | [#1656](https://github.com/dwhagar/planetGen/issues/1656) | open | TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel r | TEST.111 |
 | [#1655](https://github.com/dwhagar/planetGen/issues/1655) | open | TEST.138 test_open_map_menus_hold_no_overlap fails under load: [web.galaxy-1280] once, [web.sector-6 | TEST.138 |
@@ -82,19 +87,19 @@ Rules:
 | [#1247](https://github.com/dwhagar/planetGen/issues/1247) | closed | Drop astropy for a small constants table | GEN.211 |
 | [#1246](https://github.com/dwhagar/planetGen/issues/1246) | closed | Require Python 3.12 and install numba | OPS.42 |
 | [#1241](https://github.com/dwhagar/planetGen/issues/1241) | open | Faster math and fewer heavy libraries (numba, Python 3.12, constants table) | OPS.42, PERF.87, PERF.88, PERF.89, PERF.90, PERF.91, GEN.211, GEN.212 |
-| [#1234](https://github.com/dwhagar/planetGen/issues/1234) | open | Nav Markers | MAP.132 |
-| [#1233](https://github.com/dwhagar/planetGen/issues/1233) | open | Default View Galaxy | MAP.191 |
+| [#1234](https://github.com/dwhagar/planetGen/issues/1234) | open | Nav Markers | MAP.132, MAP.219, MAP.220, MAP.221 |
+| [#1233](https://github.com/dwhagar/planetGen/issues/1233) | open | Default View Galaxy | MAP.191, MAP.214, MAP.215 |
 | [#1232](https://github.com/dwhagar/planetGen/issues/1232) | open | Restrict the Field | MAP.189, MAP.190, USR.11 |
-| [#1231](https://github.com/dwhagar/planetGen/issues/1231) | open | See most recently changed positions | MAP.192 |
+| [#1231](https://github.com/dwhagar/planetGen/issues/1231) | open | See most recently changed positions | MAP.192, DB.57, MAP.216 |
 | [#1230](https://github.com/dwhagar/planetGen/issues/1230) | closed | Complete review and rebuild of testing system | TEST.139 |
-| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.97, PERF.98, PERF.99, PERF.100, PERF.18, PERF.29, PERF.30, DOC.20 |
+| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.97, PERF.98, PERF.99, PERF.100, PERF.18, PERF.29, PERF.30, DOC.20, PERF.106, PERF.107, PERF.108 |
 | [#1228](https://github.com/dwhagar/planetGen/issues/1228) | open | Star system editor | ADM.51, ADM.52 |
 | [#1227](https://github.com/dwhagar/planetGen/issues/1227) | open | Show axis, tilt, and rotations | MAP.193 |
-| [#1226](https://github.com/dwhagar/planetGen/issues/1226) | open | New feature:  User objects | USR.10, POP.11 |
+| [#1226](https://github.com/dwhagar/planetGen/issues/1226) | open | New feature:  User objects | USR.10, POP.11, DB.63, USR.29, USR.30 |
 | [#1225](https://github.com/dwhagar/planetGen/issues/1225) | closed | Phenomena scatter possible hang before start. | PERF.83 |
 | [#1224](https://github.com/dwhagar/planetGen/issues/1224) | closed | Neighbor linking stalled out | PERF.84 |
 | [#1223](https://github.com/dwhagar/planetGen/issues/1223) | closed | Sector View Hides Black Holes | MAP.185 |
-| [#1222](https://github.com/dwhagar/planetGen/issues/1222) | open | Galactic Core should be a Sector | GEN.210 |
+| [#1222](https://github.com/dwhagar/planetGen/issues/1222) | closed | Galactic Core should be a Sector | GEN.210 |
 | [#1221](https://github.com/dwhagar/planetGen/issues/1221) | open | Add a 5th and 6th Dimention to PHI-4 (PHI-6) | GEN.207, UX.101 |
 | [#1220](https://github.com/dwhagar/planetGen/issues/1220) | closed | Contradictory Planet Information | GEN.206 |
 | [#1219](https://github.com/dwhagar/planetGen/issues/1219) | closed | Rogue Planet Gravity | UX.99 |
@@ -106,4 +111,4 @@ Rules:
 | [#1213](https://github.com/dwhagar/planetGen/issues/1213) | closed | Stars Vanish in new 'Window' algorithm | MAP.187 |
 | [#1212](https://github.com/dwhagar/planetGen/issues/1212) | closed | Galactic Map Sector Boarders | MAP.202 |
 | [#1211](https://github.com/dwhagar/planetGen/issues/1211) | closed | View artifacts in Galactic View | MAP.187 |
-| [#1204](https://github.com/dwhagar/planetGen/issues/1204) | open | Nebulas and Globular Clusters | GEN.209, MAP.194, GEN.237, GEN.241, GEN.242, GEN.243, GEN.296, GEN.297, GEN.161, GEN.162, GEN.163, GEN.164 |
+| [#1204](https://github.com/dwhagar/planetGen/issues/1204) | open | Nebulas and Globular Clusters | GEN.209, MAP.194, GEN.237, GEN.241, GEN.242, GEN.243, GEN.296, GEN.297, GEN.161, GEN.162, GEN.163, GEN.164, DB.61, GEN.319, GEN.320, GEN.321, GEN.325, GEN.326, GEN.359, MAP.222, MAP.223, MAP.224 |

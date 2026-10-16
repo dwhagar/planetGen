@@ -76,4 +76,4 @@ GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
 per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
 MAP.168 Sector Map layer; MAP.169 System Map layer; UX.94 wording and
 legend (phase 3, the 9.1 headline). MAP.170 Galaxy Map layer (phase 3+).
-Course planning (NAV.6) reuses the evaluator instead of its own pull model.
+Course planning (NAV.6) does not use the evaluator: it plans around keep-out spheres.
