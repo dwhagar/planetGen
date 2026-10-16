@@ -107,6 +107,8 @@ export function createSectorStage(host) {
           return;
         }
         const spec = infoSpec(entry, state.data, host.navPick);
+        // MAP.146: the camera can fly to it.
+        if (host.flyToEntry) spec.buttons = (spec.buttons || []).concat([{ label: "Go to", onClick: function () { host.flyToEntry(entry); } }]);
         // A system opens in the map itself (MAP.125), unless a NAV end is being picked.
         if (host.openSystem && entry.endpoint && entry.href && !(host.navPick && host.navPick.active())) {
           spec.buttons = (spec.buttons || []).concat([{ label: "Open system here", onClick: function () { host.openSystem(entry); } }]);

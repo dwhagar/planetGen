@@ -74,6 +74,9 @@ def page(gl_browser, request):
         context.close()
     assert not errors, f"uncaught exceptions: {errors}"
 
+DOUBLE_CLICK_GAP_MS = 400
+"""int: Longer than the map's double-click window (350 ms), so two clicks on one spot stay two clicks."""
+
 
 def _open(page, url, ready):
     response = page.goto(url, wait_until="load")
@@ -1835,6 +1838,7 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
         # The pulsar sits inside the fixture nebula over the field, whose core takes a click on the line
         # through it first: a few pixels to the side, still inside the point's reach, finds it.
         for dx, dy in ((0, 0), (4, 0), (-4, 0), (0, 4), (0, -4), (4, 4), (-4, -4), (4, -4), (-4, 4)):
+            page.wait_for_timeout(DOUBLE_CLICK_GAP_MS)   # clicks this close in time would be a double click (MAP.226)
             page.mouse.click(spot[0] + dx, spot[1] + dy)
             heading = page.locator("#galaxymap3d-info h3")
             if heading.count() and heading.inner_text() in names:
@@ -2028,8 +2032,10 @@ def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
     found = _click_steady(page, re.escape(nebula["name"]))
     assert _info_title(page) == nebula["name"]
+    page.wait_for_timeout(DOUBLE_CLICK_GAP_MS)   # a second click this soon would be a double click (MAP.226)
     page.mouse.click(found[0], found[1])
     assert _info_title(page) == resting
+    page.wait_for_timeout(DOUBLE_CLICK_GAP_MS)
     page.mouse.click(found[0], found[1])
     assert _info_title(page) == nebula["name"], "and a click selects it again"
 

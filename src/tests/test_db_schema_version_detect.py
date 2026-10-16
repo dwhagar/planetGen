@@ -39,13 +39,15 @@ def _make_older_than_the_baseline(config):
     conn = store.get_connection(config, ensure_schema=False)
     try:
         conn.execute("ALTER TABLE sectors DROP COLUMN max_mass_id")  # v101
+        conn.execute("ALTER TABLE galaxy_shape DROP CHECK chk_galaxy_shape_cell_star_ceiling")  # v100
+        conn.execute("ALTER TABLE bright_stars DROP CHECK chk_bright_stars_population")  # v99 and v94
+        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN nuclear_amplitude")  # v99 and v81
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN fill_luminosity_cap_sol")  # v98
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN cell_star_ceiling")  # v98
         conn.execute("DROP TABLE galaxy_components")  # v97
         conn.execute("ALTER TABLE neutron_stars DROP CHECK neutron_stars_chk_1")  # v96
         conn.execute("ALTER TABLE bright_stars DROP COLUMN metallicity_fe_h")  # v95
         conn.execute("ALTER TABLE stars DROP COLUMN metallicity_fe_h")  # v95
-        conn.execute("ALTER TABLE bright_stars DROP CHECK chk_bright_stars_population")  # v94
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN reach_shell_index")  # v93
         conn.execute("DROP TABLE galaxy_block_stats")  # v92, v90 and v86
         conn.execute("DROP TABLE galaxy_shell")  # v91
@@ -60,7 +62,6 @@ def _make_older_than_the_baseline(config):
         conn.execute("ALTER TABLE phenomenon_scatter DROP COLUMN map_luminosity_sol")  # v84
         conn.execute("DROP TABLE nebula_field")  # v83
         conn.execute("DROP TABLE sector_system_counts")  # v82
-        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN core_amplitude")  # v81
         conn.execute("ALTER TABLE phenomenon_scatter DROP COLUMN mass_solar")  # v80
         conn.execute("ALTER TABLE sector_stats DROP COLUMN bright_mass_sol")  # v79
         conn.execute("DROP TABLE id_counters")  # v78

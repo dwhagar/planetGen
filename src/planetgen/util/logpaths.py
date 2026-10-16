@@ -12,7 +12,7 @@ log-locations.py` runs as root under the system's `python3 -I`, before any
 virtual environment exists, and loads this file by its path: it can't
 import Pydantic. These options are the settings model's `x-editable:
 false` ones (file-only, restart to apply), so reading them here and
-nowhere else never disagrees with `settings.json`; `settings.py` takes its
+nowhere else never disagrees with the settings model; `settings.py` takes its
 defaults for them from the constants below, and a test fails if the two
 drift.
 

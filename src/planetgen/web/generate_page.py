@@ -87,7 +87,7 @@ PLAN_FIELDS = (
     ("disk_scale_height_pc", "--disk-scale-height-pc", "Disk scale height (pc)", float, 300.0, 1.0, None),
     ("bulge_scale_radius_pc", "--bulge-scale-radius-pc", "Bulge scale radius (pc)", float, 1580.0, 1.0, None),
     ("bulge_amplitude", "--bulge-amplitude", "Bulge density", float, 3.11, 0.0, 100.0),
-    ("core_density", "--core-density", "Core density", float, 0.0, 0.0, 1000.0),
+    ("nuclear_amplitude", "--nuclear-amplitude", "Nuclear structures", float, 1.0, 0.0, 10.0),
     ("arm_count", "--arm-count", "Spiral arms", int, 2, 0, None),
     ("pitch_angle_deg", "--pitch-angle-deg", "Arm pitch angle (degrees)", float, 15.0, 1.0, 90.0),
     ("arm_density", "--arm-density", "Arm density", float, 1.4, 0.01, 10.0),

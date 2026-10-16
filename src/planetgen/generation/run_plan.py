@@ -252,7 +252,7 @@ def build_skeleton(args):
         pitch_angle_rad=math.radians(args.pitch_angle_deg),
         arm_amplitude=arm_amplitude,
         arm_level=arm_level,
-        core_amplitude=args.core_density,
+        nuclear_amplitude=args.nuclear_amplitude,
         calibration_radius_pc=args.calibration_radius_pc,
     )
 

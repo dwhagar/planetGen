@@ -357,6 +357,22 @@ def _reference_checks():
         Check("galaxy_thick_to_thin_disk", "reference", "galaxyDensity.component_masses(default shape)",
               lambda: _galaxy_mass_ratio("thick_disk", ("thin_disk",)), 0.17, 0.3,
               "Milky Way thick disk 6e9 against thin disk 3.5e10 M_sun (Bland-Hawthorn & Gerhard 2016)"),
+        Check("galaxy_nuclear_cluster_mass", "reference", "galaxyDensity.model_terms(default shape)",
+              lambda: _nuclear_structure()["cluster_mass_solar"], 2.5e7, 0.15,
+              "Milky Way nuclear star cluster 2.0-2.5e7 M_sun (Schodel et al. 2014; recalled)", unit="M_sun"),
+        Check("galaxy_nuclear_cluster_half_light_radius", "reference", "galaxyDensity.model_terms(default shape)",
+              lambda: _nuclear_structure()["half_light_radius_pc"], 4.2, 0.15,
+              "nuclear star cluster projected half-light radius 4.2 pc (Schodel et al. 2014; recalled)", unit="pc"),
+        Check("galaxy_nuclear_cluster_density_1pc", "reference", "galaxyDensity.model_terms(default shape)",
+              lambda: math.log10(_nuclear_structure()["density_1pc_solar_pc3"]), math.log10(2.9e5), math.log10(3.0),
+              "nuclear cluster mass density 1e5-5e5 M_sun/pc^3 at 1 pc, within a factor 3 (Schodel et al. 2018; "
+              "recalled, low confidence); log10 of M_sun/pc^3", mode="abs"),
+        Check("galaxy_nuclear_disc_mass_200pc", "reference", "galaxyDensity.model_terms(default shape)",
+              lambda: _nuclear_structure()["disc_mass_200pc_solar"], 1.0e9, 0.3,
+              "nuclear stellar disc about 1e9 M_sun inside 200 pc (Launhardt et al. 2002; recalled)", unit="M_sun"),
+        Check("galaxy_nuclear_disc_scale_height", "reference", "galaxyDensity.model_terms(default shape)",
+              lambda: _nuclear_structure()["disc_height_pc"], 37.5, 0.2,
+              "nuclear stellar disc scale height 30-45 pc (Sormani et al. 2022; recalled)", unit="pc"),
         Check("holman_wiegert_s_type_equal_circular", "reference",
               "orbits.holman_wiegert_critical_semimajor_axis(1, 0.5, 0)",
               lambda: orbits.holman_wiegert_critical_semimajor_axis(1.0, 0.5, 0.0), 0.274, 1e-9,
@@ -633,7 +649,27 @@ def _default_galaxy_shape():
     """`planetgen plan`'s default galaxy shape."""
     return galaxyDensity.build_galaxy_shape(
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
-        bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
+        bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4, nuclear_amplitude=1.0)
+
+
+def _nuclear_structure():
+    """The default galaxy's nuclear cluster and disc in physical units (GEN.280): the model's mass units are
+    systems at `tuning.MEAN_SYSTEM_MASS_SOLAR` each, a unit of raw density is the systems a sector holds at
+    density 1 per cubic parsec, and `k_norm` turns the raw units into relative density."""
+    shape = _default_galaxy_shape()
+    terms = galaxyDensity.model_terms(shape)
+    edge_pc = units.ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
+    per_unit = (shape.k_norm * spaceSector.SpaceSector(name="mathcheck-nuclear", edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY)
+                .expected_system_count() / edge_pc ** 3 * tuning.MEAN_SYSTEM_MASS_SOLAR)
+    length = terms["nuclear_disc_length_pc"]
+    inside_200 = 1.0 - (1.0 + 200.0 / length) * math.exp(-200.0 / length)
+    return {
+        "cluster_mass_solar": terms["nuclear_cluster_mass"] * per_unit,
+        "half_light_radius_pc": 1.8153 * terms["nuclear_cluster_scale_pc"],
+        "density_1pc_solar_pc3": galaxyDensity._nuclear_cluster(1.0, terms) * per_unit,
+        "disc_mass_200pc_solar": terms["nuclear_disc_mass"] * inside_200 * per_unit,
+        "disc_height_pc": terms["nuclear_disc_height_pc"],
+    }
 
 
 def _galaxy_mass_ratio(part, of):

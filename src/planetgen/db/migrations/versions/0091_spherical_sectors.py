@@ -525,7 +525,7 @@ class _Conversion:
             disk_scale_length_pc=row["disk_scale_length_pc"], disk_scale_height_pc=row["disk_scale_height_pc"],
             bulge_scale_radius_pc=row["bulge_scale_radius_pc"], bulge_amplitude=row["bulge_amplitude"],
             arm_count=row["arm_count"], pitch_angle_rad=row["pitch_angle_rad"], arm_amplitude=row["arm_amplitude"],
-            arm_level=row["arm_level"], core_amplitude=row["core_amplitude"],
+            arm_level=row["arm_level"], nuclear_amplitude=0.0,
             spiral_reference_radius_pc=row["spiral_reference_radius_pc"],
             spiral_reference_angle_rad=row["spiral_reference_angle_rad"], k_norm=row["k_norm"])
         extents, outer, _confirmed = skeleton.build_shell_extents(

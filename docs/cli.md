@@ -436,7 +436,8 @@ real Milky Way's value as its default: `--disk-scale-length-pc` (2600) and
 `--disk-scale-height-pc` (300) for the thin disk, `--bulge-scale-radius-pc`
 (1580) and `--bulge-amplitude` (3.11) for the bar bulge, `--arm-count` (2),
 `--pitch-angle-deg` (15), `--arm-density` (1.4) and `--interarm-density`
-(0.6) for the spiral arms, `--core-density` (0, no extra core) and
+(0.6) for the spiral arms, `--nuclear-amplitude` (1: the observed nuclear star
+cluster and nuclear stellar disc at the centre, scaled to the bulge; 0 is none) and
 `--calibration-radius-pc` (the Sun's radius, 3.15 times the disk scale length)
 for where relative density 1.0 sits. `--max-shell` caps how far out the
 shells are walked (100,000 by default) and `--seed <32 hex digits>` sets the
@@ -463,7 +464,7 @@ masses, 14 by default, or the limit already stored; `--compact-min-mass`: the lo
 hole placed galaxy-wide, one of 1, 2, 4, 6 or `star` for the stellar limit, which is the default; a lower limit stores far more rows, and
 `plan --help` lists the sizes). `--phenomena-only` re-scatters only those on the stored outline.
 
-`--cell-star-ceiling` and `--fill-luminosity-cap` (GEN.281, `plan`) set, for the whole galaxy, how deep a crowded cell is filled: a cell that expects more systems than the ceiling (default 50,000) is filled only with the stars at or above the cap (default 100 solar luminosities, never under the brightest white dwarf), and the rest is reported as unresolved on its sector page and in the API (`unresolved`). Ordinary space never reaches the ceiling. Both are stored with the galaxy and apply to sectors generated afterwards. `--redo-scatters mass luminosity phenomena` (GEN.196) redoes only the scatters named, each with this run's settings: `mass` clears and rewrites the stars born at the mass limit or more (`--phenomenon-min-mass`), `luminosity` the lighter stars at `--bright-star-min-luminosity`, and `phenomena` the neutron stars, black holes and the rest (`--compact-min-mass`). A new mass limit redoes both star passes. `--redo-nebula-field [dry-run|apply]` (GEN.205) brings an existing galaxy's stored molecular clouds in line with the current nebula keep rates (`tuning.NEBULA_FIELD_KEEP`): the dry run (the default, and always done first) counts, per class, the stored field clouds the rule now rejects and changes nothing; `apply` then deletes them (everything inside them loses its `inside_nebula_id`, and containment is refreshed in the sectors they reached) and draws the `nebula_field` table again. A nebula that was not made by the field is left alone. `--fill-map-luminosity` (DB.23, GEN.201) fills `phenomenon_scatter.map_luminosity_sol`, the luminosity a star of a row's mass would have on the Galaxy Map, for a galaxy scattered before schema v84: id-range batches of 200,000 rows, each its own short statement and commit, resumable (it only fills rows still empty). A new scatter writes the value with each row. `--fill-habitability` (GEN.217) re-derives the stored habitability numbers of every planet and moon from its stored conditions: the flux swing of a body in a double-star system (loading that system, as generation does), the PHI-6 index, the six domains and their tiers, the equipment tier and the note. It is for a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is worked out from the same conditions whenever a page is drawn. Nothing else is touched; each batch of 500 systems is its own transaction and the result is the same however often it is run, so a stopped run is started again. A gas giant and a body saved before schema v76 (no score) are left alone.
+`--cell-star-ceiling` and `--fill-luminosity-cap` (GEN.281, `plan`) set, for the whole galaxy, how deep a crowded cell is filled: a cell that expects more systems than the ceiling (default 5,000) is filled only with the stars at or above the cap (default 100 solar luminosities, raised for a cell those stars would still fill past the ceiling, never under the brightest white dwarf), and the rest is reported as unresolved on its sector page and in the API (`unresolved`). Ordinary space never reaches the ceiling. Both are stored with the galaxy and apply to sectors generated afterwards. `--redo-scatters mass luminosity phenomena` (GEN.196) redoes only the scatters named, each with this run's settings: `mass` clears and rewrites the stars born at the mass limit or more (`--phenomenon-min-mass`), `luminosity` the lighter stars at `--bright-star-min-luminosity`, and `phenomena` the neutron stars, black holes and the rest (`--compact-min-mass`). A new mass limit redoes both star passes. `--redo-nebula-field [dry-run|apply]` (GEN.205) brings an existing galaxy's stored molecular clouds in line with the current nebula keep rates (`tuning.NEBULA_FIELD_KEEP`): the dry run (the default, and always done first) counts, per class, the stored field clouds the rule now rejects and changes nothing; `apply` then deletes them (everything inside them loses its `inside_nebula_id`, and containment is refreshed in the sectors they reached) and draws the `nebula_field` table again. A nebula that was not made by the field is left alone. `--fill-map-luminosity` (DB.23, GEN.201) fills `phenomenon_scatter.map_luminosity_sol`, the luminosity a star of a row's mass would have on the Galaxy Map, for a galaxy scattered before schema v84: id-range batches of 200,000 rows, each its own short statement and commit, resumable (it only fills rows still empty). A new scatter writes the value with each row. `--fill-habitability` (GEN.217) re-derives the stored habitability numbers of every planet and moon from its stored conditions: the flux swing of a body in a double-star system (loading that system, as generation does), the PHI-6 index, the six domains and their tiers, the equipment tier and the note. It is for a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is worked out from the same conditions whenever a page is drawn. Nothing else is touched; each batch of 500 systems is its own transaction and the result is the same however often it is run, so a stopped run is started again. A gas giant and a body saved before schema v76 (no score) are left alone.
 
 The scatter always leaves the sectors that are already filled out (they
 would never get their bright stars), so `--force` is no longer needed; the
@@ -609,7 +610,8 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | `python3 -m planetgen.cli.reset` | Empties the galaxy. |
 | `python3 -m planetgen.cli.lockouts` | Lists and lifts login lockouts. |
 | `python3 -m planetgen.cli.dedupe` | Renames duplicate sector and system names. |
-| `python3 -m planetgen.cli.config` | Checks the settings and rewrites the generated files. |
+| `python3 -m planetgen.cli.config` | Checks, documents and edits the settings. |
+| `python3 -m planetgen.cli.backup` | Takes, lists, verifies and restores backup archives. |
 
 ### orbits
 
@@ -699,12 +701,32 @@ python3 -m planetgen.cli.dedupe
 
 ### config
 
-`check` validates `config.json` and `settings.json` the way the app reads them (an unknown key is an error) and exits 1 naming every field that does not fit. `docs` rewrites the generated parts, the option table in [config.md](config.md), `config.json.example` and `config.schema.json`, from the settings model; a test fails when they differ from what it would write, so run it after changing an option.
+`config.json` is the one file that holds all program configuration, your own copy of `config.json.example`. `check` validates it the way the app reads it (an unknown key is an error) and exits 1 naming every field that does not fit. `docs` rewrites the generated parts, the option table in [config.md](config.md), `config.json.example` and `config.schema.json`, from the settings model; a test fails when they differ from what it would write, so run it after changing an option.
+
+`get [OPTION]` prints the value that applies and where it comes from (default, `config.json` or an environment variable; a secret shows only `(set)` or `(empty)`). `set OPTION=VALUE ...` and `unset OPTION ...` change `config.json` through the same writer as the Admin settings page ([config.md](config.md#saving-settings)): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, `true` or a list and as text otherwise (`set site_name="My galaxy" tile_cache.max_mb=300`); `OPTION=-` reads it from standard input, which keeps a secret out of the shell history. `restore ARCHIVE` puts the settings of a backup archive back (`planetgen.cli.backup list` shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If `config.json` does not exist the command says so and creates nothing.
 
 ```bash
 python3 -m planetgen.cli.config check
 python3 -m planetgen.cli.config docs
+python3 -m planetgen.cli.config get tile_cache.max_mb
+python3 -m planetgen.cli.config set tile_cache.max_mb=300 site_name="My galaxy"
+python3 -m planetgen.cli.config unset tile_cache.max_mb
+python3 -m planetgen.cli.config restore 20261016T193012Z.tar.bz2
 ```
+
+### backup
+
+Backup archives (ADM.87, [config.md](config.md#backups)): one `.tar.bz2` per backup, holding a part per kind of data (`settings`, a copy of `config.json`, now; the control database and the DB repair parity data in 9.0). Run it as root or the web user (the archives are mode 0600).
+
+```bash
+python3 -m planetgen.cli.backup take                    # every part (--part NAME for some)
+python3 -m planetgen.cli.backup list                    # newest first, with each archive's parts
+python3 -m planetgen.cli.backup verify ARCHIVE          # check every hash
+python3 -m planetgen.cli.backup restore ARCHIVE         # the whole archive, or --part NAME for some
+python3 -m planetgen.cli.backup parts                   # the parts this build can back up
+```
+
+A restore verifies the archive, backs up what it is about to replace in a safety archive, skips and reports a part this build has no provider for, and writes an audit row. `settings.backups_kept` of the archives are kept.
 
 ## Planned commands
 

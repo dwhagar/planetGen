@@ -14,7 +14,7 @@ from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
-migration = importlib.import_module("planetgen.db.migrations.versions.0094_halo_populations")
+migration = importlib.import_module("planetgen.db.migrations.versions.0099_nuclear_structures")
 
 
 def _insert_star(conn, population):

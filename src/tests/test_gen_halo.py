@@ -149,7 +149,7 @@ def test_the_halo_does_not_widen_the_outline():
     extents, outer, _confirmed = build_shell_extents(mathcheck._default_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
     assert outer == 3762
     assert len(extents) == 3763
-    assert sum(high for _shell, high in extents) == 1618939
+    assert sum(high for _shell, high in extents) == 1618941   # +2 bands from the nuclear disc's bound (GEN.280)
     assert sum(high for _shell, high in extents) < 1619713
 
 
