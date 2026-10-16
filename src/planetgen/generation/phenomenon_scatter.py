@@ -41,7 +41,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import density, remnant_distribution
+from planetgen.galaxy import density, nebula_field, remnant_distribution
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
@@ -272,6 +272,23 @@ def _uniforms(rng, count):
     return np.fromiter((random() for _ in range(count)), dtype=float, count=count)
 
 
+GAS_WEIGHTED_KINDS = ("supernova-remnant",)
+"""tuple: The scatter kinds whose bin weight also carries the gas fraction (GEN.236): a remnant shines only where its
+shell meets gas, so none lies in the halo or a cluster. The sector profile's `kind_factors` holds the same factor for
+the fill."""
+
+
+def _gas_weight(x, y, z, shape):
+    """The gas fraction (`nebula_field.gas_factor_array` capped at 1, as `SectorProfile.kind_factors` has it) times the
+    share of the stars that are not a cluster's, at arrays of points: the weight a gas-born kind carries on top of the
+    stars'."""
+    gas = np.minimum(1.0, np.maximum(nebula_field.gas_factor_array(x, y, z, shape), 0.0))
+    mix = density.population_densities_array(x, y, z, shape)
+    total = sum(np.maximum(value, 0.0) for value in mix.values())
+    cluster = np.where(total > 0.0, np.maximum(mix["cluster"], 0.0) / np.where(total > 0.0, total, 1.0), 0.0)
+    return gas * (1.0 - cluster)
+
+
 def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rng, rates, skip_addresses,
                min_mass_solar):
     """
@@ -310,6 +327,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rn
                     factor = (remnant_distribution.vertical_factor_array(kind, z_mid, shape.disk_scale_height_pc)
                               * remnant_distribution.radial_factor_array(kind, plane))
                 weights = base * factor[:, None]
+                if kind in GAS_WEIGHTED_KINDS:
+                    weights = weights * _gas_weight(x_bins, y_bins, z_mid[:, None], shape)
             cumulative = np.cumsum(weights, axis=1)
             top = cumulative[:, -1]
             # Rows are offset by 2 each, so one sorted array holds every band's cumulative shares.
@@ -440,14 +459,17 @@ def shell_expected(shape, shell_index, high_band, edge_pc, expected_at_density_1
 
 def _expectation_factor(shape, kind, subtype, plane, z):
     """What a class's rate per star is multiplied by at a band centre `plane` and `z` parsecs out (the progress bar's
-    estimate of `_band_rows`): the remnant factors of a neutron star or black hole, the young population's share of
-    the stars for a class that follows it (GEN.278)."""
+    estimate of `_band_rows`): the remnant factors of a neutron star or black hole, the gas fraction of a supernova
+    remnant (GEN.236), the young population's share of the stars for a class that follows it (GEN.278)."""
     if registry.scatter_class_gate(kind, subtype) == "young stars":
         shares = density.population_densities((plane, 0.0, z), shape)
         total = sum(shares.values())
         return shares["young"] / total if total > 0.0 else 0.0
-    return (remnant_distribution.vertical_factor(kind, z, shape.disk_scale_height_pc)
-            * remnant_distribution.radial_factor(kind, plane))
+    factor = (remnant_distribution.vertical_factor(kind, z, shape.disk_scale_height_pc)
+              * remnant_distribution.radial_factor(kind, plane))
+    if kind in GAS_WEIGHTED_KINDS:
+        factor *= min(1.0, max(nebula_field.gas_factor((plane, 0.0, z), shape), 0.0))
+    return factor
 
 
 def nucleus_row(seed):
