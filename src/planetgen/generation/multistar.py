@@ -44,12 +44,13 @@ order, so the same stream gives the same tree. Orbit angles are in degrees,
 separations in AU (and km), periods in years and times in years.
 """
 
+import dataclasses
 import math
 from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import constants, stability
+from planetgen.physics import constants, roche, stability
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -97,6 +98,23 @@ EXTENT_AXIS_FACTOR = 2.5
 PERICENTRE_EXTENT_FACTOR = 2.0
 """float: The pericentre must clear this many times the members' extent."""
 
+MAX_FILL_FACTOR = 1.2
+"""float: How far past its Roche lobe a star may reach at the pair's closest approach (1 is semi-detached,
+both past 1 is contact). Pairs of two single members use this in place of `EXTENT_AXIS_FACTOR`."""
+
+ACCRETOR_KINDS = ("white-dwarf", "neutron-star", "black-hole")
+"""tuple: The member kinds that receive mass from a lobe-filling partner (an `accreting` pair)."""
+
+INTERACTIONS = ("detached", "semi-detached", "contact", "accreting", "post-common-envelope", "merger-product")
+"""tuple: The `Node.interaction` values; the classifier gives the first four and `post-common-envelope`
+from geometry, `merger-product` comes from the merger draw of the close-binary types."""
+
+REJUVENATION_FRACTION_RANGE = (0.1, 0.6)
+"""tuple: A merger product's effective age as a fraction of the system's age (a design default)."""
+
+FRAGILE_AXIS_AU = 10_000.0
+"""float: A root pair wider than this is ultra-wide and flagged `fragile` (passing stars unbind it)."""
+
 PAIR_RETRIES = 60
 TREE_RESTARTS = 30
 MAX_COMPACT_MEMBERS = 3
@@ -139,10 +157,24 @@ WHITE_DWARF_PROGENITOR_SOL = (0.8, 8.0)
 
 COMPACT_KINDS = ("neutron-star", "black-hole")
 MEMBER_KINDS = ("main-sequence", "giant", "white-dwarf", "neutron-star", "black-hole", "brown-dwarf",
-                "pre-main-sequence", "protostar")
+                "pre-main-sequence", "protostar", "stripped-helium", "thorne-zytkow", "wolf-rayet")
+"""tuple: Every member kind. The last three exist for the type generators that follow (the evolution of a
+Wolf-Rayet star, a stripped helium star and a Thorne-Zytkow object is theirs); `star_labels` names them."""
 PLACED_KINDS = ("star", "black-hole", "intermediate-mass-black-hole", "neutron-star", "white-dwarf")
 
 MEMBER_DIRECT_COLLAPSE = 1
+MEMBER_MASS_REVERSED = 2
+MEMBER_MASS_GAINER = 4
+MEMBER_MERGER_PRODUCT = 8
+MEMBER_BE = 16
+MEMBER_FRAGILE = 32
+MEMBER_THEORETICAL = 64
+MEMBER_FLAGS = {"direct_collapse": MEMBER_DIRECT_COLLAPSE, "mass_reversed": MEMBER_MASS_REVERSED,
+                "mass_gainer": MEMBER_MASS_GAINER, "merger_product": MEMBER_MERGER_PRODUCT, "be": MEMBER_BE,
+                "fragile": MEMBER_FRAGILE, "theoretical": MEMBER_THEORETICAL}
+"""dict: The bits of `Member.flags`. The classifier sets `mass_gainer`, `fragile` and `theoretical`;
+`mass_reversed`, `merger_product` and `be` are set by the close-binary types, and `runaway_origin` by the
+runaway origin draw (its bits are reserved there)."""
 NODE_INTERACTED = 1
 NODE_KL_ACTIVE = 2
 
@@ -188,8 +220,8 @@ class Placed:
 
 @dataclass(frozen=True)
 class Member:
-    """One member of a tree: member 0 is the placed object. `radius_au` is its extent; `flags` bit 0 is a
-    direct-collapse black hole."""
+    """One member of a tree: member 0 is the placed object. `radius_au` is its extent; `flags` are the bits of
+    `MEMBER_FLAGS`; `effective_age_yr` is a merger product's rejuvenated age (None: the system's age)."""
     member_no: int
     parent_node_no: int | None
     slot: int
@@ -200,6 +232,7 @@ class Member:
     initial_mass_solar: float
     radius_au: float
     seed: int
+    effective_age_yr: float | None = None
 
 
 @dataclass(frozen=True)
@@ -420,6 +453,7 @@ class _Builder:
         self.age_yr = age_yr
         self.rng = rng
         self.nodes = []
+        self.extra_flags = {}
 
     def leaves_of(self, sub):
         return (sub,) if isinstance(sub, int) else self.leaves_of(sub[0]) + self.leaves_of(sub[1])
@@ -438,6 +472,58 @@ class _Builder:
             if a.compact or b.compact:
                 return "interacted"
         return "star"
+
+    def pair_leaves(self, left, right):
+        """The two leaves of a pair of single members, else None."""
+        if isinstance(left, int) and isinstance(right, int):
+            return self.leaves[left], self.leaves[right]
+        return None
+
+    def axis_floor(self, left, right, extent):
+        """The closest the pair may be: the Roche-lobe limit for two single members, else the extent rule."""
+        pair = self.pair_leaves(left, right)
+        if pair is None:
+            return EXTENT_AXIS_FACTOR * extent
+        a, b = pair
+        return max(roche.separation_for_filling(a.radius_au, MAX_FILL_FACTOR, a.mass, b.mass),
+                   roche.separation_for_filling(b.radius_au, MAX_FILL_FACTOR, b.mass, a.mass))
+
+    def clears(self, left, right, axis, e, extent):
+        """Whether the pair's closest approach keeps its members inside their limits."""
+        pair = self.pair_leaves(left, right)
+        if pair is None:
+            return axis * (1.0 - e) >= PERICENTRE_EXTENT_FACTOR * extent
+        a, b = pair
+        peri = axis * (1.0 - e)
+        return (roche.filling_factor(a.radius_au, peri, a.mass, b.mass) <= MAX_FILL_FACTOR
+                and roche.filling_factor(b.radius_au, peri, b.mass, a.mass) <= MAX_FILL_FACTOR)
+
+    def interaction(self, left, right, axis, e):
+        """The pair's `interaction` and the flags it puts on the two single members: `(interaction, {leaf: flag})`."""
+        pair = self.pair_leaves(left, right)
+        if pair is None:
+            return "detached", {}
+        a, b = pair
+        peri = axis * (1.0 - e)
+        fill_a = roche.filling_factor(a.radius_au, peri, a.mass, b.mass)
+        fill_b = roche.filling_factor(b.radius_au, peri, b.mass, a.mass)
+        accretor_a, accretor_b = a.kind in ACCRETOR_KINDS, b.kind in ACCRETOR_KINDS
+        if accretor_a != accretor_b:
+            donor_fill = fill_b if accretor_a else fill_a
+            if donor_fill >= 1.0:
+                return "accreting", {}
+            if (a.kind == "white-dwarf" or b.kind == "white-dwarf") and axis < tuning.WD_PROGENITOR_ENGULFMENT_AU:
+                return "post-common-envelope", {}
+            return "detached", {}
+        if accretor_a:
+            return "detached", {}
+        if fill_a >= 1.0 and fill_b >= 1.0:
+            return "contact", {left: MEMBER_MASS_GAINER, right: MEMBER_MASS_GAINER}
+        if fill_a >= 1.0:
+            return "semi-detached", {right: MEMBER_MASS_GAINER}
+        if fill_b >= 1.0:
+            return "semi-detached", {left: MEMBER_MASS_GAINER}
+        return "detached", {}
 
     def wide_cap(self, sub):
         """The widest axis the pair can have: 1,000 AU if it holds a neutron star or a black hole that did not
@@ -485,7 +571,7 @@ class _Builder:
         total = m_left + m_right
         law = self.law(left, right)
         extent = self.extent(left) + self.extent(right)
-        a_lo = EXTENT_AXIS_FACTOR * extent
+        a_lo = self.axis_floor(left, right, extent)
         cap = self.wide_cap(sub)
         heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
@@ -505,7 +591,7 @@ class _Builder:
                 continue
             axis = stability.axis_au(period_d / 365.25, total)
             e = self.eccentricity(law, period_d, axis, parent is None)
-            if axis * (1.0 - e) < PERICENTRE_EXTENT_FACTOR * extent:
+            if not self.clears(left, right, axis, e, extent):
                 continue
             flags = NODE_INTERACTED if law != "star" else 0
             if parent is not None:
@@ -524,13 +610,17 @@ class _Builder:
             break
         else:
             raise _Failed
+        interaction, member_flags = self.interaction(left, right, axis, e)
+        for leaf_index, flag in member_flags.items():
+            self.extra_flags[leaf_index] = self.extra_flags.get(leaf_index, 0) | flag
         node_no = len(self.nodes) + 1
         kind = "compact" if law != "star" else "close" if axis < 50.0 else "wide"
         record = {"node_no": node_no, "parent_node_no": parent_no, "slot": slot, "mass_solar": total,
                   "separation_au": axis, "eccentricity": e, "inclination_deg": math.degrees(inclination),
                   "ascending_node_deg": math.degrees(node), "arg_periapsis_deg": math.degrees(arg),
                   "mean_anomaly_deg": math.degrees(anomaly), "period_years": period_d / 365.25, "kind": kind,
-                  "flags": flags, "left": left, "right": right, "sub": sub}
+                  "flags": flags, "left": left, "right": right, "sub": sub,
+                  "interaction": interaction}
         self.nodes.append(record)
         for child_slot, (child, sibling) in enumerate(((left, right), (right, left))):
             if not isinstance(child, int):
@@ -546,7 +636,8 @@ class _Builder:
         return self.rng.random() >= BROWN_DWARF_DESERT_KEEP
 
     def clears_extents(self):
-        """The final check: every pair's pericentre clears the apocentres of what it holds."""
+        """The final check: every pair's closest approach clears what it holds (the Roche limit for two single
+        members, the apocentres of the inner pairs otherwise)."""
         by_sub = {id(record["sub"]): record for record in self.nodes}
         for record in self.nodes:
             extent = 0.0
@@ -556,9 +647,19 @@ class _Builder:
                 else:
                     inner = by_sub[id(child)]
                     extent += inner["separation_au"] * (1.0 + inner["eccentricity"])
-            if record["separation_au"] * (1.0 - record["eccentricity"]) < PERICENTRE_EXTENT_FACTOR * extent:
+            if not self.clears(record["left"], record["right"], record["separation_au"], record["eccentricity"],
+                               extent):
                 return False
         return True
+
+    def finish(self):
+        """Flags the members of an ultra-wide system `fragile` and the theoretical kinds `theoretical`."""
+        fragile = bool(self.nodes) and self.nodes[0]["separation_au"] > FRAGILE_AXIS_AU
+        for index, leaf in enumerate(self.leaves):
+            if fragile:
+                self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_FRAGILE
+            if leaf.kind == "thorne-zytkow":
+                self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_THEORETICAL
 
 
 def _shape(units, rng):
@@ -674,16 +775,28 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
                           eccentricity=record["eccentricity"], inclination_deg=record["inclination_deg"],
                           ascending_node_deg=record["ascending_node_deg"],
                           arg_periapsis_deg=record["arg_periapsis_deg"], mean_anomaly_deg=record["mean_anomaly_deg"],
-                          period_years=record["period_years"], kind=record["kind"], interaction="detached",
+                          period_years=record["period_years"], kind=record["kind"], interaction=record["interaction"],
                           flags=record["flags"]))
     members = []
     for leaf_index in used:
         leaf = leaves[leaf_index]
         node_no, slot = where[leaf_index]
         members.append(Member(member_no=number[leaf_index], parent_node_no=node_no, slot=slot, kind=leaf.kind,
-                              state=leaf.state, flags=leaf.flags, mass_solar=leaf.mass, initial_mass_solar=leaf.initial,
-                              radius_au=leaf.radius_au, seed=rng.getrandbits(63)))
+                              state=leaf.state, flags=leaf.flags | builder.extra_flags.get(leaf_index, 0), mass_solar=leaf.mass,
+                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=rng.getrandbits(63)))
     return MemberTree(tuple(members), tuple(nodes), age_yr, dropped)
+
+
+def rejuvenated_age_yr(age_yr, rng=draw):
+    """A merger product's effective age: a fraction (`REJUVENATION_FRACTION_RANGE`) of the system's age. The
+    system's own age stays on the tree."""
+    return age_yr * rng.uniform(*REJUVENATION_FRACTION_RANGE)
+
+
+def mark_merger_product(member, age_yr, rng=draw):
+    """The member as a merger product: flagged `merger_product`, with a rejuvenated `effective_age_yr`."""
+    return dataclasses.replace(member, flags=member.flags | MEMBER_MERGER_PRODUCT,
+                               effective_age_yr=rejuvenated_age_yr(age_yr, rng))
 
 
 def _single(leaf, age_yr, dropped, rng):
@@ -723,6 +836,7 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=12, n_stars=None, preva
                 continue
             if not builder.clears_extents():
                 continue
+            builder.finish()
             return _assemble(leaves, builder, age_yr, dropped, rng)
         loose = [u for u in units[1:] if isinstance(u, int)]
         if loose:
