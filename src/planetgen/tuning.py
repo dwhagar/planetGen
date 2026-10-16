@@ -2135,16 +2135,23 @@ SUPERNOVA_REMNANT_MORPHOLOGIES = ("shell", "plerion", "composite")
 pulsar wind nebula, like the Crab), or a composite of both. Each remnant
 class in `NEBULA_CLASSES` fixes its own."""
 
-# Sedov-Taylor phase expansion coefficient and exponent: R(t) = C *
-# t^(2/5), the self-similar blast-wave solution for a remnant that has
-# swept up enough interstellar mass to decelerate from its initial
-# free-expansion phase (Taylor 1950, Proc. Roy. Soc. A 201:159; Sedov
-# 1959, "Similarity and Dimensional Methods in Mechanics"). C is
-# calibrated so a ~1,000-year-old remnant (roughly Tycho's/Cassiopeia
-# A's real age) comes out to a few light-years across, matching their
-# real observed sizes.
-SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY = 0.35
+# Sedov-Taylor phase expansion, R = C * (E51 / n)^(1/5) * t^(2/5): the
+# self-similar blast-wave solution for a remnant that has swept up enough
+# interstellar mass to decelerate from its initial free-expansion phase
+# (Taylor 1950, Proc. Roy. Soc. A 201:159; Sedov 1959, "Similarity and
+# Dimensional Methods in Mechanics"). C = 1.03 ly for E51 = 1 (an explosion
+# energy of 1e51 erg), n in cm^-3 and t in years: 5.0 pc at 1,000 yr in
+# n = 1 (GEN.151). The radius stops growing at the end of the Sedov phase,
+# where radiative cooling begins and the snowplow starts, R_pds = 45.7 ly
+# * E51^(2/7) * n^(-3/7) (14.0 pc, Cioffi, McKee & Bertschinger 1988, ApJ
+# 334:252).
+SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY = 1.03
 SEDOV_TAYLOR_TIME_EXPONENT = 2 / 5
+SEDOV_TAYLOR_DENSITY_EXPONENT = -1 / 5
+SEDOV_TAYLOR_ENERGY_E51 = 1.0
+SNOWPLOW_ONSET_RADIUS_COEFFICIENT_LY = 45.66
+SNOWPLOW_ONSET_ENERGY_EXPONENT = 2 / 7
+SNOWPLOW_ONSET_DENSITY_EXPONENT = -3 / 7
 
 # Supernova remnant age range, in years -- from newly-formed (a visible
 # shell needs at least some expansion) out to the point (order 10^5

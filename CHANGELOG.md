@@ -2,6 +2,75 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1501] - 2026-10-16
+
+**Headline:** Gamma-ray bursts and the galactic nucleus now count toward a planet's ozone-loss flag.
+
+### Changed
+- **The ozone-loss flag only knew about nearby supernovae.** The lethal-event rate on a star now adds gamma-ray bursts (2 per Gyr at the Sun's distance from the centre, falling off outward; Melott 2004, Thomas 2005) and nuclear-activity episodes (10 per Gyr inside 2.9 kpc of the centre). The nuclear rate is a documented design estimate, not a measurement; the sources and the arithmetic are in the design note.
+- `activity.supernova_rate_per_gyr`, `grb_rate_per_gyr` and `agn_rate_per_gyr` give the three parts; `lethal_event_rate_per_gyr` is their sum.
+
+TODO items resolved: GEN.189 / Added: none
+
+## [8.0.1500] - 2026-10-16
+
+**Headline:** Black hole, neutron star and rogue planet pages now show their Einstein radius against the galactic centre.
+
+### Added
+- **Einstein radius on compact-object pages.** A black hole, neutron star or rogue planet page has a new row, "Einstein Radius (seen from Sol, against the galactic centre)": `sqrt(4GM/c^2 * d * (1 - d/D))` for a lens on the line between Sol and the centre, worked out from the mass and the galactic radius (nothing is stored). A 10 solar-mass black hole 1 kiloparsec from Sol shows 8.4 AU. A lens farther from the centre than Sol is has no row.
+- `planetgen/physics/lensing.py` holds the formula.
+
+TODO items resolved: GEN.154 / Added: none
+
+## [8.0.1499] - 2026-10-16
+
+**Headline:** The to-do list retires the magnetar and pulsar-age work (GEN.153) and the supernova remnant sizes (GEN.151).
+
+### Changed
+
+- Retired GEN.153 (#1792) and GEN.151 (#1795) and removed them from the later-catalogue goal table; migration 0096 is used.
+
+TODO items resolved: GEN.153, GEN.151 / Added: none
+
+## [8.0.1498] - 2026-10-16
+
+**Headline:** The scatter's share of recycled neutron-star pulsars follows the new age-based pulsar rule, which fixes a broken import left when two merges crossed.
+
+### Fixed
+- `NEUTRON_STAR_RECYCLED_SHARE` (the share of scattered neutron stars that are recycled millisecond pulsars, which decides their companions) was built from `NEUTRON_STAR_PULSAR_CHANCE` and `PULSAR_MILLISECOND_CHANCE`, which GEN.153 removed, so importing `generation/phenomenon_scatter.py` failed. It is now `PULSAR_RECYCLED_CHANCE * PULSAR_RATE_SCALE`, about 1e-4, the real fraction of old neutron stars that are recycled pulsars (was 21%).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1497] - 2026-10-16
+
+**Headline:** The to-do list records Core 3 as the owner of the failing navigation test (TEST.163).
+
+### Changed
+
+- TEST.163 now names Core 3 as its owner and sits in Core 3's lane list; the GitHub issue (#1654) carries the same note.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1496] - 2026-10-16
+
+**Headline:** Supernova remnants are sized by the real Sedov-Taylor blast-wave law, so a remnant in thin gas grows larger than one in dense gas.
+
+### Changed
+- **Remnant radii ignored the surrounding gas.** Every remnant used one fixed coefficient, which is a blast in gas of about 220 atoms per cubic centimetre, although the remnant classes list densities from 0.1 to 100. The radius is now `1.03 ly (E51 / n)^(1/5) (t / yr)^(2/5)` for an explosion of 1e51 erg in the remnant's own density `n`, held at the snowplow onset radius `45.7 ly * n^(-3/7)` where radiative cooling begins. A 1,000-year remnant in 1 atom per cubic centimetre is 5.0 pc.
+- The new `sedov_taylor_radius_ly` function in `generation/phenomena/supernova_remnant.py` is the single formula; the plausibility check uses it too.
+
+TODO items resolved: GEN.151 / Added: none
+
+## [8.0.1495] - 2026-10-16
+
+**Headline:** The to-do list retires the scatter companions (GEN.262), which unblocks the compact-pair promotion (GEN.263).
+
+### Changed
+
+- Retired GEN.262 (#1793), removed it from the multi-star goal table and added a TEST.163 sighting.
+
+TODO items resolved: GEN.262 / Added: none
+
 ## [8.0.1494] - 2026-10-16
 
 **Headline:** Stars, black holes, neutron stars and planetary nebulae in the scatter now come with their companions.

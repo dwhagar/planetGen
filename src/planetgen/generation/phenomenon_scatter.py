@@ -198,7 +198,7 @@ PLACED_KINDS = {
 placed object (the central star of a planetary nebula is a white dwarf). A supernova remnant, a quasar, a
 hypervelocity star and the nucleus carry none (multi-star-systems.md 4.3)."""
 
-NEUTRON_STAR_RECYCLED_SHARE = tuning.NEUTRON_STAR_PULSAR_CHANCE * tuning.PULSAR_MILLISECOND_CHANCE
+NEUTRON_STAR_RECYCLED_SHARE = tuning.PULSAR_RECYCLED_CHANCE * tuning.PULSAR_RATE_SCALE
 """float: The share of scattered neutron stars that are recycled millisecond pulsars (pulsing, then recycled)."""
 
 

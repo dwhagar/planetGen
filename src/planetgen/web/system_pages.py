@@ -22,6 +22,7 @@ from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.galaxy import objectref
 from planetgen.physics import constants as physical_constants
+from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
 from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_distance_km, format_number, linkify_nearest,
@@ -675,6 +676,10 @@ def _comet_composition_text(components):
 _SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", speed_kms_html)
 _PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: period_years_html(v * 1e9))
 
+_EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from Sol, against the galactic centre)",
+                    _quantity("length"))
+"""The derived row of a compact object's page (GEN.154): see `_derived_fields`."""
+
 FIELD_SPECS = {
     "nebula": [
         ("nebula_class", "Class", _cloud_class_text),
@@ -702,6 +707,7 @@ FIELD_SPECS = {
         ("temperature_k", "Hawking Temperature", _kelvin),
         ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
+        _EINSTEIN_RADIUS,
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
@@ -714,6 +720,7 @@ FIELD_SPECS = {
         ("surface_temperature_k", "Surface Temperature", _kelvin),
         ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
+        _EINSTEIN_RADIUS,
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
@@ -748,6 +755,7 @@ FIELD_SPECS = {
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
         ("hp_ice_km", "High-Pressure Ice Below", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
+        _EINSTEIN_RADIUS,
         _SPEED, _PERIOD,
     ],
     "interstellar_comet": [
@@ -786,6 +794,26 @@ CLASS_COLUMNS = {
 links by its letter."""
 
 
+def _with_derived_fields(phenomenon_type, detail):
+    """`detail` plus the values worked out from it rather than stored: the
+    Einstein radius (GEN.154) of a black hole, neutron star or rogue planet
+    that has a galactic position, left out for a lens beyond Sol's distance
+    from the centre (`physics/lensing.py`)."""
+    if phenomenon_type in ("black_hole", "neutron_star"):
+        mass_kg = (detail.get("mass_solar") or 0) * physical_constants.SOLAR_MASS_TO_KG
+    elif phenomenon_type == "rogue_planet":
+        mass_kg = detail.get("mass_kg") or 0
+    else:
+        return detail
+    radius_pc = detail.get("galactic_radius_pc")
+    if radius_pc is None:
+        return detail
+    einstein_m = einstein_radius_against_galactic_centre_m(mass_kg, radius_pc)
+    if einstein_m is None:
+        return detail
+    return {**detail, "einstein_radius_m": einstein_m}
+
+
 def phenomenon_fields(phenomenon_type, detail):
     """`[(label, text, url)]` for the data table; `url` is the value's
     class page, or `None`. Needs a request context."""
@@ -797,6 +825,7 @@ def phenomenon_fields(phenomenon_type, detail):
             detail["temperature_k"] = hawking_temperature_k(detail["mass_solar"])
         if not detail.get("luminosity_w"):
             detail["luminosity_w"] = hawking_luminosity_w(detail["mass_solar"])
+    detail = _with_derived_fields(phenomenon_type, detail)
     for column, label, formatter in FIELD_SPECS.get(phenomenon_type, []):
         raw = detail.get(column)
         if raw is None:

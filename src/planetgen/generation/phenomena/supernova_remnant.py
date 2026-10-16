@@ -30,6 +30,32 @@ from planetgen.names.wordsalad import LazySaladName
 from planetgen.util.format import format_distance_ly, format_number, format_number_density_cm3
 
 
+def sedov_taylor_radius_ly(age_years, density_cm3, energy_e51=None):
+    """
+    A supernova remnant's radius, light-years (GEN.151): the Sedov-Taylor
+    blast wave `C (E51 / n)^(1/5) t^(2/5)` in the ambient density `n`
+    (`density_cm3`), held at the snowplow onset radius
+    `45.66 ly * E51^(2/7) * n^(-3/7)` once the remnant has cooled that far
+    (`tuning.SEDOV_TAYLOR_*`, `tuning.SNOWPLOW_ONSET_*`).
+
+    Args:
+        age_years (float): Years since the explosion.
+        density_cm3 (float): Ambient number density, cm^-3.
+        energy_e51 (float, optional): Explosion energy in units of 1e51
+            erg (`tuning.SEDOV_TAYLOR_ENERGY_E51` when omitted).
+    """
+    if energy_e51 is None:
+        energy_e51 = tuning.SEDOV_TAYLOR_ENERGY_E51
+    sedov = (tuning.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
+             * energy_e51 ** (-tuning.SEDOV_TAYLOR_DENSITY_EXPONENT)
+             * density_cm3 ** tuning.SEDOV_TAYLOR_DENSITY_EXPONENT
+             * age_years ** tuning.SEDOV_TAYLOR_TIME_EXPONENT)
+    snowplow = (tuning.SNOWPLOW_ONSET_RADIUS_COEFFICIENT_LY
+                * energy_e51 ** tuning.SNOWPLOW_ONSET_ENERGY_EXPONENT
+                * density_cm3 ** tuning.SNOWPLOW_ONSET_DENSITY_EXPONENT)
+    return min(sedov, snowplow)
+
+
 def remnant_classes_for(progenitor_type, compact_remnant_kind):
     """
     The remnant classes (R-W) a remnant with this progenitor and compact
@@ -154,10 +180,6 @@ class SupernovaRemnant(LazySaladName):
         class_data = tuning.NEBULA_CLASSES[self.remnant_class]
         self.morphology = class_data["morphology"]
         self.age_years = draw.uniform(*class_data["age_range_years"])
-        self.radius_ly = (
-            tuning.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
-            * (self.age_years ** tuning.SEDOV_TAYLOR_TIME_EXPONENT)
-        )
         self.compact_remnant = None
         if kind == "black_hole":
             self.compact_remnant = BlackHole(system_config, name=f"{self.name} Core")
@@ -166,6 +188,7 @@ class SupernovaRemnant(LazySaladName):
                                                age_gy=self.age_years / 1e9)
         (self.dominant_species, self.density_cm3, self.temperature_k,
          self.extinction_av) = draw_class_contents(self.remnant_class)
+        self.radius_ly = sedov_taylor_radius_ly(self.age_years, self.density_cm3)
         self.compact_offset_ly = self._draw_kick_offset_ly(kind)
 
     def _draw_kick_offset_ly(self, kind):

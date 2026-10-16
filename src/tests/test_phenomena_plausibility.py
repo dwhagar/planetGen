@@ -29,6 +29,7 @@ import pytest
 
 from planetgen.generation import phenomena_plausibility as pp
 from planetgen.generation.phenomena.compact_remnant import hawking_luminosity_w
+from planetgen.generation.phenomena.supernova_remnant import sedov_taylor_radius_ly
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog_c
 
@@ -142,10 +143,7 @@ def _base_record(phenomenon_type, **overrides):
             "remnant_class": "S", "morphology": "shell", "compact_remnant_kind": "neutron_star",
             "density_cm3": 1.0, "temperature_k": 3e6, "extinction_av": 0.05,
             "age_years": _SUPERNOVA_AGE_YEARS,
-            "radius_ly": (
-                prog_c.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
-                * (_SUPERNOVA_AGE_YEARS ** prog_c.SEDOV_TAYLOR_TIME_EXPONENT)
-            ),
+            "radius_ly": sedov_taylor_radius_ly(_SUPERNOVA_AGE_YEARS, 1.0),
             "progenitor_type": "core-collapse", "has_compact_remnant": True,
         },
         "rogue-planet": {"mass_kg": 1e27, "radius_km": 70000.0, "planet_type": "g", "planet_class": "J"},

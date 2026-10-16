@@ -112,7 +112,7 @@ def test_a_neutron_star_row_is_a_millisecond_pulsar_at_the_pulsar_chances_and_ta
     seeds = _seeds(total, start=21)
     recycled = [s for s in seeds if scatter_companions.screen_unit(s, "recycled")
                 < phenomenon_scatter.NEUTRON_STAR_RECYCLED_SHARE]
-    share = tuning.NEUTRON_STAR_PULSAR_CHANCE * tuning.PULSAR_MILLISECOND_CHANCE
+    share = phenomenon_scatter.NEUTRON_STAR_RECYCLED_SHARE
     assert _within_four_sigma(len(recycled), total, share)
     states = Counter()
     for seed in recycled:
