@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1554] - 2026-10-16
+
+**Headline:** The double-click flight on the Galaxy Map (MAP.226) is retired after the merge, and the satellite derivation chain is recorded.
+
+### Changed
+
+- MAP.226 is removed from the TODO and ticked in the progress ledger (merged as #1859); the empty-space half-way double click it did not build moves to the MAP.225 note.
+- GEN.368, GEN.369 and GEN.371 record the derivation chain for drawn satellites (halo mass to subhalo count, placement, stellar mass, size, metallicity, age), each link to name its source.
+
+TODO items resolved: MAP.226 / Added: none
+
 ## [8.0.1553] - 2026-10-16
 
 **Headline:** The drawn satellites must be calculated or derived from real science, not copied.
