@@ -710,3 +710,4 @@ Baseline: PR #1817.
 | PERF.88 | 8.1 | Queue, caches and performance |
 | ADM.84 | 8.1 | Settings page |
 | OPS.56 | 8.1 | Reproducible galaxies |
+| GEN.102 | 8.1 | Components and wanderers |

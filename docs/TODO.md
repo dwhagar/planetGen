@@ -3002,26 +3002,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: DB.59, GEN.357, GEN.358.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
-  Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
-  that plots to have a 0 or nearly 0 star density) at once, since those
-  sectors have the least in them, we can afford to fill them." Done: a
-  count of such sectors, the time and storage a fill would take, and a
-  recommendation for Boss.
-  Research (2026-10-09, sampling-backfill-and-resume.md): re-scope the
-  "count": there are no zero-density sectors inside the outline (minimum
-  density 0.069). Define "void" as expected systems below 1: 12.4% of
-  sectors (2.97 billion) and 0.77% of systems; the density-below-0.1
-  subset is 2.44% of sectors (5.8e8). Cost (design doc 5.2): about 330
-  days on one worker for density below 0.1, about 5 years for expected
-  systems below 1; the fixed cost per sector is the lever (the timing
-  report's three levers could roughly halve the 40 ms). Recommendation:
-  do not pre-fill; keep lazy fill. Decided (Boss, 2026-10-10 18:44Z,
-  defaults approved; default no):
-  do you still want the sparse rim filled?
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 4).
-
 - [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
   Boss (2026-10-07 11:47Z): "Research and add tiered structure
   information about where stars of different types would be in the
@@ -3041,6 +3021,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-kind factors are built (GEN.234, GEN.236); what is left is the
   population-dependent rules for the type draws. Fold into GEN.269 or
   close once GEN.270 to GEN.275 land.
+  Research supplied (Boss, 2026-10-16, 5:55 PM EDT, in the project
+  chat): the two constants Core 4 could not look up, the close-binary
+  fraction against [Fe/H] and the encounter-disruption limit for wide
+  pairs with the Jacobi radius as the outer limit. Sources named by Boss:
+  Badenes 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018,
+  El-Badry, Rix and Heintz 2021, Kratter and Lodato 2016, Bate 2018,
+  Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and Tremaine 2010,
+  Stegmann 2024. The reference list is unverified and Core 4 checks it.
+  Filed as derivation rules of the type draw, not fixed values, in
+  docs/design/multistar-and-compact-systems.md section 6.6: the close
+  share follows the cell's [Fe/H] and the wide-pair limit is computed
+  from the cell's density, dispersion, age and tidal field.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
