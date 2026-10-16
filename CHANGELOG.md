@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1457] - 2026-10-16
+
+**Headline:** The to-do list records that the giant-branch spread fix is built together with the horizontal-branch phases.
+
+### Changed
+
+- GEN.287 (giant-branch luminosity spread) is built together with GEN.286 in one pipeline instead of being queued separately, and GEN.286 says horizontal-branch stars must appear in the fill as well as the scatter, in the proper proportions (Boss, 2026-10-15, 10:06 PM EDT).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1456] - 2026-10-16
 
 **Headline:** The to-do list lowers the halo luminosity floor's lowest value to 50 and adds a horizontal-branch acceptance test.
