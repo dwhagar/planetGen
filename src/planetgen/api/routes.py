@@ -98,11 +98,13 @@ from planetgen import tuning
 from planetgen.population import facility_ratings, facility_suggest, facility_types
 from planetgen.galaxy import objectref as object_ref, superbubble_field, version_check
 from planetgen.galaxy.profile import sector_profile
+from planetgen.galaxy.profile_report import profile_report
 from planetgen.galaxy.resolution import cell_resolution
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.profile import profile_at
+from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
@@ -972,17 +974,14 @@ def unresolved_of(conn, detail):
             "unresolved_mass_solar": float("%.4g" % found.unresolved_mass_solar)}
 
 
-@bp.route("/galaxy/cell")
-def galaxy_cell():
+def _cell_query_address(skeleton):
     """
-    One sector cell of the spherical grid, whether or not anything was
-    ever generated there: `?shell=I&band=J&wedge=K` names it by address,
-    `?x=&y=&z=` (parsecs, galaxy frame) by any point inside it. Returns
-    `spherical.describe_sector_cell` (center in Cartesian, cylindrical
-    and spherical coordinates, bounds, 8 corners) plus `sector_id`, the
-    generated sector there or `null`, and `in_galaxy`: whether the cell lies
-    inside the planned galaxy's stored outline (`null` before any plan).
-    Uses the stored skeleton's edge length, else the standard 4 pc.
+    The `(shell, band, wedge)` and the sector edge a `/galaxy/cell`-style query names: `?shell=&band=&wedge=` by
+    address, `?x=&y=&z=` (parsecs, galaxy frame) by any point inside the cell. Uses the stored skeleton's edge length,
+    else the standard 4 pc.
+
+    Raises:
+        ApiError: 400 for a missing, non-numeric or non-finite part, a negative shell, or a point too far out.
     """
     def number(name, cast):
         value = request.args.get(name)
@@ -993,8 +992,6 @@ def galaxy_cell():
         except ValueError:
             raise ApiError(f"{name} must be a number")
 
-    conn = get_db()
-    skeleton = get_galaxy_shape(conn)
     edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
     shell, band, wedge = number("shell", int), number("band", int), number("wedge", int)
     x, y, z = number("x", float), number("y", float), number("z", float)
@@ -1011,6 +1008,24 @@ def galaxy_cell():
         raise ApiError("give shell, band and wedge, or x, y and z")
     if address[0] < 0:
         raise ApiError("shell must be >= 0")
+    return address, edge_pc
+
+
+@bp.route("/galaxy/cell")
+def galaxy_cell():
+    """
+    One sector cell of the spherical grid, whether or not anything was
+    ever generated there: `?shell=I&band=J&wedge=K` names it by address,
+    `?x=&y=&z=` (parsecs, galaxy frame) by any point inside it. Returns
+    `spherical.describe_sector_cell` (center in Cartesian, cylindrical
+    and spherical coordinates, bounds, 8 corners) plus `sector_id`, the
+    generated sector there or `null`, and `in_galaxy`: whether the cell lies
+    inside the planned galaxy's stored outline (`null` before any plan).
+    Uses the stored skeleton's edge length, else the standard 4 pc.
+    """
+    conn = get_db()
+    skeleton = get_galaxy_shape(conn)
+    address, edge_pc = _cell_query_address(skeleton)
     try:
         cell = describe_sector_cell(*address, edge_pc)
     except OverflowError:
@@ -1022,6 +1037,38 @@ def galaxy_cell():
     bounds = get_galaxy_bounds(conn)
     cell["in_galaxy"] = bounds.qualifies(address[0], address[1]) if bounds is not None else None
     return jsonify(cell)
+
+
+@bp.route("/galaxy/profile")
+def galaxy_profile():
+    """
+    The Sector Profile of any cell of the grid (API.27), charted or not, so an uncharted sector can be previewed:
+    `?shell=I&band=J&wedge=K` by address, `?x=&y=&z=` by any point inside the cell. Read only: nothing is generated,
+    stored or drawn from the run's random numbers; `galaxy.profile.sector_profile` is closed form in the stored
+    skeleton and the address, so two calls give the same answer. See `profile_report.profile_report` for the body.
+    `404` before a galaxy is planned (there is no shape to read), `400` for a bad query or a cell past the grid's
+    reach (`spherical.MAX_ADDRESSABLE_SHELL`).
+    """
+    conn = get_db()
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is None:
+        raise ApiError("no galaxy has been planned, so there is no profile to read", 404)
+    address, _edge_pc = _cell_query_address(skeleton)
+    if address[0] > spherical.MAX_ADDRESSABLE_SHELL:
+        raise ApiError(f"shell must be <= {spherical.MAX_ADDRESSABLE_SHELL}, the outermost shell of the grid's reach")
+    try:
+        profile = sector_profile(address, skeleton)
+    except OverflowError:
+        raise ApiError("that cell is too far out")
+    except ValueError as err:
+        raise ApiError(str(err))
+    body = profile_report(profile)
+    body["sector_id"] = get_sector_id_at(conn, *address)
+    bounds = get_galaxy_bounds(conn)
+    body["in_galaxy"] = bounds.qualifies(address[0], address[1]) if bounds is not None else None
+    body["unresolved"] = unresolved_of(conn, {"placed": True, "shell_index": address[0], "band_index": address[1],
+                                              "wedge_index": address[2]})
+    return jsonify(body)
 
 
 @bp.route("/galaxy/tiles")
