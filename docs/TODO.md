@@ -397,7 +397,11 @@ with `clamp()`.
     No grouping or API of its own: the bookmark per charted group (kept
     up to date as sectors are charted) and the highlighted outline on
     open, from the library of MAP.190 (2026-10-16 review).
-    Prerequisites: UX.47, MAP.190.
+    Boss (2026-10-16, 7:24 PM EDT): dislikes the outlined blocks marking
+    charted space and wants colour and opacity highlighting instead, so
+    the region highlight here is a fill (the same as MAP.238), not an
+    outline.
+    Prerequisites: UX.47, MAP.190. Related: MAP.238.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
@@ -2050,6 +2054,65 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a picker layer so a click selects it. Needs the registry (MAP.217).
   The key text itself is MAP.234. Owner: Core 2.
   Prerequisites: MAP.217. Related: MAP.234, MAP.217, GEN.254.
+
+- [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
+  Boss (2026-10-16, 7:24 PM EDT, timeline): "the super bubbles need
+  better definition to the bounds and be slightly more transparent."
+  Today each superbubble (GEN.254) is three faint great circles
+  (`static/galaxymap3d.js`, "Superbubbles (GEN.254)", colour 0x6fb3d8,
+  opacity 0.14, always on), so the bound reads as two crossing ellipses
+  and the inside has no edge. Done: the bound of each bubble is clearly
+  defined (a brighter rim where the shell meets the line of sight, or a
+  crisp outline of the true sphere silhouette, not three crossing
+  rings), and the fill is slightly more transparent than today; both
+  read in the dark and the light theme and at every zoom stage, and the
+  look is drawn the same on the Sector Map where a bubble is shown. A
+  browser screenshot test checks that the rim is brighter than the fill
+  and the fill alpha is lower than 0.14. The key entry and toggle are
+  MAP.234 and MAP.235; this item changes only the look.
+  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Prerequisites: none. Related: MAP.234, MAP.235, GEN.254.
+
+- [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug)**
+  Boss (2026-10-16, 7:24 PM EDT, timeline): "the 'charted only' has gone
+  back to being invisible from the galactic map, so we need some kind of
+  way to see where they are." MAP.111 made "Charted only" dim blocks
+  with nothing generated, dim stars outside charted sectors and outline
+  each charted block ("Charted only" in the Menu; `setChartedOnly` in
+  `static/galaxymap3d.js` sets the `chartedOnly` star uniform and calls
+  `stageView.setChartedOnly`), and MAP.112 let empty blocks be hovered
+  with it on. It was visible then and is not now, so something since
+  then broke it or hid it (the infinite-zoom and tile work changed the
+  stages). Reproduce on a database with a charted region, find the root
+  cause, and fix it; do not add a second way to see charted space (the
+  look itself is MAP.237). Done: with Charted only on, charted space is
+  visibly different from the rest at every stage (whole galaxy, a window
+  of blocks, a single sector window), with a browser test that compares
+  a screenshot (or the drawn colours) with the toggle on and off at each
+  stage and fails if they are the same.
+  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Prerequisites: none. Related: MAP.111, MAP.112, MAP.238, MAP.190,
+  UX.48.
+
+- [ ] **MAP.238 Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked**
+  Boss (2026-10-16, 7:24 PM EDT, timeline): "I also don't like the
+  outlined blocks for it, they are really ugly and make it hard to
+  navigate and see where you are. So rather I want to highlight with
+  color and opacity." Today charted space is marked by an outline around
+  each charted block (MAP.111) and UX.48 plans an outlined region shape.
+  Done: charted blocks and regions are highlighted by a fill colour and
+  opacity that rise with the filled share (the amber of generated blocks
+  already grows more solid with it), with no outline drawn around
+  charted blocks or regions on the Galaxy Map or the Sector Map;
+  "Charted only" (the Menu) raises the highlight and dims the rest; the
+  hover outline on a choice stays (it marks what the pointer is on, not
+  charted space); the region highlight of UX.48 uses the same fill. Both
+  themes, every stage, and a browser test that no outline mesh is built
+  for charted blocks and the fill differs between a charted and an empty
+  block. Needs MAP.237 (the toggle must show something at all before it
+  is restyled), and changes the look MAP.111 gave it.
+  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Prerequisites: MAP.237. Related: MAP.237, MAP.111, MAP.190, UX.48.
 
 ## NAV: Navigation and courses
 
