@@ -71,6 +71,7 @@ NULL_IN_THIS_GALAXY = {
     **{("nebulae", column): CHANCE for column in ("age_myr", "q_total", "hosts")},
     # The cell key is derived from the center, so it is NULL wherever the center is.
     ("facilities", "cell_key"): "facility hosts used", ("quasars", "cell_key"): CHANCE,
+    ("supernova_remnants", "cell_key"): "standalone remnant",
     ("interstellar_comets", "cell_key"): CHANCE,
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
@@ -113,6 +114,8 @@ NEVER_READ = {
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
     ("facilities", "cell_key"): "an index column MySQL fills; the region query reads it (NAV.43)",
+    **{("star_systems", column): "the point a system sits at in the galaxy frame; the region query and the orbit update read it"
+       for column in ("cell_key", "galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc")},
     # GEN.106: the orbit update's own clock, read only by planetgen.cli.orbits.
     **{(table, column): "the orbit update's clock" for table, column in (
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),

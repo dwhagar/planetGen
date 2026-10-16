@@ -354,14 +354,15 @@ def test_distinct_addresses_get_distinct_designations(a, b):
     assert spherical.provisional_sector_designation(*a) != spherical.provisional_sector_designation(*b)
 
 
-@given(addresses(shells=st.integers(1300, 4095)).filter(lambda address: not _designatable(address)))
+@given(addresses(shells=st.integers(100_000, (1 << spherical.DESIGNATION_SHELL_BITS) - 1))
+       .filter(lambda address: not _designatable(address)))
 def test_designation_rejects_bands_outside_its_bit_field(address):
-    # The caps and high bands of the outer shells (past about shell 1,300) are beyond the 12-bit band field.
+    # The caps and high bands of the shells past the grid's reach (past about shell 83,000) are beyond the 18-bit band field.
     with pytest.raises(ValueError):
         spherical.provisional_sector_designation(*address)
 
 
-@given(st.integers(min_value=1 << 12, max_value=10**6))
+@given(st.integers(min_value=1 << spherical.DESIGNATION_SHELL_BITS, max_value=10**8))
 def test_designation_rejects_shells_outside_its_bit_field(shell):
     with pytest.raises(ValueError):
         spherical.provisional_sector_designation(shell, 0, 0)

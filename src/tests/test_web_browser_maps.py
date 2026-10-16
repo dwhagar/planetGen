@@ -95,7 +95,7 @@ def _active_scene(page):
     }""")
 
 
-PUBLIC_ID = r"[0-9A-F]{10}-[0-9A-F]{7}-[0-9A-F]{3}"
+PUBLIC_ID = r"[0-9A-F]{14}-[0-9A-F]{7}-[0-9A-F]{3}"
 """str: An object's public ID (API.23): 80 bits as `<birth sector>-<serial>-<body>`, not a row number. TEST.125:
 these tests matched `\\d+` and so found no moon on every page, long after the generator was fine."""
 

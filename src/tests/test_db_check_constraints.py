@@ -23,6 +23,7 @@ CHECK_VIOLATED = (3819, 4025)
 """MySQL's "Check constraint ... is violated", MariaDB's "CONSTRAINT ... failed"."""
 
 _IN_LIST = re.compile(r"^`?(\w+)`?\s+in\s*\(", re.IGNORECASE)
+_NULL_OR_IN = re.compile(r"^`?(\w+)`?\s+is\s+null\s*\)?\s+or\s+\(?`?\1`?\s+in\s*\(", re.IGNORECASE)
 _BETWEEN = re.compile(r"^`?(\w+)`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGNORECASE)
 _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
@@ -54,6 +55,9 @@ _EMPTY_TABLE_ROWS = {
 def _breaking_value(conn, table, clause, row):
     """`(column, value)` that the clause refuses for `row`."""
     clause = " ".join(clause.strip().strip("()").split())
+    match = _NULL_OR_IN.match(clause)
+    if match:
+        return match[1], "zz"
     match = _IN_LIST.match(clause)
     if match:
         column = match[1]
