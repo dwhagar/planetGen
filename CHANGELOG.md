@@ -2,6 +2,79 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1573] - 2026-10-16
+
+**Headline:** The cell key is now tested across a cube boundary on every table that holds a position.
+
+### Changed
+
+- New `test_cellkey_motion.py`: the orbit update carries a star system, a nebula, a facility, a bright star and a black-hole scatter point 0.04 pc over a cube face, and a hypervelocity star over a face on each axis, and the stored key is the next cube's, one cube away on that axis only; a step inside a cube leaves the key where it was.
+- The same file writes awkward points (on a face, one step either side of it, off the box, `0.1 + 0.2`, the smallest double) to one row of every table with a cell key and reads back the same bits and the same key as `cellkey.cell_key`.
+
+TODO items resolved: TEST.166 / Added: none
+
+## [8.0.1572] - 2026-10-16
+
+**Headline:** The TODO list retires DB.59, whose nebula and remnant age columns turned out to exist already.
+
+### Changed
+- **DB.59 is done: already built.** Core 2 found that `nebulae` has had `age_myr`, `q_total` and `hosts` since v87 and the remnants table `age_years` since v38, saved by the store and covered by the HII and column round-trip tests. GEN.357 can start now, and GEN.358 and GEN.95 no longer list DB.59. Migration revision 0102 is free: DB.54 takes 0102 after DB.55's 0101, and Core 1 fixes the order if DB.54 merges first.
+
+TODO items resolved: DB.59 / Added: none
+
+## [8.0.1571] - 2026-10-16
+
+**Headline:** The plan records Boss's research for the multi-star type draw and retires the void-fill question.
+
+### Changed
+- **GEN.102 is done: no pre-fill (Boss, 5:55 PM EDT).** Lazy fill stays; the void-space investigation leaves the list.
+- **GEN.103 has its research.** Boss supplied the close-binary fraction against [Fe/H] and the encounter-disruption limit for wide pairs (with the Jacobi radius as the outer limit). They are written as derivation rules in section 6.6 of the multi-star design note, not as stored values; the reference list is unverified and Core 4 checks it before anything is coded.
+
+TODO items resolved: GEN.102 / Added: none
+
+## [8.0.1570] - 2026-10-16
+
+**Headline:** The TODO list retires the generator epoch counter and its PR rule, which Core 2 built.
+
+### Changed
+- **OPS.56 is done (#1877).** The generator epoch counter, the `golden_update` tool and the PR rule are in; GEN.135, OPS.57 and OPS.58 no longer wait on it. TEST.193 gains Core 2's reproduction of the teardown hang (an idle connection holds the lock).
+
+### Added
+- **TEST.195, a 30 s request timeout in a browser test under load (bug).** `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out fetching a sector's galaxy view in a full run and passed alone; goal issue #1694.
+
+TODO items resolved: OPS.56 / Added: TEST.195
+
+## [8.0.1569] - 2026-10-16
+
+**Headline:** The generator now has an epoch counter, and a pull request that changes what a seed generates must bump it.
+
+### Added
+- `src/tests/golden/epochs.json` holds the generator epoch, `planetgen.util.generator_epoch.generator_epoch()` reads it, and `python -m tests.golden_update --reason "..."` bumps it (refusing under CI, when no golden file changed, and a second time in one change).
+- `scripts/bump_version.py --check-pr` fails a PR unless the golden files changed, the epoch went up by one, and the note carries a `generation-output: changed` line, all three or none. Stamping the release writes it into the epoch's `first_release`.
+
+## [8.0.1568] - 2026-10-16
+
+**Headline:** The TODO list retires the Admin settings page, which the Settings lane built.
+
+### Changed
+- **ADM.84 is done (#1875).** The Admin settings page at `/admin/settings` has the review step, the restart banner and three new API routes. TEST.192 gains Core 1's sighting of the fuzz failure and its test-only fix.
+
+### Added
+- **TEST.194, a flaky system-map browser test under load (bug).** `test_system_map_selection_drill_and_measure` failed once in a full run and passed alone; goal issue #1694.
+
+TODO items resolved: ADM.84 / Added: TEST.194
+
+## [8.0.1567] - 2026-10-16
+
+**Headline:** Admins can now see and change every program option from a new Settings page, with help for each option, a review of the changes before anything is saved, a backup of the old file and an audit row for every change.
+
+### Changed
+- New Admin page `/admin/settings` (a Settings tab on every admin page and a link on the Admin overview). It lists every option of `config.json` grouped by category, each with its help text, default, limits, unit, where the value in use comes from (default, `config.json` or an environment variable) and whether a change needs a restart. The list is drawn from the settings model, so an option added to the model appears with no page code.
+- Press Review the changes to see the old and new value of each changed option, which ones need a restart and which an environment variable still overrides; a value that does not fit is sent back with its message at its option and nothing is saved. Confirming saves through the settings writer: a backup archive of the old file first, an atomic write and one audit row per option. A file changed by someone else after the form was opened is refused, not overwritten.
+- Options an admin may not change (command line only, or the Owner's) are listed read-only with the reason. A secret is never shown: its box is write-only. Use the default removes a key from the file.
+- While a saved option still needs a restart of the web server, every admin page shows a banner naming it.
+- New API routes `GET /api/admin/settings`, `POST /api/admin/settings/plan` and `POST /api/admin/settings` (`docs/api.md`).
+
 ## [8.0.1566] - 2026-10-16
 
 **Headline:** The TODO list retires the numba sector-path integrator, which saves sector paths 21 times faster.
