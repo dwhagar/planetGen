@@ -2993,8 +2993,9 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
         """
         INSERT INTO asteroid_belts (
             star_system_id, star_id, orbital_index, distance_km, lower_limit_km, upper_limit_km,
-            density, composition_summary
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            density, composition_summary,
+            position_x_km, position_y_km, position_z_km, velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, orbital_index,
@@ -3003,6 +3004,9 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
             belt.upper_limit * physical_constants.AU_TO_KM,
             belt.density,
             belt.get_composition_summary(),
+            # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries
+            # no vector of its own; its bulk has no mass model yet, a stated zero the gravity sum skips.
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         ),
     )
     belt_id = cur.lastrowid
@@ -3052,8 +3056,8 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
             min_update_interval_years, primary_mass_solar, is_active,
             distance_km, position_x_km, position_y_km, position_z_km, orbital_speed_kms,
             velocity_x_kms, velocity_y_kms, velocity_z_kms,
-            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg, mass_kg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, comet.name, comet.orbit_type, comet.period_class,
@@ -3069,6 +3073,7 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
             comet.orbital_speed_kms,
             comet.velocity_x_kms, comet.velocity_y_kms, comet.velocity_z_kms,
             getattr(comet, "rotation_period_hours", None), *spin.spin_values(comet),
+            bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km),
         ),
     )
     comet_id = cur.lastrowid
@@ -3626,8 +3631,9 @@ def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
             sector_id, name, black_hole_mass_solar, event_horizon_radius_km, eddington_ratio,
             luminosity_w, accretion_rate_solar_per_year, broad_line_region_light_days,
             is_radio_loud, jet_length_ly, active_age_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, quasar.name, quasar.black_hole_mass_solar, quasar.event_horizon_radius_km,
@@ -3635,6 +3641,9 @@ def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
             quasar.broad_line_region_light_days, int(quasar.is_radio_loud), quasar.jet_length_ly,
             quasar.active_age_years,
             *_placement_values(GALACTIC_CENTER_PLACEMENT if placement is not None else None),
+            # GEN.337: the nucleus is the origin of the galaxy frame and does not move (a stated zero vector), and its
+            # point holds from the database's orbit epoch. It is never due: the orbit update skips it.
+            0.0, 0.0, 0.0, get_orbit_epoch_unix(conn),
         ),
     )
     confirm_object_name(conn, name_base, "quasars", cur.lastrowid, diminutive_index)
@@ -5167,8 +5176,8 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
             asteroid_belt_id, asteroid_field_id, sector_id,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
             velocity_x_kms, velocity_y_kms, velocity_z_kms,
-            orbit_distance_km, orbit_period_years, orbital_speed_kms, orbit_phase_deg, description, uid
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            orbit_distance_km, orbit_period_years, orbital_speed_kms, orbit_phase_deg, description, uid, mass_kg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             name, kind, placement, host_type, columns.get("star_system_id"), columns.get("star_id"),
@@ -5177,6 +5186,9 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
             *placement_values, *velocity_kms,
             orbit.get("distance_km"), orbit.get("period_years"), orbit.get("orbital_speed_kms"),
             orbit.get("phase_deg"), description, facility_uid,
+            # GEN.337: the mass of what it sits on (a star, planet or moon); a belt, a field and open space have none
+            # that a facility could be said to hold, a stated zero.
+            mass if host_type in ("star", "planet", "moon") and mass else 0.0,
         ),
     )
     if plan is not None:
