@@ -22,7 +22,7 @@ release is stamped.
 | API | API.28 |
 | ADM | ADM.57 |
 | SEC | SEC.33 |
-| TEST | TEST.174 |
+| TEST | TEST.175 |
 | USR | USR.12 |
 | OPS | OPS.55 |
 | DOC | DOC.54 |
@@ -1731,6 +1731,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) | none | open |
 | TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) | none | open |
 | TEST.173 | test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug) | none | open |
+| TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

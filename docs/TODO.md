@@ -6597,6 +6597,19 @@ clears each one.
   unassigned.
   Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
 
+- [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
+  Finding from Core 2 (2026-10-16, 7:48 AM EDT, kind: browser test, load
+  flake, fails on main: not checked, how often: once in a GEN.159 gate,
+  load 8.2, passes alone):
+  src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-desktop-light]
+  failed under load. The failure text was not captured. Reproducer:
+  scripts/test.py changed (the full parallel gate), then run the test
+  alone. Done: the failure text is captured on the next sighting, the
+  cause is found (a layout or wait timing under load, or a real overflow
+  on the sector page) and the test is made robust without loosening what
+  it proves. Owner: unassigned. Related: TEST.170, TEST.172.
+  Prerequisites: none. Related: TEST.170, TEST.172.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
