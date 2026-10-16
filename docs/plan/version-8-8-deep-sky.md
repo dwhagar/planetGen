@@ -18,11 +18,11 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind |  | Split from MAP.132. |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | MAP.219 | Split from MAP.132. |
 | MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173, MAP.219 | Phase 2. Foundations lane 2. |
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
-| MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | MAP.176 | Phase 2. Foundations lane 2. |
@@ -31,6 +31,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | MAP.176 | Split from MAP.194. |
 | MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | MAP.176, MAP.142 | Split from MAP.191. |
 | MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.214, MAP.215 |  |
+| MAP.233 | Names for nebulae on the Galaxy Map | MAP.229, MAP.176 | Map labels, Boss 2:30 PM EDT. |
 
 ### Clusters and satellites on the map
 
@@ -45,6 +46,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars |  |  |
 | GEN.297 | Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters |  |  |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.237, GEN.238, MAP.217 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
+| MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | MAP.229, MAP.207 | Map labels, Boss 2:30 PM EDT. |
 
 ### Rare stars and phenomena
 

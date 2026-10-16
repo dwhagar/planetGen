@@ -1110,6 +1110,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Extended (2026-10-09, fly-through-view-distance.md): the go-to flight
   is extended by MAP.150 (the free camera): double-click flies to the
   thing clicked, with the wheel zooming to the cursor.
+  The flight on the Galaxy Map (double-click to the thing clicked, "Go
+  to", Enter) is MAP.226; this item keeps the select-and-open behaviour
+  on every map (2026-10-16).
 
 - [ ] **MAP.141 Context around the selection: faint neighbours, and the sectors above and below**
   Boss (GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716)): "When selecting a slab we should
@@ -1224,8 +1227,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.152, MAP.153,
-  MAP.155, MAP.157, MAP.159. Related:
+  Prerequisites: MAP.152, MAP.153, MAP.155, MAP.157, MAP.159, MAP.225,
+  MAP.226, MAP.227, MAP.228. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -1237,6 +1240,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
   Owner: Core 2 (Boss, 2026-10-16, 11:32 AM EDT), right after MAP.152; the 8.1 headline.
+  What remains after MAP.152 merged (2026-10-16) (Boss 2:29 PM EDT): the
+  wheel toward the cursor (MAP.225), the double-click flight (MAP.226),
+  the container named from the camera position (MAP.227) and the camera
+  in the address (MAP.228); each was only in the Done line above and now
+  has its own item. This umbrella closes last.
 
 - [ ] **MAP.147 The Galaxy Map wire format: the investigation (done) and the record of what was built from it**
   Boss (2026-10-09 22:41Z): "File section 5.6 as an item please, and
@@ -1894,6 +1902,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each Menu, keeps its URL key and draws its legend.
   Prerequisites: none. Related: MAP.168, MAP.169, MAP.192, MAP.193,
   MAP.212.
+  The label engine (map labels) registers as a layer kind when this
+  registry lands (2026-10-16).
 
 - [ ] **MAP.218 Galaxy Map density control: a readout for everyone, an editor for admins, with preview, confirm and undo**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -1974,6 +1984,154 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the page and the labels, and a browser test on a seeded cluster
   before and after its first sector is filled.
   Prerequisites: GEN.359. Related: GEN.209.
+
+- [ ] **MAP.225 The wheel zooms toward the point under the cursor, with clearance**
+  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
+  items to the TODO?", after Core 2 reported what MAP.146 still lacks
+  once MAP.152 merged): this piece was only in the Done line of MAP.146
+  and in fly-through-view-distance.md section 4.3, with no item of its
+  own. Boss (2026-10-09 22:24Z): "have them based on the center of where
+  the cursor is clicked. So that we always are drilling down exactly
+  where the user wants." Today the wheel zooms about the shared centre
+  and Shift-click chooses it (MAP.199). Done: the wheel changes the
+  distance by `exp(-0.0025 * deltaY)` toward the point under the cursor,
+  which stays fixed on screen; that point is, in order, the picked star,
+  remnant or cell under the cursor, else the first sample along the
+  cursor ray where the integrated column density passes a threshold,
+  else the point at the current focus depth; each step moves by
+  `min(requested, 0.5 * (d_nearest - d_clear))`, so the speed is
+  logarithmic in the distance to the nearest pickable thing and the
+  camera never lands on a star or inside a wall by accident. Shift-click
+  stays as "turn about this point". A browser test zooms toward a chosen
+  star and checks it stays under the cursor.
+  Prerequisites: MAP.152. Related: MAP.146, MAP.199, MAP.125.
+
+- [ ] **MAP.226 Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space**
+  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
+  items to the TODO?", after Core 2 reported what MAP.146 still lacks
+  once MAP.152 merged): this piece was only in the Done line of MAP.146
+  and in fly-through-view-distance.md section 4.3, with no item of its
+  own. Done: a double-click flies the camera to the thing under the
+  pointer (a star, sector, cell or system) on the van Wijk and Nuij
+  path, with the end distance chosen so the target fills about 60% of
+  the view height; a double-click on empty space flies half of the way
+  toward the point under the cursor; the same flights are offered from a
+  "Go to" button and from Enter (MAP.140's non-gesture alternative), and
+  with reduced motion the camera jumps. MAP.140 keeps the
+  select-and-open behaviour on every map; this item is the flight on the
+  Galaxy Map. A browser test double-clicks a star and checks the camera
+  ends in front of it.
+  Prerequisites: MAP.225. Related: MAP.146, MAP.140, MAP.139.
+
+- [ ] **MAP.227 The camera names its container: the header and the breadcrumb come from its position**
+  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
+  items to the TODO?", after Core 2 reported what MAP.146 still lacks
+  once MAP.152 merged): this piece was only in the Done line of MAP.146
+  and in fly-through-view-distance.md section 4.3, with no item of its
+  own. Done: "I am in sector X" is worked out from the camera position
+  (`geometry.sector_address_at` is closed form) and shown in the header,
+  and the breadcrumb becomes a trail of containers (galaxy, region,
+  block, sector, system) derived from the position, not from stored
+  state; clicking a crumb flies out to that container. A browser test
+  flies into a sector and checks the header and every crumb.
+  Prerequisites: MAP.226. Related: MAP.146, MAP.139.
+
+- [ ] **MAP.228 The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation**
+  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
+  items to the TODO?", after Core 2 reported what MAP.146 still lacks
+  once MAP.152 merged): this piece was only in the Done line of MAP.146
+  and in fly-through-view-distance.md section 4.3, with no item of its
+  own. Done: the Galaxy Map URL carries the camera (target, distance,
+  orientation) and opening it puts the camera there; bookmarks and the
+  charted-region bookmarks (UX.45, UX.48) store the same value; old
+  block URLs and stage tokens stop working (no backward compatibility,
+  Boss's rule). A browser test copies the address, reloads and checks
+  the camera is where it was.
+  Prerequisites: MAP.225. Related: MAP.146, UX.45, UX.48, MAP.189.
+
+- [ ] **MAP.229 Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom**
+  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
+  our TODO lineup?" Checked the open and finished items, the design
+  notes and the code: no. Only three small label pieces exist: the
+  compass and neighbour sprite labels of `sectorscene.js`, the course
+  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
+  over the system view (`systemview3d.js`); the design notes carry no
+  label placement, collision or zoom rule. Done: `static/maplabels.js`,
+  one module on the map engine: a label is text, a 3D anchor, a kind, a
+  priority and a distance or pixel-size range; on every camera move the
+  anchors are projected, those outside the view or below the size range
+  are dropped, and the rest are placed by priority on a screen grid with
+  a padding so none overlap, up to a budget (default 60), with a short
+  fade (none under reduced motion) and hysteresis so a label does not
+  flicker at a range edge. Text is drawn with a halo so it reads on both
+  themes at 3:1 contrast. The Menu gets a "Labels" entry with one toggle
+  per kind, kept in the URL. Tests: unit tests of the placement (no
+  overlap, priority wins, stable between frames) and a browser test that
+  labels appear and disappear with zoom; the timing with 20,000 stars in
+  view is reported.
+  Prerequisites: MAP.152. Related: MAP.146, MAP.116, MAP.123, MAP.217.
+
+- [ ] **MAP.230 Names of stars, systems and sectors on the Galaxy Map**
+  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
+  our TODO lineup?" Checked the open and finished items, the design
+  notes and the code: no. Only three small label pieces exist: the
+  compass and neighbour sprite labels of `sectorscene.js`, the course
+  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
+  over the system view (`systemview3d.js`); the design notes carry no
+  label placement, collision or zoom rule. Done: the brightest stars and
+  systems in view show their names and the sector in view shows its name
+  or address, ranked by apparent brightness and nearness to the camera,
+  through the label engine; a star without a name shows its designation
+  only when zoomed in far enough; a kind toggle for each. A browser test
+  checks a named star is labelled at the zoom where it is among the
+  brightest in view and that the label goes when it is not.
+  Prerequisites: MAP.229. Related: MAP.146, MAP.203.
+
+- [ ] **MAP.231 The Sector Map and the System Map use the label engine**
+  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
+  our TODO lineup?" Checked the open and finished items, the design
+  notes and the code: no. Only three small label pieces exist: the
+  compass and neighbour sprite labels of `sectorscene.js`, the course
+  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
+  over the system view (`systemview3d.js`); the design notes carry no
+  label placement, collision or zoom rule. Done: the compass and
+  neighbour labels of the Sector Map and the body labels of the System
+  Map are placed by the same engine (collision, priority, zoom), with
+  the same Labels toggle and the same halo; no second label code is
+  left. Browser tests on both maps keep the labels they show today.
+  Prerequisites: MAP.229. Related: MAP.146, MAP.229.
+
+- [ ] **MAP.232 Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters**
+  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
+  our TODO lineup?" Checked the open and finished items, the design
+  notes and the code: no. Only three small label pieces exist: the
+  compass and neighbour sprite labels of `sectorscene.js`, the course
+  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
+  over the system view (`systemview3d.js`); the design notes carry no
+  label placement, collision or zoom rule. Done: through the label
+  engine, the galaxy's large features show their names at the zooms
+  where they are readable: the arms, the bar, the bulge, the halo and
+  disc, the satellites and wanderers (MAP.207) and the clusters and
+  dwarfs of `galaxy_components` (GEN.237), with the names from the
+  galaxy model and the component table (a small data table where the
+  model has none), each a kind with its own toggle. A browser test
+  checks one of each kind.
+  Prerequisites: MAP.229, MAP.207. Related: GEN.237, GEN.209, MAP.145.
+
+- [ ] **MAP.233 Names for nebulae on the Galaxy Map**
+  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
+  our TODO lineup?" Checked the open and finished items, the design
+  notes and the code: no. Only three small label pieces exist: the
+  compass and neighbour sprite labels of `sectorscene.js`, the course
+  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
+  over the system view (`systemview3d.js`); the design notes carry no
+  label placement, collision or zoom rule. Done: nebula regions and
+  singles show their names (or class and designation) through the label
+  engine at the zooms where the region is large enough to read, with a
+  toggle; the label does not hide the nebula's own pick and hover. A
+  browser test checks a seeded nebula is labelled and unlabelled with
+  zoom.
+  Prerequisites: MAP.229, MAP.176. Related: MAP.176, MAP.180.
 
 ## NAV: Navigation and courses
 
@@ -5736,6 +5894,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bounds are defaults for Boss to change. Done: the option, the read at
   run start, a test that a run with a lower cap stores fewer systems per
   cell, and the entry in docs/config.md.
+  Stored in the user's `config.json` like every option (one
+  configuration file, ADM.96).
   Prerequisites: GEN.280, ADM.84. Related: GEN.281, GEN.283, ADM.43.
 
 - [ ] **GEN.304 The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests**
@@ -8305,7 +8465,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   banner) and ADM.85 (backups, restore, import and export). Done when
   those three are: an Admin page generated from ADM.42's model lists
   every option with its help text, edits and validates it, saves the
-  overlay, and says which changes need a restart. The Owner tier (the
+  user's own `config.json`, and says which changes need a restart. The
+  Owner tier (the
   recent-password prompt) is ADM.86 in 8.2, because it needs the Owner
   account of USR.2.
   Research (2026-10-09, settings-seo-and-accounts.md): re-scope to three
@@ -8316,13 +8477,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   timestamped backups with restore, audit rows, per-field errors, a
   pending-restart banner from a startup snapshot, import and export, a
   recent-password prompt for the Owner tier. `set-permissions.sh` and
-  the installers must create the settings folder for the web user.
+  the installers need no settings folder: the one file is `config.json`,
+  already owned by the web user.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default): show
   everything, edit in the browser only
   for the admin and Owner tiers.
-  Read side built with ADM.42 (PR #912): the `settings.json` overlay
-  is read, nothing writes it yet; options marked `x-editable` false are
-  file-only; `x-min_role` owner marks Owner-tier options;
+  Read side built with ADM.42 (PR #912): `config.json` and a
+  `settings.json` overlay are read (the overlay goes with ADM.96),
+  nothing writes either yet; options marked `x-editable` false are
+  command line only; `x-min_role` owner marks Owner-tier options;
   `util/appconfig.py` is gone (log paths are in `util/logpaths.py`);
   `docs/config.md` has a generated table (`python -m planetgen.cli.config
   docs`).
@@ -8333,6 +8496,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   their restores and the repair from backups are targeted for 9.0
   (umbrella ADM.91); the settings page and the settings backups stay in
   8.1.
+  One file (Boss, 2:25 and 2:26 PM EDT): all configuration lives in the
+  user's own copy of `config.json.example`, named `config.json`; the
+  settings chain edits only that copy, never the example, and updates
+  never overwrite it (ADM.96). Secrets in it can be replaced but never
+  read back, and diffs, audit rows, logs and exports show "(changed)".
   Prerequisites: ADM.83, ADM.84, ADM.85, ADM.87.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
@@ -8357,6 +8525,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `seo.detail_pages`.
   Moved from 8.2 to 8.1 phase 1 with ADM.43, in the same thread right
   after it (Boss, 2026-10-16, 1:43 PM EDT).
+  Its options are stored in the user's `config.json`, the one
+  configuration file (ADM.96).
   Prerequisites: ADM.43.
 
 - [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
@@ -8385,7 +8555,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   clients, the download, the Admin panel and its text, the dated files,
   the backups and the history, and the plan step that wrote them; there
   is no import or export of settings anywhere (no item plans one; ADM.42
-  to ADM.44's `settings.json` overlay is a different thing and stays).
+  to ADM.44's configuration file `config.json` is a different thing and
+  stays).
   (2) Only what the current galaxy needs is kept, as one internal record
   that nobody can see or download (a row in the database's control
   tables, or a file under the data directory that the site never serves;
@@ -8883,28 +9054,34 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.83 Settings writer: validate, write and back up the settings overlay, with an audit row per change**
+- [ ] **ADM.83 Settings writer: validate, write and back up the user's config.json, with an audit row per change**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
   somewhere, that needs to get bumped up because we're starting to
   desperately need that." Part of the configuration page of ADM.43
   (GitHub issue
   [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. The read side exists (ADM.42, `settings.json`
-  overlay, `x-editable` and `x-min_role` marks); nothing writes it.
-  Build `planetgen.config.writer` beside the reader: it takes a set of
+  8.2 to 8.1 phase 1. The read side exists (ADM.42: `config.json`, and
+  the `settings.json` overlay that ADM.96 removes, with `x-editable` and
+  `x-min_role` marks); nothing writes it.
+  Build `planetgen.util.settings_writer` beside the reader: it takes a
+  set of
   option changes, validates each against the ADM.42 model (type, range,
   enum, read-only options refused), returns per-field errors, and
-  otherwise writes the overlay atomically (temporary file, fsync,
-  rename) after taking a settings-only backup archive through ADM.87
+  otherwise writes the user's `config.json` atomically (temporary file
+  in the same folder, fsync, rename, owner and mode kept) and never
+  touches `config.json.example` after taking a settings-only backup
+  archive through ADM.87
   (retention is the option `settings.backups_kept`, default 20, 1 to
   200). Each changed option gets an activity-log row (who,
   option, old and new value; passwords and keys are never logged), and
   the result lists which changes need a restart. `planetgen.cli.config
-  set`, `get` and `restore` use the same writer. `set-permissions.sh`
-  and the installers create the settings folder for the web user. Done:
+  set`, `get` and `restore` use the same writer. No settings folder is
+  needed: `set-permissions.sh` already gives the web user the file. A
+  secret can be replaced but never read back; the diff, the audit row
+  and the log show only "(changed)". Done:
   the writer and the CLI with tests for every error kind, the atomic
   write, the backup archive and the restart list.
-  Prerequisites: ADM.87. Related: ADM.43, ADM.42.
+  Prerequisites: ADM.87, ADM.96. Related: ADM.43, ADM.42.
 
 - [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
@@ -8914,11 +9091,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
   8.2 to 8.1 phase 1. An Admin page generated from the ADM.42 model:
   sections, then every option with its help text, default, current value
-  and where the value comes from (default, config file or overlay);
+  and where the value comes from (default, `config.json` or an
+  environment variable);
   editable options as controls by type; read-only options
   (`jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix`,
   `admin_cookie_insecure`, `redis.url`, `api_base_url`, the database
-  settings) shown with the reason they are file-only. Save shows a
+  settings) shown with the reason they are command line only. Save shows
+  a
   before-and-after diff of the changed options, confirms, saves through
   ADM.83 and shows per-field errors; a pending-restart banner on every
   admin page comes from a snapshot taken at startup. Options marked for
@@ -8937,15 +9116,21 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   8.2 to 8.1 phase 1. The settings page is also the one screen for
   backups (ADM.87): it lists the archives (time, who, the parts each
   holds and their sizes), takes "Back up now" (every part available),
-  downloads one (admins; the Owner only from 8.2), shows the diff of an
+  downloads one (the Owner only, because an archive holds the whole
+  `config.json` with its secrets; until the Owner exists in 8.2 the
+  archives are owner-only files and an admin can export a version
+  without secrets), shows the diff of an
   archive's settings part against the current settings, and restores the
-  whole archive or one part after a confirmation and an audit row; the
+  whole archive or one part after a confirmation and an audit row (on
+  the web a restore of the settings part puts back only the options an
+  admin may change; only the command line restores the whole file); the
   control database part (ADM.88, restore ADM.89) and the parity part
   (DB.40, restore DB.41) arrive in 9.0 and show up in the same list and
   restore through the same screen, with the guard of ADM.89, so this
   screen is built once for every part. Export and import are for the
   settings part alone: export
-  downloads the overlay as JSON without secrets or read-only options;
+  downloads the editable options as JSON without secrets (a secret shows
+  only "(changed)") or command-line-only options;
   import reads
   such a file through the same validation and diff as an edit. Done: the
   list, back up now, download, whole and one-part restore, export and
@@ -8994,7 +9179,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   nightly ones (OPS.55), and never deletes the newest archive that holds
   every registered part, and `restore(archive,
   parts=None)` verifies first and restores the whole archive or only the
-  named parts. The settings part is the `settings.json` overlay. A save
+  named parts. The settings part is the user's `config.json`, secrets
+  included, so an archive is an owner-only file and never served; a
+  restore never touches `config.json.example`, and on the web only the
+  options an admin may change are put back. A save
   on the settings page (ADM.83) writes a small archive with the settings
   part alone; "Back up now" and the command take every part that is
   registered. The option goes into the ADM.42 model;
@@ -9004,7 +9192,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `--part`) and tests for the manifest, a corrupted archive refused, an
   unknown part kept, retention that keeps the newest full archive, and
   restoring one part leaving the others alone.
-  Prerequisites: none. Related: ADM.43, ADM.83, ADM.85, ADM.88, DB.40.
+  Prerequisites: ADM.96. Related: ADM.43, ADM.83, ADM.85, ADM.88, DB.40.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -9159,6 +9347,42 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
   Prerequisites: API.10, API.14, API.8. Related: API.3.
+
+- [ ] **ADM.96 One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes**
+  Boss (2026-10-16, 2:25 PM EDT): "I want only a single configuration
+  file no settings.json and config.json, 1 file for all program
+  configuration settings." Boss (2:26 PM EDT): "remember, config.json is
+  just an example until the user first copies it and modifies it, that
+  won't change, that's part of the deployment instructions." Done: the
+  settings model (ADM.42) loads the built-in defaults, then the user's
+  `config.json`, then the `PLANETGEN_*` variables, then an explicit
+  argument; the `settings.json` layer, `PLANETGEN_SETTINGS_FILE`, the
+  `/var/lib/planetGen/settings.json` path and the rule that a key may
+  live in only one of two files are removed with no shim (a stray
+  `settings.json` is ignored and `config check` names it as unused);
+  `docs/config.md`, `docs/cli.md` (`config check` reads one file) and
+  the generated options table say one file. The shipped file is
+  `config.json.example`: the user copies it to `config.json` once (the
+  deployment instructions, unchanged); the program, the settings page
+  and updates never write or replace the example, and `update.sh` and
+  the installers never overwrite or recreate the user's `config.json`.
+  The settings chain edits only that copy. Options the page may not edit
+  are marked "command line only". Secrets (database password,
+  `secret_key`, SMTP password, wiki tokens) stay in the same file, which
+  keeps its owner and mode (web user, 640, set by `set-permissions.sh`);
+  they can be replaced from the page or the command line but are never
+  read back, and every diff, audit row, log line and export shows only
+  "(changed)". Tests: a deployment with only `config.json` loads, the
+  example is never modified by a save, and no secret value appears in a
+  diff, an audit row or an export.
+  Prerequisites: none. Related: ADM.42, ADM.43, ADM.83, ADM.84, ADM.85,
+  ADM.87.
+  Decided (Boss, 2026-10-16, 2:32 PM EDT: "that is all approved", on the
+  Settings lane's plan and the wording changes): the module is
+  `planetgen.util.settings_writer`; archive downloads are Owner-only; on
+  the web a restore puts back only options an admin may change, only the
+  command line restores the whole file; secrets can be replaced but
+  never read back.
 
 ## SEC: Security
 
@@ -10117,14 +10341,16 @@ clears each one.
     (show the link to the admin to pass on by hand?)?
     Research (2026-10-09, settings-seo-and-accounts.md): answer as in
     B9: stdlib smtplib, Owner-only (SMTP, `base_url`, From address; open
-    question for Boss, default yes), password in the web-owned 0600
-    file, no SMTP means invites show the link only; sent from an RQ job.
+    question for Boss, default yes), password in the user's
+    `config.json` (replaceable, never read back), no SMTP means invites
+    show the link only; sent from an RQ job.
     Decided (2026-10-10): Boss (19:16Z, Accept all): SMTP settings are
-    Owner-only; the password lives in a 0600 file, not the database.
+    Owner-only; the password lives in the user's `config.json`, not the
+    database.
     The SMTP form sits on the settings page of 8.1 (ADM.84) and its
     Owner-only tier is ADM.86 (Boss, 2026-10-16, 1:43 PM EDT).
     Scope after the review (2026-10-16 review): adds the smtp.* options
-    (Owner tier, the password in the 0600 file) to the settings model
+    (Owner tier, the password in `config.json`) to the settings model
     and builds the mail module and the "send test email" action; the
     form is the generated settings page (ADM.84 and ADM.86), not a
     second form.
