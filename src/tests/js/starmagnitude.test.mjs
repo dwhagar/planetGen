@@ -96,9 +96,7 @@ test("the calibration limit keeps the dimmest listed star whole at the focus dis
   assert.equal(M.limitingMagnitude(14, 12), 14);
 });
 
-test("a landmark stays lit at any distance and the limit eases rather than jumps", () => {
-  const far = M.apparentMagnitude(M.PHENOMENON_MAGNITUDE, 1e5);
-  assert.equal(M.magnitudeShare(far, 12), 1);
+test("the limit eases rather than jumps", () => {
   assert.equal(M.approachLimit(10, 14, 0), 10);
   const later = M.approachLimit(10, 14, 0.3);
   assert.ok(later > 12.5 && later < 12.6, String(later));

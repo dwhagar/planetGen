@@ -539,6 +539,12 @@ MAP_MASS_LUMINOSITY_PIECES = (
     {"max_mass_sol": 20.0, "coeff": 1.5, "exponent": 3.5},
     {"max_mass_sol": None, "coeff": 1.5 * 20.0 ** 2.5, "exponent": 1.0},
 )
+# MAP.208: a black hole, neutron star or quasar is drawn on the maps as bright
+# as a star of its mass (map_luminosity_sol), a black hole this share of it
+# (a little dimmer, so its purple does not out-shine a star); an object with no
+# mass on record is drawn as a star of this mass.
+BLACK_HOLE_MAP_BRIGHTNESS = 0.8
+MASSLESS_MARKER_MASS_SOL = 1.0
 # Main-sequence mass-radius relation, R = M^exponent (Rsun, Msun), with the
 # exponent changing at 1 Msun (Demircan & Kahraman 1991).
 MS_RADIUS_EXPONENT_BELOW_1_SOL = 0.8

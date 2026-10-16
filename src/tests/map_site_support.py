@@ -150,13 +150,22 @@ def nebula_shape_payload(nebula_id, lod):
             "faces": [[int(i) for i in face] for face in faces]}
 
 
+def _point(kind, mass_solar, **fields):
+    """A fixture point as a tile lists it: its mass and the luminosity of a star of it (MAP.208), and its
+    own light as a small number."""
+    from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
+
+    return {"type": kind, **fields, "mass_solar": mass_solar, "luminosity_sol": 0.02,
+            "map_luminosity_sol": float("%.4g" % phenomenon_map_luminosity_sol(kind, mass_solar))}
+
+
 POINT_FIELD = [
-    {"type": "black_hole", "id": 61, "name": "Fixture Maw", "descriptor": "accreting", "luminosity_sol": 0.02,
-     "x": STAR_FIELD_CENTER_PC[0] - 12.0, "y": 9.0, "z": 0.0},
-    {"type": "neutron_star", "id": 41, "name": "Fixture Pulsar", "descriptor": "millisecond",
-     "luminosity_sol": 0.5, "x": STAR_FIELD_CENTER_PC[0] + 11.0, "y": 3.0, "z": 0.0},
-    {"type": "quasar", "id": 71, "name": "Fixture Beacon", "descriptor": "radio-loud", "luminosity_sol": 3e12,
-     "x": STAR_FIELD_CENTER_PC[0] + 4.0, "y": 14.0, "z": 0.0},
+    _point("black_hole", 12.0, id=61, name="Fixture Maw", descriptor="accreting",
+           x=STAR_FIELD_CENTER_PC[0] - 12.0, y=9.0, z=0.0),
+    _point("neutron_star", 1.4, id=41, name="Fixture Pulsar", descriptor="millisecond",
+           x=STAR_FIELD_CENTER_PC[0] + 11.0, y=3.0, z=0.0),
+    _point("quasar", 4.0e6, id=71, name="Fixture Beacon", descriptor="radio-loud",
+           x=STAR_FIELD_CENTER_PC[0] + 4.0, y=14.0, z=0.0),
 ]
 """The Galaxy Map's fixture point phenomena (a tile's `points`, MAP.80),
 among the fixture stars."""

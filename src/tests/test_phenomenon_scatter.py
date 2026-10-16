@@ -20,6 +20,7 @@ from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import run_galaxy, run_plan, run_sector
+from planetgen.physics import stellar_evolution
 from planetgen.physics.units import ly_to_pc
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -706,6 +707,14 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert by_mass[1.5] < by_mass[10.0] < by_mass[18.0] < by_mass[5000.0]
     unstored = [point for point in points if point["mass_solar"] is None]
     assert unstored and unstored[0]["size"] == 0.55
+    # MAP.208: drawn as bright as a star of its mass (a black hole a little dimmer), a massless one as a
+    # one solar mass star.
+    by_mass = {point["mass_solar"]: point for point in points}
+    assert by_mass[10.0]["map_luminosity_sol"] == pytest.approx(
+        stellar_evolution.map_luminosity_sol(10.0) * tuning.BLACK_HOLE_MAP_BRIGHTNESS, rel=1e-3)
+    assert by_mass[1.5]["map_luminosity_sol"] == pytest.approx(stellar_evolution.map_luminosity_sol(1.5), rel=1e-3)
+    assert by_mass[1.5]["map_luminosity_sol"] < by_mass[10.0]["map_luminosity_sol"] < by_mass[5000.0]["map_luminosity_sol"]
+    assert unstored[0]["map_luminosity_sol"] == pytest.approx(tuning.BLACK_HOLE_MAP_BRIGHTNESS, rel=1e-3)
 
 
 def _index_names(conn):

@@ -363,7 +363,8 @@ def test_map_scene_data_draws_a_quiescent_black_hole_point():
     assert cloud["typeLabel"] == "Black Hole (Quiescent)"
     # MAP.185: lit, in the colour the Galaxy Map draws a black hole in (it was a dark sphere nobody could see).
     assert cloud["light"]["color"] == _galaxy_map_black_hole_colour()
-    assert cloud["light"]["bright"] == 1.0 and cloud["light"]["corePx"] >= 3.0
+    # MAP.208: a black hole with no mass on record is lit as a (slightly dimmer) one solar mass star.
+    assert 0.8 <= cloud["light"]["bright"] <= 1.0 and cloud["light"]["corePx"] >= 1.5
 
 
 def test_map_scene_data_draws_a_neutron_star_point():
@@ -618,7 +619,7 @@ def test_scattered_black_holes_and_neutron_stars_are_lit_points():
     clouds = {c["kind"]: c for c in _uncharted_scene()["clouds"]}
     assert clouds["blackHoleQuiescent"]["light"]["color"] == "#a43cff"
     assert clouds["neutronStar"]["light"]["color"] == "#3f63e0"
-    assert clouds["quasar"]["light"]["bright"] == 1.0
+    assert clouds["quasar"]["light"]["color"] == "#dfe6ff"
 
 
 def test_an_empty_uncharted_cell_has_an_empty_scene():
@@ -627,14 +628,64 @@ def test_an_empty_uncharted_cell_has_an_empty_scene():
 
 
 def _galaxy_map_black_hole_colour():
-    """The colour `galaxymap3d.js` draws a black hole in (`POINT_LOOKS.black_hole`)."""
+    """The colour `galaxymap3d.js` draws a black hole in (`POINT_COLORS.black_hole`)."""
     import re
     from pathlib import Path
 
     source = (Path(__file__).resolve().parents[1] / "html" / "static" / "galaxymap3d.js").read_text(encoding="utf-8")
-    return re.search(r'black_hole:\s*\["(#[0-9a-fA-F]{6})"', source).group(1).lower()
+    return re.search(r'black_hole:\s*"(#[0-9a-fA-F]{6})"', source).group(1).lower()
 
 
 def test_a_scattered_black_hole_is_lit_the_same_as_a_made_one():
     from planetgen.web.maps.starmap import _PHENOMENON_LIGHTS, _UNCHARTED_LIGHTS
     assert _UNCHARTED_LIGHTS["black_hole"] == _PHENOMENON_LIGHTS["blackHoleQuiescent"]
+
+
+# --- Phenomena as bright as a star of their mass (MAP.208) -------------------------------
+
+def _star_light_of_mass(mass_solar):
+    from planetgen.physics import stellar_evolution
+    from planetgen.web.maps.starmap import SOLAR_LUMINOSITY, _star_light
+    return _star_light(stellar_evolution.map_luminosity_sol(mass_solar) * SOLAR_LUMINOSITY, None, None)
+
+
+def _size_keys(light):
+    return {key: light[key] for key in ("corePx", "sizePx", "glow", "bright")}
+
+
+def test_a_massless_phenomenon_is_lit_as_a_one_solar_mass_star():
+    from planetgen.web.maps.starmap import _PHENOMENON_LIGHTS, _mass_light
+    for kind, map_type in (("quasar", "quasar"), ("neutronStar", "neutron_star")):
+        light = _mass_light(_PHENOMENON_LIGHTS[kind], map_type, None)
+        assert _size_keys(light) == _size_keys(_star_light_of_mass(1.0))
+        assert light["color"] == _PHENOMENON_LIGHTS[kind]["color"], "its color is kept"
+    assert _mass_light(_PHENOMENON_LIGHTS["blackHoleAccreting"], "black_hole", None)["whiten"] == 0.0
+
+
+def test_a_black_hole_is_dimmer_than_a_star_of_the_same_mass_and_keeps_its_purple():
+    from planetgen.web.maps.starmap import _PHENOMENON_LIGHTS, _mass_light
+    hole = _mass_light(_PHENOMENON_LIGHTS["blackHoleQuiescent"], "black_hole", 10.0)
+    star = _star_light_of_mass(10.0)
+    neutron = _mass_light(_PHENOMENON_LIGHTS["neutronStar"], "neutron_star", 10.0)
+    assert _size_keys(neutron) == _size_keys(star), "a neutron star is as bright as the star of its mass"
+    assert hole["bright"] < star["bright"] and hole["sizePx"] < star["sizePx"]
+    assert hole["bright"] > 0.8 * star["bright"] * 0.9, "only a little dimmer"
+    assert hole["color"] == "#a43cff"
+
+
+def test_a_heavier_phenomenon_is_brighter_and_a_scene_cap_stops_it_out_shining_its_stars():
+    from planetgen.web.maps.starmap import _PHENOMENON_LIGHTS, _mass_light
+    base = _PHENOMENON_LIGHTS["neutronStar"]
+    light = lambda mass, cap=None: _mass_light(base, "neutron_star", mass, cap)
+    assert light(1.4)["sizePx"] < light(10.0)["sizePx"] < light(1.0e6)["sizePx"]
+    capped = light(1.0e6, 2.0)
+    assert _size_keys(capped) == _size_keys(_star_light_of_mass(2.0 ** (1 / 4.0)))
+
+
+def test_a_scattered_phenomenons_light_follows_its_mass_in_an_uncharted_scene():
+    contents = _uncharted_contents()
+    for row in contents["scattered"]:
+        row["mass_solar"] = {"black_hole": 10.0, "neutron_star": 1.4}.get(row["type"])
+    clouds = {c["kind"]: c for c in _uncharted_scene(contents)["clouds"]}
+    assert _size_keys(clouds["neutronStar"]["light"]) == _size_keys(_star_light_of_mass(1.4))
+    assert clouds["blackHoleQuiescent"]["light"]["sizePx"] < _star_light_of_mass(10.0)["sizePx"]

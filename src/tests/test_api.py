@@ -1277,7 +1277,8 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     assert len(tiles[sector_level]["generated"]) == 1
     points = tiles[finest]["points"]
     assert {(p["type"], p["id"]) for p in points} == set(printed.items())
-    assert [p["luminosity_sol"] for p in points] == sorted((p["luminosity_sol"] for p in points), reverse=True)
+    # MAP.208: the heaviest first (the map draws each as bright as a star of its mass).
+    assert [p["map_luminosity_sol"] for p in points] == sorted((p["map_luminosity_sol"] for p in points), reverse=True)
     assert points[0]["type"] == "quasar"
     by_type = {p["type"]: p for p in points}
     assert (by_type["neutron_star"]["x"], by_type["neutron_star"]["y"]) == pytest.approx((3.0, 2.0))

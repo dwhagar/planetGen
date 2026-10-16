@@ -1125,17 +1125,26 @@ def test_cancel_ends_a_pick_begun_on_the_map(page, map_site):
 
 
 def _click_galaxy_stars(page, count=5):
-    """Clicks the brightest points of light on the Galaxy Map, each on a
-    freshly settled view; the info panel's heading after each click."""
+    """Clicks the brightest fixture stars on the Galaxy Map, each on a freshly settled view, where the map
+    draws them now (they are points of light a pixel or two wide until the camera is about a sector away,
+    MAP.208, too small to find in a screenshot by their brightness); the info panel's heading after each click."""
+    from tests.map_site_support import STAR_FIELD
+
     headings = []
+    box = page.locator(GALAXY_CANVAS).bounding_box()
     for _ in range(count):
-        # A black hole, neutron star or quasar does take the click (MAP.80):
-        # leave the stars beside one alone.
-        points = _point_colored_spots(page, GALAXY_CANVAS)
-        spots = [spot for spot in _bright_spots(page, GALAXY_CANVAS, limit=30, white=True)
-                 if all(abs(spot[0] - x) + abs(spot[1] - y) > 24 for x, y in points)]
-        assert spots, "no stars drawn to click"
-        page.mouse.click(*spots[0])
+        # A black hole, neutron star or quasar does take the click (MAP.80): leave the stars beside one alone.
+        points = [spot for spot in (_screen_of(page, (p["x"], p["y"], p["z"])) for p in POINT_FIELD) if spot]
+        spot = None
+        for star in sorted(STAR_FIELD, key=lambda star: -star["luminosity_sol"]):
+            here = _screen_of(page, (star["x"], star["y"], star["z"]))
+            if (here and box["x"] + 20 < here[0] < box["x"] + box["width"] - 20
+                    and box["y"] + 20 < here[1] < box["y"] + box["height"] - 20
+                    and all(abs(here[0] - x) + abs(here[1] - y) > 24 for x, y in points)):
+                spot = here
+                break
+        assert spot, "no stars drawn to click"
+        page.mouse.click(*spot)
         page.wait_for_timeout(500)
         _settle(page)
         heading = page.locator("#galaxymap3d-info h3")
@@ -1811,13 +1820,21 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     names = {point["name"]: point for point in POINT_FIELD}
     found = {}
     url = page.url
-    for x, y in _point_colored_spots(page, GALAXY_CANVAS):
-        page.mouse.click(x, y)
-        heading = page.locator("#galaxymap3d-info h3")
-        if heading.count() and heading.inner_text() in names:
-            point = names[heading.inner_text()]
-            link = page.locator("#galaxymap3d-info a", has_text="View phenomenon")
-            found[point["type"]] = (link.get_attribute("href"), page.locator("#galaxymap3d-info").inner_text())
+    # They are points of light now (MAP.208), too small for a colour scan to find reliably: click
+    # where the map draws each.
+    for point in POINT_FIELD:
+        spot = _screen_of(page, (point["x"], point["y"], point["z"]))
+        assert spot, point["name"]
+        # The pulsar sits inside the fixture nebula over the field, whose core takes a click on the line
+        # through it first: a few pixels to the side, still inside the point's reach, finds it.
+        for dx, dy in ((0, 0), (4, 0), (-4, 0), (0, 4), (0, -4), (4, 4), (-4, -4), (4, -4), (-4, 4)):
+            page.mouse.click(spot[0] + dx, spot[1] + dy)
+            heading = page.locator("#galaxymap3d-info h3")
+            if heading.count() and heading.inner_text() in names:
+                found_point = names[heading.inner_text()]
+                link = page.locator("#galaxymap3d-info a", has_text="View phenomenon")
+                found[found_point["type"]] = (link.get_attribute("href"), page.locator("#galaxymap3d-info").inner_text())
+                break
         if page.url != url:
             page.go_back()
             _settle(page)

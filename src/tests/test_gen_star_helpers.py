@@ -471,3 +471,23 @@ def test_cool_white_dwarfs_keep_their_own_mass_and_temperature_ranges():
     star = make_star("M2VII")
     assert star.mass / constants.SOLAR_MASS_TO_KG <= constants.COOL_WHITE_DWARF_MAX_MASS_SOL
     assert star.temperature <= constants.TEMP_RANGES["M"][1]
+
+
+def test_a_phenomenon_is_drawn_as_bright_as_a_star_of_its_mass():
+    """MAP.208: a 10 Msun black hole about as bright as a 10 Msun star, a little dimmer; a neutron star equal."""
+    star = stellar_evolution.map_luminosity_sol(10.0)
+    black_hole = stellar_evolution.phenomenon_map_luminosity_sol("black_hole", 10.0)
+    assert black_hole == pytest.approx(star * tuning.BLACK_HOLE_MAP_BRIGHTNESS)
+    assert black_hole < star
+    assert stellar_evolution.phenomenon_map_luminosity_sol("neutron_star", 1.4) == pytest.approx(
+        stellar_evolution.map_luminosity_sol(1.4))
+    assert stellar_evolution.phenomenon_map_luminosity_sol("quasar", 4.0e6) == pytest.approx(
+        stellar_evolution.map_luminosity_sol(4.0e6))
+
+
+@pytest.mark.parametrize("mass", [None, 0, -1.0])
+def test_a_massless_marker_is_drawn_as_a_one_solar_mass_star(mass):
+    assert stellar_evolution.phenomenon_map_luminosity_sol("nebula", mass) == pytest.approx(
+        stellar_evolution.map_luminosity_sol(tuning.MASSLESS_MARKER_MASS_SOL))
+    assert tuning.MASSLESS_MARKER_MASS_SOL == 1.0
+    assert stellar_evolution.phenomenon_map_luminosity_sol("black_hole", mass) < stellar_evolution.phenomenon_map_luminosity_sol("quasar", mass)
