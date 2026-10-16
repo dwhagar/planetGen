@@ -226,8 +226,8 @@ def _finite_or_none(value):
 def star_fe_h(population, point, seed):
     """A bright star's [Fe/H] (GEN.158): drawn from its population and its distance from the galactic centre (its
     stored point, whole milliparsecs), on a stream of its own seed so no scatter draw moves. `None` for a cluster
-    star, which carries its cluster's value (GEN.159)."""
-    if population == "cluster":
+    or satellite star, which carries its component's value (GEN.159, GEN.237)."""
+    if population in ("cluster", "satellite"):
         return None
     distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in point)))
     return metallicity.sample_fe_h(population, distance_ly, draw.Stream(f"metallicity:bright:{seed}"))
@@ -760,6 +760,8 @@ class FillContext:
         """Gives one of the sector's own (dim) systems its population and,
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)
+        if system_config.POPULATION in ("cluster", "satellite"):
+            system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h
         if self.min_luminosity_sol is not None:
             system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol
         if self.star_mass_limit_sol is not None:

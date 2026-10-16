@@ -601,10 +601,11 @@ WD_PROGENITOR_ENGULFMENT_AU = 1.5
 # ~150 pc (A to F dwarfs, Bovy 2017). The bulge is old
 # (8-12 Gy), and so is the thick disk, whose stars count as "old"
 # (`galaxy.density.population_densities`). The halo and the globular clusters are older still, 10 to 13 Gy
-# (GEN.234; a cluster's density comes with the component table, GEN.237, and is 0 until then).
+# (GEN.234). A satellite galaxy's stars (GEN.237) run from 0.5 Gy to the age of the Universe: the Clouds still form
+# stars and the dwarf spheroidals do not, so this is the window of the lot, not of one.
 STELLAR_POPULATION_AGE_RANGES_GY = {
     "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
-    "halo": (10.0, 13.0), "cluster": (10.0, 13.0),
+    "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (0.5, 13.0),
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
@@ -656,6 +657,13 @@ number, not from the ceiling: `ceil(16 x factor)` objects at most, which is 2 at
 # speed `CLUSTER_HALO_CIRCULAR_KMS`.
 KING_W0_RANGE = (3, 12)
 KING_TABLE_POINTS = 2000
+# Satellite galaxies (GEN.237, docs/design/intergalactic-and-halo-contents.md 5.5) are stored the same way: the Clouds
+# and Sagittarius as an exponential profile (density falling as exp(-r / a)), the dwarf spheroidals as a Plummer sphere
+# (density as (1 + (r / a)^2)^-2.5), each cut off at a tidal radius that is `SATELLITE_TIDAL_OVER_HALF_MASS` times
+# its half-mass radius (an exponential at 16 scale lengths holds all but 1e-5 of its mass, a Plummer sphere at
+# 7.8 scale lengths 98%; the density is normalised so the cut profile holds the whole mass). The rows are real
+# objects, but their sizes are recalled from McConnachie (2012) and not checked (the sources were out of reach).
+SATELLITE_TIDAL_OVER_HALF_MASS = 6.0
 CLUSTER_MEAN_SYSTEM_MASS_SOL = 0.4
 CLUSTER_HALO_CIRCULAR_KMS = 220.0
 
@@ -688,7 +696,7 @@ CLUSTER_HALO_RADIUS_RANGE_PC = (1000.0, 120000.0)
 CLUSTER_HALO_DISPERSION_KMS = 110.0
 CLUSTER_BULGE_DISPERSION_KMS = 60.0
 
-# A cluster's density in the sector gate (`galaxy/cluster_field.py`, GEN.160): the density a cell gets is the cluster's
+# A cluster's density in the sector gate (`galaxy/component_field.py`, GEN.160): the density a cell gets is the cluster's
 # systems inside the cell over the systems a cell holds at density 1, so the cube is integrated: on
 # `CLUSTER_CELL_SUBSAMPLES` points a side within `CLUSTER_NEAR_EDGES` cell edges of a cluster's centre (where its core
 # varies faster than a cell) and at the centre alone beyond. The skeleton's bound grows a cluster by
@@ -766,15 +774,23 @@ local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not u
 # orbit outside); `rotation` says what the population's net motion follows. [Recalled, to verify.]
 STELLAR_POPULATION_DISPERSION_KMS = {
     "young": 15.0, "intermediate": 25.0, "old": 50.0, "bulge": 120.0, "halo": 120.0, "cluster": 8.0,
+    "satellite": 25.0,       # the dwarfs' and Clouds' own 20 to 30 km/s (design note 5.3)
 }
 STELLAR_POPULATION_ROTATION = {
     "young": "disk", "intermediate": "disk", "old": "disk", "bulge": "bar", "halo": "none", "cluster": "orbit",
+    "satellite": "orbit",
 }
 # A cluster carries its own [Fe/H] (`physics.metallicity`); until the component table (GEN.237) gives each one
 # its own, the profile of a cluster cell shows the two peaks of the Milky Way's clusters (-1.5 and -0.5,
 # docs/design/globular-clusters.md), as `(share, mean, sigma)`; the shares are recalled (about two thirds are the
 # metal-poor ones).
 METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
+# Where a cell holds components (GEN.237) the peaks of its `cluster` and `satellite` populations are the components'
+# own [Fe/H], each with this scatter (dex), weighted by the systems each puts in the cell; the peaks below stand in
+# for a place no component reaches (a sample drawn without a profile). A satellite's stand-in is the Clouds'
+# and dwarfs' middle (LMC about -0.4, SMC about -0.9, the dwarf spheroidals -1.0 to -2.1, recalled).
+COMPONENT_FE_H_SIGMA = {"cluster": 0.15, "satellite": 0.3}
+METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
 
 # How deep one dense cell is filled (GEN.281, docs/design/realistic-galactic-core.md 4.2). A cell that expects more
 # systems than the cell star ceiling fills only the stars at or above the fill luminosity cap; the rest is
