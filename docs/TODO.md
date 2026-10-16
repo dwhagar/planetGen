@@ -1437,34 +1437,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   open and waits on Boss's answers listed there.
   Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163.
 
-- [ ] **MAP.211 Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug)**
-  Boss (2026-10-15 9:54 PM EDT, on his own server): "Hypervelocity stars
-  have no info that I can access, I should be able to see what kind of
-  star they are and use the 'view phenomena' button if they are
-  uncharted and otherwise the button should take me to the star system
-  if it's been fully generated." Reproduce where Boss saw it (the
-  phenomena list, the Galaxy Map info panel and the phenomenon page).
-  Wanderers are stars drawn from the registry kind `hypervelocity-star`
-  (generation/phenomena/registry.py, GEN.238), drawn as phenomenon
-  points on the map (POINT_LOOKS in src/html/static/galaxymap3d.js,
-  phenomenaActions and its "View phenomenon" link). Fix: a hypervelocity
-  star's info shows what kind of star it is (spectral class, mass,
-  luminosity, speed, origin when known), the phenomenon button ("View
-  phenomenon") shows while the star is uncharted (no generated system
-  behind it), and once its system has been fully generated the button
-  takes the visitor to the star system page. Generalize: the same rule
-  applies to every phenomenon row that can have a generated system
-  behind it (runaway stars, kicked neutron stars and black holes, any
-  kind whose registry entry produces a star-system); check the other
-  kinds for the same gap and fix them together, or say in the item which
-  kinds already work. Add a test for each of the two states (uncharted:
-  phenomenon page; generated: system page) and for the type line. Done:
-  Boss can open a hypervelocity star's info, see its type, and reach
-  either the phenomenon page or the star system as the data allows.
-  Owner: Core 3, with UX.117, ahead of its #1677 chain (Boss, 2026-10-15
-  9:54 PM EDT, via the coordinator).
-  Prerequisites: none. Related: GEN.238, MAP.152, UX.117.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
