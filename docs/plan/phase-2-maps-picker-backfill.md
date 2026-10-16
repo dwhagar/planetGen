@@ -78,7 +78,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | GEN.281, GEN.283 | Core 3; sliders for the scatter and fill limits |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
-| DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.234, GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
+| DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.262, GEN.264, GEN.266, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | GEN.276, NAV.60 | Spherical region query, stage C. Step 8. Quality. |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | GEN.251, GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 9. Quality. |
@@ -156,7 +156,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 11. Core. |
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.235, GEN.236, GEN.242, GEN.251 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
 | API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
-| GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.234, GEN.235, GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
+| GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.235, GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) |  | Phenomena catalogue, Boss 2026-10-15. Question for Boss. Core. |
 | GEN.258 | Protostars embedded in giant molecular clouds | GEN.241, GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 8, later. Core. |
@@ -167,7 +167,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
 | GEN.252 | Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert | GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 5, later. Core. |
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
-| GEN.248 | Tidal streams as placed components of the halo (later) | GEN.237, GEN.234 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.248 | Tidal streams as placed components of the halo (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | GEN.129, GEN.130 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.246 | Luminous blue variables and hypergiants (later) | GEN.243 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.245 | Debris disks around A and F stars (later) | GEN.242 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
@@ -175,8 +175,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | GEN.235 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.235, GEN.159, GEN.160 | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
 | GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | GEN.235, GEN.158 | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |
-| GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | GEN.234 | Whole-sphere build train, Boss 2026-10-15. Step 2. Core. |
-| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations |  | Whole-sphere build train, Boss 2026-10-15. Step 3. Core. |
+| GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved |  | Whole-sphere build train, Boss 2026-10-15. Step 2. Core. |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | GEN.235 | Phenomena catalogue, Boss 2026-10-15. Step 2. Core. |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
