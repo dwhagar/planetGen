@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.117 |
-| MAP | MAP.209 |
+| MAP | MAP.211 |
 | NAV | NAV.62 |
 | GEN | GEN.288 |
 | PERF | PERF.104 |
@@ -1055,6 +1055,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | none | open |
 | MAP.208 | Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass | none | open |
+| MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) | none | open |
+| MAP.210 | Nothing on the map can be selected, even in sector view (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

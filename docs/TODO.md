@@ -1418,6 +1418,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first). No migration.
   Prerequisites: none. Related: MAP.148, MAP.155, MAP.203, MAP.207.
 
+- [ ] **MAP.209 Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug)**
+  Boss (2026-10-15 9:42 PM EDT, on his own server): "there's some kind
+  of bug transitioning to sector view from galactic view, for a moment
+  it shows one view, then reloads to a different view, but does not show
+  any details about what's on the screen to the right of the viewing
+  window." Reproduce first: fly from the Galaxy Map into a filled sector
+  (galaxystageview.js decides when a sector is open and flies the
+  camera, galaxysector.js loads the sector's scene and joins its picker
+  layers to the map's), watch for the reload (a full page load such as
+  openSectorPage in galaxymap3d.js, or the scene rebuilt twice), and check whether it
+  is the same defect as MAP.210. Find the root cause, fix it, and add a
+  browser test that opens a sector from the map and asserts one stable
+  view and a filled details panel (a star's name and facts) once the
+  sector is open. Check whether TEST.163 (the  count is 0 on the nav
+  route page, red on main) shares the cause. Done: the move from the
+  galactic view into a sector shows one continuous view with no reload,
+  and the panel to the right of the viewer shows the opened sector's
+  details. Owner: Core 2, next after its running item, with MAP.208 (the
+  same map and scene code, so one lane avoids conflicts; Boss,
+  2026-10-15 9:42 PM EDT, via the coordinator).
+  Prerequisites: none. Related: MAP.210, MAP.66, MAP.208, TEST.163.
+
+- [ ] **MAP.210 Nothing on the map can be selected, even in sector view (bug)**
+  Boss (2026-10-15 9:42 PM EDT, on his own server): "I also cannot
+  select anything on the map even in sector view, when I should be able
+  to select stars within the sector." Stars inside an opened sector
+  should be pickable (a click or hover goes through the map's picker,
+  mappick.js, and fills the info panel, showInfo in galaxysector.js) and so
+  should the other pickable objects. This may be the cause of the empty
+  details panel in MAP.209, so one root cause is possible; reproduce
+  first, find the root cause, and fix it. Add a browser test that opens
+  a sector, clicks a star's projected position and checks that the
+  selection ring and the details panel fill, and the same for a star in
+  the Galaxy Map's own tiles. Done: in sector view and on the Galaxy Map
+  a click on a star selects it, the details panel shows its facts, and
+  the browser test catches a regression. Owner: Core 2, with MAP.209
+  (Boss, 2026-10-15 9:42 PM EDT, via the coordinator).
+  Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
