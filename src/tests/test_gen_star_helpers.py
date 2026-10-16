@@ -438,3 +438,36 @@ def test_map_luminosity_agrees_with_the_star_generators_where_their_tables_do():
     # Above 2 Msun the tables differ (the map's 1.5 M^3.5, the generators' 1.4 M^3.5), written down in tuning.py.
     assert stellar_evolution.map_luminosity_sol(10.0) / stellar_evolution.main_sequence_luminosity_sol(10.0) \
         == pytest.approx(1.5 / 1.4)
+
+
+# --- planetary-nebula central stars (GEN.149) ------------------------------
+
+@pytest.mark.parametrize("star_type", list(tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES))
+def test_hot_white_dwarf_central_stars_match_observed_cores(star_type):
+    """Real central stars are 0.5 to 0.7 Msun and 1e2 to 1e4 Lsun, no hotter than 2e5 K."""
+    low_mass, high_mass = constants.HOT_WHITE_DWARF_MASS_RANGE_SOL
+    low_lum, high_lum = constants.HOT_WHITE_DWARF_LUMINOSITY_RANGE_SOL
+    masses = []
+    for _ in range(60):
+        star = make_star(star_type)
+        mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
+        luminosity_sol = star.luminosity / constants.SOLAR_LUMINOSITY
+        assert low_mass <= mass_sol <= high_mass
+        assert low_lum * 0.999 <= luminosity_sol <= high_lum * 1.001
+        assert 30000 <= star.temperature <= 200000
+        masses.append(mass_sol)
+    assert sum(masses) / len(masses) == pytest.approx(constants.HOT_WHITE_DWARF_MEDIAN_MASS_SOL, abs=0.02)
+
+
+def test_hot_white_dwarf_temperature_follows_the_subclass_up_to_200000_k():
+    hottest = make_star("O0VII").temperature
+    assert hottest == 200000
+    assert make_star("O3VII").temperature > constants.TEMP_RANGES["O"][1]
+    assert make_star("B0VII").temperature == 30000
+    assert make_star("O3VII").temperature > make_star("O9VII").temperature >= make_star("B0VII").temperature
+
+
+def test_cool_white_dwarfs_keep_their_own_mass_and_temperature_ranges():
+    star = make_star("M2VII")
+    assert star.mass / constants.SOLAR_MASS_TO_KG <= constants.COOL_WHITE_DWARF_MAX_MASS_SOL
+    assert star.temperature <= constants.TEMP_RANGES["M"][1]

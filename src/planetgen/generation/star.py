@@ -45,6 +45,20 @@ digit, Yerkes class. Always matched with `fullmatch` -- a prefix match
 accepted 'G2Vjunk' as G2V and parsed 'G10V' as a G1 hypergiant ('0')."""
 
 
+def _sample_hot_white_dwarf_mass_sol():
+    """
+    Draws the mass (solar masses) of a hot white dwarf, the exposed core of a
+    planetary nebula (GEN.149): normal about `HOT_WHITE_DWARF_MEDIAN_MASS_SOL`,
+    redrawn until it falls inside `HOT_WHITE_DWARF_MASS_RANGE_SOL`, so no
+    pile-up appears at either end of the observed 0.5 to 0.7 Msun range.
+    """
+    low, high = constants.HOT_WHITE_DWARF_MASS_RANGE_SOL
+    while True:
+        mass_sol = draw.gauss(constants.HOT_WHITE_DWARF_MEDIAN_MASS_SOL, constants.HOT_WHITE_DWARF_MASS_SIGMA_SOL)
+        if low <= mass_sol <= high:
+            return mass_sol
+
+
 @finite_domain()
 def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     """
@@ -1220,7 +1234,10 @@ class Star(LazySaladName):
             yerkes_type = yerkes_lookup[yerkes_class_str]
 
             # 2. Calculate Temperature from spectral class and subclass.
-            min_temp, max_temp = constants.TEMP_RANGES[spectral_class]
+            if yerkes_class_str in ["VII", "D"] and spectral_class in constants.HOT_WHITE_DWARF_TEMP_RANGES:
+                min_temp, max_temp = constants.HOT_WHITE_DWARF_TEMP_RANGES[spectral_class]
+            else:
+                min_temp, max_temp = constants.TEMP_RANGES[spectral_class]
             temp_range_size = max_temp - min_temp
             temperature = min_temp + (constants.SUBCLASS_MAX_VALUE - subclass) * (temp_range_size / constants.SUBCLASS_MAX_VALUE)
             temperature = int(round(temperature, tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
@@ -1232,7 +1249,7 @@ class Star(LazySaladName):
             
             # Special case for hot, young white dwarfs, which can be temporarily very luminous.
             if yerkes_class_str in ["VII", "D"] and spectral_class in ["O", "B"]:
-                yerkes_min_lum, yerkes_max_lum = 0.1, 100
+                yerkes_min_lum, yerkes_max_lum = constants.HOT_WHITE_DWARF_LUMINOSITY_RANGE_SOL
 
             valid_min_lum = max(spec_min_lum, yerkes_min_lum)
             valid_max_lum = min(spec_max_lum, yerkes_max_lum)
@@ -1310,7 +1327,7 @@ class Star(LazySaladName):
             # For white dwarfs, mass is tightly constrained. Hotter (younger) ones
             # are typically more massive, closer to the Chandrasekhar limit.
             if spectral_class in ["O", "B"]:
-                mass_sol = draw.uniform(constants.HOT_WHITE_DWARF_MIN_MASS_SOL, constants.CHANDRASEKHAR_LIMIT_SOL)
+                mass_sol = _sample_hot_white_dwarf_mass_sol()
             else:
                 mass_sol = draw.uniform(min_mass, constants.COOL_WHITE_DWARF_MAX_MASS_SOL)
             if mass_override: # If mass is overridden for a WD, ensure it's within limits

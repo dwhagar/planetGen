@@ -324,7 +324,15 @@ CHANDRASEKHAR_LIMIT_SOL = 1.44
 # A base radius for a 1 solar mass white dwarf, in kilometers.
 WHITE_DWARF_BASE_RADIUS_KM = 5800
 
-HOT_WHITE_DWARF_MIN_MASS_SOL = 1.1
+# The hot cores of planetary nebulae (GEN.149), generated as an O or B white
+# dwarf (class VII): observed central stars are 0.5 to 0.7 Msun (median
+# 0.59), 1e2 to 1e4 Lsun and up to 2e5 K (Weidmann et al. 2020, A&A 640,
+# A10; Frew & Parker 2010, PASA 27, 129), not near-Chandrasekhar objects.
+HOT_WHITE_DWARF_MASS_RANGE_SOL = (0.5, 0.7)
+HOT_WHITE_DWARF_MEDIAN_MASS_SOL = 0.59
+HOT_WHITE_DWARF_MASS_SIGMA_SOL = 0.04
+HOT_WHITE_DWARF_LUMINOSITY_RANGE_SOL = (1.0e2, 1.0e4)
+HOT_WHITE_DWARF_TEMP_RANGES = {'O': (30000, 200000), 'B': (10000, 30000)}
 COOL_WHITE_DWARF_MAX_MASS_SOL = 1.0
 WHITE_DWARF_MASS_RADIUS_EXPONENT = -1/3
 
