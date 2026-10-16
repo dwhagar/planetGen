@@ -133,6 +133,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | DOC.45 | Reference docs follow the description layer | UX.105, GEN.218, GEN.219 |  |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md |  |  |
 | DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains |  | Docs index. Quality. |
+| DOC.53 | The tuning module header names the rule for a new signed constant: the fuzz tests accept only a dict or a positive "fall" |  | any Core lane; Core 2 finding |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads |  | Foundations lane 1. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
