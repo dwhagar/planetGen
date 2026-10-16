@@ -45,6 +45,7 @@ from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
+from planetgen.galaxy import scatter_limits
 from planetgen.galaxy.density import arm_terms, build_galaxy_shape
 from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL, DEFAULT_REACH_SHELL
 from planetgen.generation.star import STAR_TYPE_PATTERN
@@ -960,6 +961,21 @@ def add_plan_arguments(parser):
                                        "resolves, at least the brightest white dwarf "
                                        f"({program_constants.WD_LUMINOSITY_RANGE_SOL[1]:g}). Stored with the galaxy "
                                        f"by a full plan. Default: {program_constants.FILL_LUMINOSITY_CAP_SOL:g}.")
+    limits_group = parser.add_argument_group("scatter limits by place (planetgen.galaxy.scatter_limits)")
+    limits_group.add_argument('--core-min-luminosity', type=finite_float, default=None, metavar='L_SUN',
+                              help="The luminosity floor (solar luminosities) of the scatter in the galactic core. "
+                                   "Stored with the galaxy by a full plan. Default: the baseline floor times "
+                                   f"{program_constants.CORE_TIER_FACTOR:g}, until set.")
+    limits_group.add_argument('--core-mass-limit', type=finite_float, default=None, metavar='M_SUN',
+                              help="The mass limit (solar masses) of the scatter in the galactic core. Stored with "
+                                   "the galaxy by a full plan. Default: the baseline limit times "
+                                   f"{program_constants.CORE_TIER_FACTOR:g}, until set.")
+    limits_group.add_argument('--halo-min-luminosity', type=finite_float, default=None, metavar='L_SUN',
+                              help="The luminosity floor (solar luminosities) of the scatter in the halo, from "
+                                   f"{program_constants.HALO_MIN_LUMINOSITY_RANGE_SOL[0]:g} to "
+                                   f"{program_constants.HALO_MIN_LUMINOSITY_RANGE_SOL[1]:g}; the halo has no mass "
+                                   "limit of its own. Stored with the galaxy by a full plan. Default: "
+                                   f"{program_constants.HALO_MIN_LUMINOSITY_SOL:g}.")
     phenomena_group = parser.add_argument_group("phenomenon scatter (planetgen.generation.phenomenon_scatter)")
     presets = ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS)
     phenomena_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
@@ -1027,6 +1043,14 @@ def validate_plan_args(args, parser):
             star_population.check_threshold(args.fill_luminosity_cap)
         except ValueError as exc:
             parser.error(f"--fill-luminosity-cap: {exc}")
+    for option in ("core_min_luminosity", "core_mass_limit"):
+        if getattr(args, option) is not None and getattr(args, option) <= 0:
+            parser.error(f"--{option.replace('_', '-')} must be more than 0.")
+    if args.halo_min_luminosity is not None:
+        try:
+            scatter_limits.check_halo_min_luminosity(args.halo_min_luminosity)
+        except ValueError as exc:
+            parser.error(f"--halo-min-luminosity: {exc}")
     if args.max_shell < 1:
         parser.error("--max-shell must be a positive integer.")
     for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):

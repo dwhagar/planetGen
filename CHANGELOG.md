@@ -2,6 +2,77 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1580] - 2026-10-16
+
+**Headline:** The TODO list retires the three scatter-limit settings columns, which Core 3 built.
+
+### Changed
+- **DB.54 is done (#1887, migration 0101).** The scatter limits by place are three galaxy settings. The migration order is now DB.54 0101, DB.55 0102, GEN.336 0103, DB.53 0104.
+
+### Added
+- **TEST.197 and TEST.198, two browser tests that fail under load (bugs).** `test_page_is_accessible_and_fits[web.sector-phone-light]` and `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` each failed once in a full run and passed alone; goal issue #1694.
+
+TODO items resolved: DB.54 / Added: TEST.197, TEST.198
+
+## [8.0.1579] - 2026-10-16
+
+**Headline:** The scatter limits by place are three settings of the galaxy: a core luminosity floor and mass limit and a halo luminosity floor.
+
+### Added
+- **`planetgen plan --core-min-luminosity`, `--core-mass-limit` and `--halo-min-luminosity` (DB.54).** Stored on `galaxy_shape` (migration 0101, schema v101): the core's luminosity floor and mass limit, unset until given and then the baseline's times 1.1 (9,900 and 15.4 at the defaults), and the halo's luminosity floor (default 500, from 50 to 4,000,000; the halo has no mass limit of its own). A floor under 50 is refused with the reason, and `plan` says what the three are. Nothing reads them yet: the tiers that choose a limit by place are GEN.333.
+
+TODO items resolved: DB.54. Added: none.
+
+## [8.0.1578] - 2026-10-16
+
+**Headline:** The multi-star design note now says the metallicity effect on close binaries applies to every star mass.
+
+### Changed
+- **GEN.103's last card is answered: all masses (Boss, 6:15 PM EDT).** There is no fade of the metallicity effect above about 2 solar masses; TEST.196 checks that the numbers act as expected.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1577] - 2026-10-16
+
+**Headline:** The plan records Boss's decisions for the multi-star type draw and adds a check that the close-binary numbers act as expected.
+
+### Changed
+- **GEN.103 records Boss's answers (6:12 to 6:15 PM EDT).** The close-binary trend is the pooled one at the star's own [Fe/H]; the metallicity effect applies to every star mass; wide pairs have no metallicity dependence; the encounter limit is a sharp cut at a_1/2; the fixed 10,000 AU wide-pair cap is replaced by the derived limit. One card (a fade above about 2 solar masses) is still open.
+
+### Added
+- **TEST.196, the close-binary check.** Generated close-companion shares by primary-mass and [Fe/H] bin are compared with the published ranges in the census harness, and out-of-range bins are flagged. Owner Core 4, near TEST.186; goal issue #1667.
+
+TODO items resolved: none / Added: TEST.196
+
+## [8.0.1576] - 2026-10-16
+
+**Headline:** The TODO list retires the single definition of the stored point columns and the galaxy-grid fuzz bug.
+
+### Changed
+- **GEN.335 and TEST.192 are done (#1883).** The stored point of an object is defined once, with a test that lists every object table, and the fuzz test's tolerance now allows for the rounding of the halo subtraction. The migration order is now DB.55 0101, DB.54 0102, GEN.336 0103, DB.53 0104; belts and asteroid fields store a stated zero mass until a mass model is asked for, which NAV.62 notes.
+
+TODO items resolved: GEN.335, TEST.192 / Added: none
+
+## [8.0.1575] - 2026-10-16
+
+**Headline:** The columns that hold an object's position, mass and movement are defined in one place.
+
+### Changed
+- **One definition of the stored point (GEN.335).** `planetgen/db/point_columns.py` names, per table, the position, velocity, mass, epoch and due columns with their frame and units, and converts a row to a `SpatialPosition3D` and back. The planets, moons, bright stars, scatter points and star systems read and write their point through it (the nightly orbit update, the sector load, the path and stone lookups), with the same behaviour as before.
+- **A test lists every table that holds an object.** A table must be a full layout (a point, a mass, a movement vector and an epoch), be on the named allow-list of tables still to convert (stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants, belts, the quasar, comets, facilities and scatter members, each with the item that fixes it), or be a non-object. A new kind of object that lacks a part now fails the suite.
+- **A galaxy fuzz test no longer fails on rounding (TEST.192).** The skeleton-bound test subtracts the halo from the model density, and where the halo is nearly all of it the remainder is smaller than the rounding of the subtraction; the check now allows four ulps of the model.
+
+TODO items resolved: GEN.335, TEST.192. Added: none.
+
+## [8.0.1574] - 2026-10-16
+
+**Headline:** The TODO list retires the cell-key test across a cube boundary, which Core 4 built.
+
+### Changed
+- **TEST.166 is done (#1881).** The cell key is now tested across a cube boundary. TEST.192 gains Core 4's deterministic reproduction of the fuzz failure, and the GEN.103 research text now carries Core 4's corrections (the Moe et al. points and the dimensionally inconsistent formula).
+
+TODO items resolved: TEST.166 / Added: none
+
 ## [8.0.1573] - 2026-10-16
 
 **Headline:** The cell key is now tested across a cube boundary on every table that holds a position.
