@@ -527,7 +527,9 @@ number before any of it is coded.**
 
 1. **Close-binary fraction against metallicity.** For solar-type primaries (about 0.6 to 1.2 Msun) the fraction
    inside about 10 AU (P below about 10^3.5 days) falls as [Fe/H] rises: about 50% to 60% at [Fe/H] below -1
-   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps). The dependence vanishes
+   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the Moe et al. 2019
+   points as 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5, and El-Badry and Rix as 2019, so the
+   rounder figures here are summaries to be replaced by the points). The dependence vanishes
    for separations above about 200 AU. The cause is disk fragmentation: low metallicity means low dust
    opacity, so the outer disk cools fast (t_cool below about 3 over Omega, with Toomre Q near 1 or below),
    fragments into companions that migrate inward and stall inside about 10 AU, while metal-rich disks
@@ -539,7 +541,7 @@ number before any of it is coded.**
    (a) The diffusive limit: the largest separation whose binding energy survives the summed impulses of
    perturbers over the age of the population, from the local stellar number density, the mean perturber
    mass, the velocity dispersion, the Coulomb logarithm and the age (Bahcall et al. 1985; Jiang and
-   Tremaine 2010; the formula as Boss typed it needs checking against those papers). (b) The tidal limit:
+   Tremaine 2010; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
    the Jacobi radius from the galactic potential at the cell, (G M / (4 Omega^2 - kappa^2))^(1/3) = (G M /
    (2 A (A - B)))^(1/3) for a pair of total mass M, which the generator evaluates from the same potential
    as the orbital update. A pair is kept only below the smaller of the two. **Check values, not inputs:** the
