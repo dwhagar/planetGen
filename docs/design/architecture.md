@@ -567,6 +567,8 @@ The map panels and their data.
 | `galaxysystem.js` | A star system opened in place on the Galaxy Map (MAP.125), using `systemview3d.js` at the system's position. |
 | `galaxytilecut.js` | The tiles the Galaxy Map fetches for a camera, chosen by distance (MAP.152). |
 | `sectorreach.js` | Which sector's own scene the camera wants up in a window of sectors, and how much of it shows (MAP.152). |
+| `systemreach.js` | Which star's system the camera wants up in an opened sector, by the size of its disc, and how much of it shows (MAP.152). |
+| `groupfade.js` | Draws a scene group at a share of its strength: the fade of a sector's or a system's scene coming in (MAP.152). |
 | `generatecustomize.js` | The admin Generate page's "Customize" window (ADM.28). |
 | `generatefolds.js` | The Generate page's folding sections and its "Around a sector" finder (ADM.4). |
 | `generateranges.js` | The Generate page's sliders: shows a range input's value (GEN.183). |

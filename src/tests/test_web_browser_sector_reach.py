@@ -177,3 +177,66 @@ def test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is(page, 
     _wheel(page, _spot(page, reach), -40)
     page.wait_for_timeout(300)
     assert _camera(page)["dist"] < after["dist"]
+
+
+def _system_requests(page):
+    """Collects the requests for any system's scene."""
+    seen = []
+    page.on("request", lambda request: seen.append(request.url) if re.search(r"/system/[^/]+/scene", request.url) else None)
+    return seen
+
+
+def _star_point(page, base_url, reach):
+    """A star of the sector with a system, in the map's frame (pc)."""
+    scene = page.request.get(f"{base_url}/sector/{reach.id}/scene").json()
+    unit = scene["halfEdgePc"] / (scene["sceneHalfPx"] or 160)
+    cx, cy, cz = scene["centerPc"]
+    for star in scene["stars"]:
+        if star.get("endpoint", "").startswith("system:") and star.get("href"):
+            return star, (cx + star["x"] * unit, cy - star["y"] * unit, cz + star["z"] * unit)
+    pytest.skip("the sector has no star with a system")
+
+
+def _system_ambient(page):
+    return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystemAmbient()")
+
+
+def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_url, site_app, sample_params):
+    """In the opened sector, with the star at the middle of the view, the wheel brings the camera down to where the
+    system's disc is whole: its scene is fetched once, fades in by the disc's size, is not "opened" (no system in the
+    address), and one more tick opens it from that scene."""
+    scene = _Scene(page, base_url, site_app, sample_params)
+    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _ready(page)
+    star, point = _star_point(page, base_url, scene)
+    seen = _system_requests(page)
+    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
+    _ready(page)
+    assert _system_ambient(page) is None
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+    position = (spot["x"], spot["y"])
+    shares = []
+    for _ in range(80):
+        before = _camera(page)["zoom"]
+        _wheel(page, position, -60)
+        page.wait_for_timeout(60)
+        ambient = _system_ambient(page)
+        if ambient:
+            shares.append(ambient["share"])
+        if _camera(page)["zoom"] >= before - 1e-12 and ambient and ambient["share"] >= 0.999:
+            break
+    assert shares, "the system's scene never came in"
+    assert shares == sorted(shares), shares
+    assert shares[-1] == pytest.approx(1.0, abs=1e-6), shares
+    assert len(seen) == 1, seen
+    assert "system=" not in page.url
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystem()") is None
+    # One more tick (the wheel quiet first) opens the system from the scene that is up.
+    page.wait_for_timeout(500)
+    _wheel(page, position, -60)
+    page.wait_for_function("() => location.search.includes('system=')", timeout=20000)
+    _ready(page)
+    assert len(seen) == 1, "opening the system fetched its scene again"
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystem()") is not None
+    assert _system_ambient(page) is None
