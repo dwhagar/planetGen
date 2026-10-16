@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Builds the three browsable TODO pages from the TODO sources.
+Builds the four browsable TODO pages from the TODO sources.
 
 Why this exists
 ===============
@@ -17,6 +17,9 @@ already keeps, so one command refreshes them:
 - `docs/plan/todo-tree.html`: every open item as a tree, each item under the
   prerequisite that finishes last, with phase and bug marks, search and
   filters (Boss 2026-10-09 07:03Z: "a TODO as a tree structure").
+- `docs/plan/release-roadmap.html`: the proposed releases from v8.0 to v10.0,
+  each with its headline, the open items it holds, what it needs, its share
+  built and the suggestions not yet filed (Boss, 2026-10-16).
 
 Sources
 =======
@@ -29,11 +32,13 @@ Sources
   issues Boss opened) and the items each one covers; every page links them.
 - `docs/plan/progress-ledger.md`: the phase each finished item belonged to, for
   the progress bar on every tier of the tier plan (Boss, 2026-10-16).
+- `docs/plan/release-roadmap.md`: the release roadmap's order, headlines and
+  item IDs; open counts come from TODO.md on every build.
 
 Usage
 =====
-    python scripts/build_todo_docs.py          # rewrite all three pages
-    python scripts/build_todo_docs.py --check  # fail if either page is stale
+    python scripts/build_todo_docs.py          # rewrite all four pages
+    python scripts/build_todo_docs.py --check  # fail if a page is stale
 
 The output carries no dates, so rebuilding unchanged sources gives
 byte-identical pages. Templates live in `scripts/todo_docs/`.
@@ -53,6 +58,7 @@ OUTPUTS = {
     "tier-plan.template.html": ROOT / "docs" / "plan" / "tier-plan.html",
     "todo-reference.template.html": ROOT / "docs" / "plan" / "todo-reference.html",
     "todo-tree.template.html": ROOT / "docs" / "plan" / "todo-tree.html",
+    "release-roadmap.template.html": ROOT / "docs" / "plan" / "release-roadmap.html",
 }
 ID_RE = re.compile(r"^[A-Z]+\.\d+$")
 HEADLINE_RE = re.compile(r"Headline:\s*(\d+\.\d+)\s*\(([^)]*)\)")
@@ -260,6 +266,125 @@ def build_progress(items: dict, ledger: dict[str, str], baseline: int, phases: l
             "done": done, "total": total, "pct": round(100 * done / total, 1) if total else 0.0}
 
 
+ROADMAP_RELEASE_RE = re.compile(r"^Release (\d+\.\d+): (.*)$")
+ROADMAP_FIELD_RE = re.compile(r"^(Status|Headline|Today|Change|Needs|Lanes|Built before|Items|Alternative)(?: \(([^)]+)\))?:\s*(.*)$")
+ROADMAP_SUGGEST_RE = re.compile(r"^- (S\d+\.\d+-[a-z]): (.*)$")
+
+
+def parse_roadmap(text: str) -> dict:
+    """docs/plan/release-roadmap.md: the proposed releases, their item IDs and suggestions."""
+    out = {"title": "", "intro": [], "how": [], "releases": [], "questions": []}
+    cur, section, last = None, "intro", None
+    for line in text.splitlines():
+        if line.startswith("# "):
+            out["title"] = line[2:].strip()
+            continue
+        if line.startswith("## "):
+            title = line[3:].strip()
+            found = ROADMAP_RELEASE_RE.match(title)
+            if found:
+                cur = {"version": found.group(1), "name": found.group(2), "fields": {}, "groups": [],
+                       "alternatives": [], "suggested": []}
+                out["releases"].append(cur)
+                section = "release"
+            else:
+                cur, section = None, title
+            last = None
+            continue
+        if not line.strip():
+            continue
+        if section == "intro":
+            out["intro"].append(line.strip())
+        elif section == "How to read this":
+            out["how"].append(line[2:].strip() if line.startswith("- ") else line.strip())
+        elif section == "Questions for Boss":
+            out["questions"].append(line[2:].strip() if line.startswith("- ") else line.strip())
+        elif section == "release" and cur is not None:
+            sug = ROADMAP_SUGGEST_RE.match(line)
+            field = ROADMAP_FIELD_RE.match(line)
+            if sug:
+                cur["suggested"].append({"code": sug.group(1), "text": sug.group(2)})
+                last = None
+            elif line.startswith("  ") and last is not None:
+                last["text"] += " " + line.strip()
+            elif field:
+                key, label, value = field.groups()
+                if key == "Items":
+                    last = {"label": label or "", "text": value}
+                    cur["groups"].append(last)
+                elif key == "Alternative":
+                    last = {"label": label or "", "text": value}
+                    cur["alternatives"].append(last)
+                else:
+                    last = {"text": value}
+                    cur["fields"][key] = last
+            elif line.strip() == "Suggested:":
+                last = None
+    return out
+
+
+def build_roadmap(root: Path, items: dict, progress: dict) -> dict:
+    """The roadmap with every listed item resolved against TODO.md, counts and order checks."""
+    path = root / "docs" / "plan" / "release-roadmap.md"
+    road = parse_roadmap(path.read_text(encoding="utf-8")) if path.exists() else parse_roadmap("")
+    rank = {r["version"]: n for n, r in enumerate(road["releases"])}
+    placed: dict[str, str] = {}
+    for rel in road["releases"]:
+        fields = {k: v["text"].strip() for k, v in rel["fields"].items()}
+        built = re.match(r"\d+", fields.get("Built before", ""))
+        rel["fields"] = fields
+        rel["built"] = int(built.group(0)) if built else None
+        for grp in rel["groups"]:
+            ids = split_ids(grp.pop("text"))
+            for item_id in ids:
+                if item_id not in items:
+                    raise SystemExit(f"docs/plan/release-roadmap.md: {item_id} in release {rel['version']} is not an item")
+                if item_id in placed:
+                    raise SystemExit(f"docs/plan/release-roadmap.md: {item_id} is in both {placed[item_id]} and {rel['version']}")
+                placed[item_id] = rel["version"]
+            grp["ids"] = ids
+        rel["alternatives"] = [{"label": a["label"], "text": a["text"].strip()} for a in rel["alternatives"]]
+    tiers = {t["key"]: t for t in progress["tiers"]}
+    violations, unplaced = [], []
+    for rel in road["releases"]:
+        open_ids = []
+        for grp in rel["groups"]:
+            rows = []
+            for item_id in grp["ids"]:
+                it = items[item_id]
+                is_open = it["status"] == "open"
+                if is_open:
+                    open_ids.append(item_id)
+                    for dep in it["deps"]:
+                        if dep in placed and rank[placed[dep]] > rank[rel["version"]]:
+                            violations.append({"id": item_id, "release": rel["version"], "needs": dep, "needsRelease": placed[dep]})
+                rows.append({"id": item_id, "title": it["title"], "phase": it["phase"], "bug": it["bug"],
+                             "open": is_open, "deps": it["deps"] if is_open else []})
+            grp["items"] = rows
+            del grp["ids"]
+        done = sum(1 for g in rel["groups"] for r in g["items"] if not r["open"])
+        mix: dict[str, int] = {}
+        for g in rel["groups"]:
+            for r in g["items"]:
+                if r["open"]:
+                    mix[r["phase"] or "?"] = mix.get(r["phase"] or "?", 0) + 1
+        finished = (rel["built"] or 0) + done
+        total = finished + len(open_ids)
+        rel.update({
+            "open": len(open_ids), "ready": sum(1 for g in rel["groups"] for r in g["items"] if r["open"] and not r["deps"]),
+            "bugs": sum(1 for g in rel["groups"] for r in g["items"] if r["open"] and r["bug"]),
+            "doneListed": done, "mix": mix,
+            "share": round(100 * finished / total, 1) if rel["built"] is not None and total else None,
+        })
+    for item_id, it in items.items():
+        if it["status"] == "open" and item_id not in placed:
+            unplaced.append(item_id)
+    road["violations"], road["unplaced"] = violations, sorted(unplaced, key=id_key)
+    road["tierShare"] = {k: t["pct"] for k, t in tiers.items()}
+    return road
+
+
+
 def build_data(root: Path) -> dict:
     todo = parse_todo((root / "docs" / "TODO.md").read_text(encoding="utf-8"))
     phases, rows = parse_phases(root / "docs" / "plan")
@@ -311,12 +436,14 @@ def build_data(root: Path) -> dict:
     ledger_file = root / "docs" / "plan" / "progress-ledger.md"
     ledger, baseline = parse_ledger(ledger_file.read_text(encoding="utf-8") if ledger_file.exists() else "")
     progress = build_progress(items, ledger, baseline, phases)
+    roadmap = build_roadmap(root, items, progress)
     summary = (f"{len(open_ids)} open items, {sum(items[i]['bug'] for i in open_ids)} bugs; "
                f"{len(items)} IDs issued in all")
     return {
         "plan": {"items": plan_items, "phases": phases, "decisions": decisions, "generated": summary,
                  "headlines": headlines, "issues": {str(k): v for k, v in issues.items()},
                  "progress": progress},
+        "roadmap": roadmap,
         "reference": {"items": items, "phases": [{"key": p["key"], "title": p["title"]} for p in phases],
                       "categories": CATEGORIES, "summary": summary, "headlines": headlines,
                       "issues": {str(k): v for k, v in issues.items()}},
@@ -365,7 +492,8 @@ def build(root: Path = ROOT) -> dict[Path, str]:
     out = {}
     for name, target in OUTPUTS.items():
         template = (TEMPLATES / name).read_text(encoding="utf-8")
-        key = "reference" if name.startswith("todo-reference") else "plan"
+        key = ("reference" if name.startswith("todo-reference") else
+               "roadmap" if name.startswith("release-roadmap") else "plan")
         out[target] = render(template, data[key])
     return out
 

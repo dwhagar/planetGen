@@ -1,4 +1,4 @@
-"""The two TODO pages in docs/plan/ match their sources.
+"""The TODO pages in docs/plan/ match their sources.
 
 `scripts/build_todo_docs.py` builds docs/plan/tier-plan.html and
 docs/plan/todo-reference.html from docs/TODO.md, the phase plans, the plan
@@ -59,3 +59,33 @@ def test_a_finished_item_without_a_ledger_row_fails_the_build():
         raise AssertionError("a retired item with no ledger row must fail the build")
     done = build_todo_docs.build_progress(items, {"GEN.1": "2"}, 1000, [])
     assert done["tiers"][2]["done"] == 1
+
+
+def test_the_release_roadmap_is_in_build_order_with_a_headline_per_release():
+    road = build_todo_docs.build_data(build_todo_docs.ROOT)["roadmap"]
+    assert road["violations"] == [], f"items placed before something they need: {road['violations']}"
+    versions = [r["version"] for r in road["releases"]]
+    assert versions[0] == "8.0" and versions[-1] == "10.0" and len(set(versions)) == len(versions)
+    for rel in road["releases"]:
+        assert rel["fields"].get("Headline"), f"release {rel['version']} has no headline"
+        for sug in rel["suggested"]:
+            assert sug["code"].startswith(f"S{rel['version']}-"), sug
+
+
+def _roadmap_error(tmp_path, text, items):
+    plan = tmp_path / "docs" / "plan"
+    plan.mkdir(parents=True)
+    (plan / "release-roadmap.md").write_text(text, encoding="utf-8")
+    try:
+        build_todo_docs.build_roadmap(tmp_path, items, {"tiers": []})
+    except SystemExit as err:
+        return str(err)
+    return ""
+
+
+def test_the_release_roadmap_refuses_an_id_in_two_releases_or_an_unknown_id(tmp_path):
+    open_item = {"status": "open", "title": "t", "phase": "1", "bug": False, "deps": []}
+    items = {"GEN.1": open_item}
+    twice = "## Release 1.0: A\nItems: GEN.1\n\n## Release 1.1: B\nItems: GEN.1\n"
+    assert "GEN.1" in _roadmap_error(tmp_path / "a", twice, items)
+    assert "GEN.2" in _roadmap_error(tmp_path / "b", "## Release 1.0: A\nItems: GEN.2\n", items)
