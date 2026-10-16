@@ -2114,6 +2114,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
   Prerequisites: MAP.237. Related: MAP.237, MAP.111, MAP.190, UX.48.
 
+- [ ] **MAP.239 Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card (2026-10-16, 7:36 to 7:38 PM EDT):
+  the map tile root rises to the 262 kpc reach. Done: `TILE_ROOT` in
+  `src/planetgen/galaxy/viewport.py` and
+  `src/html/static/galaxymap3d.js` is the reach, so a tile key covers
+  every address in it; stale comments fixed (`web/lib/tilepack.py:30`,
+  `galaxyprisms.js:475`); `test_tiles_cover_the_reach` checks that every
+  cell at the reach edge falls in a tile. Owner: Core 2.
+  Prerequisites: none. Related: GEN.372, MAP.146.
+
+- [ ] **MAP.240 Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card: fix camera-relative now. Float32
+  attribute buffers in the browser hold absolute coordinates (float32
+  spacing at 262 kpc is far above a parsec), so far from the origin the
+  shapes jitter and snap. Done: the buffers of territory dots,
+  superbubbles, made-sector rings, block prisms, stage views, and the
+  system view's dots and belts are built relative to the camera (or a
+  per-object origin) in double precision on the CPU and the model matrix
+  carries the offset; a browser test reads each attribute range and
+  fails if any value exceeds the safe float32 range (a set bound, in
+  parsecs, stated in the test) at a camera 262 kpc from the origin.
+  Owner: Core 2. Related: the superbubble look (MAP.236) and the key
+  (MAP.234) touch the same buffers.
+  Prerequisites: none. Related: GEN.372, MAP.236, MAP.234, MAP.146.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3344,6 +3375,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     kernel that feeds the stepper, the perturbed pass and the warnings;
     no integrator of its own for stars (the stepper is child c of
     GEN.115).
+    Precision note (GEN.372 audit, Boss card 2026-10-16, 7:36 to 7:38 PM EDT):
+    the long force sums here use compensated summation (Neumaier or fsum,
+    or mpmath for the long integrations from the galactic centre); the audit
+    decided they wait for this item, not before.
     Prerequisites: GEN.341, GEN.342, GEN.343, GEN.344.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -7161,6 +7196,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chose it by card, 2026-10-16, 6:59 PM EDT), who owns the point columns
   (DB.55, GEN.336, GEN.337, GEN.294) and the IDs, with Core 2 reading the
   camera and render rows.
+  Audit written (Core 1, 2026-10-16, 7:39 PM EDT; docs/design/numeric-precision-audit.md,
+  merging in its own PR): verdict, 64-bit is enough for every stored
+  value, no 128-bit or 256-bit column. Boss decided four items by card
+  (7:36 to 7:38 PM EDT): the nightly update keeps a local offset (document
+  and test only, TEST.200); the map tile root rises to the 262 kpc reach
+  (MAP.239); browser buffers become camera-relative now (MAP.240);
+  compensated sums wait for GEN.109. Items filed from the audit's section
+  5: MAP.239, MAP.240, GEN.374 (phase formula), DB.65 (cell key clamp),
+  GEN.375 (field kernel local origin), GEN.376 (region haversine),
+  TEST.200 (local offset limit), TEST.201 (block_stats order). GEN.372
+  resolves when the audit merges.
   Finding attached (Core 2, 2026-10-16, 7:27 PM EDT): TEST.199, the
   halo subtraction in the density skeleton loses precision in the far tail
   (a relative gap of 2.4e-9 against 1e-9 at z = 36,706 pc).
@@ -7191,6 +7237,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.164,
   TEST.196.
   Design: [docs/design/placement-by-population.md](design/placement-by-population.md)
+
+- [ ] **GEN.374 Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the phase formula reduces the angle modulo one
+  turn before multiplying (`body_positions` and `system_tree` in Python,
+  `src/html/static/orbitpositions.js` in JavaScript); the JavaScript
+  Kepler solver's tolerance is 1e-12; tests show that the Python, SQL
+  and JavaScript phase functions agree within a stated bound at long
+  times (millions of days from the epoch). Owner: Core 2, or whoever
+  owns `orbitpositions.js`.
+  Prerequisites: none. Related: GEN.372, GEN.109, GEN.313.
+
+- [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the field kernel of
+  `src/planetgen/physics/sector_path.py` subtracts a local origin (the
+  path's own start or the cell centre) from every position before the
+  loop, so the sums run on small numbers; a test shows the result agrees
+  with a high-precision reference within the float64 spacing at a sector
+  262 kpc from the origin. Owner: Core 1, with GEN.294.
+  Prerequisites: none. Related: GEN.372, GEN.294.
+
+- [ ] **GEN.376 Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the angle in the region test of
+  `src/planetgen/galaxy/region.py` is computed with the haversine form
+  below 1e-3 rad (the arccos form loses all precision there); a test
+  with two points a few parsecs apart at 262 kpc gives the right angle
+  within a stated relative bound. Owner: Core 4 (region query).
+  Prerequisites: none. Related: GEN.372, GEN.276, NAV.60.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -8331,6 +8413,19 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   fixture, an idempotent upgrade and a round-trip test; no code writes
   it yet.
   Prerequisites: none. Related: VIEW.3.
+
+- [ ] **DB.65 Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: `cell_index` and `cell_keys` in
+  `src/planetgen/.../cellkey.py` clamp the per-axis index at 2^21-1 so a
+  coordinate past the reach cannot wrap into another cell's key, and the
+  generated SQL expression does the same (one migration, which needs a
+  revision from Core 1); a test pins that a point beyond the reach maps
+  to the edge cell in both the Python and the SQL form. Small. Owner:
+  Core 1 (needs a migration revision).
+  Prerequisites: none. Related: GEN.372, DB.55.
 
 ## API: The JSON API
 
@@ -10762,6 +10857,32 @@ clears each one.
   (the precision audit). Related: TEST.192 (an earlier fuzz bound).
   Owner: Core 1 (proposed: its bug phase and GEN.372).
   Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
+
+- [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card: the nightly update keeps a local
+  offset, and this item documents it and tests it, with no code change
+  to the update. Done: the limit (how far an object's local offset may
+  grow before it is folded into the absolute point) is written in the
+  orbital update's design doc, and
+  `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`
+  pins that after the largest rotation the update applies the local
+  offset is within one unit in the last place of the absolute point.
+  Owner: Core 1.
+  Prerequisites: none. Related: GEN.372, GEN.223, GEN.294.
+
+- [ ] **TEST.201 `block_stats` totals do not depend on the order of the rows: a test**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: a test sums the block statistics (`block_stats`)
+  of the same rows in several random orders and requires identical
+  totals (or totals within a stated bound), failing if the sum is order
+  dependent. Compensated sums for the long accumulations wait for
+  GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
+  Prerequisites: none. Related: GEN.372, GEN.109.
 
 ## USR: User accounts
 
