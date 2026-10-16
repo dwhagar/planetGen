@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1520] - 2026-10-16
+
+**Headline:** The to-do list assigns the fly-through map's first two items, MAP.152 and MAP.146, to Core 2 on Boss's order, right after PERF.104.
+
+### Changed
+
+- Added the owner line on MAP.152 and MAP.146 and moved both into Core 2's queue in the execution plan; Core 2's later items slide by about 6 to 8 hours.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1519] - 2026-10-16
 
 **Headline:** The to-do list retires the galactic core cell star ceiling and fill luminosity cap (GEN.281), and records that migration 0098 shipped with it alone.
