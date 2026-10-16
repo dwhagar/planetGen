@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1549] - 2026-10-16
+
+**Headline:** All program configuration lives in the one `config.json`, which can now be saved from the command line with checks, backups and an audit row, on a new backup archive that the settings page, the control database and the DB repair data will share.
+
+### Changed
+- `config.json` is the one file for all program configuration (the planned second file, `settings.json`, is dropped). It stays your own copy of `config.json.example`: nothing writes to the example, `update.sh` never overwrites your copy, and a missing copy is reported, never created. A leftover `settings.json` from the dropped design is ignored, and `config check` names it as unused.
+- `python3 -m planetgen.cli.config` gains `set`, `unset`, `get` and `restore` (ADM.83). Every value is checked against the settings model first, each problem named at its option, and one bad value saves nothing. The command line may change every option (the database and secrets included; `OPTION=-` reads a value from standard input); the Admin page will not. Keys the model does not know and the order of the keys are kept.
+- A save writes `config.json` atomically (temporary file, `fsync`, rename) under a lock, takes a settings-only backup archive first, writes one audit row per changed option (a secret is written `(changed)`, never the text) and lists the changes that need a restart.
+- New backup archive (ADM.87, `planetgen.backup`, `python3 -m planetgen.cli.backup take|list|verify|restore|parts`): every backup is one `.tar.bz2` in `backups` in the state folder (mode 0600) with a `manifest.json` (time, who, why, SHA-256 of every file) and one folder per part. A copy of `config.json` is the first part; a restore verifies the archive, backs up what it replaces, restores the whole archive or named parts, and skips and reports a part this build does not know. A restore from the web puts back only the options an admin may change. New option `settings.backups_kept` (default 20, 1 to 200) counts archives and never deletes the newest one holding every part. `set-permissions.sh` keeps the `backups` folder 700.
+
 ## [8.0.1548] - 2026-10-16
 
 **Headline:** The galactic core density terms (GEN.280) are retired after the merge.
