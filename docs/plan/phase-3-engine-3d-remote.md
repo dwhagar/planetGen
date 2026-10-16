@@ -39,6 +39,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.292 | Run the orbital update for a stated span in one go from the command line (elapsed years) | GEN.291 |  |
 | GEN.293 | Long-step rules for hypervelocity stars that leave the sector grid and for parabolic comets | GEN.290 |  |
+| GEN.295 | Nebulae as point groups whose shape follows the orbital update (design and research) | GEN.294, GEN.109, GEN.292 | Boss 2026-10-16 1:01 AM EDT. Design only, no lane. |
 
 ### Courses
 
