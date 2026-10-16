@@ -141,7 +141,7 @@ Verdict key: **OK** float64 is enough as the code stands. **WATCH** enough, but 
 
 Nothing is stored wider than 64 bits and nothing needs to be. The cases a wider sum would help are all computation, not storage:
 
-1. **Long integrations from the galactic centre** (an orbit integrated over many Gyr in one go, GEN.109 and the galactic-potential work): `galactic-potential.md` already compares float64 roundoff over 1e6 daily steps (9e-12 pc) with 80-bit arithmetic. The recommended tool is a compensated (Kahan or `math.fsum`) accumulation of the position increment, with the position kept as a coarse part (integer parsecs) plus a fractional part, so the accumulated sum keeps a 28 km spacing from being the limit. `mpmath` is a diagnostic check (run once offline on a few orbits), not a production path.
+1. **Long integrations from the galactic centre** (**decided: wait for GEN.109**; the accumulator is built with its first user) (an orbit integrated over many Gyr in one go, GEN.109 and the galactic-potential work): `galactic-potential.md` already compares float64 roundoff over 1e6 daily steps (9e-12 pc) with 80-bit arithmetic. The recommended tool is a compensated (Kahan or `math.fsum`) accumulation of the position increment, with the position kept as a coarse part (integer parsecs) plus a fractional part, so the accumulated sum keeps a 28 km spacing from being the limit. `mpmath` is a diagnostic check (run once offline on a few orbits), not a production path.
 2. **Ill-conditioned encounter solves** (a swept-sphere discriminant `B^2 - 4AC` with terms 1e42 and 1e23): `collisions-and-mergers.md` already specifies exact arithmetic; keep it and do not move the rest.
 3. **Reproducibility across machines** (`generation-determinism.md`): a `detmath` module with `fsum` is proposed there and does not exist; it belongs to the determinism work, not this audit.
 
@@ -149,14 +149,16 @@ None of these changes what is stored. There is no case for 128-bit or 256-bit co
 
 ## 5. Cases that need work (proposed items; TODO files them)
 
+Boss decided four of them on cards at 7:36 PM to 7:38 PM EDT on 2026-10-16: 5.1 document and test only, 5.6 raise the tile root to the reach, 5.3 fix the browser buffers now, and section 4's compensated sums wait for GEN.109. The rest are defaults.
+
 | # | Case | What to change | Test |
 |---|---|---|---|
-| 5.1 | The nightly rotation recomputes a local offset as `absolute - centre` (section 3.1) | Keep the sector-relative offset as the truth, rotate it in the local frame when the move is small, and write the galaxy column from the rounded sum; or document that the offset is good only to the absolute spacing | `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` |
+| 5.1 | The nightly rotation recomputes a local offset as `absolute - centre` (section 3.1) | **Decided: document and test.** The offset is good only to the absolute spacing (28 km at the Sun, 898 km at the reach), 1e7 and 3e5 times below the smallest stored move; revisit if generating anywhere needs finer offsets | `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` |
 | 5.2 | The kernel differences absolute metres | Subtract a local origin (the sector centre or the heaviest mass) before the loop, in `physics/sector_path.py`, before any code uses the kernel for bodies of one system | `test_kernel_differenced_in_a_local_frame_matches_absolute_within_the_spacing` |
-| 5.3 | Browser float32 attributes hold absolute coordinates for territory dots, superbubbles, the "made" rings, block prisms, stage views and the system view | Render them camera-relative like the stars (subtract a rounded camera target in double precision when the buffer is built, move the object by that target) | browser test reading the attribute range |
+| 5.3 | Browser float32 attributes hold absolute coordinates for territory dots, superbubbles, the "made" rings, block prisms, stage views and the system view | **Decided: fix now (map lane).** Render them camera-relative like the stars (subtract a rounded camera target in double precision when the buffer is built, move the object by that target) | browser test reading the attribute range |
 | 5.4 | Phase and Kepler differ between Python, SQL and JavaScript (section 2, item 7; tolerances 1e-10 against 1e-14) | One reduce-first form everywhere, and a JavaScript tolerance of 1e-12 | `test_phase_forms_agree_for_a_long_elapsed_time`, `test_js_kepler_matches_python_to_a_kilometre` |
 | 5.5 | `orbital-updates.md` and `orbital-solvers-and-integrators.md` state 32.8 km at 8.128 kpc and integer milliparsecs | Done in this change: both now state the figures of section 1 and point here | |
-| 5.6 | The map tile root covers only 32.8 kpc | Raise `TILE_ROOT` and `viewport.py` to the reach or state in the map documents that tiles end at 32.8 kpc | `test_tiles_cover_the_reach` |
+| 5.6 | The map tile root covers only 32.8 kpc | **Decided: raise `TILE_ROOT` and `viewport.py` to the reach** (map lane) | `test_tiles_cover_the_reach` |
 | 5.7 | The cell key wraps just under the reach | Clamp the index to `2^21 - 1` in `cell_index`, `cell_keys` and the SQL generated expression | `test_cell_key_at_the_reach_edge` |
 | 5.8 | The region test uses the law of cosines | Haversine form for angles under 1e-3 rad | `test_region_radius_of_one_parsec_at_the_reach` |
 
