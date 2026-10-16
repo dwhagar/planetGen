@@ -47,7 +47,7 @@ from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.plausibility import iqr_bounds
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, rogue_planet_classes
-from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, sedov_taylor_radius_ly
 from planetgen.util.random import power_law_share
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
@@ -438,10 +438,7 @@ def check_hard_invariants(record):
         age_lo, age_hi = prog_c.SUPERNOVA_REMNANT_AGE_RANGE_YEARS
         if not (age_lo <= record["age_years"] <= age_hi):
             issues.append(f"age_years={record['age_years']!r} outside {prog_c.SUPERNOVA_REMNANT_AGE_RANGE_YEARS}")
-        expected_radius_ly = (
-            prog_c.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
-            * (record["age_years"] ** prog_c.SEDOV_TAYLOR_TIME_EXPONENT)
-        )
+        expected_radius_ly = sedov_taylor_radius_ly(record["age_years"], record["density_cm3"])
         _isclose_or_flag(issues, "radius_ly", record["radius_ly"], expected_radius_ly)
         if record["progenitor_type"] not in ("Type Ia", "core-collapse"):
             issues.append(f"progenitor_type={record['progenitor_type']!r} is not a recognized value")
