@@ -5,18 +5,19 @@ epoch (`planetgen/db/point_columns.py`). This revision adds, nullable and backfi
 the code items that fill them (GEN.336, GEN.337, GEN.289) do not each need a revision of their own:
 
 * A movement vector (`velocity_x/y/z_kms`, galactic axes) on black holes, neutron stars, rogue planets, interstellar
-  comets, asteroid fields, nebulae, remnants, stars, belts and the quasar. The scalar `galactic_orbital_speed_kms` stays
+  comets, asteroid fields, nebulae, remnants, belts and the quasar. The scalar `galactic_orbital_speed_kms` stays
   until the code stops reading it (a later small revision drops it); the vector is backfilled from it as the tangent of
   the galaxy's rotation at the object's place, counterclockwise from galactic north, at the same speed
-  (`galaxy/system_position.galactic_velocity_ms`). A star takes its system's velocity; the quasar and a belt, which do
-  not move, take a stated zero.
-* A mass (`mass_kg`) on interstellar comets, asteroid fields, nebulae, remnants, belts, comets and facilities. A body
-  whose mass is not known (a field's or belt's bulk, a nebula, a remnant) takes a stated zero, which the gravity sum
-  skips by rule; a facility takes the mass of what it sits on (planet, moon or star), else zero.
-* An epoch and a due time (`epoch_unix`, `next_update_due`) on stars, belts and the quasar, and an epoch on scatter
-  members; NULL until the first orbit update, as on the tables that have them.
-* A system-frame position (`position_x/y/z_km`, from the system centre) on stars and belts: a single star and a belt
-  sit at the centre (zero), a binary's stars at `binary_primary_position_*` and `binary_secondary_position_*`.
+  (`galaxy/system_position.galactic_velocity_ms`). The quasar and a belt, which do not move, take a stated zero. A star
+  has no columns of its own: it moves with its system, whose point, vector and epoch it reads.
+* A mass (`mass_kg`) on interstellar comets, asteroid fields, nebulae, remnants, belts, comets and facilities. A comet
+  nucleus (interstellar or bound) takes its sphere's mass at the density of 67P, and a nebula or remnant the mass of its bounding sphere at its
+  particle density (an upper bound for a cloud that fills part of its sphere); a body whose mass is not known (a field's
+  or belt's bulk) takes a stated zero, which the gravity sum skips by rule; a facility takes the mass of
+  what it sits on (planet, moon or star), else zero.
+* An epoch and a due time (`epoch_unix`, `next_update_due`) on belts and the quasar, and an epoch on scatter members;
+  NULL until the first orbit update, as on the tables that have them.
+* A system-frame position (`position_x/y/z_km`, from the system centre) on belts, which sit at the centre (zero).
 * `sectors.max_mass_kg` and `sectors.max_mass_id` (the heaviest object of the sector and its uid, for the influence
   search of GEN.109; NULL until it is worked out), `asteroid_fields.formed_at` and `asteroid_fields.origin_event_id`
   (when a field formed and the event that made it, GEN.110; the event table is DB.56, so no foreign key), and for
@@ -60,7 +61,6 @@ ADDITIONS = {
     "nebulae": VECTOR + MASS,
     "supernova_remnants": VECTOR + MASS,
     "quasars": VECTOR + CLOCK,
-    "stars": POSITION + VECTOR + CLOCK,
     "asteroid_belts": POSITION + VECTOR + MASS + CLOCK,
     "comets": MASS,
     "facilities": MASS,
@@ -87,8 +87,14 @@ TANGENT_TABLES = ("black_holes", "neutron_stars", "rogue_planets", "interstellar
 # Objects that do not move on their own: a stated zero.
 ZERO_VECTOR_TABLES = ("quasars", "asteroid_belts")
 # Bodies whose mass is not known: a stated zero, which the gravity sum skips.
-ZERO_MASS_TABLES = ("interstellar_comets", "asteroid_fields", "nebulae", "supernova_remnants", "asteroid_belts",
-                    "comets")
+ZERO_MASS_TABLES = ("asteroid_fields", "asteroid_belts")
+# A cloud's mass is its bounding sphere at its density, with the interstellar gas's helium counted; a comet nucleus's is
+# its sphere at 67P's density (`physics/bulk_mass.py`, `tuning.COMET_NUCLEUS_DENSITY_KG_M3`). The constants are written
+# out so the revision does not change with a later retuning.
+LIGHT_YEAR_M = 9.4607304725808e15
+HYDROGEN_ATOM_KG = 1.67353286206015e-27
+GAS_MASS_PER_HYDROGEN = 1.4
+COMET_NUCLEUS_DENSITY = 533.0
 
 
 def _has_column(connection, table, column):
@@ -143,18 +149,15 @@ def upgrade():
                    f" WHERE velocity_x_kms IS NULL")
     for table in ZERO_MASS_TABLES:
         op.execute(f"UPDATE {table} SET mass_kg = 0 WHERE mass_kg IS NULL")
+    for table in ("nebulae", "supernova_remnants"):
+        op.execute(
+            f"UPDATE {table} SET mass_kg = 4.0 / 3.0 * PI() * POW(radius_ly * {LIGHT_YEAR_M!r}, 3)"
+            f" * density_cm3 * 1000000.0 * {HYDROGEN_ATOM_KG!r} * {GAS_MASS_PER_HYDROGEN!r} WHERE mass_kg IS NULL")
+    for table in ("interstellar_comets", "comets"):
+        op.execute(
+            f"UPDATE {table} SET mass_kg = 4.0 / 3.0 * PI() * POW(nucleus_diameter_km * 500.0, 3)"
+            f" * {COMET_NUCLEUS_DENSITY!r} WHERE mass_kg IS NULL")
 
-    op.execute(
-        "UPDATE stars s JOIN star_systems ss ON ss.id = s.star_system_id SET"
-        " s.velocity_x_kms = ss.velocity_x_kms, s.velocity_y_kms = ss.velocity_y_kms,"
-        " s.velocity_z_kms = ss.velocity_z_kms, s.epoch_unix = ss.epoch_unix, s.next_update_due = ss.next_update_due,"
-        " s.position_x_km = CASE s.role WHEN 'primary' THEN COALESCE(ss.binary_primary_position_x_km, 0)"
-        " WHEN 'secondary' THEN COALESCE(ss.binary_secondary_position_x_km, 0) ELSE 0 END,"
-        " s.position_y_km = CASE s.role WHEN 'primary' THEN COALESCE(ss.binary_primary_position_y_km, 0)"
-        " WHEN 'secondary' THEN COALESCE(ss.binary_secondary_position_y_km, 0) ELSE 0 END,"
-        " s.position_z_km = CASE s.role WHEN 'primary' THEN COALESCE(ss.binary_primary_position_z_km, 0)"
-        " WHEN 'secondary' THEN COALESCE(ss.binary_secondary_position_z_km, 0) ELSE 0 END"
-        " WHERE s.position_x_km IS NULL")
     op.execute("UPDATE asteroid_belts SET position_x_km = 0, position_y_km = 0, position_z_km = 0"
                " WHERE position_x_km IS NULL")
     op.execute(

@@ -1859,14 +1859,6 @@ CREATE TABLE IF NOT EXISTS stars (
     uid                   BINARY(12),
     -- v95 (GEN.158): the star's [Fe/H] in dex against the Sun; NULL for a row saved before v95.
     metallicity_fe_h      DOUBLE,
-    position_x_km               DOUBLE NULL,  -- v101 (DB.55): system-frame offset from the system centre, km
-    position_y_km               DOUBLE NULL,  -- v101 (DB.55): system-frame offset from the system centre, km
-    position_z_km               DOUBLE NULL,  -- v101 (DB.55): system-frame offset from the system centre, km
-    velocity_x_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    velocity_y_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    velocity_z_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    epoch_unix                  DOUBLE NULL,  -- v101 (DB.55): when the position and velocity hold
-    next_update_due             DOUBLE NULL,  -- v101 (DB.55): when the object next moves
 
     UNIQUE KEY uq_stars_uid (uid),
     CONSTRAINT fk_stars_star_system
