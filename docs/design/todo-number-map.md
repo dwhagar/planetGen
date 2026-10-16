@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.116 |
+| UX | UX.117 |
 | MAP | MAP.208 |
 | NAV | NAV.62 |
 | GEN | GEN.286 |
@@ -1440,6 +1440,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | open |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass | none | open |
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | none | open |
+| UX.116 | Sliders for every scatter and fill floor, ceiling and core lever, each labeled with a number box showing its value, in the Generate page's existing layout and segments | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

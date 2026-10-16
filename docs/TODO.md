@@ -555,6 +555,26 @@ with `clamp()`.
   Prerequisites: GEN.235, GEN.237, GEN.240, NAV.61, API.27, UX.113.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
+- [ ] **UX.116 Sliders for every scatter and fill floor, ceiling and core lever, each labeled with a number box showing its value, in the Generate page's existing layout and segments**
+  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "let's have 2 new
+  configuration values, along with the other floors. We have a halo
+  luminosity floor that defaults to 500, and another one being the fill
+  cap in solar luminosities for sectors exceeding another value for the
+  cell star ceiling where we then use the solar luminosity cap if the
+  star fill wants to have over that filled. The scatter core should also
+  have its own levers which default to around 10% higher than the
+  defaults. Each control will be a slider and clearly labeled with a
+  text box at the end of the slider that shows the number in the
+  slider." Done: every scatter and fill floor and ceiling (the halo
+  luminosity floor, the fill luminosity cap, the cell star ceiling, the
+  core levers and the other floors and limits of GEN.281 and GEN.283) is
+  a slider, clearly labeled, with a text box at the end of the slider
+  that shows the number and accepts a typed value; the sliders go into
+  the existing layout and segments of the Generate page (and the sector
+  fill form where the same settings apply), with the defaults shown and
+  a reset. Owner: a Core lane, Core 3 first (Boss, 1:09 AM EDT).
+  Prerequisites: GEN.281, GEN.283. Related: GEN.234, ADM.43, UX.49.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -4719,6 +4739,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   use, and the unresolved count and mass shown on the sector page and in
   region-query results; no cell above the cap is resolved without a
   request.
+  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "let's have 2 new
+  configuration values, along with the other floors. We have a halo
+  luminosity floor that defaults to 500, and another one being the fill
+  cap in solar luminosities for sectors exceeding another value for the
+  cell star ceiling where we then use the solar luminosity cap if the
+  star fill wants to have over that filled. The scatter core should also
+  have its own levers which default to around 10% higher than the
+  defaults. Each control will be a slider and clearly labeled with a
+  text box at the end of the slider that shows the number in the
+  slider." Done here: two settings beside the other floors: a cell star
+  ceiling (the star count above which a sector counts as exceeding it)
+  and a fill luminosity cap in solar luminosities; when the star fill
+  would place more stars than the ceiling in such a sector, the
+  luminosity cap is applied instead. Core 3 handles it.
   Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4748,6 +4782,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   band, satellites and clusters on the baseline, the factors kept as
   settings; placed_star_fraction uses the cell's cuts; the metallicity
   argument comes from GEN.158. No migration.
+  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "let's have 2 new
+  configuration values, along with the other floors. We have a halo
+  luminosity floor that defaults to 500, and another one being the fill
+  cap in solar luminosities for sectors exceeding another value for the
+  cell star ceiling where we then use the solar luminosity cap if the
+  star fill wants to have over that filled. The scatter core should also
+  have its own levers which default to around 10% higher than the
+  defaults. Each control will be a slider and clearly labeled with a
+  text box at the end of the slider that shows the number in the
+  slider." Done here: a halo luminosity floor setting (default 500 solar
+  luminosities) beside the other scatter floors, and the scatter core
+  gets its own levers (floor and mass limit settings) that default to
+  about 10% above the matching defaults; the tiers of this item read
+  these settings. Core 3 handles it.
   Prerequisites: GEN.235, GEN.158. Related: GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
