@@ -121,6 +121,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.220 | "Habitable" means the index | GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
 | GEN.221 | Short plain prose for the fixed text |  |  |
+| GEN.288 | Rename the PHI-6 equipment tier "Sealed suit" to "Environment suit" everywhere |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) |  |  |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | PERF.99 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
