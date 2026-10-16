@@ -55,6 +55,7 @@ import numpy as np
 
 from planetgen.physics import constants, metallicity
 from planetgen import tuning
+from planetgen.galaxy.component_field import KINDS_IN_THE_GATE
 from planetgen.galaxy.density import population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
     band_center_pc,
@@ -151,8 +152,13 @@ def _in_range(row, min_luminosity_sol, max_luminosity_sol):
 
 def _densities(position_pc, shape):
     """`population_densities`, with a negative term (a shape with a
-    negative bulge amplitude) counted as none."""
-    return {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
+    negative bulge amplitude) counted as none, and the clusters' and satellites' systems counted as none: the scatter
+    pre-places no component star (they are filled, GEN.161, or scattered by their own pass, GEN.240), which is what
+    `_densities_at` and the band majorants already assume."""
+    found = {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
+    for kind in KINDS_IN_THE_GATE:
+        found[kind] = 0.0
+    return found
 
 
 def _densities_at(points, z, shape):
@@ -226,8 +232,8 @@ def _finite_or_none(value):
 def star_fe_h(population, point, seed):
     """A bright star's [Fe/H] (GEN.158): drawn from its population and its distance from the galactic centre (its
     stored point, whole milliparsecs), on a stream of its own seed so no scatter draw moves. `None` for a cluster
-    star, which carries its cluster's value (GEN.159)."""
-    if population == "cluster":
+    or satellite star, which carries its component's value (GEN.159, GEN.237)."""
+    if population in ("cluster", "satellite"):
         return None
     distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in point)))
     return metallicity.sample_fe_h(population, distance_ly, draw.Stream(f"metallicity:bright:{seed}"))
@@ -760,6 +766,8 @@ class FillContext:
         """Gives one of the sector's own (dim) systems its population and,
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)
+        if system_config.POPULATION in ("cluster", "satellite"):
+            system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h
         if self.min_luminosity_sol is not None:
             system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol
         if self.star_mass_limit_sol is not None:

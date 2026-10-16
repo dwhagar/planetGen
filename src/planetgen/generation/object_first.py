@@ -115,13 +115,17 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
     along = inner / shape.bulge_scale_radius_pc
     up = z_near / terms["bulge_scale_z_pc"]
     bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(along ** 4 + up ** 4))
-    if shape.core_amplitude:
-        bulge = bulge + shape.core_amplitude * np.exp(-0.5 * (inner ** 2 + z_near ** 2) / terms["core_scale_radius_pc"] ** 2)
     arm = shape.arm_level * (1.0 + abs(shape.arm_amplitude))
     disk_share = _disk_share_bound(shape, z_near, z_far, fractions)
     k = shape.k_norm
     halo = density._halo(inner, z_near, density.halo_terms(shape))
+    # Both nuclear terms fall with the radius or the height alone, so the band's nearest point bounds them
+    # (`sqrt(inner^2 + z_near^2)` is no farther from the centre than any point of the band).
+    nuclear_cluster = density._nuclear_cluster_array(np.sqrt(inner ** 2 + z_near ** 2), terms)
+    nuclear_disc = density._nuclear_disc_array(inner, z_near, terms)
     bound = (np.maximum(k * bulge, 0.0) * fractions["bulge"]
+             + np.maximum(k * nuclear_cluster, 0.0) * fractions["nuclear_cluster"]
+             + np.maximum(k * nuclear_disc, 0.0) * fractions["nuclear_disc"]
              + np.maximum(k * thick, 0.0) * fractions["old"]
              + np.maximum(k * halo, 0.0) * fractions["halo"]
              + np.maximum(k * thin, 0.0) * arm * disk_share)

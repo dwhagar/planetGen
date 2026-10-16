@@ -690,3 +690,18 @@ Baseline: PR #1817.
 | PERF.104 | 8.1 | Orbital updates |
 | MAP.152 | 8.1 | Fly-through map |
 | GEN.99 | 8.1 | Components and wanderers |
+| PERF.29 | 8.1 | Queue, caches and performance |
+| PERF.30 | 8.1 | Queue, caches and performance |
+| API.7 | 8.1 | Admin and API housekeeping |
+| MAP.59 | 8.1 | Fly-through map |
+| MAP.147 | 8.1 | Fly-through map |
+| GEN.24 | 8.1 | Galactic core and halo |
+| GEN.210 | 8.1 | Galactic core and halo |
+| DOC.4 | 8.1 | Docs |
+| GEN.112 | 8.4 | Asteroid fields |
+| GEN.9 | later | Multiple galaxies |
+| GEN.237 | 8.1 | Components and wanderers |
+| GEN.280 | 8.1 | Galactic core and halo |
+| ADM.96 | 8.1 | Settings page |
+| ADM.87 | 8.1 | Settings page |
+| ADM.83 | 8.1 | Settings page |

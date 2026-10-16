@@ -206,7 +206,7 @@ PLAN_ERRORS = [
     (["--interarm-density", "2"], ARM_DENSITY_ERROR),
     (["--interarm-density", "-0.01"], ARM_DENSITY_ERROR),
     (["--arm-density", "0", "--interarm-density", "0"], ARM_DENSITY_ERROR),
-    (["--core-density", "-1"], "--core-density and --bulge-amplitude must be 0 or more."),
+    (["--nuclear-amplitude", "-1"], "--nuclear-amplitude and --bulge-amplitude must be 0 or more."),
     (["--workers", "-1"], "--workers must be 0 (automatic) or more."),
     (["--max-shell", "0"], "--max-shell must be a positive integer."),
     (["--disk-scale-length-pc", "0"], "--disk-scale-length-pc must be a positive number."),

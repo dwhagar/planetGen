@@ -32,7 +32,7 @@ def _default_shape():
     amplitude, level = density.arm_terms(a.arm_density, a.interarm_density)
     return density.build_galaxy_shape(
         a.disk_scale_length_pc, a.disk_scale_height_pc, a.bulge_scale_radius_pc, a.bulge_amplitude,
-        a.arm_count, math.radians(a.pitch_angle_deg), amplitude, arm_level=level, core_amplitude=a.core_density,
+        a.arm_count, math.radians(a.pitch_angle_deg), amplitude, arm_level=level, nuclear_amplitude=a.nuclear_amplitude,
     )
 
 
@@ -164,11 +164,13 @@ def test_the_bars_central_density_matches_its_mass_and_the_suns_disk():
     assert center / surface == pytest.approx(published, rel=0.2)
 
 
-def test_the_center_is_bulge_dominated():
+def test_the_very_center_is_the_nuclear_cluster_and_the_bulge_rules_beyond_it():
     shares = density.population_densities((0.0, 0.0, 0.0), SHAPE)
-    assert shares["bulge"] > 0.7 * sum(shares.values())
-    above = density.population_densities((0.0, 0.0, 800.0), SHAPE)
-    assert above["bulge"] > 0.5 * sum(above.values())
+    assert shares["nuclear_cluster"] > 0.7 * sum(shares.values())
+    # Past the nuclear disc's few scale lengths (90 pc) and the cluster's, and off the plane, the bar is left.
+    for point in ((700.0, 0.0, 100.0), (0.0, 0.0, 800.0)):
+        parts = density.population_densities(point, SHAPE)
+        assert parts["bulge"] > 0.5 * sum(parts.values()), point
 
 
 def _edge_on_column(x, z):

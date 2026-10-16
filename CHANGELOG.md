@@ -2,6 +2,129 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1550] - 2026-10-16
+
+**Headline:** The settings writer, the backup archive and the one configuration file (ADM.83, ADM.87, ADM.96) are retired after the merge.
+
+### Changed
+
+- ADM.83, ADM.87 and ADM.96 are removed from the TODO and ticked in the progress ledger (merged as #1857); the items that waited on them lose those prerequisites.
+- The settings design note records what was built: the writer module, the roles, the backup library and archive layout, and the retention option.
+
+TODO items resolved: ADM.87, ADM.83, ADM.96 / Added: none
+
+## [8.0.1549] - 2026-10-16
+
+**Headline:** All program configuration lives in the one `config.json`, which can now be saved from the command line with checks, backups and an audit row, on a new backup archive that the settings page, the control database and the DB repair data will share.
+
+### Changed
+- `config.json` is the one file for all program configuration (the planned second file, `settings.json`, is dropped). It stays your own copy of `config.json.example`: nothing writes to the example, `update.sh` never overwrites your copy, and a missing copy is reported, never created. A leftover `settings.json` from the dropped design is ignored, and `config check` names it as unused.
+- `python3 -m planetgen.cli.config` gains `set`, `unset`, `get` and `restore` (ADM.83). Every value is checked against the settings model first, each problem named at its option, and one bad value saves nothing. The command line may change every option (the database and secrets included; `OPTION=-` reads a value from standard input); the Admin page will not. Keys the model does not know and the order of the keys are kept.
+- A save writes `config.json` atomically (temporary file, `fsync`, rename) under a lock, takes a settings-only backup archive first, writes one audit row per changed option (a secret is written `(changed)`, never the text) and lists the changes that need a restart.
+- New backup archive (ADM.87, `planetgen.backup`, `python3 -m planetgen.cli.backup take|list|verify|restore|parts`): every backup is one `.tar.bz2` in `backups` in the state folder (mode 0600) with a `manifest.json` (time, who, why, SHA-256 of every file) and one folder per part. A copy of `config.json` is the first part; a restore verifies the archive, backs up what it replaces, restores the whole archive or named parts, and skips and reports a part this build does not know. A restore from the web puts back only the options an admin may change. New option `settings.backups_kept` (default 20, 1 to 200) counts archives and never deletes the newest one holding every part. `set-permissions.sh` keeps the `backups` folder 700.
+
+## [8.0.1548] - 2026-10-16
+
+**Headline:** The galactic core density terms (GEN.280) are retired after the merge.
+
+### Changed
+
+- GEN.280 is removed from the TODO and ticked in the progress ledger (merged as #1855); the items that waited on it lose that prerequisite.
+- GEN.364 notes that Core 3 builds the adaptive cap next with migration 0100.
+
+TODO items resolved: GEN.280 / Added: none
+
+## [8.0.1547] - 2026-10-16
+
+**Headline:** The galactic centre holds the observed nuclear star cluster and nuclear stellar disc, in place of ADM.49's Gaussian core.
+
+### Added
+- **The nuclear star cluster and the nuclear stellar disc (GEN.280).** Two more terms of the density model, scaled to the galaxy's bulge: a Hernquist cluster of 2.5e7 solar masses (half-light radius 3.8 pc) with its cusp held flat inside the radius where its density equals the core ball's mean, so the cell at the centre holds the cluster's mass inside 2 pc (about 1.5e7 systems), and an exponential disc 90 pc long and 35 pc high of 1.5e9 solar masses. They are the `nuclear_cluster` and `nuclear_disc` populations of a sector's profile (and `bright_stars.population`), count in the outline's bound, the bright-star scatter's bound and the Galaxy Map's prisms, and give a profile the region `nuclear`. A cell this dense is the case the cell star ceiling (GEN.281) is for.
+- **`planetgen plan --nuclear-amplitude`** (default 1; the Generate page's "Nuclear structures") scales both terms, 0 being none.
+- **Five math checks** compare the default galaxy's cluster mass, half-light radius, density at 1 parsec, the disc's mass inside 200 parsecs and its height with the published figures.
+
+### Changed
+- **`galaxy_shape.core_amplitude` and `--core-density` are gone** (migration 0099, schema v99): the column is renamed `nuclear_amplitude`, set to 0 for a galaxy planned before it, so its density is unchanged. `bright_stars.population` becomes `VARCHAR(16)`.
+
+### Fixed
+- **Filling a dense cell no longer takes quadratic time.** Each pre-placed star was checked for overlap against every earlier system of its cell one at a time in Python, which is hours for a cell of 40,000; it is one NumPy pass now (the sector's existing neighbour arrays).
+
+TODO items resolved: GEN.280. Added: none.
+
+## [8.0.1546] - 2026-10-16
+
+**Headline:** The next two migration revisions are recorded: 0102 for DB.59 and 0103 for DB.54.
+
+### Changed
+
+- DB.59 and DB.54 name the revision numbers Core 1 handed out at 3:16 PM EDT, after 0099 (GEN.280), 0100 (cell_star_ceiling) and 0101 (DB.55).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1545] - 2026-10-16
+
+**Headline:** Satellite and cluster components (GEN.237) are retired after the merge.
+
+### Changed
+
+- GEN.237 is removed from the TODO and ticked in the progress ledger (merged as #1851); the items that waited on it lose that prerequisite.
+- GEN.366 records that the satellite table was recalled from memory, and that a galaxy planned before #1851 needs `planetgen plan` run again; GEN.297 notes that the component table now exists.
+
+TODO items resolved: GEN.237 / Added: none
+
+## [8.0.1544] - 2026-10-16
+
+**Headline:** The late lane findings and Boss's adaptive cell cap are filed as items.
+
+### Added
+
+- Eleven items: TEST.187 to TEST.191 (browser-test log, skimage deprecation, maintenance mode left on, fixture timeouts, plan tests writing real files), UX.133 (empty `/polities` and `/species` pages), OPS.59 (SIGTERM for `generate galaxy --shell 0`), GEN.364 (the adaptive per-cell cap Boss decided at 1:46 PM EDT), GEN.365 (white dwarf radius), GEN.366 (verify the satellite table) and GEN.367 (Magellanic gas). Each is in its version thread and in a goal issue.
+- Owner notes on the settings chain (ADM.96, 87, 83, 84, 85, 43, 44) and decision notes on GEN.280, GEN.303 and GEN.237.
+
+TODO items resolved: none / Added: TEST.187, TEST.188, UX.133, TEST.189, TEST.190, OPS.59, TEST.191, GEN.364, GEN.365, GEN.366, GEN.367
+
+## [8.0.1543] - 2026-10-16
+
+**Headline:** The Magellanic Clouds, Sagittarius and eight dwarf galaxies are in the galaxy, at their real places.
+
+### Added
+- **Satellite galaxies (GEN.237).** `planetgen plan` places the Milky Way's eleven satellites (the Large and Small Magellanic Clouds, the Sagittarius dwarf, Fornax, Sculptor, Carina, Draco, Ursa Minor, Sextans, Leo I and Leo II) as `satellite` components, each as an exponential or Plummer profile cut at six half-mass radii, at the direction and distance the sky gives them (the Large Cloud 49.6 kpc away and holding about 6.2e9 systems). The sector gate counts their density, so the outline reaches them and a cell at the centre of the Large Cloud is a satellite place, not empty halo. Their sizes, masses and distances are recalled from McConnachie (2012) and need checking.
+- **A `satellite` stellar population.** The sector profile's mix, region label, ages (0.5 to 13 Gyr), dispersion and rotation now have it, and its [Fe/H] is the one of the satellites that reach the place.
+- **[Fe/H] from the component.** A star in a cluster or satellite draws its [Fe/H] from the peaks of the place (`metallicity.sample_fe_h(peaks=)`, `SystemConfig.FE_H_PEAKS`), which the fill sets; before, filling a cluster's cell raised an error.
+
+### Changed
+- **One field for the clusters and the satellites.** `ClusterField` is `ComponentField` (`galaxy/component_field.py`) and `GalaxyShape.clusters` is `GalaxyShape.components`; every component needs a `tidal_radius_pc`, and `king_w0` only for a King profile.
+- **A seeded galaxy's outline is different from before**, grown by the Clouds, Sagittarius and the dwarfs; plan the galaxy again.
+
+TODO items resolved: GEN.237. Added: none.
+
+## [8.0.1542] - 2026-10-16
+
+**Headline:** The asteroid render items and the closed core-disc issue are tracked in the issue table.
+
+### Changed
+
+- GEN.360 to GEN.363 sit in the issue of GEN.112, and the goal issue for GEN.210 (#1222) is marked closed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1541] - 2026-10-16
+
+**Headline:** The new lane orders are in the plan, ten items are closed on Boss's approval, and the asteroid render plan is filed as four items.
+
+### Added
+
+- GEN.360 to GEN.363: the four render steps of the approved asteroid plan (uid seed and shared generator, the field page 3D view, instanced rocks with levels of detail, belt motion on the GPU).
+
+### Changed
+
+- GEN.297 now loads Boss's Harris file (received 3:04 PM EDT, kept in the project's data folder): the file has no mass or age, so the item says how those come from M_V and a stated rule; it moved to 8.1 phase 5 in the cluster line with Core 3.
+- API.7, GEN.9, MAP.147, DOC.4 and GEN.112 are closed as done; GEN.210, GEN.24, PERF.29, PERF.30 and MAP.59 are dropped as superseded (MAP.75 stays open on its own).
+- Owners follow Boss's lane orders: Core 1 the global top chain, DB.53 and the bugs; Core 2 the 8.1 phase 1 top 5, MAP.217, the infinite zoom tree, the labels and the region query; Core 3 the new generate scatters line and the multi-star train.
+- Decided on the cards: GEN.259 is cut to hundreds, PERF.36 keeps both caps, MAP.122 follows the MAP.146 subitems, GEN.229 counts first, and the old Core queue runs after the new top 5 work.
+
+TODO items resolved: API.7, GEN.9, MAP.147, DOC.4, GEN.112 (done); GEN.210, GEN.24, PERF.29, PERF.30, MAP.59 (dropped) / Added: GEN.360, GEN.361, GEN.362, GEN.363
+
 ## [8.0.1540] - 2026-10-16
 
 **Headline:** The top blockers on the tree page now count a chain once, GEN.99 is dropped, and the migration numbers and lane owners are corrected.

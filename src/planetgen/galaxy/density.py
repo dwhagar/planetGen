@@ -48,17 +48,17 @@ GalaxyShape = namedtuple(
     [
         "disk_scale_length_pc", "disk_scale_height_pc",
         "bulge_scale_radius_pc", "bulge_amplitude",
-        "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "core_amplitude",
+        "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "nuclear_amplitude",
         "spiral_reference_radius_pc", "spiral_reference_angle_rad",
-        "k_norm", "clusters",
+        "k_norm", "components",
     ],
     defaults=(None,),
 )
 """A galaxy's disk/bulge/spiral shape, at whatever physical scale the
 caller chooses -- see `GalaxyShape.build` to construct one with `k_norm`
-computed automatically rather than guessed. `clusters` is the galaxy's
-`galaxy.cluster_field.ClusterField` (GEN.160), `None` for a galaxy without
-globular clusters; it is not part of the stored shape row."""
+computed automatically rather than guessed. `components` is the galaxy's
+`galaxy.component_field.ComponentField` (GEN.160, GEN.237: its globular clusters and satellite galaxies), `None` for a
+galaxy without; it is not part of the stored shape row."""
 
 
 def _sech_squared(x):
@@ -121,29 +121,81 @@ def model_terms(shape):
         dict: `thick_disk_amplitude` (raw density at the center, in the
             plane, against the thin disk's 1), `thick_disk_scale_length_pc`,
             `thick_disk_scale_height_pc`, `bulge_scale_y_pc`,
-            `bulge_scale_z_pc`, `core_scale_radius_pc`, `bar_angle_rad` (galaxy-frame azimuth of
-            the bar's near end) with its `bar_cos` and `bar_sin`, and
+            `bulge_scale_z_pc`, `bar_angle_rad` (galaxy-frame azimuth of
+            the bar's near end) with its `bar_cos` and `bar_sin`,
             `solar_angle_rad` (the Sun's azimuth: the inter-arm minimum
-            at the solar radius).
+            at the solar radius), and the nuclear terms (GEN.280): `bulge_mass` (the bulge's
+            integral, in the model's unnormalized units), `nuclear_cluster_mass`, `nuclear_cluster_scale_pc`
+            (the Hernquist scale radius), `nuclear_cluster_softening_pc` (the radius inside which the
+            cusp is held flat, `tuning.NUCLEAR_RESOLUTION_PC`), `nuclear_disc_mass`, `nuclear_disc_length_pc`,
+            `nuclear_disc_height_pc` and `nuclear_disc_density` (the disc's centre).
     """
     length = shape.disk_scale_length_pc
     solar_radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * length
     thick_length = tuning.THICK_DISK_SCALE_LENGTH_RATIO * length
     solar_angle = _interarm_angle(solar_radius, shape)
     bar_angle = solar_angle + math.radians(tuning.BULGE_BAR_ANGLE_DEG)
+    scale_y = tuning.BULGE_AXIS_RATIO_Y * shape.bulge_scale_radius_pc
+    scale_z = tuning.BULGE_AXIS_RATIO_Z * shape.bulge_scale_radius_pc
+    bulge_mass = shape.bulge_amplitude * shape.bulge_scale_radius_pc * scale_y * scale_z * BULGE_UNIT_INTEGRAL
+    cluster_mass = max(shape.nuclear_amplitude, 0.0) * tuning.NUCLEAR_CLUSTER_BULGE_RATIO * bulge_mass
+    cluster_scale = tuning.NUCLEAR_CLUSTER_SCALE_RATIO * shape.bulge_scale_radius_pc
+    disc_mass = cluster_mass * tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO
+    disc_length = tuning.NUCLEAR_DISC_LENGTH_RATIO * shape.bulge_scale_radius_pc
+    disc_height = tuning.NUCLEAR_DISC_HEIGHT_RATIO * shape.bulge_scale_radius_pc
     return {
         "thick_disk_amplitude": tuning.THICK_DISK_LOCAL_DENSITY_RATIO
         * math.exp(solar_radius / thick_length - solar_radius / length),
         "thick_disk_scale_length_pc": thick_length,
         "thick_disk_scale_height_pc": tuning.THICK_DISK_SCALE_HEIGHT_RATIO * shape.disk_scale_height_pc,
-        "bulge_scale_y_pc": tuning.BULGE_AXIS_RATIO_Y * shape.bulge_scale_radius_pc,
-        "bulge_scale_z_pc": tuning.BULGE_AXIS_RATIO_Z * shape.bulge_scale_radius_pc,
-        "core_scale_radius_pc": tuning.CORE_RADIUS_FRACTION * shape.bulge_scale_radius_pc,
+        "bulge_scale_y_pc": scale_y,
+        "bulge_scale_z_pc": scale_z,
         "bar_angle_rad": bar_angle,
         "bar_cos": math.cos(bar_angle),
         "bar_sin": math.sin(bar_angle),
         "solar_angle_rad": solar_angle,
+        "bulge_mass": bulge_mass,
+        "nuclear_cluster_mass": cluster_mass,
+        "nuclear_cluster_scale_pc": cluster_scale,
+        "nuclear_cluster_softening_pc": _cluster_softening(cluster_mass, cluster_scale),
+        "nuclear_disc_mass": disc_mass,
+        "nuclear_disc_length_pc": disc_length,
+        "nuclear_disc_height_pc": disc_height,
+        "nuclear_disc_density": disc_mass / (8.0 * math.pi * disc_length ** 2 * disc_height),
     }
+
+
+BULGE_UNIT_INTEGRAL = 20.648191867705272
+"""float: The integral of the bulge's unit profile `exp(-r_s^2 / 2)` over space, in the units of its three scale
+lengths (a test compares it with the numerical integral of `component_masses`): the bulge's mass is its amplitude
+times its three scale lengths times this."""
+
+
+def _cluster_density_at(radius_pc, mass, scale_pc):
+    """A Hernquist (Dehnen slope 1) cluster of `mass` and scale radius `scale_pc` at `radius_pc`: `M a / (2 pi r
+    (r + a)^3)`."""
+    return mass * scale_pc / (2.0 * math.pi * radius_pc * (radius_pc + scale_pc) ** 3)
+
+
+def _cluster_softening(mass, scale_pc):
+    """
+    The radius below which the nuclear cluster's cusp is held flat (GEN.280): where the Hernquist density equals the
+    mean density of the grid's core ball (radius `tuning.NUCLEAR_RESOLUTION_PC`, `3 M / (4 pi R (R + a)^2)`), found
+    by bisection (the density falls with the radius). The ball's cell, which a point sample puts at the centre, then
+    holds exactly the mass inside it. `0.0` for no cluster.
+    """
+    if mass <= 0.0:
+        return 0.0
+    ball = tuning.NUCLEAR_RESOLUTION_PC
+    mean = 3.0 * mass / (4.0 * math.pi * ball * (ball + scale_pc) ** 2)
+    low, high = 1e-12 * ball, ball
+    for _ in range(80):
+        middle = math.sqrt(low * high)
+        if _cluster_density_at(middle, mass, scale_pc) > mean:
+            low = middle
+        else:
+            high = middle
+    return high
 
 
 def _halo_unit_integral(inner_slope, outer_slope, core_pc, break_pc, axis_ratio):
@@ -227,7 +279,7 @@ def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
     fields = shape._asdict()
-    del fields["clusters"]
+    del fields["components"]
     return {**fields, **model_terms(shape), **halo_terms(shape)}
 
 
@@ -240,36 +292,70 @@ def _interarm_angle(radius_pc, shape):
     return theta_arm + math.pi / shape.arm_count
 
 
-def _core(r_sq_pc, shape, terms):
-    """The galactic core (ADM.49): `core_amplitude * exp(-r^2 / 2 s^2)`, a
-    sphere of scale radius `s` (`terms["core_scale_radius_pc"]`) at the
-    centre, `r_sq_pc` the squared distance from it."""
-    if not shape.core_amplitude:
+def _nuclear_cluster(radius_pc, terms):
+    """The nuclear star cluster (GEN.280) at `radius_pc` from the centre, unnormalized: a Hernquist profile held
+    flat inside `nuclear_cluster_softening_pc`. `0.0` for a galaxy without one."""
+    if not terms["nuclear_cluster_mass"]:
         return 0.0
-    return shape.core_amplitude * math.exp(-0.5 * r_sq_pc / terms["core_scale_radius_pc"] ** 2)
+    return _cluster_density_at(max(radius_pc, terms["nuclear_cluster_softening_pc"]), terms["nuclear_cluster_mass"],
+                               terms["nuclear_cluster_scale_pc"])
+
+
+def _nuclear_cluster_array(radius_pc, terms):
+    """`_nuclear_cluster` on an array of radii."""
+    radius_pc = np.asarray(radius_pc, dtype=float)
+    if not terms["nuclear_cluster_mass"]:
+        return np.zeros_like(radius_pc)
+    r = np.maximum(radius_pc, terms["nuclear_cluster_softening_pc"])
+    scale = terms["nuclear_cluster_scale_pc"]
+    return terms["nuclear_cluster_mass"] * scale / (2.0 * math.pi * r * (r + scale) ** 3)
+
+
+def _nuclear_disc(r_cyl, z, terms):
+    """The nuclear stellar disc (GEN.280) at cylindrical radius `r_cyl` and height `z`, unnormalized: an exponential
+    disc with a `sech^2` height, like the thin disc's form. `0.0` for a galaxy without one."""
+    if not terms["nuclear_disc_mass"]:
+        return 0.0
+    return (terms["nuclear_disc_density"] * math.exp(-r_cyl / terms["nuclear_disc_length_pc"])
+            * _vertical(z, terms["nuclear_disc_height_pc"]))
+
+
+def _nuclear_disc_array(r_cyl, z, terms):
+    """`_nuclear_disc` on arrays (`z` one height or an array that broadcasts against `r_cyl`)."""
+    if not terms["nuclear_disc_mass"]:
+        return np.zeros_like(np.asarray(r_cyl, dtype=float) + np.asarray(z, dtype=float))
+    return (terms["nuclear_disc_density"] * np.exp(-np.asarray(r_cyl, dtype=float) / terms["nuclear_disc_length_pc"])
+            * _vertical_any(z, terms["nuclear_disc_height_pc"]))
+
+
+def nuclear_bound(r_cyl, z, shape):
+    """The nuclear terms' sum at `(r_cyl, z)` (unnormalized). Both depend on the radius or the height alone, so
+    this is their value at any azimuth and the bound of the sector's outline."""
+    terms = model_terms(shape)
+    return _nuclear_cluster(math.hypot(r_cyl, z), terms) + _nuclear_disc(r_cyl, z, terms)
 
 
 def _bulge(x, y, z, shape, terms):
     """The boxy bar bulge (Dwek et al. 1995 G2; see `tuning.BULGE_*`):
     `bulge_amplitude * exp(-r_s^2 / 2)`, `r_s^4 = ((x'/x0)^2 +
-    (y'/y0)^2)^2 + (z/z0)^4` in the bar's own frame, plus the core."""
+    (y'/y0)^2)^2 + (z/z0)^4` in the bar's own frame."""
     cos_a, sin_a = terms["bar_cos"], terms["bar_sin"]
     along = (x * cos_a + y * sin_a) / shape.bulge_scale_radius_pc
     across = (y * cos_a - x * sin_a) / terms["bulge_scale_y_pc"]
     up = z / terms["bulge_scale_z_pc"]
     in_plane = along * along + across * across
-    return (shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(in_plane * in_plane + up ** 4))
-            + _core(x * x + y * y + z * z, shape, terms))
+    return shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(in_plane * in_plane + up ** 4))
 
 
 def bulge_bound(r_cyl, z, shape):
     """The bulge's maximum over azimuth at `(r_cyl, z)` (unnormalized):
-    along the bar's long axis. Falls as `r_cyl` and `|z|` grow."""
+    along the bar's long axis, and the nuclear terms (`nuclear_bound`) on top of it. Falls as `r_cyl` and `|z|`
+    grow."""
     terms = model_terms(shape)
     along = r_cyl / shape.bulge_scale_radius_pc
     up = z / terms["bulge_scale_z_pc"]
     return (shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(along ** 4 + up ** 4))
-            + _core(r_cyl * r_cyl + z * z, shape, terms))
+            + nuclear_bound(r_cyl, z, shape))
 
 
 def _thick_disk(r_cyl, z, shape, terms):
@@ -300,12 +386,13 @@ def _raw_density(position_pc, shape):
                              value).
 
     Returns:
-        float: `bulge + thin_disk * arm_factor + thick_disk + halo`,
+        float: `bulge + thin_disk * arm_factor + thick_disk + halo + the nuclear cluster and disc`,
               unnormalized (`>= 0`).
     """
     bulge, thin, thick, arm_cos = _components(position_pc, shape)
     halo = _halo_scalar(math.hypot(position_pc[0], position_pc[1]), position_pc[2], halo_terms(shape))
-    return bulge + thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos) + thick + halo
+    nuclear = nuclear_bound(math.hypot(position_pc[0], position_pc[1]), position_pc[2], shape)
+    return bulge + thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos) + thick + halo + nuclear
 
 
 def _arm_cosine(x, y, shape):
@@ -332,8 +419,10 @@ def population_densities(position_pc, shape):
 
     The components always sum to `relative_density`, so no sector's total
     changes. The bulge term is the "bulge" population, the halo term the
-    "halo" population (GEN.234) and the thick disk is "old". "cluster" is the globular clusters'
-    systems in the cell's cube over a cell's at density 1 (`shape.clusters`, GEN.160; 0 for a galaxy without). The thin disk is shared among the three
+    "halo" population (GEN.234) and the thick disk is "old". The nuclear star cluster and the nuclear stellar disc
+    (GEN.280) are the "nuclear_cluster" and "nuclear_disc" populations, on top of the bulge. "cluster" and "satellite"
+    are the globular clusters' and the satellite galaxies' systems in the cell's cube over a cell's at density 1
+    (`shape.components`, GEN.160 and GEN.237; 0 for a galaxy without). The thin disk is shared among the three
     disk populations in proportion to how many stars each would put here:
     its share of disk star formation (the length of its age range), times
     its own vertical profile (`sech^2(z/2h)/h`, a thinner disk for younger
@@ -342,7 +431,8 @@ def population_densities(position_pc, shape):
     off the plane or in the bulge nearly every star is old.
 
     Returns:
-        dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster"}` -> density, each
+        dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
+              "nuclear_disc"}` -> density, each
               `>= 0`, summing to `relative_density(position_pc, shape)`.
     """
     z = position_pc[2]
@@ -368,7 +458,11 @@ def population_densities(position_pc, shape):
     densities["old"] += max(shape.k_norm * thick, 0.0)
     densities["bulge"] = shape.k_norm * bulge
     densities["halo"] = max(halo, 0.0)
-    densities["cluster"] = _cluster_density(position_pc, shape)
+    densities.update(_component_densities(position_pc, shape))
+    terms = model_terms(shape)
+    r_cyl = math.hypot(position_pc[0], position_pc[1])
+    densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster(math.hypot(r_cyl, z), terms)
+    densities["nuclear_disc"] = shape.k_norm * _nuclear_disc(r_cyl, z, terms)
     return densities
 
 
@@ -380,7 +474,8 @@ def population_densities_array(x, y, z, shape):
     the one-point form (a test compares them).
 
     Returns:
-        dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster"}` -> array of densities.
+        dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
+            "nuclear_disc"}` -> array of densities.
     """
     terms = model_terms(shape)
     x = np.asarray(x, dtype=float)
@@ -394,9 +489,6 @@ def population_densities_array(x, y, z, shape):
     up = z / terms["bulge_scale_z_pc"]
     in_plane = along * along + across * across
     bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(in_plane * in_plane + up ** 4))
-    if shape.core_amplitude:
-        bulge = bulge + shape.core_amplitude * np.exp(
-            -0.5 * (x * x + y * y + z * z) / terms["core_scale_radius_pc"] ** 2)
     with np.errstate(divide="ignore", invalid="ignore"):
         theta_arm = (shape.spiral_reference_angle_rad
                      + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
@@ -423,9 +515,12 @@ def population_densities_array(x, y, z, shape):
     densities["old"] = densities["old"] + np.maximum(shape.k_norm * thick, 0.0)
     densities["bulge"] = shape.k_norm * bulge
     densities["halo"] = np.maximum(halo, 0.0)
-    # The clusters are not in the array form: its points are band bins far wider than a cluster, so the scatter's
-    # per-band weights leave them to their own pass (GEN.161); the one-point form is the cell's.
+    # The components are not in the array form: its points are band bins far wider than a cluster, and the scatter's
+    # per-band weights leave components to their own pass (GEN.161, GEN.240); the one-point form is the cell's.
     densities["cluster"] = np.zeros_like(densities["halo"])
+    densities["satellite"] = np.zeros_like(densities["halo"])
+    densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms)
+    densities["nuclear_disc"] = shape.k_norm * _nuclear_disc_array(r_cyl, z, terms)
     return densities
 
 
@@ -457,8 +552,6 @@ def component_masses(shape, steps=40):
         for w in (z / axes[2] for z in cells[2])
     )
     bulge *= 8.0 * shape.bulge_amplitude * (4.0 / steps) ** 3 * axes[0] * axes[1] * axes[2]
-    # The core's Gaussian integrates in closed form: amplitude * (2 pi)^1.5 * s^3.
-    bulge += shape.core_amplitude * (2.0 * math.pi) ** 1.5 * terms["core_scale_radius_pc"] ** 3
 
     def disk(amplitude, length, height):
         r_max, z_max = 12.0 * length, 12.0 * height
@@ -484,11 +577,17 @@ def halo_mass(shape):
         terms["halo_axis_ratio"])
 
 
-def _cluster_density(position_pc, shape):
-    """The globular clusters' part of the density at `position_pc` (GEN.160): the systems they put in the cell's
-    cube over the systems a cell holds at density 1, `0.0` for a galaxy without clusters."""
-    clusters = shape.clusters
-    return 0.0 if clusters is None else clusters.relative_density(position_pc)
+def _component_densities(position_pc, shape):
+    """The components' part of the density at `position_pc` by kind (GEN.160, GEN.237): the systems the clusters and the
+    satellites put in the cell's cube over the systems a cell holds at density 1, `0.0` each for a galaxy without."""
+    components = shape.components
+    return {"cluster": 0.0, "satellite": 0.0} if components is None else components.densities(position_pc)
+
+
+def _component_density(position_pc, shape):
+    """All the components' part of the density at `position_pc`: `_component_densities` summed."""
+    components = shape.components
+    return 0.0 if components is None else components.relative_density(position_pc)
 
 
 def relative_density(position_pc, shape):
@@ -506,7 +605,7 @@ def relative_density(position_pc, shape):
               (bulge, spiral arm crests near the core); `< 1.0` in sparser
               ones (outer disk, inter-arm, off-plane).
     """
-    return shape.k_norm * _raw_density(position_pc, shape) + _cluster_density(position_pc, shape)
+    return shape.k_norm * _raw_density(position_pc, shape) + _component_density(position_pc, shape)
 
 
 def total_density_array(x, y, z, shape):
@@ -526,17 +625,16 @@ def total_density_array(x, y, z, shape):
     up = z / terms["bulge_scale_z_pc"]
     in_plane = along * along + across * across
     bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(in_plane * in_plane + up ** 4))
-    if shape.core_amplitude:
-        bulge = bulge + shape.core_amplitude * np.exp(
-            -0.5 * (x * x + y * y + z * z) / terms["core_scale_radius_pc"] ** 2)
     with np.errstate(divide="ignore", invalid="ignore"):
         theta_arm = (shape.spiral_reference_angle_rad
                      + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
         arm_cos = np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
     disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
     halo = shape.k_norm * _halo(r_cyl, z, halo_terms(shape))
+    nuclear = shape.k_norm * (_nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms)
+                              + _nuclear_disc_array(r_cyl, z, terms))
     return (np.maximum(disk, 0.0) + np.maximum(shape.k_norm * thick, 0.0)
-            + np.maximum(halo, 0.0) + np.maximum(shape.k_norm * bulge, 0.0))
+            + np.maximum(halo, 0.0) + np.maximum(shape.k_norm * bulge, 0.0) + np.maximum(nuclear, 0.0))
 
 
 def arm_terms(arm_density, interarm_density):
@@ -568,7 +666,7 @@ def build_galaxy_shape(
     calibration_radius_pc=None,
     spiral_reference_angle_rad=0.0,
     arm_level=1.0,
-    core_amplitude=0.0,
+    nuclear_amplitude=0.0,
 ):
     """
     Builds a `GalaxyShape` with `k_norm` computed automatically, rather
@@ -594,8 +692,8 @@ def build_galaxy_shape(
             another.
         arm_level (float): The thin disk's density level, the middle of the
             arm crest and the inter-arm trough (ADM.49; see `arm_terms`).
-        core_amplitude (float): The core's centre density, on top of the
-            bulge (ADM.49; 0 is no core).
+        nuclear_amplitude (float): How much of the observed nuclear star cluster and nuclear stellar disc
+            the centre holds (GEN.280): 1 is the observed pair, scaled to the bulge, 0 is none.
 
     Returns:
         GalaxyShape: With `k_norm` filled in.
@@ -612,7 +710,7 @@ def build_galaxy_shape(
         pitch_angle_rad=pitch_angle_rad,
         arm_amplitude=arm_amplitude,
         arm_level=arm_level,
-        core_amplitude=core_amplitude,
+        nuclear_amplitude=nuclear_amplitude,
         spiral_reference_radius_pc=disk_scale_length_pc,
         spiral_reference_angle_rad=spiral_reference_angle_rad,
         k_norm=1.0,

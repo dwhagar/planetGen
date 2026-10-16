@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.133 |
+| UX | UX.134 |
 | MAP | MAP.234 |
 | NAV | NAV.62 |
-| GEN | GEN.360 |
+| GEN | GEN.368 |
 | PERF | PERF.111 |
 | DB | DB.65 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.187 |
+| TEST | TEST.192 |
 | USR | USR.31 |
-| OPS | OPS.59 |
+| OPS | OPS.60 |
 | DOC | DOC.59 |
 | VIEW | VIEW.18 |
 | POP | POP.15 |
@@ -471,11 +471,11 @@ Parents marked "new parent" had no old number of their own.
 | ADM.80 | Regenerate a sector or a region keeping chosen aspects: locked objects, positions, names | none | open |
 | ADM.81 | Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue | none | open |
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons | none | open |
-| ADM.83 | Settings writer: validate, write and back up the user's config.json, with an audit row per change | none | open |
+| ADM.83 | Settings writer: validate, write and back up the user's config.json, with an audit row per change | none | done, PR #1857 |
 | ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | open |
 | ADM.85 | Settings backups, restore, import and export on the settings page | none | open |
 | ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | open |
-| ADM.87 | Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part | none | open |
+| ADM.87 | Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part | none | done, PR #1857 |
 | ADM.88 | Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive | none | open |
 | ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | none | open |
 | ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | none | open |
@@ -484,14 +484,14 @@ Parents marked "new parent" had no old number of their own.
 | ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | none | open |
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | none | open |
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
-| ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | open |
+| ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
 | API.4 | API compatibility data in the docs | none | open |
 | API.5 | API version and compatibility checking | none | open |
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | none | open |
-| API.7 | Investigate and plan upload limits | none | open |
+| API.7 | Investigate and plan upload limits | none | done, PR #1849 |
 | API.8 | Verify uploaded data before it is finalized | none | open |
 | API.9 | Key scopes | none | done, PR #1033 |
 | API.10 | Reservations: claimed sectors and id blocks per run | none | open |
@@ -582,7 +582,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
-| DOC.4 | Correct the stale statements the research found in docs, docstrings and comments | none | open |
+| DOC.4 | Correct the stale statements the research found in docs, docstrings and comments | none | done, PR #1849 |
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | none | done, PR #1075 |
 | DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test | none | open |
 | DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box | none | open |
@@ -645,7 +645,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.6 | Finish the correlative update (galactic motion) | 27 (2026-09-30 18:14Z); 32 (2026-09-30 18:39Z to 2026-10-01 02:35Z) | done in 7.37.0, PR #157 |
 | GEN.7 | Star population and bright stars (new parent) | none | done |
 | GEN.8 | Give rogue planets a planet class, with a rogue flag in the class constants | 106 (2026-10-01 05:43Z to 05:54Z) | done, PR #245 |
-| GEN.9 | Plan for more than one galaxy in the database | none | open |
+| GEN.9 | Plan for more than one galaxy in the database | none | done, PR #1849 |
 | GEN.10 | Generate nebulae and remnants with their stars, and map them | 27 (2026-09-30 18:39Z to 2026-10-01 03:53Z) | done in 7.30.0 (PR #144), 7.36.0 (PR #153) and 7.41.1 (PR #148) |
 | GEN.11 | Class nebulae and remnants A-W | 28 (2026-09-30 18:39Z to 23:32Z) | done in 7.19.0, PR #138 |
 | GEN.12 | Record what sits inside a nebula | 29 (2026-09-30 18:39Z to 2026-10-01 00:35Z) | done in 7.24.0, PR #140 |
@@ -660,7 +660,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.21 | Star population model: population ages at sector fill | 55 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.23.0 (PR #141) and 7.38.0 (PR #159) |
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | done (schema v49, PR #226) |
-| GEN.24 | Generate the galactic core on layer 0 | none | open |
+| GEN.24 | Generate the galactic core on layer 0 | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; superseded: layers are gone and the core is shell 0, filled by the shell mode) |
 | GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | done, PR #350 |
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
@@ -748,7 +748,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | none | open |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | none | open |
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | none | open |
-| GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | open |
+| GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | done, PR #1849 |
 | GEN.113 | Analyze the anomaly docs: which anomalies to add and how | none | done, PR #1721 |
 | GEN.114 | Add the chosen anomalies to the starmap | none | split into GEN.254, GEN.255, GEN.256 and GEN.257 (2026-10-15) |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
@@ -846,7 +846,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | done, PR #1429 |
 | GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | done, PR #1433 |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
-| GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall | none | open |
+| GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; superseded: the spherical grid replaced the cylinder grid and shell 0 is the centre ball) |
 | GEN.211 | Constants table instead of astropy: faster start, 29 MB less memory per process | none | done, PR #1310 |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | none | open |
 | GEN.213 | Mercury-like bodies never keep their magnetic field (bug) | none | done, PR #1412 |
@@ -873,7 +873,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | done, PR #1763 |
 | GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | none | done, PR #1784 |
 | GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | none | done, PR #1824 |
-| GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | none | open |
+| GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | none | done, PR #1851 |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | none | open |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | none | open |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | none | open |
@@ -916,7 +916,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.277 | Design note: which of the later phenomena are scattered, backfilled or stay sector-fill-only | none | done, PR #1721 |
 | GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | none | done, PR #1805 |
 | GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) | none | done, PR #1728 |
-| GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 | none | open |
+| GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 | none | done, PR #1855 |
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | none | done, PR #1820 |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | none | open |
 | GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else | none | open |
@@ -933,7 +933,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | none | open |
 | GEN.295 | Nebulae as point groups whose shape follows the orbital update (design and research) | none | open |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars | none | open |
-| GEN.297 | Update the globular clusters from Boss's Harris file once it is supplied: the catalogue rows replace the synthetic ones, the generator stays as the fallback | none | open |
+| GEN.297 | Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback | none | open |
 | GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in | none | open |
 | GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | open |
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | open |
@@ -996,6 +996,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud | none | open |
 | GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | none | open |
 | GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill | none | open |
+| GEN.360 | Asteroid fields and belts render from their uid: one seeded generator in a shared asteroidfield.js for dust, rocks and heroes | none | open |
+| GEN.361 | The asteroid field page has a 3D view | none | open |
+| GEN.362 | Rocks are instanced meshes in chunks with three levels of detail, within a frame budget | none | open |
+| GEN.363 | Belt bodies move on the GPU: the vertex shader solves Kepler from per-instance elements | none | open |
+| GEN.364 | Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling | none | open |
+| GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) | none | open |
+| GEN.366 | Check the `MILKY_WAY_SATELLITES` table against McConnachie 2012: 11 rows were written from memory | none | open |
+| GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1054,7 +1062,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | done, PR #408 |
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | done, PR #405 |
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | superseded by MAP.125 (Boss, 2026-10-09) |
-| MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
+| MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; superseded: a picked region is a shell, band or wedge outline now) |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | done, PR #629 |
 | MAP.62 | A full 3D star system view with a free camera | none | done, PR #673 |
@@ -1142,7 +1150,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | open |
-| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | open |
+| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | done, PR #1849 |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | done, PR #1160 |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | done, PR #1141 |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | done, PR #1382 |
@@ -1348,6 +1356,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.56 | The generator epoch counter and the PR rule that enforces it | none | open |
 | OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | open |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | none | open |
+| OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1376,14 +1385,14 @@ Parents marked "new parent" had no old number of their own.
 | PERF.26 | Size estimates don't match what generation stores (bug) | none | done, PR #470 |
 | PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) | none | done, PR #442 |
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | done, PR #454 |
-| PERF.29 | Record which runs a partly filled sector still needs | none | open |
-| PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
+| PERF.29 | Record which runs a partly filled sector still needs | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; dropped with PERF.100: no automatic resume in the Redis plan) |
+| PERF.30 | Finish an interrupted block or sector run on the next start | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; dropped with PERF.100: no automatic resume in the Redis plan) |
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | done, PR #1179 |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | done, PR #905 |
 | PERF.33 | Progress bars and ETAs from measured performance | none | done, PR #1553 |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
-| PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
+| PERF.36 | Memory and request guard: list at most about 50,000 candidate cells, stream the rest, and refuse enumerations above about 2 million cells in a web request | none | open |
 | PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | done, PR #865 |
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | done, PR #1144 |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | done, PR #1151 |
@@ -1667,6 +1676,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss | none | open |
 | UX.131 | Console tokens, type and base template in both themes | none | open |
 | UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | none | open |
+| UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1957,6 +1967,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | open |
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | none | open |
 | TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | open |
+| TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server | none | open |
+| TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log | none | open |
+| TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | open |
+| TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | open |
+| TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

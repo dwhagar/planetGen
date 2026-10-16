@@ -1,7 +1,7 @@
-# tests/test_cluster_field.py
+# tests/test_component_field.py
 
 """
-GEN.160: the globular clusters' density in the sector gate (`galaxy/cluster_field.py`). A cluster's cell density is
+GEN.160: the globular clusters' density in the sector gate (`galaxy/component_field.py`). A cluster's cell density is
 the King profile integrated over the cell's cube, so a cluster's cells add up to its mass over 0.4 and the four
 exemplars of docs/design/globular-clusters.md section 3 land where its table puts them; the density reaches
 `relative_density`, `population_densities`, the profile and the skeleton's bound, and no cell the gate would let in is
@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import cluster_field, components, profile, skeleton, spherical
+from planetgen.galaxy import component_field, components, profile, skeleton, spherical
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.physics import king
 
@@ -49,7 +49,7 @@ def _lattice(field, rt, shift=0.0):
 @pytest.mark.parametrize("name", EXEMPLARS)
 def test_the_cells_of_a_cluster_add_up_to_its_systems(name):
     mass, half, w0, _central, _count = EXEMPLARS[name]
-    field = cluster_field.ClusterField([_cluster(mass, half, w0)], EDGE, E1)
+    field = component_field.ComponentField([_cluster(mass, half, w0)], EDGE, E1)
     cells = _lattice(field, king.tidal_radius_pc(w0, half))
     assert cells.sum() == pytest.approx(king.expected_systems(mass), rel=0.03)
 
@@ -57,7 +57,7 @@ def test_the_cells_of_a_cluster_add_up_to_its_systems(name):
 @pytest.mark.parametrize("name", EXEMPLARS)
 def test_the_exemplars_land_where_the_design_notes_table_puts_them(name):
     mass, half, w0, (low, high), count = EXEMPLARS[name]
-    field = cluster_field.ClusterField([_cluster(mass, half, w0)], EDGE, E1)
+    field = component_field.ComponentField([_cluster(mass, half, w0)], EDGE, E1)
     rt = king.tidal_radius_pc(w0, half)
     middle, corner = _lattice(field, rt), _lattice(field, rt, shift=EDGE / 2)
     assert middle.max() == pytest.approx(high, rel=0.12)       # centred in a cell
@@ -67,7 +67,7 @@ def test_the_exemplars_land_where_the_design_notes_table_puts_them(name):
 
 
 def test_a_cell_far_from_every_cluster_holds_none_and_costs_a_lookup():
-    field = cluster_field.ClusterField([_cluster(2.0e5, 5.0, 5)], EDGE, E1)
+    field = component_field.ComponentField([_cluster(2.0e5, 5.0, 5)], EDGE, E1)
     assert field.relative_density((5000.0, 0.0, 0.0)) == 0.0
     assert field.relative_density((0.0, 0.0, 200.0)) == 0.0
     assert field.relative_density((0.0, 0.0, 0.0)) > 1e3
@@ -76,7 +76,7 @@ def test_a_cell_far_from_every_cluster_holds_none_and_costs_a_lookup():
 def test_the_density_follows_the_kings_table():
     """Far from the core a cell is small against the profile, so its density is the table's at its distance."""
     mass, half, w0 = 2.0e5, 5.0, 5
-    field = cluster_field.ClusterField([_cluster(mass, half, w0)], EDGE, E1)
+    field = component_field.ComponentField([_cluster(mass, half, w0)], EDGE, E1)
     for radius in (14.0, 18.0, 22.0):
         got = field.relative_density((radius, 0.0, 0.0)) * E1 / EDGE ** 3
         assert got == pytest.approx(king.density_per_pc3(w0, mass, half, radius) / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL,
@@ -87,9 +87,9 @@ def test_the_density_follows_the_kings_table():
 def test_clusters_add_and_a_shape_without_any_is_untouched():
     one = _cluster(2.0e5, 5.0, 5, center=(30.0, 0.0, 0.0), name="A")
     two = _cluster(2.0e5, 5.0, 5, center=(-30.0, 0.0, 0.0), name="B")
-    both = cluster_field.ClusterField([one, two], EDGE, E1)
-    alone = cluster_field.ClusterField([one], EDGE, E1)
-    other = cluster_field.ClusterField([two], EDGE, E1)
+    both = component_field.ComponentField([one, two], EDGE, E1)
+    alone = component_field.ComponentField([one], EDGE, E1)
+    other = component_field.ComponentField([two], EDGE, E1)
     for point in ((30.0, 0.0, 0.0), (0.0, 0.0, 0.0), (-33.0, 2.0, 1.0)):
         assert both.relative_density(point) == pytest.approx(alone.relative_density(point) + other.relative_density(point))
     assert len(both) == 2 and both.names == ("A", "B")
@@ -100,7 +100,7 @@ def _shape(found=()):
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=700.0, bulge_amplitude=2.0,
         arm_count=2, pitch_angle_rad=math.radians(12.0), arm_amplitude=0.3, calibration_radius_pc=8000.0)
     if found:
-        shape = shape._replace(clusters=cluster_field.ClusterField(found, EDGE, E1))
+        shape = shape._replace(components=component_field.ComponentField(found, EDGE, E1))
     return shape
 
 
@@ -108,7 +108,7 @@ def test_the_cluster_reaches_the_density_model_and_the_profile():
     plain = _shape()
     shape = _shape([_cluster(2.0e5, 5.0, 5, center=(3000.0, 0.0, 1500.0))])
     core = (3000.0, 0.0, 1500.0)
-    assert plain.clusters is None
+    assert plain.components is None
     assert galaxyDensity.relative_density(core, shape) > galaxyDensity.relative_density(core, plain) + 1e3
     mix = galaxyDensity.population_densities(core, shape)
     assert mix["cluster"] > 1e3
@@ -130,13 +130,13 @@ def test_the_one_point_densities_sum_to_the_total_with_clusters():
             galaxyDensity.relative_density(point, shape), rel=1e-9)
 
 
-def test_a_shape_with_clusters_compares_and_hashes_by_its_field():
+def test_a_shape_with_components_compares_and_hashes_by_its_field():
     found = [_cluster(2.0e5, 5.0, 5)]
     assert _shape() == _shape()
     assert _shape(found) != _shape(found)          # another field object
     shape = _shape(found)
     assert shape == shape and hash(shape) == hash(shape)
-    assert "clusters" not in galaxyDensity.shape_with_terms(shape)
+    assert "components" not in galaxyDensity.shape_with_terms(shape)
 
 
 def test_the_bound_is_never_below_a_cells_density():

@@ -12,12 +12,12 @@ web may edit it. The loader (`get_settings`), the generated tables in
 (`planetgen.cli.config`) all read the model, and tests fail when they
 drift or when code reads a `PLANETGEN_*` variable the model doesn't name.
 
-Two files, one model (docs/design/settings-seo-and-accounts.md A2):
-`config.json` (repo root; root-owned, read-only to the web process) and
-`settings.json` (web-owned overlay that ADM.43's page will write; only
-fields marked editable may appear in it). Load order, lowest to highest:
-the model's defaults, `config.json`, `settings.json`, the `PLANETGEN_*`
-environment variables, then an explicit argument at the call site.
+One file, one model (Boss, 2026-10-16: "1 file for all program configuration
+settings"): `config.json` in the install folder, which the installers give to the
+web server's user, holds every option, and the configuration page and the command
+line (`planetgen.util.settings_writer`) edit it. Load order, lowest to highest: the
+model's defaults, `config.json`, the `PLANETGEN_*` environment variables, then an
+explicit argument at the call site.
 
 Field metadata sits in `json_schema_extra` under `x-` keys, written with
 `opt` below:
@@ -27,8 +27,9 @@ Field metadata sits in `json_schema_extra` under `x-` keys, written with
   overrides (a blank MySQL password), instead of counting as unset
 - `x-restart`: a change only applies after a restart
 - `x-secret`: never shown in a page or log
-- `x-editable`: `false` means file-only; `config.json` only
-- `x-min_role`: `admin` (the default) or `owner`: who may save it
+- `x-editable`: `false` means the web may not change it (the database, secrets
+  that open the host, `jobs.python`); only the command line, run on the server, can
+- `x-min_role`: `admin` (the default) or `owner`: who may save it from the web
 - `x-unit`, `x-category`: the form's suffix and section
 
 The log options (`debug`, `log_file`, `log_dir`, `log_rotation`) are read
@@ -39,6 +40,7 @@ defaults come from there, and a test checks the two agree.
 Annotations here are `Optional[...]`/`List[...]`, as in most of the package.
 """
 
+import copy
 import hashlib
 import json
 import os
@@ -210,6 +212,13 @@ class Wiki(_Section):
     mediawiki: MediaWiki = MediaWiki()
 
 
+class SettingsFile(_Section):
+    backups_kept: int = opt(20, "How many backup archives are kept. One is made just before every settings save, "
+                            "restore or import replaces the file, and by Back up now; the oldest is deleted once "
+                            "there are more than this, but never the newest archive that holds every part.",
+                            unit="backups", category="backups", ge=1, le=200)
+
+
 class Settings(_Section):
     """Every `config.json` option."""
 
@@ -235,6 +244,7 @@ class Settings(_Section):
         logpaths.DEFAULT_LOG_ROTATION, "How the activity log is rotated: system (logrotate or newsyslog), app (the "
         "program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else "
         "app).", restart=True, editable=False, category="logging")
+    settings: SettingsFile = SettingsFile()
     mysql: MySQL = MySQL()
     control_database: str = opt("planetgen_control", "The MySQL schema holding admin identities, sessions, API keys "
                                 "and the audit log. Never listed or selectable as a galaxy.",
@@ -332,13 +342,15 @@ def env_name(path):
 # Loading
 # ---------------------------------------------------------------------
 
-def default_web_settings_path():
-    """`settings.json`, the web-owned overlay: `PLANETGEN_SETTINGS_FILE`,
-    else `/var/lib/planetGen/settings.json`."""
-    env = os.environ.get("PLANETGEN_SETTINGS_FILE")
-    if env:
-        return env
-    return "/var/lib/planetGen/settings.json"
+DEFAULT_STATE_DIR = "/var/lib/planetGen/state"
+"""str: The web-owned state folder (the installers give it to Apache's user; `planetgen.admin.maintenance`
+keeps its switch there too). The install folder above it is root's, so a file beside `config.json` could be
+read by the web app but never replaced."""
+
+
+def state_dir():
+    """The web-owned state folder: `PLANETGEN_STATE_DIR`, else `/var/lib/planetGen/state`."""
+    return os.environ.get("PLANETGEN_STATE_DIR") or DEFAULT_STATE_DIR
 
 
 def _read_json_object(path, label):
@@ -352,6 +364,11 @@ def _read_json_object(path, label):
     if not isinstance(data, dict):
         raise SettingsError(f"{label} ({path}) must contain a JSON object, not {type(data).__name__}")
     return data
+
+
+def read_config():
+    """The `config.json` dict (empty when there is no file); raises `SettingsError` for one that can't be read."""
+    return _read_json_object(logpaths.CONFIG_PATH, "config.json")
 
 
 def migrate(data):
@@ -376,7 +393,7 @@ def _merge(base, overrides):
         if isinstance(value, dict) and isinstance(base.get(key), dict):
             _merge(base[key], value)
         else:
-            base[key] = value
+            base[key] = copy.deepcopy(value)  # never share a layer's nested dict with the merge
 
 
 def _set_path(data, path, value):
@@ -401,34 +418,14 @@ def _environment_layer(environ):
     return layer
 
 
-def _file_only_paths(overlay, prefix=""):
-    """The dotted paths in `overlay` the web may not set (`x-editable`
-    false), with unknown ones: both are errors in `settings.json`."""
-    editable = {path: meta.get("x-editable", True) for path, _i, meta in iter_fields()}
-    bad = []
-
-    def walk(node, prefix):
-        for key, value in node.items():
-            path = f"{prefix}{key}"
-            if isinstance(value, dict) and not any(p == path for p in editable):
-                walk(value, f"{path}.")
-            elif path not in editable:
-                bad.append(f"{path} is not a setting")
-            elif not editable[path]:
-                bad.append(f"{path} can only be set in config.json")
-    walk(overlay, prefix)
-    return bad
-
-
-def build(config=None, overlay=None, environ=None, strict=False):
+def build(config=None, environ=None, strict=False):
     """
     Validates the layers into a `Settings`: defaults, `config` (the
-    `config.json` dict), `overlay` (the `settings.json` dict), then the
-    `PLANETGEN_*` variables in `environ`.
+    `config.json` dict), then the `PLANETGEN_*` variables in `environ`.
 
     Args:
-        strict (bool): Unknown keys in `config` are errors (`config check`,
-            ADM.43's form) instead of ignored with a warning.
+        strict (bool): Unknown keys in `config` are errors (`config check`)
+            instead of ignored.
 
     Raises:
         SettingsError: Naming every field that doesn't fit.
@@ -436,16 +433,12 @@ def build(config=None, overlay=None, environ=None, strict=False):
     environ = os.environ if environ is None else environ
     merged = {}
     problems = []
-    for label, layer in (("config.json", config), ("settings.json", overlay)):
-        if layer is None:
-            continue
+    if config is not None:
         try:
-            layer = migrate(dict(layer))
+            layer = migrate(dict(config))
         except SettingsError as exc:
-            raise SettingsError(f"{label}: {exc}") from exc
-        if label == "settings.json":
-            problems.extend(f"settings.json: {message}" for message in _file_only_paths(layer))
-        elif strict:
+            raise SettingsError(f"config.json: {exc}") from exc
+        if strict:
             known = {path for path, _i, _m in iter_fields()}
             problems.extend(f"config.json: {message}" for message in _unknown_paths(layer, known))
         _merge(merged, layer)
@@ -455,11 +448,38 @@ def build(config=None, overlay=None, environ=None, strict=False):
     try:
         return Settings.model_validate(merged)
     except ValidationError as exc:
-        lines = []
-        for error in exc.errors():
-            where = ".".join(str(part) for part in error["loc"])
-            lines.append(f"{where}: {error['msg']}")
+        lines = [f"{path}: {message}" for path, message in _error_pairs(exc)]
         raise SettingsError("; ".join(lines) if len(lines) < 4 else "\n".join(lines)) from exc
+
+
+def _error_pairs(exc):
+    """`[(dotted path, message)]` of a `ValidationError`, the path cut back to the option it names (a list
+    option's element error is the list's)."""
+    leaves = {path for path, _i, _m in iter_fields()}
+    pairs = []
+    for error in exc.errors():
+        parts = [str(part) for part in error["loc"]]
+        path = next((".".join(parts[:n]) for n in range(len(parts), 0, -1) if ".".join(parts[:n]) in leaves),
+                    ".".join(parts))
+        pairs.append((path, error["msg"]))
+    return pairs
+
+
+def field_errors(config=None, environ=None):
+    """
+    Validates `config` like `build` but without raising and without the unknown-key check: `(settings, [])` when
+    it fits, else `(None, [(dotted option path, message), ...])`. The environment is left out unless `environ`
+    is given. The writer uses it to put each message at its option.
+    """
+    environ = {} if environ is None else environ
+    merged = {}
+    if config:
+        _merge(merged, migrate(dict(config)))
+    _merge(merged, _environment_layer(environ))
+    try:
+        return Settings.model_validate(merged), []
+    except ValidationError as exc:
+        return None, _error_pairs(exc)
 
 
 def _unknown_paths(layer, known, prefix=""):
@@ -494,23 +514,20 @@ def _environment_stamp(environ):
 
 def get_settings(environ=None):
     """
-    The validated settings. Re-read only when `config.json`,
-    `settings.json` or a variable the model names changes (a stat costs
-    about a microsecond), so every option that is read per use stays live.
+    The validated settings. Re-read only when `config.json` or a variable
+    the model names changes (a stat costs about a microsecond), so every
+    option that is read per use stays live.
 
     Raises:
         SettingsError: A file or variable doesn't fit the model.
     """
     environ = os.environ if environ is None else environ
     config_path = logpaths.CONFIG_PATH
-    overlay_path = default_web_settings_path()
-    key = (config_path, _stamp(config_path), overlay_path, _stamp(overlay_path), _environment_stamp(environ))
+    key = (config_path, _stamp(config_path), _environment_stamp(environ))
     with _lock:
         if _cache["key"] == key:
             return _cache["settings"]
-        config = _read_json_object(config_path, "config.json")
-        overlay = _read_json_object(overlay_path, "settings.json") if os.path.isfile(overlay_path) else None
-        settings = build(config, overlay, environ)
+        settings = build(_read_json_object(config_path, "config.json"), environ)
         _cache["key"], _cache["settings"] = key, settings
         return settings
 
@@ -557,7 +574,7 @@ def docs_table():
     roles = {"admin": "any admin", "owner": "the Owner"}
     for path, info, meta in iter_fields():
         applies = "after a restart" if meta["x-restart"] else "at once"
-        edited = roles[meta["x-min_role"]] if meta["x-editable"] else "config.json only"
+        edited = roles[meta["x-min_role"]] if meta["x-editable"] else "command line only"
         unit = f" ({meta['x-unit']})" if meta.get("x-unit") else ""
         secret = " **Secret.**" if meta["x-secret"] else ""
         env = f"`{meta['x-env']}`" if meta.get("x-env") else "none"

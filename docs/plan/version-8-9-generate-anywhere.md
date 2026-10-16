@@ -41,7 +41,7 @@ Generation without a database, uploads, verification and the incomplete uploads 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | API.13 | Generation without a database | API.12 | Local generation with all workers. |
-| API.14 | Upload routes, compressed, in batches | API.7, API.11 |  |
+| API.14 | Upload routes, compressed, in batches | API.11 |  |
 | API.8 | Verify uploaded data before it is finalized | API.11, API.14, ADM.82 | Narrowed: the checks and the finalize are ADM.82, built in 8.6 |
 | ADM.13 | Incomplete uploads page | API.10, API.8 |  |
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | API.5, API.12, API.13, API.14, API.8 | Split from API.3. |

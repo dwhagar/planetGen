@@ -942,7 +942,8 @@ class Star(LazySaladName):
                 getattr(self.system_config, "POPULATION", None),
                 constants.GALACTIC_CENTER_DISTANCE_LY if self.galactic_center_dist_ly is None
                 else self.galactic_center_dist_ly,
-                draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
+                draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"),
+                peaks=getattr(self.system_config, "FE_H_PEAKS", None))
 
     def get_table_properties(self):
         """
