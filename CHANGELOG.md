@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1440] - 2026-10-16
+
+**Headline:** The galactic core plan covers horizontal-branch and asymptotic-giant stars and what they do to the halo scatter.
+
+### Changed
+- `docs/design/realistic-galactic-core.md` (GEN.279) section 5.3: why the stellar model has no horizontal-branch phase, the real phases with luminosity and temperature ranges, the effect on halo scatter rows at the 100, 500 and 1,000 floors, and the build steps.
+
+TODO items resolved: none / Added: the horizontal-branch and AGB phase item (see the note, section 5.3)
+
 ## [8.0.1439] - 2026-10-16
 
 **Headline:** GEN.281, GEN.283 and UX.116 are reworded to the galactic core note's settings: a cell star ceiling, a fill luminosity cap, core levers and a halo floor, with sliders.
