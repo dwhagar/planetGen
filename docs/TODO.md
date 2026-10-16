@@ -5339,6 +5339,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   itself is still open.
   Seen again (Quality, 2026-10-15): the six DB.33 tests failed again in
   the `changed` run, same cause (fails on main).
+  Confirmed again by Core 3 (2026-10-16, 9:05 PM EDT, GEN.149 test run):
+  the same six tests fail on clean origin/main (5b48f34) on every run (2
+  of 2), with the same remove_fk and add_fk items for fk_facilities_type
+  and fk_facility_field_values_field. Unowned; no lane fixes it unless
+  handed it.
   Prerequisites: none.
 
 - [ ] **DB.34 Cell key and covering index on every table that holds a position, in the shared 0093 migration**
