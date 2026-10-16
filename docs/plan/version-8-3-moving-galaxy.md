@@ -41,6 +41,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 |---|---|---|---|
 | MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) |  | Foundation found in the review. |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | MAP.217 |  |
+| MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | MAP.217 | Split from the Galaxy Map key item. |
 
 ### Galactic gravity
 
