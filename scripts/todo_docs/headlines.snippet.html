@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded',function(){
   H.forEach(h=>{
     const d=document.createElement('details');
     const s=document.createElement('summary');
-    s.innerHTML='<span class="hl-v">'+h.version+'</span><span>'+h.name+'</span><span class="hl-n">'+h.remaining+' open items needed, '+h.ready+' ready now'+(h.bugs?', '+h.bugs+' bugs':'')+'</span>';
+    s.innerHTML='<span class="hl-v">'+h.version+'</span><span>'+h.name+'</span><span class="hl-n">'+h.remaining+' open items needed, '+h.ready+' ready to start'+(h.bugs?', '+h.bugs+' bugs':'')+'</span>';
     d.append(s);
     const ol=document.createElement('ol');
     h.items.forEach(r=>{
       const li=document.createElement('li');
-      li.innerHTML='<span class="hl-id">'+r.id+'</span>'+r.title.replace(/</g,'&lt;')+'<span class="hl-t">phase '+(r.phase||'?')+(r.ready?' · ready':' · needs '+r.deps.join(', '))+'</span>';
+      li.innerHTML='<span class="hl-id">'+r.id+'</span>'+r.title.replace(/</g,'&lt;')+'<span class="hl-t">'+(r.phase?r.phase.replace('-',' phase '):'unplaced')+(r.ready?' · ready':' · needs '+r.deps.join(', '))+'</span>';
       ol.append(li);
     });
     d.append(ol); root.append(d);

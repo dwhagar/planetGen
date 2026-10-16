@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: a toolbar, then one tree per phase of the roots; every item sits under the prerequisite that finishes last, so a branch reads as a chain of what unblocks what. */
+/* Layout: a toolbar, then one tree per version of the roots; every item sits under the prerequisite that finishes last, so a branch reads as a chain of what unblocks what. */
 :root{
   --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E9EDF3; --ink:#152030; --muted:#566275; --line:#D8DEE7;
   --accent:#B05E0C; --accent-soft:#F6E7D6; --ground:#0E7682; --ground-soft:#D8EEF0;
@@ -63,9 +63,9 @@ details[open]>summary .twist{transform:rotate(90deg)}
 .title{flex:1 1 20ch;min-width:0;overflow-wrap:anywhere}
 .tag{font:600 .66rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:5px;white-space:nowrap}
 .tag.bug{background:var(--bug-soft);color:var(--bug)}
-.tag.p0,.tag.p1{background:var(--ground-soft);color:var(--ground)}
+.tag.p0{background:var(--ground-soft);color:var(--ground)}
 .tag.p2{background:var(--new-soft);color:var(--new)}
-.tag.p3,.tag.p3p{background:var(--accent-soft);color:var(--accent)}
+.tag.p1{background:var(--accent-soft);color:var(--accent)}
 .tag.n{background:var(--sunk);color:var(--muted)}
 .also{flex-basis:100%;margin-left:1.6em;font-size:.82rem;color:var(--muted)}
 .also a{color:var(--accent);font-family:var(--f-mono);font-size:.9em;text-decoration:none;border-bottom:1px dotted var(--accent)}
@@ -84,11 +84,11 @@ details[open]>summary .twist{transform:rotate(90deg)}
   <h1>TODO Tree</h1>
   <p class="lede">Every open item sits under the prerequisite that finishes last, so a branch reads from "can start now" down through what each step unblocks. Items with several prerequisites list the others under their title; click one to jump to it.</p>
   <div class="meta" id="meta"></div>
-  <div class="meta"><a href="https://claude.ai/artifact/UFM7fnjRrv9TRhJNhvnbF2">Tier plan</a><a href="https://claude.ai/artifact/RndQ2NzUi9ptWe9B3ECF1a">Every ID explained</a></div>
+  <div class="meta"><a href="https://claude.ai/artifact/UFM7fnjRrv9TRhJNhvnbF2">Version plan</a><a href="https://claude.ai/artifact/RndQ2NzUi9ptWe9B3ECF1a">Every ID explained</a></div>
 </header>
 <div class="bar">
   <input type="search" id="q" placeholder="Search IDs, titles and notes" aria-label="Search">
-  <span id="phasechips" role="group" aria-label="Phase" style="display:flex;flex-wrap:wrap;gap:6px"></span>
+  <span id="phasechips" role="group" aria-label="Version" style="display:flex;flex-wrap:wrap;gap:6px"></span>
   <button class="chip bugchip" id="bugs" aria-pressed="false">Bugs only</button>
   <button class="btn" id="expand">Expand all</button>
   <button class="btn" id="collapse">Collapse all</button>
@@ -102,10 +102,10 @@ __HEADLINES__
 const D=JSON.parse(document.getElementById('data').textContent);
 const ISSUES=D.issues||{},ISSUE_URL='https://github.com/dwhagar/planetGen/issues/';
 const items=D.items, ids=Object.keys(items);
-const phaseOf=i=>String(items[i].phase||'');
+const phaseOf=i=>String(items[i].version||'');
 const idKey=s=>{const [c,n]=s.split('.');return [c,+n]};
 const cmp=(a,b)=>{const x=idKey(a),y=idKey(b);return x[0]<y[0]?-1:x[0]>y[0]?1:x[1]-y[1]};
-const phaseOrder=['0','1','2','3','3+'];
+const phaseOrder=D.versions.map(v=>v.key);
 const pr=i=>{const k=phaseOrder.indexOf(phaseOf(i));return k<0?9:k};
 
 // depth = longest chain of open prerequisites below an item
@@ -138,7 +138,7 @@ ids.forEach(desc);
 
 const state={q:'',bugs:false,phases:new Set(phaseOrder)};
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-const tagFor=p=>{const e=el('span','tag '+(p==='3+'?'p3p':'p'+p),p?'P'+p:'?');e.title='Phase '+p;return e};
+const tagFor=p=>{const e=el('span','tag '+(p?'p'+(phaseOrder.indexOf(p)%2):'p0'),p?(p==='later'?'later':p):'?');e.title=p?'Version '+p:'Unplaced';return e};
 const matches=i=>{
   const it=items[i];
   if(state.bugs&&!it.bug) return false;
@@ -195,10 +195,10 @@ function render(){
   const out=document.getElementById('out'); out.replaceChildren();
   const byPhase={};
   roots.filter(visible).forEach(r=>(byPhase[phaseOf(r)]=byPhase[phaseOf(r)]||[]).push(r));
-  D.phases.forEach(p=>{
+  D.versions.forEach(p=>{
     const rs=byPhase[p.key]; if(!rs) return;
     const sec=el('section','phase'), h=el('header');
-    h.append(el('div','eyebrow','Starts in phase '+p.key),el('h2',null,p.title.replace(/^Phase [^:]*:\s*/,'')));
+    h.append(el('div','eyebrow','Starts in version '+p.key),el('h2',null,p.title));
     sec.append(h);
     const ul=el('ul','tree'); rs.forEach(r=>ul.append(nodeFor(r))); sec.append(ul); out.append(sec);
   });
@@ -218,8 +218,8 @@ function syncControls(){
   document.querySelectorAll('#phasechips .chip').forEach(c=>c.setAttribute('aria-pressed',state.phases.has(c.dataset.p)));
 }
 const chips=document.getElementById('phasechips');
-phaseOrder.filter(p=>D.phases.some(x=>x.key===p)&&ids.some(i=>phaseOf(i)===p)).forEach(p=>{
-  const b=el('button','chip','P'+p); b.dataset.p=p; b.setAttribute('aria-pressed','true');
+phaseOrder.filter(p=>ids.some(i=>phaseOf(i)===p)).forEach(p=>{
+  const b=el('button','chip',p); b.dataset.p=p; b.setAttribute('aria-pressed','true');
   b.addEventListener('click',()=>{state.phases.has(p)?state.phases.delete(p):state.phases.add(p);syncControls();render()});
   chips.append(b);
 });

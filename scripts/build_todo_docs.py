@@ -4,36 +4,41 @@ Builds the four browsable TODO pages from the TODO sources.
 
 Why this exists
 ===============
-Boss (2026-10-07 16:22Z) asked for the tier plan and a searchable page that
+Boss (2026-10-07 16:22Z) asked for the plan and a searchable page that
 explains every TODO item in detail, rebuilt whenever `docs/TODO.md`
-changes. Both pages are generated from the files the TODO tasks thread
+changes. Boss (2026-10-16, 1:07 PM EDT) turned the tiers into a version map:
+one version per release from 8.1, each with one or more phases (a theme
+each), and a blocker sits in the same thread, an earlier phase or an earlier
+version. The pages are generated from the files the TODO tasks thread
 already keeps, so one command refreshes them:
 
-- `docs/plan/tier-plan.html`: every open item in build order, phase by
-  phase and thread by thread (from `docs/plan/phase-*.md`).
+- `docs/plan/version-plan.html`: every open item in build order, version by
+  version, phase by phase and thread by thread (from
+  `docs/plan/version-*.md`), with a progress bar per version.
 - `docs/plan/todo-reference.html`: every ID ever issued, open or closed,
-  with its full text, status, phase, prerequisites and what it unblocks,
-  plus search and filters.
+  with its full text, status, version phase, prerequisites and what it
+  unblocks, plus search and filters.
 - `docs/plan/todo-tree.html`: every open item as a tree, each item under the
-  prerequisite that finishes last, with phase and bug marks, search and
+  prerequisite that finishes last, with version and bug marks, search and
   filters (Boss 2026-10-09 07:03Z: "a TODO as a tree structure").
-- `docs/plan/release-roadmap.html`: the proposed releases from v8.0 to v10.0,
-  each with its headline, the open items it holds, what it needs, its share
-  built and the suggestions not yet filed (Boss, 2026-10-16).
+- `docs/plan/release-roadmap.html`: the releases from 8.1 to 9.3, each with
+  its headline, its phases, the open items it holds, what it needs, its share
+  finished and the suggestions not yet filed (Boss, 2026-10-16).
 
 Sources
 =======
 - `docs/TODO.md`: open items, their full text, nesting and prerequisites.
-- `docs/plan/phase-*.md`: phase, thread, "Needs" and notes per open item.
+- `docs/plan/version-*.md`: each version's goal, phases (theme) and threads,
+  with "Needs" and a note per open item.
 - `docs/plan/notes.md`: "Decisions for Boss".
 - `docs/design/todo-number-map.md`: the status of every ID ever issued
   (its "Reverse lookup" table).
 - `docs/plan/issue-groups.md`: the GitHub issues (goal groups of items and the
   issues Boss opened) and the items each one covers; every page links them.
-- `docs/plan/progress-ledger.md`: the phase each finished item belonged to, for
-  the progress bar on every tier of the tier plan (Boss, 2026-10-16).
+- `docs/plan/progress-ledger.md`: the version each finished item belonged to,
+  for the progress bar on every version (Boss, 2026-10-16).
 - `docs/plan/release-roadmap.md`: the release roadmap's order, headlines and
-  item IDs; open counts come from TODO.md on every build.
+  suggestions; open counts come from TODO.md on every build.
 
 Usage
 =====
@@ -55,7 +60,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES = ROOT / "scripts" / "todo_docs"
 OUTPUTS = {
-    "tier-plan.template.html": ROOT / "docs" / "plan" / "tier-plan.html",
+    "version-plan.template.html": ROOT / "docs" / "plan" / "version-plan.html",
     "todo-reference.template.html": ROOT / "docs" / "plan" / "todo-reference.html",
     "todo-tree.template.html": ROOT / "docs" / "plan" / "todo-tree.html",
     "release-roadmap.template.html": ROOT / "docs" / "plan" / "release-roadmap.html",
@@ -63,9 +68,9 @@ OUTPUTS = {
 ID_RE = re.compile(r"^[A-Z]+\.\d+$")
 HEADLINE_RE = re.compile(r"Headline:\s*(\d+\.\d+)\s*\(([^)]*)\)")
 ITEM_RE = re.compile(r"^(\s*)- \[[ x]\] \*\*([A-Z]+\.\d+) (.*?)\*\*\s*$")
-PHASE_ORDER = ["1", "2", "3", "3+"]
-TIER_KEYS = ["0", "1", "2", "3", "3+"]
-PHASE0_TITLE = "Every bug and the groundwork (finished 2026-10-09)"
+VERSION0 = "8.0"
+VERSION0_TITLE = "Every bug and the groundwork (Phase 0, finished 2026-10-09)"
+VERSION_RE = r"(?:\d+\.\d+|later)"
 CATEGORIES = {
     "GEN": "Generation", "MAP": "Maps", "NAV": "Navigation", "UX": "User experience",
     "ADM": "Admin", "OPS": "Operations", "API": "API", "TEST": "Tests",
@@ -128,49 +133,65 @@ def parse_todo(text: str) -> dict:
         it["prereqs"] = [x for p in prereq for x in split_ids(p)]
         it["design"] = re.findall(r"Design:\s*\[([^\]]+)\]\(([^)]+)\)", it["text"])
         found = HEADLINE_RE.search(it["text"])
-        it["headline"] = (found.group(1), found.group(2).strip()) if found else None
+        it["headline"] = (found.group(1), re.sub(r"\s+", " ", found.group(2)).strip()) if found else None
     return items
 
 
-def phase_key(path: Path) -> str:
-    m = re.search(r"phase-(1|2|3plus|3)-", path.name)
-    return {"3plus": "3+"}.get(m.group(1), m.group(1))
+def version_key(path: Path) -> str:
+    """docs/plan/version-8-1-name.md -> "8.1"; version-later-name.md -> "later"."""
+    m = re.match(r"version-(\d+)-(\d+)-|version-(later)-", path.name)
+    return m.group(3) or f"{m.group(1)}.{m.group(2)}"
 
 
-def parse_phases(plan_dir: Path) -> tuple[list[dict], dict]:
-    phases, rows = [], {}
-    files = sorted(plan_dir.glob("phase-*.md"), key=lambda p: PHASE_ORDER.index(phase_key(p)))
+def version_sort(key: str) -> tuple:
+    return (1, 0, 0) if key == "later" else (0, *[int(x) for x in key.split(".")])
+
+
+def phase_label(key: str) -> str:
+    """"8.1-2" -> "8.1 phase 2"."""
+    version, _, n = key.partition("-")
+    return f"{version} phase {n}" if n else version
+
+
+def parse_phases(plan_dir: Path) -> tuple[list[dict], dict, list[dict]]:
+    """The version files: versions, their phases (themes) and threads, and each item's row."""
+    versions, phases, rows = [], [], {}
+    files = sorted(plan_dir.glob("version-*.md"), key=lambda p: version_sort(version_key(p)))
     for path in files:
         text = path.read_text(encoding="utf-8")
-        key = phase_key(path)
-        title = text.splitlines()[0].lstrip("# ").strip()
+        version = version_key(path)
+        title = re.sub(r"^Version \S+:\s*", "", text.splitlines()[0].lstrip("# ").strip())
         goal = ""
         if "## Goal" in text:
             goal = text.split("## Goal", 1)[1].split("\n## ", 1)[0].strip()
-        groups = []
-        for g in re.finditer(r"^### (.+?)\n(.*?)(?=^### |^## |\Z)", text, re.S | re.M):
-            name, chunk = g.group(1).strip(), g.group(2)
-            ids = []
-            for line in chunk.splitlines():
-                if not line.startswith("| "):
-                    continue
-                cells = [c.strip() for c in line.strip().strip("|").split("|")]
-                if not ID_RE.match(cells[0]):
-                    continue
-                ids.append(cells[0])
-                rows[cells[0]] = {
-                    "phase": key, "thread": name,
-                    "needs": split_ids(cells[2]) if len(cells) > 2 else [],
-                    "note": cells[3] if len(cells) > 3 else "",
-                }
-            intro = re.split(r"\n\|", chunk)[0].strip()
-            groups.append({"name": name, "ids": ids, "intro": intro})
-        questions = ""
-        if "## Open questions for Boss" in text:
-            questions = text.split("## Open questions for Boss", 1)[1].strip()
-        phases.append({"key": key, "file": path.name, "title": title, "goal": goal,
-                       "groups": groups, "questions": questions})
-    return phases, rows
+        entry = {"key": version, "file": path.name, "title": title, "goal": goal, "phases": []}
+        versions.append(entry)
+        for ph in re.finditer(r"^## Phase (\d+): (.+?)\n(.*?)(?=^## |\Z)", text, re.S | re.M):
+            n, theme, body = int(ph.group(1)), ph.group(2).strip(), ph.group(3)
+            key = f"{version}-{n}"
+            groups = []
+            for g in re.finditer(r"^### (.+?)\n(.*?)(?=^### |\Z)", body, re.S | re.M):
+                name, chunk = g.group(1).strip(), g.group(2)
+                ids = []
+                for line in chunk.splitlines():
+                    if not line.startswith("| "):
+                        continue
+                    cells = [c.strip() for c in line.strip().strip("|").split("|")]
+                    if not ID_RE.match(cells[0]):
+                        continue
+                    ids.append(cells[0])
+                    rows[cells[0]] = {
+                        "phase": key, "version": version, "thread": name,
+                        "needs": split_ids(cells[2]) if len(cells) > 2 else [],
+                        "note": cells[3] if len(cells) > 3 else "",
+                    }
+                intro = re.split(r"\n\|", chunk)[0].strip()
+                groups.append({"name": name, "ids": ids, "intro": intro})
+            intro = re.split(r"^### ", body, maxsplit=1, flags=re.M)[0].strip()
+            phases.append({"key": key, "version": version, "n": n, "theme": theme, "intro": intro,
+                           "label": phase_label(key), "title": title, "file": path.name, "groups": groups})
+            entry["phases"].append(key)
+    return phases, rows, versions
 
 
 def parse_decisions(notes: str) -> list[str]:
@@ -225,19 +246,19 @@ def parse_issue_groups(text: str) -> tuple[dict[str, list[int]], dict[int, dict]
     return by_item, issues
 
 
-LEDGER_ROW_RE = re.compile(r"^\|\s*([A-Z]+\.\d+)\s*\|\s*(0|1|2|3\+?)\s*\|([^|]*)\|\s*$")
+LEDGER_ROW_RE = re.compile(r"^\|\s*([A-Z]+\.\d+)\s*\|\s*(" + VERSION_RE + r")\s*\|([^|]*)\|\s*$")
 LEDGER_BASELINE_RE = re.compile(r"^Baseline: PR #(\d+)\.", re.M)
 
 
 def parse_ledger(text: str) -> tuple[dict[str, str], int]:
-    """Finished item -> the phase it belonged to, and the baseline PR number."""
+    """Finished item -> the version it belonged to, and the baseline PR number."""
     rows = {m.group(1): m.group(2) for m in map(LEDGER_ROW_RE.match, text.splitlines()) if m}
     base = LEDGER_BASELINE_RE.search(text)
     return rows, int(base.group(1)) if base else 0
 
 
-def build_progress(items: dict, ledger: dict[str, str], baseline: int, phases: list[dict]) -> dict:
-    """Finished, open and dropped items per tier, with the percentage finished."""
+def build_progress(items: dict, ledger: dict[str, str], baseline: int, versions: list[dict], phases: list[dict]) -> dict:
+    """Finished, open and dropped items per version, with the percentage finished and each phase's open count."""
     missing = []
     for item_id, it in items.items():
         pr = re.search(r"PR #(\d+)", it["statusText"])
@@ -245,34 +266,55 @@ def build_progress(items: dict, ledger: dict[str, str], baseline: int, phases: l
             missing.append(item_id)
     if missing:
         raise SystemExit("docs/plan/progress-ledger.md has no row for " + ", ".join(sorted(missing, key=id_key)) +
-                         ": add one (ID | phase | thread) for each, copied from the phase file row before it was deleted")
-    titles = {"0": PHASE0_TITLE}
-    titles.update({p["key"]: re.sub(r"^Phase [0-9+]+:\s*", "", p["title"]) for p in phases})
-    tiers = {k: {"key": k, "title": titles.get(k, ""), "done": 0, "open": 0, "dropped": 0} for k in TIER_KEYS}
+                         ": add one (ID | version | thread) for each, copied from the version file row before it was deleted")
+    keys = [VERSION0] + [v["key"] for v in versions]
+    titles = {VERSION0: VERSION0_TITLE, **{v["key"]: v["title"] for v in versions}}
+    out = {k: {"key": k, "title": titles.get(k, ""), "done": 0, "open": 0, "dropped": 0} for k in keys}
     before = 0
     for item_id, it in items.items():
         if it["status"] == "open":
-            if it["phase"] in tiers:
-                tiers[it["phase"]]["open"] += 1
+            if it["version"] in out:
+                out[it["version"]]["open"] += 1
         elif item_id in ledger:
-            tiers[ledger[item_id]]["done" if it["status"] == "done" else "dropped"] += 1
+            out[ledger[item_id]]["done" if it["status"] == "done" else "dropped"] += 1
         elif it["status"] == "done":
             before += 1
-    for t in tiers.values():
+    for t in out.values():
         t["total"] = t["done"] + t["open"]
         t["pct"] = round(100 * t["done"] / t["total"], 1) if t["total"] else 0.0
-    done, total = sum(t["done"] for t in tiers.values()), sum(t["total"] for t in tiers.values())
-    return {"tiers": [tiers[k] for k in TIER_KEYS], "before": before,
+        t["phases"] = [{"key": p["key"], "label": p["label"], "theme": p["theme"],
+                        "open": sum(1 for it in items.values() if it["status"] == "open" and it["phase"] == p["key"])}
+                       for p in phases if p["version"] == t["key"]]
+    done, total = sum(t["done"] for t in out.values()), sum(t["total"] for t in out.values())
+    return {"versions": [out[k] for k in keys], "before": before,
             "done": done, "total": total, "pct": round(100 * done / total, 1) if total else 0.0}
 
 
-ROADMAP_RELEASE_RE = re.compile(r"^Release (\d+\.\d+): (.*)$")
-ROADMAP_FIELD_RE = re.compile(r"^(Status|Headline|Today|Change|Needs|Lanes|Built before|Items|Alternative)(?: \(([^)]+)\))?:\s*(.*)$")
-ROADMAP_SUGGEST_RE = re.compile(r"^- (S\d+\.\d+-[a-z]): (.*)$")
+def check_order(items: dict) -> list[dict]:
+    """Boss (2026-10-16): a blocker sits in the same thread (earlier) or in an earlier phase, never later."""
+    order = {}
+    for it in items.values():
+        if it["status"] == "open" and it["phase"]:
+            order[it["id"]] = (version_sort(it["version"]), int(it["phase"].partition("-")[2] or 0))
+    bad = []
+    for item_id, it in items.items():
+        if item_id not in order:
+            continue
+        for dep in it["deps"]:
+            if dep not in order or items[dep]["thread"] == it["thread"] and items[dep]["phase"] == it["phase"]:
+                continue
+            if order[dep] >= order[item_id]:
+                bad.append({"id": item_id, "phase": it["phase"], "needs": dep, "needsPhase": items[dep]["phase"]})
+    return bad
+
+
+ROADMAP_RELEASE_RE = re.compile(r"^Release (" + VERSION_RE + r"): (.*)$")
+ROADMAP_FIELD_RE = re.compile(r"^(Status|Headline|Today|Change|Needs|Lanes|Alternative)(?: \(([^)]+)\))?:\s*(.*)$")
+ROADMAP_SUGGEST_RE = re.compile(r"^- (S(?:[\d.]+|L)-[a-z]): (.*)$")
 
 
 def parse_roadmap(text: str) -> dict:
-    """docs/plan/release-roadmap.md: the proposed releases, their item IDs and suggestions."""
+    """docs/plan/release-roadmap.md: each version's headline, needs and the ideas not yet filed."""
     out = {"title": "", "intro": [], "how": [], "releases": [], "questions": []}
     cur, section, last = None, "intro", None
     for line in text.splitlines():
@@ -283,7 +325,7 @@ def parse_roadmap(text: str) -> dict:
             title = line[3:].strip()
             found = ROADMAP_RELEASE_RE.match(title)
             if found:
-                cur = {"version": found.group(1), "name": found.group(2), "fields": {}, "groups": [],
+                cur = {"version": found.group(1), "name": found.group(2), "fields": {},
                        "alternatives": [], "suggested": []}
                 out["releases"].append(cur)
                 section = "release"
@@ -309,10 +351,7 @@ def parse_roadmap(text: str) -> dict:
                 last["text"] += " " + line.strip()
             elif field:
                 key, label, value = field.groups()
-                if key == "Items":
-                    last = {"label": label or "", "text": value}
-                    cur["groups"].append(last)
-                elif key == "Alternative":
+                if key == "Alternative":
                     last = {"label": label or "", "text": value}
                     cur["alternatives"].append(last)
                 else:
@@ -323,71 +362,47 @@ def parse_roadmap(text: str) -> dict:
     return out
 
 
-def build_roadmap(root: Path, items: dict, progress: dict) -> dict:
-    """The roadmap with every listed item resolved against TODO.md, counts and order checks."""
+def build_roadmap(root: Path, items: dict, progress: dict, phases: list[dict], versions: list[dict]) -> dict:
+    """The roadmap: each version's narrative from the markdown plus its phases and threads from the version files."""
     path = root / "docs" / "plan" / "release-roadmap.md"
-    road = parse_roadmap(path.read_text(encoding="utf-8")) if path.exists() else parse_roadmap("")
-    rank = {r["version"]: n for n, r in enumerate(road["releases"])}
-    placed: dict[str, str] = {}
+    road = parse_roadmap(path.read_text(encoding="utf-8") if path.exists() else "")
+    prog = {t["key"]: t for t in progress["versions"]}
+    seen = set()
     for rel in road["releases"]:
-        fields = {k: v["text"].strip() for k, v in rel["fields"].items()}
-        built = re.match(r"\d+", fields.get("Built before", ""))
-        rel["fields"] = fields
-        rel["built"] = int(built.group(0)) if built else None
-        for grp in rel["groups"]:
-            ids = split_ids(grp.pop("text"))
-            for item_id in ids:
-                if item_id not in items:
-                    raise SystemExit(f"docs/plan/release-roadmap.md: {item_id} in release {rel['version']} is not an item")
-                if item_id in placed:
-                    raise SystemExit(f"docs/plan/release-roadmap.md: {item_id} is in both {placed[item_id]} and {rel['version']}")
-                placed[item_id] = rel["version"]
-            grp["ids"] = ids
+        if rel["version"] in seen:
+            raise SystemExit(f"docs/plan/release-roadmap.md: release {rel['version']} appears twice")
+        seen.add(rel["version"])
+        rel["fields"] = {k: v["text"].strip() for k, v in rel["fields"].items()}
         rel["alternatives"] = [{"label": a["label"], "text": a["text"].strip()} for a in rel["alternatives"]]
-    tiers = {t["key"]: t for t in progress["tiers"]}
-    violations, unplaced = [], []
-    for rel in road["releases"]:
+        ver = next((v for v in versions if v["key"] == rel["version"]), None)
+        rel["title"] = ver["title"] if ver else rel["name"]
+        rel["goal"] = ver["goal"] if ver else ""
+        rel["phases"] = []
         open_ids = []
-        for grp in rel["groups"]:
-            rows = []
-            for item_id in grp["ids"]:
-                it = items[item_id]
-                is_open = it["status"] == "open"
-                if is_open:
-                    open_ids.append(item_id)
-                    for dep in it["deps"]:
-                        if dep in placed and rank[placed[dep]] > rank[rel["version"]]:
-                            violations.append({"id": item_id, "release": rel["version"], "needs": dep, "needsRelease": placed[dep]})
-                rows.append({"id": item_id, "title": it["title"], "phase": it["phase"], "bug": it["bug"],
-                             "open": is_open, "deps": it["deps"] if is_open else []})
-            grp["items"] = rows
-            del grp["ids"]
-        done = sum(1 for g in rel["groups"] for r in g["items"] if not r["open"])
-        mix: dict[str, int] = {}
-        for g in rel["groups"]:
-            for r in g["items"]:
-                if r["open"]:
-                    mix[r["phase"] or "?"] = mix.get(r["phase"] or "?", 0) + 1
-        finished = (rel["built"] or 0) + done
-        total = finished + len(open_ids)
+        for ph in (p for p in phases if p["version"] == rel["version"]):
+            groups = []
+            for g in ph["groups"]:
+                rows = [{"id": i, "title": items[i]["title"], "bug": items[i]["bug"],
+                         "deps": items[i]["deps"]} for i in g["ids"] if i in items and items[i]["status"] == "open"]
+                open_ids += [r["id"] for r in rows]
+                groups.append({"name": g["name"], "items": rows})
+            rel["phases"].append({"key": ph["key"], "label": ph["label"], "theme": ph["theme"], "intro": ph["intro"],
+                                  "groups": groups})
+        t = prog.get(rel["version"], {"done": 0, "open": 0, "pct": 0.0, "dropped": 0})
         rel.update({
-            "open": len(open_ids), "ready": sum(1 for g in rel["groups"] for r in g["items"] if r["open"] and not r["deps"]),
-            "bugs": sum(1 for g in rel["groups"] for r in g["items"] if r["open"] and r["bug"]),
-            "doneListed": done, "mix": mix,
-            "share": round(100 * finished / total, 1) if rel["built"] is not None and total else None,
+            "open": len(open_ids), "ready": sum(1 for i in open_ids if not items[i]["deps"]),
+            "bugs": sum(1 for i in open_ids if items[i]["bug"]),
+            "done": t["done"], "share": t["pct"] if t["done"] + len(open_ids) else None,
         })
-    for item_id, it in items.items():
-        if it["status"] == "open" and item_id not in placed:
-            unplaced.append(item_id)
-    road["violations"], road["unplaced"] = violations, sorted(unplaced, key=id_key)
-    road["tierShare"] = {k: t["pct"] for k, t in tiers.items()}
+    road["violations"] = check_order(items)
+    road["unplaced"] = sorted((i for i, it in items.items() if it["status"] == "open" and not it["phase"]), key=id_key)
+    road["unlisted"] = [v["key"] for v in versions if v["key"] not in seen]
     return road
-
 
 
 def build_data(root: Path) -> dict:
     todo = parse_todo((root / "docs" / "TODO.md").read_text(encoding="utf-8"))
-    phases, rows = parse_phases(root / "docs" / "plan")
+    phases, rows, versions = parse_phases(root / "docs" / "plan")
     decisions = parse_decisions((root / "docs" / "plan" / "notes.md").read_text(encoding="utf-8"))
     numbers = parse_number_map((root / "docs" / "design" / "todo-number-map.md").read_text(encoding="utf-8"))
     groups_file = root / "docs" / "plan" / "issue-groups.md"
@@ -409,7 +424,7 @@ def build_data(root: Path) -> dict:
             "bug": title.rstrip().endswith("(bug)"),
             "status": status, "statusText": n.get("status", "open" if t else ""),
             "old": n.get("old", ""),
-            "phase": r.get("phase", ""), "thread": r.get("thread", ""), "note": r.get("note", ""),
+            "phase": r.get("phase", ""), "version": r.get("version", ""), "thread": r.get("thread", ""), "note": r.get("note", ""),
             "text": t["text"] if t else "", "parent": t["parent"] if t else "",
             "section": t["section"] if t else "",
             "design": [{"label": a, "href": b} for a, b in (t["design"] if t else [])],
@@ -427,7 +442,7 @@ def build_data(root: Path) -> dict:
 
     open_ids = [i for i, it in items.items() if it["status"] == "open"]
     plan_items = {i: {
-        "id": i, "title": items[i]["title"], "phase": items[i]["phase"], "was": "",
+        "id": i, "title": items[i]["title"], "phase": items[i]["phase"], "version": items[i]["version"], "was": "",
         "bug": items[i]["bug"], "thread": items[i]["thread"], "deps": items[i]["deps"],
         "unblocks": items[i]["unblocks"], "note": items[i]["note"], "text": items[i]["text"],
         "headline": items[i]["headline"], "issues": items[i]["issues"],
@@ -435,16 +450,16 @@ def build_data(root: Path) -> dict:
     headlines = build_headlines(items, todo)
     ledger_file = root / "docs" / "plan" / "progress-ledger.md"
     ledger, baseline = parse_ledger(ledger_file.read_text(encoding="utf-8") if ledger_file.exists() else "")
-    progress = build_progress(items, ledger, baseline, phases)
-    roadmap = build_roadmap(root, items, progress)
+    progress = build_progress(items, ledger, baseline, versions, phases)
+    roadmap = build_roadmap(root, items, progress, phases, versions)
     summary = (f"{len(open_ids)} open items, {sum(items[i]['bug'] for i in open_ids)} bugs; "
                f"{len(items)} IDs issued in all")
     return {
-        "plan": {"items": plan_items, "phases": phases, "decisions": decisions, "generated": summary,
+        "plan": {"items": plan_items, "phases": phases, "versions": versions, "decisions": decisions, "generated": summary,
                  "headlines": headlines, "issues": {str(k): v for k, v in issues.items()},
                  "progress": progress},
         "roadmap": roadmap,
-        "reference": {"items": items, "phases": [{"key": p["key"], "title": p["title"]} for p in phases],
+        "reference": {"items": items, "phases": [{"key": p["key"], "label": p["label"], "theme": p["theme"], "version": p["version"]} for p in phases],
                       "categories": CATEGORIES, "summary": summary, "headlines": headlines,
                       "issues": {str(k): v for k, v in issues.items()}},
     }
