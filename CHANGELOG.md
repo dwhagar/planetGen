@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1495] - 2026-10-16
+
+**Headline:** The to-do list retires the scatter companions (GEN.262), which unblocks the compact-pair promotion (GEN.263).
+
+### Changed
+
+- Retired GEN.262 (#1793), removed it from the multi-star goal table and added a TEST.163 sighting.
+
+TODO items resolved: GEN.262 / Added: none
+
 ## [8.0.1494] - 2026-10-16
 
 **Headline:** Stars, black holes, neutron stars and planetary nebulae in the scatter now come with their companions.
