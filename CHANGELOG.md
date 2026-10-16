@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1582] - 2026-10-16
+
+**Headline:** The numeric precision audit (GEN.372) has an owner: Core 1, with Core 2 reading the camera and render rows.
+
+### Changed
+- GEN.372 in `docs/TODO.md` and the 8.3 plan page now name Core 1 as owner (Boss chose it on 2026-10-16, 6:59 PM EDT).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1581] - 2026-10-16
 
 **Headline:** The plan now has one item that collects every numeric precision question at galactic scale.
