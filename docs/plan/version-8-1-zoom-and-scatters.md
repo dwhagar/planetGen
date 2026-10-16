@@ -227,6 +227,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom |  | Map labels, Boss 2:30 PM EDT. |
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws |  | Boss 7:16 PM EDT; the superbubble layer is its sibling item. |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map |  | Boss 7:24 PM EDT; look only. |
+| MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) |  | Boss 7:43 PM EDT. |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts |  | GEN.372 audit; Boss card. |
 | MAP.239 | Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js` |  | GEN.372 audit; Boss card 7:36-7:38 PM EDT. |
 | MAP.230 | Names of stars, systems and sectors on the Galaxy Map | MAP.229 | Map labels, Boss 2:30 PM EDT. |

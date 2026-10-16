@@ -2145,6 +2145,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (MAP.234) touch the same buffers.
   Prerequisites: none. Related: GEN.372, MAP.236, MAP.234, MAP.146.
 
+- [ ] **MAP.241 Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug)**
+  Boss (2026-10-16, 7:43 PM EDT, timeline): "Bug, stars on the starmap
+  should glow brighter but not be bigger if that makes any sense so they
+  are more obviously stars with glows and colors relative to the star's
+  properties." Which map: the message says the star map; the default is
+  both the Galaxy Map and the Sector Map (both draw stars the same way),
+  and the Galaxy Map comes first. What exists: Boss's earlier rule
+  (MAP.51/MAP.208, in the header of `static/galaxymap3d.js`) is "very
+  small with a big glow", sizes by the star's radius, brightness by
+  luminosity and colour by temperature. Today each star is a point
+  `POINT_PX` across far away and, from about a sector away, grows into a
+  core sized by the star's radius (`STAR_CORE_PX` 1.1 to 4.5 px) inside
+  a halo whose width and strength both grow with luminosity
+  (`STAR_MIN_PX` 6 to `STAR_MAX_PX` 30 px), so a luminous star becomes a
+  bigger disc, not a brighter point; the Sector Map has its own curve
+  (MAP.87, `static/starlight.js`). Done: a star's on-screen footprint
+  stays small and close to the same for every star (the size no longer
+  grows with luminosity or radius beyond a narrow band); luminosity
+  raises the glow's intensity (a brighter, hotter-looking core and halo
+  that stays tight), colour follows the blackbody temperature with
+  enough saturation to read, and a dim star reads dim and a bright star
+  reads bright at the same size; the halo-blend rule stays (crowded arms
+  glow in their colours, not white); one shared star look for both maps
+  (`static/starpoint.js` or `starlight.js`, not two curves); both
+  themes; a browser test that two stars of very different luminosity
+  have the same sprite size within a stated tolerance but different peak
+  glow, and that colour follows temperature. The star key entry of
+  MAP.234 says what size, glow and colour mean. Overlap checked: MAP.208
+  (built the grow-into-a-core rule that this changes), MAP.87 (the
+  Sector Map curve), MAP.164 and MAP.165 (colour and size, built),
+  MAP.148 (visibility law, unchanged), MAP.217 (layer registry, no
+  change), and the density/age coloring design, which is for blocks, not
+  stars. Owner: Core 2 (proposed).
+  Prerequisites: none. Related: MAP.208, MAP.87, MAP.164, MAP.165,
+  MAP.234, MAP.148.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
