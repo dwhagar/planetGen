@@ -61,6 +61,7 @@ const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
+const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -114,6 +115,10 @@ const NEAREST_STAR_REACH = 0.35;
 const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
 const GALAXY_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, GALAXY_MIN_ZOOM, 1);
 const SYSTEM_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, SYSTEM_MIN_ZOOM, MAX_ZOOM);
+// MAP.152: in a window of sectors the camera may come this many sector edges from the sector at the
+// middle (the window's own fit and 1/8 of it stop about 1.4 edges away, short of where a sector's
+// own scene is whole, sectorreach.js FULL_EDGES).
+const SECTOR_NEAREST_EDGES = 0.5;
 // A stage of more choices than this is drawn as one mesh: a hovered choice
 // is outlined, and the others don't fade (a mesh and a draw call each would
 // be too many).
@@ -316,7 +321,12 @@ export function createStageView(host) {
   // only zooms in from its own.
   function zoomPolicyFor(r) {
     if (enteredSystem) return SYSTEM_ZOOM;
-    return r && r.view && isWholeGalaxy(r) ? GALAXY_ZOOM : FREE_VIEW_ZOOM;
+    if (r && r.view && isWholeGalaxy(r)) return GALAXY_ZOOM;
+    if (!entered && !pinned && view && view.fit && isSectorView(r)) {
+      const fit = fitDistance(fitPointsOf(r), view.fit.target, view.quat);
+      if (fit > 0) return MC.zoomPolicy(MC.ZOOM_RANGE, Math.min(MIN_ZOOM, (SECTOR_NEAREST_EDGES * edgePc) / fit), MAX_ZOOM);
+    }
+    return FREE_VIEW_ZOOM;
   }
 
   function isWholeGalaxy(r) {
@@ -731,7 +741,7 @@ export function createStageView(host) {
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
     return {
       tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation,
-      zoom: view.zoom, target: view.target.slice(),
+      zoom: view.zoom, target: view.target.slice(), dist: view.dist, eye: eyeNow(),
     };
   };
 
@@ -1020,6 +1030,7 @@ export function createStageView(host) {
   }
 
   function flyTo(r) {
+    closeAmbient();
     const from = display && view ? viewNow() : null;
     const to = cameraFor(r);
     const old = display;
@@ -1084,6 +1095,7 @@ export function createStageView(host) {
     if (!active) return;
     sectorStage.update();
     systemStage.update(Date.now());
+    updateAmbient(now);
     if (followBody && !animation && view) {
       const at = systemStage.where(followBody);
       if (at) {
@@ -1216,7 +1228,7 @@ export function createStageView(host) {
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
-    openSystem: !pinned && host.fetchSystemScene ? function (entry) { enterSystem(entry, { push: true }); } : null,
+    openSystem: !pinned && host.fetchSystemScene ? openSystemFromAmbient : null,
   });
   const systemStage = createSystemStage({
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
@@ -1354,15 +1366,19 @@ export function createStageView(host) {
   function applyHover() {
     if (!display) return;
     const index = hover && hover.option != null ? hover.option : -1;
+    const ambientIndex = ambientShown() ? sectorOption(ambient.block) : -1;
     display.groups.forEach(function (group, n) {
       if (!group.option) {
-        group.fade = 1;
+        group.fade = group.baseFade = 1;
         return;
       }
       group.fade = index < 0 || n === index ? 1 : OTHER_FADE;
       // The sector opened in place is drawn by its own scene: its block
       // is only a faint cell round it.
       if (entered && sectorOption(entered.sector) === n) group.fade = ENTERED_BLOCK_FADE;
+      group.baseFade = group.fade;
+      // ... and so is the one the camera is coming up to, as much as its scene shows (MAP.152).
+      if (n === ambientIndex) group.fade = Math.min(group.fade, ambientBlockFade());
       // MAP.202: the lines round a block are nearly invisible at rest and
       // show in full on the block being chosen.
       const edges = index === n ? 1 : group.restEdges;
@@ -1568,6 +1584,165 @@ export function createStageView(host) {
     });
   }
 
+  // --- The sector the camera comes up to (MAP.152) ----------------------------------
+
+  // In a window of sectors a sector's own scene (every star and phenomenon of it) fades in as
+  // the camera comes within sectorreach.js's FADE_IN_EDGES of its centre, with no stage change,
+  // flight or history entry, and is dropped past UNLOAD_EDGES. It is not "the sector opened":
+  // `entered` stays null, the panels and the URL are the window's, and a click on the sector
+  // opens it as ever (taking the scene over as it is). `ambient` is {key, id, block, record,
+  // loading} while its scene is up or being fetched.
+  let ambient = null;
+  // The sector in range that has not stayed there for SR.DWELL_MS yet: {key, since}.
+  let ambientWant = null;
+  let ambientToken = 0;
+  let ambientShare = 0;
+  let ambientEye = null;
+  let ambientSeenIn = null;
+  // A sector being opened in place (enterSector) until it has arrived.
+  let entering = false;
+
+  function ambientShown() {
+    return !!ambient && !ambient.loading && ambientShare > 0;
+  }
+
+  // The share of its block left drawn once its scene shows: ENTERED_BLOCK_FADE at the most.
+  function ambientBlockFade() {
+    return 1 - ambientShare * (1 - ENTERED_BLOCK_FADE);
+  }
+
+  // The camera's position (parsecs).
+  function eyeNow() {
+    const back = new THREE.Vector3(0, 0, view.dist).applyQuaternion(view.quat);
+    return [view.target[0] + back.x, view.target[1] + back.y, view.target[2] + back.z];
+  }
+
+  // The sectors of the window on screen that have a scene to show: [{key, center, block, record}].
+  function ambientCandidates() {
+    if (!display.ambientCandidates) {
+      const failed = display.ambientFailed || (display.ambientFailed = new Set());
+      display.ambientCandidates = [];
+      display.options.forEach(function (option) {
+        const block = option.blocks[0];
+        const record = block && block.m === 1 ? sectorRecord(block) : null;
+        if (!record || failed.has(cellKey(block))) return;
+        display.ambientCandidates.push({ key: cellKey(block), center: P.cellCenter(block.bounds), block: block, record: record });
+      });
+    }
+    return display.ambientCandidates;
+  }
+
+  // Drops the sector scene the camera came up to, and what was waiting for its dwell.
+  function closeAmbient() {
+    const was = ambient;
+    ambientToken += 1;
+    ambientWant = null;
+    ambientEye = null;
+    ambient = null;
+    ambientShare = 0;
+    if (was && !entering && sectorStage.isAmbient()) sectorStage.close();
+    if (was && display) applyHover();
+  }
+
+  // The state forgotten without touching the scene (it is the sector opened in place now, or
+  // already closed).
+  function forgetAmbient() {
+    ambientToken += 1;
+    ambientWant = null;
+    ambientEye = null;
+    ambient = null;
+    ambientShare = 0;
+  }
+
+  function setAmbientShare(share) {
+    if (share === ambientShare || (share > 0 && share < 1 && Math.abs(share - ambientShare) < 0.004)) return;
+    ambientShare = share;
+    sectorStage.setFade(share);
+    // Only the block of the sector coming in changes: not a whole redraw of the hover.
+    if (!display || animation) return;
+    const n = sectorOption(ambient.block);
+    const group = n >= 0 ? display.groups[n] : null;
+    if (!group) return;
+    group.fade = Math.min(group.baseFade == null ? 1 : group.baseFade, ambientBlockFade());
+    setDisplayFade(display, 1);
+  }
+
+  function loadAmbient(candidate) {
+    const token = ++ambientToken;
+    ambientWant = null;
+    ambientShare = 0;
+    ambient = { key: candidate.key, id: candidate.record.id, block: candidate.block, record: candidate.record, loading: true };
+    const mine = ambient;
+    // The block of the scene that was up (if any) is drawn whole again while this one loads.
+    if (display) applyHover();
+    const failed = function () {
+      if (!active || token !== ambientToken || ambient !== mine) return;
+      // Left out of this window's candidates, so it is not asked for again and again.
+      if (display && display.ambientFailed) display.ambientFailed.add(candidate.key);
+      if (display) display.ambientCandidates = null;
+      ambient = null;
+    };
+    sectorStage.open(candidate.record.id, candidate.block.bounds, null, true).then(function (geo) {
+      if (!active || token !== ambientToken || ambient !== mine) return;
+      if (!geo) {
+        failed();
+        return;
+      }
+      mine.loading = false;
+      ambientEye = null;
+    }, failed);
+  }
+
+  // Every frame: which sector scene the camera wants up and how much of it shows.
+  function updateAmbient(now) {
+    const eligible = !pinned && view && display && resolved && isSectorView(resolved) && !entered && !enteredSystem;
+    if (!eligible) {
+      if (ambient && !entered) closeAmbient();
+      return;
+    }
+    if (animation || entering) return;
+    const eye = eyeNow();
+    if (ambientEye && !ambientWant && ambientSeenIn === display
+      && eye[0] === ambientEye[0] && eye[1] === ambientEye[1] && eye[2] === ambientEye[2]) return;
+    ambientEye = eye;
+    ambientSeenIn = display;
+    const chosen = SR.chooseSector(eye, ambientCandidates(), edgePc, ambient ? ambient.key : null);
+    if (!chosen) {
+      if (ambient || ambientWant) closeAmbient();
+      return;
+    }
+    if (ambient && ambient.key === chosen.key) {
+      ambientWant = null;
+      if (!ambient.loading) setAmbientShare(chosen.share);
+      return;
+    }
+    if (!ambientWant || ambientWant.key !== chosen.key) {
+      ambientWant = { key: chosen.key, since: now };
+      return;
+    }
+    if (now - ambientWant.since < SR.DWELL_MS) return;
+    const candidate = ambientCandidates().find(function (c) { return c.key === chosen.key; });
+    if (candidate) loadAmbient(candidate);
+  }
+
+  // A star of the scene the camera came up to: its sector opens where the camera is (no
+  // flight), then its system.
+  function openSystemFromAmbient(entry) {
+    if (entered) {
+      enterSystem(entry, { push: true });
+      return;
+    }
+    if (!ambient || ambient.loading) return;
+    enterSector(ambient.block, ambient.record, {
+      push: false, fly: false, then: function () { enterSystem(entry, { push: true }); },
+    });
+  }
+
+  // For the browser tests: the sector scene up for the camera coming near it, and how much of it shows.
+  canvasEl.galaxyAmbient = function () {
+    return ambient && !ambient.loading ? { id: ambient.id, key: ambient.key, share: ambientShare } : null;
+  };
+
   // --- The sector opened in place (MAP.66) ------------------------------------
 
   // Closes the open sector's scene; the stage it sits in stays.
@@ -1576,6 +1751,8 @@ export function createStageView(host) {
     closeSystem();
     sectorStage.close();
     entered = null;
+    entering = false;
+    forgetAmbient();
   }
 
   // Opens a generated sector in place: its scene joins the map, the
@@ -1588,9 +1765,11 @@ export function createStageView(host) {
   function enterSector(block, record, options) {
     const token = ++enterToken;
     const at = { shell: block.shell, band: block.band, wedge: block.wedge };
+    entering = true;
     notice("Opening " + (record ? record.name || "the sector" : "the sector") + "…");
     sectorStage.open(record ? record.id : null, block.bounds, record ? null : at).then(function (geo) {
       if (!active || token !== enterToken) return;
+      entering = false;
       notice("");
       selectedSector = at;
       if (!geo) {
@@ -1602,6 +1781,7 @@ export function createStageView(host) {
         renderTravel();
         return;
       }
+      forgetAmbient();
       entered = {
         sector: at, id: record ? record.id : null, uncharted: !record, center: geo.center, halfEdge: geo.halfEdge,
         fitPoints: geo.fitPoints,
@@ -1612,6 +1792,16 @@ export function createStageView(host) {
       renderCrumbs();
       renderTravel();
       if (animation) finishAnimation();
+      if (options.fly === false) {
+        // Opened where the camera is (the sector the camera came up to): no flight. Its fit is the
+        // view's now, the zoom what keeps the camera where it is.
+        const fit = cameraForSector(entered);
+        view.fit = fit;
+        view.zoom = view.dist / fitDistance(entered.fitPoints, fit.target, view.quat);
+        applyView();
+        if (options.then) options.then();
+        return;
+      }
       const to = cameraForSector(entered);
       flyCamera(viewNow(), to, null, function () {
         view = settledView(to);
@@ -1620,6 +1810,7 @@ export function createStageView(host) {
       });
     }, function () {
       if (!active || token !== enterToken) return;
+      entering = false;
       if (!record) {
         // Only a bonus on a cell nothing was generated in: it is just selected.
         notice("");
@@ -1862,6 +2053,13 @@ export function createStageView(host) {
       return true;
     }
     if (enteredSystem || !display || !resolved) return false;
+    if (!entered && ambientShown() && ambientShare >= 0.999) {
+      // Right up to a sector whose scene is whole: it opens where the camera is, and the next
+      // tick can go on in to a star (MAP.152).
+      acrossGate.spend(now);
+      enterSector(ambient.block, ambient.record, { push: true, fly: false });
+      return true;
+    }
     const rect = canvasEl.getBoundingClientRect();
     const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     const x = onMap ? event.clientX : rect.left + rect.width / 2;

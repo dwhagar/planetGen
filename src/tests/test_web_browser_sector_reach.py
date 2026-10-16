@@ -1,0 +1,176 @@
+"""
+A sector's own scene fades in as the camera comes up to it (MAP.152), in a real browser on the generated
+database `test_web_a11y.py` builds.
+
+In a window of sectors the wheel brings the camera toward the sector at the middle; within 1.5 sector edges of
+its centre the sector's scene (its stars and phenomena) is fetched and fades in, whole at 1 edge; it is dropped
+past 3 edges. None of that is "opening" the sector: the address and the panel stay the window's, and a click on
+the sector then opens it from the scene already there (no second fetch).
+
+Skipped without Playwright, Chromium or MySQL, like the other map browser tests.
+"""
+
+import math
+import re
+
+import pytest
+
+sync_api = pytest.importorskip("playwright.sync_api")
+
+from tests.test_web_browser_maps import (  # noqa: E402,F401 -- fixtures
+    GL_ARGS,
+    VIEWPORT,
+    admin_token,
+    base_url,
+    gl_browser,
+    page,
+    sample_job,
+    sample_job_tree,
+    sample_params,
+    site_app,
+    site_db,
+)
+from tests.test_web_browser_sector_open import _designation, _ready, _sector  # noqa: E402
+
+CANVAS = "#galaxymap3d-canvas"
+
+
+def _smoothstep(lo, hi, x):
+    t = min(1.0, max(0.0, (x - lo) / (hi - lo)))
+    return t * t * (3 - 2 * t)
+
+
+def _expected_share(distance, edge):
+    """sectorreach.js's law: 0 from 1.5 edges out, 1 from 1 edge in, smoothstep between."""
+    return 1 - _smoothstep(1.0, 1.5, distance / edge)
+
+
+def _camera(page):
+    return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+
+
+def _ambient(page):
+    return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyAmbient()")
+
+
+def _distance(page, centre):
+    eye = _camera(page)["eye"]
+    return math.dist(eye, centre)
+
+
+def _wheel(page, spot, delta):
+    page.mouse.move(*spot)
+    page.mouse.wheel(0, delta)
+    page.wait_for_timeout(120)
+
+
+class _Scene:
+    """The sector the test brings the camera up to, and the requests for its scene."""
+
+    def __init__(self, page, base_url, site_app, sample_params):
+        self.id = sample_params["sector_id"]
+        detail = _sector(site_app, self.id)
+        self.centre = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
+        scene = page.request.get(f"{base_url}/sector/{self.id}/scene").json()
+        self.edge = scene["halfEdgePc"] * 2
+        self.code = _designation(page, base_url, self.id)
+        self.requests = []
+        page.on("request", lambda request: self.requests.append(request.url) if re.search(rf"/sector/{self.id}/scene", request.url) else None)
+
+    def fetched(self):
+        return len([url for url in self.requests if url.endswith(f"/sector/{self.id}/scene")])
+
+
+@pytest.fixture()
+def reach(page, base_url, site_app, sample_params):
+    scene = _Scene(page, base_url, site_app, sample_params)
+    page.goto(f"{base_url}/galaxy?sector={scene.code}", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _ready(page)
+    scene.requests.clear()
+    return scene
+
+
+def _spot(page, reach):
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(reach.centre))
+    assert spot, "the sector's centre is not on the map"
+    return (spot["x"], spot["y"])
+
+
+def _zoom_in_until(page, reach, edges, limit=40):
+    """Wheels toward the sector until the camera is within `edges` sector edges of its centre (or no closer is
+    possible); returns the distance in edges."""
+    for _ in range(limit):
+        distance = _distance(page, reach.centre) / reach.edge
+        if distance <= edges:
+            return distance
+        before = _camera(page)["zoom"]
+        _wheel(page, _spot(page, reach), -40)
+        if _camera(page)["zoom"] >= before - 1e-9:
+            break
+    return _distance(page, reach.centre) / reach.edge
+
+
+def test_no_scene_is_loaded_while_the_camera_is_far(page, reach):
+    """At the window's fit nothing of the sector's own scene is up and nothing is fetched for it."""
+    assert _distance(page, reach.centre) / reach.edge > 1.5
+    page.wait_for_timeout(600)
+    assert _ambient(page) is None
+    assert reach.fetched() == 0
+
+
+def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach):
+    """Coming up to the sector brings its scene in by the law (0 at 1.5 edges, 1 at 1), without opening it; going
+    away again drops it past 3 edges."""
+    distance = _zoom_in_until(page, reach, 1.4)
+    assert distance <= 1.4, f"the window's nearest zoom stops {distance:.2f} edges from the sector's centre"
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyAmbient() !== null", timeout=15000)
+    page.wait_for_timeout(300)
+    ambient = _ambient(page)
+    assert ambient["id"] == reach.id
+    distance = _distance(page, reach.centre) / reach.edge
+    assert ambient["share"] == pytest.approx(_expected_share(distance * reach.edge, reach.edge), abs=0.02), (ambient, distance)
+    assert "open=1" not in page.url, "the scene was only brought in: the sector is not opened"
+    assert reach.fetched() == 1
+    # Nearer is more of it, never less, and it is whole by one edge.
+    shares = [ambient["share"]]
+    for _ in range(40):
+        if _distance(page, reach.centre) / reach.edge < 0.9:
+            break
+        _wheel(page, _spot(page, reach), -40)
+        page.wait_for_timeout(100)
+        shares.append(_ambient(page)["share"])
+    assert shares == sorted(shares), shares
+    assert shares[-1] == pytest.approx(1.0, abs=1e-6), shares
+    assert _camera(page)["zoom"] > 0, "the camera is still in the window"
+    # Away again: dropped past 3 edges, and the address never changed.
+    for _ in range(80):
+        if _distance(page, reach.centre) / reach.edge > 3.2:
+            break
+        _wheel(page, _spot(page, reach), 40)
+    far = _distance(page, reach.centre) / reach.edge
+    assert far > 3.2, f"the window's farthest zoom stops {far:.2f} edges from the sector's centre"
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyAmbient() === null", timeout=15000)
+    assert "open=1" not in page.url
+
+
+def test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is(page, reach):
+    """Zoomed in until the scene is whole, one more wheel tick opens the sector with no flight (the camera does not
+    move) and no second fetch; the address becomes the opened sector's."""
+    _zoom_in_until(page, reach, 0.6)
+    _wheel(page, _spot(page, reach), -600)   # held at the window's nearest zoom, half an edge from the sector
+    page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0.99", timeout=15000)
+    before = _camera(page)
+    assert before["dist"] / reach.edge < 0.6
+    page.wait_for_timeout(500)   # the wheel quiet: a new gesture
+    _wheel(page, _spot(page, reach), -40)
+    page.wait_for_function("() => location.search.includes('open=1')", timeout=20000)
+    _ready(page)
+    after = _camera(page)
+    assert after["dist"] == pytest.approx(before["dist"], rel=1e-6), (before["dist"], after["dist"])
+    assert reach.fetched() == 1
+    assert _ambient(page) is None
+    # ... and the wheel goes on in from there (the opened sector's own zoom range).
+    _wheel(page, _spot(page, reach), -40)
+    page.wait_for_timeout(300)
+    assert _camera(page)["dist"] < after["dist"]
