@@ -2036,6 +2036,33 @@ write-side upkeep: a real table would need to be kept in sync on every
 insert/update/delete to the tables it mirrors, or drift out of sync. A view
 has no storage and resolves against current data on every query.
 
+### `galaxy_components`
+
+The discrete stellar components of a galaxy beyond the disk, one row each, of every kind in one table (v97, GEN.159): the globular clusters now, the satellites (the Magellanic Clouds, Sagittarius and the dwarfs) and streams with GEN.237. A component is a density, not a list of stars: a profile of its mass about a centre, from which a sector's stars are drawn when the sector is generated (`docs/design/globular-clusters.md`, `docs/design/intergalactic-and-halo-contents.md` section 5.5). The `king` profile is `planetgen/physics/king.py`: ten tables for central potentials 3 to 12, solved once and scaled by length. `planetgen/galaxy/components.py` has the `Component` record and `store.replace_galaxy_components` / `get_galaxy_components` write and read it. Nothing writes rows until the plan step of GEN.160; the generator is `planetgen/generation/clusters.py`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `kind` | VARCHAR(12) | NOT NULL | `cluster`, `satellite` or `stream` (CHECK). |
+| `name` | VARCHAR(255) | NOT NULL | Unique within its kind. |
+| `catalogue_id` | VARCHAR(40) | nullable | The catalogue's own name ("NGC 104"), so a later import of a real catalogue can match rows. |
+| `source` | VARCHAR(12) | NOT NULL | `catalogue` for a real object, `generated` for one drawn from the galaxy seed (CHECK). |
+| `parent_component_id` | BIGINT UNSIGNED | nullable | Self-reference: a cluster inside a satellite, or a satellite of a larger galaxy. `ON DELETE SET NULL`. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | NOT NULL | The centre in the galaxy frame (origin the galactic centre), parsecs. |
+| `cell_key` | BIGINT UNSIGNED | generated, stored | The Morton key of the centre's 0.25 pc cube, like every other table with a galaxy-frame point (`planetgen/galaxy/cellkey.py`); NULL outside plus or minus 262,144 pc. Covering index `(cell_key, center_x_pc, center_y_pc, center_z_pc)`. |
+| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL | The velocity in the galaxy frame, km/s, at `epoch_unix`. |
+| `epoch_unix` | DOUBLE | NOT NULL | When the position and velocity hold. |
+| `mass_solar` | DOUBLE | NOT NULL | Total mass. A cluster's systems number this over 0.4. |
+| `half_mass_radius_pc` | DOUBLE | NOT NULL | The radius holding half the mass. |
+| `profile` | VARCHAR(12) | NOT NULL | `king`, `exponential` or `plummer` (CHECK). |
+| `king_w0` | DOUBLE | nullable | The King central potential, 3 to 12; set exactly when `profile` is `king` (CHECK). |
+| `tidal_radius_pc` | DOUBLE | nullable | The King tidal radius, never beyond the cluster's Jacobi radius; set exactly when `profile` is `king`. |
+| `age_gy` | DOUBLE | NOT NULL | The stars' age. |
+| `metallicity_fe_h` | DOUBLE | NOT NULL | The stars' [Fe/H] in dex, which a cluster star takes (GEN.158 left it NULL until this table). |
+| `core_collapsed` | TINYINT(1) | NOT NULL, default 0 | Whether the core has collapsed (CHECK 0 or 1). |
+| `seed` | BIGINT UNSIGNED | NOT NULL | The seed its stars are drawn from. |
+| `created_at` | TIMESTAMP | NOT NULL | |
+
 ## Relationships at a glance
 
 ```
@@ -2096,6 +2123,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v97 (GEN.159): `galaxy_components`
+
+Migration 0097 creates the empty `galaxy_components` table (see its section above): the components of a galaxy beyond the disk, as densities with a centre, velocity, mass, age and [Fe/H]. It changes no other table. It is skipped when the table is already there, so a stopped run can be started again. The version is detected from the table.
 
 ### v96 (GEN.153): the magnetar pulsar type
 
