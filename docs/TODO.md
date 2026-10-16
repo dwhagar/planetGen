@@ -10579,6 +10579,29 @@ clears each one.
   plan tests and list the jobs directory.
   Prerequisites: none.
 
+- [ ] **TEST.192 The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug)**
+  Found by the Settings lane (2026-10-16, 4:57 PM EDT), filed by the
+  TODO thread. Hypothesis finds an example where `model - halo_density`
+  is 1.4882030977187565e-12 minus 1.488203070457534e-12, about 2.7e-20
+  apart, against a bound of 2.7261222351049663e-20, so the assertion
+  `(model - halo_density) <= bound*(1+1e-9)+1e-300` fails by rounding:
+  the two halo terms are about 1e-12 and agree to 8 digits, so the
+  subtraction cannot resolve a bound of 1e-20. Done: the test (or the
+  bound) allows for the rounding of the halo term, scaled by the size of
+  the halo density and not by the bound alone, and the same example
+  passes; no loosening of the real property that the skeleton bound is
+  an upper bound. Fails on main: not run on a clean main; the Settings
+  lane branch does not touch galaxy code, so probably yes. Frequency:
+  found in one `scripts/test.py changed` run, and it should repeat while
+  the example sits in the .hypothesis database. Reproducer:
+  `build_galaxy_shape(disk_scale_length_pc=50.0,
+  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
+  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
+  arm_amplitude=0.0)` with r_cyl=0.0, z=36706.0, theta=0.0, in
+  src/tests/test_fuzz_galaxy_grid.py. Owner: Core 1, in its bug phase
+  (flaky tests last; fix the cause, no quarantine).
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
