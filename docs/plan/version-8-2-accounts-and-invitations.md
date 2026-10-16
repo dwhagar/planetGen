@@ -21,8 +21,8 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix |  | Research: before USR.2. |
 | DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses |  | Split from USR.2. Core 1 owns migrations. |
 | USR.26 | Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI | DB.58, SEC.32 | Split from USR.2. |
-| ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | ADM.84, USR.26 | Boss 1:43 PM EDT: the settings page moved to 8.1; its Owner tier needs the Owner account of USR.2. |
-| USR.3 | SMTP settings in the admin config | ADM.86, USR.26, ADM.84 |  |
+| ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | USR.26 | Boss 1:43 PM EDT: the settings page moved to 8.1; its Owner tier needs the Owner account of USR.2. |
+| USR.3 | SMTP settings in the admin config | ADM.86, USR.26 |  |
 | USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links | DB.58 | Foundation found in the review. |
 | USR.5 | Email loop for setting and resetting passwords | USR.3, USR.28 |  |
 | USR.4 | Invite-only sign-up by unique link | DB.58, USR.26, USR.3, USR.28, USR.5 |  |
