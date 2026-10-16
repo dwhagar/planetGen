@@ -1687,7 +1687,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | open |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | none | open |
-| TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count is 0 (bug) | none | open |
+| TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) | none | open |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | open |

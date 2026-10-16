@@ -208,7 +208,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) |  | Quality run 2026-10-15, MySQL 8.0.46. Core. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
-| TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count is 0 (bug) |  | Quality run 2026-10-15. Quality. |
+| TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) |  | Quality run 2026-10-15. Quality. |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
