@@ -34,7 +34,7 @@ def _at(position, shape=SHAPE):
 def test_a_profile_is_a_pure_function_of_the_place():
     assert _at(SUN) == _at(SUN)
     assert _at((50000.0, 3000.0, 20000.0)) == _at((50000.0, 3000.0, 20000.0))
-    skeleton = SimpleNamespace(shape=SHAPE, edge_pc=EDGE_PC, expected_system_count_at_density_1=E_VALUE)
+    skeleton = SimpleNamespace(shape=SHAPE, edge_pc=EDGE_PC, expected_system_count_at_density_1=E_VALUE, galaxy_seed=bytes(range(16)))
     assert profile.sector_profile((30, 2, 5), skeleton) == profile.sector_profile((30, 2, 5), skeleton)
 
 
@@ -121,7 +121,7 @@ def test_the_gas_is_cold_in_the_disk_and_hot_or_intergalactic_outside_it():
 
 
 def test_a_cell_profile_records_its_address_and_the_exact_cell_volume():
-    skeleton = SimpleNamespace(shape=SHAPE, edge_pc=EDGE_PC, expected_system_count_at_density_1=E_VALUE)
+    skeleton = SimpleNamespace(shape=SHAPE, edge_pc=EDGE_PC, expected_system_count_at_density_1=E_VALUE, galaxy_seed=bytes(range(16)))
     address = (500, 3, 7)
     found = profile.sector_profile(address, skeleton)
     assert found.address == address

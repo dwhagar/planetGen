@@ -10,7 +10,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
-from planetgen.galaxy import nebula_field
+from planetgen.galaxy import nebula_field, superbubble_field
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import run_galaxy, run_plan
 
@@ -31,6 +31,15 @@ def _seed_galaxy(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=E_VALUE, config=mysql_config, galaxy_seed=GALAXY_SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
+
+
+@pytest.fixture(autouse=True)
+def no_superbubbles(monkeypatch):
+    """These tests count the clouds the hash keeps: GEN.254's superbubbles, which take the clouds inside them, are tested in test_gen_superbubble_field."""
+    monkeypatch.setattr(tuning, "SUPERBUBBLE_FILL_FRACTION", 0.0)
+    superbubble_field.cell_bubbles.cache_clear()
+    yield
+    superbubble_field.cell_bubbles.cache_clear()
 
 
 @pytest.fixture(autouse=True)

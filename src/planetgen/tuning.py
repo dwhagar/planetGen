@@ -2984,6 +2984,32 @@ young-star tracer climbs twentyfold toward the inner disk; uncapped, the
 inner galaxy would be solid cloud. At 3, an arm crest or the inner disk
 has about a quarter of its volume inside a dark cloud."""
 
+SUPERBUBBLE_CELL_PC = 250.0
+"""float: Edge of the superbubble field's columns, parsecs (GEN.254, `superbubble_field`). The design note said 50,
+the molecular cloud field's cell, but a bubble reaches up to `SUPERBUBBLE_RADIUS_RANGE_PC[1]` and a point would
+read 20 cells in each direction (8,000 columns); at 250 it reads 5."""
+
+SUPERBUBBLE_RADIUS_RANGE_PC = (50.0, 500.0)
+"""tuple: The radius of a superbubble, parsecs, drawn log-uniform: 100 to 1,000 pc across, the Local Bubble's 100 to
+200 pc (Zucker et al. 2022, Nature 601:334) at the small end, the large superbubbles of other galaxies (Chu 2008,
+IAU 255) at the other."""
+
+SUPERBUBBLE_FILL_FRACTION = 0.12
+"""float: The share of the plane at the solar circle inside a superbubble. Superbubbles fill about 10 to 15% of the
+disk (Heiles 1979; McKee & Ostriker 1977 put the hot phase at 10 to 30%); the arms and inner disk hold more, as the
+molecular gas does (`nebulaField.gas_factor`)."""
+
+SUPERBUBBLE_CENTRE_HEIGHT_SIGMA_PC = 60.0
+"""float: The spread of a superbubble's centre above and below the plane, parsecs, about the young stars' layer: they
+are blown by the supernovae of OB associations, which are born in it."""
+
+SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3 = (0.001, 0.01)
+"""tuple: The gas inside a cavity, H atoms per cm3, log-uniform; the Local Bubble holds about 0.005 (Snowden et al.
+1990, Lallement et al. 2003) against the disk's 1. Remnants inside swell to match (GEN.151)."""
+
+SUPERBUBBLE_TEMPERATURE_K = 1.0e6
+"""float: The gas inside a cavity: ionised, about a million kelvin (the soft X-ray background)."""
+
 HVS_REFERENCE_RADIUS_PC = 8000.0
 """float: Galactic radius the "hypervelocity-star" density is quoted at."""
 

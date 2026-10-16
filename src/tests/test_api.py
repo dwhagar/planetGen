@@ -2734,3 +2734,38 @@ def test_generating_an_uncharted_star_builds_a_standalone_system_and_takes_it_of
 def test_only_an_admin_generates_an_uncharted_star(client, mysql_config):
     ids = _scatter_stars(mysql_config, (800,))
     assert client.post(f"/api/uncharted-systems/{ids[0]}/generate").status_code in (401, 403)
+
+
+def test_galaxy_superbubbles_list_the_cavities_and_a_sector_inside_one_names_it(client, mysql_config):
+    """GEN.254: `GET /api/galaxy/superbubbles` is empty before a plan, then lists the seeded cavities; a sector whose
+    centre is inside one carries it as `superbubble`, one outside carries `null`."""
+    from planetgen import tuning
+    from planetgen.galaxy import superbubble_field
+    from planetgen.galaxy.density import build_galaxy_shape
+    from planetgen.galaxy.spherical import sector_address_at
+
+    assert client.get("/api/galaxy/superbubbles").get_json() == {"superbubbles": []}
+    shape = build_galaxy_shape(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
+                               bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
+    seed = bytes(range(16))
+    edge_pc = float(tuning.DEFAULT_SECTOR_EDGE_PC)
+    _db.save_galaxy_shape(shape, edge_pc=edge_pc, outer_shell_index=1500, expected_system_count_at_density_1=600.0,
+                          config=mysql_config, galaxy_seed=seed)
+    listed = client.get("/api/galaxy/superbubbles").get_json()["superbubbles"]
+    assert len(listed) > 100
+    assert [b["radius_pc"] for b in listed] == sorted((b["radius_pc"] for b in listed), reverse=True)
+    assert set(listed[0]) == {"x", "y", "z", "radius_pc"}
+
+    bubble = next(b for b in superbubble_field.all_bubbles(seed, shape, 5000.0) if b.radius_pc > 200.0)
+    inside = _place_sector(mysql_config, "In Bubble", bubble.center_pc, edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY,
+                           address=sector_address_at(bubble.center_pc, edge_pc))
+    outside_point = next((x, 0.0, 0.0) for x in range(2000, 9000, 50)
+                         if superbubble_field.containing(seed, shape, (float(x), 0.0, 0.0)) is None)
+    outside_point = (float(outside_point[0]), 0.0, 0.0)
+    outside = _place_sector(mysql_config, "Out Of Bubble", outside_point, edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY,
+                            address=sector_address_at(outside_point, edge_pc))
+    found = client.get(f"/api/sectors/{pid('sector', inside)}").get_json()["superbubble"]
+    contained = superbubble_field.containing(seed, shape, bubble.center_pc)
+    assert found["radius_pc"] == pytest.approx(contained.radius_pc, abs=0.1)
+    assert found["temperature_k"] == tuning.SUPERBUBBLE_TEMPERATURE_K
+    assert client.get(f"/api/sectors/{pid('sector', outside)}").get_json()["superbubble"] is None

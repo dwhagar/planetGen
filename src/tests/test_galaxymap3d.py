@@ -116,6 +116,14 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="charted-only"' in html
 
 
+def test_the_panel_carries_the_superbubbles_as_centre_and_radius():
+    """GEN.254: `[x, y, z, radius]` each, galaxy-frame parsecs; none when the page gives none."""
+    bubbles = [{"x": 100.5, "y": -20.0, "z": 3.0, "radius_pc": 250.0}, {"x": 1.0, "y": 2.0, "z": 3.0, "radius_pc": 60.0}]
+    html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), superbubbles=bubbles)
+    assert _json_payload(html)["superbubbles"] == [[100.5, -20.0, 3.0, 250.0], [1.0, 2.0, 3.0, 60.0]]
+    assert _json_payload(render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view()))["superbubbles"] == []
+
+
 def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own():
     """MAP.68: the sector page's map is this engine locked to one sector."""
     pinned = {"shell": 5, "band": 1, "wedge": 20, "center_pc": (500.0, 200.0, 10.0)}
