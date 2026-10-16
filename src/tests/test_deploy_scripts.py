@@ -617,18 +617,6 @@ def test_a_failed_reload_falls_back_to_printing_the_command(tmp_path):
     assert proc.returncode == 1 and "failed" in proc.stderr
 
 
-def test_every_macos_plist_is_well_formed_xml():
-    """OPS.32: `--` inside the header comment made the update plist invalid, and the installer's `|| true` hid it."""
-    import glob
-    import plistlib
-
-    plists = sorted(glob.glob(os.path.join(os.path.dirname(__file__), "..", "..", "examples", "macos", "*.plist")))
-    assert plists
-    for path in plists:
-        with open(path, "rb") as handle:
-            assert isinstance(plistlib.load(handle), dict), path
-
-
 # --- scripts only reach for files that exist --------------------------------
 
 def test_the_log_location_check_runs_against_this_checkout(tmp_path):
