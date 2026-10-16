@@ -555,27 +555,20 @@ with `clamp()`.
   Prerequisites: GEN.235, GEN.237, GEN.240, NAV.61, API.27, UX.113.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
-- [ ] **UX.116 Sliders for every scatter and fill floor, ceiling and core lever, each labeled with a number box showing its value, in the Generate page's existing layout and segments**
-  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "let's have 2 new
-  configuration values, along with the other floors. We have a halo
-  luminosity floor that defaults to 500, and another one being the fill
-  cap in solar luminosities for sectors exceeding another value for the
-  cell star ceiling where we then use the solar luminosity cap if the
-  star fill wants to have over that filled. The scatter core should also
-  have its own levers which default to around 10% higher than the
-  defaults. Each control will be a slider and clearly labeled with a
-  text box at the end of the slider that shows the number in the
-  slider." Done: every scatter and fill floor and ceiling (the halo
-  luminosity floor, the fill luminosity cap, the cell star ceiling, the
-  core levers and the other floors and limits of GEN.281 and GEN.283) is
-  a slider, clearly labeled, with a text box at the end of the slider
-  that shows the number and accepts a typed value; the sliders go into
-  the existing layout and segments of the Generate page (and the sector
-  fill form where the same settings apply), with the defaults shown and
-  a reset. Owner: a Core lane, Core 3 first (Boss, 1:09 AM EDT).
-  Boss (2026-10-16, 1:10 AM EDT): "halo lowest floor is 100 solar
-  luminosities btw": the halo luminosity floor can be set no lower than
-  100 solar luminosities (default 500); its slider's minimum is 100.
+- [ ] **UX.116 Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page**
+  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "Each control will
+  be a slider and clearly labeled with a text box at the end of the
+  slider that shows the number in the slider. Use existing layout and
+  segments to design all the slider controls for scatter floors and
+  ceilings." Done (spec: section 5.2 of
+  docs/design/realistic-galactic-core.md): one limit_slider macro (a
+  range with a number box at the end that shows the value and accepts a
+  typed one; log scale for luminosities) replacing mass_slider; the
+  baseline luminosity select becomes a slider too; three new segments
+  under the existing scatter-limits row (Core, Halo and intergalactic
+  space, Dense cells); core sliders follow the baseline until touched;
+  defaults shown and a Reset per segment; the halo luminosity floor
+  slider runs from 100 (default 500). Owner Core 3 (Boss, 1:09 AM EDT).
   Prerequisites: GEN.281, GEN.283. Related: GEN.234, ADM.43, UX.49.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -4732,31 +4725,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.281 Galactic core resolution cap: a per-request cap on resolved systems, a luminosity ladder, and unresolved counts on the sector page and region queries**
+- [ ] **GEN.281 Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address**
   Build step of the realistic galactic core plan
-  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
-  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
-  #1677. Done: a resolution_cap setting (default 50,000 systems a cell),
-  a luminosity ladder, the floor from the profile, white dwarfs counted
-  in the fractions below 100 solar luminosities, bright_level_sol in
-  use, and the unresolved count and mass shown on the sector page and in
-  region-query results; no cell above the cap is resolved without a
-  request.
-  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "let's have 2 new
-  configuration values, along with the other floors. We have a halo
-  luminosity floor that defaults to 500, and another one being the fill
-  cap in solar luminosities for sectors exceeding another value for the
-  cell star ceiling where we then use the solar luminosity cap if the
-  star fill wants to have over that filled. The scatter core should also
-  have its own levers which default to around 10% higher than the
-  defaults. Each control will be a slider and clearly labeled with a
-  text box at the end of the slider that shows the number in the
-  slider." Done here: two settings beside the other floors: a cell star
-  ceiling (the star count above which a sector counts as exceeding it)
-  and a fill luminosity cap in solar luminosities; when the star fill
-  would place more stars than the ceiling in such a sector, the
-  luminosity cap is applied instead. Core 3 handles it.
-  Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234.
+  (docs/design/realistic-galactic-core.md, sections 5 and 9; Boss's
+  item, 2026-10-16, 12:43 AM EDT; note updated for Boss's 1:09 and 1:10
+  AM EDT messages, #1733). Owner Core 3, goal issue #1677. Boss (1:09 AM
+  EDT): "another one being the fill cap in solar luminosities for
+  sectors exceeding another value for the cell star ceiling where we
+  then use the solar luminosity cap if the star fill wants to have over
+  that filled." Done: two settings, a cell star ceiling (default 50,000
+  systems) and a fill luminosity cap (default 100 solar luminosities,
+  lowest allowed 100): a cell expecting more stars than the ceiling
+  fills only stars at or above the cap; the unresolved count and mass
+  are computed from the address and shown on the sector page and in
+  region-query results, nothing stored. No luminosity ladder; white
+  dwarfs change only if the cap is ever set under 100. Two new
+  galaxy_shape columns (cell_star_ceiling, fill_luminosity_cap_sol)
+  share one Core 1 migration revision with GEN.283; option planetgen
+  plan --cell-star-ceiling and --fill-luminosity-cap.
+  Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234, GEN.283.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
@@ -4771,39 +4758,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.237, GEN.244. Related: GEN.280, GEN.246.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.283 Tiered scatter limits: the scatter's minimum luminosity and mass limit tiered +10%, 0 and -10% from core to halo, per band**
+- [ ] **GEN.283 Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 100), and the baseline everywhere else**
   Build step of the realistic galactic core plan
-  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
-  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
-  #1677. Boss, 12:51 AM EDT: "the density plan should match as close as
-  we can real-world or at least real possible observations about the
-  galactic density and star counts and all that. THEN for our scatter
-  sweeps, we tweak our minimum mass and minimum luminosity values when
-  we scatter." Done: a tier in the sector profile and L_cell and M_cell
-  in the passes, the backfill and the fill; three discrete tiers (+10%,
-  0, -10%) on the scatter's luminosity floor and mass limit, chosen per
-  band, satellites and clusters on the baseline, the factors kept as
-  settings; placed_star_fraction uses the cell's cuts; the metallicity
-  argument comes from GEN.158. No migration.
-  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "let's have 2 new
-  configuration values, along with the other floors. We have a halo
-  luminosity floor that defaults to 500, and another one being the fill
-  cap in solar luminosities for sectors exceeding another value for the
-  cell star ceiling where we then use the solar luminosity cap if the
-  star fill wants to have over that filled. The scatter core should also
-  have its own levers which default to around 10% higher than the
-  defaults. Each control will be a slider and clearly labeled with a
-  text box at the end of the slider that shows the number in the
-  slider." Done here: a halo luminosity floor setting (default 500 solar
-  luminosities) beside the other scatter floors, and the scatter core
-  gets its own levers (floor and mass limit settings) that default to
-  about 10% above the matching defaults; the tiers of this item read
-  these settings. Core 3 handles it.
-  Boss (2026-10-16, 1:10 AM EDT): "halo lowest floor is 100 solar
-  luminosities btw": the halo luminosity floor can be set no lower than
-  100 solar luminosities (default 500); the setting rejects values below
-  100 and its slider's minimum is 100.
-  Prerequisites: GEN.235, GEN.158. Related: GEN.234, GEN.237.
+  (docs/design/realistic-galactic-core.md, sections 5 and 9; Boss's
+  item, 2026-10-16, 12:43 AM EDT; note updated for Boss's 1:09 and 1:10
+  AM EDT messages, #1733). Owner Core 3, goal issue #1677. Boss (12:51
+  AM EDT): "the density plan should match as close as we can real-world
+  or at least real possible observations about the galactic density and
+  star counts and all that. THEN for our scatter sweeps, we tweak our
+  minimum mass and minimum luminosity values when we scatter." Boss
+  (1:09 and 1:10 AM EDT): a halo luminosity floor that defaults to 500
+  and can be set no lower than 100 solar luminosities, and the scatter
+  core with its own levers defaulting to about 10% above the defaults.
+  Done: three settings: a core luminosity floor (default 9,900, the
+  baseline times 1.1, following the baseline until moved), a core mass
+  limit (default 15.4) and a halo luminosity floor (default 500, slider
+  range from 100 up); the halo has no mass limit of its own; the disc,
+  bulge, satellites and clusters stay on the baseline; the tier is
+  chosen per band by the dominant term of lambda; L_cell and M_cell in
+  the passes, the backfill and the fill; placed_star_fraction uses the
+  cell's cuts; the metallicity argument comes from GEN.158. Three new
+  galaxy_shape columns (core_min_luminosity_sol, core_mass_limit_sol,
+  halo_min_luminosity_sol) share one Core 1 migration revision with
+  GEN.281; options planetgen plan --core-min-luminosity,
+  --core-mass-limit and --halo-min-luminosity. A halo floor of 500 gives
+  about 3.8 million rows (0.6 GB).
+  Prerequisites: GEN.235, GEN.158. Related: GEN.234, GEN.237, GEN.281.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
