@@ -27,7 +27,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.167 | Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0) | GEN.199, MAP.168, MAP.169, UX.94, API.24 | Seminal feature of 9.0 (Boss 2026-10-10). Parent. |
 | USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189, MAP.190 |  |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.176 |  |
-| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | GEN.159 |  |
+| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled |  |  |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | GEN.199 |  |
 | MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | API.24, MAP.125 |  |
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | MAP.168 |  |
@@ -71,11 +71,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.130, GEN.159 | Globular-cluster chain. |
+| GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.130 | Globular-cluster chain. |
 | GEN.162 | Planet cull and blue stragglers in clusters | GEN.160 | Globular-cluster chain. |
 | GEN.161 | Bright-first fill for cluster sectors | GEN.160 | Globular-cluster chain. |
-| GEN.160 | Cluster density in the sector gate, with a "cluster" population | GEN.159 | Globular-cluster chain. |
-| GEN.159 | Globular clusters: cluster table, King tables and the Milky Way catalogue |  | Globular-cluster chain. |
+| GEN.160 | Cluster density in the sector gate, with a "cluster" population |  | Globular-cluster chain. |
+| GEN.297 | Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters |  |  |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars |  |  |
 
 ### Infinite zoom
