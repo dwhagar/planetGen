@@ -18,7 +18,7 @@ from planetgen.galaxy.spherical import neighbor_addresses, sector_position_pc
 from planetgen.galaxy.nav_graph import shortest_path
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import ly_to_pc
-from tests.test_route_edge_cases import EDGE_LY, RING as SHELL, _cluster, _make_system
+from tests.test_route_edge_cases import EDGE_LY, SHELL, _cluster, _make_system
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = build_galaxy_shape(
