@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1571] - 2026-10-16
+
+**Headline:** The plan records Boss's research for the multi-star type draw and retires the void-fill question.
+
+### Changed
+- **GEN.102 is done: no pre-fill (Boss, 5:55 PM EDT).** Lazy fill stays; the void-space investigation leaves the list.
+- **GEN.103 has its research.** Boss supplied the close-binary fraction against [Fe/H] and the encounter-disruption limit for wide pairs (with the Jacobi radius as the outer limit). They are written as derivation rules in section 6.6 of the multi-star design note, not as stored values; the reference list is unverified and Core 4 checks it before anything is coded.
+
+TODO items resolved: GEN.102 / Added: none
+
 ## [8.0.1570] - 2026-10-16
 
 **Headline:** The TODO list retires the generator epoch counter and its PR rule, which Core 2 built.
