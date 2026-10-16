@@ -33,6 +33,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [spherical-block-ladder.md](spherical-block-ladder.md) | The Galaxy Map's block ladder (243/81/27/9/3) and windows on shells | built (MAP.205, MAP.206) |
 | [galaxy-disk-density.md](galaxy-disk-density.md) | The galaxy density model | built |
 | [fill-order-curves-and-core.md](fill-order-curves-and-core.md) | Fill order, region selection and the galactic core | research |
+| [realistic-galactic-core.md](realistic-galactic-core.md) | A realistic galactic core (GEN.279, reopens GEN.155): the nuclear star cluster and disc as density terms, the resolution cap, tiered mass and luminosity limits, planets and orbits at the centre | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
 | [sampling-backfill-and-resume.md](sampling-backfill-and-resume.md) | Sampling, backfill, void filling, resumable runs and directives | research (resume on hold, PERF.86) |
 | [mass-backfill.md](mass-backfill.md) | Four rings of heavier stars around generated sectors | built |
 | [multiple-galaxies.md](multiple-galaxies.md) | Neighbour galaxies and a second galaxy | research |
