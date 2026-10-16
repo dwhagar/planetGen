@@ -77,6 +77,14 @@ test("the URL round trip, including a kind registered after the URL was read", (
   assert.equal(reg.writeUrl(new URLSearchParams()).get("hide"), "star,black-hole", "a sector without it keeps the setting");
 });
 
+test("a registry that forgets unknown ids drops the ones no layer is registered for", () => {
+  const reg = L.createLayerRegistry("galaxy", { forgetUnknown: true });
+  reg.register({ id: "star", label: "Stars", urlKey: "hide" });
+  reg.readUrl("hide=star,nonsense");
+  assert.equal(reg.isOn("star"), false);
+  assert.equal(reg.writeUrl(new URLSearchParams()).get("hide"), "star");
+});
+
 test("reading a URL puts layers it does not name back to their defaults and announces the changes", () => {
   const reg = registry();
   reg.setOn("star", false);
@@ -90,8 +98,8 @@ test("reading a URL puts layers it does not name back to their defaults and anno
 test("the legend lists the layers that are on and have one, with their swatch", () => {
   const reg = registry();
   assert.deepEqual(reg.legend(), [
-    { id: "star", text: "Stars are points of light", swatch: null },
-    { id: "course", text: "The plotted course", swatch: "#f90" },
+    { id: "star", text: "Stars are points of light", swatch: null, swatchClass: null },
+    { id: "course", text: "The plotted course", swatch: "#f90", swatchClass: null },
   ]);
   reg.setOn("star", false);
   assert.deepEqual(reg.legend().map((line) => line.id), ["course"]);
@@ -164,4 +172,35 @@ test("the legend block shows a line per entry, follows the layers and hides when
   assert.equal(container.querySelectorAll(".map-layer-legend-line").length, 1);
   reg.setOn("swatchy", false);
   assert.equal(container.hidden, true);
+});
+
+test("a layer can be left out of the menu while it has nothing to show, and its title can change", () => {
+  const reg = L.createLayerRegistry("sector");
+  let present = false;
+  let count = 3;
+  reg.register({ id: "nebula", label: "Nebulae", available: () => present, title: () => "Show the nebulae (" + count + ")",
+    data: { kind: "nebula" }, urlKey: "hide" });
+  reg.register({ id: "star", label: "Stars" });
+  const container = h("div", {});
+  reg.renderMenu(container);
+  assert.deepEqual(container.querySelectorAll("button").map((b) => b.dataset.layer), ["star"]);
+  reg.setOn("nebula", false);
+  assert.equal(reg.writeUrl(new URLSearchParams()).get("hide"), "nebula", "an absent layer keeps its URL entry");
+  present = true;
+  count = 5;
+  reg.refresh();
+  const button = container.querySelector('button[data-layer="nebula"]');
+  assert.equal(button.dataset.kind, "nebula");
+  assert.equal(button.title, "Show the nebulae (5)");
+  assert.equal(button.getAttribute("aria-pressed"), "false");
+  assert.deepEqual(container.querySelectorAll("button").map((b) => b.dataset.layer), ["nebula", "star"]);
+});
+
+test("a legend swatch can be a CSS class", () => {
+  const reg = L.createLayerRegistry("system");
+  reg.register({ id: "facility", label: "Facilities", legend: { text: "marks a facility", swatchClass: "sysmap-legend-facility" } });
+  const container = h("div", {});
+  reg.renderLegend(container);
+  const swatch = container.querySelector(".map-layer-legend-swatch");
+  assert.ok(swatch.classList.contains("sysmap-legend-facility"));
 });

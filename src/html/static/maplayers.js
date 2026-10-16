@@ -10,11 +10,16 @@
 //   label            the Menu button's text;
 //   modes            the maps it belongs to: any of "galaxy", "sector", "system";
 //   group            the Menu heading it sits under ("Show on the map"); layers with no group sit apart;
-//   title            optional hover text of the Menu button;
+//   title            optional hover text of the Menu button, or `function () -> string`;
+//   available        optional `function () -> boolean`: false leaves the layer's button out of the Menu for now
+//                    (a kind the open sector has none of), though the layer keeps its state and its URL entry;
+//                    `registry.refresh()` asks again;
+//   data             optional `{name: value}` put on the button's `dataset` (existing tests find `data-kind`);
 //   defaultOn        shown until the visitor says otherwise (default true);
 //   urlKey           the URL parameter that lists the layers of this key turned OFF ("hide"); layers that
 //                    begin off need urlKeyOn, the parameter that lists the ones turned ON ("show");
-//   legend           null, a string, `{text, swatch}`, or `function (on) -> string | {text, swatch} | null`;
+//   legend           null, a string, `{text, swatch, swatchClass}`, or `function (on) -> the same | null`
+//                    (`swatch` is a CSS color, `swatchClass` a CSS class that draws the mark);
 //   pickerLayer      null, or the picker layer's declaration (mappick.js `addLayer`'s argument), added to a
 //                    map's picker while the layer is on;
 //   fadedWithSectors true when the blocker fade (MAP.149, nearfield.js) hides the layer with the sectors; a
@@ -32,7 +37,8 @@ export const MODES = ["galaxy", "sector", "system"];
 function entryOf(legend, on) {
   const value = typeof legend === "function" ? legend(on) : legend;
   if (!value) return null;
-  return typeof value === "string" ? { text: value, swatch: null } : { text: value.text, swatch: value.swatch || null };
+  if (typeof value === "string") return { text: value, swatch: null, swatchClass: null };
+  return { text: value.text, swatch: value.swatch || null, swatchClass: value.swatchClass || null };
 }
 
 function listOf(value) {
@@ -41,7 +47,11 @@ function listOf(value) {
 
 // A registry for `mode` ("galaxy", "sector" or "system"): the layers of the other modes are held but are
 // not in its menu, legend, URL or draw.
-export function createLayerRegistry(mode) {
+//
+// `options.forgetUnknown` makes a URL's ids that no layer is registered for count for nothing (a map that
+// registers all its layers up front); by default they are held for a layer registered later.
+export function createLayerRegistry(mode, options) {
+  const forgetUnknown = !!(options && options.forgetUnknown);
   if (MODES.indexOf(mode) < 0) throw new Error("unknown map mode: " + mode);
   const layers = [];
   const state = new Map(); // id -> true (on) or false (off), only where it differs from the default
@@ -85,7 +95,7 @@ export function createLayerRegistry(mode) {
       throw new Error("layer " + spec.id + " begins off, so it needs urlKeyOn to say when it is on");
     }
     const layer = Object.assign({ group: null, title: null, defaultOn: true, urlKey: null, urlKeyOn: null,
-      legend: null, pickerLayer: null, fadedWithSectors: true, draw: null }, spec, { modes: modes });
+      legend: null, pickerLayer: null, fadedWithSectors: true, draw: null, available: null, data: null }, spec, { modes: modes });
     layers.push(layer);
     if (state.get(layer.id) === defaultOf(layer)) state.delete(layer.id);
     return layer;
@@ -136,6 +146,10 @@ export function createLayerRegistry(mode) {
     keysOff.forEach(function (key) { listOf(params.get(key)).forEach(function (id) { state.set(id, false); }); });
     keysOn.forEach(function (key) { listOf(params.get(key)).forEach(function (id) { state.set(id, true); }); });
     layers.forEach(function (layer) { if (state.get(layer.id) === defaultOf(layer)) state.delete(layer.id); });
+    if (forgetUnknown) {
+      Array.from(state.keys()).forEach(function (id) { if (!find(id)) state.delete(id); });
+      origin.clear();
+    }
     const ids = new Set(Array.from(before.keys()).concat(Array.from(state.keys())));
     ids.forEach(function (id) { if (before.get(id) !== state.get(id)) changed(id); });
   }
@@ -165,7 +179,7 @@ export function createLayerRegistry(mode) {
     forMode().forEach(function (layer) {
       if (!isOn(layer.id)) return;
       const entry = entryOf(layer.legend, true);
-      if (entry) lines.push({ id: layer.id, text: entry.text, swatch: entry.swatch });
+      if (entry) lines.push({ id: layer.id, text: entry.text, swatch: entry.swatch, swatchClass: entry.swatchClass });
     });
     return lines;
   }
@@ -193,37 +207,53 @@ export function createLayerRegistry(mode) {
 
   // --- The Menu and the legend, as DOM ------------------------------------------------------------
 
-  // Fills `container` with a button per layer of the mode (grouped under headings), pressed while the layer
-  // is on; a click toggles it. Returns a function that brings the buttons' state up to date.
+  // Fills `container` with a button per layer of the mode that is available (grouped under headings), pressed
+  // while the layer is on; a click toggles it. The buttons are made again when the set of available layers
+  // changed and brought up to date otherwise. Returns the function that does so.
   function renderMenu(container) {
     const doc = container.ownerDocument || document;
-    container.textContent = "";
     const buttons = new Map();
-    let group;
-    forMode().forEach(function (layer) {
-      if (layer.group !== group) {
-        group = layer.group;
-        if (group) {
-          const heading = doc.createElement("span");
-          heading.className = "galaxy-kinds-heading";
-          heading.textContent = group;
-          container.appendChild(heading);
+    let signature = null;
+    function build(list) {
+      container.textContent = "";
+      buttons.clear();
+      let group;
+      list.forEach(function (layer) {
+        if (layer.group !== group) {
+          group = layer.group;
+          if (group) {
+            const heading = doc.createElement("span");
+            heading.className = "galaxy-kinds-heading";
+            heading.textContent = group;
+            container.appendChild(heading);
+          }
         }
-      }
-      const button = doc.createElement("button");
-      button.type = "button";
-      button.className = "starmap-btn starmap-toggle";
-      button.dataset.layer = layer.id;
-      button.textContent = layer.label;
-      if (layer.title) button.title = layer.title;
-      button.setAttribute("aria-pressed", String(isOn(layer.id)));
-      button.addEventListener("click", function () { toggle(layer.id); });
-      buttons.set(layer.id, button);
-      container.appendChild(button);
-    });
-    function refresh() {
-      buttons.forEach(function (button, id) { button.setAttribute("aria-pressed", String(isOn(id))); });
+        const button = doc.createElement("button");
+        button.type = "button";
+        button.className = "starmap-btn starmap-toggle";
+        button.dataset.layer = layer.id;
+        button.textContent = layer.label;
+        if (layer.data) Object.keys(layer.data).forEach(function (name) { button.dataset[name] = layer.data[name]; });
+        button.addEventListener("click", function () { toggle(layer.id); });
+        buttons.set(layer.id, button);
+        container.appendChild(button);
+      });
     }
+    function refresh() {
+      const list = forMode().filter(function (layer) { return !layer.available || layer.available(); });
+      const now = list.map(function (layer) { return layer.id; }).join("|");
+      if (now !== signature) {
+        signature = now;
+        build(list);
+      }
+      buttons.forEach(function (button, id) {
+        const layer = find(id);
+        button.setAttribute("aria-pressed", String(isOn(id)));
+        const title = layer && (typeof layer.title === "function" ? layer.title() : layer.title);
+        if (title) button.title = title;
+      });
+    }
+    refresh();
     views.set(container, refresh);
     return refresh;
   }
@@ -238,11 +268,11 @@ export function createLayerRegistry(mode) {
         const row = doc.createElement("span");
         row.className = "map-layer-legend-line";
         row.dataset.layer = line.id;
-        if (line.swatch) {
+        if (line.swatch || line.swatchClass) {
           const swatch = doc.createElement("span");
-          swatch.className = "map-layer-legend-swatch";
+          swatch.className = "map-layer-legend-swatch" + (line.swatchClass ? " " + line.swatchClass : "");
           swatch.setAttribute("aria-hidden", "true");
-          swatch.style.background = line.swatch;
+          if (line.swatch) swatch.style.background = line.swatch;
           row.appendChild(swatch);
         }
         row.appendChild(doc.createTextNode(line.text));
@@ -265,6 +295,9 @@ export function createLayerRegistry(mode) {
     setOn: setOn,
     toggle: toggle,
     onChange: function (listener) { listeners.push(listener); },
+    // Asks every menu and legend drawn from this registry to bring itself up to date (an `available` or a
+    // `title` changed without a layer being switched).
+    refresh: function () { views.forEach(function (refresh) { refresh(); }); },
     readUrl: readUrl,
     writeUrl: writeUrl,
     legend: legend,

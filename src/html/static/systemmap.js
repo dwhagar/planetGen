@@ -38,6 +38,7 @@ const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await impor
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { appendNavActions } = await import(`./systemnav.js${VERSION_QUERY}`);
+const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;
@@ -1217,7 +1218,50 @@ function initSystemMap(root) {
   root.setAttribute("data-ready", "true");
 }
 
+// --- Layers (MAP.217) ---------------------------------------------------------
+//
+// The map's toggled layers come from the registry the three maps share (maplayers.js): the Menu's buttons, the
+// legend lines and the URL's `hide=` and `show=` are made from what is registered here. The one layer so far is
+// the facilities (the diamonds at their hosts and their dashed orbits), hidden by a class on the map's root.
+
+function initLayers(root) {
+  var menu = document.getElementById("sysmap-layers");
+  if (!menu) {
+    return;
+  }
+  var layers = createLayerRegistry("system");
+  layers.register({
+    id: "facility",
+    label: "Facilities",
+    group: "Show on the map",
+    title: "Show or hide the facilities",
+    modes: ["system"],
+    urlKey: "hide",
+    urlKeyOn: "show",
+    data: { kind: "facility" },
+    legend: { text: "marks a facility", swatchClass: "sysmap-legend-facility" },
+    draw: function (_scene, on) {
+      root.classList.toggle("sysmap-hide-facility", !on);
+    },
+  });
+  layers.readUrl(window.location.search);
+  layers.renderMenu(menu);
+  var legend = document.getElementById("sysmap-layer-legend");
+  if (legend) {
+    layers.renderLegend(legend);
+  }
+  layers.draw(root);
+  layers.onChange(function () {
+    layers.draw(root);
+    var params = layers.writeUrl(new URLSearchParams(window.location.search));
+    var query = params.toString().replace(/%2C/gi, ",");
+    window.history.replaceState(window.history.state, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+  });
+  root.__mapLayers = layers; // for the browser tests, which register a layer of their own
+}
+
 var rootEl = document.getElementById("sysmap-root");
 if (rootEl) {
   initSystemMap(rootEl);
+  initLayers(rootEl);
 }

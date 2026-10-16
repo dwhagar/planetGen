@@ -2765,6 +2765,11 @@ function initGalaxyMap3d(canvasEl, data) {
   // The Menu's "Show on the map" (MAP.79): one toggle per kind of object in
   // the open sector (all on to begin with), highlighted while shown.
   var kindsEl = document.getElementById("galaxymap3d-kinds");
+  // MAP.217: the buttons are made from the layer registry the maps share (maplayers.js); it leaves out the
+  // kinds the open sector has none of.
+  var kindsLayersEl = document.createElement("span");
+  kindsLayersEl.className = "galaxy-layers";
+  var drawKindLayers = null;
   function rebuildKinds() {
     if (!kindsEl) return;
     var kinds = stageView.kinds();
@@ -2773,28 +2778,13 @@ function initGalaxyMap3d(canvasEl, data) {
     // With no sector open the star filters still apply to the stars drawn
     // at galaxy scale, so they stay.
     kindsEl.hidden = false;
+    kindsEl.appendChild(kindsLayersEl);
+    if (drawKindLayers) drawKindLayers();
+    else drawKindLayers = stageView.layers.renderMenu(kindsLayersEl);
     if (!kinds.length) {
       rebuildStarFilters();
       return;
     }
-    var heading = document.createElement("span");
-    heading.className = "galaxy-kinds-heading";
-    heading.textContent = "Show on the map";
-    kindsEl.appendChild(heading);
-    kinds.forEach(function (kind) {
-      var button = document.createElement("button");
-      button.type = "button";
-      button.className = "starmap-btn starmap-toggle";
-      button.dataset.kind = kind.kind;
-      button.textContent = kind.label;
-      button.title = "Show or hide the " + kind.label.toLowerCase() + " (" + kind.count + ")";
-      button.setAttribute("aria-pressed", String(!stageView.kindHidden(kind.kind)));
-      button.addEventListener("click", function () {
-        stageView.setKindHidden(kind.kind, button.getAttribute("aria-pressed") === "true");
-        button.setAttribute("aria-pressed", String(!stageView.kindHidden(kind.kind)));
-      });
-      kindsEl.appendChild(button);
-    });
     rebuildHighlights(kinds);
     rebuildStarFilters();
   }
