@@ -33,7 +33,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.galaxy.density import arm_terms, build_galaxy_shape, model_terms, relative_density
-from planetgen.galaxy import spherical
+from planetgen.galaxy import scatter_limits, spherical
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.skeleton import (
     DEFAULT_REACH_SHELL, build_shell_extents, expected_system_count_at_density_1, shell_candidate_sector_count,
@@ -314,7 +314,22 @@ def build_skeleton(args):
         expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=galaxy_seed,
         reach_shell_index=reach_shell_index, cell_star_ceiling=getattr(args, "cell_star_ceiling", None),
         fill_luminosity_cap_sol=getattr(args, "fill_luminosity_cap", None),
+        core_min_luminosity_sol=getattr(args, "core_min_luminosity", None),
+        core_mass_limit_sol=getattr(args, "core_mass_limit", None),
+        halo_min_luminosity_sol=getattr(args, "halo_min_luminosity", None),
     )
+    core_floor = getattr(args, "core_min_luminosity", None)
+    core_mass = getattr(args, "core_mass_limit", None)
+    halo_floor = getattr(args, "halo_min_luminosity", None)
+    limits = store.GalaxySkeletonInfo(
+        shape, edge_pc, outer_shell_index, e_value, None, core_min_luminosity_sol=core_floor,
+        core_mass_limit_sol=core_mass,
+        halo_min_luminosity_sol=program_constants.HALO_MIN_LUMINOSITY_SOL if halo_floor is None else halo_floor)
+    log.normal(
+        f"Scatter limits by place: core luminosity floor {scatter_limits.core_min_luminosity_sol(limits, None):,.0f} "
+        f"L_sun{'' if core_floor is not None else ' (the baseline plus a tenth)'}, core mass limit "
+        f"{scatter_limits.core_mass_limit_sol(limits, None):g} M_sun{'' if core_mass is not None else ' (the baseline plus a tenth)'}, "
+        f"halo luminosity floor {scatter_limits.halo_min_luminosity_sol(limits):,.0f} L_sun.")
     if requested_seed is not None:
         source = "from --seed"
     elif stored_seed is not None:
