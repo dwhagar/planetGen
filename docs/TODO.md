@@ -1716,9 +1716,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.311 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.311. Related: GEN.129.
 
 - [ ] **MAP.214 Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space**
@@ -3509,9 +3509,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.317, GEN.318 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.317, GEN.318.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
@@ -3745,9 +3745,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.324 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.324.
 
@@ -3779,9 +3779,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.325, GEN.326 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.325, GEN.326.
 
@@ -3801,9 +3801,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.317 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.317.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -4560,9 +4560,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 8; start
-  after Core 3 merges GEN.286 (stellar evolution model)).
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: none. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4586,9 +4586,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.318 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.318.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4693,9 +4693,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 10; start
-  after Core 3 merges GEN.323 (phenomena pass)).
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: none. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4734,9 +4734,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.315, GEN.316 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -4824,9 +4824,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: DB.53 (Core 1). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -4860,9 +4860,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.269 (Core 4). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisite: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4894,10 +4894,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.269 (Core 4) and GEN.253. Core 4 takes it when it
-  unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.269, GEN.253. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4927,9 +4926,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.269 (Core 4). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
@@ -4966,9 +4965,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.327, GEN.328 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.274 Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova**
@@ -5006,9 +5005,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.329, GEN.330 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.275 Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets**
@@ -5044,9 +5043,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.331, GEN.332 (Core 3). Core 4 takes it when it unblocks.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.331, GEN.332. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
