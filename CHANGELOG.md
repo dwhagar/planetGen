@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1589] - 2026-10-16
+
+**Headline:** The galaxy settings files are gone; the galaxy keeps one internal record of how it was made.
+
+### Changed
+- `planetgen plan` no longer writes a JSON settings file, and the Stats page and `GET /api/admin/galaxy-settings[/<name>]` no longer offer one. The mismatch warning compares the running release, Python, platform and version key with the record that `galaxy_shape` already holds, and still names the sectors made by another version.
+- `update.sh` deletes the old `galaxy-settings` folder from the jobs directory once.
+
 ## [8.0.1588] - 2026-10-16
 
 **Headline:** Boss's three Galaxy Map notes of 2026-10-16 are on the list: clearer superbubble bounds, the invisible Charted only view, and colour-and-opacity highlighting for charted regions.
