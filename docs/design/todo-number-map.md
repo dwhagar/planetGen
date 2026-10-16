@@ -1233,7 +1233,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | open |
 | MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | open |
-| MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | open |
+| MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | done, PR #1859 |
 | MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | open |
 | MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | open |
 | MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | open |

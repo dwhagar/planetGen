@@ -206,10 +206,9 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.225 | The wheel zooms toward the point under the cursor, with clearance |  | Found in the 2026-10-16 check of MAP.146. |
-| MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | MAP.225 | Found in the 2026-10-16 check of MAP.146. |
-| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | MAP.226 | Found in the 2026-10-16 check of MAP.146. |
+| MAP.227 | The camera names its container: the header and the breadcrumb come from its position |  | Found in the 2026-10-16 check of MAP.146. |
 | MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | MAP.225 | Found in the 2026-10-16 check of MAP.146. |
-| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.225, MAP.226, MAP.227, MAP.228 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.225, MAP.227, MAP.228 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") |  | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent |  |  |
