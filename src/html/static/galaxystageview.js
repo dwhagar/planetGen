@@ -62,6 +62,7 @@ const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
+const SYS = await import(`./systemreach.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -322,6 +323,18 @@ export function createStageView(host) {
   function zoomPolicyFor(r) {
     if (enteredSystem) return SYSTEM_ZOOM;
     if (r && r.view && isWholeGalaxy(r)) return GALAXY_ZOOM;
+    if (entered && !pinned && view && view.fit && host.fetchSystemScene) {
+      // MAP.152: in an opened sector the camera may come right up to a star near the middle of the view, to
+      // where its system's disc is whole, but no closer to the middle than keeps that star in reach.
+      const fit = fitDistance(entered.fitPoints, view.fit.target, view.quat);
+      const near = nearestStarTo(view.target);
+      if (fit > 0 && near) {
+        const radius = systemRadii.get(near.entry.href) || SYS.NOMINAL_RADIUS_PC;
+        const discPc = SYS.distanceForPixels(SYS.FULL_PX * 1.5, radius, canvasEl.clientHeight || 600, camera.fov);
+        const nearest = Math.min(MIN_ZOOM, Math.max(discPc, near.distance / NEAREST_STAR_REACH) / fit);
+        return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, MAX_ZOOM);
+      }
+    }
     if (!entered && !pinned && view && view.fit && isSectorView(r)) {
       const fit = fitDistance(fitPointsOf(r), view.fit.target, view.quat);
       if (fit > 0) return MC.zoomPolicy(MC.ZOOM_RANGE, Math.min(MIN_ZOOM, (SECTOR_NEAREST_EDGES * edgePc) / fit), MAX_ZOOM);
@@ -1096,6 +1109,7 @@ export function createStageView(host) {
     sectorStage.update();
     systemStage.update(Date.now());
     updateAmbient(now);
+    updateSystemAmbient(now);
     if (followBody && !animation && view) {
       const at = systemStage.where(followBody);
       if (at) {
@@ -1827,6 +1841,117 @@ export function createStageView(host) {
     });
   }
 
+  // --- The system the camera comes up to (MAP.152) --------------------------------------
+
+  // In an opened sector a star's system (its planets, moons and orbits) fades in as its disc comes to about
+  // LOAD_PX pixels across (systemreach.js), with no flight or history entry, and is dropped below UNLOAD_PX. It is
+  // not "the system opened": `enteredSystem` stays null and the scene cannot be picked; one more wheel tick at
+  // the nearest zoom opens it from the scene already there (the camera then flies to fit it as ever).
+  // `systemAmbient` is {key (the system's href), entry, loading} while its scene is up or being fetched.
+  let systemAmbient = null;
+  let systemWant = null;
+  let systemToken = 0;
+  let systemShare = 0;
+  let systemEye = null;
+  const systemFailed = new Set();
+  // The real radius (pc) of each system seen so far, by href: a system is taken for 50 AU across until its scene
+  // has been loaded once. Without this a small system would be loaded at 20 px of 50 AU, found too small to stay
+  // (under 10 px), dropped, and loaded again, over and over.
+  const systemRadii = new Map();
+
+  function systemCandidates() {
+    if (!entered.systemCandidates) {
+      entered.systemCandidates = sectorStage.entries().filter(function (e) {
+        return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !systemFailed.has(e.href);
+      }).map(function (e) {
+        return { key: e.href, center: [e.x, e.y, e.z], radiusPc: null, entry: e };
+      });
+    }
+    entered.systemCandidates.forEach(function (c) {
+      c.radiusPc = systemRadii.get(c.key) || null;
+    });
+    return entered.systemCandidates;
+  }
+
+  // Drops the system scene the camera came up to.
+  function closeSystemAmbient() {
+    const was = systemAmbient;
+    forgetSystemAmbient();
+    if (was && systemStage.isAmbient()) systemStage.close();
+  }
+
+  function forgetSystemAmbient() {
+    systemToken += 1;
+    systemWant = null;
+    systemEye = null;
+    systemAmbient = null;
+    systemShare = 0;
+  }
+
+  function setSystemShare(share) {
+    if (share === systemShare || (share > 0 && share < 1 && Math.abs(share - systemShare) < 0.004)) return;
+    systemShare = share;
+    systemStage.setFade(share);
+  }
+
+  function loadSystemAmbient(candidate) {
+    const token = ++systemToken;
+    systemWant = null;
+    systemShare = 0;
+    const mine = systemAmbient = { key: candidate.key, entry: candidate.entry, loading: true };
+    const failed = function () {
+      if (!active || token !== systemToken || systemAmbient !== mine) return;
+      systemFailed.add(candidate.key);
+      if (entered) entered.systemCandidates = null;
+      systemAmbient = null;
+    };
+    systemStage.open(candidate.entry.href, candidate.entry.name, [candidate.entry.x, candidate.entry.y, candidate.entry.z], undefined, true).then(function (geo) {
+      if (!active || token !== systemToken || systemAmbient !== mine) return;
+      if (!geo) {
+        failed();
+        return;
+      }
+      mine.loading = false;
+      systemRadii.set(candidate.key, geo.radiusPc);
+      systemEye = null;
+    }, failed);
+  }
+
+  // Every frame: which system scene the camera wants up and how much of it shows.
+  function updateSystemAmbient(now) {
+    const eligible = !pinned && view && entered && !enteredSystem && host.fetchSystemScene;
+    if (!eligible) {
+      if (systemAmbient && !enteredSystem) closeSystemAmbient();
+      return;
+    }
+    if (animation) return;
+    const eye = eyeNow();
+    if (systemEye && !systemWant && eye[0] === systemEye[0] && eye[1] === systemEye[1] && eye[2] === systemEye[2]) return;
+    systemEye = eye;
+    const chosen = SYS.chooseSystem(eye, systemCandidates(), { heightPx: canvasEl.clientHeight || 600, fovDeg: camera.fov }, systemAmbient ? systemAmbient.key : null);
+    if (!chosen) {
+      if (systemAmbient || systemWant) closeSystemAmbient();
+      return;
+    }
+    if (systemAmbient && systemAmbient.key === chosen.key) {
+      systemWant = null;
+      if (!systemAmbient.loading) setSystemShare(chosen.share);
+      return;
+    }
+    if (!systemWant || systemWant.key !== chosen.key) {
+      systemWant = { key: chosen.key, since: now };
+      return;
+    }
+    if (now - systemWant.since < SYS.DWELL_MS) return;
+    const candidate = systemCandidates().find(function (c) { return c.key === chosen.key; });
+    if (candidate) loadSystemAmbient(candidate);
+  }
+
+  // For the browser tests: the system scene up for the camera coming near it, and how much of it shows.
+  canvasEl.galaxySystemAmbient = function () {
+    return systemAmbient && !systemAmbient.loading ? { href: systemAmbient.key, share: systemShare } : null;
+  };
+
   // --- The system opened in place (MAP.125) ----------------------------------
 
   // The URL of the open sector, ?sector=<designation>&open=1.
@@ -1849,6 +1974,7 @@ export function createStageView(host) {
     followBody = null;
     systemStage.close();
     enteredSystem = null;
+    forgetSystemAmbient();
   }
 
   // Opens `entry`'s system (a star of the open sector) in place: its scene
@@ -1862,6 +1988,7 @@ export function createStageView(host) {
       if (!active || token !== enterSystemToken) return;
       notice("");
       if (!geo) return;
+      forgetSystemAmbient();
       enteredSystem = {
         id: systemStage.systemId(), href: entry.href, name: entry.name, center: geo.center,
         radiusPc: geo.radiusPc, fitPoints: geo.fitPoints,
@@ -2074,6 +2201,17 @@ export function createStageView(host) {
     return true;
   }
 
+  // The star of the open sector nearest `point` (parsecs): {entry, distance}, or null.
+  function nearestStarTo(point) {
+    let best = null;
+    sectorStage.entries().forEach(function (e) {
+      if (!e.href || !e.endpoint || e.endpoint.indexOf("system:") !== 0) return;
+      const d = Math.hypot(e.x - point[0], e.y - point[1], e.z - point[2]);
+      if (!best || d < best.distance) best = { entry: e, distance: d };
+    });
+    return best;
+  }
+
   // The star of the open sector nearest `point` (parsecs) within `reach`.
   function nearestStar(point, reach) {
     let best = null;
@@ -2128,6 +2266,11 @@ export function createStageView(host) {
       applyView();
     });
   }
+
+  // For the browser tests: moves the view's middle to a point of the map (parsecs).
+  canvasEl.galaxyCentreOn = function (x, y, z) {
+    if (view && !animation) centreOn([x, y, z]);
+  };
 
   // MAP.199: Shift-click (or a right-click) takes the point under the
   // pointer for the new center.

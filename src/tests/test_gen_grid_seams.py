@@ -154,7 +154,7 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
         clustered = store.get_galaxy_shape(conn).shape
     finally:
         conn.close()
-    assert clustered.clusters is not None
+    assert clustered.components is not None
     extents, outer, confirmed = build_shell_extents(clustered, EDGE, THRESHOLD)
     assert confirmed
     assert bounds.high_band == dict(extents)

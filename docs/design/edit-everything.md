@@ -12,7 +12,7 @@ Every admin change, small or large, becomes a **plan**: an ordered list of opera
 
 | Part | What it is | Items |
 |---|---|---|
-| Change plan | Operations, the effect diff, the states draft, proposed, approved, applied, undone, stale, rejected, and the stale check (an object changed since the plan was proposed) | ADM.58, DB.36, ADM.59 |
+| Change plan | Operations, the effect diff, the states draft, requested, proposed, approved, applied, undone, stale, rejected, withdrawn, and the stale check (an object changed since the plan was proposed) | ADM.58, DB.36, ADM.59 |
 | Apply, undo, audit | One queue job, one transaction per sector, a journal row and an activity-log entry per operation, undo as the inverse plan from the stored before values; refuses while the update guard is on | ADM.60 |
 | Aspect catalogue | Data: every stored column belongs to one aspect, each aspect names the generation input that draws it, what it derives from and what depends on it | ADM.62, ADM.63 |
 | Keep or regenerate | Resolves the admin's marks into the redraw set, the fixed inputs and the conflicts (a kept radius with a regenerated class is a conflict to show) | ADM.64 |
@@ -64,6 +64,6 @@ A blocker of an item sits in an earlier phase or earlier in its own thread; the 
 ## 6. Open questions (each with a default; work goes ahead on the default)
 
 - **Undo window.** Undo is allowed while no newer plan touched the same objects. Default: yes; a later plan on the same objects blocks the undo and says which.
-- **Who may approve.** Any admin may approve a plan another admin proposed. Default: yes (there is one admin class today); two-person approval waits for the roles of 8.2.
+- **Who may approve.** Decided (Boss, 2026-10-16, 1:43 PM and 1:49 PM EDT): admins need no approval; an admin approves their own plan at the time, so they confirm rather than request, there is no second approver and the preview stays. Any admin may confirm a plan another admin proposed. Requests from users and moderators are the 10.0 roles (see [roles-and-requests.md](roles-and-requests.md)): the `requested` state, the requester and approver fields and the approval screen are built here so 10.0 adds no plan table.
 - **Removal in a density plan.** The planner may remove generated, unnamed, unpopulated systems without asking per system, inside the approved plan. Default: yes, listed on the approval screen with counts per sector.
 - **Specification form limits.** The form accepts any value the generator can draw plus "force" values the generator would not draw (as ADM.6 does for classes). Default: forced values allowed, marked on the plan as forced.

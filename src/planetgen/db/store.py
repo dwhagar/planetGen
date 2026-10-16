@@ -71,7 +71,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, login, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import cluster_field as clusterField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
@@ -7368,18 +7368,18 @@ def get_galaxy_seed(conn):
 
 @functools.lru_cache(maxsize=8)
 def _field_of(found, edge_pc, expected_at_density_1):
-    return clusterField.ClusterField(found, edge_pc, expected_at_density_1)
+    return componentField.ComponentField(found, edge_pc, expected_at_density_1)
 
 
-def _cluster_field(conn, edge_pc, expected_at_density_1):
-    """The galaxy's `ClusterField` (GEN.160) from its stored King clusters, or `None` when it has none (or the table
-    is not there yet: a migration reads the skeleton before v97). Fields made from equal rows are one object, so the
-    density model's caches by shape keep hitting."""
+def _component_field(conn, edge_pc, expected_at_density_1):
+    """The galaxy's `ComponentField` (GEN.160, GEN.237) from its stored clusters and satellites, or `None` when it has
+    none (or the table is not there yet: a migration reads the skeleton before v97). Fields made from equal rows are one
+    object, so the density model's caches by shape keep hitting."""
     if not conn.execute(
             "SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'galaxy_components'"
     ).fetchone():
         return None
-    found = tuple(c for c in get_galaxy_components(conn, kind="cluster") if c.profile == "king")
+    found = tuple(c for c in get_galaxy_components(conn) if c.kind in componentField.KINDS_IN_THE_GATE)
     if not found:
         return None
     return _field_of(tuple(dataclasses.replace(c, id=None) for c in found), float(edge_pc), float(expected_at_density_1))
@@ -7417,7 +7417,7 @@ def get_galaxy_shape(conn):
         spiral_reference_angle_rad=row["spiral_reference_angle_rad"],
         k_norm=row["k_norm"],
     )
-    shape = shape._replace(clusters=_cluster_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]))
+    shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]))
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],

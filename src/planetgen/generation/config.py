@@ -203,6 +203,13 @@ class SystemConfig:
         disk's history. Not saved with the config: the star keeps its age.
         """
 
+        self.FE_H_PEAKS = None
+        """
+        tuple or None: `((weight, mean, sigma), ...)`, the [Fe/H] a random primary star of a cluster or satellite is
+        drawn from (GEN.237): the sector's own profile gives them, since those populations have no mean at a distance
+        from the centre. None draws from the population's mean (`metallicity.mean_fe_h`). Not saved with the config.
+        """
+
         self.MAX_STAR_LUMINOSITY_SOL = None
         """
         float or None: A random primary star is redrawn until it is dimmer

@@ -1,8 +1,8 @@
-# Release roadmap and version map, v8.1 to v9.3
+# Release roadmap and version map, v8.1 to v10.0
 
 Boss (2026-10-16, 1:07 PM EDT) turned the tiers into a version map: one version per release, starting at 8.1, which is the Phase 1 we are building today, and a version can have several phases when it holds too much for one. A version is only a PROPOSAL where its Status line says so; the headlines Boss named are used as given.
 
-Thirteen versions from 8.1 to 9.3, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells) and 8.6 (edit everything). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline. There is no 10.0 headline.
+Fourteen versions from 8.1 to 10.0, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells), 8.6 (edit everything) and 10.0 (roles and permissions: user edit requests, moderators and admins). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline.
 
 ## How to read this
 
@@ -16,7 +16,7 @@ Thirteen versions from 8.1 to 9.3, then a "later" list for features that belong 
 Status: Boss named both headlines; next stamp
 Headline: Infinite zoom, one camera from the whole galaxy to a star system and on into its planets and moons, and the new generate scatters: accurate galactic generation and scattering out to 262 kpc, including the halo, the satellites, the nebula stars and a realistic core
 Today: 8.1 infinite zoom (the fly-through Galaxy Map), MAP.146
-Change: A second headline joins the first (Boss, 1:07 PM EDT): the new generate scatters, as GEN.301 (new, carries a `Headline: 8.1` tag). The Phase 1 tail (queues, reproducible galaxies, the description layer, tech levels, directives, every open bug and flaky test) stays in 8.1 as phase 1, because the stamp waits for all of it. The admin editors that sat in the Phase 1 tail (ADM.32, ADM.35, ADM.55, ADM.56, MAP.119, MAP.120) move to 8.6 and the bookmark items (UX.46, UX.47) to 8.2, so they no longer gate the 8.1 stamp.
+Change: A second headline joins the first (Boss, 1:07 PM EDT): the new generate scatters, as GEN.301 (new, carries a `Headline: 8.1` tag). The Phase 1 tail (queues, reproducible galaxies, the description layer, tech levels, directives, every open bug and flaky test) stays in 8.1 as phase 1, because the stamp waits for all of it. The admin editors that sat in the Phase 1 tail (ADM.32, ADM.35, ADM.55, ADM.56, MAP.119, MAP.120) move to 8.6 and the bookmark items (UX.46, UX.47) to 8.2, so they no longer gate the 8.1 stamp. The configuration page (ADM.43, ADM.44) moves up from 8.2 into 8.1 phase 1 as its own thread (Boss, 1:43 PM EDT: "we're starting to desperately need that"), with the per-cell system cap (GEN.303) wired to it in phase 5. The settings page also holds the one backup mechanism, a bz2 tarball per backup with `settings.backups_kept` archives kept (ADM.87), and its first part, the settings (Boss, 1:59 and 2:00 PM EDT).
 Needs: MAP.152 first, then MAP.146 (Core 2's next two items, in that order, Boss 12:23 PM EDT). The scatters run in the lanes' queues (Core 1, Core 2 and Core 3) from GEN.237 to GEN.243, GEN.264 to GEN.275 and GEN.280 to GEN.287. Phase 1 is independent of the later phases, so lanes can work them side by side.
 Lanes: Core 1: GEN.237, GEN.264, GEN.238 and the Phase 1 trees; Core 2: MAP.152, MAP.146, PERF.105, UX.118; Core 3: GEN.280, GEN.283, UX.116, GEN.286, GEN.287, GEN.245 and the rest of the scatter work.
 Suggested:
@@ -34,8 +34,8 @@ Suggested:
 Status: Boss named it; new version
 Headline: User accounts, with sign-up by an email invitation that only an admin can send
 Today: (new)
-Change: Boss, 12:45 PM EDT. It is already planned as USR.1 to USR.7; this moves it up and puts the bookmark items (UX.46, UX.47) with it. One change to USR.4 on approval: its decided answer says the invitee's email is optional and the admin may only copy the link; the email invitation becomes the main path, with the link shown only when SMTP is not set up.
-Needs: ADM.43 (the full admin configuration page) is where the SMTP form sits, so it comes first; SEC.32 (Argon2id) before USR.2 so new accounts start on it. Mail goes out as a queue job (USR.3), so the queue steps PERF.97 to PERF.100 in 8.1 phase 1 come first.
+Change: Boss, 12:45 PM EDT. It is already planned as USR.1 to USR.7; the configuration page left this version for 8.1 (Boss, 1:43 PM EDT) and USR.2 stores four roles (user, moderator, admin, Owner) behind one guard so the roles of 10.0 fit without a rebuild; this moves it up and puts the bookmark items (UX.46, UX.47) with it. One change to USR.4 on approval: its decided answer says the invitee's email is optional and the admin may only copy the link; the email invitation becomes the main path, with the link shown only when SMTP is not set up.
+Needs: the settings page (ADM.43, ADM.84), now built in 8.1, is where the SMTP form sits; its Owner tier (ADM.86) opens this version's thread after USR.2; SEC.32 (Argon2id) before USR.2 so new accounts start on it. Mail goes out as a queue job (USR.3), so the queue steps PERF.97 to PERF.100 in 8.1 phase 1 come first.
 Suggested:
 - S8.2-a: Two-factor sign-in (TOTP) for every account, required for admins; the Owner transfer in USR.6 already assumes it.
 - S8.2-b: An invitation the admin can write: an optional personal message, resend, revoke, and a notice back to the admin when it is accepted.
@@ -90,7 +90,7 @@ Suggested:
 Status: Boss named it (1:07 PM EDT); items filed
 Headline: Edit everything: the admin has complete control and the world adjusts to what the admin wants, after the admin approves a generation plan
 Today: (new)
-Change: New headline (ADM.57), filed as 35 items in 5 phases with the design in docs/design/edit-everything.md. Boss: the admin can move stars in a sector, change orbits in a system, change densities for a sector or region and regenerate any star to any specification; changing an A planet into an M planet makes the system work out how to rearrange the star system and show that generation plan for approval before anything changes. In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves, applies as one job and can undo. Two pieces are shared with 8.9 and built here once (Boss, 1:33 PM EDT): the unit finalizer (ADM.82, also API.8) and the recipe schema (API.28, also API.18).
+Change: New headline (ADM.57), filed as 35 items in 5 phases with the design in docs/design/edit-everything.md. Boss: the admin can move stars in a sector, change orbits in a system, change densities for a sector or region and regenerate any star to any specification; changing an A planet into an M planet makes the system work out how to rearrange the star system and show that generation plan for approval before anything changes. In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves, applies as one job and can undo. An admin approves their own plan, so an admin confirms rather than requests (Boss, 1:49 PM EDT); the plan states already include `requested` so the roles of 10.0 need no new plan table. Two pieces are shared with 8.9 and built here once (Boss, 1:33 PM EDT): the unit finalizer (ADM.82, also API.8) and the recipe schema (API.28, also API.18).
 Needs: The plan model, aspects and regions come first (phase 1); then the approval screen, locks, regen screens and density overrides (phase 2); then the editors that make plans and the rearranger (phase 3); then regeneration to a specification (phase 4); then the end-to-end tests, the help and the headline (phase 5). ADM.36 (edit orbits) comes from the orbital update foundations in 8.3 and ADM.52 (the planet editor) from earlier. The override journal has to keep regeneration, parity repair and the golden-seed tests (GEN.57, DB.9, DB.17 in 8.1 phase 1) working.
 Suggested:
 - S8.6-a: Batch edits: apply one plan to a list or a region of systems, with one approval for the whole batch.
@@ -143,8 +143,8 @@ Suggested:
 Status: proposed; Boss does not want the gravity map here
 Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
 Today: 9.0 the gravity map (MAP.167)
-Change: The gravity map moved to 9.1. A 9.0 headline still needs Boss's choice; this page recommends the view from a planet. 9.0 is a `major` note and needs his word.
-Needs: 8.1 (the camera that reaches a world), 8.3 (so the sky changes with the date) and 8.4 (the worlds). VIEW.1 and VIEW.2 start with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates.
+Change: Boss (2:00 PM EDT) targeted the backups and repair chain for 9.0 (umbrella ADM.91, 10 items in phases 3 and 4): the control database and parity parts of the backup archive (ADM.88, DB.40), restoring each (ADM.89, DB.41), repairing the galaxy from an archive (DB.42), one repair page (ADM.90), a nightly full backup from the daily maintenance run (OPS.55, Boss 2:06 PM EDT: yes), the end-to-end test and the guide (TEST.180, DOC.56). The settings page and the settings backups stay in 8.1. The gravity map moved to 9.1. A 9.0 headline still needs Boss's choice; this page recommends the view from a planet. 9.0 is a `major` note and needs his word.
+Needs: 8.1 (the camera that reaches a world; the settings page and the archive of ADM.87; the parity file and repair of DB.9; DB.17), 8.3 (so the sky changes with the date) and 8.4 (the worlds). The backups chain needs only 8.1. VIEW.1 and VIEW.2 start with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates.
 Alternative (Politics and territories): Territories that grow and shift on the map, with borders drawn and polities that trade. Placed at 9.2; it could be the 9.0 headline.
 Alternative (Generate anywhere): Remote generation as a platform headline (API.3). Placed at 8.9; it could be the 9.0 headline instead.
 Alternative (Edit everything): Already the 8.6 headline; it could be held back to a major release if Boss prefers.
@@ -187,15 +187,30 @@ Change: USR.10 and POP.11 have no headline today; they follow politics and terri
 Needs: 8.2 (accounts), 8.3 (movement), 8.5 (courses to fly) and 9.2 (territories, so stations belong to a polity).
 Suggested:
 - S9.3-a: Fleets: group ships, give the group a course, and move it together.
-- S9.3-b: A game master role between player and admin: places objects in a polity's territory.
+- S9.3-b: A game master role between player and admin: places objects in a polity's territory (built on the permission catalogue of 10.0 later, or its own role until then).
 - S9.3-c: Fog of war: each user sees only what they have charted or their ships have visited.
 - S9.3-d: Station docking and a ship log that writes itself from the course.
+
+## Release 10.0: Roles and permissions
+Status: Boss named it (1:43 PM EDT); items filed
+Headline: Roles and permissions: users submit edit requests, moderators approve user requests and admins approve moderator requests
+Today: (new)
+Change: New headline (USR.25), filed as 18 items in 4 phases with the design in docs/design/roles-and-requests.md. Three roles, User, Moderator and Admin, with the Owner above admin. A user proposes an edit, a moderator approves it; a moderator proposes an edit, an admin approves it; an admin approves their own plan at the time, so an admin confirms with the preview and does not request (Boss, 1:49 PM EDT). A request is a change plan of 8.6, so approval, preview, history, undo and audit are written once. 10.0 is a major version; the `.major.md` note waits for Boss's word.
+Needs: 8.2 (accounts: USR.2 holds the role column with the four values and one guard, USR.3 mail, USR.7 the user interface) and 8.6 (change plans: ADM.58 engine with the `requested` state, ADM.59 store, ADM.60 apply, ADM.66 approval screen, ADM.68 history). Then the permission catalogue and the guard sweep, the request tables (phase 1); submit, queue and decide (phase 2); the approver screen, comments, lifecycle, limits, notices and the audit view (phase 3); the end-to-end and matrix tests, the help page and the headline (phase 4).
+Lanes: not assigned; the work sits after 8.6, so no lane queue holds it.
+Suggested:
+- S10.0-a: Two-person approval for risky plans: a density or regeneration plan above a size needs a second admin.
+- S10.0-b: Custom roles: an admin builds a role from the permission catalogue (a "cartographer" who may edit names only).
+- S10.0-c: Auto-approve rules: trusted users' name and description requests apply without a moderator after N approved requests.
+- S10.0-d: A request digest email: one daily mail to each approver instead of one per request.
+- S10.0-e: Request templates: "rename this system", "report a wrong class", each a ready-made plan the user fills in.
+- S10.0-f: Moderator tools beyond approvals: lock a name, hide an object description pending review, a moderation log page.
 
 ## Release later: Future features
 Status: possible future features, not scheduled
 Headline: No headline: features that belong to no version yet, noted for later
 Today: (new)
-Change: Boss, 1:07 PM EDT: multiple galaxies is a possible future feature, not a headline, and there is no 10.0 headline. The items (GEN.9, GEN.157, GEN.164, MAP.145, NAV.57) sit in the "later" list.
+Change: Boss, 1:07 PM EDT: multiple galaxies is a possible future feature, not a headline (Boss, 1:43 PM EDT: 10.0 is roles and permissions). The items (GEN.9, GEN.157, GEN.164, MAP.145, NAV.57) sit in the "later" list.
 Needs: GEN.9 (the plan for more than one galaxy in the database) first; GEN.157 (a verified table of about 25 real galaxies) before MAP.145 and NAV.57; GEN.164 needs GEN.9. The infinite zoom of 8.1 would extend past the galaxy edge.
 Suggested:
 - SL-a: Intergalactic flight: the zoom of 8.1 continues out to a galaxy group, with the cosmic web as a faint background.
@@ -207,7 +222,11 @@ Suggested:
 ## Questions for Boss
 - Decided (Boss, 1:29 PM EDT, "defaults are acceptable"): keep the rule that 8.1 stamps only when all of its phases are done; ADM.32, ADM.35, ADM.55, ADM.56, MAP.119 and MAP.120 sit in 8.6 and UX.46 and UX.47 in 8.2; 8.3 to 8.9 as proposed; 9.0 is the view from a planet; multiple galaxies stays under "later".
 - 8.6 undo: an applied plan can be undone while no newer plan touched the same objects. Default: yes.
-- 8.6 approval: any admin may approve a plan another admin proposed. Default: yes (two-person approval waits for the roles of 8.2).
+- Decided (Boss, 1:43 PM and 1:49 PM EDT): an admin needs no approval; an admin confirms their own plan after the preview and there is no second approver. Any admin may also confirm a plan another admin proposed. Two-person approval is only a suggestion (S10.0-a).
 - 8.6 density plans: the planner may remove generated, unnamed, unpopulated systems inside an approved plan, listed with counts per sector. Default: yes.
 - 8.6 specifications: forced values the generator would not draw are allowed and marked on the plan as forced. Default: yes.
+- 10.0 what users may request. Default: a user may request a rename, a description or a note on one object, and no structural change; a moderator may request those plus a move, an orbit edit or a regeneration of one object; an admin may do everything. Boss may widen the user list.
+- 10.0 what a moderator may approve. Default: only user requests inside the user's list; a request that touches a locked aspect, a named object or a populated world goes to an admin whoever asked.
+- 10.0 request limits and expiry. Default: 5 open requests and 20 submissions a day per user; a pending request expires after 30 days; both are settings on the settings page.
+- 10.0 notices. Default: approvers and requesters are emailed, each account can turn the emails off.
 - Which suggestions to file as items? Name the codes, for example "file S8.1-a and S8.2-c".

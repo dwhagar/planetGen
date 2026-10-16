@@ -82,7 +82,7 @@ def test_replacing_a_kind_leaves_the_others(mysql_config):
     satellite = components.Component(
         kind="satellite", name="Large Cloud", source="catalogue", catalogue_id="LMC", center_pc=(-1000.0, -40000.0, -27000.0),
         velocity_kms=(-57.0, -226.0, 221.0), epoch_unix=0.0, mass_solar=1.4e10, half_mass_radius_pc=1500.0,
-        profile="exponential", age_gy=9.0, metallicity_fe_h=-0.5, seed=3)
+        profile="exponential", age_gy=9.0, metallicity_fe_h=-0.5, seed=3, tidal_radius_pc=9000.0)
     conn = store.get_connection(mysql_config)
     try:
         store.replace_galaxy_components(conn, cluster + [satellite])
@@ -102,7 +102,7 @@ def test_a_cluster_inside_a_satellite_names_its_parent_and_loses_it_when_the_par
     parent = components.Component(
         kind="satellite", name="Dwarf", source="generated", center_pc=(1.0, 2.0, 3.0), velocity_kms=(0.0, 0.0, 0.0),
         epoch_unix=0.0, mass_solar=1e8, half_mass_radius_pc=300.0, profile="plummer", age_gy=10.0, metallicity_fe_h=-1.8,
-        seed=9)
+        seed=9, tidal_radius_pc=2000.0)
     conn = store.get_connection(mysql_config)
     try:
         store.replace_galaxy_components(conn, [parent])
