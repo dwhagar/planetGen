@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1418] - 2026-10-16
+
+**Headline:** TEST.163 now fails every time on main, not only under load, and its item says so.
+
+### Changed
+
+- TEST.163 (the nav route page has no #course-heading) is retitled and carries Quality's finding: 3 of 3 failures alone on main at 0a2cb30e, probable area the nav page's direct-course condition.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1417] - 2026-10-16
 
 **Headline:** The whole planetGen install belongs to the web user (www-data:www-data), set the same way by install.sh and update.sh, and the example Apache2 site refuses to serve anything but the app and static files.
