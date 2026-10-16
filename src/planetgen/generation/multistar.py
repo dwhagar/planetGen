@@ -221,7 +221,9 @@ class Placed:
 @dataclass(frozen=True)
 class Member:
     """One member of a tree: member 0 is the placed object. `radius_au` is its extent; `flags` are the bits of
-    `MEMBER_FLAGS`; `effective_age_yr` is a merger product's rejuvenated age (None: the system's age)."""
+    `MEMBER_FLAGS`; `effective_age_yr` is a merger product's rejuvenated age (None: the system's age). `state` is the
+    Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` or `protostar` for a young one, and None for a remnant or
+    a brown dwarf; it is stored in `scatter_members.state`, a VARCHAR(16)."""
     member_no: int
     parent_node_no: int | None
     slot: int
@@ -324,6 +326,21 @@ def placed_class(placed):
     raise ValueError(f"unknown placed kind {placed.kind!r}; choose from {PLACED_KINDS}")
 
 
+def companion_state_at(placed, pick):
+    """
+    The companion state the uniform `pick` (in [0, 1)) names against the cumulative odds of
+    `MEMBER_STATE_BY_PLACED` for a placed object that is not a star: `star`, `white-dwarf`, `brown-dwarf`,
+    `neutron-star` or `black-hole`, or None. `companion_state` draws the uniform; the scatter's bulk screen
+    (`scatter_companions`) derives it from the row's seed.
+    """
+    table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
+    for state, (default, _low, _high) in table.items():
+        if pick < default:
+            return state
+        pick -= default
+    return None
+
+
 def companion_state(placed, rng=draw):
     """
     One uniform draw against the cumulative odds of `MEMBER_STATE_BY_PLACED` for a placed object that is
@@ -331,13 +348,22 @@ def companion_state(placed, rng=draw):
     `black-hole`), or None. This is the bulk screen of the scatter (multi-star-systems.md 6.3):
     only a row it names needs `draw_member_tree`.
     """
-    table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
-    pick = rng.random()
-    for state, (default, _low, _high) in table.items():
-        if pick < default:
-            return state
-        pick -= default
-    return None
+    return companion_state_at(placed, rng.random())
+
+
+def same_class_companions(kind, recycled_share=0.0):
+    """
+    The expected number of companions of the placed object's own kind per placed object of `kind`
+    (`black-hole`, `neutron-star`, ...): the odds of a black hole's black-hole companion, a neutron star's
+    neutron-star one (young and recycled pulsars weighted by `recycled_share`). The scatter divides a class's
+    object rate by `1 + this`, since a row is a system keyed by its placed object and its same-class companions
+    are objects of the class too (multi-star-systems.md 6.4).
+    """
+    def odds(placed_class_name, state):
+        return MEMBER_STATE_BY_PLACED.get(placed_class_name, {}).get(state, (0.0,))[0]
+    if kind == "neutron-star":
+        return (1.0 - recycled_share) * odds("neutron-star", kind) + recycled_share * odds("recycled-pulsar", kind)
+    return odds(kind, kind)
 
 
 def star_count_weights(initial_mass_sol, prevalence=1.0):
@@ -372,7 +398,7 @@ def _star_leaf(initial_mass, age_yr, rng, lighten=True):
     if age_yr < PROTOSTAR_MAX_AGE_YR:
         return _Leaf("protostar", "protostar", initial_mass, initial_mass, ms_radius_au * PROTOSTAR_RADIUS_FACTOR)
     if age_yr < min(KELVIN_HELMHOLTZ_YR * initial_mass ** -2.5, KELVIN_HELMHOLTZ_MAX_YR):
-        return _Leaf("pre-main-sequence", "pre-main-sequence", initial_mass, initial_mass,
+        return _Leaf("pre-main-sequence", "PMS", initial_mass, initial_mass,
                      ms_radius_au * PRE_MAIN_SEQUENCE_RADIUS_FACTOR)
     mass = initial_mass
     while True:
@@ -679,7 +705,12 @@ def _shape(units, rng):
     return (_shape(items[:split], rng), _shape(items[split:], rng))
 
 
-def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence):
+_DRAW_COMPANION = object()
+"""object: The default of `draw_member_tree`'s `companion`: the tree draws the compact object's companion
+state itself."""
+
+
+def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION):
     """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
     birth = placed.birth_mass_solar
     if placed.kind == "star":
@@ -703,7 +734,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence):
             "neutron-star": _remnant_leaf("neutron-star", birth, placed.mass_solar),
             "white-dwarf": _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]
     leaves = [base]
-    state = companion_state(placed, rng)
+    state = companion_state(placed, rng) if companion is _DRAW_COMPANION else companion
     if state is None:
         return leaves, [0]
     companion = _compact_pair_companion(placed, state, age_yr, rng)
@@ -805,7 +836,8 @@ def _single(leaf, age_yr, dropped, rng):
     return MemberTree((member,), (), age_yr, dropped)
 
 
-def draw_member_tree(placed, age_yr, rng=draw, max_stars=12, n_stars=None, prevalence=1.0):
+def draw_member_tree(placed, age_yr, rng=draw, max_stars=12, n_stars=None, prevalence=1.0,
+                     companion=_DRAW_COMPANION):
     """
     The members of the system around `placed` and their orbits, as a `MemberTree`.
 
@@ -819,11 +851,14 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=12, n_stars=None, preva
             Ignored for a compact or white dwarf placed object, whose companions come from
             `MEMBER_STATE_BY_PLACED`.
         prevalence (float): Scales the chance of five or more stars (1 is the table).
+        companion (str or None): For a compact or white dwarf placed object, the companion state the caller's
+            screen already drew (`companion_state_at`): the tree takes it instead of drawing its own, `None`
+            for no companion. Left out, the tree draws it (`companion_state`). Ignored for a star.
 
     Returns:
         MemberTree: The placed object is member 0. A single object has one member and no nodes.
     """
-    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence)
+    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion)
     dropped = 0
     while True:
         if len(units) == 1 and isinstance(units[0], int):

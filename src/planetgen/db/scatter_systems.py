@@ -43,6 +43,28 @@ def delete_member_tree(conn, table, row_id):
         conn.execute(f"DELETE FROM {child} WHERE source = ? AND source_id = ?", (source, row_id))
 
 
+def _member_values(source, row_id, tree):
+    return [(source, row_id, m.member_no, m.parent_node_no, m.slot, m.kind, m.state, m.flags, m.mass_solar,
+             m.initial_mass_solar, m.seed) for m in tree.members]
+
+
+def _node_values(source, row_id, tree, epoch_unix):
+    return [(source, row_id, n.node_no, n.parent_node_no, n.slot, n.mass_solar, n.separation_km, n.eccentricity,
+             n.inclination_deg, n.ascending_node_deg, n.arg_periapsis_deg, n.mean_anomaly_deg, epoch_unix,
+             n.period_years, n.kind, n.interaction, n.flags) for n in tree.nodes]
+
+
+def _insert_members(conn, members):
+    conn.executemany(
+        f"INSERT INTO scatter_members ({', '.join(_MEMBER_COLUMNS)}) VALUES ({', '.join('?' * len(_MEMBER_COLUMNS))})",
+        members)
+
+
+def _insert_nodes(conn, nodes):
+    conn.executemany(
+        f"INSERT INTO scatter_nodes ({', '.join(_NODE_COLUMNS)}) VALUES ({', '.join('?' * len(_NODE_COLUMNS))})", nodes)
+
+
 def store_member_tree(conn, table, row_id, tree, epoch_unix):
     """
     Stores a drawn tree under a scatter row, replacing any it had: the members and nodes, and the row's
@@ -60,17 +82,71 @@ def store_member_tree(conn, table, row_id, tree, epoch_unix):
     if not tree.nodes:
         conn.execute(f"UPDATE {table} SET member_count = NULL, system_mass_solar = NULL WHERE id = ?", (row_id,))
         return
-    conn.executemany(
-        f"INSERT INTO scatter_members ({', '.join(_MEMBER_COLUMNS)}) VALUES ({', '.join('?' * len(_MEMBER_COLUMNS))})",
-        [(source, row_id, m.member_no, m.parent_node_no, m.slot, m.kind, m.state, m.flags, m.mass_solar,
-          m.initial_mass_solar, m.seed) for m in tree.members])
-    conn.executemany(
-        f"INSERT INTO scatter_nodes ({', '.join(_NODE_COLUMNS)}) VALUES ({', '.join('?' * len(_NODE_COLUMNS))})",
-        [(source, row_id, n.node_no, n.parent_node_no, n.slot, n.mass_solar, n.separation_km, n.eccentricity,
-          n.inclination_deg, n.ascending_node_deg, n.arg_periapsis_deg, n.mean_anomaly_deg, epoch_unix,
-          n.period_years, n.kind, n.interaction, n.flags) for n in tree.nodes])
+    _insert_members(conn, _member_values(source, row_id, tree))
+    _insert_nodes(conn, _node_values(source, row_id, tree, epoch_unix))
     conn.execute(f"UPDATE {table} SET member_count = ?, system_mass_solar = ? WHERE id = ?",
                  (tree.member_count, tree.system_mass_solar, row_id))
+
+
+def store_member_trees(conn, table, items, epoch_unix, batch_rows=2000):
+    """
+    Stores the trees of many freshly written scatter rows at once (`store_member_tree` for a batch): the members and
+    nodes of every tree with nodes, and their rows' `member_count` and `system_mass_solar`, in a few statements.
+    The rows are new, so nothing is deleted first.
+
+    Args:
+        conn (Connection): An open, read-write connection.
+        table (str): `bright_stars` or `phenomenon_scatter`.
+        items (iterable): `(row_id, MemberTree)`; a single object (no nodes) is left as its row is.
+        epoch_unix (float): The time the nodes' mean anomalies hold at.
+        batch_rows (int): How many rows' members and nodes go to a statement.
+
+    Returns:
+        int: The rows that got members.
+    """
+    source = _source(table)
+    stored = 0
+    members, nodes, counts = [], [], []
+
+    def flush():
+        if counts:
+            _insert_members(conn, members)
+            _insert_nodes(conn, nodes)
+            conn.executemany(f"UPDATE {table} SET member_count = ?, system_mass_solar = ? WHERE id = ?", counts)
+        members.clear()
+        nodes.clear()
+        counts.clear()
+
+    for row_id, tree in items:
+        if not tree.nodes:
+            continue
+        members.extend(_member_values(source, row_id, tree))
+        nodes.extend(_node_values(source, row_id, tree, epoch_unix))
+        counts.append((tree.member_count, tree.system_mass_solar, row_id))
+        stored += 1
+        if len(counts) >= batch_rows:
+            flush()
+    flush()
+    return stored
+
+
+def delete_all_member_trees(conn, table):
+    """Removes every member and node of `table`'s rows: the scatter table was emptied."""
+    source = _source(table)
+    for child in ("scatter_members", "scatter_nodes"):
+        conn.execute(f"DELETE FROM {child} WHERE source = ?", (source,))
+
+
+def delete_member_trees_where(conn, table, where_sql, args=()):
+    """
+    Removes the members and nodes of the rows of `table` that `where_sql` selects, to be called before those rows are
+    deleted (there is no foreign key to do it). `where_sql` is a condition over the table's columns written with the
+    alias `t` (`"t.luminosity_w < ? AND t.star_system_id IS NULL"`).
+    """
+    source = _source(table)
+    for child in ("scatter_members", "scatter_nodes"):
+        conn.execute(f"DELETE c FROM {child} c JOIN {table} t ON c.source = ? AND c.source_id = t.id WHERE {where_sql}",
+                     (source, *args))
 
 
 def read_member_tree(conn, table, row_id):

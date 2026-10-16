@@ -213,7 +213,7 @@ The row's point, velocity, epoch and next-update columns (GEN.223's point struct
 | `parent_node_no` | SMALLINT | The orbit node this member is a child of. |
 | `slot` | SMALLINT | 0 and 1 for a pair (`a`, `b`); 0 to N - 1 for a member of a `group` node (section 14). |
 | `kind` | VARCHAR(20), CHECK | `main-sequence`, `giant`, `white-dwarf`, `neutron-star`, `black-hole`, `brown-dwarf`, `pre-main-sequence`, `protostar`, plus the catalogue kinds `stripped-helium`, `thorne-zytkow`, `wolf-rayet` (section 14). |
-| `state`, `flags` | VARCHAR(16), SMALLINT | Added by the catalogue: the member's evolutionary state and its flag bits (section 14). Nullable. |
+| `state`, `flags` | VARCHAR(16), SMALLINT | Added by the catalogue: the member's evolutionary state and its flag bits (section 14). Nullable. As built, `state` is the Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` for a pre-main-sequence star (the column is 16 characters wide), `protostar`, and NULL for a remnant or a brown dwarf. |
 | `offset_*_au`, `velocity_*_kms`, `decay_age_yr` | DOUBLE | Nullable; only the members of a `group` node (a young non-hierarchical system). |
 | `mass_solar` | DOUBLE | Current mass. |
 | `initial_mass_solar` | DOUBLE | Birth mass (the progenitor's for a remnant); a star's current state is rebuilt from it and the age. |
@@ -246,15 +246,20 @@ One column per component, no JSON. There is no foreign key (a row table of 6e7 e
 
 The tree is drawn from `draw.bound(row.seed)` with the suffix `members`, in a fixed order (GEN.55, GEN.56): the existing rule that a new stage never moves an older stage's draws. The planets later come from the suffix `planets`. A re-plan with the same galaxy seed regenerates the same members; after a plan the stored members are authoritative, so a later change to the laws changes the next scatter, not the existing rows (no drift between a stored summary and a regeneration).
 
+**As built (GEN.262).** `generation/scatter_companions.py` draws the tree from `draw.Stream(f"{seed}:members")`: first the system's age (a compact object's from `COMPACT_REMNANT_AGE_RANGE_GY`, a planetary nebula's central white dwarf's progenitor and main-sequence life, a star's from its row), then `draw_member_tree`. The address is not an input, so a row gives the same members wherever it sits. The nodes' epoch is the orbit epoch when an orbit update has run and `tuning.SCATTER_PHASE_ORIGIN_UNIX` (2000-01-01) before that, never the database's clock, so two runs of one seed store the same nodes. The row draws of the passes are untouched: the passes yield exactly the rows they yielded before, and a tree is drawn from the row at the write.
+
 ### 6.3 Bulk screening
 
 A black-hole scatter row is made in bulk by numpy (`_band_rows`, about 1 microsecond a row). The companion decision must not turn that into a Python loop over 6e7 rows. Therefore the bulk pass draws **one uniform per row** from the shell's stream and compares it with the cumulative companion probability of the row's class (1.25%); only the hits (about 7.4e5 black-hole rows) call `draw_member_tree`.
+
+**As built (GEN.262).** The uniform is not drawn from the shell's stream, because a new draw there would move every later draw of the shell (6.2's rule). It is a pure function of the row's seed, `scatter_companions.screen_unit(seed)`: the SplitMix64 finalizer over the seed and a per-question salt, integer arithmetic only, about a microsecond. A row it does not name costs that and a comparison with the class's total odds; a hit gets its companion state from the same uniform (`multistar.companion_state_at`) and calls `draw_member_tree(..., companion=state)`, so the tree takes the state the screen named. A neutron star is a millisecond pulsar when a second uniform of the seed is under `NEUTRON_STAR_PULSAR_CHANCE * PULSAR_MILLISECOND_CHANCE` (0.2%), and then takes the recycled-pulsar table. Star rows are not screened: their tree always runs, since most O and B stars have company (3.3). A planetary nebula's central star is a white dwarf of the `planetary-nebula-star` table; supernova remnants, hypervelocity stars, quasars and the nucleus carry no tree.
 
 ### 6.4 Density bookkeeping: a row is a system
 
 The rates in `PHENOMENON_DENSITY_PC3` count **objects**. A black-hole pair would be two objects and, if both were placed independently, a double count, and a pair of which one member is under the cut would be counted once by the scatter and once by the fill. Rules:
 
 - A scatter row is a **system keyed by its placed object**: its rate is the object rate divided by `1 + p_placed`, where `p_placed` is the expected number of **same-class** companions per row (0.20% for a black hole; 0.04% for a neutron star), so the black-hole density is unchanged. The correction is 0.2%, below the rate uncertainty, but it is a rule so the audit can check it.
+  **As built (GEN.262):** `phenomenon_scatter.row_density_divisor(kind, subtype)` is `1 + p_placed` (1.002 for a stellar black hole; 1 + 0.998 x 1.8e-4 + 0.002 x 2.0e-3 for a neutron star, from the table rather than the rounded 0.04%; 1 for every class whose companions are not of its own class, a planetary nebula's white dwarf included), and `_scattered_rates` divides each class's rate by it. The below-cut fill draw is unchanged for now: it builds no companions until stage G draws trees (GEN.251).
 - A star row is keyed by its heaviest member, which is what the census (a per-primary census) counts already.
 - The fill's below-cut draw for a class leaves out objects that are members of a placed system: the rate of the fill draw is the object rate times `(1 - p_member_of_placed)`, about 0.04% for neutron stars. Stated for the audit; it changes nothing a user sees.
 - A promoted compact pair (4.5) is a row with the placed object the heavier member.

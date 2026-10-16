@@ -66,7 +66,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, login
+from planetgen.db import alembic_runner, login, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
@@ -5692,12 +5692,23 @@ def clear_bright_stars(conn):
     scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
+    scatter_systems.delete_all_member_trees(conn, "bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
     conn.commit()
+
+
+def delete_unbuilt_bright_stars(conn, address):
+    """Deletes the stars of one cell that no system was built around, with their members: what a run that failed
+    before it recorded a level left behind, drawn again whole. `address` is `(shell, band, wedge)`."""
+    where = "shell_index = ? AND band_index = ? AND wedge_index = ? AND star_system_id IS NULL"
+    scatter_systems.delete_member_trees_where(
+        conn, "bright_stars", "t.shell_index = ? AND t.band_index = ? AND t.wedge_index = ? AND t.star_system_id IS NULL",
+        tuple(address))
+    conn.execute(f"DELETE FROM bright_stars WHERE {where}", tuple(address))
 
 
 def clear_bright_star_pass(conn, part, mass_limit_sol):
@@ -5710,9 +5721,11 @@ def clear_bright_star_pass(conn, part, mass_limit_sol):
     forgotten: the mass limit for "mass", the floor and seed for "luminosity".
     """
     if part == "mass":
+        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (mass_limit_sol,))
         conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (mass_limit_sol,))
         forget = "bright_star_mass_limit_sol = NULL"
     elif part == "luminosity":
+        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol < ?", (mass_limit_sol,))
         conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol < ?", (mass_limit_sol,))
         forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
     else:
@@ -5794,6 +5807,7 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
     conn.commit()
@@ -6315,6 +6329,10 @@ def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_si
     for start in range(0, len(cells), batch_size):
         chunk = cells[start:start + batch_size]
         placeholders = ", ".join("(?, ?, ?)" for _ in chunk)
+        scatter_systems.delete_member_trees_where(
+            conn, "bright_stars", "t.luminosity_w < ? AND t.star_system_id IS NULL"
+            f" AND (t.shell_index, t.band_index, t.wedge_index) IN ({placeholders})",
+            (below_luminosity_w, *[value for cell in chunk for value in cell]))
         cur = conn.execute(
             "DELETE FROM bright_stars WHERE luminosity_w < ? AND star_system_id IS NULL"
             f" AND (shell_index, band_index, wedge_index) IN ({placeholders})",
