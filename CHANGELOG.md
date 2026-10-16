@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1564] - 2026-10-16
+
+**Headline:** The plan now has a study of how a course accounts for the gravity of stars a cell leaves out.
+
+### Added
+- **NAV.62, the gravity of the unresolved mass, in 8.5 (Boss, 5:01 PM EDT).** A dense cell resolves only its brightest stars under the cell cap (GEN.364); the item studies how the pull of the rest, derived from the same density model and address (GEN.281), joins the galactic potential and the courses that bend around gravity wells. NAV.26 waits on it. Goal issue #1680.
+
+TODO items resolved: none / Added: NAV.62
+
 ## [8.0.1563] - 2026-10-16
 
 **Headline:** The TODO list records a second sighting of the galaxy-grid fuzz failure and a suggested fix.
