@@ -1,0 +1,27 @@
+{#- An uncharted phenomenon (/uncharted-phenomenon/<id>, web/system_pages.py): a black hole, neutron star,
+    remnant, planetary nebula, quasar or hypervelocity star the scatter placed in a sector nothing has
+    generated yet (MAP.211). A generated one redirects to its own page. -#}
+{% extends "base.html" %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">{{ type_label }}</span>
+    <span class="badge">Uncharted</span>
+    {%- if distance %}<span class="badge">{{ distance }} from Galactic Center</span>{% endif %}
+    {%- if sector %}<span class="badge">Sector: <a href="{{ sector.url }}">{{ sector.name }}</a></span>{% endif %}
+  </p>
+</div>
+{% endblock %}
+{% block content %}
+{%- if built_note %}<p>{{ built_note }}</p>{% endif %}
+<section class="panel" aria-labelledby="phenomenon-data-heading">
+  <h2 id="phenomenon-data-heading">{{ type_label }} Data</h2>
+  <div class="table-scroll" tabindex="0"><table>
+    <tbody>
+      {%- for label, text, url in fields %}
+      <tr><th scope="row">{{ label }}</th><td>{% if url %}<a href="{{ url }}">{{ text }}</a>{% else %}{{ text }}{% endif %}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

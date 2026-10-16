@@ -378,7 +378,12 @@ function phenomenonActions(item) {
   var spec = { bookmark: endpointBookmark(endpoint, item.name, sceneData.phenomenonUrl ? phenomenonUrl(item) : null) };
   // Not while choosing a NAV endpoint (NAV.30): it would leave the course.
   if (sceneData.phenomenonUrl && !navPick.active()) {
-    spec.links = [{ href: phenomenonUrl(item), label: "View phenomenon →" }];
+    // A scattered point that nothing has built has no record of its own: its page is the scatter row's
+    // (MAP.211), which sends a visitor on to the object once its sector is generated.
+    var href = item.scattered && sceneData.unchartedPhenomenonUrl
+      ? String(sceneData.unchartedPhenomenonUrl).replace("{id}", encodeURIComponent(String(item.id).replace(/^s/, "")))
+      : phenomenonUrl(item);
+    spec.links = [{ href: href, label: "View phenomenon →" }];
   }
   if (sceneData.navUrl) {
     spec.nav = navPick.actionsFor(endpoint, item.name);

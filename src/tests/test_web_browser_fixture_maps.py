@@ -735,7 +735,7 @@ OPEN_UNCHARTED = f"?sector={UNCHARTED_CODE}&open=1"
 def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_marks_it(page, map_site):
     """MAP.162: a sector nothing was generated in opens in the Galaxy Map from what the scatters left in it,
     carrying an "uncharted" mark in its crumb, its info panel and a badge in the map's frame; its objects
-    pick (without a page or course buttons) and Up leaves it selected without the mark."""
+    pick (a scattered phenomenon with its uncharted page, none with course buttons) and Up leaves it selected without the mark."""
     _open_galaxy(page, map_site, OPEN_UNCHARTED)
     page.wait_for_selector(".sector-uncharted-badge", state="attached")
     badge = page.locator(".sector-uncharted-badge")
@@ -761,7 +761,14 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
             break
     assert picked, "no click on the uncharted sector picked one of its objects"
     assert "its sector is not charted yet" in info.inner_text()
-    assert info.locator("a", has_text="View").count() == 0, "an uncharted object has no page to view"
+    # MAP.211: a scattered phenomenon has an uncharted page to view; a bright star waiting for its sector has none.
+    waiting_star = picked.endswith(" star (uncharted)") and not picked.startswith("Hypervelocity")
+    view = info.locator("a", has_text="View phenomenon")
+    if waiting_star:
+        assert view.count() == 0, "a waiting bright star has no page to view"
+    else:
+        assert view.count() == 1
+        assert "/uncharted-phenomenon/" in view.get_attribute("href")
     assert info.locator("button", has_text="Start Here").count() == 0
     page.click('#galaxymap3d-controls [data-action="up"]')
     _settle(page)

@@ -41,7 +41,7 @@ import colorsys
 import math
 
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.web.lib.fmt import format_distance_ly, format_luminosity_sol, format_number
+from planetgen.web.lib.fmt import format_distance_ly, format_luminosity_sol, format_number, format_speed_kms
 
 try:
     from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -1215,7 +1215,7 @@ _UNCHARTED_RADIUS_LY = {"nebula": 1.5, "supernova_remnant": 1.0}
 _UNCHARTED_COMPACT_RADIUS_LY = 0.02
 
 # A hypervelocity star is a bright blue-white star ejected from the core.
-_HYPERVELOCITY_STAR = {"star_type": "B", "temperature_k": 15000.0, "luminosity_sol": 2000.0, "radius_sol": 5.0}
+HYPERVELOCITY_EXPECTED_STAR = {"star_type": "B", "temperature_k": 15000.0, "luminosity_sol": 2000.0, "radius_sol": 5.0}
 
 _UNCHARTED_LABELS = {
     "black_hole": "Black hole", "neutron_star": "Neutron star", "nebula": "Planetary nebula",
@@ -1229,22 +1229,28 @@ def _uncharted_position_px(position_pc, center_pc, half_edge_pc):
     return nx * _SCENE_HALF_PX, -ny * _SCENE_HALF_PX, nz * _SCENE_HALF_PX
 
 
-def _uncharted_star_entry(star, x_px, y_px, z_px, name):
-    """One waiting star (a `bright_stars` row, or `_HYPERVELOCITY_STAR`) as a scene star
-    entry; it has no system page, so no `href`."""
+def _uncharted_star_entry(star, x_px, y_px, z_px, name, href=None, speed_kms=None, type_label=None):
+    """One waiting star (a `bright_stars` row, or `HYPERVELOCITY_EXPECTED_STAR`) as a scene star
+    entry. It has no system page; a scattered phenomenon carries the `href` of its uncharted page when
+    the caller gives `link_url` (MAP.211)."""
     luminosity_w = star["luminosity_sol"] * SOLAR_LUMINOSITY
     radius_km = star["radius_sol"] * _SUN_RADIUS_KM if star.get("radius_sol") else None
     temperature_k = star["temperature_k"] or 5778.0
     fill, stroke = star_color(star["star_type"], temperature_k, luminosity_w)
-    return {
+    entry = {
         "x": x_px, "y": y_px, "z": z_px, "r": _star_dot_radius(radius_km),
         "light": _star_light(luminosity_w, radius_km, temperature_k),
         "fill": fill, "stroke": stroke, "name": name, "starType": star["star_type"],
         "luminositySol": star["luminosity_sol"], "temp": f"{int(temperature_k)} K", "uncharted": True,
     }
+    for key, value in (("href", href), ("typeLabel", type_label),
+                       ("speedText", None if speed_kms is None else format_speed_kms(speed_kms))):
+        if value:
+            entry[key] = value
+    return entry
 
 
-def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, generate=None):
+def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, generate=None, link_url=None):
     """
     The scene JSON of a sector nothing was generated in (MAP.162): what the
     scatters left in the cell, drawn like a generated sector's contents so
@@ -1259,8 +1265,11 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         edge_pc (float): The grid's sector edge.
         contents (dict): `db.query.uncharted_sector_contents`: `stars` and `scattered`.
         generate (dict, optional): `generate_target`, for the Generate buttons.
+        link_url (callable, optional): Builds `href` for a scattered phenomenon (MAP.211): called as
+            `link_url("uncharted_phenomenon", scatter_id=...)`; without it they carry none.
     """
     half_edge_pc = edge_pc / 2.0
+    href_of = (lambda row: link_url("uncharted_phenomenon", scatter_id=row["id"])) if link_url else (lambda row: None)
     stars, clouds = [], []
     for star in contents["stars"]:
         x_px, y_px, z_px = _uncharted_position_px((star["x"], star["y"], star["z"]), center_pc, half_edge_pc)
@@ -1273,7 +1282,8 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         x_px, y_px, z_px = _uncharted_position_px((row["x"], row["y"], row["z"]), center_pc, half_edge_pc)
         if row["type"] == "hypervelocity_star":
             stars.append(_uncharted_star_entry(
-                _HYPERVELOCITY_STAR, x_px, y_px, z_px, f"Hypervelocity star ({UNCHARTED_LABEL.lower()})"))
+                HYPERVELOCITY_EXPECTED_STAR, x_px, y_px, z_px, f"Hypervelocity star ({UNCHARTED_LABEL.lower()})",
+                href=href_of(row), speed_kms=row.get("speed_kms"), type_label="Hypervelocity star"))
             continue
         kind_label = _UNCHARTED_LABELS.get(row["type"], row["type"].replace("_", " ").capitalize())
         radius_ly = _UNCHARTED_RADIUS_LY.get(row["type"], _UNCHARTED_COMPACT_RADIUS_LY)
@@ -1287,6 +1297,8 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         cloud = _cloud_data(lambda *args, **kwargs: None, phenomenon, x_px, y_px, z_px,
                             _phenomenon_cloud_radius_px(radius_ly, half_edge_pc * 1000.0), brightest_sol)
         cloud.pop("href", None)
+        if href_of(row):
+            cloud["href"] = href_of(row)
         cloud.pop("nebulaId", None)        # a scatter row has no mesh to fetch
         cloud["uncharted"] = True
         light = _UNCHARTED_LIGHTS.get(row["type"])

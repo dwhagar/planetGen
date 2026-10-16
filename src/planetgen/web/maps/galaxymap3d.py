@@ -432,7 +432,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               system_url=None, stage_path="/galaxy/stage", window_path="/galaxy/window",
                               locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
-                              nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None):
+                              nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
+                              uncharted_phenomenon_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -502,6 +503,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             which the map opens in place with an "Uncharted" mark when it
             holds scattered objects (MAP.162); without it such a cell is
             only selected.
+        uncharted_phenomenon_url (str, optional): The page of a scattered
+            phenomenon, `{id}` where its `phenomenon_scatter` row id goes
+            (MAP.211): the "View phenomenon" link of a point not yet built.
         pick (dict or None): The NAV page's pick mode
             (`web/galaxy_views._pick_from_args`): `pick` ("from" or
             "to"), `banner` and `cancel` (the NAV page with the other
@@ -554,6 +558,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "navUrl": nav_url,
         "sectorUrl": sector_url,
         "unchartedSceneUrl": uncharted_scene_url,
+        "unchartedPhenomenonUrl": uncharted_phenomenon_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
         "systemUrl": system_url,
