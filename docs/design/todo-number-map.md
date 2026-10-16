@@ -1062,7 +1062,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.205 | Galaxy Map block ladder for shells | none | done, PR #1612 |
 | MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | none | open |
-| MAP.208 | Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass | none | open |
+| MAP.208 | Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass | none | done, PR #1774 |
 | MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) | none | open |
 | MAP.210 | Nothing on the map can be selected, even in sector view (bug) | none | open |
 | MAP.211 | Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug) | none | open |

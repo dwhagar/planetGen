@@ -227,7 +227,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.211 | Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug) |  |  |
 | MAP.210 | Nothing on the map can be selected, even in sector view (bug) |  |  |
 | MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) |  |  |
-| MAP.208 | Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass |  |  |
 | POP.13 | A species editor: create and edit species and their environment limits |  |  |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
