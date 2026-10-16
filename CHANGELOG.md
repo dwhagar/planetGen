@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1514] - 2026-10-16
+
+**Headline:** The to-do list retires the superbubble field (GEN.254) and the fill stages with the pulsar system pass (GEN.251), and files the remnant-in-bubble follow-up.
+
+### Changed
+
+- Retired GEN.254 (#1814) and GEN.251 (#1815), cleared GEN.251 as a prerequisite and added build notes on GEN.130, GEN.241 and GEN.264; filed GEN.298 and added a TEST.174 sighting.
+
+TODO items resolved: GEN.254, GEN.251 / Added: GEN.298
+
 ## [8.0.1513] - 2026-10-16
 
 **Headline:** A sector fill runs as stages that each draw from their own random stream, and a scattered pulsar gets its planets only when its sector is filled.
