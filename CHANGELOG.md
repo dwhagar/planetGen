@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1456] - 2026-10-16
+
+**Headline:** The to-do list lowers the halo luminosity floor's lowest value to 50 and adds a horizontal-branch acceptance test.
+
+### Changed
+
+- Updated GEN.283 and UX.116 for Boss's word of 2026-10-15 at 10:06 PM EDT: the halo luminosity floor's lowest allowed value is now 50 (the default stays 500), which also lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` to 50. GEN.286 gains an acceptance test for horizontal-branch stars in sector generation in the proper proportions.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1455] - 2026-10-16
 
 **Headline:** The cache warm-up item now makes every kind of warm-up a visible task in the admin queue.
