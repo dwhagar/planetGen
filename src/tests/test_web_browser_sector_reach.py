@@ -124,7 +124,8 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
     away again drops it past 3 edges."""
     distance = _zoom_in_until(page, reach, 1.4)
     assert distance <= 1.4, f"the window's nearest zoom stops {distance:.2f} edges from the sector's centre"
-    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyAmbient() !== null", timeout=15000)
+    # The scene is up once it is fetched; its share is set by the frame after (slow under load).
+    page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0", timeout=30000)
     page.wait_for_timeout(300)
     ambient = _ambient(page)
     assert ambient["id"] == reach.id
@@ -140,6 +141,8 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
         _wheel(page, _spot(page, reach), -40)
         page.wait_for_timeout(100)
         shares.append(_ambient(page)["share"])
+    page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0.999", timeout=30000)
+    shares.append(_ambient(page)["share"])
     assert shares == sorted(shares), shares
     assert shares[-1] == pytest.approx(1.0, abs=1e-6), shares
     assert _camera(page)["zoom"] > 0, "the camera is still in the window"
