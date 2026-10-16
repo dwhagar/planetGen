@@ -163,7 +163,7 @@ def test_changing_an_affiliation_and_refusing_a_move(admin, anonymous, world):
 
     assert admin.patch(url, json={}).status_code == 400
     assert admin.patch(url, json={"placement": "standalone"}).status_code == 400
-    assert admin.patch("/api/facilities/FFFFFFFFFF-FFFFFFF-FFF", json={"name": "Ghost"}).status_code == 404
+    assert admin.patch("/api/facilities/FFFFFFFFFFFFFF-FFFFFFF-FFF", json={"name": "Ghost"}).status_code == 404
     assert anonymous.patch(url, json={"name": "X"}).status_code == 401
 
 

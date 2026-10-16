@@ -44,3 +44,4 @@ Commit each file came from:
 - v89: c6c22061 (DB.28 facility types, before the MAP.151b ladder_step)
 - v90: b73bb27 (MAP.151b block ladder, before DB.32 spherical sectors)
 - v91: c8fec05c (DB.32 spherical sectors, before the MAP.205 block totals on shells)
+- v92: 0980a8e (MAP.205 block totals on shells, before GEN.230/GEN.233/GEN.223 96-bit IDs)

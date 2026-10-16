@@ -1127,8 +1127,8 @@
 -- v78: object IDs (DB.20, GEN.170, `galaxy/object_uid.py`) replace v58's
 --   hashed `uid`s. Every object table (`star_systems`, `stars`, `planets`,
 --   `moons`, `asteroid_belts`, `comets`, the eight phenomenon tables and
---   `facilities`) has `uid BINARY(10)`, UNIQUE on its own: 80 bits, the
---   birth sector's address (40), a serial in that sector (28; the top two
+--   `facilities`) has `uid BINARY(10)` (BINARY(12) since v93), UNIQUE on its own: 80
+--   bits, the birth sector's address (40), a serial in that sector (28; the top two
 --   bits say generated, run-time or field-drawn) and a body number (12; 0
 --   for the top-level object, 1 and up for the stars, planets, moons,
 --   belts and comets born in a system). Given once at birth and never
@@ -1257,6 +1257,26 @@
 -- v92: `galaxy_block_stats` again, for the block ladder on shells (MAP.205): keyed
 --   `(m, shell_index, band_index, wedge_index)`, no `ladder_step` (the ladder is the
 --   code's `galaxy/drill.py`; a ladder change is a migration that refills the table).
+--
+-- v93 (GEN.230, GEN.233, GEN.223): every `uid` is `BINARY(12)`, the 96-bit object ID
+--   (19, 18 and 19 bits of shell, biased band and wedge, a 28-bit serial and a 12-bit
+--   body number): the 80-bit ID's 12-bit band field could not name a polar cell past
+--   shell 1,303. The migration renumbers by moving each field to its new place (the
+--   serial and body are untouched), in the object tables, `nebula_field`,
+--   `id_counters` (the scope of a sector's counter is 7 bytes now) and `sectors.uid`
+--   (the designation; a sector with no grid address counts up from `1 << 56`).
+--   `galaxy_shape.reach_shell_index`: the outermost shell the grid has an address for,
+--   by default 65,535 (262 kpc); the outline (`outer_shell_index`) still says where the
+--   disk's content ends. `bright_stars` and `phenomenon_scatter` store their point in
+--   space as every other object does: position in milliparsecs (now DOUBLE, so a slow
+--   drift is not rounded away), velocity vector in km/s, `epoch_unix` and an indexed
+--   `next_update_due`; the orbit update moves them while they are unbuilt. Both also gain
+--   `member_count` and `system_mass_solar` (NULL for a single object) and the new tables
+--   `scatter_members` and `scatter_nodes` hold the companions of a scattered system (multi-star
+--   note, sections 5, 13, 14); nothing writes them yet. Every table that holds a point in
+--   the galaxy frame also has `cell_key`, a generated Morton key of its 0.25 pc cube, and the
+--   covering index (cell_key, x, y, z) (region queries; `galaxy/cellkey.py`); `star_systems`
+--   gets `galaxy_x/y/z_pc` for it, since its own position is relative to its sector.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1447,6 +1467,7 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- plan`, not picked as an arbitrary radius. (v32; `outer_ring_index`
     -- until v91.)
     outer_shell_index            INT NOT NULL,
+    reach_shell_index            INT NOT NULL DEFAULT 65535,  -- v93 (GEN.233), see header comment
 
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
@@ -1598,6 +1619,15 @@ CREATE TABLE IF NOT EXISTS star_systems (
     position_x_mpc          DOUBLE,
     position_y_mpc          DOUBLE,
     position_z_mpc          DOUBLE,
+    -- v93: the system's point in the galaxy frame, parsecs: its sector's center plus the position above, turned to the
+    -- galaxy's axes (`frame.local_to_galaxy_pc`). NULL iff the position or the sector's center is NULL.
+    galaxy_x_pc          DOUBLE,
+    galaxy_y_pc          DOUBLE,
+    galaxy_z_pc          DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(galaxy_x_pc) < 262144 AND ABS(galaxy_y_pc) < 262144 AND ABS(galaxy_z_pc) < 262144, ((((((((((((CAST(FLOOR(((galaxy_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((galaxy_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((galaxy_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((galaxy_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((galaxy_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((galaxy_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((galaxy_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((galaxy_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((galaxy_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_star_systems_cell (cell_key, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc),
 
     -- Sector octant label derived from the position above (Roman numeral
     -- I-VIII, see the header comment) -- NULL iff position is NULL.
@@ -1714,7 +1744,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_star_systems_uid (uid),
     CONSTRAINT fk_star_systems_sector
@@ -1795,7 +1825,7 @@ CREATE TABLE IF NOT EXISTS stars (
     -- v75 (GEN.87): supernovae within 8 pc per Gyr here, see header comment.
     lethal_event_rate_per_gyr   DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_stars_uid (uid),
     CONSTRAINT fk_stars_star_system
@@ -1961,7 +1991,7 @@ CREATE TABLE IF NOT EXISTS planets (
     reflex_offset_y_km       DOUBLE,
     reflex_offset_z_km       DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2147,7 +2177,7 @@ CREATE TABLE IF NOT EXISTS moons (
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
@@ -2221,7 +2251,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     -- below for queries that need one specific component.
     composition_summary  TEXT NOT NULL,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     CONSTRAINT fk_asteroid_belts_star_system
@@ -2315,7 +2345,7 @@ CREATE TABLE IF NOT EXISTS comets (
     spin_axis_z                 DOUBLE,
     axial_tilt_deg              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_comets_uid (uid),
     CONSTRAINT fk_comets_star_system
@@ -2394,6 +2424,10 @@ CREATE TABLE IF NOT EXISTS black_holes (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_black_holes_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2407,7 +2441,7 @@ CREATE TABLE IF NOT EXISTS black_holes (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_black_holes_uid (uid),
     KEY idx_black_holes_name (name),  -- v40: name uniqueness lookups
@@ -2470,6 +2504,10 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_neutron_stars_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2483,7 +2521,7 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_neutron_stars_uid (uid),
     KEY idx_neutron_stars_name (name),  -- v40: name uniqueness lookups
@@ -2557,6 +2595,10 @@ CREATE TABLE IF NOT EXISTS nebulae (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_nebulae_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2585,7 +2627,7 @@ CREATE TABLE IF NOT EXISTS nebulae (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_nebulae_uid (uid),
     KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
@@ -2675,6 +2717,10 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_supernova_remnants_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2683,7 +2729,7 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_supernova_remnants_uid (uid),
     KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
@@ -2733,6 +2779,10 @@ CREATE TABLE IF NOT EXISTS quasars (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_quasars_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2741,7 +2791,7 @@ CREATE TABLE IF NOT EXISTS quasars (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_quasars_uid (uid),
     KEY idx_quasars_name (name),  -- v40: name uniqueness lookups
@@ -2808,6 +2858,10 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_rogue_planets_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2821,7 +2875,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
@@ -2884,6 +2938,10 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_interstellar_comets_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2897,7 +2955,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     UNIQUE KEY uq_interstellar_comets_uid (uid),
@@ -2972,6 +3030,10 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     center_x_pc         DOUBLE,
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_asteroid_fields_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
@@ -2985,7 +3047,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
-    uid                   BINARY(10),
+    uid                   BINARY(12),
 
     -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
     UNIQUE KEY uq_asteroid_fields_uid (uid),
@@ -3125,9 +3187,13 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     shell_index           INT NOT NULL,
     band_index            SMALLINT NOT NULL,
     wedge_index           INT NOT NULL,
-    position_x_mpc       BIGINT NOT NULL,
-    position_y_mpc       BIGINT NOT NULL,
-    position_z_mpc       BIGINT NOT NULL,
+    position_x_mpc       DOUBLE NOT NULL,
+    position_y_mpc       DOUBLE NOT NULL,
+    position_z_mpc       DOUBLE NOT NULL,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(position_x_mpc / 1000.0) < 262144 AND ABS(position_y_mpc / 1000.0) < 262144 AND ABS(position_z_mpc / 1000.0) < 262144, ((((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_bright_stars_cell (cell_key, position_x_mpc, position_y_mpc, position_z_mpc),
     population           VARCHAR(12) NOT NULL,
     star_type            VARCHAR(64) NOT NULL,
     yerkes_class         VARCHAR(16) NOT NULL,
@@ -3143,9 +3209,17 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     star_system_id       BIGINT UNSIGNED,
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     off_plane            TINYINT AS (ABS(position_z_mpc) >= 250000) VIRTUAL,
+    velocity_x_kms       DOUBLE,  -- v93 (GEN.223): the star's point in space, see the header comment
+    velocity_y_kms       DOUBLE,
+    velocity_z_kms       DOUBLE,
+    epoch_unix           DOUBLE,
+    next_update_due      DOUBLE,
+    member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
+    system_mass_solar    DOUBLE,
 
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
+    KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
     CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge')),
     CONSTRAINT fk_bright_stars_system
@@ -3303,9 +3377,13 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     wedge_index           INT NOT NULL,
     kind                 VARCHAR(24) NOT NULL,
     subtype              VARCHAR(16),
-    position_x_mpc       BIGINT NOT NULL,
-    position_y_mpc       BIGINT NOT NULL,
-    position_z_mpc       BIGINT NOT NULL,
+    position_x_mpc       DOUBLE NOT NULL,
+    position_y_mpc       DOUBLE NOT NULL,
+    position_z_mpc       DOUBLE NOT NULL,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(position_x_mpc / 1000.0) < 262144 AND ABS(position_y_mpc / 1000.0) < 262144 AND ABS(position_z_mpc / 1000.0) < 262144, ((((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_phenomenon_scatter_cell (cell_key, position_x_mpc, position_y_mpc, position_z_mpc),
     velocity_x_kms       DOUBLE,
     velocity_y_kms       DOUBLE,
     velocity_z_kms       DOUBLE,
@@ -3314,11 +3392,70 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     epoch_unix           DOUBLE,  -- v69 (GEN.137): when the position holds, see the header comment
     mass_solar           DOUBLE,  -- v80 (MAP.165): see header comment
     map_luminosity_sol   FLOAT,   -- v84 (DB.23): see header comment
+    next_update_due      DOUBLE,  -- v93 (GEN.223): see header comment
+    member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
+    system_mass_solar    DOUBLE,
 
     KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
+    KEY idx_phenomenon_scatter_next_update_due (next_update_due),
     KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment
     CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (
         'black-hole', 'neutron-star', 'planetary-nebula', 'supernova-remnant', 'hypervelocity-star', 'quasar'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Companions of a scatter point (v93, docs/design/multi-star-systems.md section 5): the point is the system's
+-- barycentre, `member_count` and `system_mass_solar` say it has members, and these two tables hold them, one column
+-- per value. `source` 1 is `bright_stars`, 2 `phenomenon_scatter`; no foreign key (the parent is polymorphic), so
+-- the build deletes a built row's members and nodes in its own transaction.
+CREATE TABLE IF NOT EXISTS scatter_members (
+    source               TINYINT NOT NULL,
+    source_id            BIGINT UNSIGNED NOT NULL,
+    member_no            SMALLINT NOT NULL,
+    parent_node_no       SMALLINT NOT NULL,
+    slot                 SMALLINT NOT NULL,
+    kind                 VARCHAR(20) NOT NULL,
+    state                VARCHAR(16),
+    flags                SMALLINT UNSIGNED,
+    offset_x_au          DOUBLE,
+    offset_y_au          DOUBLE,
+    offset_z_au          DOUBLE,
+    velocity_x_kms       DOUBLE,
+    velocity_y_kms       DOUBLE,
+    velocity_z_kms       DOUBLE,
+    decay_age_yr         DOUBLE,
+    mass_solar           DOUBLE NOT NULL,
+    initial_mass_solar   DOUBLE NOT NULL,
+    seed                 BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (source, source_id, member_no),
+    CONSTRAINT chk_scatter_members_source CHECK (source IN (1, 2)),
+    CONSTRAINT chk_scatter_members_kind CHECK (kind IN (
+        'main-sequence', 'giant', 'white-dwarf', 'neutron-star', 'black-hole', 'brown-dwarf',
+        'pre-main-sequence', 'protostar', 'stripped-helium', 'thorne-zytkow', 'wolf-rayet'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS scatter_nodes (
+    source               TINYINT NOT NULL,
+    source_id            BIGINT UNSIGNED NOT NULL,
+    node_no              SMALLINT NOT NULL,
+    parent_node_no       SMALLINT,
+    slot                 SMALLINT,
+    mass_solar           DOUBLE NOT NULL,
+    separation_km        DOUBLE NOT NULL,
+    eccentricity         DOUBLE NOT NULL,
+    inclination_deg      DOUBLE NOT NULL,
+    ascending_node_deg   DOUBLE NOT NULL,
+    arg_periapsis_deg    DOUBLE NOT NULL,
+    mean_anomaly_deg     DOUBLE NOT NULL,
+    epoch_unix           DOUBLE NOT NULL,
+    period_years         DOUBLE NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    interaction          VARCHAR(20),
+    flags                TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (source, source_id, node_no),
+    CONSTRAINT chk_scatter_nodes_source CHECK (source IN (1, 2)),
+    CONSTRAINT chk_scatter_nodes_kind CHECK (kind IN ('close', 'wide', 'compact', 'group')),
+    CONSTRAINT chk_scatter_nodes_interaction CHECK (interaction IS NULL OR interaction IN (
+        'detached', 'semi-detached', 'contact', 'accreting', 'post-common-envelope', 'merger-product'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -3354,7 +3491,11 @@ CREATE TABLE IF NOT EXISTS nebula_field (
     center_x_pc   DOUBLE NOT NULL,
     center_y_pc   DOUBLE NOT NULL,
     center_z_pc   DOUBLE NOT NULL,
-    uid           BINARY(10),
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_nebula_field_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
+    uid           BINARY(12),
     is_stored     TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (cell_i, cell_j, cell_k, n),
     KEY idx_nebula_field_uid (uid)
@@ -3436,9 +3577,9 @@ CREATE TABLE IF NOT EXISTS id_blocks (
 
 -- ---------------------------------------------------------------------
 -- id_counters (v78, DB.20): the next number of each run-time counter of
--- object IDs. `kind` 'sector': `scope` is a birth sector's address (5
+-- object IDs. `kind` 'sector': `scope` is a birth sector's address (7
 -- bytes) and the number the next run-time serial there. `kind` 'system':
--- `scope` is a system's ID (10 bytes) and the number the next body number
+-- `scope` is a system's ID (12 bytes) and the number the next body number
 -- in it. `kind` 'sdel' (PERF.38), empty `scope`: the deletion epoch, one more
 -- with every sector deleted, so the Galaxy Map's stamp tells a deletion
 -- without counting the placed sectors. A row only moves up, on its own autocommitted connection
@@ -3592,6 +3733,10 @@ CREATE TABLE IF NOT EXISTS facilities (
     center_x_pc          DOUBLE,
     center_y_pc          DOUBLE,
     center_z_pc          DOUBLE,
+    -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
+    -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_facilities_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc   DOUBLE,
     velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
@@ -3603,7 +3748,7 @@ CREATE TABLE IF NOT EXISTS facilities (
     epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due      DOUBLE,
     description          TEXT,
-    uid                  BINARY(10),  -- v78 (DB.20), see header comment
+    uid                  BINARY(12),  -- v78 (DB.20), see header comment
     -- v89 (DB.28, POP.10): type, affiliation and ratings, see header comment.
     type_id              BIGINT UNSIGNED,
     affiliation_polity_id BIGINT UNSIGNED,

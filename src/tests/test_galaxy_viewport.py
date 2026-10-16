@@ -257,7 +257,7 @@ def test_planned_slots_in_tile_stay_inside_the_galaxy_outline():
     bounds = GalaxyBounds([(shell, min(1, spherical.band_range(shell)[1])) for shell in shells[:-1]], EDGE_PC)
     inside = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set(), bounds)
     assert inside and len(inside) < len(unfiltered)
-    assert all(bounds.contains(e["shell_index"], e["band_index"]) for e in inside)
+    assert all(bounds.qualifies(e["shell_index"], e["band_index"]) for e in inside)
     assert all(e["shell_index"] != shells[-1] and abs(e["band_index"]) <= 1 for e in inside)
     # An empty outline (none built yet) filters nothing.
     assert planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set(), GalaxyBounds([], EDGE_PC)) \

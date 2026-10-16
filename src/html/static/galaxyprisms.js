@@ -139,10 +139,12 @@ var BAND_ARC_EDGES = 1.0;
 var CAP_CHORD_RADIUS_EDGES = CAP_RIM_WEDGES / TWO_PI;
 // Shells the rim rule cannot cut: shell: [cap colatitude (degrees), wedges per band north to south].
 var HAND_CUT_SHELLS = { 1: [37.5, [12]] };
-// The designation packs shell, biased band and wedge into 40 bits.
-var DESIGNATION_WEDGE_BITS = 16n;
-var DESIGNATION_BAND_BITS = 12n;
-var DESIGNATION_BAND_BIAS = 2048;
+// The designation packs shell, biased band and wedge into 56 bits (object_uid.LAYOUT: 19, 18 and 19 bits).
+var DESIGNATION_WEDGE_BITS = 19n;
+var DESIGNATION_BAND_BITS = 18n;
+var DESIGNATION_BAND_BIAS = 131072;
+// The outermost shell the designation's band field can name (spherical.check_reach).
+var DESIGNATION_MAX_SHELL = 83037;
 var SMOOTH_LIMIT = 1e7;
 
 // Every number up to SMOOTH_LIMIT whose prime factors are only 2, 3, 5 and 7, ascending.
@@ -456,10 +458,10 @@ export function sectorDesignation(shell, band, wedge) {
   return packed.toString(16).toUpperCase();
 }
 
-// sectorDesignation's inverse, or null for anything that isn't one (not hex, past 40 bits, or not a cell of the grid).
+// sectorDesignation's inverse, or null for anything that isn't one (not hex, past 56 bits, or not a cell of the grid).
 export function parseSectorDesignation(text) {
   var hex = String(text == null ? "" : text).trim();
-  if (!/^[0-9A-Fa-f]{1,10}$/.test(hex)) return null;
+  if (!/^[0-9A-Fa-f]{1,14}$/.test(hex)) return null;
   var packed = BigInt("0x" + hex);
   var wedge = Number(packed & ((1n << DESIGNATION_WEDGE_BITS) - 1n));
   var band = Number((packed >> DESIGNATION_WEDGE_BITS) & ((1n << DESIGNATION_BAND_BITS) - 1n)) - DESIGNATION_BAND_BIAS;
@@ -471,7 +473,7 @@ export function parseSectorDesignation(text) {
 // Whether (shell, band, wedge) is a cell of the grid.
 export function cellExists(shell, band, wedge) {
   if (!Number.isSafeInteger(shell) || !Number.isSafeInteger(band) || !Number.isSafeInteger(wedge)) return false;
-  if (shell < 0 || shell >= 4096 || wedge < 0) return false;
+  if (shell < 0 || shell > DESIGNATION_MAX_SHELL || wedge < 0) return false;
   var range = bandRange(shell);
   if (band < range[0] || band > range[1]) return false;
   return wedge < wedgeCount(shell, band);

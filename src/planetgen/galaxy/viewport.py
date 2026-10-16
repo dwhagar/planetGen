@@ -157,7 +157,7 @@ def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_
     for shell_index, band_index, slot_index, x, y, z, distance_pc in slots:
         if (shell_index, band_index, slot_index) in exclude_addresses:
             continue
-        if bounds and not bounds.contains(shell_index, band_index):
+        if bounds and not bounds.qualifies(shell_index, band_index):
             continue
         if shape is not None:
             star_count = predicted_star_count((x, y, z), shape, expected_system_count_at_density_1)

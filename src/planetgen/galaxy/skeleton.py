@@ -46,7 +46,7 @@ from collections import namedtuple
 
 from planetgen import tuning
 from planetgen.galaxy.density import _vertical, bulge_bound, model_terms
-from planetgen.galaxy import object_uid, spherical
+from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
 
 def expected_system_count_at_density_1(edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY):
@@ -85,10 +85,15 @@ def bound_relative_density_at(shape, r_cyl, z):
     return shape.k_norm * _bound_raw_density_at(shape, r_cyl, z)
 
 
-DEFAULT_MAX_SHELL = 100000
+DEFAULT_MAX_SHELL = spherical.MAX_ADDRESSABLE_SHELL
 """int: Hard cap on how far out the shells are walked, so a pathological
 shape with no real outward decay can't scan forever (the default Milky Way
-ends at shell 3,764)."""
+ends at shell 3,764). It is the last shell the object ID can name."""
+
+DEFAULT_REACH_SHELL = 65535
+"""int: The outermost shell of the grid's default reach, 262 kpc at the 4 pc
+edge (GEN.233): it holds the Magellanic Clouds, the Sagittarius remnant, the
+globular clusters and the satellites out to Leo I."""
 
 
 def _band_qualifies(shape, edge_pc, shell, band, threshold_rho):
@@ -177,58 +182,48 @@ def shell_candidate_sector_count(extents):
     return sum(count for _shell, _high, count in shell_candidate_counts(extents))
 
 
-def outline_object_id_layout(extents):
-    """
-    The object-ID layout (`object_uid.Layout`) an outline needs: the
-    default 80 bits when its shells, bands and widest band's wedges fit the
-    12/12/16-bit birth-sector field (the default galaxy does), else the field
-    widened. The plan step calls this, so a galaxy whose addresses cannot be
-    written down is refused before anything is stored.
-
-    Args:
-        extents (iterable): `(shell_index, high_band)` pairs, as
-            `build_shell_extents` returns them (a count may follow).
-
-    Returns:
-        object_uid.Layout: The layout.
-
-    Raises:
-        ValueError: If even 128 bits do not hold the outline's addresses.
-    """
-    rows = list(extents)
-    if not rows:
-        return object_uid.DEFAULT_LAYOUT
-    max_shell = max(row[0] for row in rows)
-    max_band = max(row[1] for row in rows)
-    max_wedges = max(spherical.wedge_count(row[0], 0) for row in rows)
-    return object_uid.fit_layout(max_shell, -max_band, max_band, max_wedges)
-
-
 class GalaxyBounds:
     """
     The galaxy's stored outline on spherical shells, for checking an address
     *before* anything is generated there: every `planetgen galaxy` path and
-    visit-time generation go through `contains`.
+    visit-time generation go through `qualifies`.
+
+    The grid has two extents. The **reach** (`reach_shell_index`) is how far
+    out a cell has an address and defined contents: `contains` answers for
+    it. The **outline** is where the disk and bulge are dense enough to
+    expect a system in a cell: `qualifies` answers for it, and every
+    generation path that decides whether a cell holds anything asks that.
 
     Attributes:
         edge_pc (float): The sector edge the outline was built at.
+        reach_shell_index (int): The outermost shell of the reach.
         high_band (dict): `{shell_index: highest band reached}`; the shell
             holds bands `-high .. high`.
         outer_shell_index (int): The outermost shell; `-1` when nothing holds
             content.
     """
 
-    def __init__(self, shell_extents, edge_pc):
+    def __init__(self, shell_extents, edge_pc, reach_shell_index=DEFAULT_REACH_SHELL):
         """`shell_extents` is `(shell_index, high_band)` pairs, or
         `(shell_index, high_band, cell_count)` triples when the count is
-        stored (it saves counting every band of every shell again)."""
+        stored (it saves counting every band of every shell again).
+
+        Raises:
+            ValueError: A reach the object ID cannot name (`spherical.check_reach`),
+                or one that stops short of the outline.
+        """
+        spherical.check_reach(reach_shell_index)
         self.edge_pc = edge_pc
+        self.reach_shell_index = reach_shell_index
         self.high_band = {}
         self._cells = {}
         for row in shell_extents:
             self.high_band[row[0]] = row[1]
             self._cells[row[0]] = row[2] if len(row) > 2 else spherical.cells_in_band_range(row[0], row[1])
         self.outer_shell_index = max(self.high_band) if self.high_band else -1
+        if self.outer_shell_index > reach_shell_index:
+            raise ValueError(f"the outline reaches shell {self.outer_shell_index}, past the reach "
+                             f"(shell {reach_shell_index})")
         # Cells in shells 0 .. k-1, for k = 0 .. outer + 1.
         self._cumulative = [0]
         for shell in range(self.outer_shell_index + 1):
@@ -238,13 +233,21 @@ class GalaxyBounds:
         return bool(self.high_band)
 
     def contains(self, shell, band):
+        """Whether cell `(shell, band, any wedge)` is in the grid's reach:
+        it has an address and defined contents, however sparse."""
+        if not 0 <= shell <= self.reach_shell_index:
+            return False
+        lowest, highest = spherical.band_range(shell)
+        return lowest <= band <= highest
+
+    def qualifies(self, shell, band):
         """Whether cell `(shell, band, any wedge)` lies inside the galaxy's
-        outline."""
+        outline, where a system is expected."""
         high = self.high_band.get(shell)
         return high is not None and abs(band) <= high
 
     def describe_miss(self, shell, band):
-        """A one-line reason `contains` said no, for error messages."""
+        """A one-line reason `qualifies` said no, for error messages."""
         high = self.high_band.get(shell)
         if high is None:
             return f"shell {shell} is outside the galaxy (shells run from 0 to {self.outer_shell_index})"

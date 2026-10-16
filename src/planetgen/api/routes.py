@@ -958,7 +958,7 @@ def galaxy_cell():
     cell["edge_pc"] = edge_pc
     cell["sector_id"] = get_sector_id_at(conn, *address)
     bounds = get_galaxy_bounds(conn)
-    cell["in_galaxy"] = bounds.contains(address[0], address[1]) if bounds is not None else None
+    cell["in_galaxy"] = bounds.qualifies(address[0], address[1]) if bounds is not None else None
     return jsonify(cell)
 
 

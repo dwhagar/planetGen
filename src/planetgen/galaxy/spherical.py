@@ -48,6 +48,7 @@ import bisect
 import functools
 import math
 
+from planetgen.galaxy import object_uid
 from planetgen.galaxy.frame import (
     galactic_radius_pc,
     galaxy_to_local_pc,
@@ -57,7 +58,7 @@ from planetgen.galaxy.frame import (
 
 __all__ = [
     "BAND_ARC_EDGES", "CAP_RIM_WEDGES", "HAND_CUT_SHELLS", "SectorCell", "ShellLayout",
-    "band_at", "band_center_pc", "band_colatitude_bounds", "band_range", "cell_count", "cell_volume", "cells_in_band_range",
+    "band_at", "band_center_pc", "band_colatitude_bounds", "MAX_ADDRESSABLE_SHELL", "band_range", "cell_count", "cell_volume", "cells_in_band_range", "check_reach",
     "galactic_radius_pc", "galaxy_to_local_pc", "is_cap", "local_to_galaxy_pc",
     "neighbor_addresses", "nth_cell_in_band_range", "parse_sector_designation",
     "provisional_sector_designation", "sector_address_at", "sector_cell_test", "sector_cell_vertices_pc",
@@ -67,23 +68,25 @@ __all__ = [
 
 TWO_PI = 2 * math.pi
 
-DESIGNATION_WEDGE_BITS = 16
-"""int: Low bits of a packed designation holding the wedge -- the 65,536
-wedges the default object ID allows a band (the default Milky Way's widest
-band holds about 23,650)."""
+DESIGNATION_WEDGE_BITS = object_uid.LAYOUT.wedge_bits
+"""int: Low bits of a packed designation holding the wedge (19: the 524,288
+wedges a band may hold; the widest band of shell 65,535, the 262 kpc reach,
+holds about 411,000)."""
 
-DESIGNATION_BAND_BITS = 12
+DESIGNATION_BAND_BITS = object_uid.LAYOUT.band_bits
 """int: Bits above the wedge holding the band, biased by
 `DESIGNATION_BAND_BIAS` so negative bands pack as plain integers."""
 
-DESIGNATION_BAND_BIAS = 1 << (DESIGNATION_BAND_BITS - 1)
-"""int: Added to a band index before packing (bands -2048..2047)."""
+DESIGNATION_BAND_BIAS = object_uid.LAYOUT.band_bias
+"""int: Added to a band index before packing (bands -131,072..131,071; a
+shell's polar cap is band 1.57 times its number, 102,900 at shell 65,535)."""
 
-DESIGNATION_SHELL_BITS = 12
-"""int: Bits above the band holding the shell (shells 0..4095, the default
-Milky Way reaches 3,764). The three fields are the object ID's 40-bit birth
-sector field (`object_uid.DEFAULT_LAYOUT`), so a designation is the first
-group of every object ID born in the sector and is below `1 << 40`."""
+DESIGNATION_SHELL_BITS = object_uid.LAYOUT.shell_bits
+"""int: Bits above the band holding the shell (19 bits; the band field is what
+stops the grid at shell 83,037, see `check_reach`). The three
+fields are the object ID's 56-bit birth sector field (`object_uid.LAYOUT`),
+so a designation is the first group of every object ID born in the sector
+and is below `1 << 56`."""
 
 CAP_RIM_WEDGES = 6
 """int: Wedges meeting a polar cap's rim, and the multiple every band's wedge
@@ -221,7 +224,7 @@ def _smooth_numbers():
 
 SMOOTH_LIMIT = 10 ** 7
 """int: The largest wedge multiplier `m` the rule can pick (about 4,300 at the
-outermost shell of a 40-bit birth-sector field)."""
+outermost shell of the 56-bit birth-sector field, shell 83,037)."""
 
 SMOOTH_MULTIPLIERS = _smooth_numbers()
 """tuple: The numbers `m` may take, ascending: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -430,12 +433,40 @@ def sector_position_pc(shell, band, wedge, edge_pc):
     return (plane * math.cos(lon), plane * math.sin(lon), z)
 
 
+MAX_ADDRESSABLE_SHELL = 83037
+"""int: The outermost shell every cell of which has an address in the object ID (`check_reach` passes it and
+refuses the next shell, whose polar cap band is past the band field); 332 kpc at the 4 pc edge."""
+
+
+def check_reach(outer_shell):
+    """
+    Raises `ValueError` unless every cell of shells `0 .. outer_shell` has an
+    address in the object ID (`object_uid.LAYOUT`): the shell fits the shell
+    field, the shell's polar cap band fits the biased band field, and its
+    equatorial band, the widest, fits the wedge field. The plan calls this
+    with the galaxy's reach, so a reach the ID cannot name is refused before
+    anything is stored (GEN.233).
+    """
+    if outer_shell < 0:
+        raise ValueError(f"a reach of {outer_shell} shells is not a grid")
+    if outer_shell >= (1 << DESIGNATION_SHELL_BITS):
+        raise ValueError(f"shell {outer_shell} does not fit the object ID's {DESIGNATION_SHELL_BITS}-bit shell field")
+    _lowest, highest = band_range(outer_shell)
+    if highest >= DESIGNATION_BAND_BIAS:
+        raise ValueError(f"shell {outer_shell} reaches band {highest}, past the object ID's {DESIGNATION_BAND_BITS}-bit"
+                         f" band field (bands -{DESIGNATION_BAND_BIAS} to {DESIGNATION_BAND_BIAS - 1})")
+    widest = wedge_count(outer_shell, 0)
+    if widest > (1 << DESIGNATION_WEDGE_BITS):
+        raise ValueError(f"shell {outer_shell} has {widest} wedges in its widest band, more than the object ID's"
+                         f" {DESIGNATION_WEDGE_BITS}-bit wedge field holds")
+
+
 def provisional_sector_designation(shell, band, wedge):
     """
     A short, reversible code for a sector address, for referring to one
     before (or without) generating it: shell, biased band and wedge
-    bit-packed into one integer of 40 bits and printed as uppercase hex, e.g.
-    `"FE81000A2B"`. It is the sector field of the object IDs born in the
+    bit-packed into one integer of 56 bits and printed as uppercase hex, e.g.
+    `"FE8100000A2B"`. It is the sector field of the object IDs born in the
     sector (`object_uid`). `parse_sector_designation` undoes it.
 
     Raises:

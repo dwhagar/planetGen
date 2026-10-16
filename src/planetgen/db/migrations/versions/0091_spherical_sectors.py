@@ -54,6 +54,12 @@ _GENERATED, _RUNTIME = 0, 1
 _NO_SECTOR = (0, 0, 0)
 
 
+def _designation(shell, band, wedge):
+    """The sector's designation as v91 wrote it: shell, biased band and wedge in 12, 12 and 16 bits, as uppercase hex.
+    (A copy of what `spherical.provisional_sector_designation` did then; 0093 widens it.)"""
+    return f"{(((shell << 12) | (band + _BAND_BIAS)) << 16) | wedge:X}"
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # The old cylindrical grid (galaxy/geometry.py as of v90), only what the conversion asks of it.
 
@@ -335,7 +341,7 @@ class _Conversion:
             batch = []
             for shell, band, wedge, container, name, wiki, key, version, python, platform in rows:
                 x, y, z = spherical.sector_position_pc(shell, band, wedge, self.edge)
-                designation = spherical.provisional_sector_designation(shell, band, wedge)
+                designation = _designation(shell, band, wedge)
                 count = used.get(container, 0)
                 used[container] = count + 1
                 if name is None:

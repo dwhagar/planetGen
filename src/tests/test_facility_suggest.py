@@ -78,7 +78,7 @@ def test_suggesting_fills_only_what_is_unset(admin, anonymous, world):
     assert result["facility"]["ratings"]["crime"] == "red"                 # the admin's word stands
     assert result["facility"]["ratings_source"] == "admin"
 
-    assert admin.post("/api/facilities/FFFFFFFFFF-FFFFFFF-FFF/suggest-ratings").status_code == 404
+    assert admin.post("/api/facilities/FFFFFFFFFFFFFF-FFFFFFF-FFF/suggest-ratings").status_code == 404
     assert anonymous.post(url).status_code == 401
 
 

@@ -1405,13 +1405,13 @@ def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACEN
     hops = [hop for hop in (route["hops"] if route else []) if hop.get("unknown_space")]
     bounds = get_galaxy_bounds(conn)
     cells = list(dict.fromkeys(cell for hop in hops for cell in hop["unknown_cells"]))
-    inside = [cell for cell in cells if bounds.contains(cell[0], cell[1])]
+    inside = [cell for cell in cells if bounds.qualifies(cell[0], cell[1])]
     outside = len(cells) - len(inside)
     if border and inside:
         listed = set(inside)
         around = dict.fromkeys(
             near for cell in inside for near in neighbor_addresses(*cell)
-            if bounds.contains(near[0], near[1]) and near not in listed)
+            if bounds.qualifies(near[0], near[1]) and near not in listed)
         charted = generated_cells(conn, set(around))
         inside += [cell for cell in around if cell not in charted]
     return {"unknown_hops": len(hops), "cells": inside, "outside_galaxy": outside,
@@ -2604,7 +2604,7 @@ def nebula_surroundings(conn, nebula_id):
 
 
 def _with_printed_uid(row):
-    """A copy of a table row as a dict with its `uid` (a BINARY(10) column, GEN.170) as
+    """A copy of a table row as a dict with its `uid` (a BINARY(12) column, GEN.170) as
     the text the site prints, so the row can be written as JSON."""
     out = dict(row)
     if isinstance(out.get("uid"), (bytes, bytearray)):

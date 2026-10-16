@@ -5,15 +5,15 @@ A sector's ID (GEN.69): its designation (`spherical.provisional_sector_designati
 shell, biased band and wedge packed into one integer. It needs no row, so a
 sector nobody has generated has its ID already; `sector_uid` is the integer,
 `format_sector_uid` the hex the site prints. Every other object's ID is the
-80-bit birth-location ID of `galaxy/object_uid.py` (GEN.170).
+96-bit birth-location ID of `galaxy/object_uid.py` (GEN.170).
 """
 
 from planetgen.galaxy.spherical import parse_sector_designation, provisional_sector_designation
 
 
-UNPLACED_SECTOR_BASE = 1 << 40
+UNPLACED_SECTOR_BASE = 1 << 56
 """int: A sector with no grid address has no designation. Its ID is this plus its row id, above any real
-designation (which fits 40 bits), written once when the sector is saved and never changed."""
+designation (which fits 56 bits), written once when the sector is saved and never changed."""
 
 
 def unplaced_sector_uid(sector_row_id):

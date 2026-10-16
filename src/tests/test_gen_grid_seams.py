@@ -74,12 +74,12 @@ def test_each_shells_highest_band_is_inside_and_the_next_is_not(plan):
     assert bounds.outer_shell_index == outer == extents[-1][0]
     for shell, high in extents[::max(1, len(extents) // 400)]:
         top = spherical.band_range(shell)[1]
-        assert bounds.contains(shell, high) and bounds.contains(shell, -high) and bounds.contains(shell, 0)
-        assert bounds.contains(shell, 0)
+        assert bounds.qualifies(shell, high) and bounds.qualifies(shell, -high) and bounds.qualifies(shell, 0)
+        assert bounds.qualifies(shell, 0)
         plane, z = spherical.band_center_pc(shell, high, EDGE)
         assert bound_relative_density_at(shape, plane, z) >= THRESHOLD
         if high < top:
-            assert not bounds.contains(shell, high + 1) and not bounds.contains(shell, -high - 1)
+            assert not bounds.qualifies(shell, high + 1) and not bounds.qualifies(shell, -high - 1)
             plane, z = spherical.band_center_pc(shell, high + 1, EDGE)
             assert bound_relative_density_at(shape, plane, z) < THRESHOLD or high + 1 == top
             assert bounds.describe_miss(shell, high + 1) == \
@@ -90,7 +90,7 @@ def test_each_shells_highest_band_is_inside_and_the_next_is_not(plan):
 def test_the_shell_past_the_outermost_is_outside(plan):
     _shape_, extents, outer = _plan(plan)
     bounds = GalaxyBounds(extents, EDGE)
-    assert not bounds.contains(outer + 1, 0)
+    assert not bounds.qualifies(outer + 1, 0)
     assert bounds.describe_miss(outer + 1, 0) == \
         f"shell {outer + 1} is outside the galaxy (shells run from 0 to {outer})"
 
@@ -107,12 +107,12 @@ def test_outer_face_of_the_outermost_shell_belongs_to_the_shell_outside(plan):
     inside = (math.nextafter(outer_face, 0.0), 0.0, 0.0)
     shell, band, wedge = spherical.sector_address_at(inside, EDGE)
     assert (shell, band) == (outer, 0)
-    assert bounds.contains(shell, band)
+    assert bounds.qualifies(shell, band)
 
     on_face = (outer_face, 0.0, 0.0)
     shell, band, _wedge = spherical.sector_address_at(on_face, EDGE)
     assert (shell, band) == (outer + 1, 0)
-    assert not bounds.contains(shell, band)
+    assert not bounds.qualifies(shell, band)
 
 
 @pytest.mark.parametrize("plan", ["milky_way", "toy"])
@@ -123,7 +123,7 @@ def test_random_addresses_reach_but_never_pass_the_outermost_shell(plan):
     for max_shell in (outer, outer + 1, outer - 1, 0):
         for _ in range(200):
             shell, band, wedge = bounds.random_address(rng, max_shell=max_shell)
-            assert bounds.contains(shell, band)
+            assert bounds.qualifies(shell, band)
             assert shell <= min(outer, max_shell)
             assert 0 <= wedge < spherical.wedge_count(shell, band)
 
@@ -151,7 +151,7 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
     assert bounds.outer_shell_index == outer
     assert [row[:2] for row in stored] == extents
     assert [row[2] for row in stored] == [spherical.cells_in_band_range(shell, high) for shell, high in extents]
-    assert not bounds.contains(outer + 1, 0)
+    assert not bounds.qualifies(outer + 1, 0)
 
 
 # ---------------------------------------------------------------------------
@@ -198,5 +198,5 @@ def test_every_real_plan_holds_the_core(plan):
     _shape_, extents, _outer = _plan(plan)
     bounds = GalaxyBounds(extents, EDGE)
     assert extents[0] == (0, 0)
-    assert bounds.contains(0, 0)
+    assert bounds.qualifies(0, 0)
     assert bounds.cells_in_shell(0) == 1

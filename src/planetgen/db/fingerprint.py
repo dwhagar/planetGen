@@ -82,14 +82,14 @@ CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS
 LEFT_OUT_TABLES = frozenset({
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs",
-    "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
+    "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes", "sector_system_counts", "nebula_field", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
     "system_configs", "system_config_slots", "galaxy_block_stats",
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module
 docstring; a system configuration counts through the systems that use
 it)."""
 
-LEFT_OUT_COLUMNS = frozenset({"id", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
+LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
 """frozenset: Columns left out of every table: the row id and the clocks."""
 
 LEFT_OUT_TABLE_COLUMNS = {"star_systems": frozenset({"location"})}

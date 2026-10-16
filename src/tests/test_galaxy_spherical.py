@@ -363,12 +363,13 @@ def test_the_module_keeps_the_study_names_and_none_of_the_cylinder_words():
     assert "ring" not in public and "layer" not in public.replace("ShellLayout", "").replace("shell_layout", "")
 
 
-def test_designations_round_trip_and_fit_forty_bits():
+def test_designations_round_trip_and_fit_fifty_six_bits():
     for address in [(0, 0, 0), (1, 1, 0), (1, -1, 0), (4, 6, 0), (4, -6, 0), (10, 0, 59), (3764, 2, 23519),
-                    (1020, 1602, 0), (1020, -1602, 0), (4095, 0, 0)]:
+                    (1020, 1602, 0), (1020, -1602, 0), (4095, 0, 0), (65535, 102942, 0), (65535, -102942, 0),
+                    (65535, 0, 411599), (4096, 6000, 0)]:
         text = spherical.provisional_sector_designation(*address)
         assert spherical.parse_sector_designation(text) == address
-        assert int(text, 16) < 1 << 40 and text == text.upper()
+        assert int(text, 16) < 1 << 56 and text == text.upper()
 
 
 def test_a_designation_is_the_sector_field_of_the_object_ids_born_there():
@@ -385,7 +386,7 @@ def test_designations_of_neighbors_differ_and_sort_by_shell_then_band_then_wedge
     assert keys == sorted(keys) and len(set(keys)) == len(keys)
 
 
-@pytest.mark.parametrize("address", [(4096, 0, 0), (3000, 2048, 0), (3000, -2049, 0), (-1, 0, 0), (3, 5, 0), (3, 0, 18)])
+@pytest.mark.parametrize("address", [(1 << 19, 0, 0), (90000, 131072, 0), (90000, -131073, 0), (-1, 0, 0), (3, 5, 0), (3, 0, 18)])
 def test_a_designation_outside_the_field_or_the_grid_is_refused(address):
     with pytest.raises(ValueError):
         spherical.provisional_sector_designation(*address)

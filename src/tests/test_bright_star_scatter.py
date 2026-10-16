@@ -757,7 +757,7 @@ class _Everywhere:
     """Bounds that contain every cell."""
 
     @staticmethod
-    def contains(_shell, _band):
+    def qualifies(_shell, _band):
         return True
 
 
@@ -767,7 +767,7 @@ class _InsideShell(_Everywhere):
     def __init__(self, outer):
         self.outer = outer
 
-    def contains(self, shell, band):
+    def qualifies(self, shell, band):
         return shell <= self.outer and band == 0
 
 

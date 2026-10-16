@@ -453,7 +453,7 @@ export function parseAddress(text, edgePc) {
     const point = [Number(match[1]), Number(match[2]), Number(match[3])];
     return { sector: sectorAddressAt(point[0], point[1], point[2], edgePc), point: point };
   }
-  if (/^[0-9A-Fa-f]{7,10}$/.test(raw)) {
+  if (/^[0-9A-Fa-f]{7,14}$/.test(raw)) {
     const sector = parseSectorDesignation(raw);
     if (!sector) return { problem: "There is no sector " + raw.toUpperCase() + "." };
     return { sector: sector };
@@ -463,7 +463,7 @@ export function parseAddress(text, edgePc) {
 
 // Why shell/band/wedge is not a cell of the grid.
 function addressProblem(sector) {
-  if (!(sector.shell >= 0) || sector.shell >= 4096) return "There is no shell " + sector.shell + ".";
+  if (!(sector.shell >= 0) || sector.shell > 83037) return "There is no shell " + sector.shell + ".";
   const range = bandRange(sector.shell);
   if (sector.band < range[0] || sector.band > range[1]) {
     return "Shell " + sector.shell + " has bands " + range[0] + " to " + range[1] + ", not " + sector.band + ".";

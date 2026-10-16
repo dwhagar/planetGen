@@ -204,7 +204,7 @@ def test_the_outline_and_what_a_block_can_hold_match_python():
     blocks.append(DrillBlock(3, outer // 3, 0, 0))          # on the outer edge
     pole = drill_band_count(3, 667) // 2
     blocks.append(DrillBlock(3, 667, pole, 0))              # high above the disk
-    expected = [sum(1 for a in block_addresses(b) if bounds.contains(a[0], a[1])) for b in blocks]
+    expected = [sum(1 for a in block_addresses(b) if bounds.qualifies(a[0], a[1])) for b in blocks]
     got = _run(f"""
 const outlineShape = {json.dumps(_shape_with_threshold())};
 const outline = P.galaxyOutline({EDGE_PC}, outlineShape, {(outer + 1) * EDGE_PC});
@@ -233,7 +233,7 @@ const outlineShape = {json.dumps(_shape_with_threshold())};
 const outline = P.galaxyOutline({EDGE_PC}, outlineShape, {(outer + 1) * EDGE_PC});
 console.log(JSON.stringify({json.dumps(sectors)}.map(([s, b, w]) => P.sectorInOutline(s, b, w, outline))));
 """)
-    assert got == [bounds.contains(shell, band) for shell, band, _ in sectors]
+    assert got == [bounds.qualifies(shell, band) for shell, band, _ in sectors]
 
 
 @pytest.mark.parametrize("address", [(0, 0, 0), (1, 0, 3), (1, 0, 5), (30, 0, 10), (30, 5, 7), (500, -9, 100)])

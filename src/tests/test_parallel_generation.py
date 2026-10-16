@@ -338,7 +338,7 @@ def test_unplaced_sectors_on_two_workers_are_each_saved_once(galaxy_db, monkeypa
 
 
 def test_every_object_has_its_object_id_whatever_the_worker_count(make_database, monkeypatch):
-    """TEST.110: none missing (every row of every object table holds a 10-byte ID), none repeated (the unique key
+    """TEST.110: none missing (every row of every object table holds a 12-byte ID), none repeated (the unique key
     would refuse it, and the sets are compared), and the same IDs on one worker and on four."""
     tables = ("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets", *store.PHENOMENON_UID_TABLES)
     found = {}
@@ -355,7 +355,7 @@ def test_every_object_has_its_object_id_whatever_the_worker_count(make_database,
     assert found[1]["star_systems"] and found[1]["stars"] and found[1]["planets"]
     for table, uids in found[1].items():
         assert None not in uids, table
-        assert all(len(uid) == 10 for uid in uids), table
+        assert all(len(uid) == 12 for uid in uids), table
         assert len(set(uids)) == len(uids), table
     assert found[1] == found[4]
     everything = [uid for uids in found[1].values() for uid in uids]
