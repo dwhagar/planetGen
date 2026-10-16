@@ -171,7 +171,6 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_GENERATION_STATS": "off in the test suite",
     "PLANETGEN_OBJECT_TIMING_FULL": "a benchmark run keeps a timing row for every object (PERF.92)",
     "PLANETGEN_MIGRATIONS_DIR": "the migration scripts' folder",
-    "PLANETGEN_SETTINGS_DIR": "the galaxy settings files' folder (ADM.18), not config.json",
     "PLANETGEN_MYSQL_SQL_MODE": "the test suite's SQL mode",
     "PLANETGEN_TEST_REDIS_URL": "the test suite's Redis",
     "PLANETGEN_STAGE_OFFSET": "set by the job runner: stages before this step's",

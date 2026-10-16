@@ -66,7 +66,7 @@ Field metadata goes in `json_schema_extra` under `x-` keys, declared through one
 
 This enforces "everything except the database" by file permission, not only by hiding fields.
 
-**ADM.18 stays separate.** The galaxy-creation JSON must reproduce a galaxy regardless of deployment. Give it its own model (`GalaxyCreationSettings`, own `schema_version`) with the same metadata conventions, never inside `config.json` or `settings.json` (see [reproducible-galaxies.md](reproducible-galaxies.md)).
+**No galaxy settings file (ADM.50).** ADM.18's galaxy-creation JSON was removed; the galaxy keeps an internal record in the database instead (see [reproducible-galaxies.md](reproducible-galaxies.md), section 7), and `config.json` is the only settings file.
 
 ### A3. The Admin form generated from the model
 

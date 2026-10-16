@@ -8,7 +8,7 @@ thread). This is the design note OPS.11 asks for.
 
 **Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The astropy-constants fix and the Python 3.9 and 3.10 caveats below are done (GEN.211, OPS.42); the version key's `env` list no longer names astropy.
 
-**Status (2026-10-15).** Built: the fingerprint (GEN.58, #809, `db/fingerprint.py`), the version-key history (OPS.13, #810), the mismatch warning (OPS.14, #876), the per-sector version (DB.7, #813) and `check-db` (DB.8, #893, `db/check.py`). Built: the epoch counter and its PR rule (OPS.56, `planetgen/util/generator_epoch.py`). Still open: the golden test (TEST.77), the battery digest (OPS.57), the history row (OPS.58), the encoder (GEN.136). Dropped by Boss on 2026-10-09: `reproduce` (OPS.12, section 10) and DB.10. ADM.50 proposes removing the galaxy settings file (`galaxy/settings_file.py` still exists). So "planned and not built" in the status block below is out of date for the built items above.
+**Status (2026-10-15).** Built: the fingerprint (GEN.58, #809, `db/fingerprint.py`), the version-key history (OPS.13, #810), the mismatch warning (OPS.14, #876), the per-sector version (DB.7, #813) and `check-db` (DB.8, #893, `db/check.py`). Built: the epoch counter and its PR rule (OPS.56, `planetgen/util/generator_epoch.py`). Still open: the golden test (TEST.77), the battery digest (OPS.57), the history row (OPS.58), the encoder (GEN.136). Dropped by Boss on 2026-10-09: `reproduce` (OPS.12, section 10) and DB.10. ADM.50 removed the galaxy settings file (2026-10-16); section 7 describes what replaced it. So "planned and not built" in the status block below is out of date for the built items above.
 
 **Scope change (Boss, 2026-10-09 20:42Z).** "Remove the idea of us letting
 the USER regenerate an entire galaxy from the seed and version, we'll use
@@ -350,9 +350,9 @@ full key text living on the `generation_runs` row. Detail:
 - **Mismatch warning (OPS.14, built).** `version_check.galaxy_warning` is the
   one check: it names the sectors made by another version (DB.7) and how the
   running release, Python, platform, version key and `requirements.lock` hash
-  differ from those in the galaxy's settings file (ADM.18). `planetgen
+  differ from those in the galaxy's internal record (ADM.50). `planetgen
   galaxy`, `planetgen fingerprint` and the Generate page (`/api/galaxy/shape`'s
-  `version_warning`) show it; a galaxy planned before the settings file has
+  `version_warning`) show it; a galaxy planned before the record existed has
   only the sector part. The reproduce report (GEN.61) will print it too. As
   designed: One check compares the running
   key and hashes with the galaxy's (and each sector's) and names every
@@ -374,49 +374,34 @@ full key text living on the `generation_runs` row. Detail:
   cases (3 to 5 s), compared together with the epoch, so a new Python or
   library that moves a value shows up even when no code changed.
 
-## 7. The settings file (phase 1, then 2)
+## 7. The galaxy's internal record (ADM.50; the settings file is gone)
 
-**Written at creation (ADM.18, phase 1).** When a galaxy is created a
-JSON file is written holding only what reproduction needs:
+**Removed (ADM.50, Boss 2026-10-16).** ADM.18 wrote a JSON settings file for every plan
+(`galaxy/settings_file.py`, a `galaxy-settings` folder beside the Generate jobs, a download on the
+Stats page and two admin routes). All of that is deleted, and `update.sh` removes the old folder
+once. Nothing offers a file to download or to restore from.
 
-- every creation setting, defaults included (all `plan` and new-galaxy
-  options: disk scale length and height, bulge radius, max ring,
-  bright-star floor, prevalence settings and the rest);
-- the 128-bit seed and the version key with its parts spelled out;
-- the corpus and lock hashes;
-- the word list: the filtered list the name generator actually uses
-  (nltk's `words`, about 2.5 MB raw, after `offensive_words.txt` and any
-  name lists), gzip-compressed and base64-encoded, with its SHA-256. A
-  rebuild reads names from this list, not from whatever nltk has
-  installed;
-- the naming key and the codec version ([object-ids.md](object-ids.md),
-  GEN.70), for the objects the codec names;
-- the `generator_epoch`, the fingerprint format version and a
-  `content_sha256` of the canonical body, so the read-back check after a
-  write is one comparison;
-- the admin changes and the positional-update epoch (below).
+**What stays.** The galaxy keeps one internal record of how it was made, in the database and
+overwritten by each new plan (nothing older is kept):
 
-The name is `<32-hex seed>-<22-hex key>-<YYYYMMDD>-<HHMMSS>Z.json` in UTC,
-with no colons, for example
-`9F3A07C2E81B44D5A1C06E7B3D2F9081-0007007F000160030C0300-20261002-022133Z.json`.
-It lives in the site's data directory (path in `config.json`). The Admin
-dashboard offers the current file as a download at any time, with the
-last 10 history rows beside it.
+- the seed, the planning settings and the generated shape: `galaxy_shape`;
+- the naming key and codec version: `galaxy_naming` ([object-ids.md](object-ids.md), GEN.70);
+- the code that planned it: the version key with its parts spelled out, the release, Python and
+  platform, also in `galaxy_shape` (`store.get_galaxy_maker`). The generator epoch (OPS.56,
+  `src/tests/golden/epochs.json`) is part of the version key's meaning, not a second field.
 
-**As built (ADM.18).** `galaxy/settings_file.py` writes the file at the end of
-`planetgen plan` (`run_plan.build_skeleton`), into `galaxy-settings` inside
-the Generate page's jobs directory (`PLANETGEN_SETTINGS_DIR` overrides it).
-It holds the `plan` options (`PLAN_SETTINGS`) plus the resolved edge, outer
-ring and normalisation, the seed, the version key with its parts, the naming
-key, the `requirements.lock` hash and both word lists (the dictionary and the
-offensive list) as gzip + base64 with their SHA-256. The prevalence options
-(ADM.45) are options of the generate runs, not the plan, so they are not in
-the file yet; they join it when that item lands. A plan that changes nothing
-writes nothing; a plan with other settings writes a new file and the old one
-stays as a dated backup (the newest file for the seed is current). The Admin
-dashboard's "Galaxy settings" panel lists the files and offers each as a
-download (`GET /api/admin/galaxy-settings[/<name>]`). The admin-change
-difference and the epoch below are GEN.59 and later.
+The requirements.lock hash and the word lists existed only in the file and are not kept: the epoch
+and the golden files (OPS.56) are how a change of a library that moves a value is caught, and names
+are word salad per Boss's 2026-10-08 decisions.
+
+**The mismatch warning (OPS.14).** `version_check.galaxy_warning` still names the sectors made by
+another version (DB.7); it now also compares the running code with the maker record above
+(`version_check.planned_differences`) and says what differs: the release, Python, platform or
+version key. A galaxy planned before the record existed has only the sector part.
+
+Where the sections below say "the file" for the admin changes, the daily merge, the epoch and
+repair, read "the galaxy's record": they are designs for later items (GEN.59, GEN.61, DB.10) that
+ADM.50 left open, and each will say where its data lives when it is built.
 
 **Admin changes as a net difference (GEN.59, phase 1).** The file keeps
 what seed + key would not produce, not a history:
