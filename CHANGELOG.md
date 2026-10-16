@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1442] - 2026-10-16
+
+**Headline:** GEN.286 now covers the horizontal-branch and AGB phases and no longer waits on GEN.158.
+
+### Changed
+
+- GEN.286 follows Core 3's plan (section 5.3 of the galactic core note, #1735): core helium-burning and AGB phases for stars under 2.2 solar masses, measured effect on the halo scatter rows, no migration.
+- It takes [Fe/H] from GEN.158 when that lands and from interim population defaults until then.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1441] - 2026-10-16
 
 **Headline:** GEN.286 is filed: a horizontal-branch phase in the stellar evolution model (Core 3).
