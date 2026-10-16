@@ -39,8 +39,10 @@
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
-#   7. Ownership/permissions for Apache (`examples/apache/set-permissions.sh`),
-#      since a pull leaves new and changed files owned by root.
+#   7. Ownership/permissions (`examples/apache/set-permissions.sh`): the
+#      whole checkout and its state directory belong to Apache's user
+#      (www-data:www-data), since a pull leaves new and changed files
+#      owned by root. The virtual environment stays root's.
 #   8. The tile cache and Generate jobs directories
 #      (`examples/apache/create-cache-dir.sh`), and the debug and activity
 #      logs (`examples/apache/setup-debug-log.sh`): each one's folder,
@@ -82,7 +84,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HTML_DIR="$SCRIPT_DIR/src/html"
-DB_DIR="$SCRIPT_DIR/db"
 NLTK_DATA_DIR="${PLANETGEN_NLTK_DATA_DIR:-/usr/local/share/nltk_data}"
 
 if [[ $EUID -ne 0 ]]; then
@@ -92,6 +93,12 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 cd "$SCRIPT_DIR"
+
+# The checkout belongs to Apache's user (examples/apache/set-permissions.sh),
+# not to root, and git refuses a repository owned by someone else
+# ("detected dubious ownership"). Trust this one checkout for this run only,
+# through the environment rather than any git config file.
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$SCRIPT_DIR"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "error: $SCRIPT_DIR is not a git checkout -- can't pull an update here." >&2
@@ -173,8 +180,8 @@ else
 fi
 
 echo
-echo "== 7/9: Setting directory ownership/permissions for Apache =="
-PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
+echo "== 7/9: Setting ownership/permissions: the checkout belongs to Apache's user =="
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
 echo
 echo "== 8/9: Checking the cache, jobs and debug log locations =="
@@ -197,6 +204,7 @@ echo
 warm_galaxy_map
 
 echo
+note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     echo "warning: the math check failed (step 4): bulk generation refuses to start until it passes." >&2
 fi

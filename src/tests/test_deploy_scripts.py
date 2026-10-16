@@ -4,9 +4,9 @@
 The root-run deployment scripts in `examples/apache/` (called by
 `install.sh`/`update.sh`):
 
-- `set-permissions.sh` leaves the code tree root-owned (read-only for
-  Apache), gives Apache only the runtime `db/` directory, and locks
-  `config.json` to `root:<apache group>` 640.
+- `set-permissions.sh` gives the whole checkout, `config.json` (640) and
+  the `state/` directory to Apache's user (www-data:www-data), the same
+  way after an install and after an update.
 - `create-cache-dir.sh` imports nothing from the repo: it reads its paths
   with `deploy-paths.py` under `python3 -I`.
 - `setup-debug-log.sh` makes the debug log 0660, never world-writable.
@@ -25,6 +25,7 @@ import json
 import os
 import pathlib
 import pwd
+import re
 import shutil
 import stat
 import subprocess
@@ -364,55 +365,163 @@ def test_can_write_follows_every_folder_on_the_way(open_dir):
 
 # --- set-permissions.sh / create-cache-dir.sh, run for real ------------------
 
-@pytest.fixture
-def deployed(tmp_path):
-    """A fake checkout: src/html with code (owned by www-data, as the old
-    script left it), a legacy db/ dir and a world-readable config.json."""
-    uid, gid = _www_data()
-    repo = tmp_path / "planetGen"
+needs_www_data = pytest.mark.skipif(
+    os.geteuid() != 0 or _www_data() is None,
+    reason="needs root and a www-data user (the Apache identity is given to the script through APACHE_ENVVARS)",
+)
+
+
+def _make_checkout(root):
+    """A fresh `sudo git clone`: everything root's, with the layout the
+    scripts expect. Returns the checkout's path."""
+    repo = root / "planetGen"
     html = repo / "src" / "html"
     (html / "lib").mkdir(parents=True)
     (html / "wsgi.py").write_text("application = None\n")
     (html / "lib" / "fmt.py").write_text("")
     (html / "static").mkdir()
     (html / "static" / "style.css").write_text("")
-    db = repo / "db"
-    db.mkdir()
-    (db / "old.db").write_text("")
-    config = repo / "config.json"
-    config.write_text("{}")
-    os.chmod(config, 0o644)
-    for root, dirs, files in os.walk(html):
-        for name in dirs + files:
-            os.chown(os.path.join(root, name), uid, gid)
-    os.chown(html, uid, gid)
-    return {"repo": repo, "html": html, "db": db, "config": config, "uid": uid, "gid": gid}
+    (repo / "scripts").mkdir()
+    (repo / "scripts" / "tool.sh").write_text("#!/bin/sh\n")
+    (repo / "scripts" / "helper").write_text("#!/bin/sh\n")
+    os.chmod(repo / "scripts" / "helper", 0o755)
+    (repo / "install.sh").write_text("#!/bin/sh\n")
+    (repo / ".git" / "objects").mkdir(parents=True)
+    (repo / ".git" / "HEAD").write_text("ref: refs/heads/main\n")
+    os.chmod(repo / ".git" / "HEAD", 0o444)
+    (repo / "db").mkdir()
+    (repo / "db" / "old.db").write_text("")
+    (repo / "config.json").write_text("{}")
+    os.chmod(repo / "config.json", 0o644)
+    return repo
 
 
-@needs_root
-def test_set_permissions_makes_the_code_root_owned_and_config_640(deployed):
-    subprocess.run([os.path.join(APACHE_DIR, "set-permissions.sh"), str(deployed["html"]), str(deployed["db"])],
-                   check=True, capture_output=True)
-    uid, gid = deployed["uid"], deployed["gid"]
-    for root, dirs, files in os.walk(deployed["html"]):
+def _run_permissions(repo, tmp_path, *args):
+    envvars = tmp_path / "envvars"
+    envvars.write_text("export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data\n")
+    env = dict(os.environ, APACHE_ENVVARS=str(envvars))
+    return subprocess.run([os.path.join(APACHE_DIR, "set-permissions.sh"), str(repo), *args],
+                          env=env, capture_output=True, text=True, check=False)
+
+
+def _snapshot(repo):
+    """(relative path, owner, group, mode) of everything under the checkout."""
+    found = []
+    for root, dirs, files in os.walk(repo):
         for name in [""] + dirs + files:
-            info = os.lstat(os.path.join(root, name))
-            assert (info.st_uid, info.st_gid) == (0, gid), os.path.join(root, name)
-            assert not info.st_mode & (stat.S_IWGRP | stat.S_IWOTH | stat.S_IRWXO)
-    assert stat.S_IMODE(os.stat(deployed["html"] / "wsgi.py").st_mode) == 0o750
-    assert stat.S_IMODE(os.stat(deployed["html"] / "static" / "style.css").st_mode) == 0o640
-    # Runtime data stays Apache's.
-    assert os.stat(deployed["db"] / "old.db").st_uid == uid
-    info = os.stat(deployed["config"])
-    assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (0, gid, 0o640)
+            path = os.path.join(root, name)
+            info = os.lstat(path)
+            found.append((os.path.relpath(path, repo), info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)))
+    return sorted(found)
 
 
-@needs_root
-def test_set_permissions_without_a_config_json(deployed):
-    deployed["config"].unlink()
-    subprocess.run([os.path.join(APACHE_DIR, "set-permissions.sh"), str(deployed["html"]), str(deployed["db"])],
-                   check=True, capture_output=True)
-    assert not deployed["config"].exists()
+@needs_www_data
+def test_set_permissions_gives_the_whole_checkout_to_the_web_user(tmp_path):
+    uid, gid = _www_data()
+    repo = _make_checkout(tmp_path)
+    outside = tmp_path / "outside.txt"
+    outside.write_text("not planetGen's")
+    (repo / "link").symlink_to(outside)
+    proc = _run_permissions(repo, tmp_path)
+    assert proc.returncode == 0, proc.stderr
+    for rel, owner, group, mode in _snapshot(repo):
+        if rel == "link":
+            continue
+        assert (owner, group) == (uid, gid), rel
+        assert not mode & (stat.S_IWGRP | stat.S_IRWXO), rel
+    modes = {rel: mode for rel, _, _, mode in _snapshot(repo)}
+    assert modes["."] == 0o750 and modes["src/html/lib"] == 0o750
+    assert modes["src/html/wsgi.py"] == 0o750 and modes["scripts/tool.sh"] == 0o750
+    assert modes["scripts/helper"] == 0o750  # keeps its owner execute bit, so git sees no change
+    assert modes["src/html/static/style.css"] == 0o640
+    assert modes[".git/HEAD"] == 0o640
+    assert modes["config.json"] == 0o640
+    # The state directory is made, and is the web user's from the start.
+    assert (modes["state"], (repo / "state").is_dir()) == (0o750, True)
+    # A link is never followed: what it points at is not planetGen's to chown.
+    assert os.stat(outside).st_uid == 0
+
+
+@needs_www_data
+def test_set_permissions_takes_a_state_directory_outside_the_checkout(tmp_path):
+    uid, gid = _www_data()
+    repo = _make_checkout(tmp_path)
+    state = tmp_path / "elsewhere" / "state"
+    proc = _run_permissions(repo, tmp_path, str(state))
+    assert proc.returncode == 0, proc.stderr
+    info = os.stat(state)
+    assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o750)
+    assert not (repo / "state").exists()
+
+
+@needs_www_data
+def test_a_fresh_install_and_an_update_leave_identical_ownership(tmp_path):
+    """install.sh and update.sh both end in set-permissions.sh on the whole
+    checkout, so it does not matter which one touched the tree last."""
+    for name in ("install.sh", "update.sh"):
+        with open(os.path.join(REPO_DIR, name), encoding="utf-8") as f:
+            assert '"$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"' in f.read(), name
+
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    fresh = _make_checkout(tmp_path / "a")
+    updated = _make_checkout(tmp_path / "b")
+    # `updated` was installed earlier, then an update pulled new and changed
+    # files as root and left a root-owned bytecode cache behind.
+    assert _run_permissions(updated, tmp_path / "b").returncode == 0
+    for repo in (fresh, updated):
+        (repo / "src" / "html" / "new.py").write_text("")
+        (repo / "src" / "html" / "lib" / "fmt.py").write_text("changed")
+        os.chmod(repo / "src" / "html" / "lib" / "fmt.py", 0o644)
+    (updated / "src" / "html" / "__pycache__").mkdir()
+    (updated / "src" / "html" / "__pycache__" / "wsgi.pyc").write_text("")
+    (fresh / "src" / "html" / "__pycache__").mkdir()
+    (fresh / "src" / "html" / "__pycache__" / "wsgi.pyc").write_text("")
+    shutil.rmtree(updated / "state")  # the install tree can lose it; the next run makes it again
+    assert _run_permissions(fresh, tmp_path / "a").returncode == 0
+    assert _run_permissions(updated, tmp_path / "b").returncode == 0
+    assert _snapshot(fresh) == _snapshot(updated)
+
+
+@needs_www_data
+def test_set_permissions_refuses_a_folder_that_is_not_a_checkout(tmp_path):
+    (tmp_path / "keep").write_text("")
+    proc = _run_permissions(tmp_path, tmp_path)
+    assert proc.returncode != 0
+    assert "doesn't look like a planetGen checkout" in proc.stderr
+    assert os.stat(tmp_path / "keep").st_uid == 0
+
+
+def test_the_update_trusts_its_own_checkout_though_the_web_user_owns_it():
+    """git refuses a repository owned by another user ("dubious ownership"),
+    and the checkout now belongs to www-data while update.sh runs as root."""
+    with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
+        text = f.read()
+    export = 'export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$SCRIPT_DIR"'
+    assert export in text
+    assert text.index(export) < text.index("git rev-parse --is-inside-work-tree")
+
+
+@needs_www_data
+def test_git_as_root_accepts_a_web_user_checkout_with_the_updates_setting(tmp_path):
+    uid, gid = _www_data()
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    for root, dirs, files in os.walk(repo):
+        for name in [""] + dirs + files:
+            os.chown(os.path.join(root, name), uid, gid)
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_CONFIG")}
+    env["HOME"] = str(tmp_path)  # no global safe.directory
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    plain = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, env=env,
+                           capture_output=True, text=True)
+    if plain.returncode == 0:
+        pytest.skip("this git does not check repository ownership")
+    env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="safe.directory", GIT_CONFIG_VALUE_0=str(repo))
+    trusted = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, env=env,
+                             capture_output=True, text=True)
+    assert trusted.returncode == 0, trusted.stderr
 
 
 @needs_root
@@ -568,3 +677,61 @@ def test_scripts_only_name_repo_paths_that_exist():
             if not os.path.exists(os.path.join(REPO_DIR, path)):
                 missing.append(f"{rel}: {path}")
     assert not missing, "\n".join(missing)
+
+
+# --- example configs the admin owns -------------------------------------------
+
+def _example_repo(tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "examples" / "apache").mkdir(parents=True)
+    (repo / "examples" / "redis").mkdir(parents=True)
+    (repo / "examples" / "apache" / "planetgen.conf.example").write_text("one\n")
+    (repo / "examples" / "redis" / "planetgen.conf").write_text("one\n")
+    git = lambda *a: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", *a], cwd=repo,
+                                    check=True, capture_output=True, text=True).stdout.strip()
+    git("init", "-q")
+    git("add", "-A")
+    git("commit", "-q", "-m", "one")
+    return repo, git
+
+
+def _run_note(repo, before, after):
+    script = (f'SCRIPT_DIR="{repo}"; source "{REPO_DIR}/scripts/deploy-common.sh"; '
+              f'cd "{repo}"; note_changed_example_configs "$1" "$2"')
+    return subprocess.run(["bash", "-c", script, "t", before, after], capture_output=True, text=True)
+
+
+def test_the_update_says_when_an_example_config_changed(tmp_path):
+    repo, git = _example_repo(tmp_path)
+    before = git("rev-parse", "HEAD")
+    (repo / "examples" / "apache" / "planetgen.conf.example").write_text("two\n")
+    git("commit", "-qam", "two")
+    after = git("rev-parse", "HEAD")
+    proc = _run_note(repo, before, after)
+    assert proc.returncode == 0, proc.stderr
+    assert "planetgen.conf.example changed in this update" in proc.stdout
+    assert "was not touched" in proc.stdout
+    assert "Redis" not in proc.stdout
+
+
+def test_the_update_stays_quiet_when_no_example_config_changed(tmp_path):
+    repo, git = _example_repo(tmp_path)
+    before = git("rev-parse", "HEAD")
+    (repo / "other.txt").write_text("x")
+    git("add", "-A")
+    git("commit", "-qm", "other")
+    assert _run_note(repo, before, git("rev-parse", "HEAD")).stdout == ""
+    assert _run_note(repo, before, before).stdout == ""
+
+
+def test_the_scripts_never_write_the_admins_apache_or_redis_config():
+    """The vhost and the Redis config are the admin's: only the examples in
+    the repo change, and update.sh says so (note_changed_example_configs)."""
+    for rel in ("install.sh", "update.sh", "scripts/deploy-common.sh", "examples/apache/set-permissions.sh"):
+        with open(os.path.join(REPO_DIR, rel), encoding="utf-8") as f:
+            code = "\n".join(line for line in f.read().splitlines() if not line.lstrip().startswith("#"))
+        for target in ("sites-available/planetgen.conf", "sites-enabled", "/etc/redis"):
+            for line in code.splitlines():
+                # `sudo ...` and echo lines are instructions printed for the admin to run.
+                if target in line and not line.lstrip().startswith(("sudo ", "echo ", "diff ")):
+                    assert not re.search(r"(>|\bsed -i\b|\bcp\b|\bmv\b|\btee\b|\binstall\b|\bln\b)[^|]*" + re.escape(target), line), (rel, line)

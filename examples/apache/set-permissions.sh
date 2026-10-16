@@ -10,46 +10,42 @@
 # root-privileged deployment step, not part of the portable application.
 #
 # Usage:
-#   sudo examples/apache/set-permissions.sh [html-dir] [db-dir]
+#   sudo examples/apache/set-permissions.sh [install-dir] [state-dir]
 #
 # Defaults match the layout documented in docs/html-interface.md and
 # examples/apache/planetgen.conf.example:
-#   html-dir defaults to /var/lib/planetGen/src/html
-#   db-dir   defaults to /var/lib/planetGen/db, but the web interface has
-#            read from a MySQL server (TODO.md Phase 5), not a local
-#            file, since the SQLite-to-MySQL port -- this argument is
-#            kept only for a deployment that still has an old `db/`
-#            directory of pre-port `.db` files lying around (harmless to
-#            chown, and skipped entirely if the directory doesn't exist).
+#   install-dir defaults to /var/lib/planetGen (the checkout: src/, db/,
+#               scripts/, config.json, .git, ... -- install.sh and
+#               update.sh pass the checkout they run from)
+#   state-dir   defaults to <install-dir>/state, the files the web app
+#               writes at run time (the maintenance-mode flag, ...)
 #
 # What it does:
-#   - html-dir is code: recursively owned by root:<Apache group>, so
-#     Apache's worker can read (and import) it but never change it. A web
-#     process that could rewrite the code tree could plant Python that
-#     install.sh/update.sh later run as root; nothing under src/html is
-#     written at runtime (the tile cache and Generate jobs live in their
-#     own directories, see create-cache-dir.sh).
-#   - db-dir is runtime data (the legacy pre-MySQL `.db` files): owned by
-#     Apache's detected user:group (ownership as well as group, so this
-#     doesn't depend on the deploying user's own group memberships).
-#   - Directories: 750 (owner rwx, group r-x, others none) so Apache can
-#     traverse and list them but other local users can't.
-#   - Regular files: 640 (owner rw, group r, others none).
-#   - Every `*.py` file anywhere under html-dir, at any subdirectory
-#     depth (`html/wsgi.py`, ...): 750 (owner+group
-#     read, so mod_wsgi's daemon can import them; mod_wsgi only needs
-#     read access, the execute bit is a leftover from the old CGI pages
-#     and harmless). Reported with a count at the end so a wrong
-#     `html-dir` path is obvious rather than silently matching zero files.
-#   - config.json (at the repo root, two levels above html-dir), when it
-#     exists: root:<Apache group>, mode 640 -- it holds the database
-#     password and the session secret_key, so only root and Apache may
-#     read it.
+#   - The whole install tree, and the state directory (made when it is
+#     missing), belong to Apache's detected user:group (www-data:www-data
+#     on Debian/Ubuntu), so the web app can write what it needs to and
+#     the files look the same whether install.sh or update.sh touched
+#     them last. install.sh and update.sh both call this script, which is
+#     what keeps a fresh install and an updated one identical
+#     (test_deploy_scripts.py checks it).
+#   - Directories: 750 (owner rwx, group r-x, others none).
+#   - Regular files: 640 (owner rw, group r, others none); a file that
+#     already has its owner execute bit, and every `*.py` and `*.sh`
+#     file at any depth (no -maxdepth on purpose: an earlier version
+#     only fixed top-level scripts, which was reported broken), gets 750,
+#     so git sees no mode change and the scripts still run.
+#   - Symbolic links are left alone (chown -h), never followed.
+#   - What stays root's: the virtual environment (/usr/local/planetgen/
+#     venv) and the NLTK corpus. install.sh and update.sh run their
+#     Python as root; the web user must not be able to rewrite it.
+#
+# Apache itself is kept out of everything but the WSGI app and static/
+# by the <Directory> rules in planetgen.conf.example.
 
 set -euo pipefail
 
-HTML_DIR="${1:-/var/lib/planetGen/src/html}"
-DB_DIR="${2:-/var/lib/planetGen/db}"
+INSTALL_DIR="${1:-/var/lib/planetGen}"
+STATE_DIR="${2:-$INSTALL_DIR/state}"
 
 if [[ $EUID -ne 0 ]]; then
     echo "error: must be run as root (needs chown/chgrp), e.g.:" >&2
@@ -57,8 +53,13 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-if [[ ! -d "$HTML_DIR" ]]; then
-    echo "error: html directory not found: $HTML_DIR" >&2
+if [[ ! -d "$INSTALL_DIR" ]]; then
+    echo "error: install directory not found: $INSTALL_DIR" >&2
+    exit 1
+fi
+
+if [[ ! -d "$INSTALL_DIR/src/html" ]]; then
+    echo "error: $INSTALL_DIR doesn't look like a planetGen checkout (no src/html); nothing was changed." >&2
     exit 1
 fi
 
@@ -72,39 +73,29 @@ fi
 
 echo "Detected Apache identity: user=$APACHE_USER group=$APACHE_GROUP"
 echo "Applying permissions to:"
-echo "  html: $HTML_DIR"
-[[ -d "$DB_DIR" ]] && echo "  db:   $DB_DIR" || echo "  db:   $DB_DIR (not found -- skipping)"
+echo "  install: $INSTALL_DIR"
+echo "  state:   $STATE_DIR"
 
 apply_permissions() {
-    local dir="$1" owner="$2"
-    chown -R "$owner:$APACHE_GROUP" "$dir"
+    local dir="$1"
+    chown -R -h "$APACHE_USER:$APACHE_GROUP" "$dir"
     find "$dir" -type d -exec chmod 750 {} +
-    find "$dir" -type f -exec chmod 640 {} +
-
-    # No -maxdepth here on purpose: this must reach *.py files at any
-    # subdirectory depth, not just directly
-    # inside $dir -- a previous version of this script effectively only
-    # fixed the top-level scripts, which is exactly what was reported
-    # broken.
-    find "$dir" -type f -name '*.py' -exec chmod 750 {} +
+    # A file that is already owner-executable keeps that (750); every
+    # other file is 640.
+    find "$dir" -type f ! -perm -u+x -exec chmod 640 {} +
+    find "$dir" -type f -perm -u+x -exec chmod 750 {} +
+    find "$dir" -type f \( -name '*.py' -o -name '*.sh' \) -exec chmod 750 {} +
     local py_count
     py_count="$(find "$dir" -type f -name '*.py' | wc -l | tr -d ' ')"  # BSD wc pads
-    echo "  $dir: owned by $owner:$APACHE_GROUP, made $py_count .py file(s) executable (owner+group)"
+    echo "  $dir: owned by $APACHE_USER:$APACHE_GROUP, $py_count .py file(s) executable (owner+group)"
 }
 
-# The code tree: root-owned, read-only for Apache.
-apply_permissions "$HTML_DIR" root
-# Runtime data: Apache-owned.
-if [[ -d "$DB_DIR" ]]; then
-    apply_permissions "$DB_DIR" "$APACHE_USER"
-fi
-
-# config.json holds the DB password and secret_key.
-CONFIG_JSON="$(cd "$HTML_DIR/../.." && pwd)/config.json"
-if [[ -f "$CONFIG_JSON" ]]; then
-    chown root:"$APACHE_GROUP" "$CONFIG_JSON"
-    chmod 640 "$CONFIG_JSON"
-    echo "  $CONFIG_JSON: owned by root:$APACHE_GROUP, mode 640"
+# The state directory first, so the walk below covers it when it is inside
+# the install tree (the default).
+mkdir -p "$STATE_DIR"
+apply_permissions "$INSTALL_DIR"
+if [[ "$(cd "$STATE_DIR" && pwd -P)/" != "$(cd "$INSTALL_DIR" && pwd -P)/"* ]]; then
+    apply_permissions "$STATE_DIR"
 fi
 
 echo "Done."

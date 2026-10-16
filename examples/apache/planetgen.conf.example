@@ -102,10 +102,55 @@
     # directly apart from static/.
     Alias /static/ /var/lib/planetGen/src/html/static/
 
-    <Directory /var/lib/planetGen/src/html>
-        Options -Indexes
-        Require all granted
+    # Directory restrictions: Apache serves nothing from disk except
+    # static/ (the Alias above) and runs nothing except the WSGI app
+    # (WSGIScriptAlias below). The checkout belongs to the web user
+    # (examples/apache/set-permissions.sh), so Apache is told, in layers,
+    # that nothing in it is a web resource:
+    #
+    #   1. The whole install tree is denied, with no directory listings, no
+    #      handlers and no .htaccess overrides (AllowOverride None also
+    #      stops a stray .htaccess from loosening any of this).
+    #   2. wsgi.py alone is allowed back in src/html, because mod_wsgi
+    #      checks access on the script it is about to run.
+    #   3. static/ is allowed back, for the Alias.
+    #   4. Source, configuration, state, logs, repository metadata and
+    #      secrets are refused by name wherever they sit, so a later
+    #      Alias or Directory change cannot expose them by accident.
+    #
+    # If the checkout is somewhere else, change these paths with the
+    # WSGIScriptAlias and Alias lines. Repeat them in the :443 block.
+    <Directory /var/lib/planetGen>
+        Options None
+        AllowOverride None
+        Require all denied
     </Directory>
+
+    <Directory /var/lib/planetGen/src/html>
+        Options None
+        AllowOverride None
+        Require all denied
+        <Files "wsgi.py">
+            Require all granted
+        </Files>
+    </Directory>
+
+    # Version control metadata anywhere, and the install tree's own
+    # state, data, logs and virtual environment folders, by name.
+    <DirectoryMatch "/\.(git|svn|hg)(/|$)">
+        Require all denied
+    </DirectoryMatch>
+    <DirectoryMatch "^/var/lib/planetGen/(venv|state|jobs|db|data|logs?)(/|$)">
+        Require all denied
+    </DirectoryMatch>
+
+    # Source, configuration, secrets, dumps and editor leftovers, by name,
+    # except the one file mod_wsgi runs. Dotfiles (.env, .htaccess, .git*)
+    # are refused as a class. static/ holds only .css, .js, .mjs, .svg and
+    # licence text, none of which match.
+    <FilesMatch "^(?!wsgi\.py$)(\.|.*\.(py|pyc|pyo|sh|json|ya?ml|toml|ini|cfg|env|lock|sql|dump|log|bak|orig|old|swp|tmp)$|.*~$|(config|settings)\.|(Dockerfile|Makefile)$)">
+        Require all denied
+    </FilesMatch>
 
     # static/ is plain CSS/JS/SVG -- served directly.
     #
@@ -117,6 +162,7 @@
     # URL) is revalidated every time instead, so it can never go stale.
     <Directory /var/lib/planetGen/src/html/static>
         Options -Indexes
+        AllowOverride None
         Require all granted
         <IfModule mod_headers.c>
             Header always set X-Content-Type-Options "nosniff"

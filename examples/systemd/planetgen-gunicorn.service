@@ -39,7 +39,7 @@ Type=notify
 NotifyAccess=main
 # The same identity install.sh/update.sh give the runtime directories to
 # (they detect Apache's user and fall back to www-data when Apache is
-# not installed). The code tree stays root:www-data and read-only.
+# not installed). The checkout belongs to www-data (set-permissions.sh); the venv stays root's.
 User=www-data
 Group=www-data
 WorkingDirectory=/var/lib/planetGen

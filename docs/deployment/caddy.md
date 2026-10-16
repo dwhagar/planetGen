@@ -26,7 +26,7 @@ fits in one short file. gunicorn runs the app exactly as in the
    that runs as the `caddy` user.
 
 3. Let Caddy read `static/` and connect to gunicorn's socket. Both belong
-   to the `www-data` group (the code tree is `root:www-data`, mode
+   to the `www-data` group (the checkout is `www-data:www-data`, mode
    750/640):
 
        sudo usermod -aG www-data caddy
