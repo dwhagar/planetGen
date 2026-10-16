@@ -329,7 +329,8 @@ export function createStageView(host) {
       const fit = fitDistance(entered.fitPoints, view.fit.target, view.quat);
       const near = nearestStarTo(view.target);
       if (fit > 0 && near) {
-        const discPc = SYS.distanceForPixels(SYS.FULL_PX * 1.5, SYS.NOMINAL_RADIUS_PC, canvasEl.clientHeight || 600, camera.fov);
+        const radius = systemRadii.get(near.entry.href) || SYS.NOMINAL_RADIUS_PC;
+        const discPc = SYS.distanceForPixels(SYS.FULL_PX * 1.5, radius, canvasEl.clientHeight || 600, camera.fov);
         const nearest = Math.min(MIN_ZOOM, Math.max(discPc, near.distance / NEAREST_STAR_REACH) / fit);
         return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, MAX_ZOOM);
       }
@@ -1853,6 +1854,10 @@ export function createStageView(host) {
   let systemShare = 0;
   let systemEye = null;
   const systemFailed = new Set();
+  // The real radius (pc) of each system seen so far, by href: a system is taken for 50 AU across until its scene
+  // has been loaded once. Without this a small system would be loaded at 20 px of 50 AU, found too small to stay
+  // (under 10 px), dropped, and loaded again, over and over.
+  const systemRadii = new Map();
 
   function systemCandidates() {
     if (!entered.systemCandidates) {
@@ -1863,7 +1868,7 @@ export function createStageView(host) {
       });
     }
     entered.systemCandidates.forEach(function (c) {
-      c.radiusPc = systemAmbient && systemAmbient.key === c.key && !systemAmbient.loading ? systemStage.radiusPc() : null;
+      c.radiusPc = systemRadii.get(c.key) || null;
     });
     return entered.systemCandidates;
   }
@@ -1907,6 +1912,7 @@ export function createStageView(host) {
         return;
       }
       mine.loading = false;
+      systemRadii.set(candidate.key, geo.radiusPc);
       systemEye = null;
     }, failed);
   }

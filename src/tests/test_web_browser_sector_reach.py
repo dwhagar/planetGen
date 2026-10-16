@@ -224,19 +224,23 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
         ambient = _system_ambient(page)
         if ambient:
             shares.append(ambient["share"])
-        if _camera(page)["zoom"] >= before - 1e-12 and ambient and ambient["share"] >= 0.999:
+        if ambient and ambient["share"] >= 0.999:
             break
     assert shares, "the system's scene never came in"
     assert shares == sorted(shares), shares
     assert shares[-1] == pytest.approx(1.0, abs=1e-6), shares
-    assert len(seen) == 1, seen
+    # A small system is first loaded at the 50 AU it is taken for, found too small to stay and dropped; its real size is
+    # remembered, so it is loaded once more when its disc is big enough, and not again.
+    assert 1 <= len(seen) <= 2, seen
+    fetched = len(seen)
     assert "system=" not in page.url
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystem()") is None
-    # One more tick (the wheel quiet first) opens the system from the scene that is up.
-    page.wait_for_timeout(500)
+    # On to the nearest zoom, then one more tick (the wheel quiet first) opens the system from the scene that is up.
+    _wheel(page, position, -2000)
+    page.wait_for_timeout(600)
     _wheel(page, position, -60)
     page.wait_for_function("() => location.search.includes('system=')", timeout=20000)
     _ready(page)
-    assert len(seen) == 1, "opening the system fetched its scene again"
+    assert len(seen) == fetched, "opening the system fetched its scene again"
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystem()") is not None
     assert _system_ambient(page) is None
