@@ -2577,7 +2577,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   option advances it by a stated extra span in one go. Done when its
   subitems are.
   Headline: 8.0 (the orbital update system).
-  Prerequisites: GEN.115, GEN.109, GEN.110.
+  Prerequisites: GEN.115, GEN.109, GEN.110, GEN.289, GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
   Research (2026-10-09, orbital-solvers-and-integrators.md): the Full
   Algorithm's one-year macro step and "nightly" language are superseded
@@ -2710,7 +2710,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     spheres with cover lists rather than clipping to the sector stencil;
     a star cluster counts as its members; no warnings for unbound flybys
     or hierarchical members.
-    Prerequisite: GEN.115.
+    Boss (2026-10-15, 11:06 PM EDT): the influence set also includes the
+    planets and moons of the system by their point masses, so planets and
+    moons can be captured or ejected (GEN.289 to GEN.291).
+    Prerequisites: GEN.115, GEN.289, GEN.294.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**
@@ -4848,7 +4851,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT, via the coordinator).
   Prerequisites: none. Related: GEN.218, GEN.219, GEN.221, GEN.89.
 
-- [ ] **GEN.289 Planets and moons stored as a position and velocity relative to their star, so perturbations have somewhere to land**
+- [ ] **GEN.289 Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
   GEN.109): today a planet or moon is a distance, a period and a phase
   on a circle (physics and db/store.py advance_orbital_phases:
@@ -4867,10 +4870,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   movement in 1 second, what would the program account for when a black
   hole or neutron star got close to a planetary system, and would
   planets be ejected?) and its answer,
-  /mnt/project-files/research/orbital-encounters/answer.md. Boss has not
-  asked for this to be built; no owner, no queue change.
-  Prerequisite: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
-  GEN.223.
+  /mnt/project-files/research/orbital-encounters/answer.md. Boss asked
+  on 2026-10-15 (11:06 PM EDT) for these gaps to be filled; they join
+  the Phase 2 and 3 workflow and no lane builds them yet. Placement:
+  Phase 2, the first step of the orbital thread, before GEN.109 (Core 1
+  names the migration revision when it is built). Boss's design
+  (2026-10-15, 11:06 PM EDT): at each step in which orbital changes are
+  calculated, a planet or moon is moved by the summed gravitational
+  influence of point masses (the vector of the gravitational gradient of
+  the space it occupies), the other planets and moons of its system
+  counted by their point masses too, plus passing objects such as black
+  holes and neutron stars, so planets can be captured or ejected; the
+  orbital path comes out right and agrees with the
+  pass-through-the-sphere logic (the sector-crossing guard of GEN.223
+  and GEN.265). The planets and moons of a system enter the influence
+  set as point masses next to the passing bodies, so GEN.289's vectors
+  are what GEN.109 moves.
+  Boss (2026-10-15, 11:10 PM EDT): "Use our universal point in space
+  object for all objects and it should have a space for the point mass
+  and the vector of current movement." So every planet and moon is a
+  SpatialPosition3D (physics/position.py, GEN.74), the same object every
+  other body uses: its position, its velocity vector (system frame,
+  relative to the parent) and its point mass (mass_kg, mu following)
+  travel with it, and the gravity sum, the encounter search and the
+  integrator read and write that one object only. Stored one column per
+  component (x, y, z, vx, vy, vz, mass, epoch, parent type and id,
+  dynamical state), no JSON, in the point-column layout GEN.223 built; the
+  orbital elements shown on the pages are derived from the vector, and
+  the circular phase columns are replaced, not kept beside them (no
+  compatibility layer). GEN.294 gives every other object kind the same
+  object and shares one migration with this item: Core 1 places it, next
+  free 0097. Design:
+  /mnt/project-files/research/orbital-encounters/capture-and-ejection-design.md.
+  Prerequisite: GEN.115. Related: GEN.105, GEN.109, GEN.110, GEN.223,
+  GEN.294.
 
 - [ ] **GEN.290 An encounter search that cannot miss a pass at large steps (100 years per second)**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
@@ -4892,8 +4925,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what would the program account for when a black hole or neutron star
   got close to a planetary system, and would planets be ejected?) and
   its answer, /mnt/project-files/research/orbital-encounters/answer.md.
-  Boss has not asked for this to be built; no owner, no queue change.
-  Prerequisite: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
+  Boss asked on 2026-10-15 (11:06 PM EDT) for these gaps to be filled;
+  they join the Phase 2 and 3 workflow and no lane builds them yet.
+  Placement: Phase 2, after GEN.109 and GEN.289. Passing bodies (black
+  holes, neutron stars, any body at or above the host's mass) are
+  searched first; GEN.109's Hill-sphere influence radius decides who
+  joins a system's set. Boss's design (2026-10-15, 11:06 PM EDT): at
+  each step in which orbital changes are calculated, a planet or moon is
+  moved by the summed gravitational influence of point masses (the
+  vector of the gravitational gradient of the space it occupies), the
+  other planets and moons of its system counted by their point masses
+  too, plus passing objects such as black holes and neutron stars, so
+  planets can be captured or ejected; the orbital path comes out right
+  and agrees with the pass-through-the-sphere logic (the sector-crossing
+  guard of GEN.223 and GEN.265).
+  Prerequisites: GEN.109, GEN.289. Related: GEN.105, GEN.109, GEN.110,
+  GEN.115,
   GEN.223.
 
 - [ ] **GEN.291 A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log**
@@ -4915,9 +4962,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   years of movement in 1 second, what would the program account for when
   a black hole or neutron star got close to a planetary system, and
   would planets be ejected?) and its answer,
-  /mnt/project-files/research/orbital-encounters/answer.md. Boss has not
-  asked for this to be built; no owner, no queue change.
-  Prerequisites: GEN.289, GEN.290. Related: GEN.105, GEN.109, GEN.110,
+  /mnt/project-files/research/orbital-encounters/answer.md. Boss asked
+  on 2026-10-15 (11:06 PM EDT) for these gaps to be filled; they join
+  the Phase 2 and 3 workflow and no lane builds them yet. Placement:
+  Phase 2, last step of the orbital thread, after GEN.289, GEN.290 and
+  GEN.110, and before GEN.105 is done (its parent). Boss's design
+  (2026-10-15, 11:06 PM EDT): at each step in which orbital changes are
+  calculated, a planet or moon is moved by the summed gravitational
+  influence of point masses (the vector of the gravitational gradient of
+  the space it occupies), the other planets and moons of its system
+  counted by their point masses too, plus passing objects such as black
+  holes and neutron stars, so planets can be captured or ejected; the
+  orbital path comes out right and agrees with the
+  pass-through-the-sphere logic (the sector-crossing guard of GEN.223
+  and GEN.265).
+  Prerequisites: GEN.109, GEN.289, GEN.290, GEN.110. Related: GEN.105,
+  GEN.109, GEN.110,
   GEN.115, GEN.223, GEN.289, GEN.290.
 
 - [ ] **GEN.292 Run the orbital update for a stated span in one go from the command line (elapsed years)**
@@ -4940,8 +5000,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what would the program account for when a black hole or neutron star
   got close to a planetary system, and would planets be ejected?) and
   its answer, /mnt/project-files/research/orbital-encounters/answer.md.
-  Boss has not asked for this to be built; no owner, no queue change.
-  Prerequisites: none. Related: GEN.105, GEN.223, GEN.290.
+  Boss asked on 2026-10-15 (11:06 PM EDT) for these gaps to be filled;
+  they join the Phase 2 and 3 workflow and no lane builds them yet.
+  Placement: Phase 3, with the gravity map thread, once the integrator
+  exists (the option is how the behaviour of GEN.289 to GEN.291 is
+  exercised at 100 years per second). Boss's design (2026-10-15, 11:06
+  PM EDT): at each step in which orbital changes are calculated, a
+  planet or moon is moved by the summed gravitational influence of point
+  masses (the vector of the gravitational gradient of the space it
+  occupies), the other planets and moons of its system counted by their
+  point masses too, plus passing objects such as black holes and neutron
+  stars, so planets can be captured or ejected; the orbital path comes
+  out right and agrees with the pass-through-the-sphere logic (the
+  sector-crossing guard of GEN.223 and GEN.265).
+  Prerequisites: GEN.291. Related: GEN.105, GEN.223, GEN.290.
 
 - [ ] **GEN.293 Long-step rules for hypervelocity stars that leave the sector grid and for parabolic comets**
   Finding (orbital-encounters research, 2026-10-15, kind: undefined
@@ -4962,9 +5034,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   movement in 1 second, what would the program account for when a black
   hole or neutron star got close to a planetary system, and would
   planets be ejected?) and its answer,
-  /mnt/project-files/research/orbital-encounters/answer.md. Boss has not
-  asked for this to be built; no owner, no queue change.
-  Prerequisites: none. Related: GEN.105, GEN.223, GEN.232, GEN.238.
+  /mnt/project-files/research/orbital-encounters/answer.md. Boss asked
+  on 2026-10-15 (11:06 PM EDT) for these gaps to be filled; they join
+  the Phase 2 and 3 workflow and no lane builds them yet. Placement:
+  Phase 3, with GEN.292, after GEN.290 (the long-step rules sit on the
+  encounter search). Boss's design (2026-10-15, 11:06 PM EDT): at each
+  step in which orbital changes are calculated, a planet or moon is
+  moved by the summed gravitational influence of point masses (the
+  vector of the gravitational gradient of the space it occupies), the
+  other planets and moons of its system counted by their point masses
+  too, plus passing objects such as black holes and neutron stars, so
+  planets can be captured or ejected; the orbital path comes out right
+  and agrees with the pass-through-the-sphere logic (the sector-crossing
+  guard of GEN.223 and GEN.265).
+  Prerequisites: GEN.290. Related: GEN.105, GEN.223, GEN.232, GEN.238.
+
+- [ ] **GEN.294 Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns**
+  Boss asked (2026-10-15, 11:12 PM EDT, project chat): "do we have a
+  TODO currently that says every object should have a SpacialPosition3D
+  property? Everything that exists in the galaxy." Answer: no open item
+  says it. GEN.74 (done, PR #665, "used by every object") built the
+  class (physics/position.py) and gave it to sector system and
+  phenomenon entries, stars, planets, moons and comets in memory;
+  GEN.223 (done, #1757) gave bright_stars and phenomenon_scatter their
+  point columns. The stored objects are not uniform: planets, moons,
+  comets, facilities and star systems keep position, a velocity vector
+  and an epoch; black holes, neutron stars, rogue planets, nebulae,
+  supernova remnants, interstellar comets and asteroid fields keep a
+  position, an epoch and only a scalar galactic_orbital_speed_kms (no
+  velocity vector); the quasar and the asteroid belts keep no epoch or
+  vector; stars take their place from the system; point mass is stored
+  for stars, planets, moons, black holes, neutron stars and rogue
+  planets but not for comets, interstellar comets, asteroid fields,
+  belts, nebulae, remnants, quasars or facilities. Done: every object
+  that exists in the galaxy (stars and their companions, planets, moons,
+  comets, interstellar comets, asteroid belts and fields, rogue planets,
+  black holes, neutron stars, quasars, nebulae, supernova remnants,
+  facilities, scatter points and scatter members) is held as one
+  SpatialPosition3D carrying its position, its point mass and its
+  movement vector (position, velocity, mass_kg with mu, epoch_unix),
+  stored one column per component with no JSON and a cell key, and read
+  back into the same object; a scalar speed column is replaced by the
+  vector, never kept beside it (no compatibility layer). A body with no
+  real mass (a belt's or field's bulk, a nebula) stores its total mass
+  or a stated zero so the gravity sum can include or skip it by rule; a
+  facility takes the mass of what it sits on or its own stated mass. A
+  test lists every uid table and fails when one lacks the point, the
+  mass or the vector, so a new object kind cannot ship without them. The
+  planet and moon dynamical state (parent, bound state, the replaced
+  circular phase) belongs to GEN.289, which builds on this object; both
+  go in the one migration, revision 0097 or the next free one, placed by
+  Core 1 (it owns every revision). Placed in Phase 2 before GEN.109,
+  because the influence set sums the point mass of every object kind. No
+  lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
+  Prerequisites: none. Related: GEN.74, GEN.109, GEN.223, GEN.289,
+  GEN.290.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

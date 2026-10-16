@@ -194,10 +194,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | GEN.262 | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 3. Core. |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
-| GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115 |  |
-| GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.289, GEN.290 |  |
-| GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.109 |  |
-| GEN.289 | Planets and moons stored as a position and velocity relative to their star, so perturbations have somewhere to land | GEN.109 |  |
+| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns |  | Boss 2026-10-15 11:12 PM EDT. |
+| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | GEN.115 |  |
+| GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115, GEN.289, GEN.294 |  |
+| GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.109, GEN.289 |  |
+| GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.109, GEN.289, GEN.290, GEN.110 |  |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
 | ADM.36 | Change an object's trajectory vector | GEN.109 |  |
@@ -205,9 +206,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | GEN.110 | Research: makes the collision code testable. |
 | GEN.197 | Object IDs on ejection, merger and split events | GEN.143 |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
-| GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
-| GEN.293 | Long-step rules for hypervelocity stars that leave the sector grid and for parabolic comets |  |  |
-| GEN.292 | Run the orbital update for a stated span in one go from the command line (elapsed years) |  |  |
+| GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110, GEN.289, GEN.290, GEN.291 | Parent of the orbital update work. |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.115, GEN.109 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.235, GEN.236, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |

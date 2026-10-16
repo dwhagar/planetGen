@@ -33,6 +33,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | MAP.168 |  |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | MAP.168 |  |
 
+### Orbital encounters at large steps
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.292 | Run the orbital update for a stated span in one go from the command line (elapsed years) | GEN.291 |  |
+| GEN.293 | Long-step rules for hypervelocity stars that leave the sector grid and for parabolic comets | GEN.290 |  |
+
 ### Courses
 
 | ID | Item | Needs | Note |
