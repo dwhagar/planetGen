@@ -19,7 +19,9 @@ from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sample_wide_binary_separation_au
+from planetgen.generation.wide_binary import (
+    sample_wide_binary_eccentricity, sample_wide_binary_separation_au, wide_pair_limit_au,
+)
 from planetgen.generation import validation
 from planetgen.generation.comet import Comet
 from planetgen.physics.orbits import hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis, mutual_hill_radius_au
@@ -113,8 +115,8 @@ def test_mutual_hill_radius_scales_with_average_distance():
 
 def test_separation_sampler_stays_in_range_and_is_log_uniform():
     lo = tuning.WIDE_BINARY_SEPARATION_MIN_AU
-    hi = tuning.WIDE_BINARY_SEPARATION_MAX_AU
-    samples = [sample_wide_binary_separation_au() for _ in range(500)]
+    hi = 10_000.0
+    samples = [sample_wide_binary_separation_au(hi) for _ in range(500)]
     assert all(lo <= s <= hi for s in samples)
 
     # Log-uniform: log10(samples) should be roughly uniformly distributed
@@ -150,7 +152,7 @@ def test_eccentricity_sampler_stays_in_range_and_follows_thermal_distribution():
 @pytest.mark.parametrize("star_type", STAR_TYPES)
 def test_orbit_ceiling_falls_back_to_system_perimeter_without_a_crit(star_type):
     # Pinned False: `BINARY_SYSTEM` now rolls real chance when left at its
-    # default (see StarSystem._should_generate_binary), and a "close"
+    # default (see StarSystem._companion), and a "close"
     # (P-type) pair's merged proxy star never sets a_crit_au either -- but
     # this test is specifically about the single-star case, so binary-vs-
     # single must not be left to chance here.
@@ -364,8 +366,9 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
         assert system.secondary_star.mass <= system.primary_star.mass
         assert system.wide_binary is not None
 
+        # GEN.103: the widest axis is the place's survival limit (a forced wide pair keeps at least the lower edge).
         lo = tuning.WIDE_BINARY_SEPARATION_MIN_AU
-        hi = tuning.WIDE_BINARY_SEPARATION_MAX_AU
+        hi = max(lo, wide_pair_limit_au(system.system_config, system.primary_star, system.secondary_star))
         assert lo <= system.wide_binary.separation_au <= hi
         assert 0 <= system.wide_binary.eccentricity < tuning.WIDE_BINARY_ECCENTRICITY_MAX
         assert system.wide_binary.periapsis_au <= system.wide_binary.separation_au <= system.wide_binary.apoapsis_au

@@ -35,6 +35,7 @@ merged or wrapped.
 import math
 
 from planetgen import tuning
+from planetgen.generation import place_terms
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
@@ -132,9 +133,10 @@ class WideBinaryPair:
         # over several decades, and their eccentricities -- unlike the
         # close/P-type pair, which tidally circularizes -- are broadly
         # consistent with a "thermal" distribution; see
-        # program_constants.WIDE_BINARY_SEPARATION_MIN_AU/MAX_AU and
-        # WIDE_BINARY_ECCENTRICITY_MAX for the full justification.
-        self.separation_au = sample_wide_binary_separation_au()
+        # tuning.WIDE_BINARY_SEPARATION_MIN_AU and
+        # WIDE_BINARY_ECCENTRICITY_MAX for the full justification. The widest
+        # axis is the place's survival limit (GEN.103), not a constant.
+        self.separation_au = sample_wide_binary_separation_au(wide_pair_limit_au(system_config, primary, secondary))
         self.eccentricity = sample_wide_binary_eccentricity()
 
         self.periapsis_au = self.separation_au * (1 - self.eccentricity)
@@ -313,20 +315,36 @@ class WideBinaryPair:
         return [properties_to_string(self.system_config, pair_properties, "Wide Binary System Data", markdown_key_map=markdown_key_map)]
 
 
-def sample_wide_binary_separation_au():
+def wide_pair_limit_au(system_config, primary, secondary):
+    """
+    The widest axis a wide pair of these two stars keeps in its place (GEN.103,
+    `place_terms.wide_axis_limit_au`): the place is `system_config.PLACE_TERMS`, or the Sun's neighbourhood for a
+    system with none; the masses are the stars' at birth and the age the primary's.
+    """
+    terms = getattr(system_config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
+    total_mass_solar = place_terms.born_mass_solar(primary) + place_terms.born_mass_solar(secondary)
+    limit = place_terms.wide_axis_limit_au(terms, total_mass_solar, primary.age)
+    return min(limit, tuning.WIDE_BINARY_SEPARATION_CEILING_AU)
+
+
+def sample_wide_binary_separation_au(max_au):
     """
     Draws an S-type (wide) binary's separation (semi-major axis), log-
-    uniformly between `tuning.WIDE_BINARY_SEPARATION_MIN_AU`
-    and `WIDE_BINARY_SEPARATION_MAX_AU` -- see those constants' own
-    docstring for why log-uniform (not linear-uniform) sampling is used.
-    One `random.uniform` draw (`planetgen.util.random.log_uniform`).
+    uniformly between `tuning.WIDE_BINARY_SEPARATION_MIN_AU` and `max_au`
+    (the place's survival limit, `wide_pair_limit_au`; a limit under the
+    lower bound gives the lower bound, which only a pair forced wide reaches)
+    -- see the lower bound's own docstring for why log-uniform (not
+    linear-uniform) sampling is used. One `random.uniform` draw
+    (`planetgen.util.random.log_uniform`).
+
+    Args:
+        max_au (float): The widest axis the pair keeps, AU.
 
     Returns:
         float: A separation, in AU.
     """
     low = tuning.WIDE_BINARY_SEPARATION_MIN_AU
-    high = tuning.WIDE_BINARY_SEPARATION_MAX_AU
-    return log_uniform(low, high)
+    return log_uniform(low, max(low, max_au))
 
 
 def sample_wide_binary_eccentricity():

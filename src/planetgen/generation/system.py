@@ -25,7 +25,7 @@ from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation import life as planetLife, prevalence, validation
+from planetgen.generation import life as planetLife, place_terms, prevalence, validation
 from planetgen.physics import constants, insolation, magnetism, metallicity
 from planetgen import tuning
 from planetgen.util import draw
@@ -252,7 +252,9 @@ class StarSystem:
         self.surrounding_cloud = None
         self.stars = [self.primary_star] # Keep track of individual stars
 
-        if compact_remnant is None and self._should_generate_binary():
+        companion, mass_ratio, companion_reason = (None, None, None) if compact_remnant is not None \
+            else self._companion()
+        if companion is not None:
             # The secondary star must not be biased toward a large star the
             # same way the primary can be, so LARGE_STAR is forced off for
             # its own generation call -- but only transiently, on the same
@@ -279,7 +281,6 @@ class StarSystem:
             # model -- so its class, luminosity and temperature follow from
             # its own mass (GEN.54). A specified-type primary has no model
             # initial mass; its present mass stands in for it.
-            mass_ratio = draw.uniform(*tuning.BINARY_MASS_RATIO_RANGE)
             primary_initial_mass_sol = self.primary_star.initial_mass_sol
             if primary_initial_mass_sol is None:
                 primary_initial_mass_sol = self.primary_star.mass / constants.SOLAR_MASS_TO_KG
@@ -308,19 +309,10 @@ class StarSystem:
                 self.stars = [self.primary_star]
             self.stars.append(self.secondary_star)
 
-            # WIDE_BINARY picks which of the two real binary configurations
-            # this pair becomes -- see SystemConfig.WIDE_BINARY's own
-            # docstring. Only consulted here, once, since BINARY_SYSTEM is
-            # the gate for even having a second star at all.
-            is_wide = self.system_config.WIDE_BINARY
-            if is_wide is None:
-                chance = prevalence.scaled_chance(self.system_config, "wide_binary", tuning.WIDE_BINARY_DEFAULT_CHANCE)
-                is_wide = draw.random() < chance
-                reason = f"random roll against WIDE_BINARY_DEFAULT_CHANCE ({tuning.WIDE_BINARY_DEFAULT_CHANCE}, {chance:g} with prevalence)"
-            else:
-                reason = "forced by +wide_binary/-wide_binary"
-            self.binary_type = "wide" if is_wide else "close"
-            log.choice("Binary type", self.binary_type, reason)
+            # Which of the two real binary configurations this pair becomes
+            # was rolled with the companion itself (`_companion`).
+            self.binary_type = companion
+            log.choice("Binary type", self.binary_type, companion_reason)
 
             if self.binary_type == "close":
                 self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
@@ -644,35 +636,62 @@ class StarSystem:
         """
         return [(p.mass, p.position_x, p.position_y, p.position_z) for p in planets if p.body_type != 'a']
 
-    def _should_generate_binary(self):
+    def _companion(self):
         """
-        Decides whether this system gets a secondary star, honoring
-        `system_config.BINARY_SYSTEM`'s tri-state contract the same way
-        every other tri-state flag (`HABITABLE_WORLD`, `ASTEROID_BELT`,
-        etc.) does: `True`/`False` force the outcome, `None` (the default)
-        rolls real chance instead of always coming out single.
+        Decides whether this system gets a secondary star, and which kind (GEN.103), in one roll. Honors
+        `system_config.BINARY_SYSTEM`'s tri-state contract the same way every other tri-state flag
+        (`HABITABLE_WORLD`, `ASTEROID_BELT`, etc.) does: `False` forces none, `True` forces a companion, `None`
+        (the default) rolls real chance; `WIDE_BINARY` then forces the kind of a companion that exists.
 
-        That "real chance" is
-        `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
-        keyed by the *primary* star's already-resolved spectral letter
-        (`self.primary_star.type[0]`) -- real stellar-multiplicity surveys
-        (Duchene & Kraus 2013; Raghavan et al. 2010; Moe & Di Stefano
-        2017, cited on that table) find companionship rate rising sharply
-        with primary mass, from ~26% for M dwarfs up to ~90%+ for O stars,
-        not a single flat rate. This runs after the primary star already
-        exists (`__init__` constructs `self.star`/`self.primary_star`
-        first) specifically so its real, already-rolled spectral type
-        can drive the lookup.
+        The chances are the primary's: `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, keyed by its spectral
+        letter (real stellar-multiplicity surveys -- Duchene & Kraus 2013; Raghavan et al. 2010; Moe & Di Stefano
+        2017, cited on that table -- find companionship rising sharply with primary mass, from ~26% for M dwarfs up
+        to ~90%+ for O stars), split between wide and close by `WIDE_BINARY_DEFAULT_CHANCE`. The close share
+        follows the primary's own [Fe/H] (`place_terms.close_companion_factor`, every mass: Moe, Kratter & Badenes
+        2019); the wide share does not, and gives way only where the two together would pass 1. A wide pair the
+        place cannot keep (its widest surviving axis is under `WIDE_BINARY_SEPARATION_MIN_AU`: passing stars and
+        the tide, `place_terms.wide_axis_limit_au`) becomes a close pair when a companion is forced, else the
+        primary alone. This runs after the primary star already exists (`__init__` constructs `self.star`/
+        `self.primary_star` first) specifically so its real, already-rolled spectral type, [Fe/H] and age can drive it.
 
         Returns:
-            bool: Whether to generate a secondary star.
+            tuple: `(kind, mass_ratio, reason)`: `"close"`, `"wide"` or `None`; the mass ratio q of the
+                companion (drawn here, `None` with no companion); and the words for the log.
         """
-        if self.system_config.BINARY_SYSTEM is not None:
-            return bool(self.system_config.BINARY_SYSTEM)
-
+        config = self.system_config
+        if config.BINARY_SYSTEM is False:
+            return None, None, None
         letter = self.primary_star.type[0] if self.primary_star.type else 'G'
-        probability = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
-        return draw.random() < prevalence.scaled_chance(self.system_config, "binary_system", probability)
+        chance = prevalence.scaled_chance(config, "binary_system",
+                                           tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44))
+        wide_share = prevalence.scaled_chance(config, "wide_binary", tuning.WIDE_BINARY_DEFAULT_CHANCE)
+        factor = place_terms.close_companion_factor(getattr(self.primary_star, "metallicity_fe_h", None))
+        close = min(1.0, chance * (1.0 - wide_share) * factor)
+        wide = min(chance * wide_share, 1.0 - close)
+        reason = (f"roll against close {close:g} (BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS {chance:g}, "
+                  f"[Fe/H] factor {factor:.3g}) and wide {wide:g}")
+        if config.BINARY_SYSTEM is True:
+            kind = "wide" if close + wide > 0.0 and draw.random() * (close + wide) >= close else "close"
+            reason = "forced by +binary_system, kind by " + reason
+        else:
+            roll = draw.random()
+            if roll >= close + wide:
+                return None, None, None
+            kind = "close" if roll < close else "wide"
+        mass_ratio = draw.uniform(*tuning.BINARY_MASS_RATIO_RANGE)
+        if config.WIDE_BINARY is not None:
+            return ("wide" if config.WIDE_BINARY else "close"), mass_ratio, "forced by +wide_binary/-wide_binary"
+        if kind == "wide":
+            primary_mass = place_terms.born_mass_solar(self.primary_star)
+            terms = getattr(config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
+            limit = place_terms.wide_axis_limit_au(terms, primary_mass * (1.0 + mass_ratio), self.primary_star.age)
+            if limit < tuning.WIDE_BINARY_SEPARATION_MIN_AU:
+                log.choice("Wide pair", "dissolved", f"its place keeps no axis over {limit:.3g} AU, under "
+                           f"{tuning.WIDE_BINARY_SEPARATION_MIN_AU:g} AU")
+                if config.BINARY_SYSTEM is True:
+                    return "close", mass_ratio, "BINARY_SYSTEM forced and the place keeps no wide pair"
+                return None, None, None
+        return kind, mass_ratio, reason
 
     @staticmethod
     def _first_slot_distance_au(habitable_zone):

@@ -52,7 +52,7 @@ def make_config(star_type, **overrides):
     built directly here stay consistent with what the CLI ever actually
     produces.
 
-    Defaults `BINARY_SYSTEM` to False: since `StarSystem._should_generate_binary`
+    Defaults `BINARY_SYSTEM` to False: since `StarSystem._companion`
     rolls real, spectral-class-dependent chance whenever it's left at its
     own default (None), every test in this module that isn't specifically
     about binary generation would otherwise sometimes get a companion star
