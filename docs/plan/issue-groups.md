@@ -12,12 +12,13 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
+| [#1726](https://github.com/dwhagar/planetGen/issues/1726) | open | Interface update: every control works on the whole sphere | UX.115, TEST.168 |
 | [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144 |
 | [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10 |
 | [#1691](https://github.com/dwhagar/planetGen/issues/1691) | open | Documentation corrections and the docs index | DOC.4, DOC.21, DOC.24, DOC.52 |
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18 |
 | [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82 |
-| [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, UX.3 |
+| [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, ADM.55, ADM.56, TEST.169, UX.3 |
 | [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.51, OPS.16, OPS.17, OPS.29, OPS.30, OPS.35, OPS.41 |
 | [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31 |
 | [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.20, PERF.41, PERF.47, PERF.48, PERF.75 |

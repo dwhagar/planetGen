@@ -195,6 +195,8 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | GEN.135 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy |  | Boss 2026-10-10 21:14Z; Foundations lane 1, before OPS.28. |
+| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | UX.115 | Queued admin chain (Boss, 12:52 AM EDT); first of the chain |
+| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | ADM.55, ADM.50 | Queued admin chain; the shell the rest of the chain uses |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | OPS.28 | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
 
 ### Bugs from the GitHub issues
