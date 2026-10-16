@@ -142,7 +142,12 @@ so a young star in a dense cell keeps its wide pair and an old one does not, and
 research; Jiang and Tremaine), stored in `tuning.py` with this source named. Once the constants C and ln Lambda of the
 impulse integral are confirmed, `a_ref` is computed instead of stored, and `rho_ref` goes away.
 
-The widest axis a wide pair may have is the smallest of the 10,000 AU cap, the tidal radius and `a_disrupt`.
+The widest axis a wide pair may have is the smaller of the tidal radius and `a_disrupt`. This takes the place of the fixed
+10,000 AU cap (`WIDE_BINARY_SEPARATION_MAX_AU`), as section 6.6 of
+[multistar-and-compact-systems.md](multistar-and-compact-systems.md) now says, so a solar-neighbourhood pair may be as wide as
+about 30,000 AU and a pair in a dense core much narrower. Section 6.6 takes the tidal radius from the galactic potential
+at the cell, the same one the orbital update uses; the local-density form above is the check on it and the fallback where
+the potential is not at hand.
 
 ## 4. How the rules reach the draw
 
