@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1511] - 2026-10-16
+
+**Headline:** The to-do list retires the globular cluster table (GEN.159) and files the Milky Way catalogue import (GEN.297).
+
+### Changed
+
+- Retired GEN.159 (#1810), cleared it as a prerequisite and filed GEN.297 (load Boss's Harris file into the cluster table).
+
+TODO items resolved: GEN.159 / Added: GEN.297
+
+## [8.0.1510] - 2026-10-16
+
+**Headline:** The to-do list files a new flaky-test bug for the sector page accessibility test (TEST.174).
+
+### Changed
+
+- Filed TEST.174 (the sector page accessibility test failed once under load and passes alone).
+
+TODO items resolved: none / Added: TEST.174
+
+## [8.0.1509] - 2026-10-16
+
+**Headline:** A galaxy can now hold globular clusters as stored King-model components, with a generator that draws the Milky Way's 157.
+
+### Changed
+- Migration 0097 adds `galaxy_components`: one table for every discrete stellar component of a galaxy beyond the disk (globular clusters now, satellites and streams with GEN.237), each with its centre and velocity at an epoch, mass, half-mass radius, density profile, King central potential and tidal radius, age, [Fe/H], core-collapse flag and seed, an optional parent component and catalogue name, and a `cell_key` for region queries. A component is a density, not a list of stars. The table starts empty; the plan step that fills it comes with GEN.160.
+- `planetgen.physics.king` solves the King (1966) models for central potentials 3 to 12 once, on a 2,000-point log grid, and scales them by length. The solver reproduces the textbook concentrations (0.67, 1.03, 1.53, 2.12 and 2.74 for 3, 5, 7, 9 and 12), a cluster's expected number of systems is its mass over 0.4 solar masses, and a cluster whose King edge would pass its Jacobi radius is given a lower central potential.
+- `planetgen.generation.clusters` draws a galaxy's cluster system from its seed (lognormal masses peaking at 2e5 solar masses, a metal-poor halo group and a metal-rich bulge group, King concentrations and half-mass radii from the design note); a real catalogue will replace its rows when one is supplied.
+
+## [8.0.1508] - 2026-10-16
+
+**Headline:** The to-do list retires the Hilbert fill order (GEN.101) and files a new flaky-test bug.
+
+### Changed
+
+- Retired GEN.101 (#1807), removed it from the fill-planning goal table and filed TEST.173 (a fill edge test that failed once under load).
+
+TODO items resolved: GEN.101 / Added: TEST.173
+
+## [8.0.1507] - 2026-10-16
+
+**Headline:** A neighbourhood fill now generates the centre sector first and fills outward in a fixed, space-filling order.
+
+### Changed
+- **Fill order for neighbourhoods and radial fills (GEN.101).** `planetgen galaxy --center-sector ID --radius-pc R`, a random start's neighbourhood and a single address with a radius used to generate their sectors in the order the grid enumerated them, shell by shell, so the first tenth of a run held almost none of the nearest tenth. They now start with the sector at the centre and go outward in blocks of four sectors a side, the blocks nearest first and ordered along a Hilbert curve inside and between equal distances (`generation/fill_order.py`), so the order is deterministic whatever order the candidates come in. A ball cannot always be walked between neighbouring sectors with no jump (Boss kept the Hilbert order with a logged jump), so the run prints one line with the share of its steps that are between neighbours (about 97% in a 50 pc ball), the number of jumps and their mean and longest length in sector edges.
+
+TODO items resolved: GEN.101. Added: none.
+
 ## [8.0.1506] - 2026-10-16
 
 **Headline:** The to-do list retires the magnetar scatter class (GEN.278).

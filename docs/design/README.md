@@ -37,7 +37,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [sampling-backfill-and-resume.md](sampling-backfill-and-resume.md) | Sampling, backfill, void filling, resumable runs and directives | research (resume on hold, PERF.86) |
 | [mass-backfill.md](mass-backfill.md) | Four rings of heavier stars around generated sectors | built |
 | [multiple-galaxies.md](multiple-galaxies.md) | Neighbour galaxies and a second galaxy | research |
-| [globular-clusters.md](globular-clusters.md) | Globular clusters in generation | research (no model exists) |
+| [globular-clusters.md](globular-clusters.md) | Globular clusters in generation | partly built (GEN.159: cluster table, King tables, generator) |
 | [intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) | What fills the sphere off the disk: the stellar halo, satellites, ejected stars, gas, and how to give every cell contents | research (reach approved; build plan for TODO) |
 | [spherical-region-queries.md](spherical-region-queries.md) | Selecting a sphere of the galaxy with a database query: the cell key, key runs, a covering index, measured against the box, the spatial index and the sector walk | research (2026-10-15; nothing built) |
 | [phenomena-catalogue-and-fill.md](phenomena-catalogue-and-fill.md) | The master list of every phenomenon kind: observed rate, system odds, required contents, profile gate, scatter or fill, and the fill rules and audit | design (rules of 2026-10-15; items for TODO) |

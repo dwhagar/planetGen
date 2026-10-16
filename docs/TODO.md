@@ -118,9 +118,9 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, GEN.159, API.19 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -2414,53 +2414,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   crowd of low-mass stars.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.101 Fill order: nearest sectors first along a pruned Hilbert octree curve**
-  Boss (2026-10-07 17:11Z) approved keeping the Hilbert order, with a
-  logged jump where the ball cuts the curve.
-  Boss (2026-10-07 11:47Z): "Change fill algorithm to fill sectors
-  nearest to the original sector first, circling outward using a
-  geometric 3D space-filling curve via a pruned Hilbert octree over the
-  $\mathbb{Z}^3$ integer lattice. Recursively traverse the octree from
-  the origin sector outward to depth $D = \lceil\log_2(2R)\rceil$,
-  restricting traversal to cells satisfying $\Vert{}v - v_0\Vert{}_2 \le
-  R$ to achieve deterministic $\mathcal{O}(N)$ generation without the
-  NP-complete overhead of general Hamiltonian path searches. The
-  generated sequence must maintain face-adjacent unit steps
-  ($\Vert{}v_{i+1} - v_i\Vert{}_1 = 1$) visiting every valid voxel
-  centroid exactly once with zero backtracking, preserving radial
-  locality as it scales to the boundary." Note: a pruned ball is not
-  always walkable with unit steps and no backtracking; the item reports
-  where that fails and what it does then. Done: neighborhood and radial
-  runs fill in this order, deterministically, with a test of the
-  unit-step and visit-once rules.
-  Research (2026-10-09, fill-order-curves-and-core.md): re-scope the
-  "Done" wording to what can be true. Boss's 2026-10-07 17:11Z decision
-  (keep the Hilbert order with a logged jump) stands, but "every step
-  face-adjacent, visit once, zero backtracking" cannot hold for a pruned
-  ball on any curve (only 16 of 1,335 balls with R squared up to 1,600
-  pass the parity test; radius 1 forces at least 4 jumps). Write: the
-  order is deterministic and face-adjacent for about 99% of steps, and
-  every other step is logged with its length (count and mean at the end
-  of the run); the unit-step test asserts the adjacent share (at least
-  95% in the 50 pc sphere and 200 pc disc cases) and determinism, not
-  100%. Choice of order: ring serpentine for the core and axis-centred
-  discs and cylinders (0 jumps), a greedy nearest-first walk for any
-  other centre, Hilbert only as a sort key or tie-break inside 4-voxel
-  blocks (plain pruned Hilbert starts at the far edge of the cube and
-  fails nearest-first; the sector grid is not a voxel lattice). The
-  depth formula `D = ceil(log2(2R))` is one level short when R is a
-  power of two. Fix `_neighborhood_batch` in `run_galaxy.py` (its
-  docstring says nearest first as enumerated; the enumeration is
-  ring-major, and off the axis the first 10% of the list holds none of
-  the nearest 10%): sort before applying a limit. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; default as written): keep
-  Hilbert as approved, using the
-  4-voxel-block variant so the first sector is the centre, or take the
-  serpentine and greedy walk?
-  Reread against the shell grid before starting: the spherical sector
-  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
-  docs/design/spherical-sector-coordinates.md section 4).
-
 - [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
   Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
   that plots to have a 0 or nearly 0 star density) at once, since those
@@ -3109,34 +3062,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
 
-- [ ] **GEN.159 Globular clusters: cluster table, King tables and the Milky Way catalogue**
-  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
-  /mnt/project-files/research/handoff/globular-clusters.md): one row per
-  cluster (galaxy, name, source, position and velocity in the galaxy
-  frame, epoch, mass, half-mass radius, King W0, age, [Fe/H],
-  core-collapse flag, tidal radius). Ten King tables for W0 = 3 to 12
-  built once, resampled to about 2,000 log-grid points and scaled by
-  length. Tests: the solver reproduces concentrations c = 0.67, 1.03,
-  1.53, 2.12 and 2.74 for W0 = 3, 5, 7, 9 and 12; the total expected
-  count is M / 0.4. Decided by Boss (2026-10-09 19:02Z, default taken): wait and build the synthetic generator first; the options were to supply the Harris catalogue (about 157
-  rows: position, distance, [Fe/H], c, r_c, r_h, M_V, sigma_v,
-  core-collapse flag) or approve a one-time download script. Decided by Boss (2026-10-09 19:02Z, default taken): derived: a cluster star's sector address
-  is derived from the cluster centre's sector path, not stored per star.
-  Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
-  Boss 2026-10-15): step 5. The table holds every component kind
-  (cluster, satellite), so GEN.237 adds the satellite rows and profiles
-  to this table; the Harris catalogue question is on GEN.237.
-  Built-on note (Core 2, 2026-10-16, 4:58 AM EDT, GEN.158 merged as
-  #1789): a cluster star keeps a NULL [Fe/H] until this item gives each
-  cluster its own value.
-  Migration note (Core 1, 2026-10-16, 5:03 AM EDT): this item's
-  component table is migration 0097 (0096 is Core 3's GEN.153 magnetar
-  CHECK, merged; 0098 is Core 3's galactic-core migration; corrected by
-  Core 3, 2026-10-16, 6:34 AM EDT). Core 1 asked Core 2 to
-  give the table parent_component_id and catalogue_id so GEN.237
-  (satellites and clusters) reuses it and adds no table.
-  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
-
 - [ ] **GEN.160 Cluster density in the sector gate, with a "cluster" population**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
   /mnt/project-files/research/handoff/globular-clusters.md): add the
@@ -3153,7 +3078,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss 2026-10-15): step 5. The density term is the profile's `lambda`
   and `mix` for a cell inside a cluster (GEN.235), and the cluster
   population carries its own pre-placed share (GEN.234).
-  Prerequisite: GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.161 Bright-first fill for cluster sectors**
@@ -3201,7 +3125,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   field rate per star, by Gamma rank.
   Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
   Boss 2026-10-15): step 7.
-  Prerequisites: GEN.130, GEN.159.
+  Prerequisite: GEN.130.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.164 Synthetic globular-cluster systems for generated galaxies**
@@ -3221,7 +3145,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
   Boss 2026-10-15): step 7; also the source of seeded fictional
   satellites for other shapes.
-  Prerequisites: GEN.9, GEN.159.
+  Prerequisite: GEN.9.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
@@ -3331,7 +3255,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   name, and the cluster pages and the Galaxy Map use the parent link.
   Owner: Foundations lane 2, with the globular cluster group (GEN.159 to
   GEN.164).
-  Prerequisite: GEN.159. Related: GEN.159, GEN.160, GEN.164.
+  Prerequisites: none. Related: GEN.160, GEN.164.
 
 - [ ] **GEN.210 The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall**
   GitHub issue [#1222](https://github.com/dwhagar/planetGen/issues/1222)
@@ -3518,7 +3442,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   number after 0098 (0099 or later); it reuses the component table GEN.159 builds
   (Core 2 adds parent_component_id and catalogue_id to it) and adds no
   table of its own.
-  Prerequisites: GEN.159, GEN.160. Related: GEN.9, GEN.161,
+  Prerequisite: GEN.160. Related: GEN.9, GEN.161,
   GEN.164.
   Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
   #1784): this item adds the components table to SectorProfile (a field
@@ -4821,6 +4745,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   panel, with a test. Owner: unassigned (small, fits Core 2 beside
   GEN.159).
   Prerequisites: none. Related: GEN.158, MAP.211.
+
+- [ ] **GEN.297 Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters**
+  Follow-up from Core 2 (2026-10-16, 7:52 AM EDT, GEN.159 merged as
+  #1810, migration 0097): the cluster table (galaxy_components), the
+  King tables and solver and a synthetic generator are built; the Milky
+  Way's own catalogue (the Harris globular cluster file, about 150
+  clusters with position, distance, [Fe/H], mass, King concentration and
+  age) is not loaded and waits on Boss's file. Done: when Boss supplies
+  the file, a loader (a CLI step, no hand-edited data) imports it into
+  galaxy_components with its source recorded, the Milky Way uses the
+  catalogue rows instead of generated clusters, a test pins a few
+  well-known clusters (47 Tuc, Omega Centauri, M13) against the file,
+  and the design note records the file's version and licence. Owner:
+  unassigned; waits on Boss supplying the file (the open question
+  'Harris cluster table' stands with its default of the synthetic
+  generator).
+  Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -6627,6 +6568,35 @@ clears each one.
   the test or the page is fixed without loosening what the test proves.
   Owner: unassigned.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
+
+- [ ] **TEST.173 test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug)**
+  Finding from Core 1 (2026-10-16, 7:18 AM EDT, kind: flaky test, fails
+  on main: unknown, how often: once in a loaded scripts/test.py changed
+  run from 6:00 to 7:12 AM EDT with 4 workers, 13 of 13 passes alone on
+  an idle machine):
+  src/tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star
+  raised ValueError: min() iterable argument is empty in _nearest(...)
+  because the ring_cells intersect given was empty: the sector the
+  backfill reached drew no stars (the TEST.132 edge). Not touched by
+  GEN.101 or GEN.251. Reproducer: loop the test under load. Done: the
+  test pins its seed or builds a guaranteed star case, or _nearest
+  handles an empty ring where that is a real edge, without loosening
+  what the test proves, and the same gate shows it green. Owner:
+  unassigned.
+  Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
+
+- [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
+  Finding from Core 2 (2026-10-16, 7:48 AM EDT, kind: browser test, load
+  flake, fails on main: not checked, how often: once in a GEN.159 gate,
+  load 8.2, passes alone):
+  src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-desktop-light]
+  failed under load. The failure text was not captured. Reproducer:
+  scripts/test.py changed (the full parallel gate), then run the test
+  alone. Done: the failure text is captured on the next sighting, the
+  cause is found (a layout or wait timing under load, or a real overflow
+  on the sector page) and the test is made robust without loosening what
+  it proves. Owner: unassigned. Related: TEST.170, TEST.172.
+  Prerequisites: none. Related: TEST.170, TEST.172.
 
 ## USR: User accounts
 

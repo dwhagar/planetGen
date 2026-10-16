@@ -443,6 +443,45 @@ galaxy_block_stats = sa.Table(
 )
 
 
+galaxy_components = sa.Table(
+    'galaxy_components',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('kind', sa.String(12), nullable=False),
+    sa.Column('name', sa.String(255), nullable=False),
+    sa.Column('catalogue_id', sa.String(40), nullable=True),
+    sa.Column('source', sa.String(12), nullable=False),
+    sa.Column('parent_component_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('center_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('cell_key', mysql.BIGINT(unsigned=True), sa.Computed('(if(((abs(`center_x_pc`) < 262144) and (abs(`center_y_pc`) < 262144) and (abs(`center_z_pc`) < 262144)),((((((((((((((cast(floor(((`center_x_pc` + 262144) / 0.25)) as unsigned) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | (((((((((cast(floor(((`center_x_pc` + 262144) / 0.25)) as unsigned) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21)) | (((((((((cast(floor(((`center_x_pc` + 262144) / 0.25)) as unsigned) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((cast(floor(((`center_y_pc` + 262144) / 0.25)) as unsigned) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | (((((((((cast(floor(((`center_y_pc` + 262144) / 0.25)) as unsigned) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21)) | (((((((((cast(floor(((`center_y_pc` + 262144) / 0.25)) as unsigned) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1)) | (((((((((((cast(floor(((`center_z_pc` + 262144) / 0.25)) as unsigned) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | (((((((((cast(floor(((`center_z_pc` + 262144) / 0.25)) as unsigned) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21)) | (((((((((cast(floor(((`center_z_pc` + 262144) / 0.25)) as unsigned) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42))),NULL))', persisted=True), nullable=True),
+    sa.Column('velocity_x_kms', mysql.DOUBLE(), nullable=False),
+    sa.Column('velocity_y_kms', mysql.DOUBLE(), nullable=False),
+    sa.Column('velocity_z_kms', mysql.DOUBLE(), nullable=False),
+    sa.Column('epoch_unix', mysql.DOUBLE(), nullable=False),
+    sa.Column('mass_solar', mysql.DOUBLE(), nullable=False),
+    sa.Column('half_mass_radius_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('profile', sa.String(12), nullable=False),
+    sa.Column('king_w0', mysql.DOUBLE(), nullable=True),
+    sa.Column('tidal_radius_pc', mysql.DOUBLE(), nullable=True),
+    sa.Column('age_gy', mysql.DOUBLE(), nullable=False),
+    sa.Column('metallicity_fe_h', mysql.DOUBLE(), nullable=False),
+    sa.Column('core_collapsed', mysql.TINYINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('seed', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Index('idx_galaxy_components_cell', 'cell_key', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
+    sa.Index('idx_galaxy_components_parent', 'parent_component_id'),
+    sa.Index('uq_galaxy_components_name', 'kind', 'name', unique=True),
+    sa.CheckConstraint('(`core_collapsed` in (0,1))', name='chk_galaxy_components_core_collapsed'),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'cluster',_utf8mb4'satellite',_utf8mb4'stream'))", name='chk_galaxy_components_kind'),
+    sa.CheckConstraint("(`profile` in (_utf8mb4'king',_utf8mb4'exponential',_utf8mb4'plummer'))", name='chk_galaxy_components_profile'),
+    sa.CheckConstraint("(`source` in (_utf8mb4'catalogue',_utf8mb4'generated'))", name='chk_galaxy_components_source'),
+    sa.ForeignKeyConstraint(['parent_component_id'], ['galaxy_components.id'], name='fk_galaxy_components_parent', ondelete='SET NULL'),
+    mysql_engine="InnoDB",
+)
+
+
 galaxy_shape = sa.Table(
     'galaxy_shape',
     metadata,

@@ -173,7 +173,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.245 | Debris disks around A and F stars (later) | GEN.242 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.244 | Young open clusters and OB associations as components (later) | GEN.237, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population |  | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
-| GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.159, GEN.160 | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
+| GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.160 | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
 | GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity |  | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one |  | Phenomena catalogue, Boss 2026-10-15. Step 2. Core. |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |

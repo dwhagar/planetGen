@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, login, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
@@ -1514,6 +1514,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (97, _table_marker("galaxy_components")),
     (96, _check_marker("neutron_stars_chk_1", "magnetar")),
     (95, _column_marker("bright_stars", "metallicity_fe_h")),
     (94, _check_marker("chk_bright_stars_population", "halo")),
@@ -5915,6 +5916,64 @@ PHENOMENON_SCATTER_INDEXES = {
 }
 """dict: The secondary indexes of `phenomenon_scatter` (as `schema.sql` has them) that a scatter drops while it
 writes and builds again at the end, one at a time, each sorted (PERF.73, PERF.101)."""
+
+
+GALAXY_COMPONENT_COLUMNS = (
+    "kind", "name", "catalogue_id", "source", "parent_component_id", "center_x_pc", "center_y_pc", "center_z_pc",
+    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "epoch_unix", "mass_solar", "half_mass_radius_pc", "profile",
+    "king_w0", "tidal_radius_pc", "age_gy", "metallicity_fe_h", "core_collapsed", "seed")
+"""tuple: The columns `replace_galaxy_components` writes and `get_galaxy_components` reads (the table's, less `id`,
+`cell_key` and `created_at`)."""
+
+
+def replace_galaxy_components(conn, found, kind=None):
+    """
+    Replaces the stored components of one kind (every kind when `kind` is `None`) with `found` (GEN.159): a plan
+    draws a kind's whole set again from the seed, so there is no partial update. Does not commit. The components keep
+    no `id` here; a `parent_component_id` must name a row that is already stored.
+
+    Args:
+        conn (Connection): The connection to write through.
+        found (iterable[galaxy.components.Component]): The components to write.
+        kind (str, optional): The kind to replace; `found` may then hold only that kind.
+    """
+    found = list(found)
+    if kind is not None and any(component.kind != kind for component in found):
+        raise ValueError(f"components of a kind other than {kind!r} given to replace it")
+    if kind is None:
+        conn.execute("DELETE FROM galaxy_components")
+    else:
+        conn.execute("DELETE FROM galaxy_components WHERE kind = ?", (kind,))
+    conn.executemany(
+        f"INSERT INTO galaxy_components ({', '.join(GALAXY_COMPONENT_COLUMNS)})"
+        f" VALUES ({', '.join('?' * len(GALAXY_COMPONENT_COLUMNS))})",
+        [(c.kind, c.name, c.catalogue_id, c.source, c.parent_component_id, *c.center_pc, *c.velocity_kms, c.epoch_unix,
+          c.mass_solar, c.half_mass_radius_pc, c.profile, c.king_w0, c.tidal_radius_pc, c.age_gy, c.metallicity_fe_h,
+          int(c.core_collapsed), c.seed) for c in found])
+
+
+def get_galaxy_components(conn, kind=None):
+    """
+    The stored components, by id.
+
+    Args:
+        conn (Connection): The connection to read through.
+        kind (str, optional): Only this kind.
+
+    Returns:
+        list[galaxy.components.Component]: Each with its `id`.
+    """
+    sql = f"SELECT id, {', '.join(GALAXY_COMPONENT_COLUMNS)} FROM galaxy_components"
+    rows = conn.execute(sql + (" WHERE kind = ?" if kind else "") + " ORDER BY id", (kind,) if kind else ()).fetchall()
+    return [galaxyComponents.Component(
+        id=row["id"], kind=row["kind"], name=row["name"], catalogue_id=row["catalogue_id"], source=row["source"],
+        parent_component_id=row["parent_component_id"],
+        center_pc=(row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]),
+        velocity_kms=(row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]),
+        epoch_unix=row["epoch_unix"], mass_solar=row["mass_solar"], half_mass_radius_pc=row["half_mass_radius_pc"],
+        profile=row["profile"], king_w0=row["king_w0"], tidal_radius_pc=row["tidal_radius_pc"], age_gy=row["age_gy"],
+        metallicity_fe_h=row["metallicity_fe_h"], core_collapsed=bool(row["core_collapsed"]), seed=row["seed"])
+        for row in rows]
 
 
 def _scatter_value(value):
