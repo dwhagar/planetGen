@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.116 |
 | MAP | MAP.208 |
 | NAV | NAV.62 |
-| GEN | GEN.280 |
+| GEN | GEN.286 |
 | PERF | PERF.104 |
 | DB | DB.36 |
 | API | API.28 |
@@ -837,7 +837,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.276 | planetgen/galaxy/cellkey.py: the cell key function and the sphere-to-key-runs cover, numpy only | none | open |
 | GEN.277 | Design note: which of the later phenomena are scattered, backfilled or stay sector-fill-only | none | done, PR #1721 |
 | GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | none | open |
-| GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) | none | open |
+| GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) | none | done, PR #1728 |
+| GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 | none | open |
+| GEN.281 | Galactic core resolution cap: a per-request cap on resolved systems, a luminosity ladder, and unresolved counts on the sector page and region queries | none | open |
+| GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | none | open |
+| GEN.283 | Tiered scatter limits: the scatter's minimum luminosity and mass limit tiered +10%, 0 and -10% from core to halo, per band | none | open |
+| GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | none | open |
+| GEN.285 | Nuclear mass components in the galactic potential for the orbital update | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

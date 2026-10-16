@@ -250,7 +250,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.154 | Show the Einstein radius on compact-object pages |  | Research: Tier 1 of GEN.113. |
 | GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction |  | Research: Tier 1 of GEN.113. |
-| GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) |  | Owner Core 3; Boss, 12:43 AM EDT; note first. |
+| GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 | GEN.235 | Core 3; step 1 of the galactic core note; needs a Core 1 migration revision |
+| GEN.281 | Galactic core resolution cap: a per-request cap on resolved systems, a luminosity ladder, and unresolved counts on the sector page and region queries | GEN.280, GEN.276 | Core 3; step 2 of the galactic core note |
+| GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.237, GEN.244 | Core 3; step 3 of the galactic core note |
+| GEN.283 | Tiered scatter limits: the scatter's minimum luminosity and mass limit tiered +10%, 0 and -10% from core to halo, per band | GEN.235, GEN.158 | Core 3; step 3b of the galactic core note; no migration |
+| GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.280, GEN.162 | Core 3; step 4 of the galactic core note |
+| GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.223, GEN.280 | Core 3; step 5 of the galactic core note |
 | GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250, GEN.235, GEN.153 | Owner Core 3; Core 3 note default stands. |
 
 ### Maps

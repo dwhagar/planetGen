@@ -4695,37 +4695,80 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.235 and GEN.153.
   Prerequisites: GEN.250, GEN.235, GEN.153. Related: GEN.256, GEN.277.
 
-- [ ] **GEN.279 A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155)**
-  Boss (2026-10-16, 12:43 AM EDT), after Core 3's note dropped GEN.155
-  as a one-off object: "I would think the reason was space and speed,
-  but yes I want a realistic galactic core, add that to Core 3 please.
-  Modify our density and generation model so we keep our consistent
-  rules and adjust sector parameters to control what is filled." Done:
-  first a plan note (docs/design, with its row in docs/design/README.md
-  in the same PR) says how the galactic centre gets its real structure,
-  a nuclear star cluster and a dense inner bulge and nuclear disc, by
-  changing the density and generation model (the profile of GEN.235 and
-  the component table of GEN.237), not by a special object, so the same
-  rules apply in every cell and the per-sector parameters decide how
-  much of each sector is filled (space and speed are the limits that set
-  those parameters); the note lists the build items, their order and the
-  columns Core 1 must plan, and Core 3 asks the TODO lane for numbers
-  for them. Nothing is built before the note is read. Owner: Core 3
-  (Boss, 2026-10-16). Not blocking anything unless the note says so.
-  Boss (2026-10-16, 12:49 and 12:51 AM EDT): "we may have to do a tiered
-  system for mass and luminosity, where at the core both are 10% higher
-  caps at the core, and then 10% lower in the halo and intergalactic
-  space", clarified: "the density plan should match as close as we can
-  real-world or at least real possible observations about the galactic
-  density and star counts and all that. THEN for our scatter sweeps, we
-  tweak our minimum mass and minimum luminosity values when we scatter."
-  So the density model follows real observations with no cap tiers, and
-  the scatter minimum mass and minimum luminosity are tiered per sector
-  profile (about 10% higher at the core, about 10% lower in the halo and
-  intergalactic space, tiers in between). Core 3 folds both into the
-  plan note, names the tier boundaries and any column Core 1 must plan.
-  Prerequisites: none. Related: GEN.155, GEN.210, GEN.234, GEN.235,
-  GEN.237, GEN.233.
+- [ ] **GEN.280 Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49**
+  Build step of the realistic galactic core plan
+  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
+  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
+  #1677. Done: add the nuclear cluster and the nuclear disc as density
+  terms in density.py with their GalaxyShape fields,
+  population_densities rows, the skeleton bound and prisms; remove
+  ADM.49's Gaussian core with no shim; mathcheck checks the cell counts
+  against the published numbers named in the note. The new GalaxyShape
+  fields need a migration: Core 1 owns the revision and Core 3 asks it
+  first.
+  Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
+
+- [ ] **GEN.281 Galactic core resolution cap: a per-request cap on resolved systems, a luminosity ladder, and unresolved counts on the sector page and region queries**
+  Build step of the realistic galactic core plan
+  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
+  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
+  #1677. Done: a resolution_cap setting (default 50,000 systems a cell),
+  a luminosity ladder, the floor from the profile, white dwarfs counted
+  in the fractions below 100 solar luminosities, bright_level_sol in
+  use, and the unresolved count and mass shown on the sector page and in
+  region-query results; no cell above the cap is resolved without a
+  request.
+  Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
+
+- [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
+  Build step of the realistic galactic core plan
+  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
+  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
+  #1677. Done: the central molecular zone in the gas model, the nebula
+  rate, the nuclear disc's young share, and young-cluster components for
+  the central parsec, the Arches and the Quintuplet through GEN.244; no
+  object is placed by name, the generator makes objects of those kinds
+  where the profile puts them.
+  Prerequisites: GEN.237, GEN.244. Related: GEN.280, GEN.246.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
+
+- [ ] **GEN.283 Tiered scatter limits: the scatter's minimum luminosity and mass limit tiered +10%, 0 and -10% from core to halo, per band**
+  Build step of the realistic galactic core plan
+  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
+  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
+  #1677. Boss, 12:51 AM EDT: "the density plan should match as close as
+  we can real-world or at least real possible observations about the
+  galactic density and star counts and all that. THEN for our scatter
+  sweeps, we tweak our minimum mass and minimum luminosity values when
+  we scatter." Done: a tier in the sector profile and L_cell and M_cell
+  in the passes, the backfill and the fill; three discrete tiers (+10%,
+  0, -10%) on the scatter's luminosity floor and mass limit, chosen per
+  band, satellites and clusters on the baseline, the factors kept as
+  settings; placed_star_fraction uses the cell's cuts; the metallicity
+  argument comes from GEN.158. No migration.
+  Prerequisites: GEN.235, GEN.158. Related: GEN.234, GEN.237.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
+
+- [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
+  Build step of the realistic galactic core plan
+  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
+  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
+  #1677. Done: planets in dense components use the survival formula and
+  a metallicity factor, not the hard cut at the Hill radius; the
+  survival table of the note is a test.
+  Prerequisites: GEN.280, GEN.162. Related: GEN.158.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
+
+- [ ] **GEN.285 Nuclear mass components in the galactic potential for the orbital update**
+  Build step of the realistic galactic core plan
+  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
+  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
+  #1677. Done: the nuclear cluster and the nuclear disc enter
+  galactic-potential.py so orbits near the centre feel them.
+  Prerequisites: GEN.223, GEN.280. Related: GEN.198.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -5882,7 +5925,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   admin layout: one shell with one navigation, the same table, form,
   confirmation and job-log pattern everywhere. Queued after UX.115; the
   audit starts the ADM chain.
-  Prerequisites: UX.115. Related: ADM.56, ADM.43, ADM.35, UX.102.
+  Prerequisite: UX.115. Related: ADM.56, ADM.43, ADM.35, UX.102.
 
 - [ ] **ADM.56 Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -6501,7 +6544,7 @@ clears each one.
   response or a control that does nothing; it checks 96-bit IDs in
   inputs and URLs on each page that takes one. Quality runs it after
   UX.115's fixes. Queued after UX.115.
-  Prerequisites: UX.115. Related: TEST.163, TEST.156, TEST.169.
+  Prerequisite: UX.115. Related: TEST.163, TEST.156, TEST.169.
 
 - [ ] **TEST.169 Admin page browser tests: every admin page and task works end to end after the streamline**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -6513,7 +6556,7 @@ clears each one.
   its log, change a setting, confirm and cancel a queue action; fails on
   a console error, a bad response or a control that does nothing. Runs
   after ADM.56 and again at the end of the chain.
-  Prerequisites: ADM.56. Related: TEST.168, ADM.55.
+  Prerequisite: ADM.56. Related: TEST.168, ADM.55.
 
 ## USR: User accounts
 
