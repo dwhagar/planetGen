@@ -571,6 +571,26 @@ with `clamp()`.
   slider runs from 100 (default 500). Owner Core 3 (Boss, 1:09 AM EDT).
   Prerequisites: GEN.281, GEN.283. Related: GEN.234, ADM.43, UX.49.
 
+- [ ] **UX.117 The Apply filters button on the phenomena list disappears while the list loads (bug)**
+  Boss (2026-10-15 9:54 PM EDT, on his own server): "In the phenomena
+  list the 'Apply Filter' button disappears for some reason during the
+  load process." Lead: `.datatable-enhanced .datatable-apply` is set to
+  `display: none` in src/html/static/style.css and datatable.js adds the
+  `datatable-enhanced` class when it takes over the table (line 490), so
+  the button is hidden as soon as the script starts and a slow load, a
+  failed fetch or a table that never finishes leaves the filter form
+  with no way to submit. Reproduce first on a large phenomena list
+  (throttled network or a slow query), find the root cause, and fix it
+  so the button stays until the live filtering is actually working (show
+  it again if the load fails or stalls) and appears for every datatable
+  page, not only phenomena. Add a browser test that holds the first data
+  request open and asserts the filter form can still be applied. Done:
+  during and after the load, and after a failed load, the phenomena list
+  always offers a working way to apply its filters. Owner: Core 3, next
+  after its running item, ahead of its #1677 chain (Boss, 2026-10-15
+  9:54 PM EDT, via the coordinator).
+  Prerequisites: none. Related: UX.110, PERF.75.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -1456,6 +1476,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the browser test catches a regression. Owner: Core 2, with MAP.209
   (Boss, 2026-10-15 9:42 PM EDT, via the coordinator).
   Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163.
+
+- [ ] **MAP.211 Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug)**
+  Boss (2026-10-15 9:54 PM EDT, on his own server): "Hypervelocity stars
+  have no info that I can access, I should be able to see what kind of
+  star they are and use the 'view phenomena' button if they are
+  uncharted and otherwise the button should take me to the star system
+  if it's been fully generated." Reproduce where Boss saw it (the
+  phenomena list, the Galaxy Map info panel and the phenomenon page).
+  Wanderers are stars drawn from the registry kind `hypervelocity-star`
+  (generation/phenomena/registry.py, GEN.238), drawn as phenomenon
+  points on the map (POINT_LOOKS in src/html/static/galaxymap3d.js,
+  phenomenaActions and its "View phenomenon" link). Fix: a hypervelocity
+  star's info shows what kind of star it is (spectral class, mass,
+  luminosity, speed, origin when known), the phenomenon button ("View
+  phenomenon") shows while the star is uncharted (no generated system
+  behind it), and once its system has been fully generated the button
+  takes the visitor to the star system page. Generalize: the same rule
+  applies to every phenomenon row that can have a generated system
+  behind it (runaway stars, kicked neutron stars and black holes, any
+  kind whose registry entry produces a star-system); check the other
+  kinds for the same gap and fix them together, or say in the item which
+  kinds already work. Add a test for each of the two states (uncharted:
+  phenomenon page; generated: system page) and for the type line. Done:
+  Boss can open a hypervelocity star's info, see its type, and reach
+  either the phenomenon page or the star system as the data allows.
+  Owner: Core 3, with UX.117, ahead of its #1677 chain (Boss, 2026-10-15
+  9:54 PM EDT, via the coordinator).
+  Prerequisites: none. Related: GEN.238, MAP.152, UX.117.
 
 ## NAV: Navigation and courses
 
@@ -5318,6 +5366,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.223 include the backlog. Owner: Core (2026-10-15).
   Prerequisite: GEN.223. Related: GEN.265, GEN.109.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **PERF.104 Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates**
+  Boss (2026-10-15 9:54 PM EDT): "I think we need to start caching the
+  lists after an update, we should have a warmup site script that can
+  run and build caches for the galactic view, system, sector, phenomena
+  lists, indexes for search queries, all of that. Then we'll rebuild
+  just what is needed on demand when something changes but always keep
+  an up to date cached copy." Today `planetgen.cli.warm_map` (MAP.134,
+  `web/warmup.py`) warms only the Galaxy Map's opening tiles into
+  `web/lib/tilecache.py`, update.sh starts it in the background
+  (warm_galaxy_map), and the in-memory `web/lib/pagecache.py` and
+  `countcache` (PERF.69) start empty after every release or restart.
+  Build: one warm-up script that extends warm_map and builds the caches
+  of the Galaxy Map (tiles and stage), the sector views, the system
+  views, the phenomena lists (and the other paged lists, PERF.75), the
+  counts, and the indexes for the search queries (a search index kept up
+  to date, not built per query). Run it after update.sh as the web user
+  (www-data, OPS.52 rules), log loudly (one line per cache family with
+  counts and seconds, a non-zero exit and a clear message on any
+  failure, no silent fallbacks), and stay inside the maintenance flag
+  (OPS.51, state folder /var/lib/planetGen/state: the site is in
+  maintenance while the warm-up that a release needs runs, and it leaves
+  it when the warm-up ends). After that, a change rebuilds only what it
+  invalidates, on demand: explicit invalidation per kind of data change
+  (generation of a sector, the nightly orbital update and moved objects,
+  an admin edit, a backfill), each naming the cache keys it drops.
+  Design question for the lane: key every cached copy by a data version
+  (the galaxy's content stamp, `GET /api/galaxy/changes`, plus a
+  per-family counter) so a stale copy is never served as current, and
+  when the data changed a request waits for the rebuilt copy or reads
+  the database, never the old copy as current (the version key
+  decides). Redis and RQ rules: one instance
+  (PERF.86), AOF everysec, noeviction; a cache that lives in Redis must
+  tolerate a cold start. Plan first with a short design note (cache
+  families, key, invalidation table, warm-up order, run time on the
+  benchmark galaxy) before building, and record the open choices as
+  defaults. Done: after update.sh the first visit to the Galaxy Map, any
+  sector, any system, any phenomena or system list and a search all
+  answer from cache; changing one sector's data rebuilds only the caches
+  that read it; a test proves a stale copy is never served as current
+  after each kind of change. Owner: Core 2, next after MAP.209 and
+  MAP.210 (same cache and map code; Core 1 hands out any migration
+  revision it needs). New design note goes in docs/design/README.md in
+  the same PR.
+  Prerequisites: none. Related: MAP.134, PERF.2, PERF.69, PERF.75,
+  PERF.86, OPS.51, OPS.52.
 
 ## DB: Database and schema
 

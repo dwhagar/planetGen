@@ -191,6 +191,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 7. Core. |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | GEN.223, GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 6. Core. |
 | PERF.103 | A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night | GEN.223 | Orbital update, Boss 2026-10-15 6:26 PM EDT. Small. Core. |
+| PERF.104 | Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates |  |  |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.260, GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | GEN.262 | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 3. Core. |
@@ -227,6 +228,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.237, GEN.238 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
+| MAP.211 | Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug) |  |  |
 | MAP.210 | Nothing on the map can be selected, even in sector view (bug) |  |  |
 | MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) |  |  |
 | MAP.208 | Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass |  |  |
