@@ -5561,24 +5561,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.159).
   Prerequisites: none. Related: GEN.158, MAP.211.
 
-- [ ] **GEN.297 Update the globular clusters from Boss's Harris file once it is supplied: the catalogue rows replace the synthetic ones, the generator stays as the fallback**
+- [ ] **GEN.297 Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback**
   Follow-up from Core 2 (2026-10-16, 7:52 AM EDT, GEN.159 merged as
   #1810, migration 0097): the cluster table (galaxy_components), the
   King tables and solver and a synthetic generator are built; the Milky
   Way's own catalogue (the Harris globular cluster file, about 150
   clusters with position, distance, [Fe/H], mass, King concentration and
-  age) is not loaded and waits on Boss's file. Done: when Boss supplies
-  the file, a loader (a CLI step, no hand-edited data) imports it into
+  age) is not loaded and waits on Boss's file. Done: a loader (a CLI
+  step, no hand-edited data) imports it into
   galaxy_components with its source recorded, the Milky Way uses the
   catalogue rows instead of generated clusters, a test pins a few
   well-known clusters (47 Tuc, Omega Centauri, M13) against the file,
   and the design note records the file's version and licence. Owner:
-  unassigned; waits on Boss supplying the file (decided 2026-10-16, 2:51 PM EDT: the synthetic generator is what ships until then).
+  Core 3, in the cluster line (the file arrived 2026-10-16, 3:04 PM EDT).
   Decided (Boss, 2026-10-16, 2:51 PM EDT, decision card, and 2:52 PM EDT):
   the globular clusters are built from the synthetic generator now, and this item
   updates them from the Harris file once Boss supplies it: the catalogue rows replace the synthetic ones, and the generator stays as the fallback for any cluster the catalogue lacks.
-  Boss asked for the item, so this is it; it keeps its 8.8 place so the 8.1 headline does not wait on an outside file.
-  Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
+  Boss asked for the item, so this is it. The file arrived (Boss, 2026-10-16, 3:04 PM EDT), so nothing outside waits any more and the item moved into 8.1 with the other cluster items.
+  The file (Boss, 2026-10-16, 3:04 PM EDT; kept at
+  /mnt/project-files/data/harris/mwgc.dat, Harris 1996 (2010 edition),
+  December 2010 revision): 157 clusters in three parts. Part I has the
+  name, RA and Dec, galactic longitude and latitude, the distance from
+  the Sun and from the Galactic centre (R0 = 8.0 kpc) and X, Y, Z; Part
+  II the [Fe/H], reddening, V magnitude of the horizontal branch,
+  distance modulus, integrated V, M_V, the colours, spectral type and
+  ellipticity; Part III the radial velocity, dispersion, King
+  concentration c (a 'c' marks a core-collapsed cluster), core and
+  half-light radii in arcminutes, central surface brightness and
+  luminosity density, and the relaxation times. It has NO mass and NO
+  age, which the first text of this item assumed: the loader takes the
+  mass from M_V with a stated mass-to-light ratio (recorded with the
+  source) and the age from a stated rule or a second table, and says so
+  in the design note; gaps in a column (several clusters have no
+  dispersion or ellipticity) fall back to the generator. Licence: free
+  to use if the original source is named; cite 'Harris 1996 (2010
+  edition)' in the design note and the file header.
+  Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
   Follow-up from Core 3 (2026-10-16, 8:40 AM EDT, GEN.254 superbubble

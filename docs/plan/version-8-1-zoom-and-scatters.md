@@ -390,6 +390,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.317 | Globular-cluster chain. |
 | GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | GEN.329, GEN.163, GEN.325 | Split from GEN.274. |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | GEN.329, GEN.330 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
+| GEN.297 | Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback | GEN.237 | The file arrived (Boss, 3:04 PM EDT); Core 3, cluster line. |
 
 ## Phase 6: The headline closes
 
