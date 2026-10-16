@@ -1951,7 +1951,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) | none | done, PR #1801 |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
-| TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | open |
+| TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | done, PR #1881 |
 | TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | open |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | none | open |
 | TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | none | open |
