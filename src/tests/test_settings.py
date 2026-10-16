@@ -23,18 +23,16 @@ SRC = os.path.join(logpaths.PROJECT_ROOT, "src", "planetgen")
 
 @pytest.fixture
 def files(tmp_path, monkeypatch):
-    """Points the loader at a temporary config.json and settings.json."""
+    """Points the loader at a temporary config.json."""
     config = tmp_path / "config.json"
-    overlay = tmp_path / "settings.json"
     monkeypatch.setattr(logpaths, "CONFIG_PATH", str(config))
-    monkeypatch.setenv("PLANETGEN_SETTINGS_FILE", str(overlay))
     settings.reset_cache()
-    yield config, overlay
+    yield config
     settings.reset_cache()
 
 
-def _load(config=None, overlay=None, environ=None):
-    return settings.build(config, overlay, environ if environ is not None else {})
+def _load(config=None, environ=None):
+    return settings.build(config, environ if environ is not None else {})
 
 
 # --- Layers ---------------------------------------------------------------
@@ -51,17 +49,16 @@ def test_a_partial_section_keeps_the_rest_of_its_defaults():
     assert result.mysql.user == settings.Settings().mysql.user and result.debug is False
 
 
-def test_the_layers_stack_in_order_defaults_config_overlay_environment():
+def test_the_layers_stack_in_order_defaults_config_environment():
     config = {"site_name": "From config", "tile_cache": {"max_mb": 10}, "jobs": {"keep": 5}}
-    overlay = {"site_name": "From overlay", "tile_cache": {"max_mb": 20}}
-    result = _load(config, overlay, {"PLANETGEN_TILE_CACHE_MAX_MB": "30"})
-    assert result.site_name == "From overlay"
+    result = _load(config, {"PLANETGEN_TILE_CACHE_MAX_MB": "30"})
+    assert result.site_name == "From config"
     assert result.tile_cache.max_mb == 30 and result.jobs.keep == 5
 
 
 def test_an_empty_variable_counts_as_unset_except_where_the_model_says_otherwise():
     config = {"jobs": {"dir": "/from/config"}, "mysql": {"password": "kept?"}}
-    result = _load(config, environ={"PLANETGEN_JOBS_DIR": "", "PLANETGEN_MYSQL_PASSWORD": ""})
+    result = _load(config, {"PLANETGEN_JOBS_DIR": "", "PLANETGEN_MYSQL_PASSWORD": ""})
     assert result.jobs.dir == "/from/config"
     assert result.mysql.password == ""      # a blank password set in the environment is a password
 
@@ -69,11 +66,11 @@ def test_an_empty_variable_counts_as_unset_except_where_the_model_says_otherwise
 @pytest.mark.parametrize("raw, expected", [("off", False), ("0", False), ("false", False), ("1", True), ("yes", True)])
 def test_a_boolean_reads_text_the_way_debug_always_did(raw, expected):
     assert _load({"debug": raw}).debug is expected
-    assert _load(environ={"PLANETGEN_DEBUG": raw}).debug is expected
+    assert _load(None, {"PLANETGEN_DEBUG": raw}).debug is expected
 
 
 def test_the_allowlist_reads_comma_or_space_separated_text():
-    result = _load(environ={"PLANETGEN_LOGIN_ALLOWLIST": "1.2.3.4, 10.0.0.0/8  ::1"})
+    result = _load(None, {"PLANETGEN_LOGIN_ALLOWLIST": "1.2.3.4, 10.0.0.0/8  ::1"})
     assert result.login_allowlist == ["1.2.3.4", "10.0.0.0/8", "::1"]
 
 
@@ -93,7 +90,7 @@ def test_errors_name_every_field():
 # --- The files ------------------------------------------------------------
 
 def test_the_loader_rereads_when_a_file_changes(files):
-    config, _overlay = files
+    config = files
     assert settings.get_settings().site_name == "planetGen"
     config.write_text(json.dumps({"site_name": "One"}))
     assert settings.get_settings().site_name == "One"
@@ -102,7 +99,7 @@ def test_the_loader_rereads_when_a_file_changes(files):
 
 
 def test_a_broken_or_non_object_config_file_fails_loudly(files):
-    config, _overlay = files
+    config = files
     for raw in ("{not json", "[1, 2]", '"text"', "null"):
         config.write_text(raw)
         settings.reset_cache()
@@ -110,23 +107,10 @@ def test_a_broken_or_non_object_config_file_fails_loudly(files):
             settings.get_settings()
 
 
-def test_the_overlay_may_set_only_editable_options(files):
-    config, overlay = files
-    overlay.write_text(json.dumps({"site_name": "Web edited", "tile_cache": {"max_mb": 5}}))
-    result = settings.get_settings()
-    assert result.site_name == "Web edited" and result.tile_cache.max_mb == 5
-    for key in ({"mysql": {"host": "evil"}}, {"jobs": {"python": "/bin/sh"}}, {"secret_key": "x"},
-                {"not_an_option": 1}):
-        overlay.write_text(json.dumps(key))
-        settings.reset_cache()
-        with pytest.raises(settings.SettingsError, match="settings.json"):
-            settings.get_settings()
-
-
 def test_strict_mode_names_unknown_keys_in_config_json():
     _load({"ratelimt": {"default": "1 per day"}})                       # loading ignores them
     with pytest.raises(settings.SettingsError, match="ratelimt is not a setting"):
-        settings.build({"ratelimt": {}, "mysql": {"hots": "x"}}, None, {}, strict=True)
+        settings.build({"ratelimt": {}, "mysql": {"hots": "x"}}, {}, strict=True)
 
 
 def test_a_newer_file_is_refused_and_an_unversioned_one_is_version_1():
@@ -188,7 +172,6 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_OBJECT_TIMING_FULL": "a benchmark run keeps a timing row for every object (PERF.92)",
     "PLANETGEN_MIGRATIONS_DIR": "the migration scripts' folder",
     "PLANETGEN_SETTINGS_DIR": "the galaxy settings files' folder (ADM.18), not config.json",
-    "PLANETGEN_SETTINGS_FILE": "the web-owned settings.json",
     "PLANETGEN_MYSQL_SQL_MODE": "the test suite's SQL mode",
     "PLANETGEN_TEST_REDIS_URL": "the test suite's Redis",
     "PLANETGEN_STAGE_OFFSET": "set by the job runner: stages before this step's",
@@ -196,8 +179,9 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_WORK_PARENT": "set by a job for its child processes",
     "PLANETGEN_WORKER_HOOKS": "set by a work queue for its workers",
     "PLANETGEN_MAINTENANCE_FILE": "where maintenance mode keeps its state (the test suite points it at a temporary file)",
-    "PLANETGEN_STATE_DIR": "the folder maintenance mode's state lives in, which install.sh/update.sh give to the web user "
-                           "(examples/apache/create-cache-dir.sh reads the same variable)",
+    "PLANETGEN_STATE_DIR": "the folder maintenance mode's state and the backup archives live in, which "
+                           "install.sh/update.sh give to the web user (examples/apache/create-cache-dir.sh reads the "
+                           "same variable)",
     "PLANETGEN_UPDATE_LOCK_FILE": "where the update's lock lives (OPS.41; the test suite points it at a temporary folder)",
     "PLANETGEN_UPDATE_PID": "set by update.sh for the commands it runs: the update that holds the lock",
 }
@@ -225,7 +209,7 @@ def test_no_module_reads_the_file_directly_or_the_old_loader():
     offenders = []
     for root, _dirs, names in os.walk(SRC):
         for name in names:
-            if name.endswith(".py") and name not in ("settings.py", "logpaths.py") \
+            if name.endswith(".py") and name not in ("settings.py", "settings_writer.py", "logpaths.py") \
                     and os.path.join(root, name) != os.path.join(SRC, "cli", "config.py"):
                 with open(os.path.join(root, name), encoding="utf-8") as f:
                     text = f.read()

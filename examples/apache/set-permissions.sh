@@ -35,6 +35,8 @@
 #     file at any depth (no -maxdepth on purpose: an earlier version
 #     only fixed top-level scripts, which was reported broken), gets 750,
 #     so git sees no mode change and the scripts still run.
+#   - The backups folder inside the state directory (planetgen.backup) is
+#     700 and its archives 600: the web user's own.
 #   - Symbolic links are left alone (chown -h), never followed.
 #   - What stays root's: the virtual environment (/usr/local/planetgen/
 #     venv) and the NLTK corpus. install.sh and update.sh run their
@@ -106,5 +108,11 @@ fi
 # runs `python3 -m planetgen.cli.maintenance`); never world-writable.
 # create-cache-dir.sh sets the same mode.
 chmod 770 "$STATE_DIR"
+# The backup archives (planetgen.backup) hold a copy of config.json, and later the control database's password hashes:
+# the web user's own, nobody else's. The folder is made by the first backup; this keeps it that way.
+if [[ -d "$STATE_DIR/backups" ]]; then
+    chmod 700 "$STATE_DIR/backups"
+    find "$STATE_DIR/backups" -type f -exec chmod 600 {} +
+fi
 
 echo "Done."

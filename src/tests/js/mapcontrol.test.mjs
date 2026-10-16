@@ -81,6 +81,34 @@ test("a press that hardly moves clicks; past the threshold it drags", () => {
   assert.deepEqual(seen, ["start", ["drag", 3, 1, false]]);
 });
 
+test("a second click close in time and place is a double click, not a click", () => {
+  const canvas = h("canvas");
+  const seen = [];
+  let clock = 1000;
+  MC.createPointerControl(canvas, {
+    attach: true, dragClickPx: 6, now: () => clock,
+    onClick: () => seen.push("click"),
+    onDoubleClick: () => seen.push("double"),
+  });
+  const tap = (x, y) => { press(canvas, "pointerdown", x, y); press(canvas, "pointerup", x, y); };
+  tap(10, 10);
+  clock += 200;
+  tap(12, 11);
+  assert.deepEqual(seen, ["click", "double"]);
+  seen.length = 0;
+  clock += 100;
+  tap(12, 11);
+  assert.deepEqual(seen, ["click"], "a double click is used up: the third click starts a new pair");
+  seen.length = 0;
+  clock += 500;
+  tap(12, 11);
+  assert.deepEqual(seen, ["click"], "too late");
+  seen.length = 0;
+  clock += 100;
+  tap(40, 40);
+  assert.deepEqual(seen, ["click"], "too far");
+});
+
 test("a pan press never clicks, and the right button never clicks", () => {
   const canvas = h("canvas");
   const seen = [];

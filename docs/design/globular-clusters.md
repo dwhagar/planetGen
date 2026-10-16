@@ -22,6 +22,8 @@ Related notes: [galaxy-disk-density.md](galaxy-disk-density.md) (the density mod
 
 **Recommendation.** Build in four slices (section 9): the metallicity value and a cluster table with the real Milky Way catalogue; the sampling and the bright-first fill; the planet cull and pulsar planets; the synthetic cluster systems for other galaxies. Slice 1 needs Boss's decision on one input, the catalogue file (section 8).
 
+**Superseded in part (Boss, 2026-10-16, 4:11 PM EDT).** Wherever this note says the real Milky Way catalogue is loaded as rows, or that the Milky Way gets its real clusters, it no longer applies: no galaxy gets real clusters and there is no option to pick a Milky Way preset. The Harris file (kept at `/mnt/project-files/data/harris/mwgc.dat`, Harris 1996, 2010 edition) is a reference for building the procedure that generates a realistic cluster system: the generator's laws are calculated or derived from published science and checked statistically against the file (GEN.297). The sections below that describe loading the catalogue describe what the file contains, not what the generator does.
+
 ## 1. What Boss's research says
 
 - **Storage.** A cluster is a metadata node (position, mass, radii, metallicity) that the sector engine samples; the Milky Way's roughly 160 clusters are loaded from the Harris 1996/2010 and Baumgardt and Hilker catalogues; other galaxies get a synthetic system [B].
