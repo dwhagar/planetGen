@@ -1,0 +1,7 @@
+**Headline:** A sector inside a globular cluster now expects the cluster's stars, so the sector gate and the profile see its dense core.
+
+### Changed
+- `planetgen plan` now draws the galaxy's globular clusters (157 for the Milky Way) from the galaxy seed, before it walks the outline, and stores them in `galaxy_components`. Planning again over the same seed draws the same clusters. A toy galaxy keeps them inside itself by its disk scale length.
+- The shape read back from the database carries the clusters (`GalaxyShape.clusters`, `planetgen/galaxy/cluster_field.py`). A cell's cluster density is the King profile integrated over the cell's cube, in the units of `relative_density`, so it reaches `relative_density`, `population_densities` (the "cluster" population), `predicted_star_count`, the sector profile (a core cell's region is "cluster") and the Galaxy Map's counts. A cluster's cells add up to its mass over 0.4 solar masses, and the central cell of the design note's exemplars falls where its table puts it (a typical cluster 3.0e4 to 8.5e4 systems, a 47 Tuc-like one 1.1e5 to 5.3e5).
+- The skeleton's bound includes each cluster at its nearest to a band's ring, and an outline shell takes in the highest band any cluster reaches, so no cell the gate lets in is left outside the outline. A cluster beyond the last shell the disk reaches does not extend the outline.
+- The array form of the density (the band bins of the bright-star and phenomenon scatters) does not include the clusters; their stars are placed by their own pass (GEN.161).
