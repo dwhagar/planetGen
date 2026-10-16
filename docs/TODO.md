@@ -4639,6 +4639,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.235 and GEN.153.
   Prerequisites: GEN.250, GEN.235, GEN.153. Related: GEN.256, GEN.277.
 
+- [ ] **GEN.279 A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155)**
+  Boss (2026-10-16, 12:43 AM EDT), after Core 3's note dropped GEN.155
+  as a one-off object: "I would think the reason was space and speed,
+  but yes I want a realistic galactic core, add that to Core 3 please.
+  Modify our density and generation model so we keep our consistent
+  rules and adjust sector parameters to control what is filled." Done:
+  first a plan note (docs/design, with its row in docs/design/README.md
+  in the same PR) says how the galactic centre gets its real structure,
+  a nuclear star cluster and a dense inner bulge and nuclear disc, by
+  changing the density and generation model (the profile of GEN.235 and
+  the component table of GEN.237), not by a special object, so the same
+  rules apply in every cell and the per-sector parameters decide how
+  much of each sector is filled (space and speed are the limits that set
+  those parameters); the note lists the build items, their order and the
+  columns Core 1 must plan, and Core 3 asks the TODO lane for numbers
+  for them. Nothing is built before the note is read. Owner: Core 3
+  (Boss, 2026-10-16). Not blocking anything unless the note says so.
+  Prerequisites: none. Related: GEN.155, GEN.210, GEN.234, GEN.235,
+  GEN.237, GEN.233.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
