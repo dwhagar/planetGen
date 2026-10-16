@@ -198,6 +198,8 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_MAINTENANCE_FILE": "where maintenance mode keeps its state (the test suite points it at a temporary file)",
     "PLANETGEN_STATE_DIR": "the folder maintenance mode's state lives in, which install.sh/update.sh give to the web user "
                            "(examples/apache/create-cache-dir.sh reads the same variable)",
+    "PLANETGEN_UPDATE_LOCK_FILE": "where the update's lock lives (OPS.41; the test suite points it at a temporary folder)",
+    "PLANETGEN_UPDATE_PID": "set by update.sh for the commands it runs: the update that holds the lock",
 }
 
 

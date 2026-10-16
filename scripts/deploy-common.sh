@@ -375,6 +375,54 @@ check_mod_wsgi_python() {
     fi
 }
 
+# The update guard (OPS.41; `planetgen.cli.update_guard`): closes the site
+# (maintenance mode, cause "update") and takes the update's lock;
+# `finish_update_guard` (update.sh's EXIT trap) opens the
+# site again after a good update and leaves it closed, saying why, after a
+# failed one. UPDATE_STEP names the step under way for that message.
+UPDATE_GUARD_HELD=0
+UPDATE_STEP="starting"
+
+update_guard() {
+    (cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" \
+        "$VENV/bin/python" -m planetgen.cli.update_guard "$@")
+}
+
+# Takes the guard if it is not held yet. Before the pull the checkout may not
+# have the guard (the first update that brings it) and a new machine may have
+# no virtual environment: then this does nothing, and is called again after
+# the pull and after step 2. With the argument "required" it fails the update
+# instead of doing nothing.
+ensure_update_guard() {
+    if (( UPDATE_GUARD_HELD )); then
+        return 0
+    fi
+    if [[ ! -f "$SCRIPT_DIR/src/planetgen/cli/update_guard.py" || ! -x "$VENV/bin/python" ]]; then
+        if [[ "${1:-}" == "required" ]]; then
+            echo "error: the update guard is missing from this checkout or the virtual environment is, so the update" >&2
+            echo "       cannot close the site. Nothing was changed after the pull." >&2
+            return 1
+        fi
+        return 0
+    fi
+    if update_guard begin --pid "$$"; then
+        UPDATE_GUARD_HELD=1
+    else
+        echo "error: the update did not start." >&2
+        exit 1
+    fi
+}
+
+finish_update_guard() {
+    local status=$?
+    (( UPDATE_GUARD_HELD )) || return 0
+    if (( status == 0 )); then
+        update_guard end --pid "$$" || true
+    else
+        update_guard end --pid "$$" --failed --step "$UPDATE_STEP" || true
+    fi
+}
+
 # Builds the Galaxy Map's opening view into the tile cache (MAP.134), in the
 # background as Apache's user (the cache belongs to it), so the update
 # doesn't wait for it and the first visitor after it doesn't either. At
