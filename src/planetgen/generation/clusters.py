@@ -108,7 +108,7 @@ def _fe_h(stream, group):
     return _clipped_gauss(stream, mean, sigma, low, high)
 
 
-def generate_clusters(galaxy_seed, count=tuning.CLUSTER_COUNT_MILKY_WAY, epoch_unix=0.0):
+def generate_clusters(galaxy_seed, count=tuning.CLUSTER_COUNT_MILKY_WAY, epoch_unix=0.0, scale=1.0):
     """
     Draws a galaxy's globular clusters from its seed.
 
@@ -117,6 +117,9 @@ def generate_clusters(galaxy_seed, count=tuning.CLUSTER_COUNT_MILKY_WAY, epoch_u
         count (int): How many clusters (`tuning.CLUSTER_COUNT_MILKY_WAY`; `S_N * 10 ** (-0.4 * (M_V + 15))` for
             another galaxy, globular-clusters.md section 8).
         epoch_unix (float): When the positions and velocities hold.
+        scale (float): How much larger than the Milky Way the galaxy is, by its disk scale length: every distance from
+            the centre is multiplied by it, so a toy galaxy keeps its clusters inside itself. The clusters themselves
+            (mass, size, concentration) do not scale.
 
     Returns:
         list[Component]: `count` clusters named "Generated cluster 001" and on, in drawing order.
@@ -127,6 +130,7 @@ def generate_clusters(galaxy_seed, count=tuning.CLUSTER_COUNT_MILKY_WAY, epoch_u
     for index in range(count):
         group = _GROUP_HALO if stream.random() < halo_fraction else 1
         position, velocity = _place(stream, group)
+        position = tuple(c * scale for c in position)
         distance = math.sqrt(sum(c * c for c in position))
         mass = _mass(stream)
         radius, w0, collapsed = _structure(stream, distance)

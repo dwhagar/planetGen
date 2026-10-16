@@ -72,9 +72,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.130 | Globular-cluster chain. |
-| GEN.162 | Planet cull and blue stragglers in clusters | GEN.160 | Globular-cluster chain. |
-| GEN.161 | Bright-first fill for cluster sectors | GEN.160 | Globular-cluster chain. |
-| GEN.160 | Cluster density in the sector gate, with a "cluster" population |  | Globular-cluster chain. |
+| GEN.162 | Planet cull and blue stragglers in clusters |  | Globular-cluster chain. |
+| GEN.161 | Bright-first fill for cluster sectors |  | Globular-cluster chain. |
 | GEN.297 | Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters |  |  |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars |  |  |
 

@@ -147,6 +147,16 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
     finally:
         conn.close()
     assert bounds.edge_pc == EDGE
+    # The plan draws the globular clusters, whose bands extend the disk's outline (GEN.160), so the
+    # expected outline is walked on the shape the plan stored, clusters and all.
+    conn = store.get_connection(mysql_config)
+    try:
+        clustered = store.get_galaxy_shape(conn).shape
+    finally:
+        conn.close()
+    assert clustered.clusters is not None
+    extents, outer, confirmed = build_shell_extents(clustered, EDGE, THRESHOLD)
+    assert confirmed
     assert bounds.high_band == dict(extents)
     assert bounds.outer_shell_index == outer
     assert [row[:2] for row in stored] == extents

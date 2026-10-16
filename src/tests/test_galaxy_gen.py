@@ -233,6 +233,9 @@ def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
 
     assert shape_dict is not None
     for field in _SKELETON_SHAPE._fields:
+        if field == "clusters":  # the cluster field is an object for the density model, not JSON for the map
+            assert field not in shape_dict
+            continue
         assert shape_dict[field] == pytest.approx(getattr(_SKELETON_SHAPE, field))
     assert shape_dict["edge_pc"] == pytest.approx(EDGE_PC)
     assert shape_dict["outer_shell_index"] == 42
