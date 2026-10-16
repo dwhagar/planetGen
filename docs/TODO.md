@@ -5018,6 +5018,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   #1677.
   Prerequisites: none. Related: GEN.286, GEN.283.
 
+- [ ] **GEN.288 Rename the PHI-6 equipment tier "Sealed suit" to "Environment suit" everywhere**
+  Boss (2026-10-15 10:12 PM EDT, phase 1): change the name in PHI-6 from
+  "Sealed Suit" to "Environment Suit". The tier is stored as the number
+  `equipment_tier` 3 (no stored name, so no migration) and named in
+  code: EQUIPMENT_NAMES and the lower-case keys in
+  physics/habitability_world.py ("sealed suit", shown as "Sealed suit"),
+  the returned key in physics/habitability.py, the wording tables in
+  physics/protection.py (some lines already say "an environment suit",
+  the others "a sealed suit", "a sealed suit with its own air", "an
+  actively cooled sealed suit"), physics/habitability_explain.py,
+  physics/protection_limits.py descriptions,
+  web/lib/habitability_ref.py, the equipment comments in db/schema.sql
+  and tuning.py, and the docs (design/habitability-index.md,
+  design/system-description.md, html-interface.md, database-schema.md,
+  the research note), plus the tests that assert the old text
+  (test_habitability, test_protection, test_habitability_world). Done:
+  no "sealed suit" or "Sealed suit" left for the equipment tier anywhere
+  in code, data text, docs or the UI (a grep is the check, ice-sealed
+  ocean and similar unrelated phrases stay), the tier reads "Environment
+  suit" on the sector, system and planet pages and the levels page, one
+  wording for the suit text (an "environment suit" with active heating,
+  active cooling or its own air as the existing qualifiers), and the
+  tests assert the new name. No backward-compatibility shim for the old
+  name. Owner: Core 3, third in its queue after UX.117 and MAP.211,
+  ahead of the #1677 chain; GEN.218 and GEN.221 (unassigned wording
+  items) can take the same module afterwards (Boss, 2026-10-15 10:12 PM
+  EDT, via the coordinator).
+  Prerequisites: none. Related: GEN.218, GEN.219, GEN.221, GEN.89.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
