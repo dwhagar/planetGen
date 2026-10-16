@@ -152,7 +152,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential |  | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
-| GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | GEN.158, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Step 13. Core. |
+| GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | GEN.241 | Whole-sphere build train, Boss 2026-10-15. Step 13. Core. |
 | GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars |  | Whole-sphere build train, Boss 2026-10-15. Step 11. Core. |
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.236, GEN.242, GEN.251 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
 | API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed |  | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
@@ -174,7 +174,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.244 | Young open clusters and OB associations as components (later) | GEN.237, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population |  | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | GEN.159, GEN.160 | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
-| GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | GEN.158 | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |
+| GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity |  | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one |  | Phenomena catalogue, Boss 2026-10-15. Step 2. Core. |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
@@ -251,7 +251,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 |  | Core 3; step 1 of the galactic core note; needs a Core 1 migration revision |
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | GEN.280, GEN.276 | Core 3; step 2 of the galactic core note; shares one Core 1 migration with GEN.283 |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.237, GEN.244 | Core 3; step 3 of the galactic core note |
-| GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else | GEN.158 | Core 3; step 3b of the galactic core note; shares one Core 1 migration with GEN.281 |
+| GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else |  | Core 3; step 3b of the galactic core note; shares one Core 1 migration with GEN.281 |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.280, GEN.162 | Core 3; step 4 of the galactic core note |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.280 | Core 3; step 5 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
