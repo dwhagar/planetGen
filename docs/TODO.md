@@ -5496,6 +5496,74 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: USR.25, DB.36.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
+- [ ] **DB.40 Parity data backup part: the parity file of the DB repair copied into the backup archive**
+  Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
+  control DB and backups of the parity data for DB repair." and "All
+  those should be bz2 tarballed together." Boss (2:00 PM EDT): "we also
+  have to build a way to use that data so build that out and let's make
+  this targetted for v9.0 so incorporate the chain for these (restore /
+  repair using backups) with that due date. Settings page is v8.1".
+  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
+  All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
+  retention is `settings.backups_kept` (default 20, 1 to 200). DB.9
+  keeps parity for every sector in an append-only parity file outside
+  the database (path in `config.json`). A damaged database is only
+  repairable with a parity file that matches it, so the file is a backup
+  part, written to `parity/`: the copy is taken under the parity
+  writer's lock and cuts at the last complete record (the file is an
+  append-only log of self-describing records with a header scan, so no
+  index is stored); it can be switched off for a very large galaxy with
+  the option `settings.backup_parity` (default on), and the manifest
+  records its size and the sector count it covers. Done: the part
+  registered with ADM.87, the lock-held copy under a concurrent save,
+  and the size and coverage in the manifest (the restore is DB.41).
+  Prerequisites: ADM.87, DB.9. Related: ADM.85, DB.8, DB.17.
+
+- [ ] **DB.41 Parity data restore: put a backed-up parity file back and check it against the database**
+  Boss (2:00 PM EDT): "we also have to build a way to use that data so
+  build that out and let's make this targetted for v9.0 so incorporate
+  the chain for these (restore / repair using backups) with that due
+  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  chain, umbrella ADM.91); the settings page and the settings backups
+  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
+  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
+  (default 20, 1 to 200). Using the parity part of an archive: restore
+  writes the file back (to a temporary name first, then renamed), then
+  runs the DB.8 check so every record that no longer matches the
+  database is recomputed by the stale-record rule of DB.9 instead of
+  being read as damage, and reports how many sectors are unprotected
+  until their next save. `planetgen.cli.backup restore --part parity
+  ARCHIVE` and the backup list use it. Done: a restore on a fixture
+  galaxy followed by a passing check, a record from before an edit
+  treated as stale and not as damage, and a refused restore while a save
+  is writing parity.
+  Prerequisites: DB.40, DB.8. Related: DB.9, ADM.85, ADM.91.
+
+- [ ] **DB.42 Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged**
+  Boss (2:00 PM EDT): "we also have to build a way to use that data so
+  build that out and let's make this targetted for v9.0 so incorporate
+  the chain for these (restore / repair using backups) with that due
+  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  chain, umbrella ADM.91); the settings page and the settings backups
+  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
+  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
+  (default 20, 1 to 200). The galaxy database itself is not in the
+  archive (too large; it can be regenerated from the seed, DB.17, and
+  repaired from parity, DB.9). `repair-db` of DB.9 reads the live parity
+  file; with `--from-archive ARCHIVE` (or the choice on the repair page)
+  it reads the archive's parity part instead when the live file is
+  missing, damaged or newer than the damage. It applies the stale-record
+  decision table against the live database, rebuilds every damaged
+  sector it can, and lists the sectors it cannot repair (a stale record,
+  more than m members of a group lost) for the seed regeneration of
+  DB.17, with a report of what came from which source. Done: tests on a
+  copy of a small galaxy: the live parity file deleted and the damage
+  repaired from the archive, a group that lost too many members listed
+  and handed to DB.17, and a stale archive recompute that does not
+  damage a healthy sector.
+  Prerequisites: DB.41, DB.9, DB.17. Related: DB.9, DB.17, ADM.91.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -5984,7 +6052,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `util/appconfig.py` is gone (log paths are in `util/logpaths.py`);
   `docs/config.md` has a generated table (`python -m planetgen.cli.config
   docs`).
-  Prerequisites: ADM.83, ADM.84, ADM.85.
+  Backups (Boss, 2026-10-16, 1:59 and 2:00 PM EDT) are part of this
+  page: ADM.87 is the one archive mechanism (one bz2 tarball per backup;
+  layout fixed for the settings, control and parity parts) and ADM.85 is
+  the screen. Boss (2:00 PM EDT): the control database and parity parts,
+  their restores and the repair from backups are targeted for 9.0
+  (umbrella ADM.91); the settings page and the settings backups stay in
+  8.1.
+  Prerequisites: ADM.83, ADM.84, ADM.85, ADM.87.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
   Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
@@ -6117,15 +6192,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   items in the 8.6 version file (design:
   [docs/design/edit-everything.md](design/edit-everything.md)); it is done
   when its items are.
+  Boss (2026-10-16, 1:49 PM EDT): an admin approves their own plan at
+  the time, so an admin confirms rather than requests; there is no
+  second approver and the plan preview stays. The roles of 10.0 (USR.25)
+  add requests from users and moderators on the same plans.
   Headline: 8.6 (edit everything: the admin can change anything and the
   world adjusts, after approving a plan).
   Prerequisites: ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120,
   POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.78, ADM.79,
   ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54.
-  Boss (2026-10-16, 1:49 PM EDT): an admin approves their own plan at
-  the time, so an admin confirms rather than requests; there is no
-  second approver and the plan preview stays. The roles of 10.0 (USR.25)
-  add requests from users and moderators on the same plans.
 
 - [ ] **ADM.58 Change plan engine: operations, the effect diff and the plan states, as a library**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
@@ -6511,15 +6586,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   option changes, validates each against the ADM.42 model (type, range,
   enum, read-only options refused), returns per-field errors, and
   otherwise writes the overlay atomically (temporary file, fsync,
-  rename) after copying the old file to a timestamped backup (the last
-  20 are kept). Each changed option gets an activity-log row (who,
+  rename) after taking a settings-only backup archive through ADM.87
+  (retention is the option `settings.backups_kept`, default 20, 1 to
+  200). Each changed option gets an activity-log row (who,
   option, old and new value; passwords and keys are never logged), and
   the result lists which changes need a restart. `planetgen.cli.config
   set`, `get` and `restore` use the same writer. `set-permissions.sh`
   and the installers create the settings folder for the web user. Done:
   the writer and the CLI with tests for every error kind, the atomic
-  write, the backup rotation and the restart list.
-  Prerequisites: none. Related: ADM.43, ADM.42.
+  write, the backup archive and the restart list.
+  Prerequisites: ADM.87. Related: ADM.43, ADM.42.
 
 - [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
@@ -6549,14 +6625,24 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   desperately need that." Part of the configuration page of ADM.43
   (GitHub issue
   [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. The settings page lists the timestamped backups
-  (time, who), shows the diff between one and the current settings, and
-  restores one after a confirmation and an audit row. Export downloads
-  the overlay as JSON without secrets or read-only options; import reads
+  8.2 to 8.1 phase 1. The settings page is also the one screen for
+  backups (ADM.87): it lists the archives (time, who, the parts each
+  holds and their sizes), takes "Back up now" (every part available),
+  downloads one (admins; the Owner only from 8.2), shows the diff of an
+  archive's settings part against the current settings, and restores the
+  whole archive or one part after a confirmation and an audit row; the
+  control database part (ADM.88, restore ADM.89) and the parity part
+  (DB.40, restore DB.41) arrive in 9.0 and show up in the same list and
+  restore through the same screen, with the guard of ADM.89, so this
+  screen is built once for every part. Export and import are for the
+  settings part alone: export
+  downloads the overlay as JSON without secrets or read-only options;
+  import reads
   such a file through the same validation and diff as an edit. Done: the
-  list, restore, export and import with a browser test and a test that
-  an import with one bad value changes nothing.
-  Prerequisites: ADM.84. Related: ADM.43.
+  list, back up now, download, whole and one-part restore, export and
+  import with a browser test and a test that an import with one bad
+  value changes nothing.
+  Prerequisites: ADM.84, ADM.87. Related: ADM.43.
 
 - [ ] **ADM.86 Owner-tier settings: Owner-only options behind a recent-password prompt**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
@@ -6572,6 +6658,132 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   umbrella ADM.43. Done: the prompt, the tier check in the writer, and
   tests that an admin and a stale-password Owner are both refused.
   Prerequisites: ADM.84, USR.2. Related: ADM.43, USR.3.
+
+- [ ] **ADM.87 Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part**
+  Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
+  control DB and backups of the parity data for DB repair." and "All
+  those should be bz2 tarballed together." One backup mechanism for the
+  settings page chain (ADM.43): every backup is one `.tar.bz2` archive
+  taken at one moment, holding parts; retention is the option
+  `settings.backups_kept` (default 20, 1 to 200, Boss) and counts
+  archives; a restore takes the whole archive or one part. Build
+  `planetgen.backup`: a part is a small provider with a name,
+  `dump(directory)` and `restore(directory)`, registered in one table,
+  so the settings (this item) now, and the control database (ADM.88) and
+  the parity data (DB.40) in 9.0 plug in without a new layout. The
+  layout is fixed here for all three: `manifest.json` (format 1, time,
+  who, version key, and per part its name, directory, sizes and SHA-256)
+  and one directory per part (`settings/`, `control/`, `parity/`); a
+  restore of an archive that holds a part this build has no provider for
+  skips it, reports it and never drops it when an archive is copied.
+  `take(parts)` writes `backups/<UTC timestamp>.tar.bz2` (stdlib
+  `tarfile`, mode 0600, owned by the web user), `list()` reads the
+  manifests, `verify(archive)` checks the hashes, `prune()` keeps the
+  newest `settings.backups_kept` archives and never deletes the newest
+  archive that holds every registered part, and `restore(archive,
+  parts=None)` verifies first and restores the whole archive or only the
+  named parts. The settings part is the `settings.json` overlay. A save
+  on the settings page (ADM.83) writes a small archive with the settings
+  part alone; "Back up now" and the command take every part that is
+  registered. The option goes into the ADM.42 model;
+  `set-permissions.sh` and the installers create the backups folder for
+  the web user. Done: the library, the option, the
+  `planetgen.cli.backup` commands (take, list, verify, restore with
+  `--part`) and tests for the manifest, a corrupted archive refused, an
+  unknown part kept, retention that keeps the newest full archive, and
+  restoring one part leaving the others alone.
+  Prerequisites: none. Related: ADM.43, ADM.83, ADM.85, ADM.88, DB.40.
+
+- [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
+  Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
+  control DB and backups of the parity data for DB repair." and "All
+  those should be bz2 tarballed together." Boss (2:00 PM EDT): "we also
+  have to build a way to use that data so build that out and let's make
+  this targetted for v9.0 so incorporate the chain for these (restore /
+  repair using backups) with that due date. Settings page is v8.1".
+  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
+  All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
+  retention is `settings.backups_kept` (default 20, 1 to 200). The
+  control database (`control_database`, default `planetgen_control`)
+  holds the admin identities, API keys, naming key and run records;
+  nothing backs it up. This item is the part that dumps it into the
+  archive: `mysqldump --single-transaction` (the credentials go through
+  a temporary 0600 option file, never the command line; no replication
+  flags, which MySQL 8.4 and MariaDB 11.4 do not share), leaving out the
+  sessions table, written to `control/`. The archive holds password
+  hashes and key hashes, so only admins may download it, and from 8.2
+  only the Owner (ADM.86). Done: the part registered with ADM.87, a
+  missing `mysqldump` reported with the install step, a test that
+  sessions are not in the archive, and a test that the dump loads into a
+  scratch schema (the restore itself is ADM.89).
+  Prerequisites: ADM.87. Related: ADM.43, ADM.85, USR.2.
+
+- [ ] **ADM.89 Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page**
+  Boss (2:00 PM EDT): "we also have to build a way to use that data so
+  build that out and let's make this targetted for v9.0 so incorporate
+  the chain for these (restore / repair using backups) with that due
+  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  chain, umbrella ADM.91); the settings page and the settings backups
+  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
+  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
+  (default 20, 1 to 200). Using the control part of an archive: the
+  restore loads the dump into a scratch schema, checks the tables, row
+  counts and the schema version against the live code (an archive from a
+  newer version is refused, an older one is migrated by the normal
+  update), then replaces the control schema in one step, behind a
+  confirmation page that names what will be lost (every change since the
+  archive) and behind the update guard (OPS.41, OPS.53, OPS.54: refused
+  while maintenance, an update or a run is active). It is logged, ends
+  every session and makes the admin sign in again. `planetgen.cli.backup
+  restore --part control ARCHIVE` and the "Restore" action of the backup
+  list (ADM.85) use it, so the control part restores like the settings
+  part. Done: the restore with tests for a good archive, a refused
+  archive from a newer version, a refused restore while the guard is on,
+  and a restore that fails in the scratch schema and leaves the live
+  schema untouched.
+  Prerequisites: ADM.88, ADM.85, OPS.41. Related: ADM.85, ADM.43,
+  ADM.91.
+
+- [ ] **ADM.90 Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job**
+  Boss (2:00 PM EDT): "we also have to build a way to use that data so
+  build that out and let's make this targetted for v9.0 so incorporate
+  the chain for these (restore / repair using backups) with that due
+  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  chain, umbrella ADM.91); the settings page and the settings backups
+  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
+  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
+  (default 20, 1 to 200). One admin page for everything in the chain:
+  the DB.8 check result (damaged, unprotected and healthy sector counts,
+  when it last ran), a "Run check" button that runs as a queue job, the
+  list of damaged sectors with the source each repair would use (live
+  parity, an archive chosen from the backup list, or the seed of DB.17),
+  a "Repair" action that starts `repair-db` as a queue job with a
+  progress bar and the report, and the restore actions of the backup
+  list for the control and parity parts, all behind the update guard and
+  a confirmation that names what will change. Done: the page and a
+  browser test that runs a check on a damaged fixture galaxy, repairs it
+  from an archive and shows a passing check.
+  Prerequisites: DB.42, ADM.89, DB.41. Related: ADM.85, DB.8, ADM.91.
+
+- [ ] **ADM.91 Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page)**
+  Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
+  control DB and backups of the parity data for DB repair." and "All
+  those should be bz2 tarballed together." Boss (2:00 PM EDT): "we also
+  have to build a way to use that data so build that out and let's make
+  this targetted for v9.0 so incorporate the chain for these (restore /
+  repair using backups) with that due date. Settings page is v8.1".
+  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
+  All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
+  retention is `settings.backups_kept` (default 20, 1 to 200). Umbrella
+  of the chain; it is done when its items are. The archive mechanism and
+  the settings part are in 8.1 (ADM.87, with ADM.83 to ADM.85); the
+  control database and parity parts, their restores, the repair from an
+  archive, the repair page, the end-to-end test and the guide are in
+  9.0.
+  Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
+  DOC.56. Related: ADM.43, ADM.87, DB.9.
 
 ## SEC: Security
 
@@ -7303,6 +7515,24 @@ clears each one.
   in the gate.
   Prerequisites: USR.14. Related: USR.25.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **TEST.180 Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back**
+  Boss (2:00 PM EDT): "we also have to build a way to use that data so
+  build that out and let's make this targetted for v9.0 so incorporate
+  the chain for these (restore / repair using backups) with that due
+  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  chain, umbrella ADM.91); the settings page and the settings backups
+  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
+  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
+  (default 20, 1 to 200). One scenario test on a small galaxy: take a
+  full archive (settings, control, parity), damage sectors in the galaxy
+  database, delete the live parity file, drop the control schema, then
+  restore the control part, repair from the archive, run the check and
+  sign in again; also an archive with a corrupted part refused, one-part
+  restore leaving the others alone, retention keeping the newest full
+  archive, and every restore refused while the update guard is on. Done:
+  the test in the gate, with the run named in the PR.
+  Prerequisites: ADM.89, DB.42, ADM.90. Related: ADM.91.
 
 ## USR: User accounts
 
@@ -8255,6 +8485,23 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   see. Done: the page in the help section (DOC.6 template).
   Prerequisites: TEST.178. Related: USR.25, DOC.6.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
+
+- [ ] **DOC.56 Backups, restore and repair: the deployment guide and the help page**
+  Boss (2:00 PM EDT): "we also have to build a way to use that data so
+  build that out and let's make this targetted for v9.0 so incorporate
+  the chain for these (restore / repair using backups) with that due
+  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  chain, umbrella ADM.91); the settings page and the settings backups
+  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
+  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
+  (default 20, 1 to 200). `docs/deployment` and the help section
+  (DOC.6): what a backup holds and does not (the galaxy database is not
+  in it), where the archives live and their retention, how to take one,
+  how to restore the settings, the control database or the parity data,
+  how to repair the galaxy from parity and from an archive, what the
+  guard refuses, and the `mysqldump` requirement. Done: the guide and
+  the help page, linked from the settings page and the repair page.
+  Prerequisites: TEST.180. Related: ADM.91, DOC.6.
 
 ## VIEW: The view from a planet
 

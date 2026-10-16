@@ -18,14 +18,14 @@ release is stamped.
 | NAV | NAV.62 |
 | GEN | GEN.304 |
 | PERF | PERF.106 |
-| DB | DB.40 |
+| DB | DB.43 |
 | API | API.29 |
-| ADM | ADM.87 |
+| ADM | ADM.92 |
 | SEC | SEC.33 |
-| TEST | TEST.180 |
+| TEST | TEST.181 |
 | USR | USR.26 |
 | OPS | OPS.55 |
-| DOC | DOC.56 |
+| DOC | DOC.57 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -475,6 +475,11 @@ Parents marked "new parent" had no old number of their own.
 | ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | open |
 | ADM.85 | Settings backups, restore, import and export on the settings page | none | open |
 | ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | open |
+| ADM.87 | Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part | none | open |
+| ADM.88 | Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive | none | open |
+| ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | none | open |
+| ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | none | open |
+| ADM.91 | Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -542,6 +547,9 @@ Parents marked "new parent" had no old number of their own.
 | DB.37 | Lock marks table (migration only) | none | open |
 | DB.38 | Region density overrides table (migration only) | none | open |
 | DB.39 | Edit request support tables (migration only): request comments and notification records | none | open |
+| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | none | open |
+| DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | open |
+| DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -597,6 +605,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.53 | The tuning module header names the rule for a new signed constant: the fuzz tests accept only a dict or a positive "fall" | none | open |
 | DOC.54 | Admin help: how to edit, regenerate, lock, approve and undo | none | open |
 | DOC.55 | Help: roles, edit requests and how an approval works | none | open |
+| DOC.56 | Backups, restore and repair: the deployment guide and the help page | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1798,6 +1807,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.177 | Edited sectors survive repair, regeneration and the golden seed | none | open |
 | TEST.178 | Roles end to end: user, moderator and admin through the whole request chain | none | open |
 | TEST.179 | Permission matrix test: every route and page checked for every role against the catalogue | none | open |
+| TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

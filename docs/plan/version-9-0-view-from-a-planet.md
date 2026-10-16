@@ -8,7 +8,7 @@ Version: 9.0
 
 ## Goal
 
-Stand on a world and look up: the sky from any planet or moon. Proposed headline of 9.0 (recommended by the TODO thread; Boss has not chosen). A major version needs Boss's word.
+Stand on a world and look up: the sky from any planet or moon. Proposed headline of 9.0 (recommended by the TODO thread; Boss has not chosen). A major version needs Boss's word. The version also carries the backups and repair chain Boss targeted for 9.0 (Boss, 2026-10-16, 2:00 PM EDT; ADM.91): phases 3 and 4.
 
 ## Phase 1: Sky data
 
@@ -36,3 +36,35 @@ The view itself, the star map and the PNG.
 | VIEW.3 | Render the view as a PNG, with constellations | VIEW.2, VIEW.4 |  |
 | VIEW.7 | Sky tiers and the backfill cost measurement | VIEW.1 | Research: the sky is about 8% to 10% complete today. |
 | VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | VIEW.1 | Research. |
+
+## Phase 3: Backup parts and restore
+
+Target 9.0 (Boss, 2:00 PM EDT): the control database and parity parts of the backup archive, and a restore for each.
+
+### Control database
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| ADM.88 | Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive | ADM.87 | Boss 1:59 PM EDT; part of the ADM.87 archive. |
+| ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | ADM.88, ADM.85, OPS.41 | Boss 2:00 PM EDT. |
+
+### Parity data
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | ADM.87, DB.9 | Boss 1:59 PM EDT; Core 1 owns DB.9. |
+| DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | DB.40, DB.8 | Boss 2:00 PM EDT; Core 1. |
+
+## Phase 4: Repair from backups, the repair page and proof
+
+The repair of the galaxy from an archive, the one page for check, repair and restore, and the end-to-end test, guide and umbrella.
+
+### Repair and proof
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | DB.41, DB.9, DB.17 | Boss 2:00 PM EDT. |
+| ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | DB.42, ADM.89, DB.41 | Boss 2:00 PM EDT. |
+| TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | ADM.89, DB.42, ADM.90 | Boss 2:00 PM EDT. |
+| DOC.56 | Backups, restore and repair: the deployment guide and the help page | TEST.180 | Boss 2:00 PM EDT. |
+| ADM.91 | Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180, DOC.56 | Umbrella of the backups and repair chain; done when its items are. |
