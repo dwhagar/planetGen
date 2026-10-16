@@ -32,6 +32,7 @@ const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const { cssVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
+const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
 const { POINT_PX, STAR_POINT_GLSL, pointBrightness } = await import(`./starpoint.js${VERSION_QUERY}`);
 
@@ -1027,33 +1028,10 @@ export function buildSectorScene(data, options) {
   }
 
   // MAP.152: draws the whole scene at `share` (0 to 1) of its strength, for a sector fading
-  // in as the camera comes up to it: every material's own strength (a point's alpha, a cloud's
-  // peak alpha, a glow's strength, a plain material's opacity) is scaled, from the value it was
-  // built with. At 0 the group is not drawn at all.
+  // in as the camera comes up to it (groupfade.js); at 0 it is not drawn at all.
   var faded = 1;
   function setFade(share) {
-    faded = Math.min(1, Math.max(0, share));
-    group.visible = faded > 0;
-    group.traverse(function (object) {
-      var material = object.material;
-      if (!material) return;
-      var base = material.userData.fadeBase || (material.userData.fadeBase = {});
-      if (material.isShaderMaterial) {
-        ["fade", "maxAlpha", "glowStrength"].forEach(function (name) {
-          var uniform = material.uniforms[name];
-          if (!uniform) return;
-          if (base[name] === undefined) base[name] = uniform.value;
-          uniform.value = base[name] * faded;
-        });
-        return;
-      }
-      if (base.opacity === undefined) {
-        base.opacity = material.opacity;
-        base.transparent = material.transparent;
-      }
-      material.opacity = base.opacity * faded;
-      material.transparent = base.transparent || faded < 1;
-    });
+    faded = fadeGroup(group, share);
   }
 
   function dispose() {
