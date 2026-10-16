@@ -735,3 +735,20 @@ def test_the_scripts_never_write_the_admins_apache_or_redis_config():
                 # `sudo ...` and echo lines are instructions printed for the admin to run.
                 if target in line and not line.lstrip().startswith(("sudo ", "echo ", "diff ")):
                     assert not re.search(r"(>|\bsed -i\b|\bcp\b|\bmv\b|\btee\b|\binstall\b|\bln\b)[^|]*" + re.escape(target), line), (rel, line)
+
+
+@needs_www_data
+def test_an_update_that_started_before_the_ownership_change_is_told_to_run_again(tmp_path):
+    """The update.sh that was running when it pulled the change still hands
+    src/html to set-permissions.sh, which now takes the checkout."""
+    repo = _make_checkout(tmp_path)
+    proc = _run_permissions(repo / "src" / "html", tmp_path)
+    assert proc.returncode != 0
+    assert "run ./update.sh again" in proc.stderr
+    assert os.stat(repo / "src" / "html" / "wsgi.py").st_uid == 0
+
+
+def test_the_updates_dirty_check_ignores_mode_changes():
+    """set-permissions.sh makes every script executable; that is not a local edit to warn about."""
+    with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
+        assert 'git -c core.fileMode=false status --porcelain' in f.read()

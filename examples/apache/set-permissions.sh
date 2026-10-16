@@ -60,6 +60,10 @@ fi
 
 if [[ ! -d "$INSTALL_DIR/src/html" ]]; then
     echo "error: $INSTALL_DIR doesn't look like a planetGen checkout (no src/html); nothing was changed." >&2
+    if [[ -f "$INSTALL_DIR/wsgi.py" ]]; then
+        echo "  This takes the checkout (/var/lib/planetGen), not src/html. An update.sh that was already" >&2
+        echo "  running when it pulled this change still passes src/html: run ./update.sh again." >&2
+    fi
     exit 1
 fi
 
