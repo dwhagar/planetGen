@@ -4277,3 +4277,95 @@ p.hint a {
   margin-bottom: 0.4rem;
   font-weight: 600;
 }
+
+/* ADM.84: the Admin settings page (/admin/settings). One block per option: its
+   box, its help, then a line of facts (path, default, limits, source). */
+.settings-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.setting {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.setting:first-of-type {
+  border-top: 0;
+}
+
+.setting-name {
+  font-weight: 600;
+}
+
+.setting input[type="text"],
+.setting input[type="password"],
+.setting select,
+.setting textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  box-sizing: border-box;
+  width: min(28rem, 100%);
+}
+
+.setting > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.setting textarea {
+  font-family: var(--mono, monospace);
+}
+
+.setting input[aria-invalid="true"],
+.setting select[aria-invalid="true"],
+.setting textarea[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.setting-help,
+.setting-meta,
+.setting-value,
+.setting-reset,
+.setting .error {
+  margin: 0;
+}
+
+.setting-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+
+.setting-tag {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 0.55rem;
+  font-size: 0.8rem;
+}
+
+.settings-errors a {
+  text-decoration: underline;
+}
+
+.settings-actions {
+  margin-bottom: 1.5rem;
+}
+
+.settings-diff th,
+.settings-diff td {
+  text-align: left;
+  vertical-align: top;
+}

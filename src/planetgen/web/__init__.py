@@ -52,6 +52,7 @@ from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
 from planetgen.web.lib.modulegraph import module_graph  # noqa: E402
 from planetgen.api.limiter import page_limit  # noqa: E402
 from planetgen.util.settings import get_settings  # noqa: E402
+from planetgen.util import settings_view  # noqa: E402
 
 from . import csrf, errors, transport  # noqa: E402
 from .helpers import current_admin, page_url, visible_sections  # noqa: E402
@@ -156,6 +157,7 @@ def _template_globals():
         "page_url": page_url,
         "current_admin": current_admin,
         "maintenance_state": maintenance.read,
+        "pending_restart_options": settings_view.pending_restart,
         "csrf_field": csrf.csrf_field,
         "edit_flashes": edit_flashes,
         "math_check_failures": math_check_failures,
@@ -175,6 +177,7 @@ from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
 from . import nav_page, nearby_page, sector_page  # noqa: E402,F401 -- /nav, /nearby, /sector/<id>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import queue_page  # noqa: E402,F401 -- /admin/queue
+from . import settings_page  # noqa: E402,F401 -- /admin/settings
 from . import facility_type_pages  # noqa: E402,F401 -- /admin/facility-types
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
 from . import population_pages  # noqa: E402,F401 -- /species, /polities

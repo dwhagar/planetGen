@@ -502,7 +502,7 @@ galaxy_shape = sa.Table(
     sa.Column('expected_system_count_at_density_1', mysql.DOUBLE(), nullable=False),
     sa.Column('outer_shell_index', mysql.INTEGER(), nullable=False),
     sa.Column('reach_shell_index', mysql.INTEGER(), server_default=sa.text("'65535'"), nullable=False),
-    sa.Column('cell_star_ceiling', mysql.DOUBLE(), server_default=sa.text("'50000'"), nullable=False),
+    sa.Column('cell_star_ceiling', mysql.DOUBLE(), server_default=sa.text("'5000'"), nullable=False),
     sa.Column('fill_luminosity_cap_sol', mysql.DOUBLE(), server_default=sa.text("'100'"), nullable=False),
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
@@ -516,6 +516,7 @@ galaxy_shape = sa.Table(
     sa.Column('platform', sa.String(64), nullable=True),
     sa.Column('density_ratio_avg', mysql.DOUBLE(), nullable=True),
     sa.Column('density_ratio_samples', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.CheckConstraint('(`cell_star_ceiling` >= 1)', name='chk_galaxy_shape_cell_star_ceiling'),
     sa.CheckConstraint('(`id` = 1)', name='galaxy_shape_chk_1'),
     mysql_engine="InnoDB",
 )
