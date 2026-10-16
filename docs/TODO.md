@@ -568,7 +568,8 @@ with `clamp()`.
   under the existing scatter-limits row (Core, Halo and intergalactic
   space, Dense cells); core sliders follow the baseline until touched;
   defaults shown and a Reset per segment; the halo luminosity floor
-  slider runs from 100 (default 500). Owner Core 3 (Boss, 1:09 AM EDT).
+  slider runs from 50 (default 500; Boss, 2026-10-15 10:06 PM EDT, was
+  100). Owner Core 3 (Boss, 1:09 AM EDT).
   Prerequisites: GEN.281, GEN.283. Related: GEN.234, ADM.43, UX.49.
 
 - [ ] **UX.117 The Apply filters button on the phenomena list disappears while the list loads (bug)**
@@ -4909,7 +4910,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.237, GEN.244. Related: GEN.280, GEN.246.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.283 Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 100), and the baseline everywhere else**
+- [ ] **GEN.283 Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else**
   Build step of the realistic galactic core plan
   (docs/design/realistic-galactic-core.md, sections 5 and 9; Boss's
   item, 2026-10-16, 12:43 AM EDT; note updated for Boss's 1:09 and 1:10
@@ -4919,12 +4920,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star counts and all that. THEN for our scatter sweeps, we tweak our
   minimum mass and minimum luminosity values when we scatter." Boss
   (1:09 and 1:10 AM EDT): a halo luminosity floor that defaults to 500
-  and can be set no lower than 100 solar luminosities, and the scatter
+  and can be set no lower than 100 solar luminosities (Boss, 2026-10-15
+  10:06 PM EDT: lowest allowed is now 50, default still 500), and the
+  scatter
   core with its own levers defaulting to about 10% above the defaults.
   Done: three settings: a core luminosity floor (default 9,900, the
   baseline times 1.1, following the baseline until moved), a core mass
   limit (default 15.4) and a halo luminosity floor (default 500, slider
-  range from 100 up); the halo has no mass limit of its own; the disc,
+  range from 50 up to 4,000,000); the halo has no mass limit of its own;
+  the disc,
   bulge, satellites and clusters stay on the baseline; the tier is
   chosen per band by the dominant term of lambda; L_cell and M_cell in
   the passes, the backfill and the fill; placed_star_fraction uses the
@@ -4933,7 +4937,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   halo_min_luminosity_sol) share one Core 1 migration revision with
   GEN.281; options planetgen plan --core-min-luminosity,
   --core-mass-limit and --halo-min-luminosity. A halo floor of 500 gives
-  about 3.8 million rows (0.6 GB).
+  about 3.8 million rows (0.6 GB). To allow a floor of 50 the build
+  lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` from 100 to 50 so
+  `star_population._check_threshold` accepts it (Core 3's finding;
+  GEN.149 changes the same white-dwarf constants, so Core 3 does both in
+  one order), and the plan option `--halo-min-luminosity` accepts 50.
   Migration revision: Core 1 named 0096 for GEN.280, GEN.281 and GEN.283
   together (0093 and 0095 are Core 1's, 0094 is Core 2's). Core 1's
   revision 0095 adds a scatter-threshold tier column to the profile and
@@ -4979,8 +4987,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   million, 3.8 million and 310,000 now; the horizontal branch adds none,
   the AGB adds 2.6%, 4% and 28%. [Fe/H] comes from GEN.158 (Core 2) or,
   until it lands, from interim population defaults (halo -1.6 and -2.2,
-  disc and bulge -0.1). Owner Core 3 (Boss, 1:12 AM EDT). Goal issue
-  #1677.
+  disc and bulge -0.1). Boss (2026-10-15 10:06 PM EDT): the
+  horizontal-branch stars are to be fully part of the generation of a
+  sector in the proper proportions; "go ahead and build the fix into
+  your pipe". Acceptance test (Core 3's figures): sampled old, halo and
+  bulge populations put about 0.8 to 1.2% of their stars on the
+  horizontal branch, the colour shares follow [Fe/H] (-2.2, -1.5, -0.1),
+  halo, bulge and globular-cluster cells all show them, and scatter plus
+  fill still sum to the untiered expected total. Owner Core 3 (Boss,
+  1:12 AM EDT). Goal issue #1677.
   Prerequisites: none. Related: GEN.158, GEN.283, GEN.234, GEN.237,
   GEN.159, GEN.160, GEN.236.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
