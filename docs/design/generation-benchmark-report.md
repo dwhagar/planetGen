@@ -165,3 +165,22 @@ so the per-object cost is the figure to trust). Draw counts and memory per
 object are not recorded: counting draws would add a call to the random wrapper's
 hot path, which costs more than the timing itself. The plain `sector` command
 (unplaced sectors) is not timed; every `galaxy` path is.
+
+## PERF.88: the sector-path integrator on numba
+
+`physics/field_kernel.py` holds the integrator (mass selection, kick-drift-kick steps, exit bisection and the spline
+simplification) as one numba-compiled call, and `sector_path.integrate_path` calls it. Measured on this machine
+(`planetgen-env`, an idle box): 3,000 random bodies of one sector (edge 4 pc, 300 masses within 6 pc of its centre, speeds
+of about 30 km/s) against the Python integrator it replaced, each with the body's own mass excluded:
+
+| | Per path |
+|---|---|
+| Python loop (before) | 838 us |
+| `field_kernel.integrate` (after) | 40 us (21 times faster) |
+
+The first call in a process loads the compiled code from numba's cache (about 0.3 s; the first ever compile is about
+6 s). On 300 random cells of the grid (core, caps and interior bands, one to five masses) the knots were bit-identical
+to the Python integrator's, so saved paths do not change. The end-to-end "save the sector paths" figure of the benchmark
+fill was not re-run here; the research note measured 34.2 s to 13.4 s for the same change, the rest being database
+writes.
+

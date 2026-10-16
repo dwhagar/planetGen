@@ -2130,13 +2130,17 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v100 (GEN.281): the cell star ceiling defaults to 5,000
+
+Migration 0100 sets the default of `galaxy_shape.cell_star_ceiling` to 5,000 systems (it was 50,000, which took 14 to 17 minutes a cell at 20 ms a system), moves a galaxy still at 50,000 to 5,000 (one planned with another value keeps it), and adds the CHECK `chk_galaxy_shape_cell_star_ceiling` (at least 1), by which the version is detected. No other row is touched. Each step is skipped when it is already done.
+
 ### v99 (GEN.280): the nuclear structures
 
 Migration 0099 renames `galaxy_shape.core_amplitude` to `nuclear_amplitude` (DOUBLE, NOT NULL, default 0): how much of the observed nuclear star cluster (a Hernquist profile, 2.5e7 solar masses) and nuclear stellar disc (an exponential disc 90 pc long, 1.5e9) the galactic centre holds, scaled to the bulge, 1 being the observed pair and 0 none (`planetgen plan --nuclear-amplitude`, default 1). It replaces ADM.49's Gaussian core, which is gone. A galaxy planned before it had no such structures, so every row is set to 0 and its density is unchanged. `bright_stars.population` becomes VARCHAR(16) (an in-place change that copies no row) and takes `nuclear_cluster` and `nuclear_disc`. The version is detected from `galaxy_shape.nuclear_amplitude`.
 
 ### v98 (GEN.281): the cell star ceiling and the fill luminosity cap
 
-Migration 0098 adds two columns to `galaxy_shape`, both `DOUBLE NOT NULL` and set for the whole galaxy: `cell_star_ceiling` (default 50,000 systems) and `fill_luminosity_cap_sol` (default 100 solar luminosities). A cell that expects more systems than the ceiling is filled only with the stars at or above the cap; the rest is unresolved, and its count and mass are worked out from the address by `planetgen/galaxy/resolution.py`, never stored. Nothing else changes and no row is touched. It is skipped when the columns are already there. The version is detected from `galaxy_shape.cell_star_ceiling`.
+Migration 0098 adds two columns to `galaxy_shape`, both `DOUBLE NOT NULL` and set for the whole galaxy: `cell_star_ceiling` (default 5,000 systems) and `fill_luminosity_cap_sol` (default 100 solar luminosities). A cell that expects more systems than the ceiling is filled only with the stars at or above the cap; the rest is unresolved, and its count and mass are worked out from the address by `planetgen/galaxy/resolution.py`, never stored. Nothing else changes and no row is touched. It is skipped when the columns are already there. The version is detected from `galaxy_shape.cell_star_ceiling`.
 
 ### v97 (GEN.159): `galaxy_components`
 

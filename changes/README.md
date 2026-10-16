@@ -70,6 +70,21 @@ that number isn't known until merge.
 A PR that genuinely shouldn't produce a release (say, a typo fix in docs) can
 skip the note by getting the `no-release` label.
 
+## When a change alters what the generator produces (the generator epoch)
+
+A change that makes the same seed generate something different (a new draw, a changed formula, a reordered stream)
+changes the golden files under `src/tests/golden/` and bumps the **generator epoch** in
+`src/tests/golden/epochs.json` (OPS.56). Three things go together, and `--check-pr` fails a PR that has only some
+of them:
+
+1. the golden files changed;
+2. the epoch bumped by one: run `python -m tests.golden_update --reason "what changed and why"` after regenerating the
+   golden files (it refuses under CI, with no golden change, and a second time in the same change);
+3. a line `generation-output: changed` in the PR's note, inside the section it belongs to.
+
+A change that leaves the output as it was touches none of them. `planetgen.util.generator_epoch.generator_epoch()`
+reads the epoch; stamping the release fills in the epoch's `first_release`.
+
 ## Commands
 
 ```sh
