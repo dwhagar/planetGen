@@ -3037,6 +3037,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multistar-and-compact-systems.md section 6.6: the close
   share follows the cell's [Fe/H] and the wide-pair limit is computed
   from the cell's density, dispersion, age and tidal field.
+  Boss answered the GEN.103 cards (2026-10-16, 6:12 to 6:15 PM EDT):
+  (1) the close-binary trend is the pooled one, read at the star's own
+  [Fe/H]; (2) the metallicity effect applies to every star mass, with a
+  built-in check that the numbers act as expected (filed as TEST.196); (3)
+  wide pairs have no metallicity dependence; (4) the encounter limit is
+  a sharp cut at a_1/2; (5) the fixed 10,000 AU wide-pair cap is
+  replaced by the derived limit. One card, a fade of the metallicity
+  effect above about 2 solar masses, was still open at 6:15 PM EDT.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
@@ -10530,6 +10538,25 @@ clears each one.
   no quarantine. Fails on main: unknown. Frequency: once so far.
   Reproducer: none beyond the full browser phase with 2 workers.
   Prerequisites: none.
+
+- [ ] **TEST.196 Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged**
+  Boss (2026-10-16, 6:15 PM EDT, on the GEN.103 cards): the metallicity
+  effect on close binaries applies to every star mass, "but let's build
+  into that a check to see if the numbers act as expected". Done: a
+  check in the census harness (TEST.186, `src/tests/audit/census.py`)
+  that fills seeded sectors across the [Fe/H] range, counts the
+  close-companion share (inside about 10 AU) by primary-mass bin and
+  [Fe/H] bin, compares each bin to the published range with the Poisson
+  allowance (the Moe, Kratter and Badenes 2019 points, as Core 4 reads
+  them: 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 for
+  solar-type stars, and whatever the sources give for other masses),
+  flags every out-of-range bin in the audit report, shows that the
+  wide-companion share does not move with [Fe/H], and fails the test run
+  when a bin is out of range. The ranges are reference values for the
+  check, never inputs to the draw. Owner: Core 4 (near TEST.186, which
+  is Core 3's harness; ask Core 3 before editing census.py).
+  Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
+  TEST.161, TEST.164.
 
 ## USR: User accounts
 
