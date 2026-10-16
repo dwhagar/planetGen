@@ -7013,10 +7013,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the cases that need work as new items, and names a test for each (for
   example a differenced-position test at 262 kpc). No build in this
   item. Findings rule: any lane that meets a precision bug or concern
-  sends it to the TODO thread, which attaches it here. Owner proposed
-  (not yet set): Core 1, who owns the point columns (DB.55, GEN.336,
-  GEN.337, GEN.294) and the IDs, with Core 2 reading the camera and
-  render rows.
+  sends it to the TODO thread, which attaches it here. Owner: Core 1 (Boss
+  chose it by card, 2026-10-16, 6:59 PM EDT), who owns the point columns
+  (DB.55, GEN.336, GEN.337, GEN.294) and the IDs, with Core 2 reading the
+  camera and render rows.
   Prerequisites: none. Related: GEN.294, GEN.139, GEN.142, GEN.223,
   MAP.146, NAV.62, TEST.192, PERF.88, DB.55.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
