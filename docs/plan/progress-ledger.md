@@ -705,3 +705,4 @@ Baseline: PR #1817.
 | ADM.96 | 8.1 | Settings page |
 | ADM.87 | 8.1 | Settings page |
 | ADM.83 | 8.1 | Settings page |
+| MAP.226 | 8.1 | Fly-through map |

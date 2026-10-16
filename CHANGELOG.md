@@ -2,6 +2,45 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1554] - 2026-10-16
+
+**Headline:** The double-click flight on the Galaxy Map (MAP.226) is retired after the merge, and the satellite derivation chain is recorded.
+
+### Changed
+
+- MAP.226 is removed from the TODO and ticked in the progress ledger (merged as #1859); the empty-space half-way double click it did not build moves to the MAP.225 note.
+- GEN.368, GEN.369 and GEN.371 record the derivation chain for drawn satellites (halo mass to subhalo count, placement, stellar mass, size, metallicity, age), each link to name its source.
+
+TODO items resolved: MAP.226 / Added: none
+
+## [8.0.1553] - 2026-10-16
+
+**Headline:** The drawn satellites must be calculated or derived from real science, not copied.
+
+### Changed
+
+- GEN.369, GEN.371 and GEN.368 carry Boss's 4:04 PM EDT refinement: exact real distances are not needed; count, distances and sizes are calculated or derived from published relations, drawn only where the science gives a distribution.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1552] - 2026-10-16
+
+**Headline:** Boss's request to draw satellites from the seed and plan every appearance rate is filed as items.
+
+### Added
+
+- GEN.368 plans the appearance rates of everything the Milky Way supplies as fixed content, with the places found in the survey listed in the item; GEN.369 draws the satellites from the galaxy seed and keeps the real list as an optional preset; GEN.371 is the feasibility study of generating satellites through the scatter in only the region they occupy; GEN.370 records that Hill spheres use the Milky Way's mass for every galaxy.
+- GEN.366 (verify the real satellite rows) now matters only for the preset and waits on GEN.369. The satellites decision in the halo design note is marked superseded.
+
+TODO items resolved: none / Added: GEN.368, GEN.369, GEN.370, GEN.371
+
+## [8.0.1551] - 2026-10-16
+
+**Headline:** On the Galaxy Map a double click on a star, cloud or body flies the camera to it.
+
+### Changed
+- A double click on a star, phenomenon or body in an opened sector flies the camera to look at it, near enough to see its system (a star), or filling most of the view (a cloud or body), as near as the zoom allows. A selected object's panel has a "Go to" button that does the same, and so does Enter when no choice is lit. A double click on a block or on empty space does what two clicks did.
+
 ## [8.0.1550] - 2026-10-16
 
 **Headline:** The settings writer, the backup archive and the one configuration file (ADM.83, ADM.87, ADM.96) are retired after the merge.
