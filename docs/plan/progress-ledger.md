@@ -688,3 +688,4 @@ Baseline: PR #1817.
 | GEN.281 | 8.1 | Anomalies |
 | GEN.236 | 8.1 | Orbital updates |
 | PERF.104 | 8.1 | Orbital updates |
+| MAP.152 | 8.1 | Fly-through map |

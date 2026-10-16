@@ -1227,7 +1227,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.152, MAP.153, MAP.155, MAP.157, MAP.159, MAP.225,
+  Prerequisites: MAP.153, MAP.155, MAP.157, MAP.159, MAP.225,
   MAP.226, MAP.227, MAP.228. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -1278,58 +1278,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
   2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: the galaxy, sector and system scales cross-fade with hysteresis
-  so the camera never flickers between them, and each tile has its own
-  camera-relative origin below about 100 pc so stars stay precise at
-  close range. Includes the distance-cut tile choice that completes the
-  visibility law.
-  Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
-  tiles need the nested server lists (MAP.154, merged in #1303: a child
-  tile contains the parent's stars in its box).
-  Split (Foundations lane 2, 2026-10-14): MAP.152 server, then client.
-  Server: drop the generated_star_floor_sol brightness floors, settle
-  the 400-star cap, and choose tiles by distance. Client: the
-  cross-fades with hysteresis and the per-tile origins.
-  Plan change (2026-10-15, Maps, approved by the coordinator):
-  the client part has two pieces. (1) The per-tile camera-relative
-  origins are already met by the whole-parsec target frame of MAP.102
-  (a star's error reaches a pixel only within about 0.003 pc of the
-  camera, where the system scene draws instead), so that piece is retired
-  with a note in the design doc. (2) The automatic galaxy, sector and
-  system hand-offs with hysteresis are held until Bug 2's
-  galaxystageview.js work (wheel zoom, centre, selection: MAP.198 to
-  MAP.202) has merged, to avoid conflicts. Maps order: MAP.151b,
-  MAP.197 (done, PR #1455), MAP.155 verification, then the MAP.152 hand-offs after Bug 2.
-  Progress (2026-10-15): the server part merged (PR #1439): Galaxy Map
-  tiles are picked by distance from the camera, the per-level brightness
-  floors are gone and stars fade by distance. The client part (scale
-  cross-fades, per-tile origins) is next, so this item stays open. The
-  star-drawing items MAP.198 to MAP.203 (MAP.203 done, PR #1519; Bug 2's
-  MAP.199 (done, PR #1513) and MAP.200 (done, PR #1556)) are unblocked from the server side; they still
-  start from main and check the client part's branch before touching
-  the shared camera and star code.
-  Prerequisites: none (MAP.150 done, #1382). Related: MAP.102, MAP.125,
-  MAP.146.
-  Foundations lane 2 (2026-10-10, MAP.148 first
-  stage, PR #1160): MAP.148 is retired as built. The client-side law
-  (apparent-magnitude opacity, flux brightness, the 20,000 and 8,000
-  on-screen limit, static/starmagnitude.js) is in. What stays open and
-  now belongs here (and with MAP.154 for the nested lists): choosing
-  tiles by distance, dropping the server's generated_star_floor_sol
-  floors, and reconciling the per-tile cap
-  (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
-  2 flagged.
-  Reread against the shell grid before starting: the spherical sector
-  switch (PR #1607) replaced the cylinder grid this item assumed (plan:
-  docs/design/spherical-sector-coordinates.md section 4).
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
-  Owner: Core 2 (Boss, 2026-10-16, 11:32 AM EDT: "move MAP.152 and get it assigned"), first in its queue after the in-flight PERF.104 step; MAP.146 follows it.
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
