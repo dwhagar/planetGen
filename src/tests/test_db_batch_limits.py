@@ -161,7 +161,7 @@ def test_self_referencing_rows_keep_their_order_across_statements(mysql_config, 
         self_referencing = {r["t"].lower() for r in conn.execute(
             "SELECT TABLE_NAME AS t FROM information_schema.KEY_COLUMN_USAGE"
             " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = REFERENCED_TABLE_NAME").fetchall()}
-        assert self_referencing == {"nebulae"}
+        assert self_referencing == {"nebulae", "galaxy_components"}
         monkeypatch.setattr(store, "_BATCH_ROWS", 2)
         with conn:
             with conn.batched():

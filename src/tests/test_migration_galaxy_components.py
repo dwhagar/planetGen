@@ -134,7 +134,7 @@ def test_the_cell_key_is_the_one_the_cell_key_module_computes(mysql_config):
 
 
 @pytest.mark.parametrize("change", (
-    "kind = 'galaxy'", "source = 'guess'", "profile = 'nfw'", "core_collapsed = 2", "king_w0 = NULL", "tidal_radius_pc = NULL"))
+    "kind = 'galaxy'", "source = 'guess'", "profile = 'nfw'", "core_collapsed = 2"))
 def test_the_table_refuses_a_malformed_row(mysql_config, change):
     conn = store.get_connection(mysql_config)
     try:

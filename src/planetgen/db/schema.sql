@@ -3864,7 +3864,7 @@ CREATE TABLE IF NOT EXISTS population_state (
 -- galaxy_components (v97, GEN.159): the discrete stellar components of a galaxy beyond the disk, one row each, of every
 -- kind in one table: the globular clusters, and later the satellites and streams (GEN.237). A component is a density
 -- (a profile of its mass about a centre), not a list of stars; its stars come from the profile when a sector is
--- generated. `profile` 'king' carries the King (1966) concentration `king_w0` (3 to 12) and the `tidal_radius_pc`;
+-- generated. `profile` 'king' carries the King (1966) concentration `king_w0` (3 to 12) and the `tidal_radius_pc` (`Component` checks that, not the table);
 -- `planetgen/physics/king.py` turns a row into a density. `source` is 'catalogue' for a real object and 'generated' for
 -- one drawn from the galaxy seed (`planetgen/generation/clusters.py`); nothing writes rows until GEN.160 plans them.
 CREATE TABLE IF NOT EXISTS galaxy_components (
@@ -3904,10 +3904,7 @@ CREATE TABLE IF NOT EXISTS galaxy_components (
     CONSTRAINT chk_galaxy_components_kind CHECK (kind IN ('cluster', 'satellite', 'stream')),
     CONSTRAINT chk_galaxy_components_source CHECK (source IN ('catalogue', 'generated')),
     CONSTRAINT chk_galaxy_components_profile CHECK (profile IN ('king', 'exponential', 'plummer')),
-    CONSTRAINT chk_galaxy_components_core_collapsed CHECK (core_collapsed IN (0, 1)),
-    CONSTRAINT chk_galaxy_components_king CHECK (
-        (profile = 'king') = (king_w0 IS NOT NULL AND tidal_radius_pc IS NOT NULL)
-    )
+    CONSTRAINT chk_galaxy_components_core_collapsed CHECK (core_collapsed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

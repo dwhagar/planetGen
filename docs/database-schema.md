@@ -2055,7 +2055,7 @@ The discrete stellar components of a galaxy beyond the disk, one row each, of ev
 | `mass_solar` | DOUBLE | NOT NULL | Total mass. A cluster's systems number this over 0.4. |
 | `half_mass_radius_pc` | DOUBLE | NOT NULL | The radius holding half the mass. |
 | `profile` | VARCHAR(12) | NOT NULL | `king`, `exponential` or `plummer` (CHECK). |
-| `king_w0` | DOUBLE | nullable | The King central potential, 3 to 12; set exactly when `profile` is `king` (CHECK). |
+| `king_w0` | DOUBLE | nullable | The King central potential, 3 to 12; set exactly when `profile` is `king` (`Component` checks this, not the table). |
 | `tidal_radius_pc` | DOUBLE | nullable | The King tidal radius, never beyond the cluster's Jacobi radius; set exactly when `profile` is `king`. |
 | `age_gy` | DOUBLE | NOT NULL | The stars' age. |
 | `metallicity_fe_h` | DOUBLE | NOT NULL | The stars' [Fe/H] in dex, which a cluster star takes (GEN.158 left it NULL until this table). |

@@ -57,8 +57,5 @@ CREATE TABLE galaxy_components (
     CONSTRAINT chk_galaxy_components_kind CHECK (kind IN ('cluster', 'satellite', 'stream')),
     CONSTRAINT chk_galaxy_components_source CHECK (source IN ('catalogue', 'generated')),
     CONSTRAINT chk_galaxy_components_profile CHECK (profile IN ('king', 'exponential', 'plummer')),
-    CONSTRAINT chk_galaxy_components_core_collapsed CHECK (core_collapsed IN (0, 1)),
-    CONSTRAINT chk_galaxy_components_king CHECK (
-        (profile = 'king') = (king_w0 IS NOT NULL AND tidal_radius_pc IS NOT NULL)
-    )
+    CONSTRAINT chk_galaxy_components_core_collapsed CHECK (core_collapsed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")

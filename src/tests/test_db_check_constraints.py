@@ -38,6 +38,12 @@ _EMPTY_TABLE_ROWS = {
     "facility_type_fields": (
         "INSERT INTO facility_type_fields (type_id, `key`, label, datatype)"
         " VALUES (1, 'crop', 'Crop', 'text')"),
+    # Only a plan writes these (GEN.160 wires the clusters in); none in a generated galaxy yet.
+    "galaxy_components": (
+        "INSERT INTO galaxy_components (kind, name, source, center_x_pc, center_y_pc, center_z_pc, velocity_x_kms,"
+        " velocity_y_kms, velocity_z_kms, epoch_unix, mass_solar, half_mass_radius_pc, profile, king_w0, tidal_radius_pc,"
+        " age_gy, metallicity_fe_h, seed) VALUES ('cluster', 'Test cluster', 'generated', 1, 2, 3, 0, 0, 0, 0, 2e5, 5,"
+        " 'king', 7, 40, 11, -1.5, 1)"),
     # Only a `planetgen plan` scatter writes these.
     "scatter_members": (
         "INSERT INTO scatter_members (source, source_id, member_no, parent_node_no, slot, kind, mass_solar,"

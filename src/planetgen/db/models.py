@@ -475,7 +475,6 @@ galaxy_components = sa.Table(
     sa.Index('uq_galaxy_components_name', 'kind', 'name', unique=True),
     sa.CheckConstraint('(`core_collapsed` in (0,1))', name='chk_galaxy_components_core_collapsed'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'cluster',_utf8mb4'satellite',_utf8mb4'stream'))", name='chk_galaxy_components_kind'),
-    sa.CheckConstraint("((`profile` = _utf8mb4'king') = ((`king_w0` is not null) and (`tidal_radius_pc` is not null)))", name='chk_galaxy_components_king'),
     sa.CheckConstraint("(`profile` in (_utf8mb4'king',_utf8mb4'exponential',_utf8mb4'plummer'))", name='chk_galaxy_components_profile'),
     sa.CheckConstraint("(`source` in (_utf8mb4'catalogue',_utf8mb4'generated'))", name='chk_galaxy_components_source'),
     sa.ForeignKeyConstraint(['parent_component_id'], ['galaxy_components.id'], name='fk_galaxy_components_parent', ondelete='SET NULL'),
