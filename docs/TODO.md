@@ -7215,9 +7215,69 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   site as updating before it migrates and clears the mark afterwards,
   Apache serves a short 'updating, back in a moment' page that reloads
   itself (not the 504 page), a migration that fails clears the mark with
-  a clear message, and the Admin pages show the state. Owner:
-  Foundations lane 1, near its other update.sh work.
-  Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
+  a clear message, and the Admin pages show the state.   Boss (2026-10-16, 12:01 AM EDT, after his migration stalled on a table
+  lock held by running jobs): "let's switch the site into maintenance
+  mode while it's updating". The flag and the Apache page already exist
+  (OPS.51's maintenance flag in the state folder, UX.112's page):
+  update.sh and `planetgen.cli.migrate` turn maintenance on with cause
+  'update' before anything changes and turn it off only when the update
+  has finished, and a run that fails leaves it on with a loud message
+  naming the step and how to turn it off (`python -m
+  planetgen.cli.maintenance off`), never off by itself while the
+  database may be half migrated. The shared helper lives where `migrate`
+  and update.sh can both call it, so a manual `migrate` is guarded too.
+  update.sh never edits his Redis config or Apache vhost, and no
+  compatibility shim is kept for the old behaviour. Owner: Core 3
+  (2026-10-16), with OPS.53 and OPS.54 in the same sequence.
+  Prerequisites: none. Related: OPS.29, OPS.30, OPS.35, OPS.53, OPS.54, PERF.64.
+
+- [ ] **OPS.53 Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends**
+  Boss (2026-10-16, 12:01 AM EDT): "if tasks are running it won't
+  proceed unless you agree to cancel them, and then the only thing
+  running should be the update." Before update.sh (and a manual
+  `planetgen.cli.migrate`) changes anything it lists every running or
+  queued piece of work: RQ jobs (generation runs, warm_map and the cache
+  warm-ups of PERF.104, backfills), the orbital update, and a daily
+  maintenance run (OPS.16). With none, it goes on. With any, it prints
+  each one (kind, id, started, what it holds) and stops unless the
+  operator agrees to cancel them: asked on the terminal, and with no
+  terminal (the maintenance timer, cron) it refuses with a non-zero exit
+  and a message naming the jobs, unless a named flag says to cancel.
+  Agreeing cancels the queued jobs, stops the running ones through the
+  run's own cancel path so each leaves a clean state (a run marked
+  cancelled by the update, not failed), and waits until none is left
+  before the first migration step. From the moment the guard passes
+  until the update ends nothing new can start: the queue accepts no job,
+  the workers take none, the timers' jobs exit at once with the
+  temporary-failure code (OPS.54) and the admin pages that start work
+  say the site is being updated. The only thing running is the update.
+  Done: tests with a fake running job (refuse, cancel, no terminal,
+  queued job, a job that does not stop in time reports and aborts before
+  any change), and a test that a job offered during the update is not
+  started. Default taken: no terminal means refuse unless
+  `--cancel-running`. update.sh never edits his Redis config or vhost;
+  no compatibility shim.
+  Prerequisites: none. Related: OPS.16, OPS.41, OPS.51, OPS.54,
+  PERF.104, PERF.86.
+
+- [ ] **OPS.54 The orbital update refuses to run while an update is running, with tests**
+  Boss (2026-10-16, 12:01 AM EDT): "orbital update should also have a
+  test that if the update is running it won't run either." The orbital
+  update (`planetgen.cli.orbits`, the nightly timer and any RQ job that
+  calls `orbit_clock`) checks whether an update is running (the update's
+  maintenance state with cause 'update', or its lock, OPS.41) before it
+  moves anything; if one is, it moves nothing, leaves every epoch and
+  next_update_due as they were, prints why and exits with the
+  temporary-failure code 75 the maintenance script already uses, so the
+  next timer firing simply tries again. An update that starts while an
+  orbital update is running is OPS.53's case (listed and cancelled or
+  refused). Done: a test that sets the update state and runs the orbital
+  update (exit 75, no row changed, no clock moved), a test that clears
+  it and the same run moves the objects, and a test for the RQ entry
+  point; the orbital step is atomic against a mid-run cancel (a
+  cancelled run leaves a coherent clock, as GEN.232's cap does). No
+  compatibility shim.
+  Prerequisites: OPS.41. Related: OPS.16, OPS.53, GEN.105, GEN.223.
 
 ## DOC: Documentation
 
