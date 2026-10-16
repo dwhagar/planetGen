@@ -1296,7 +1296,6 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         phenomenon["mass_solar"] = row.get("mass_solar")
         cloud = _cloud_data(lambda *args, **kwargs: None, phenomenon, x_px, y_px, z_px,
                             _phenomenon_cloud_radius_px(radius_ly, half_edge_pc * 1000.0), brightest_sol)
-        cloud.pop("href", None)
         if href_of(row):
             cloud["href"] = href_of(row)
         cloud.pop("nebulaId", None)        # a scatter row has no mesh to fetch
