@@ -7,6 +7,9 @@
   "log_file": "/var/log/planetgen.log",
   "log_dir": "",
   "log_rotation": "auto",
+  "settings": {
+    "backups_kept": 20
+  },
   "mysql": {
     "host": "127.0.0.1",
     "port": 3306,
