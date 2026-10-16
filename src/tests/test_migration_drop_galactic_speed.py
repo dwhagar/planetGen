@@ -32,8 +32,6 @@ def test_every_scalar_speed_column_is_gone_and_the_vector_stays(mysql_config):
     try:
         for table, column in MIGRATION.DROPS.items():
             assert not _has(conn, table, column), (table, column)
-        for table in ("stars",):
-            assert not _has(conn, table, "velocity_x_kms")  # a star reads its system's vector
         for table in ("black_holes", "neutron_stars", "rogue_planets", "interstellar_comets", "asteroid_fields",
                       "nebulae", "supernova_remnants"):
             assert _has(conn, table, "velocity_x_kms"), table

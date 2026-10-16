@@ -2,8 +2,8 @@
 
 """
 GEN.335: the stored point of an object is defined once (`db/point_columns.py`). Every table that holds an object is on
-exactly one list: a layout with all four parts (a point, a mass, a movement vector and an epoch), or the objects that move
-with another's point (a star with its system), or the few that hold no object. A new kind of object cannot ship without
+exactly one list: a layout with all four parts (a point, a mass, a movement vector and an epoch), or the few that hold no
+object. A new kind of object cannot ship without
 a point, a mass, a vector and an epoch.
 """
 
@@ -14,7 +14,7 @@ import pytest
 from planetgen.db import models, point_columns
 from planetgen.physics import constants
 
-LAYOUTS, MOVES_WITH, NOT_BODIES = point_columns.LAYOUTS, point_columns.MOVES_WITH, point_columns.NOT_BODIES
+LAYOUTS, NOT_BODIES = point_columns.LAYOUTS, point_columns.NOT_BODIES
 TABLES = models.metadata.tables
 
 
@@ -28,10 +28,10 @@ def _holds_an_object(table):
 
 
 def test_every_table_holding_an_object_is_on_exactly_one_list():
-    lists = (set(LAYOUTS), set(MOVES_WITH), set(NOT_BODIES))
+    lists = (set(LAYOUTS), set(NOT_BODIES))
     assert sum(len(found) for found in lists) == len(set().union(*lists)), "a table is on two lists"
     unlisted = sorted(name for name in TABLES if _holds_an_object(name) and not any(name in found for found in lists))
-    assert not unlisted, (f"{unlisted} hold an object or a point and are on none of LAYOUTS, MOVES_WITH or NOT_BODIES "
+    assert not unlisted, (f"{unlisted} hold an object or a point and are on neither LAYOUTS nor NOT_BODIES "
                           f"of db/point_columns.py: give each a point, a mass, a movement vector and an epoch")
     missing = sorted(name for found in lists for name in found if name not in TABLES)
     assert not missing, f"{missing} are listed but are not tables"
@@ -47,13 +47,6 @@ def test_a_layout_names_columns_the_table_has_and_covers_every_part(table):
         assert {key, column} <= set(_columns(source))
         parts.add("mass")
     assert parts == set(point_columns.PARTS)
-
-
-@pytest.mark.parametrize("table", sorted(MOVES_WITH))
-def test_an_object_that_moves_with_another_reads_a_layout_and_holds_no_point_of_its_own(table):
-    layout, _why = MOVES_WITH[table]
-    assert layout in LAYOUTS
-    assert point_columns.detected_parts(_columns(table)) & {"point", "vector", "epoch"} == set()
 
 
 def test_a_table_with_a_point_but_no_mass_no_vector_or_no_epoch_is_seen_to_lack_them():

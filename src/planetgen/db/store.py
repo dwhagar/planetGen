@@ -1519,6 +1519,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (104, _column_marker("planets", "host_node_id")),
     (103, lambda shape: ("sectors", "max_mass_id") in shape["columns"]
      and ("stars", "galactic_orbital_speed_kms") not in shape["columns"]),
     (102, _column_marker("sectors", "max_mass_id")),

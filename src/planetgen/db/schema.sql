@@ -1310,12 +1310,18 @@
 --   `position_x/y/z_km` on belts; `sectors.max_mass_kg` and `max_mass_id`; `asteroid_fields.formed_at` and
 --   `origin_event_id`; and `parent_type`, `parent_id` and `dynamical_state` on planets and moons (GEN.289). All
 --   nullable except the planet and moon state, which default to a bound body of its star (planet) or planet (moon).
---   A star has no columns of its own: it moves with its system.
+--   (A star's own columns came with v104.)
 --
 -- v103 (GEN.336): the scalar `galactic_orbital_speed_kms` is gone from `stars`, `black_holes`, `neutron_stars`, `nebulae`,
 --   `supernova_remnants`, `rogue_planets`, `interstellar_comets` and `asteroid_fields`, and `binary_galactic_orbital_speed_kms`
 --   from `star_systems`. The movement vector of v101 (`velocity_x/y/z_kms`) is the one record; a speed is its length. A star
 --   takes its system's vector.
+--
+-- v104 (DB.53): the built system's orbit tree. `orbit_nodes` (key `star_system_id`, `node_no`; the columns of
+--   `scatter_nodes` and a disk descriptor); on `stars` `parent_node_id`, the member columns of `scatter_members`
+--   (`state`, `flags`, `offset_x/y/z_au`, `velocity_x/y/z_kms`, `decay_age_yr`, `epoch_unix`) and the disk descriptor
+--   (`disk_kind`, `disk_mass_solar`, `disk_inner_au`, `disk_outer_au`); on `planets` `host_node_id`. A close or wide pair
+--   becomes one node from its stored mutual orbit, and each star's offset is its stored binary position.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1882,6 +1888,21 @@ CREATE TABLE IF NOT EXISTS stars (
     uid                   BINARY(12),
     -- v95 (GEN.158): the star's [Fe/H] in dex against the Sun; NULL for a row saved before v95.
     metallicity_fe_h      DOUBLE,
+    parent_node_id              SMALLINT NULL,  -- v104 (DB.53)
+    state                       VARCHAR(16) NULL,  -- v104 (DB.53)
+    flags                       SMALLINT UNSIGNED NULL,  -- v104 (DB.53)
+    offset_x_au                 DOUBLE NULL,  -- v104 (DB.53)
+    offset_y_au                 DOUBLE NULL,  -- v104 (DB.53)
+    offset_z_au                 DOUBLE NULL,  -- v104 (DB.53)
+    velocity_x_kms              DOUBLE NULL,  -- v104 (DB.53)
+    velocity_y_kms              DOUBLE NULL,  -- v104 (DB.53)
+    velocity_z_kms              DOUBLE NULL,  -- v104 (DB.53)
+    decay_age_yr                DOUBLE NULL,  -- v104 (DB.53)
+    epoch_unix                  DOUBLE NULL,  -- v104 (DB.53)
+    disk_kind                   VARCHAR(16) NULL,  -- v104 (DB.53)
+    disk_mass_solar             DOUBLE NULL,  -- v104 (DB.53)
+    disk_inner_au               DOUBLE NULL,  -- v104 (DB.53)
+    disk_outer_au               DOUBLE NULL,  -- v104 (DB.53)
 
     UNIQUE KEY uq_stars_uid (uid),
     CONSTRAINT fk_stars_star_system
@@ -2051,6 +2072,7 @@ CREATE TABLE IF NOT EXISTS planets (
     parent_type                 VARCHAR(8) NOT NULL DEFAULT 'star',  -- v102 (DB.55)
     parent_id                   BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
+    host_node_id                SMALLINT NULL,  -- v104 (DB.53): the orbit node the planet orbits (NULL: its star)
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -3559,6 +3581,44 @@ CREATE TABLE IF NOT EXISTS scatter_nodes (
     CONSTRAINT chk_scatter_nodes_source CHECK (source IN (1, 2)),
     CONSTRAINT chk_scatter_nodes_kind CHECK (kind IN ('close', 'wide', 'compact', 'group')),
     CONSTRAINT chk_scatter_nodes_interaction CHECK (interaction IS NULL OR interaction IN (
+        'detached', 'semi-detached', 'contact', 'accreting', 'post-common-envelope', 'merger-product'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- orbit_nodes (v104, DB.53): the tree of orbits of a built multi-star system, one row per node, with the same names and
+-- units as `scatter_nodes` so a fill copies column for column. A node is one orbit (kind `close`, `wide`, `compact` or
+-- `group`) of the masses below it; `parent_node_no` is the node it orbits in (NULL for the root), `slot` its place among
+-- its parent's children. A star names its node in `stars.parent_node_id` (the `node_no` here), and a circumbinary planet
+-- in `planets.host_node_id`. No foreign key joins them: a node is deleted with its system. `disk_*` is a disk of gas and
+-- dust about the node's centre (no bodies in it).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS orbit_nodes (
+    star_system_id       BIGINT UNSIGNED NOT NULL,
+    node_no              SMALLINT NOT NULL,
+    parent_node_no       SMALLINT,
+    slot                 SMALLINT,
+    mass_solar           DOUBLE NOT NULL,
+    separation_km        DOUBLE NOT NULL,
+    eccentricity         DOUBLE NOT NULL,
+    inclination_deg      DOUBLE NOT NULL,
+    ascending_node_deg   DOUBLE NOT NULL,
+    arg_periapsis_deg    DOUBLE NOT NULL,
+    mean_anomaly_deg     DOUBLE NOT NULL,
+    epoch_unix           DOUBLE NOT NULL,
+    period_years         DOUBLE NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    interaction          VARCHAR(20),
+    flags                TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    disk_kind            VARCHAR(16),
+    disk_mass_solar      DOUBLE,
+    disk_inner_au        DOUBLE,
+    disk_outer_au        DOUBLE,
+    PRIMARY KEY (star_system_id, node_no),
+    CONSTRAINT fk_orbit_nodes_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT chk_orbit_nodes_kind CHECK (kind IN ('close', 'wide', 'compact', 'group')),
+    CONSTRAINT chk_orbit_nodes_interaction CHECK (interaction IS NULL OR interaction IN (
         'detached', 'semi-detached', 'contact', 'accreting', 'post-common-envelope', 'merger-product'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

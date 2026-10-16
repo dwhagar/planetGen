@@ -11,11 +11,9 @@ module is the one place that knows the spellings:
 * `LAYOUTS`: for each table that holds every part, a `PointLayout` naming its columns, their frame and units. The SQL of
   the tables' reads and writes takes its column lists from the layout (`select`, `assignments`, `columns`), and
   `spatial_from_row` / `values_from_spatial` turn a row into a `SpatialPosition3D` and back.
-* `MOVES_WITH`: the tables whose object has no point of its own because it moves with another's (a star with its
-  system), each with the layout it reads.
 * `NOT_BODIES`: the tables that carry a point but hold no object of their own (a sector, a density component).
 
-The tests (`test_point_columns.py`) list every table that holds an object and fail when one is on none of the three, so
+The tests (`test_point_columns.py`) list every table that holds an object and fail when one is on neither, so
 a new kind of object cannot ship without a point, a mass, a movement vector and an epoch.
 
 The parts and how a table is seen to have them are in `detected_parts`.
@@ -144,6 +142,10 @@ LAYOUTS = {
     "facilities": PointLayout(table="facilities", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
     "comets": PointLayout(table="comets", **_BODY_POINT),
     "asteroid_belts": PointLayout(table="asteroid_belts", **_BODY_POINT),
+    "stars": PointLayout(
+        table="stars", frame="system", position=("offset_x_au", "offset_y_au", "offset_z_au"), position_unit="au",
+        velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_kg", mass_unit="kg",
+        epoch="epoch_unix", due=None),
     "scatter_members": PointLayout(
         table="scatter_members", frame="system", position=("offset_x_au", "offset_y_au", "offset_z_au"),
         position_unit="au", velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_solar",
@@ -151,11 +153,6 @@ LAYOUTS = {
 }
 """dict: Table -> the `PointLayout` of every table that holds all four parts. A `system` frame position is measured
 from the object's star (a scatter member's offset, from its scatter point)."""
-
-MOVES_WITH = {
-    "stars": ("star_systems", "a star moves with its system: the point, vector and epoch are the system's"),
-}
-"""dict: Table -> `(layout read instead, why)`: an object that holds no point of its own."""
 
 NOT_BODIES = {
     "sectors": "a cell of the grid, not an object in it",
