@@ -1,0 +1,143 @@
+# planetgen/db/scatter_systems.py
+
+"""
+The members of a scattered multi-star system in the database (GEN.260 tables, GEN.265 motion).
+
+A scatter row (`bright_stars`, `phenomenon_scatter`) with companions is one point in space, the system's barycentre:
+its position, velocity and epoch columns move with the nightly update like any other scatter point
+(`store.advance_scatter_points`), `system_mass_solar` is the mass it carries, and `member_count` says it has members.
+The members and their orbits are `scatter_members` and `scatter_nodes`, which the nightly update never writes: a
+member's place is computed on read from the node phases (`physics.system_tree`).
+
+`store_member_tree` writes a drawn tree (`generation.multistar.MemberTree`) under a row, `delete_member_tree` takes it
+away again (the build of a row does that in its own transaction), `read_member_tree` reads it back, and
+`member_positions_pc` returns where each member is, in the galaxy frame.
+"""
+
+from planetgen.physics import constants
+from planetgen.physics.system_tree import OrbitNode, TreeMember, member_offsets_au
+
+SOURCES = {"bright_stars": 1, "phenomenon_scatter": 2}
+"""dict: Scatter table -> the `source` code of its members and nodes."""
+
+_MEMBER_COLUMNS = (
+    "source", "source_id", "member_no", "parent_node_no", "slot", "kind", "state", "flags", "mass_solar",
+    "initial_mass_solar", "seed")
+_NODE_COLUMNS = (
+    "source", "source_id", "node_no", "parent_node_no", "slot", "mass_solar", "separation_km", "eccentricity",
+    "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "epoch_unix", "period_years",
+    "kind", "interaction", "flags")
+
+
+def _source(table):
+    try:
+        return SOURCES[table]
+    except KeyError:
+        raise ValueError(f"{table!r} is not a scatter table ({', '.join(SOURCES)})") from None
+
+
+def delete_member_tree(conn, table, row_id):
+    """Removes a row's members and nodes (there is no foreign key, so whoever builds or rebuilds the row does this)."""
+    source = _source(table)
+    for child in ("scatter_members", "scatter_nodes"):
+        conn.execute(f"DELETE FROM {child} WHERE source = ? AND source_id = ?", (source, row_id))
+
+
+def store_member_tree(conn, table, row_id, tree, epoch_unix):
+    """
+    Stores a drawn tree under a scatter row, replacing any it had: the members and nodes, and the row's
+    `member_count` and `system_mass_solar`. A single object (no nodes) stores no rows and clears both columns.
+
+    Args:
+        conn (Connection): An open, read-write connection.
+        table (str): `bright_stars` or `phenomenon_scatter`.
+        row_id (int): The row's id.
+        tree (MemberTree): What `generation.multistar.draw_member_tree` returned.
+        epoch_unix (float): The time the nodes' mean anomalies hold at.
+    """
+    source = _source(table)
+    delete_member_tree(conn, table, row_id)
+    if not tree.nodes:
+        conn.execute(f"UPDATE {table} SET member_count = NULL, system_mass_solar = NULL WHERE id = ?", (row_id,))
+        return
+    conn.executemany(
+        f"INSERT INTO scatter_members ({', '.join(_MEMBER_COLUMNS)}) VALUES ({', '.join('?' * len(_MEMBER_COLUMNS))})",
+        [(source, row_id, m.member_no, m.parent_node_no, m.slot, m.kind, m.state, m.flags, m.mass_solar,
+          m.initial_mass_solar, m.seed) for m in tree.members])
+    conn.executemany(
+        f"INSERT INTO scatter_nodes ({', '.join(_NODE_COLUMNS)}) VALUES ({', '.join('?' * len(_NODE_COLUMNS))})",
+        [(source, row_id, n.node_no, n.parent_node_no, n.slot, n.mass_solar, n.separation_km, n.eccentricity,
+          n.inclination_deg, n.ascending_node_deg, n.arg_periapsis_deg, n.mean_anomaly_deg, epoch_unix,
+          n.period_years, n.kind, n.interaction, n.flags) for n in tree.nodes])
+    conn.execute(f"UPDATE {table} SET member_count = ?, system_mass_solar = ? WHERE id = ?",
+                 (tree.member_count, tree.system_mass_solar, row_id))
+
+
+def read_member_tree(conn, table, row_id):
+    """A row's stored tree as `(members, nodes)`: lists of `TreeMember` and `OrbitNode`, both empty for a single object."""
+    source = _source(table)
+    members = [
+        TreeMember(
+            member_no=r["member_no"], parent_node_no=r["parent_node_no"], slot=r["slot"], mass_solar=r["mass_solar"],
+            offset_au=(None if r["offset_x_au"] is None else (r["offset_x_au"], r["offset_y_au"], r["offset_z_au"])),
+            velocity_kms=(None if r["velocity_x_kms"] is None
+                          else (r["velocity_x_kms"], r["velocity_y_kms"], r["velocity_z_kms"])))
+        for r in conn.execute(
+            "SELECT member_no, parent_node_no, slot, mass_solar, offset_x_au, offset_y_au, offset_z_au,"
+            " velocity_x_kms, velocity_y_kms, velocity_z_kms FROM scatter_members"
+            " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, row_id)).fetchall()]
+    nodes = [
+        OrbitNode(**{name: r[name] for name in (
+            "node_no", "parent_node_no", "slot", "mass_solar", "separation_km", "eccentricity", "inclination_deg",
+            "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "epoch_unix", "period_years", "kind")})
+        for r in conn.execute(
+            "SELECT node_no, parent_node_no, slot, mass_solar, separation_km, eccentricity, inclination_deg,"
+            " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind"
+            " FROM scatter_nodes WHERE source = ? AND source_id = ? ORDER BY node_no", (source, row_id)).fetchall()]
+    return members, nodes
+
+
+def member_positions_pc(conn, table, row_id, unix):
+    """
+    Where each member of a scatter row's system is at `unix`, in the galaxy frame, in parsecs, as
+    `{member_no: (x, y, z)}`: the barycentre (the row's stored point, as of its own epoch) plus each member's offset
+    from the tree. A row with no members is one object at its point, member 0.
+
+    Args:
+        conn (Connection): An open connection.
+        table (str): `bright_stars` or `phenomenon_scatter`.
+        row_id (int): The row's id.
+        unix (float): The time to place the members at.
+
+    Raises:
+        LookupError: If there is no such row.
+    """
+    row = conn.execute(
+        f"SELECT position_x_mpc, position_y_mpc, position_z_mpc FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    if row is None:
+        raise LookupError(f"{table} has no row {row_id}")
+    centre = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+    members, nodes = read_member_tree(conn, table, row_id)
+    if not members:
+        return {0: centre}
+    offsets = member_offsets_au(members, nodes, unix)
+    per_pc = constants.AU_PER_PARSEC
+    return {number: (centre[0] + o[0] / per_pc, centre[1] + o[1] / per_pc, centre[2] + o[2] / per_pc)
+            for number, o in offsets.items()}
+
+
+def point_masses_solar(conn, table, row_ids):
+    """
+    The mass each scatter point carries, in solar masses, as `{row_id: mass}`: the system's mass where it has members
+    (`system_mass_solar`), else the object's own. This is what the Hill-sphere influence rule (GEN.109) reads.
+    """
+    _source(table)
+    ids = list(row_ids)
+    if not ids:
+        return {}
+    own = "mass_kg / ?" if table == "bright_stars" else "mass_solar"
+    args = ((constants.SOLAR_MASS_TO_KG,) if table == "bright_stars" else ()) + tuple(ids)
+    rows = conn.execute(
+        f"SELECT id, COALESCE(system_mass_solar, {own}) AS mass FROM {table} WHERE id IN ({', '.join('?' * len(ids))})",
+        args).fetchall()
+    return {r["id"]: r["mass"] for r in rows}
