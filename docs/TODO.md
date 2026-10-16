@@ -115,6 +115,11 @@ catalogue and the fill) has its own plan,
 [plan/intergalactic-space-plan.md](plan/intergalactic-space-plan.md). This file keeps each
 item's full text. A new item goes into a phase's table in the same PR
 that files it.
+When an item ships, its row leaves the phase file and is copied into
+[plan/progress-ledger.md](plan/progress-ledger.md) in the same PR: the
+progress bar on every tier of the tier plan counts finished items from
+that ledger (Boss, 2026-10-16), and the build fails if a retired item has
+no row there.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|

@@ -27,6 +27,8 @@ Sources
   (its "Reverse lookup" table).
 - `docs/plan/issue-groups.md`: the GitHub issues (goal groups of items and the
   issues Boss opened) and the items each one covers; every page links them.
+- `docs/plan/progress-ledger.md`: the phase each finished item belonged to, for
+  the progress bar on every tier of the tier plan (Boss, 2026-10-16).
 
 Usage
 =====
@@ -56,6 +58,8 @@ ID_RE = re.compile(r"^[A-Z]+\.\d+$")
 HEADLINE_RE = re.compile(r"Headline:\s*(\d+\.\d+)\s*\(([^)]*)\)")
 ITEM_RE = re.compile(r"^(\s*)- \[[ x]\] \*\*([A-Z]+\.\d+) (.*?)\*\*\s*$")
 PHASE_ORDER = ["1", "2", "3", "3+"]
+TIER_KEYS = ["0", "1", "2", "3", "3+"]
+PHASE0_TITLE = "Every bug and the groundwork (finished 2026-10-09)"
 CATEGORIES = {
     "GEN": "Generation", "MAP": "Maps", "NAV": "Navigation", "UX": "User experience",
     "ADM": "Admin", "OPS": "Operations", "API": "API", "TEST": "Tests",
@@ -215,6 +219,47 @@ def parse_issue_groups(text: str) -> tuple[dict[str, list[int]], dict[int, dict]
     return by_item, issues
 
 
+LEDGER_ROW_RE = re.compile(r"^\|\s*([A-Z]+\.\d+)\s*\|\s*(0|1|2|3\+?)\s*\|([^|]*)\|\s*$")
+LEDGER_BASELINE_RE = re.compile(r"^Baseline: PR #(\d+)\.", re.M)
+
+
+def parse_ledger(text: str) -> tuple[dict[str, str], int]:
+    """Finished item -> the phase it belonged to, and the baseline PR number."""
+    rows = {m.group(1): m.group(2) for m in map(LEDGER_ROW_RE.match, text.splitlines()) if m}
+    base = LEDGER_BASELINE_RE.search(text)
+    return rows, int(base.group(1)) if base else 0
+
+
+def build_progress(items: dict, ledger: dict[str, str], baseline: int, phases: list[dict]) -> dict:
+    """Finished, open and dropped items per tier, with the percentage finished."""
+    missing = []
+    for item_id, it in items.items():
+        pr = re.search(r"PR #(\d+)", it["statusText"])
+        if it["status"] == "done" and pr and int(pr.group(1)) > baseline and item_id not in ledger:
+            missing.append(item_id)
+    if missing:
+        raise SystemExit("docs/plan/progress-ledger.md has no row for " + ", ".join(sorted(missing, key=id_key)) +
+                         ": add one (ID | phase | thread) for each, copied from the phase file row before it was deleted")
+    titles = {"0": PHASE0_TITLE}
+    titles.update({p["key"]: re.sub(r"^Phase [0-9+]+:\s*", "", p["title"]) for p in phases})
+    tiers = {k: {"key": k, "title": titles.get(k, ""), "done": 0, "open": 0, "dropped": 0} for k in TIER_KEYS}
+    before = 0
+    for item_id, it in items.items():
+        if it["status"] == "open":
+            if it["phase"] in tiers:
+                tiers[it["phase"]]["open"] += 1
+        elif item_id in ledger:
+            tiers[ledger[item_id]]["done" if it["status"] == "done" else "dropped"] += 1
+        elif it["status"] == "done":
+            before += 1
+    for t in tiers.values():
+        t["total"] = t["done"] + t["open"]
+        t["pct"] = round(100 * t["done"] / t["total"], 1) if t["total"] else 0.0
+    done, total = sum(t["done"] for t in tiers.values()), sum(t["total"] for t in tiers.values())
+    return {"tiers": [tiers[k] for k in TIER_KEYS], "before": before,
+            "done": done, "total": total, "pct": round(100 * done / total, 1) if total else 0.0}
+
+
 def build_data(root: Path) -> dict:
     todo = parse_todo((root / "docs" / "TODO.md").read_text(encoding="utf-8"))
     phases, rows = parse_phases(root / "docs" / "plan")
@@ -263,11 +308,15 @@ def build_data(root: Path) -> dict:
         "headline": items[i]["headline"], "issues": items[i]["issues"],
     } for i in open_ids}
     headlines = build_headlines(items, todo)
+    ledger_file = root / "docs" / "plan" / "progress-ledger.md"
+    ledger, baseline = parse_ledger(ledger_file.read_text(encoding="utf-8") if ledger_file.exists() else "")
+    progress = build_progress(items, ledger, baseline, phases)
     summary = (f"{len(open_ids)} open items, {sum(items[i]['bug'] for i in open_ids)} bugs; "
                f"{len(items)} IDs issued in all")
     return {
         "plan": {"items": plan_items, "phases": phases, "decisions": decisions, "generated": summary,
-                 "headlines": headlines, "issues": {str(k): v for k, v in issues.items()}},
+                 "headlines": headlines, "issues": {str(k): v for k, v in issues.items()},
+                 "progress": progress},
         "reference": {"items": items, "phases": [{"key": p["key"], "title": p["title"]} for p in phases],
                       "categories": CATEGORIES, "summary": summary, "headlines": headlines,
                       "issues": {str(k): v for k, v in issues.items()}},
