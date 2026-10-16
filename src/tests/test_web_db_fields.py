@@ -214,3 +214,20 @@ def test_phenomenon_and_system_detail_carry_stored_nearest_systems(mysql_config)
         assert [n["id"] for n in neighbors] == [system_ids[1]]
     finally:
         conn.close()
+
+
+def test_compact_objects_show_the_einstein_radius_against_the_galactic_centre():
+    label = "Einstein Radius (seen from Sol, against the galactic centre)"
+    from planetgen.physics import constants
+    sol_pc = constants.GALACTIC_CENTER_DISTANCE_LY * constants.LY_TO_M / constants.PARSEC_M
+    near = sol_pc - 1000.0  # 1 kpc from Sol on the line to the centre
+    hole = _fields("black_hole", {"mass_solar": 10.0, "has_accretion_disk": True, "galactic_radius_pc": near})
+    assert "AU" in hole[label] or "au" in hole[label].lower()
+    star = _fields("neutron_star", {"mass_solar": 1.4, "galactic_radius_pc": near})
+    assert label in star
+    rogue = _fields("rogue_planet", {"mass_kg": 2e27, "galactic_radius_pc": near})
+    assert label in rogue
+    # Beyond Sol's distance from the centre nothing lies between us and it.
+    assert label not in _fields("black_hole", {"mass_solar": 10.0, "galactic_radius_pc": sol_pc + 100.0})
+    assert label not in _fields("black_hole", {"mass_solar": 10.0})
+    assert label not in _fields("nebula", {"galactic_radius_pc": near})
