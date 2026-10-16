@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1527] - 2026-10-16
+
+**Headline:** The to-do list puts Core 2's queue in Boss's order: MAP.152, then MAP.146, then the slow-page job and progress bar (PERF.105 and UX.118).
+
+### Changed
+
+- Corrected the owner line on PERF.105, the phase 1 notes, goal issue #1828 and the execution plan: MAP.146 comes before PERF.105 and UX.118.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1526] - 2026-10-16
 
 **Headline:** The to-do list files the slow-page job and progress bar (PERF.105 and UX.118, Phase 1, Core 2), so a page that needs a long query queues it into Redis and shows how far it has got.
