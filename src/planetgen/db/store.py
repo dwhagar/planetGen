@@ -1514,6 +1514,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (96, _check_marker("neutron_stars_chk_1", "magnetar")),
     (95, _column_marker("bright_stars", "metallicity_fe_h")),
     (94, _check_marker("chk_bright_stars_population", "halo")),
     (93, _column_marker("galaxy_shape", "reach_shell_index")),

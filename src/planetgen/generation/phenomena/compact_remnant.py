@@ -464,7 +464,8 @@ class NeutronStar(CompactRemnant):
         mass_solar (float): Mass in solar masses.
         spin_period_ms (float): Rotational period in milliseconds.
         magnetic_field_gauss (float): Surface magnetic field strength.
-        pulsar_type (str): `"young"`, `"millisecond"`, or `"non-pulsing"`.
+        pulsar_type (str): `"young"`, `"millisecond"`, `"magnetar"` or
+            `"non-pulsing"` (GEN.153).
         surface_temperature_k (float): Surface temperature in Kelvin --
             also `self.temperature`.
     """
@@ -477,20 +478,25 @@ class NeutronStar(CompactRemnant):
     the literal marker `"NS"`."""
 
     def _pulsar_chance(self):
-        """The chance this neutron star is an active pulsar: the base chance
-        times the Lorimer radial profile at its galactocentric distance
-        (GEN.132), unchanged when the distance is unknown."""
+        """The chance this neutron star is an active young pulsar: it falls
+        off with age as `exp(-age / PULSAR_ACTIVE_LIFETIME_YR)`, scaled by
+        `PULSAR_RATE_SCALE` and the Lorimer radial profile at its
+        galactocentric distance (GEN.132, unchanged when the distance is
+        unknown)."""
+        chance = math.exp(-self.age * 1e9 / tuning.PULSAR_ACTIVE_LIFETIME_YR) * tuning.PULSAR_RATE_SCALE
         if not self.galactic_center_dist_ly:
-            return tuning.NEUTRON_STAR_PULSAR_CHANCE
+            return min(1.0, chance)
         radius_pc = self.galactic_center_dist_ly * constants.LY_TO_AU / constants.AU_PER_PARSEC
-        return min(1.0, tuning.NEUTRON_STAR_PULSAR_CHANCE * pulsar_radial_factor(radius_pc))
+        return min(1.0, chance * pulsar_radial_factor(radius_pc))
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
-                 galactic_orbital_phase_deg=None, mass_range=None, mass_solar=None):
+                 galactic_orbital_phase_deg=None, mass_range=None, mass_solar=None, age_gy=None):
         """`mass_range` (`(low, high)` solar masses, optional) truncates the
         mass draw to that part of `NEUTRON_STAR_MASS_RANGE_SOLAR` (the
         scatter's mass cut, GEN.166). `mass_solar` is a mass the phenomenon
-        scatter already drew (MAP.165): no mass is drawn then."""
+        scatter already drew (MAP.165): no mass is drawn then. `age_gy` is
+        the age when it is known (the core of a supernova remnant is as old
+        as the remnant); drawn when omitted."""
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
@@ -499,13 +505,29 @@ class NeutronStar(CompactRemnant):
         self.radius = draw.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
+        if age_gy is None:
+            self.age, self.lifespan = self._generate_remnant_age_and_lifespan()
+        else:
+            self.age, self.lifespan = age_gy, float('inf')
 
-        is_pulsar = draw.random() < self._pulsar_chance()
-        if is_pulsar and draw.random() < tuning.PULSAR_MILLISECOND_CHANCE:
+        # A star younger than a magnetar's active life may have been born one;
+        # failing that it pulses by the age-dependent chance, and an old one
+        # only as a recycled millisecond pulsar.
+        is_magnetar = (self.age * 1e9 < tuning.MAGNETAR_ACTIVE_LIFETIME_YR
+                       and draw.random() < tuning.MAGNETAR_BIRTH_FRACTION)
+        is_young_pulsar = not is_magnetar and draw.random() < self._pulsar_chance()
+        is_recycled = (not is_magnetar and not is_young_pulsar
+                       and draw.random() < tuning.PULSAR_RECYCLED_CHANCE * tuning.PULSAR_RATE_SCALE)
+        if is_magnetar:
+            self.pulsar_type = "magnetar"
+            self.spin_period_ms = draw.uniform(*tuning.MAGNETAR_SPIN_PERIOD_MS_RANGE)
+            low, high = tuning.MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE
+            self.magnetic_field_gauss = math.exp(draw.uniform(math.log(low), math.log(high)))
+        elif is_recycled:
             self.pulsar_type = "millisecond"
             self.spin_period_ms = draw.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND)
             self.magnetic_field_gauss = draw.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND)
-        elif is_pulsar:
+        elif is_young_pulsar:
             self.pulsar_type = "young"
             self.spin_period_ms = draw.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
             self.magnetic_field_gauss = draw.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
@@ -514,9 +536,10 @@ class NeutronStar(CompactRemnant):
             self.spin_period_ms = draw.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
             self.magnetic_field_gauss = draw.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
         log.choice("Pulsar type", self.pulsar_type,
-                   f"is_pulsar={is_pulsar} (NEUTRON_STAR_PULSAR_CHANCE="
-                   f"{tuning.NEUTRON_STAR_PULSAR_CHANCE}, PULSAR_MILLISECOND_CHANCE="
-                   f"{tuning.PULSAR_MILLISECOND_CHANCE})")
+                   f"age {self.age:.3g} Gy: magnetar={is_magnetar} (MAGNETAR_BIRTH_FRACTION="
+                   f"{tuning.MAGNETAR_BIRTH_FRACTION}), young pulsar={is_young_pulsar} "
+                   f"(PULSAR_ACTIVE_LIFETIME_YR={tuning.PULSAR_ACTIVE_LIFETIME_YR:g}), "
+                   f"recycled={is_recycled} (PULSAR_RECYCLED_CHANCE={tuning.PULSAR_RECYCLED_CHANCE})")
 
         # Blackbody thermal luminosity from the surface (Stefan-Boltzmann
         # law), the same physical relationship Star.generate_star's white-
@@ -529,10 +552,14 @@ class NeutronStar(CompactRemnant):
             * self.surface_temperature_k ** 4
         )
 
-        self.type = "Neutron Star" if self.pulsar_type == "non-pulsing" else f"Neutron Star ({self.pulsar_type.capitalize()} Pulsar)"
+        if self.pulsar_type == "non-pulsing":
+            self.type = "Neutron Star"
+        elif self.pulsar_type == "magnetar":
+            self.type = "Neutron Star (Magnetar)"
+        else:
+            self.type = f"Neutron Star ({self.pulsar_type.capitalize()} Pulsar)"
         self.yerkes_class = "NS"
 
-        self.age, self.lifespan = self._generate_remnant_age_and_lifespan()
         self._finish_init(galactic_orbital_phase_deg)
 
     def _rotation_period_hours(self):
@@ -606,7 +633,14 @@ class NeutronStar(CompactRemnant):
             f"approximately {age_str} ago, packing more mass than the Sun into a sphere only "
             f"{format_body_radius_km(self.system_config, self.radius)} in radius."
         )
-        if self.pulsar_type != "non-pulsing":
+        if self.pulsar_type == "magnetar":
+            sentence += (
+                f" It is a magnetar, one of the Galaxy's rarest objects: its magnetic field of "
+                f"{format_magnetic_field_gauss(self.magnetic_field_gauss)} is among the strongest known, it turns "
+                f"once every {format_duration_seconds(self.spin_period_ms / 1000)}, and it is young enough that "
+                f"it can still erupt in giant flares."
+            )
+        elif self.pulsar_type != "non-pulsing":
             sentence += (
                 f" It is a {self.pulsar_type} pulsar, sweeping a beam of radiation past any observer once every "
                 f"{format_duration_seconds(self.spin_period_ms / 1000)}."
