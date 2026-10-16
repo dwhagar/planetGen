@@ -60,7 +60,7 @@ def test_an_allow_list_entry_names_exactly_the_parts_its_table_lacks(table):
 
 
 def test_the_allow_list_names_only_the_items_that_remove_it():
-    assert {owner for _parts, owner, _note in ALLOW_LIST.values()} <= {"GEN.336", "GEN.337"}
+    assert {owner for _parts, owner, _note in ALLOW_LIST.values()} <= {point_columns.FREE_OBJECTS, point_columns.OTHER_OBJECTS}
 
 
 def test_a_table_with_a_point_but_no_mass_no_vector_or_no_epoch_is_seen_to_lack_them():

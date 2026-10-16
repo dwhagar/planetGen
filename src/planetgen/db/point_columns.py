@@ -132,23 +132,29 @@ LAYOUTS = {
 }
 """dict: Table -> the `PointLayout` of every table that holds all four parts."""
 
+FREE_OBJECTS = "free objects"
+"""str: The step (GEN.336) that gives stars, black holes, neutron stars, rogue planets, comets, fields, nebulae and remnants
+their vector and mass."""
+OTHER_OBJECTS = "belts and the rest"
+"""str: The step (GEN.337) that gives belts, the quasar, comets, facilities and scatter members their missing parts."""
+
 ALLOW_LIST = {
-    "stars": (("point", "vector", "epoch"), "GEN.336", "takes its place and epoch from its system; keeps a scalar speed"),
-    "black_holes": (("vector",), "GEN.336", "keeps a scalar speed"),
-    "neutron_stars": (("vector",), "GEN.336", "keeps a scalar speed"),
-    "rogue_planets": (("vector",), "GEN.336", "keeps a scalar speed"),
-    "interstellar_comets": (("mass", "vector"), "GEN.336", "keeps a scalar speed"),
-    "asteroid_fields": (("mass", "vector"), "GEN.336", "keeps a scalar speed"),
-    "nebulae": (("mass", "vector"), "GEN.336", "keeps a scalar speed"),
-    "supernova_remnants": (("mass", "vector"), "GEN.336", "keeps a scalar speed"),
-    "nebula_field": (("mass", "vector", "epoch"), "GEN.336", "a field cloud: a centre and a radius only"),
-    "asteroid_belts": (("point", "mass", "vector", "epoch"), "GEN.337", "keeps its orbit index only"),
-    "quasars": (("vector", "epoch"), "GEN.337", "does not move; needs a stated zero vector and an epoch"),
-    "comets": (("mass",), "GEN.337", "keeps a position, a vector and an epoch"),
-    "facilities": (("mass",), "GEN.337", "keeps a position, a vector and an epoch"),
-    "scatter_members": (("epoch",), "GEN.337", "keeps an offset, a velocity and a mass"),
+    "stars": (("point", "vector", "epoch"), FREE_OBJECTS, "takes its place and epoch from its system; keeps a scalar speed"),
+    "black_holes": (("vector",), FREE_OBJECTS, "keeps a scalar speed"),
+    "neutron_stars": (("vector",), FREE_OBJECTS, "keeps a scalar speed"),
+    "rogue_planets": (("vector",), FREE_OBJECTS, "keeps a scalar speed"),
+    "interstellar_comets": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
+    "asteroid_fields": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
+    "nebulae": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
+    "supernova_remnants": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
+    "nebula_field": (("mass", "vector", "epoch"), FREE_OBJECTS, "a field cloud: a centre and a radius only"),
+    "asteroid_belts": (("point", "mass", "vector", "epoch"), OTHER_OBJECTS, "keeps its orbit index only"),
+    "quasars": (("vector", "epoch"), OTHER_OBJECTS, "does not move; needs a stated zero vector and an epoch"),
+    "comets": (("mass",), OTHER_OBJECTS, "keeps a position, a vector and an epoch"),
+    "facilities": (("mass",), OTHER_OBJECTS, "keeps a position, a vector and an epoch"),
+    "scatter_members": (("epoch",), OTHER_OBJECTS, "keeps an offset, a velocity and a mass"),
 }
-"""dict: Table -> `(parts it lacks, the item that adds them, a note)`: the tables still to convert. GEN.336 and GEN.337
+"""dict: Table -> `(parts it lacks, the step that adds them, a note)`: the tables still to convert. GEN.336 and GEN.337
 remove entries; the last deletes the dict."""
 
 NOT_BODIES = {
