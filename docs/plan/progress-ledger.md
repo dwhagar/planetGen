@@ -696,3 +696,4 @@ Baseline: PR #1817.
 | UX.112 | 1 | Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z) |
 | UX.117 | 1 | Maps |
 | VIEW.5 | 2 | View |
+| GEN.281 | 2 | Anomalies |
