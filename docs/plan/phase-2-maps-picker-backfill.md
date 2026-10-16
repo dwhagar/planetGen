@@ -242,7 +242,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated |  |  |
 | GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) |  | Research follow-up to GEN.10 (built). |
 | GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
-| GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K |  | Research: sub-item of GEN.93. |
 
 ### Asteroid fields
 

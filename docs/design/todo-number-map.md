@@ -708,7 +708,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | open |
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | done, PR #865 |
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | done, PR #1457 |
-| GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K | none | open |
+| GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K | none | done, PR #1760 |
 | GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | none | done, PR #1442 |
 | GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) | none | open |
 | GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) | none | done, PR #1239 |
