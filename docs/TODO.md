@@ -5171,7 +5171,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chunks and shared work): this item is now the umbrella and is done
   when its subitems are: DB.54, GEN.333. GEN.283 mixes a Core 1
   migration with the tier logic, and the sliders wait on the wrong half.
-  Prerequisites: DB.54, GEN.333. Related: GEN.234, GEN.237.
+  Prerequisites: GEN.333. Related: GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
@@ -5505,7 +5505,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass or the vector, so a new object kind cannot ship without them. The
   planet and moon dynamical state (parent, bound state, the replaced
   circular phase) belongs to GEN.289, which builds on this object; both
-  go in the one migration DB.55, revision 0101 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 and 0100 are Core 3's), with the later drop revisions following in order; Core 1
+  go in the one migration DB.55, revision 0102 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 and 0100 are Core 3's; DB.54 merged first as 0101, 6:22 PM EDT, so DB.55 is 0102), with the later drop revisions following in order; Core 1
   owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
@@ -6328,8 +6328,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
   top 5 blockers, starting right after GEN.237 merges; estimates from
   Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT): 0103, after
-  0101 (DB.55) and 0102 (DB.54).
+  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT, renumbered 6:22
+  PM EDT after DB.54 merged as 0101): 0103, after 0102 (DB.55).
   Prerequisites: DB.55. Related: GEN.294.
 
 - [ ] **GEN.337 Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members**
@@ -7974,26 +7974,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Migration revision (Core 1, 2026-10-16, 6:13 PM EDT): 0104, after
   0103 (GEN.336).
   Prerequisites: none. Related: GEN.129.
-
-- [ ] **DB.54 The three scatter-limit settings as galaxy_shape columns: core luminosity floor, core mass limit and halo luminosity floor**
-  Split from GEN.283 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Add core_min_luminosity_sol
-  (default 9,900, following the baseline times 1.1 until moved),
-  core_mass_limit_sol (default 15.4) and halo_min_luminosity_sol
-  (default 500, accepted from 50 up to 4,000,000) to galaxy_shape in the
-  next free Core 1 revision (Core 1, 2026-10-16, 2:44 PM EDT: 0099 is GEN.280's GalaxyShape fields and 0100 is Core 3's cell_star_ceiling change, so this item shares one of those two; it can share the
-  revision GEN.280 asks for), with GalaxyShape fields, the store read
-  and write, and the planetgen plan options --core-min-luminosity,
-  --core-mass-limit and --halo-min-luminosity; the halo has no mass
-  limit of its own. Done: the revision applies on a fresh and an
-  existing galaxy, plan stores and shows the three settings, a value
-  below 50 for the halo floor is refused with the reason, and the
-  settings round-trip.
-  Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0103, after 0102
-  (DB.59). DB.59 turned out to be built already (Core 2, 6:05 PM EDT: no
-  migration), so 0102 is free: this item takes 0102, after DB.55's 0101,
-  and Core 1 fixes the order if this one merges first.
-  Prerequisites: none. Related: GEN.283.
 
 - [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
   Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -10558,6 +10538,30 @@ clears each one.
   is Core 3's harness; ask Core 3 before editing census.py).
   Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
+
+- [ ] **TEST.197 `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug)**
+  Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
+  `src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-phone-light]`
+  failed in a full `changed` run (78 minutes, load 9.6) on a branch that
+  touches neither maps nor the sector page, and passed alone. Done: the
+  cause is found (a timing assumption under load, or a real layout race
+  on the phone sector page), the test waits on the condition it needs
+  and not a fixed time, and it passes under the same load, with no
+  quarantine. Fails on main: not checked. Frequency: once. Reproducer:
+  none beyond the full suite at load about 9.
+  Prerequisites: none.
+
+- [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
+  Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
+  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_map_does_not_prefetch_on_a_data_saving_connection`
+  failed with "request failed ... /galaxy/tiles?... net::ERR" in the
+  same full run (load 9.6) and passed alone. Done: the cause is found
+  (the test or the server drops a request when a page closes under load,
+  or the test reads the request log too early), the test waits on the
+  condition it needs, and it passes under the same load, with no
+  quarantine. Fails on main: not checked. Frequency: once. Reproducer:
+  none beyond the full suite at load about 9.
+  Prerequisites: none.
 
 ## USR: User accounts
 
