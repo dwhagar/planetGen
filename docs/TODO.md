@@ -5024,25 +5024,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 2), after the infinite zoom tree and its labels.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
-- [ ] **GEN.280 Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49**
-  Build step of the realistic galactic core plan
-  (docs/design/realistic-galactic-core.md, section 9; Boss's item,
-  2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
-  #1677. Done: add the nuclear cluster and the nuclear disc as density
-  terms in density.py with their GalaxyShape fields,
-  population_densities rows, the skeleton bound and prisms; remove
-  ADM.49's Gaussian core with no shim; mathcheck checks the cell counts
-  against the published numbers named in the note. The new GalaxyShape
-  fields need a migration: Core 1 owns the revision and Core 3 asks it
-  first.
-  Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone (galaxy_shape.cell_star_ceiling and fill_luminosity_cap_sol); this item's GalaxyShape fields take revision 0099 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 is this item's, 0100 is Core 3's cell_star_ceiling change).
-  Decided (Boss, 2026-10-16, 1:46 PM EDT): the per-cell cap is 5,000 and
-  adaptive, filed as GEN.364; above the cap the cell's luminosity floor
-  rises until what is resolved fits, brightest first, with no step at
-  the ceiling.
-  Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
 - [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
   Build step of the realistic galactic core plan
   (docs/design/realistic-galactic-core.md, section 9; Boss's item,
@@ -5110,7 +5091,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and dispersion (from GEN.280) into the one survival function that the
   first child of GEN.162 builds, and add the survival table as a test;
   no second cull.
-  Prerequisites: GEN.280, GEN.325. Related: GEN.158.
+  Prerequisites: GEN.325. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.285 Nuclear mass components in the galactic potential for the orbital update**
@@ -5684,7 +5665,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The cap it wires is the adaptive one of GEN.364 (Boss, 2026-10-16,
   1:46 PM EDT); the option sets that cap and nothing else. It waits on
   ADM.84 for the settings page and needs no new migration.
-  Prerequisites: GEN.280, ADM.84. Related: GEN.281, GEN.283, ADM.43.
+  Prerequisites: ADM.84. Related: GEN.281, GEN.283, ADM.43.
 
 - [ ] **GEN.304 The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests**
   Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6672,6 +6653,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plus unresolved count and mass equal the expected totals on cells
   below, at and above the cap. GEN.303 wires the cap to
   `generation.cell_cap` and ADM.84.
+  GEN.280 merged (#1855, 2026-10-16, 3:31 PM EDT). Core 3 builds this
+  next with migration 0100 (the 5,000 cell ceiling default).
   Prerequisites: GEN.280. Related: GEN.281, GEN.280, GEN.303, GEN.283.
 
 - [ ] **GEN.365 Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug)**
@@ -9922,7 +9905,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.240, GEN.280, GEN.282, GEN.283, GEN.321,
+  Prerequisites: GEN.240, GEN.282, GEN.283, GEN.321,
   TEST.186.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)

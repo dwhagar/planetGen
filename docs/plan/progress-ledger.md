@@ -701,3 +701,4 @@ Baseline: PR #1817.
 | GEN.112 | 8.4 | Asteroid fields |
 | GEN.9 | later | Multiple galaxies |
 | GEN.237 | 8.1 | Components and wanderers |
+| GEN.280 | 8.1 | Galactic core and halo |
