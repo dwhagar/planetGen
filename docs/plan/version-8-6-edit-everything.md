@@ -21,19 +21,13 @@ The foundations every editor stands on: the change plan and its store, the unit 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | UX.115 | Queued admin chain (Boss, 12:52 AM EDT); first of the chain |
-| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | ADM.55, ADM.50 | Queued admin chain; the shell the rest of the chain uses |
-| TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | ADM.56 | Quality; queued admin chain |
+| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.55, ADM.50 | Split from ADM.56. |
 
 ### Existing admin editors
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere |  | Merges two asks (one system added by the computer; placement chosen by admin). |
-| ADM.36 | Change an object's trajectory vector | GEN.109 |  |
-| ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line |  |  |
-| MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus |  |  |
-| POP.13 | A species editor: create and edit species and their environment limits |  |  |
 
 ### Change plans
 
@@ -62,7 +56,8 @@ The foundations every editor stands on: the change plan and its store, the unit 
 |---|---|---|---|
 | DB.38 | Region density overrides table (migration only) |  | Core 1 owns migrations |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | GEN.276 | Reads by the cell key built in 8.1 |
-| MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302 |  |
+| MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302, MAP.217 |  |
+| DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | DB.38 | Split from MAP.119. Core 1 owns migrations. |
 
 ## Phase 2: Interfaces: approval, locks, regen screens, density overrides
 
@@ -74,14 +69,15 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.66 | Plan approval screen: every operation with its before and after, approve, reject one, or cancel | ADM.60 |  |
-| ADM.67 | Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked | ADM.52, ADM.66 |  |
+| ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | ADM.92, ADM.58, ADM.66, ADM.82, API.28 |  |
+| ADM.67 | Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked | ADM.52, ADM.66, MAP.217 |  |
 | ADM.68 | Plan history: every plan with who asked, approved, applied and undid it, and an undo button | ADM.66, ADM.60 |  |
 
 ### Locks and regen screens
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | DB.37, ADM.62, ADM.58 |  |
+| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | DB.37, ADM.62, ADM.58, MAP.217 |  |
 | ADM.69 | Keep-or-regenerate matrix: the one screen component every regen screen uses | ADM.64, ADM.65 |  |
 | ADM.70 | Specification form: "regenerate to this specification" built from the aspect catalogue and the system generator options | ADM.62, ADM.69, API.28 | Reuses the system file of the system command |
 
@@ -89,7 +85,30 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.73 | Density overrides for any region: store them, show them, and apply them to later fills | DB.38, GEN.302, MAP.212, MAP.119 |  |
+| ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | DB.38, DB.60, GEN.302 | Split from MAP.119. |
+| ADM.73 | Density overrides for any region: store them, show them, and apply them to later fills | DB.38, GEN.302, MAP.212, ADM.94 |  |
+| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins, with preview, confirm and undo | ADM.94 | Split from MAP.119. |
+| MAP.119 | Expected star density editable by admins on the Galaxy Map | DB.60, ADM.94, MAP.218 |  |
+
+### Admin shell
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | ADM.92 | Split from ADM.56. |
+| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | ADM.92, ADM.93 | Queued admin chain; the shell the rest of the chain uses |
+| TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | ADM.56, TEST.168 | Quality; queued admin chain |
+
+### Help framework
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DOC.57 | Help section framework: page template, index, '?' links, help search and the link check |  | Split from DOC.6. |
+
+### Admin pages in the shell
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| POP.13 | A species editor: create and edit species and their environment limits | ADM.92 |  |
 
 ## Phase 3: Editors that make plans
 
@@ -100,8 +119,10 @@ Each editor produces a plan: move a system, edit an orbit, adjust the world to a
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | ADM.92, ADM.58, ADM.65, ADM.66, ADM.82 | Merges two asks (one system added by the computer; placement chosen by admin). |
 | ADM.71 | Move a star system or phenomenon within its sector or to another sector, as a plan | ADM.32, ADM.58, ADM.65 |  |
-| ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | ADM.36, ADM.52, ADM.58, ADM.65 |  |
+| ADM.36 | Change an object's trajectory vector | GEN.109, ADM.92, ADM.58, ADM.65, ADM.66 |  |
+| ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | ADM.36, ADM.52, ADM.58, ADM.65, GEN.289 |  |
 
 ### Density plans
 
@@ -150,9 +171,9 @@ End-to-end and property tests, the admin help, and the items that close ADM.35 a
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | ADM.77, ADM.78, ADM.71, ADM.72, ADM.74, ADM.80 |  |
+| TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | ADM.77, ADM.78, ADM.71, ADM.72, ADM.74, ADM.80, TEST.168 |  |
 | TEST.176 | Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row | ADM.76, ADM.60, ADM.77 |  |
 | TEST.177 | Edited sectors survive repair, regeneration and the golden seed | ADM.61, ADM.80 |  |
-| DOC.54 | Admin help: how to edit, regenerate, lock, approve and undo | TEST.175, ADM.68 |  |
+| DOC.54 | Admin help: how to edit, regenerate, lock, approve and undo | TEST.175, ADM.68, DOC.57 |  |
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | MAP.120, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81 | Closes when the regen and edit screens of phase 4 are done; MAP.120 is the map part. |
 | ADM.57 | Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan | ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120, POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54 | The headline; done when its items are |

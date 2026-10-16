@@ -19,7 +19,7 @@ The permission catalogue, the moderator role, the sweep that moves every guard t
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | USR.12 | Permission catalogue and one `can()` check: user, moderator, admin and Owner as data | USR.2 | Roles from 8.2 (USR.2 already holds the moderator value) |
-| USR.13 | Moderator role: assign and remove it on the admin accounts page, with the audit entry | USR.12 |  |
+| USR.13 | Moderator role: assign and remove it on the admin accounts page, with the audit entry | USR.12, USR.27 |  |
 | USR.14 | Move every route, page and command from "is admin" checks to permission checks | USR.12 |  |
 
 ### Request tables

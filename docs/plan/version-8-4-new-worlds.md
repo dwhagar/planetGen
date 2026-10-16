@@ -19,20 +19,28 @@ Planet classes, nebula conditions, asteroid fields and habitability on the pages
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.33 | One class per PR, each with its tests |  | Moved to phase 2 under GEN.90, after the habitability score. One class per PR (R and S first). Built on fixed physics so new classes aren't tuned to wrong masses, moons or zones. |
-| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33 | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
-| GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.33 | Under GEN.90; class Z is Boss's Earth-size world that never had life (2026-10-03). Class S landed with GEN.38 (PR #415); the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
-| GEN.91 | Classes like S and V in the hot and cold zones | GEN.33 |  |
-| GEN.92 | Life and its highest stage follow the habitability score | GEN.28 |  |
-| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.91, GEN.92 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
+| GEN.146 | Teff-dependent habitable zone from the Kopparapu table |  | Research: in GEN.91's dependency chain. |
+| GEN.355 | Atmosphere retention module with its test table | GEN.33 | Split from GEN.91. |
+| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33, GEN.146 | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
+| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T | GEN.33, GEN.355, GEN.146 | Split from GEN.28. |
+| GEN.351 | Class U, icy world | GEN.33 | Split from GEN.28. |
+| GEN.352 | Classes W and X, subsurface ocean bodies | GEN.33 | Split from GEN.28. |
+| GEN.353 | Class Y, Titan-like world | GEN.355, GEN.146 | Split from GEN.28. |
+| GEN.92 | Life and its highest stage follow the habitability score | GEN.350, GEN.351, GEN.352, GEN.353 |  |
+| GEN.354 | Class Z, lifeless temperate world | GEN.92, GEN.146 | Split from GEN.28. |
+| GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.350, GEN.351, GEN.352, GEN.353, GEN.354 | Under GEN.90; class Z is Boss's Earth-size world that never had life (2026-10-03). Class S landed with GEN.38 (PR #415); the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
+| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | GEN.355, GEN.92 | Split from GEN.91. |
+| GEN.91 | Classes like S and V in the hot and cold zones | GEN.355, GEN.356 |  |
+| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | GEN.355, GEN.92 | Research follow-up to class S (built). |
+| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.91, GEN.92, GEN.146 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
 | GEN.90 | Refactor the planet classes around the habitability index | GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Parent; takes GEN.33, GEN.28, GEN.27 and GEN.29 as its subitems. |
-| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | GEN.91 | Research follow-up to class S (built). |
-| GEN.146 | Teff-dependent habitable zone from the Kopparapu table | GEN.91 | Research: in GEN.91's dependency chain. |
 
 ### Nebula conditions on planets
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.95 | Nebula conditions applied when planets and surfaces are generated |  |  |
+| GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | DB.59, GEN.357 | Split from GEN.95. |
+| GEN.95 | Nebula conditions applied when planets and surfaces are generated | DB.59, GEN.357, GEN.358 |  |
 | GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
 
 ### Habitability on the pages
@@ -41,8 +49,8 @@ Planet classes, nebula conditions, asteroid fields and habitability on the pages
 |---|---|---|---|
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
-| UX.100 | Planet and moon lists show habitability as symbols, not notes |  |  |
-| UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | UX.100 |  |
+| UX.101 | The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating |  |  |
+| UX.100 | Planet and moon lists show habitability as symbols, not notes | UX.101 |  |
 
 ### Asteroid fields
 
