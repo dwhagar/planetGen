@@ -101,13 +101,17 @@ system, rogue planet or comet. Orbital facilities advance their orbit phase like
 (`advance_facility_orbits`). Page text is rendered from these rows
 (schema v29), so nothing else names the old sector.
 
+A night's work has a ceiling (PERF.103, `--row-ceiling`, default `tuning.ORBIT_UPDATE_ROW_CEILING`): when more rows are
+due than that, the run moves the oldest-due rows of each table up to a share of the ceiling, warns with the backlog and
+the tables it sits in, and leaves the rest due, so the next run takes them first. 0 moves everything that is due.
+
 Run it as `python3 -m planetgen.cli.orbits` from anywhere (the editable
 install makes `planetgen` importable).
 
 Usage:
     python3 -m planetgen.cli.orbits [--mysql-host HOST] [--mysql-port PORT]
                                 [--mysql-user USER] [--mysql-password PASSWORD]
-                                [--mysql-database DATABASE]
+                                [--mysql-database DATABASE] [--row-ceiling N]
 
     Every flag defaults to the same $PLANETGEN_MYSQL_* environment
     variable every other entry point in this project reads (see
@@ -119,8 +123,9 @@ Usage:
 import argparse
 import sys
 
+from planetgen import tuning
 from planetgen.cli.stage_progress import StageProgress
-from planetgen.util import stagemark
+from planetgen.util import log, stagemark
 from planetgen.db.sector_paths import compute_sector_paths
 from planetgen.db.store import (
     add_mysql_connection_args,
@@ -134,6 +139,7 @@ from planetgen.db.store import (
     mysql_config_from_args,
     orbit_clock,
     refresh_after_motion,
+    RowBudget,
 )
 from planetgen._version import VersionAction, version_banner
 
@@ -183,8 +189,15 @@ def main():
                     "phenomenon's orbital position based on real elapsed time.",
     )
     add_mysql_connection_args(parser)
+    parser.add_argument('--row-ceiling', type=int, default=tuning.ORBIT_UPDATE_ROW_CEILING, metavar='N',
+                        help="The most rows this run moves, counted across every table (default "
+                             f"{tuning.ORBIT_UPDATE_ROW_CEILING}); 0 moves everything that is due. When more are due the "
+                             "run moves the oldest of each table, warns with the backlog and leaves the rest due "
+                             "for the next run.")
     parser.add_argument('--version', action=VersionAction, banner=version_banner('planetgen.cli.orbits'))
     args = parser.parse_args()
+    if args.row_ceiling < 0:
+        parser.error("--row-ceiling must be 0 (no ceiling) or more.")
 
     config = mysql_config_from_args(args)
 
@@ -207,25 +220,27 @@ def main():
         else:
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing what is due.")
         clock = orbit_clock(conn)
+        budget = RowBudget(args.row_ceiling)
+        budget.plan(conn, clock)
 
         # A bar over the steps, with the tables (or sectors) of the step
         # under way beneath it; the Generate page's job status draws the
         # same two bars.
         with StageProgress(len(STAGES), kind="orbits") as bar:
             bar.stage(_stage_label(0))
-            counts = advance_orbital_phases(conn, clock, on_progress=bar.detail)
+            counts = advance_orbital_phases(conn, clock, on_progress=bar.detail, budget=budget)
             # A comet's position needs Kepler's or Barker's equation, so it
             # moves in Python rather than in advance_orbital_phases' SQL.
             bar.stage(_stage_label(1))
-            counts["comets"] = advance_comet_orbits(conn, clock)
-            counts["facilities"] = advance_facility_orbits(conn, clock)
+            counts["comets"] = advance_comet_orbits(conn, clock, budget=budget)
+            counts["facilities"] = advance_facility_orbits(conn, clock, budget=budget)
 
             # Galactic motion: move what is due along its galactic orbit,
             # refile what drifted into another sector, then recompute what
             # depends on position (containment, octants, nearest systems,
             # location text).
             bar.stage(_stage_label(2))
-            motion = advance_galactic_positions(conn, clock, on_progress=bar.detail)
+            motion = advance_galactic_positions(conn, clock, on_progress=bar.detail, budget=budget)
             counts.update(motion["counts"])
             finish_orbit_update(conn, clock)
             bar.stage(_stage_label(3))
@@ -244,6 +259,12 @@ def main():
             conn.commit()
         summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
         print(f"Updated: {summary} (only what was due).")
+        warning = budget.warning()
+        if warning:
+            print(f"warning: {warning}", file=sys.stderr)
+            log.normal(f"orbit update: {warning}")
+        elif budget.limits:
+            print("Everything that was due fit under the row ceiling.")
         print(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
               f"sector. Refreshed nearest systems and containment; rewrote {after['locations']} location(s).")
         print(f"{after['entered_nebula']} object(s) entered a nebula and {after['left_nebula']} left one; "

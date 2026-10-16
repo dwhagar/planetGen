@@ -5235,7 +5235,7 @@ class _SectorIndex:
         return self.by_address.get(sector_address_at(point, self.edge_pc), current)
 
 
-def advance_galactic_positions(conn, clock, on_progress=None):
+def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     """
     Moves every due star system, standalone phenomenon, stand-alone
     facility and unbuilt scatter point (`advance_scatter_points`) along its galactic orbit, from its epoch to `clock.end_unix`:
@@ -5265,6 +5265,9 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         on_progress (callable, optional): `on_progress(label, done, total)`
             after the star systems, each phenomenon table and the
             facilities are moved.
+        budget (RowBudget, optional): The run's row ceiling (PERF.103); a
+            table over its limit moves its oldest-due objects and leaves
+            the rest due.
 
     Returns:
         dict: `moved` (objects whose galaxy position moved) and `refiled`
@@ -5292,6 +5295,7 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         FROM star_systems ss
         LEFT JOIN stars s ON s.star_system_id = ss.id AND s.role IN ('single', 'primary')
         WHERE ss.next_update_due IS NULL OR ss.next_update_due <= ?
+        ORDER BY ss.next_update_due, ss.id
         """,
         (clock.end_unix,),
     ).fetchall()
@@ -5301,7 +5305,7 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         ballistic = row["runaway_class"] == "hypervelocity" and row["runaway_speed_kms"]
         epoch, interval, due = _due_interval_s(row, clock, row["runaway_speed_kms"] if ballistic else row["speed_kms"],
                                                "galactic")
-        if due > clock.end_unix:
+        if due > clock.end_unix or (budget is not None and not budget.take("star_systems")):
             scheduled.append((epoch, due, row["id"]))
             continue
         elapsed_years = (clock.end_unix - epoch) / seconds_per_year
@@ -5373,10 +5377,11 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         for row in conn.execute(
             f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy,"
             f" galactic_orbital_speed_kms, epoch_unix, next_update_due FROM {table}"
-            f" WHERE (next_update_due IS NULL OR next_update_due <= ?){anchored}", (clock.end_unix,)
+            f" WHERE (next_update_due IS NULL OR next_update_due <= ?){anchored} ORDER BY next_update_due, id",
+            (clock.end_unix,)
         ).fetchall():
             epoch, interval, due = _due_interval_s(row, clock, row["galactic_orbital_speed_kms"], "galactic")
-            if due > clock.end_unix:
+            if due > clock.end_unix or (budget is not None and not budget.take(table)):
                 scheduled.append((epoch, due, row["id"]))
                 continue
             elapsed_years = (clock.end_unix - epoch) / seconds_per_year
@@ -5421,11 +5426,11 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         "SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,"
         " velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM facilities"
         " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
-        " AND (next_update_due IS NULL OR next_update_due <= ?)", (clock.end_unix,)
+        " AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id", (clock.end_unix,)
     ).fetchall():
         speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(row["center_x_pc"], row["center_y_pc"])))
         epoch, interval, due = _due_interval_s(row, clock, speed_kms, "galactic")
-        if due > clock.end_unix:
+        if due > clock.end_unix or (budget is not None and not budget.take("space_facilities")):
             scheduled.append((epoch, due, row["id"]))
             continue
         angle = _galactic_turn((clock.end_unix - epoch) / seconds_per_year, period_gy)
@@ -5458,7 +5463,8 @@ def advance_galactic_positions(conn, clock, on_progress=None):
     counts["space_facilities"] = len(updates) + len(refile_updates)
     _report(on_progress, "facilities", steps - len(SCATTER_MOTION_TABLES), steps)
 
-    points = advance_scatter_points(conn, clock, on_progress, steps=(steps - len(SCATTER_MOTION_TABLES), steps))
+    points = advance_scatter_points(conn, clock, on_progress, steps=(steps - len(SCATTER_MOTION_TABLES), steps),
+                                    budget=budget)
     counts.update(points["counts"])
     moved += points["moved"]
     refiled += points["refiled"]
@@ -5484,7 +5490,7 @@ _SCATTER_COLUMNS = {
 }
 
 
-def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1)):
+def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=None):
     """
     Moves every due scatter point (`SCATTER_MOTION_TABLES`) along its galactic
     orbit from its epoch to `clock.end_unix`, the way `advance_galactic_positions`
@@ -5506,6 +5512,8 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1)):
             after each table.
         steps (tuple): `(done, total)` of the steps `on_progress` already
             counts, so the caller's bar continues.
+        budget (RowBudget, optional): The run's row ceiling (PERF.103); a
+            table over its limit moves its oldest-due points.
 
     Returns:
         dict: `moved` and `refiled` counts, and `counts`, `{table: rows_moved}`.
@@ -5522,7 +5530,8 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1)):
             f"SELECT {_SCATTER_COLUMNS[table]}, shell_index, band_index, wedge_index, position_x_mpc,"
             f" position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix,"
             f" next_update_due FROM {table} WHERE {_SCATTER_ROWS[table]}"
-            f" AND (next_update_due IS NULL OR next_update_due <= ?)", (clock.end_unix,)).fetchall()
+            f" AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id",
+            (clock.end_unix,)).fetchall()
         for row in rows:
             point = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
             speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(point[0], point[1])))
@@ -5532,7 +5541,7 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1)):
             ballistic = row["kind"] == "hypervelocity-star" and stored
             speed = math.sqrt(sum(c * c for c in velocity)) if ballistic else speed_kms
             epoch, interval, due = _due_interval_s(row, clock, speed, "galactic")
-            if due > clock.end_unix:
+            if due > clock.end_unix or (budget is not None and not budget.take(table)):
                 scheduled.append((epoch, due, row["id"]))
                 continue
             next_due = clock.end_unix + interval
@@ -5578,19 +5587,23 @@ def _refile_nearest_rows(conn, table, moves):
         conn.executemany("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", dropped)
 
 
-def advance_facility_orbits(conn, clock):
+def advance_facility_orbits(conn, clock, budget=None):
     """Advances every due orbital facility's `orbit_phase_deg` by its period
     from its epoch to `clock.end_unix`, the way `advance_orbital_phases`
     does for moons, and every asteroid facility in a belt around its star
     the same way. Returns the count."""
     where = "placement IN ('orbital', 'asteroid') AND orbit_period_years > 0"
     _schedule_updates(conn, clock, "facilities", _FACILITY_INTERVAL_SQL, where, keep_modified=True)
-    return conn.execute(
+    limited, tail = _ordered_limit(budget, "facilities")
+    moved = conn.execute(
         f"UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + {_phase_turn_sql('orbit_period_years')},"
         f" 360.0), epoch_unix = ?, next_update_due = ? + {_FACILITY_INTERVAL_SQL},"
-        f" modified_at = modified_at WHERE {where} AND next_update_due <= ?",
+        f" modified_at = modified_at WHERE {where} AND next_update_due <= ?{tail}",
         (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
     ).rowcount
+    if limited is not None:
+        budget.defer_remaining(conn, clock, "facilities")
+    return moved
 
 
 def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
@@ -8723,6 +8736,126 @@ def finish_orbit_update(conn, clock):
     conn.commit()
 
 
+def _budget_tables():
+    """The tables an orbital-update run moves, as `{key: (table, due column, where)}` (PERF.103): what the run counts
+    to plan its ceiling and what each step asks its share of. `where` selects the rows the step moves."""
+    tables = {
+        "planets": ("planets", "next_update_due", "period_years > 0"),
+        "moons": ("moons", "next_update_due", "period_years > 0"),
+        "binary_mutual_orbits": ("star_systems", "binary_next_update_due",
+                                 "is_binary = 1 AND binary_mutual_orbital_period_years > 0"),
+        "comets": ("comets", "next_update_due", "1 = 1"),
+        "facilities": ("facilities", "next_update_due", "placement IN ('orbital', 'asteroid') AND orbit_period_years > 0"),
+        "star_systems": ("star_systems", "next_update_due", "1 = 1"),
+    }
+    for table in PLACED_PHENOMENON_TABLES:
+        if table != "quasars":
+            anchored = "star_id IS NULL" if table in ("black_holes", "neutron_stars") else "1 = 1"
+            tables[table] = (table, "next_update_due", anchored)
+    tables["space_facilities"] = ("facilities", "next_update_due", "host_type = 'space' AND center_x_pc IS NOT NULL")
+    for table in SCATTER_MOTION_TABLES:
+        tables[table] = (table, "next_update_due", _SCATTER_ROWS[table])
+    return tables
+
+
+class RowBudget:
+    """
+    The most rows one orbital-update run moves (PERF.103).
+
+    `plan` counts what is due in every table the run moves. When that is no more than the ceiling every table is
+    unlimited and the run is as it always was. When it is more, each table gets a limit: a floor so a small table is
+    never starved (a quarter of the ceiling shared out equally), and the rest of the ceiling in proportion to
+    what is left due in each table. A step moves its table's oldest-due rows up to its limit (`limit` for the
+    set-based steps, `take` for the Python loops); the rest stay due, are counted by `defer`, and are first in line
+    the next night. The limits add up to at most the ceiling, so a run never moves more than it.
+
+    Args:
+        ceiling (int or None): The ceiling; None or 0 for no ceiling.
+    """
+
+    def __init__(self, ceiling=None):
+        self.ceiling = ceiling or None
+        self.candidates = {}
+        self.limits = {}
+        self.used = {}
+        self.deferred = {}
+
+    def plan(self, conn, clock):
+        """Counts the rows each table could move, sets the limits, and returns the candidate count of every table."""
+        tables = _budget_tables()
+        self.candidates = {}
+        for key, (table, due, where) in tables.items():
+            self.candidates[key] = conn.execute(
+                f"SELECT COUNT(*) AS n FROM {table} WHERE {where} AND ({due} IS NULL OR {due} <= ?)",
+                (clock.end_unix,)).fetchone()["n"]
+        self.allocate()
+        return self.candidates
+
+    def allocate(self):
+        """Sets the limits from `candidates`: none when everything fits under the ceiling."""
+        self.limits = {}
+        if self.ceiling is None or sum(self.candidates.values()) <= self.ceiling:
+            return
+        floor = self.ceiling // (4 * max(len(self.candidates), 1))
+        self.limits = {key: min(count, floor) for key, count in self.candidates.items()}
+        spare = self.ceiling - sum(self.limits.values())
+        left = {key: count - self.limits[key] for key, count in self.candidates.items()}
+        left_total = sum(left.values())
+        if left_total:
+            shares = {key: spare * count // left_total for key, count in left.items()}
+            for key in sorted(left, key=lambda k: (spare * left[k]) % left_total, reverse=True):
+                if sum(shares.values()) >= spare:
+                    break
+                if shares[key] < left[key]:
+                    shares[key] += 1
+            for key, share in shares.items():
+                self.limits[key] += min(share, left[key])
+
+    def limit(self, key):
+        """How many rows the set-based step for `key` may move, or None for all that are due."""
+        return self.limits.get(key)
+
+    def take(self, key):
+        """For a Python loop: whether it may move one more row of `key`. A refusal is counted as deferred."""
+        limit = self.limits.get(key)
+        if limit is not None and self.used.get(key, 0) >= limit:
+            self.defer(key)
+            return False
+        self.used[key] = self.used.get(key, 0) + 1
+        return True
+
+    def defer(self, key, count=1):
+        """Counts `count` rows of `key` that were due and left for the next run."""
+        self.deferred[key] = self.deferred.get(key, 0) + count
+
+    def defer_remaining(self, conn, clock, key):
+        """After a set-based step that ran with a limit: counts what is still due in `key`'s table."""
+        table, due, where = _budget_tables()[key]
+        left = conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE {where} AND {due} <= ?",
+                            (clock.end_unix,)).fetchone()["n"]
+        if left:
+            self.defer(key, left)
+
+    @property
+    def backlog(self):
+        """How many due rows the run left for the next one."""
+        return sum(self.deferred.values())
+
+    def warning(self):
+        """The warning text when rows were left (None when none were): the backlog and where it sits."""
+        if not self.backlog:
+            return None
+        where = ", ".join(f"{key} {count}" for key, count in sorted(self.deferred.items(), key=lambda kv: -kv[1]) if count)
+        return (f"{self.backlog} due row(s) are over the ceiling of {self.ceiling} rows a run and stay due for the next "
+                f"run, oldest first ({where}). Raise the ceiling (--row-ceiling) if the backlog keeps growing.")
+
+
+def _ordered_limit(budget, key):
+    """The SQL tail of a set-based step that has a limit (`ORDER BY` the due time, `LIMIT`) and that limit, or empty."""
+    limit = budget.limit(key) if budget is not None else None
+    return limit, ("" if limit is None else f" ORDER BY {_budget_tables()[key][1]}, id LIMIT {int(limit)}")
+
+
 def _update_interval_sql(speed_kms, scale):
     """SQL for `position.update_interval_s` of a speed in km/s (`speed_kms` is
     an SQL expression): seconds until the object has moved its scale's
@@ -8794,7 +8927,7 @@ def _report(on_progress, label, done, total):
         on_progress(label, done, total)
 
 
-def advance_orbital_phases(conn, clock, on_progress=None):
+def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     """
     Advances the orbits inside star systems that are due (GEN.106): every
     planet's and moon's `orbital_phase_deg`, and a binary pair's
@@ -8848,6 +8981,9 @@ def advance_orbital_phases(conn, clock, on_progress=None):
                                after each of the `total` table updates
                                (see `_report`); `planetgen.cli.orbits`
                                draws its progress bar from it.
+        budget (RowBudget, optional): The run's row ceiling (PERF.103); a
+                               table over its limit moves its oldest-due
+                               rows and leaves the rest due.
 
     Returns:
         dict: `{name: rows_updated}` -- `"planets"`, `"moons"`,
@@ -8859,6 +8995,7 @@ def advance_orbital_phases(conn, clock, on_progress=None):
     for table, scale in (("planets", "system"), ("moons", "planetary")):
         interval = _update_interval_sql(circular_rate, scale)
         _schedule_updates(conn, clock, table, interval, "period_years > 0")
+        limited, tail = _ordered_limit(budget, table)
         cur = conn.execute(
             f"""
             UPDATE {table}
@@ -8887,10 +9024,12 @@ def advance_orbital_phases(conn, clock, on_progress=None):
                 velocity_z_kms = {circular_rate} * COS(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg)),
                 epoch_unix = ?,
                 next_update_due = ? + {interval}
-            WHERE period_years > 0 AND next_update_due <= ?
+            WHERE period_years > 0 AND next_update_due <= ?{tail}
             """,
             (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
         )
+        if limited is not None:
+            budget.defer_remaining(conn, clock, table)
         counts[table] = cur.rowcount
         _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
 
@@ -8962,6 +9101,7 @@ def advance_orbital_phases(conn, clock, on_progress=None):
         f" * {physical_constants.SECONDS_PER_YEAR!r}))", "system")
     _schedule_updates(conn, clock, "star_systems", binary_interval,
                       "is_binary = 1 AND binary_mutual_orbital_period_years > 0", prefix="binary_", keep_modified=True)
+    limited, tail = _ordered_limit(budget, "binary_mutual_orbits")
     cur = conn.execute(
         f"""
         UPDATE star_systems
@@ -8990,10 +9130,12 @@ def advance_orbital_phases(conn, clock, on_progress=None):
             modified_at = modified_at
         WHERE is_binary = 1
           AND binary_mutual_orbital_period_years > 0
-          AND binary_next_update_due <= ?
+          AND binary_next_update_due <= ?{tail}
         """,
         (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
     )
+    if limited is not None:
+        budget.defer_remaining(conn, clock, "binary_mutual_orbits")
     counts["binary_mutual_orbits"] = cur.rowcount
     _report(on_progress, "binary_mutual_orbits", len(counts), ORBITAL_PHASE_UPDATES)
 
@@ -9029,7 +9171,7 @@ def advance_orbital_phases(conn, clock, on_progress=None):
     return counts
 
 
-def advance_comet_orbits(conn, clock):
+def advance_comet_orbits(conn, clock, budget=None):
     """
     Advances every due comet's own orbital anomaly (`mean_anomaly_deg` for
     an elliptical comet, `parabolic_mean_anomaly` for a parabolic one) from
@@ -9060,6 +9202,8 @@ def advance_comet_orbits(conn, clock):
         conn (Connection): An open, schema-initialized, read-write
                            connection.
         clock (OrbitClock): The span to move over (`orbit_clock`).
+        budget (RowBudget, optional): The run's row ceiling (PERF.103); the
+            comets over their limit stay due.
 
     Returns:
         int: The number of `comets` rows moved.
@@ -9068,14 +9212,14 @@ def advance_comet_orbits(conn, clock):
         "SELECT id, orbit_type, perihelion_distance_km, eccentricity, inclination_deg, "
         "arg_periapsis_deg, ascending_node_deg, orbital_period_years, mean_anomaly_deg, "
         "parabolic_mean_anomaly, primary_mass_solar, orbital_speed_kms, epoch_unix, next_update_due "
-        "FROM comets WHERE next_update_due IS NULL OR next_update_due <= ?",
+        "FROM comets WHERE next_update_due IS NULL OR next_update_due <= ? ORDER BY next_update_due, id",
         (clock.end_unix,),
     ).fetchall()
 
     elapsed_by_id, scheduled = {}, []
     for row in rows:
         epoch, _interval, due = _due_interval_s(row, clock, row["orbital_speed_kms"], "system")
-        if due > clock.end_unix:
+        if due > clock.end_unix or (budget is not None and not budget.take("comets")):
             scheduled.append((epoch, due, row["id"]))
         else:
             elapsed_by_id[row["id"]] = (clock.end_unix - epoch) / physical_constants.SECONDS_PER_YEAR
