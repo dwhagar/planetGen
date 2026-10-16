@@ -2406,6 +2406,18 @@ code {
 .map-layer-legend[hidden] {
   display: none;
 }
+/* On the Galaxy and Sector Maps the legend lines sit over the map's lower left. */
+.starmap-viewport > .map-layer-legend {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  max-width: 60%;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  pointer-events: none;
+}
 .map-layer-legend-swatch {
   display: inline-block;
   width: 0.75rem;

@@ -3084,6 +3084,10 @@ function initGalaxyMap3d(canvasEl, data) {
     },
   });
   rebuildKinds();
+  // MAP.217: the layers' legend lines, over the map; the browser tests register a layer on the canvas's registry.
+  var layerLegendEl = document.getElementById("galaxymap3d-layer-legend");
+  if (layerLegendEl) stageView.layers.renderLegend(layerLegendEl);
+  canvasEl.__mapLayers = stageView.layers;
   // MAP.200: the on-map zoom slider and direction star.
   if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-centre"));
 
