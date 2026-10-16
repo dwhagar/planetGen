@@ -21,7 +21,7 @@ while the maps are being rebuilt.
 
 import sys
 
-from planetgen.admin import maintenance
+from planetgen.admin import maintenance, updateguard
 from planetgen.db import store
 from planetgen.generation import run_common, steps
 from planetgen.web.app import create_app
@@ -38,7 +38,8 @@ def _stats():
 
 def main():
     app = create_app()
-    with app.test_request_context("/galaxy"):
+    # Registered for the update guard (OPS.53), which lists it and stops it, the cache being safe to build again.
+    with updateguard.running("warm-map", "Galaxy Map warm-up"), app.test_request_context("/galaxy"):
         try:
             # UX.84: the first run after a release has no recorded speed, so it draws its bar at once.
             with steps.Step("Building the Galaxy Map's opening view", "warm-map", None, stats=_stats(), own=True) as bar:

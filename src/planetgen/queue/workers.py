@@ -24,6 +24,7 @@ import sys
 import rq
 from rq import command, worker_registration
 
+from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, work
 
 WANTED_KEY = "planetgen:workers:wanted"
@@ -111,6 +112,8 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None):
     Returns:
         int: How many were started.
     """
+    if updateguard.is_updating() and not updateguard.inside_update():
+        return 0        # OPS.53: no worker starts during an update
     url = url or redisqueue.redis_url()
     connection = connection or redisqueue.connect(url)
     queue = redisqueue.queue(queue_name, connection)

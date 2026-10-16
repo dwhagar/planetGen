@@ -25,6 +25,7 @@ can still run everything else.
 """
 
 import os
+import shutil
 import sys
 import tempfile
 import urllib.error
@@ -552,3 +553,4 @@ def _site_open():
         os.unlink(updateguard.lock_path())
     except FileNotFoundError:
         pass
+    shutil.rmtree(updateguard.running_dir(), ignore_errors=True)

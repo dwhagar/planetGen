@@ -64,15 +64,19 @@
 # two can't disagree about what a working server needs. `sudo
 # ./install.sh` is still there for a full reinstall.
 #
-# Before it changes anything (OPS.41) it takes the update guard
-# (`planetgen.cli.update_guard`): it closes the site (maintenance mode, cause
-# "update") and takes the update's lock. A good update opens the site again at
-# the end; a failed one leaves it closed, says which step failed and how to
-# open it (`python3 -m planetgen.cli.maintenance off`), because the database
-# may be half migrated.
+# Before it changes anything (OPS.41, OPS.53) it takes the update guard
+# (`planetgen.cli.update_guard`): it lists every running or queued piece of
+# work (Generate jobs, work queue runs, queued jobs, the orbital update, the
+# Galaxy Map warm-up) and stops, changing nothing, unless you agree to cancel
+# them (a question on the terminal; without one, e.g. the maintenance timer,
+# add --cancel-running). Then it closes the site (maintenance mode, cause
+# "update") and nothing else can start until the update has finished. A good
+# update opens the site again at the end; a failed one leaves it closed, says
+# which step failed and how to open it (`python3 -m planetgen.cli.maintenance
+# off`), because the database may be half migrated.
 #
 # Usage:
-#   sudo ./update.sh
+#   sudo ./update.sh [--cancel-running]
 #   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (make the venv from another Python)
 #
 # Forces the checkout to match origin's branch tip even if there are
@@ -88,6 +92,14 @@
 # makes, under macOS's bash 3.2 too.
 
 set -euo pipefail
+
+CANCEL_RUNNING=()
+for arg in "$@"; do
+    case "$arg" in
+        --cancel-running) CANCEL_RUNNING=(--cancel-running) ;;
+        *) echo "error: unknown argument '$arg' (the only option is --cancel-running)." >&2; exit 2 ;;
+    esac
+done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HTML_DIR="$SCRIPT_DIR/src/html"

@@ -19,6 +19,7 @@ import sys
 import rq
 
 from planetgen import _version
+from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, work, workers
 
 WARM_MODULES = (
@@ -106,6 +107,11 @@ def main(argv=None):
     parser.add_argument("--name", help="the worker's name (default: RQ picks one)")
     parser.add_argument("--url", help="the Redis server (default: PLANETGEN_REDIS_URL, else config.json's redis.url)")
     args = parser.parse_args(argv)
+    try:
+        updateguard.refuse_while_updating("A worker")     # OPS.53: the workers take no job during an update
+    except updateguard.UpdateRunning as exc:
+        print(exc, file=sys.stderr)
+        return updateguard.EX_TEMPFAIL
     work.lower_priority()
     warm(args.queues)
     serializers = {redisqueue.serializer_for(name) for name in args.queues}
@@ -120,4 +126,4 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
