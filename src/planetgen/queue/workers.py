@@ -104,10 +104,11 @@ def live_worker_count(queue):
     return len(live_workers(queue))
 
 
-def ensure_workers(queue_name, connection=None, url=None, mysql_host=None):
+def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count=None):
     """
     Starts idle-timeout workers for the waiting jobs of the queue `queue_name`, never more than `wanted` in all
-    (those serving the queue and alive, and those started a moment ago and not registered yet).
+    (those serving the queue and alive, and those started a moment ago and not registered yet). `count` is
+    `wanted` for this call only: a run's own `--workers` (PERF.97), which leaves the admin's count alone.
 
     Returns:
         int: How many were started.
@@ -122,7 +123,7 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None):
         return 0
     starting_key = STARTING_PREFIX + queue_name
     starting = int(connection.get(starting_key) or 0)
-    need = min(waiting, wanted(connection, mysql_host)) - live_worker_count(queue) - starting
+    need = min(waiting, count or wanted(connection, mysql_host)) - live_worker_count(queue) - starting
     for _ in range(max(0, need)):
         connection.incr(starting_key)
         connection.expire(starting_key, STARTING_SECONDS)
