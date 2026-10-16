@@ -821,7 +821,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) | none | open |
 | GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | none | done, PR #1757 |
 | GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | none | done, PR #1705 |
-| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | open |
+| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | done, PR #1793 |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | none | open |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | none | open |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | none | done, PR #1766 |
