@@ -5396,20 +5396,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the galaxy's content stamp, `GET /api/galaxy/changes`, plus a
   per-family counter) so a stale copy is never served as current, and
   when the data changed a request waits for the rebuilt copy or reads
-  the database, never the old copy as current (the version key
-  decides). Redis and RQ rules: one instance
-  (PERF.86), AOF everysec, noeviction; a cache that lives in Redis must
-  tolerate a cold start. Plan first with a short design note (cache
-  families, key, invalidation table, warm-up order, run time on the
-  benchmark galaxy) before building, and record the open choices as
-  defaults. Done: after update.sh the first visit to the Galaxy Map, any
-  sector, any system, any phenomena or system list and a search all
-  answer from cache; changing one sector's data rebuilds only the caches
-  that read it; a test proves a stale copy is never served as current
-  after each kind of change. Owner: Core 2, next after MAP.209 and
-  MAP.210 (same cache and map code; Core 1 hands out any migration
-  revision it needs). New design note goes in docs/design/README.md in
-  the same PR.
+  the database, never the old copy as current (the version key decides).
+  Redis and RQ rules: one instance (PERF.86), AOF everysec, noeviction;
+  a cache that lives in Redis must tolerate a cold start. Visible on the
+  site (Boss, 2026-10-15 9:57 PM EDT): each kind of warm-up (Galaxy Map,
+  sectors, systems, phenomena lists, search indexes, and any other
+  family) is its own RQ job, shown on the admin runs page with its
+  status and its log, so Boss can see it and read its logs; RQ is the
+  only place a run lives (PERF.86), so this uses the existing admin
+  queue view. The command-line script enqueues those jobs by default, so
+  a warm-up started by hand is just as visible, and a command-line
+  option (for example --no-rq) runs them inline instead. Plan first with
+  a short design note (cache families, key, invalidation table, warm-up
+  order, run time on the benchmark galaxy) before building, and record
+  the open choices as defaults. Done: after update.sh the first visit to
+  the Galaxy Map, any sector, any system, any phenomena or system list
+  and a search all answer from cache; changing one sector's data
+  rebuilds only the caches that read it; a test proves a stale copy is
+  never served as current after each kind of change. Owner: Core 2, next
+  after MAP.209 and MAP.210 (same cache and map code; Core 1 hands out
+  any migration revision it needs). New design note goes in
+  docs/design/README.md in the same PR.
   Prerequisites: none. Related: MAP.134, PERF.2, PERF.69, PERF.75,
   PERF.86, OPS.51, OPS.52.
 
