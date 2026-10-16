@@ -616,6 +616,8 @@ with `clamp()`.
   #1784): call galaxy.profile.sector_profile(address, skeleton) for the
   profile and GalaxyBounds.describe_miss for the "outside the outline"
   line.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 3).
   Prerequisite: API.27. Related: GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -633,6 +635,8 @@ with `clamp()`.
   companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
   catalogue), hierarchical trees only, a row's members deleted when its
   sector builds it, pair rates from the middle of the evidence.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 6).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
@@ -1712,6 +1716,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.311 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.311. Related: GEN.129.
 
 - [ ] **MAP.214 Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space**
@@ -2286,6 +2293,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cell key through NAV.60 and the radius ladder and early-stop count of
   NAV.61, so it stays fast in the dense core and shows "300+" from the
   capped count.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 7).
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
   Boss (2026-10-07 11:47Z): "Then you can go find another location
@@ -2432,6 +2441,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spherical sector layout is, then we'll skip it and move to the next
   sequence until it's finished research and we can plan it." The
   research is finished and merged (#1659), so stage C is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: NAV.60 (Core 2). Core 4 takes it when it unblocks.
   Prerequisite: NAV.60. Related: NAV.12, NAV.44, NAV.45.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -2980,6 +2992,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not pre-fill; keep lazy fill. Decided (Boss, 2026-10-10 18:44Z,
   defaults approved; default no):
   do you still want the sparse rim filled?
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 4).
 
 - [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
   Boss (2026-10-07 11:47Z): "Research and add tiered structure
@@ -3000,6 +3014,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-kind factors are built (GEN.234, GEN.236); what is left is the
   population-dependent rules for the type draws. Fold into GEN.269 or
   close once GEN.270 to GEN.275 land.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
@@ -3493,6 +3509,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.317, GEN.318 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.317, GEN.318.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
@@ -3504,6 +3523,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by radius (peak at 5 kpc, -0.28 dex per kpc beyond, the dip inside 3
   kpc), the B share and the bulge's young tail, without the Central
   Molecular Zone, which GEN.282 owns.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 11; start
+  after Core 3 merges GEN.283 and GEN.333 (tuning.py and the profile)).
   Prerequisites: none. Related: GEN.133 (done).
 
 - [ ] **GEN.135 Deterministic math helpers for every stored float, with a lint and frozen constants**
@@ -3723,6 +3745,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.324 (Core 3). Core 4 takes it when it unblocks.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.324.
 
@@ -3754,6 +3779,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.325, GEN.326 (Core 3). Core 4 takes it when it unblocks.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.325, GEN.326.
 
@@ -3773,6 +3801,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.317 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.317.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -4529,6 +4560,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 8; start
+  after Core 3 merges GEN.286 (stellar evolution model)).
   Prerequisites: none. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4552,6 +4586,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.318 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.318.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4613,6 +4650,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.242, GEN.320. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4653,6 +4693,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 10; start
+  after Core 3 merges GEN.323 (phenomena pass)).
   Prerequisites: none. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4691,6 +4734,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.315, GEN.316 (Core 3). Core 4 takes it when it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -4717,6 +4763,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 9; start
+  after Core 3 merges UX.116 (Generate page)).
   Prerequisite: GEN.261. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4775,6 +4824,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: DB.53 (Core 1). Core 4 takes it when it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -4808,6 +4860,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.269 (Core 4). Core 4 takes it when it unblocks.
   Prerequisite: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4839,6 +4894,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.269 (Core 4) and GEN.253. Core 4 takes it when it
+  unblocks.
   Prerequisites: GEN.269, GEN.253. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4868,6 +4927,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.269 (Core 4). Core 4 takes it when it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
@@ -4904,6 +4966,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.327, GEN.328 (Core 3). Core 4 takes it when it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.274 Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova**
@@ -4941,6 +5006,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.329, GEN.330 (Core 3). Core 4 takes it when it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.275 Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets**
@@ -4976,6 +5044,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.331, GEN.332 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.331, GEN.332. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -5076,6 +5147,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and dispersion (from GEN.280) into the one survival function that the
   first child of GEN.162 builds, and add the survival table as a test;
   no second cull.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.325 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.325. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -6537,6 +6611,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.99's regenerate in place. Done: a system inside a seeded nebula
   gets the cloud while it is generated, a system outside is
   byte-identical.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: DB.59 (Core 2). Core 4 takes it when it unblocks.
   Prerequisites: DB.59. Related: GEN.95.
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
@@ -8479,6 +8556,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   #1784): call galaxy.profile.sector_profile(address, skeleton) for the
   profile and GalaxyBounds.describe_miss for the "outside the outline"
   line.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 2).
   Prerequisite: GEN.235. Related: UX.113, API.15.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -10007,6 +10086,9 @@ clears each one.
   body first. Done: each test exists and runs in the normal suite.
   Owner: Quality (all TEST items are Quality's), written beside the
   build step.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: TEST.186 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: TEST.186. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -10032,6 +10114,10 @@ clears each one.
   sector builds it, pair rates from the middle of the evidence.
   The multiplicity checks as census checks on the harness (2026-10-16
   review).
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.315 and TEST.186 (Core 3). Core 4 takes it when it
+  unblocks.
   Prerequisites: GEN.315, TEST.186. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -10058,6 +10144,10 @@ clears each one.
   GEN.329, TEST.186. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.269-272, 275, 327, 329 and TEST.186. Core 4 takes it when
+  it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **TEST.165 Re-measure the region query on a real generated galaxy, warm and cold**
@@ -10076,6 +10166,9 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.276 (Core 2). Core 4 takes it when it unblocks.
   Prerequisite: GEN.276. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -10090,6 +10183,8 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 1).
   Prerequisite: DB.34. Related: DB.35, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
