@@ -2124,6 +2124,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v98 (GEN.281): the cell star ceiling and the fill luminosity cap
+
+Migration 0098 adds two columns to `galaxy_shape`, both `DOUBLE NOT NULL` and set for the whole galaxy: `cell_star_ceiling` (default 50,000 systems) and `fill_luminosity_cap_sol` (default 100 solar luminosities). A cell that expects more systems than the ceiling is filled only with the stars at or above the cap; the rest is unresolved, and its count and mass are worked out from the address by `planetgen/galaxy/resolution.py`, never stored. Nothing else changes and no row is touched. It is skipped when the columns are already there. The version is detected from `galaxy_shape.cell_star_ceiling`.
+
 ### v97 (GEN.159): `galaxy_components`
 
 Migration 0097 creates the empty `galaxy_components` table (see its section above): the components of a galaxy beyond the disk, as densities with a centre, velocity, mass, age and [Fe/H]. It changes no other table. It is skipped when the table is already there, so a stopped run can be started again. The version is detected from the table.

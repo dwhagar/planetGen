@@ -748,6 +748,22 @@ STELLAR_POPULATION_ROTATION = {
 # metal-poor ones).
 METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
 
+# How deep one dense cell is filled (GEN.281, docs/design/realistic-galactic-core.md 4.2). A cell that expects more
+# systems than the cell star ceiling fills only the stars at or above the fill luminosity cap; the rest is
+# unresolved, its count and mass computed from the address and never stored. Both are galaxy settings (`planetgen
+# plan --cell-star-ceiling` and `--fill-luminosity-cap`, stored on `galaxy_shape`). Ordinary space never reaches the
+# ceiling (a cell of the Milky Way's bar holds about a thousand systems).
+CELL_STAR_CEILING = 50_000.0
+"""float: The default cell star ceiling, systems a cell expects before it is filled only down to the cap (14
+minutes of generation, 2.4 GB, at the measured 16.4 ms and 48 KiB a system)."""
+FILL_LUMINOSITY_CAP_SOL = 100.0
+"""float: The default fill luminosity cap, solar luminosities: the dimmest star a cell above the ceiling resolves.
+The lowest a cap can be is the brightest white dwarf (`WD_LUMINOSITY_RANGE_SOL`), the dimmest threshold the star
+model takes."""
+MEAN_SYSTEM_MASS_SOLAR = 0.4
+"""float: The mass of an average system, remnants and companions included (docs/design/globular-clusters.md; recalled,
+within a factor of 1.5): what the mass of the unresolved part of a cell is worked out from."""
+
 # Gas and dark matter in a cell (docs/design/intergalactic-and-halo-contents.md 2.4 and 2.6). The ambient medium
 # is whichever of three is densest: the disc's interstellar medium (about 1 H per cm3 at the plane near the Sun
 # [recalled], scaled by the cold-gas fraction), the hot halo (1e-4 per cm3 at 50 kpc falling as r^-1.5 [recalled]),

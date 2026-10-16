@@ -1289,6 +1289,9 @@
 -- v97 (GEN.159): `galaxy_components`, the discrete stellar components of a galaxy (globular clusters now, satellites
 --   and streams later) as density profiles with a position, velocity, mass, age and [Fe/H], and a `cell_key` like the
 --   other tables with a point in the galaxy frame.
+-- v98 (GEN.281): `galaxy_shape.cell_star_ceiling` (default 50,000 systems) and `galaxy_shape.fill_luminosity_cap_sol`
+--   (default 100 solar luminosities): a cell that expects more systems than the ceiling is filled only with the stars
+--   at or above the cap; the rest is computed from the address and never stored.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1480,6 +1483,10 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- until v91.)
     outer_shell_index            INT NOT NULL,
     reach_shell_index            INT NOT NULL DEFAULT 65535,  -- v93 (GEN.233), see header comment
+    -- v98 (GEN.281): a cell that expects more systems than `cell_star_ceiling` is filled only with the stars at or
+    -- above `fill_luminosity_cap_sol` (`galaxy/resolution.py`); the rest is unresolved, computed and never stored.
+    cell_star_ceiling            DOUBLE NOT NULL DEFAULT 50000,
+    fill_luminosity_cap_sol      DOUBLE NOT NULL DEFAULT 100,
 
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads

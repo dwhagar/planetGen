@@ -681,7 +681,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             flagged = flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly, scattered=scattered)
         fill_stages.count(sector, fill_stages.FLAGS, "fast-star", flagged)
 
-    if density_driven and not sector.entries and not sector.phenomena:
+    capped = fill is not None and fill.capped
+    if density_driven and not sector.entries and not sector.phenomena and not capped:
         # Guaranteed non-empty: a sector's own Poisson draws
         # (system count here, each phenomenon type in generate_sector_phenomena)
         # are independent, so all of them landing on zero simultaneously is

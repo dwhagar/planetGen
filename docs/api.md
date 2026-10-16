@@ -295,6 +295,9 @@ connectivity to that specific schema rather than the default one.
   galaxy's seed (nothing is stored) and empty before a plan. The Galaxy Map draws them as faint shells. A sector's
   detail (`GET /api/sectors/<id>`) carries `superbubble`: the cavity its centre lies in (`radius_pc`,
   `ambient_density_cm3`, `temperature_k`, `centre_distance_pc`) or `null`.
+  It also carries `unresolved` (GEN.281): `null` for a cell filled whole, else what a cell above the cell star
+  ceiling leaves unresolved (`ceiling_systems`, `luminosity_cap_sol`, `expected_systems`, `unresolved_systems`,
+  `unresolved_mass_solar`), worked out from its address and never stored.
 - `GET /api/galaxy/cell?shell=<i>&band=<j>&wedge=<k>` (or `?x=&y=&z=`,
   parsecs, for the cell holding that point) — one cell of the spherical
   sector grid, whether or not anything was generated there

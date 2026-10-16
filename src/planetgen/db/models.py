@@ -502,6 +502,8 @@ galaxy_shape = sa.Table(
     sa.Column('expected_system_count_at_density_1', mysql.DOUBLE(), nullable=False),
     sa.Column('outer_shell_index', mysql.INTEGER(), nullable=False),
     sa.Column('reach_shell_index', mysql.INTEGER(), server_default=sa.text("'65535'"), nullable=False),
+    sa.Column('cell_star_ceiling', mysql.DOUBLE(), server_default=sa.text("'50000'"), nullable=False),
+    sa.Column('fill_luminosity_cap_sol', mysql.DOUBLE(), server_default=sa.text("'100'"), nullable=False),
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('bright_star_mass_limit_sol', mysql.DOUBLE(), nullable=True),

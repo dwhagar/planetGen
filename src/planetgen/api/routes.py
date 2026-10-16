@@ -97,6 +97,8 @@ from planetgen.generation import bright_stars as brightStars, limits as generati
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_suggest, facility_types
 from planetgen.galaxy import objectref as object_ref, superbubble_field, version_check
+from planetgen.galaxy.profile import sector_profile
+from planetgen.galaxy.resolution import cell_resolution
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
@@ -498,6 +500,7 @@ def sector_detail(sector_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     detail["superbubble"] = superbubble_of(conn, detail)
+    detail["unresolved"] = unresolved_of(conn, detail)
     return jsonify(detail)
 
 
@@ -947,6 +950,26 @@ def superbubble_of(conn, detail):
     return {"radius_pc": round(bubble.radius_pc, 1), "ambient_density_cm3": float("%.3g" % bubble.ambient_density_cm3),
             "temperature_k": bubble.temperature_k,
             "centre_distance_pc": round(math.dist(bubble.center_pc, center), 1)}
+
+
+def unresolved_of(conn, detail):
+    """
+    What a placed sector leaves unresolved (`sector_detail`'s `unresolved`, GEN.281), or `None` when the cell expected
+    no more systems than the cell star ceiling and was filled whole: `{"ceiling_systems", "luminosity_cap_sol",
+    "expected_systems", "unresolved_systems", "unresolved_mass_solar"}`, worked out from the address.
+    """
+    skeleton = get_galaxy_shape(conn)
+    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    if skeleton is None or not detail.get("placed") or None in address:
+        return None
+    found = cell_resolution(sector_profile(address, skeleton), skeleton.cell_star_ceiling,
+                            skeleton.fill_luminosity_cap_sol, store.bright_star_mass_limit(conn))
+    if not found.capped:
+        return None
+    return {"ceiling_systems": found.ceiling_systems, "luminosity_cap_sol": found.luminosity_cap_sol,
+            "expected_systems": float("%.4g" % found.expected_systems),
+            "unresolved_systems": float("%.4g" % found.unresolved_systems),
+            "unresolved_mass_solar": float("%.4g" % found.unresolved_mass_solar)}
 
 
 @bp.route("/galaxy/cell")

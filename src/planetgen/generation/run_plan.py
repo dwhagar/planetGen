@@ -294,7 +294,8 @@ def build_skeleton(args):
     galaxy_seed = store.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
         expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=requested_seed,
-        reach_shell_index=reach_shell_index,
+        reach_shell_index=reach_shell_index, cell_star_ceiling=getattr(args, "cell_star_ceiling", None),
+        fill_luminosity_cap_sol=getattr(args, "fill_luminosity_cap", None),
     )
     if requested_seed is not None:
         source = "from --seed"
