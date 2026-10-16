@@ -20,11 +20,12 @@ import time
 from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
+from planetgen.generation import clusters
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed, settings_file
+from planetgen.galaxy import cluster_field as clusterField, nebula_field as nebulaField, seed as galaxySeed, settings_file
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
@@ -270,12 +271,6 @@ def build_skeleton(args):
         log.error(f"--reach-shells {reach_shell_index}: {exc}")
         raise SystemExit(1)
 
-    t0 = time.perf_counter()
-    extents, outer_shell_index, edge_confirmed = build_shell_extents(
-        shape, edge_pc, threshold_rho, max_shell=min(args.max_shell, reach_shell_index),
-    )
-    elapsed = time.perf_counter() - t0
-
     mysql_config = store.mysql_config_from_args(args)
     requested_seed = getattr(args, "seed", None)
     conn = store.get_connection(mysql_config)
@@ -288,12 +283,29 @@ def build_skeleton(args):
             raise SystemExit(1)
         # A new outline invalidates every pre-placed bright star (schema v43).
         store.clear_bright_stars(conn)
+        # The globular clusters (GEN.159, GEN.160) come from the galaxy seed and go in the outline's bound, so the seed
+        # is settled first and the clusters drawn before the outline is walked.
+        galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
+        found = clusters.generate_clusters(
+            galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX,
+            scale=shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC)
+        store.replace_galaxy_components(conn, found, kind="cluster")
+        conn.commit()
+        shape = shape._replace(clusters=clusterField.ClusterField(found, edge_pc, e_value))
     finally:
         conn.close()
+    log.normal(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems.")
+
+    t0 = time.perf_counter()
+    extents, outer_shell_index, edge_confirmed = build_shell_extents(
+        shape, edge_pc, threshold_rho, max_shell=min(args.max_shell, reach_shell_index),
+    )
+    elapsed = time.perf_counter() - t0
+
     store.replace_galaxy_shells(extents, config=mysql_config)
     galaxy_seed = store.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
-        expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=requested_seed,
+        expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=galaxy_seed,
         reach_shell_index=reach_shell_index, cell_star_ceiling=getattr(args, "cell_star_ceiling", None),
         fill_luminosity_cap_sol=getattr(args, "fill_luminosity_cap", None),
     )
