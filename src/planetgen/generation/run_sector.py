@@ -135,7 +135,8 @@ def sector_star_count(sector):
     return sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
 
 
-def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False):
+def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False,
+                              kind_factors=None):
     """
     Populates an already-built `sector` with its exotic phenomena, each
     kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
@@ -177,6 +178,11 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             from their scatter rows (`add_scattered_phenomena`), and those
             below its mass cut are drawn by `add_below_cut_remnants`
             (GEN.168), so none is rolled here.
+        kind_factors (dict, optional): The sector profile's `kind_factors`
+            (GEN.236): each kind's mean is its rate per star times the star
+            count times its factor, and the star-hosted nebulae's chance is
+            scaled by the `"nebula"` factor. A kind without one, and a
+            sector with none given (a standalone sector), keeps factor 1.
 
     Returns:
         list: The newly created `SectorPhenomenonEntry` instances. May hold
@@ -189,6 +195,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
     """
     star_count = sector_star_count(sector)
     new_entries = []
+    kind_factors = kind_factors or {}
 
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
         if kind == "molecular-cloud" and cloud_field is not None:
@@ -201,7 +208,8 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
         # Each kind draws from a stream of its own (stage E), so adding a kind moves no other kind's draws.
         stage = fill_stages.NEBULAE if kind == "molecular-cloud" else fill_stages.PER_STAR_KINDS
         with fill_stages.stage(sector, stage, kind):
-            count = _sample_poisson_count(program_constants.phenomenon_rate_per_star(kind) * star_count)
+            count = _sample_poisson_count(
+                program_constants.phenomenon_rate_per_star(kind) * star_count * kind_factors.get(kind, 1.0))
             for _ in range(count):
                 phenomenon_config = SystemConfig()
                 phenomenon_config.MARKDOWN = args.markdown
@@ -225,7 +233,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
                     continue
 
     with fill_stages.stage(sector, fill_stages.NEBULAE, "hosted"):
-        hosted = add_star_hosted_nebulae(sector, args)
+        hosted = add_star_hosted_nebulae(sector, args, chance_factor=kind_factors.get("nebula", 1.0))
     fill_stages.count(sector, fill_stages.NEBULAE, "nebula", len(hosted))
     new_entries.extend(hosted)
     return new_entries
@@ -261,7 +269,7 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, po
     return sector.add_phenomenon(nebula, "nebula", position=system_entry.position)
 
 
-def add_star_hosted_nebulae(sector, args):
+def add_star_hosted_nebulae(sector, args, chance_factor=1.0):
     """
     Grows emission and reflection nebulae around `sector`'s own hot
     stars (GEN.10, GEN.150): each system whose primary is a main-sequence
@@ -270,6 +278,12 @@ def add_star_hosted_nebulae(sector, args):
     classes centered on it, the classes the star is young enough for
     (`NEBULA_CLASS_MAX_AGE_MYR`). The nebula's age is the star's, and the star is
     the host that sizes it (`Nebula(host=, age_myr=)`).
+
+    Args:
+        sector (SpaceSector): The populated sector.
+        args (argparse.Namespace): Parsed arguments; only `args.markdown` is read.
+        chance_factor (float): The sector profile's `"nebula"` factor (GEN.236, the cold gas fraction): the rules'
+            chances are scaled by it, so a star in a gas-poor place stays bare.
 
     Returns:
         list: The new nebulae's `SectorPhenomenonEntry` instances.
@@ -289,7 +303,7 @@ def add_star_hosted_nebulae(sector, args):
             if letter != rule_letter or not (low <= subclass <= high):
                 continue
             young = tuple(c for c in classes if age_myr <= program_constants.NEBULA_CLASS_MAX_AGE_MYR[c])
-            if young and draw.random() < chance:
+            if young and draw.random() < chance * chance_factor:
                 config = SystemConfig()
                 config.MARKDOWN = args.markdown
                 nebula_class = choose_weighted_class(young, "Star-hosted nebula class")
@@ -671,7 +685,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
 
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
-                                  cloud_field=cloud_field, scattered=scattered)
+                                  cloud_field=cloud_field, scattered=scattered,
+                                  kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None))
         if scattered and fill.below_cut is not None:
             with fill_stages.stage(sector, fill_stages.BELOW_CUT):
                 below_cut_entries = add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)

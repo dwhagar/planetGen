@@ -629,6 +629,21 @@ METALLICITY_RANGE_FE_H = (-3.5, 0.6)
 # a fixed share of the metals), and giant-planet occurrence as 10^(2 [Fe/H]),
 # capped at 1 (Fischer and Valenti 2005 form, recalled).
 GIANT_PLANET_METALLICITY_EXPONENT = 2.0
+# GEN.236: the planet cull. The generator's planet counts are those of a disk-population star ([Fe/H] about -0.2 to 0),
+# so occurrence is left alone at and above `PLANET_OCCURRENCE_FLOOR_FE_H` and falls below it: planets of any kind as
+# `10^(PLANET_OCCURRENCE_METALLICITY_EXPONENT ([Fe/H] - floor))` (small planets keep a weak dependence, so a gentler
+# slope than the giants'), giants as the Fischer and Valenti form above, taken from the floor too. So a metal-poor
+# halo or cluster star hosts a system of one or two small planets at most and almost never a giant (the floor of -0.5
+# is recalled as where Kepler's small-planet occurrence starts to fall, Buchhave 2012; not looked up this session).
+PLANET_OCCURRENCE_FLOOR_FE_H = -0.5
+PLANET_OCCURRENCE_METALLICITY_EXPONENT = 1.0
+PLANET_OCCURRENCE_REFERENCE_OBJECTS = 16
+"""
+int: The most objects a metal-rich system's slots hold in practice. The disk-physics ceiling of
+`StarSystem._estimate_max_objects_from_disk_physics` is far above what the orbit spacing lets fit (60 to 200 for a G
+dwarf; the most that were placed in 60 draws was 15), so the cull cuts the count by `planet_occurrence_factor` from this
+number, not from the ceiling: `ceil(16 x factor)` objects at most, which is 2 at [Fe/H] -1.65 and 16 at the floor.
+"""
 
 # Globular clusters (GEN.159, docs/design/globular-clusters.md). A cluster is stored as a density component, not as
 # stars: its profile is a King (1966) model of one of ten concentrations `KING_W0_RANGE` (inclusive), solved once

@@ -19,7 +19,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import constants
+from planetgen.physics import constants, metallicity
 from planetgen.physics import atmosphere, habitability_world, hydrosphere, magnetism, radiation, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -184,7 +184,17 @@ def get_planet_mass_ranges():
 planet_mass_ranges = get_planet_mass_ranges()
 
 
-def _choose_weighted_planet_class(valid_classes):
+def _giant_keep(planet):
+    """The factor on the weight of a gas giant class in `planet`'s class draw (GEN.236): the giant-planet occurrence of
+    its star's [Fe/H] against the disk's (`metallicity.giant_occurrence_factor`), 1 for a moon, for a star without a
+    [Fe/H] and at and above `tuning.PLANET_OCCURRENCE_FLOOR_FE_H`."""
+    fe_h = getattr(planet.star, "metallicity_fe_h", None)
+    if planet.is_moon or fe_h is None:
+        return 1.0
+    return metallicity.giant_occurrence_factor(fe_h)
+
+
+def _choose_weighted_planet_class(valid_classes, giant_keep=1.0):
     """
     Draws a single planet class from `tuning.PLANET_CLASS_PROBABILITIES`,
     restricted to `valid_classes`.
@@ -195,13 +205,18 @@ def _choose_weighted_planet_class(valid_classes):
 
     Args:
         valid_classes (iterable): The planet class codes eligible to be chosen.
+        giant_keep (float): The factor on a gas giant class's weight (GEN.236); the draw count is the same for any
+            value.
 
     Returns:
         str: The chosen planet class code.
     """
     valid_classes = set(valid_classes)
     eligible = [c for c in tuning.PLANET_CLASS_PROBABILITIES if c in valid_classes]
-    weights = [tuning.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
+    weights = [tuning.PLANET_CLASS_PROBABILITIES[c] * (giant_keep if tuning.PLANET_CLASSES[c]["type"] == "g" else 1.0)
+               for c in eligible]
+    if not any(weights):    # only giants are eligible: they are the only choice there is
+        weights = [tuning.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
     chosen = draw.choices(eligible, weights=weights, k=1)[0]
     log.choice("Planet class", chosen,
                f"weighted draw among {len(eligible)} eligible classes {eligible} "
@@ -373,7 +388,7 @@ def generate_planet_properties(planet, zone_override=None):
         if _habitable_classes_barred(planet, zone):
             valid_classes = [c for c in valid_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
 
-        planet.planet_class = _choose_weighted_planet_class(valid_classes)
+        planet.planet_class = _choose_weighted_planet_class(valid_classes, _giant_keep(planet))
         min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 

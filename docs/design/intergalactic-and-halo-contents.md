@@ -216,9 +216,10 @@ The "pre-placed" column is the parameter that makes the scatters consistent: it 
 |---|---|---|
 | Neutron stars, black holes (bound) | 1 for every population; the disk's kick thickening (`remnant_distribution`) applies to disk populations only | an old population holds 5.2e-3 neutron stars per living star, the disk 5.0e-3 [C]; a halo or cluster has no thin layer to thicken |
 | Planetary nebulae, brown dwarfs | 1 | they follow stars |
-| Supernova remnants | gas fraction | they need gas to be seen: 0 in the halo and in clusters |
-| Molecular clouds, emission and reflection nebulae | gas fraction times the young share | no cold gas and no O to A stars in the halo, clusters or old satellites; the Clouds keep theirs |
-| Rogue planets, comets | planet occurrence at the cell's [Fe/H] (`globular-clusters.md` slice 3); until that exists, 1 | metal-poor stars host far fewer planets; the generator has no metallicity yet (GEN.134) |
+| Supernova remnants | gas fraction (capped at 1; not zeroed in a superbubble, where the explosions went off) | they need gas to be seen: 0 in the halo and in clusters |
+| Molecular clouds | cold gas fraction times the young share against the solar circle's | no cold gas and no O to A stars in the halo, clusters or old satellites; the Clouds keep theirs |
+| Emission and reflection nebulae (grown around a sector's hot stars) | cold gas fraction | the hot host star's own age is the young share, so it is not counted twice (built, GEN.236) |
+| Rogue planets, comets | planet occurrence at the cell's [Fe/H], against the disk's (built, GEN.236) | metal-poor stars host far fewer planets |
 | Hypervelocity stars, kicked neutron stars and black holes | not per star: their own populations (section 5.6) | |
 
 ### 5.4 The scatters over the whole sphere
@@ -279,7 +280,7 @@ Computed from the address, not stored, like the interstellar debris count alread
 
 ### 5.9 What it changes in the code
 
-**Built (GEN.235, 2026-10-16):** `galaxy/profile.py`, `FillContext` taking a profile, `ensure_sector_generated` and every `planetgen galaxy` mode asking the reach only, the neighbourhood and span rules below, and the tests in `test_gen_sector_profile.py` and `test_galaxy_gen.py`. Still to come, by item: kind factors (GEN.236), the component and satellite populations (GEN.237), the scatter-limit tier (GEN.279), the pages and the profile lookup (API.27, UX.113). What was built:
+**Built (GEN.235, 2026-10-16):** `galaxy/profile.py`, `FillContext` taking a profile, `ensure_sector_generated` and every `planetgen galaxy` mode asking the reach only, the neighbourhood and span rules below, and the tests in `test_gen_sector_profile.py` and `test_galaxy_gen.py`. Still to come, by item: the component and satellite populations (GEN.237), the scatter-limit tier (GEN.279), the pages and the profile lookup (API.27, UX.113). What was built:
 
 - `galaxy/profile.py` (new, pure): `sector_profile(address, skeleton)` and `profile_at(position, shape, edge, E)` return the region, `density`, `expected_systems` (lambda), the `mix`, per-population age window, [Fe/H] peaks, dispersion and rotation, the gas (cold fraction, the densest ambient medium, its mass in the cell) and the NFW dark matter in the cell. No database, no random number. Constants are in `tuning` ("The sector profile"). The cold-gas fraction is `nebula_field.gas_factor` capped at 1, so 1 is the solar circle's average. `FillContext` takes a profile; `FillContext.shape`, `center_pc` and `densities` come from it.
 - Asking: the reach is the only refusal. `ensure_sector_generated` returns `in_reach` next to `qualifies` and generates and saves any cell of the reach, empty or not; `--shell/--band/--wedge`, `--shell --band` and named spans do the same, with no warning and no `--strict` stop. A shell, band or span range that is *named* is taken as named anywhere in the reach (a `Span` with no range still means the outline). A bare `--shell I` still means the outline's cells of that shell; name a band to generate a halo shell.
@@ -295,6 +296,13 @@ Computed from the address, not stored, like the interstellar debris count alread
 - New: component table, King tables and spatial index (cluster slice 1 and 2); metallicity value, planet cull, pulsar planets, blue stragglers (slice 3).
 - Pages and API: the sector page shows the profile; a read-only profile lookup for an uncharted address.
 - Tests: tiling and ID round trip at the widest shell of the reach; determinism of a profile and of an empty sector; the pre-placed share of every population; King solver against the textbook concentrations; no double count of a cluster star.
+
+**Built (GEN.236, 2026-10-16): the kind factors and the planet cull.**
+
+- `SectorProfile.kind_factors` (`galaxy/profile.py`, `kind_factors_at`): neutron star, black hole, planetary nebula and brown dwarf 1 everywhere; `supernova-remnant` the gas fraction (`nebula_field.gas_factor` capped at 1, so 1 is the solar circle's average) times the share of stars that are not a cluster's; `molecular-cloud` the cold gas fraction (0 in a superbubble) times the young share divided by the young share around the solar circle (capped at 1; the young stars are 2% of the stars at the Sun, so the share must be taken against the reference, not raw, or every cloud rate would fall a hundredfold); `nebula` the cold gas fraction; `rogue-planet` and `comet` the planet occurrence of each population's [Fe/H] distribution (five-point Gauss-Hermite, `metallicity.expected_factor`), weighted by the population shares. The hypervelocity and runaway flags have no factor: a runaway is a speed against its neighbours. No change to `mix`, `region` or `populations`.
+- The fill (`generate_sector_phenomena(kind_factors=)`) multiplies each rolled kind's Poisson mean by its factor, and the hosted nebulae's chance by the `nebula` factor; a standalone sector keeps factor 1. The scatter weights supernova remnants by the gas (`phenomenon_scatter.GAS_WEIGHTED_KINDS`, `nebula_field.gas_factor_array`, a vectorised `gas_factor` a test compares with the one-point form) and by the share not in a cluster.
+- Values at the Sun / in the halo: remnant factor 0.43 / 0; cloud 0.24 / 0; nebula 0.43 / 0; rogue planets and comets 0.98 / 0.04.
+- The planet cull. `metallicity.planet_occurrence_factor` is 1 at and above [Fe/H] `tuning.PLANET_OCCURRENCE_FLOOR_FE_H` (-0.5) and `10^(1.0 ([Fe/H] - floor))` below it; `giant_occurrence_factor` takes the Fischer and Valenti form (`giant_planet_factor`) from the same floor. `StarSystem.estimate_num_objects` caps the count at `ceil(PLANET_OCCURRENCE_REFERENCE_OBJECTS (16) x factor)` when the factor is below 1 (the disk-physics ceiling is 60 to 200 for a G dwarf, far over what fits, so cutting the ceiling would cut nothing), and the class draw of a planet scales the weight of the gas giant classes by the giant factor (no extra random draw). Moons and stars without a [Fe/H] (compact remnants) are not culled. A close binary's proxy takes its primary's [Fe/H] (it had none). A halo G dwarf now carries 1.6 planets on average (was 8.5) and 0.05 giants (was 1.7); a disk star above the floor is unchanged.
 
 ### 5.10 Nebulae get the stars they need, as real objects
 

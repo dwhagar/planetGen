@@ -29,6 +29,8 @@ lies in one, after the draw, so the clouds that stay and their object IDs are as
 import functools
 import math
 
+import numpy as np
+
 from planetgen.galaxy import density as galaxyDensity, object_uid as objectUid, seed as galaxySeed, spherical as galaxySpherical
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
@@ -104,6 +106,32 @@ def gas_factor(position_pc, shape):
         return 0.0
     return min(tuning.NEBULA_FIELD_MAX_GAS_FACTOR,
                (_gas_tracer(position_pc, shape) / reference) ** tuning.GMC_GAS_DENSITY_EXPONENT)
+
+
+def _arm_cosine_array(x, y, shape):
+    """`galaxyDensity._arm_cosine` at arrays `x`, `y`: 0 at the centre, where the arms are undefined."""
+    r_cyl = np.hypot(x, y)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        theta_arm = (shape.spiral_reference_angle_rad
+                     + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
+        return np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
+
+
+def gas_factor_array(x, y, z, shape):
+    """
+    `gas_factor` at arrays of points `x`, `y` and a height `z` (one, or an array that broadcasts against them), for the
+    phenomenon scatter's supernova remnants (GEN.236): the same tracer (the young stars' density with the gas's own arm
+    contrast, `_gas_tracer`), reference and exponent, a whole band at once. A test compares it with the one-point form.
+    """
+    reference = _reference_gas(shape)
+    if reference <= 0.0:
+        return np.zeros(np.broadcast(np.asarray(x), np.asarray(y), np.asarray(z)).shape)
+    young = np.maximum(galaxyDensity.population_densities_array(x, y, z, shape)["young"], 0.0)
+    arm_cos = _arm_cosine_array(np.asarray(x, dtype=float), np.asarray(y, dtype=float), shape)
+    contrast = 1.0 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE["young"] * arm_cos
+    with np.errstate(divide="ignore", invalid="ignore"):
+        tracer = np.where(contrast <= 0.0, 0.0, young / contrast * (1.0 + tuning.NEBULA_FIELD_ARM_AMPLITUDE * arm_cos))
+    return np.minimum(tuning.NEBULA_FIELD_MAX_GAS_FACTOR, (tracer / reference) ** tuning.GMC_GAS_DENSITY_EXPONENT)
 
 
 def cell_index(position_pc):

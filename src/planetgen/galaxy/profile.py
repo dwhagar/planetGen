@@ -25,12 +25,16 @@ A profile holds:
   (GEN.254) the place lies in, if any;
 * `dark_matter`: the NFW halo's density at the cell and the mass in it.
 
-Later items add to it (kind factors, GEN.236; the components, GEN.237; the scatter-limit tier, GEN.279): each adds a
-field and its source, and none changes a rule.
+* `kind_factors` (GEN.236): the factor by which the place scales the rate per star of each rare kind
+  (`kind_factors_at`).
+
+Later items add to it (the components, GEN.237; the scatter-limit tier, GEN.279): each adds a field and its source, and
+none changes a rule.
 """
 
+import functools
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.galaxy import density as galaxyDensity
@@ -117,6 +121,8 @@ class SectorProfile:
         populations (dict): Population -> `PopulationProfile`.
         gas (GasProfile): The cell's gas.
         dark_matter (DarkMatter): The cell's dark matter.
+        kind_factors (dict): Kind -> the factor the place applies to that kind's rate per star (`kind_factors_at`);
+            a kind not in it is not scaled by place.
     """
     address: tuple | None
     position_pc: tuple
@@ -130,6 +136,7 @@ class SectorProfile:
     populations: dict
     gas: GasProfile
     dark_matter: DarkMatter
+    kind_factors: dict = field(default_factory=dict)
 
     @property
     def center_pc(self):
@@ -156,6 +163,65 @@ def _fe_h(name, distance_ly):
         return tuning.METALLICITY_CLUSTER_PEAKS
     mean, sigma = metallicity.mean_fe_h(name, distance_ly)
     return ((1.0, mean, sigma),)
+
+
+@functools.lru_cache(maxsize=8)
+def _reference_young_share(shape):
+    """The young stars' share of the stars on the reference ring on the plane (the solar circle, where the rates of the
+    gas-born kinds are quoted), averaged around it, arms and gaps alike."""
+    radius = nebula_field.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc
+    shares = []
+    for step in range(36):
+        angle = 2.0 * math.pi * step / 36
+        mix = galaxyDensity.population_densities((radius * math.cos(angle), radius * math.sin(angle), 0.0), shape)
+        total = sum(max(value, 0.0) for value in mix.values())
+        shares.append(max(mix["young"], 0.0) / total if total > 0.0 else 0.0)
+    return sum(shares) / len(shares)
+
+
+def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
+    """
+    The factors by which a place scales the rate per star of each kind that is not a plain per-star rate (GEN.236;
+    docs/design/intergalactic-and-halo-contents.md section 5). The rates themselves stay per star
+    (`tuning.phenomenon_rate_per_star`); a kind absent here is not scaled.
+
+    * **1 everywhere**: `neutron-star` and `black-hole` (bound remnants are born where massive stars were and kicked
+      into the disk's thickness, so they follow the stars; the kick's thickening belongs to the disk populations'
+      motion, not to the rate), `planetary-nebula` and `brown-dwarf` (every population makes both). The 9,000 L_sun
+      floor under the bright stars is not a rate and stays. A runaway flag is a speed against the neighbours, so it
+      needs no factor either.
+    * **`supernova-remnant`**: the gas fraction (the remnant of a core collapse shines only where the shell meets gas),
+      0 in the halo and in clusters. Not zeroed in a superbubble: the hot cavity is where the explosions went off.
+    * **`molecular-cloud`**: the cold gas fraction times the young share against the solar circle's, so the disk's
+      young, gas-rich places carry them and the old and halo ones none.
+    * **`nebula`** (the emission and reflection nebulae grown around a sector's own hot stars): the cold gas fraction.
+      The hot host star's own age is the young share here, so it is not counted twice.
+    * **`rogue-planet` and `comet`**: the planet occurrence at the place's [Fe/H], against the disk's
+      (`metallicity.planet_occurrence_factor`), averaged over the stars' [Fe/H] distributions.
+
+    Args:
+        populations (dict): Population -> `PopulationProfile`.
+        gas_fraction (float): The molecular gas against the solar circle's, capped at 1, a superbubble ignored.
+        cold_fraction (float): The same, 0 inside a superbubble (`GasProfile.cold_fraction`).
+        shape (GalaxyShape): The galaxy's shape.
+
+    Returns:
+        dict: Kind -> factor, each in 0 to 1.
+    """
+    total = sum(pop.share for pop in populations.values())
+    occurrence = 1.0
+    if total > 0.0:
+        occurrence = sum(pop.share * metallicity.expected_factor(metallicity.planet_occurrence_factor, pop.fe_h)
+                         for pop in populations.values()) / total
+    reference = _reference_young_share(shape)
+    young = 0.0 if reference <= 0.0 else min(1.0, populations["young"].share / reference)
+    return {
+        "neutron-star": 1.0, "black-hole": 1.0, "planetary-nebula": 1.0, "brown-dwarf": 1.0,
+        "supernova-remnant": gas_fraction * (1.0 - populations["cluster"].share),
+        "molecular-cloud": cold_fraction * young,
+        "nebula": cold_fraction,
+        "rogue-planet": occurrence, "comet": occurrence,
+    }
 
 
 def _scale(shape):
@@ -225,7 +291,8 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
             rotation=tuning.STELLAR_POPULATION_ROTATION[name])
         for name in POPULATIONS}
     bubble = None if galaxy_seed is None else superbubble_field.containing(galaxy_seed, shape, position_pc)
-    cold = 0.0 if bubble is not None else min(1.0, max(nebula_field.gas_factor(position_pc, shape), 0.0))
+    gas_fraction = min(1.0, max(nebula_field.gas_factor(position_pc, shape), 0.0))
+    cold = 0.0 if bubble is not None else gas_fraction
     medium, n_cm3 = _ambient(position_pc, shape, cold, bubble)
     gas = GasProfile(cold_fraction=cold, ambient=medium, ambient_density_cm3=n_cm3,
                      mass_solar=n_cm3 * tuning.GAS_SOLAR_MASS_PER_PC3_PER_CM3 * volume, superbubble=bubble)
@@ -234,7 +301,8 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
         address=None if address is None else tuple(address), position_pc=position_pc, edge_pc=edge_pc,
         volume_pc3=volume, shape=shape, region=_region(mix), density=density,
         expected_systems=expected_at_density_1 * density, mix=mix, populations=populations, gas=gas,
-        dark_matter=DarkMatter(density_solar_pc3=rho, mass_solar=rho * volume))
+        dark_matter=DarkMatter(density_solar_pc3=rho, mass_solar=rho * volume),
+        kind_factors=kind_factors_at(populations, gas_fraction, cold, shape))
 
 
 def sector_profile(address, skeleton):

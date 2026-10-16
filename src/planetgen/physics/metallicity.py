@@ -10,6 +10,10 @@ and scatter, and a cluster carries its own value (the caller passes it). The
 first use is the planet-occurrence factor: a protoplanetary disk's solids scale
 as `solids_factor(fe_h)` and giant-planet occurrence as
 `giant_planet_factor(fe_h)`. The constants are in `tuning` ("Metallicity").
+
+The planet cull (GEN.236) is the occurrence of planets against the disk's: `planet_occurrence_factor` for planets of
+any kind and `giant_occurrence_factor` for giants, both 1 at and above `tuning.PLANET_OCCURRENCE_FLOOR_FE_H`;
+`expected_factor` averages one over a population's [Fe/H] distribution for a place's profile.
 """
 
 import math
@@ -66,3 +70,35 @@ def solids_factor(fe_h):
 def giant_planet_factor(fe_h):
     """How much giant-planet occurrence scales against the Sun's: `10^(2 [Fe/H])`, capped at 1."""
     return min(1.0, 10.0 ** (tuning.GIANT_PLANET_METALLICITY_EXPONENT * fe_h))
+
+
+def planet_occurrence_factor(fe_h):
+    """Planet occurrence at `fe_h` against the disk's, which the generator's counts are those of: 1 at and above
+    `tuning.PLANET_OCCURRENCE_FLOOR_FE_H`, `10^(exponent (fe_h - floor))` below it."""
+    below = fe_h - tuning.PLANET_OCCURRENCE_FLOOR_FE_H
+    return 1.0 if below >= 0.0 else 10.0 ** (tuning.PLANET_OCCURRENCE_METALLICITY_EXPONENT * below)
+
+
+def giant_occurrence_factor(fe_h):
+    """Giant-planet occurrence at `fe_h` against the disk's: `giant_planet_factor` taken from the same floor, so 1 at
+    and above it."""
+    return min(1.0, giant_planet_factor(fe_h) / giant_planet_factor(tuning.PLANET_OCCURRENCE_FLOOR_FE_H))
+
+
+_HERMITE_NODES = ((0.0, 8.0 / 15.0), (1.3556261799742659, 0.2220759220056126), (-1.3556261799742659, 0.2220759220056126),
+                  (2.8569700138728056, 0.011257411327720691), (-2.8569700138728056, 0.011257411327720691))
+"""tuple: `(node, weight)` of the five-point Gauss-Hermite rule for a standard normal (weights add up to 1)."""
+
+
+def expected_factor(function, peaks):
+    """
+    The mean of `function([Fe/H])` over a stellar population's [Fe/H] distribution `peaks`, `((weight, mean, sigma),
+    ...)` as the sector profile holds it, each draw clamped to `tuning.METALLICITY_RANGE_FE_H` as `sample_fe_h` clamps
+    it. A closed form (five-point Gauss-Hermite on each normal), so the profile stays a pure function.
+    """
+    low, high = tuning.METALLICITY_RANGE_FE_H
+    total = sum(weight for weight, _mean, _sigma in peaks)
+    if total <= 0.0:
+        return function(0.0)
+    return sum(weight * node_weight * function(min(max(mean + sigma * node, low), high))
+               for weight, mean, sigma in peaks for node, node_weight in _HERMITE_NODES) / total
