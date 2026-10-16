@@ -573,7 +573,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings | none | open |
 | DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | none | open |
 | DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses | none | open |
-| DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | open |
+| DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | done, already built (v87, DB.26 and GEN.150), found by Core 2 2026-10-16 6:05 PM EDT |
 | DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | none | open |
 | DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) | none | open |
 | DB.62 | Upload bookkeeping tables in the control database (migration only) | none | open |

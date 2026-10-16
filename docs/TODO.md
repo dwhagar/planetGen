@@ -2992,14 +2992,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     that drops to 0.6 Msun moves to 1/0.6 = 1.67 AU.
     Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
     chunks and shared work): this item is now the umbrella and is done
-    when its subitems are: DB.59, GEN.357, GEN.358. Three deliverables,
+    when its subitems are: GEN.357, GEN.358 (DB.59 was found already built). Three deliverables,
     and the first two are needed a version earlier than the third:
     GEN.99 (8.1-4) must rebuild planets with the same `apply_cloud` (its
     own research note says so) and draws an age-capped population from
     the nebula's stored `age_myr`, which the design says 'waits on a
     schema column' (nebula-and-asteroid-field-classes.md, Applying the
     rules at generation, and Nebula volume backfill step 3).
-    Prerequisites: DB.59, GEN.357, GEN.358.
+    Prerequisites: GEN.357, GEN.358.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
@@ -6056,7 +6056,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.242, DB.59. Related: GEN.241.
+  Prerequisites: GEN.242. Related: GEN.241.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6637,9 +6637,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gets the cloud while it is generated, a system outside is
   byte-identical.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: DB.59 (Core 2). Core 4 takes it when it unblocks.
-  Prerequisites: DB.59. Related: GEN.95.
+  PM EDT, 2026-10-16; queue in the lane report). READY: its blocker DB.59
+  turned out to be built already (the nebula and remnant age columns have
+  existed since v87 and v38; Core 2, 6:05 PM EDT), so Core 4 can take it
+  now.
+  Prerequisites: none. Related: GEN.95, DB.59.
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6654,7 +6656,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vis-viva, unbound above half the mass lost, engulfment overrides).
   Done: a test for each rule and the worked example (1 AU round 1 Msun
   dropping to 0.6 Msun moves to 1.67 AU).
-  Prerequisites: DB.59, GEN.357. Related: GEN.95.
+  Prerequisites: GEN.357. Related: GEN.95.
 
 - [ ] **GEN.359 Sector fill links cluster stars to their cluster and names the cluster at its first fill**
   Split from GEN.209 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7991,7 +7993,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   below 50 for the halo floor is refused with the reason, and the
   settings round-trip.
   Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0103, after 0102
-  (DB.59).
+  (DB.59). DB.59 turned out to be built already (Core 2, 6:05 PM EDT: no
+  migration), so 0102 is free: this item takes 0102, after DB.55's 0101,
+  and Core 1 fixes the order if this one merges first.
   Prerequisites: none. Related: GEN.283.
 
 - [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
@@ -8070,22 +8074,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   one Owner), a second Owner insert fails in MySQL, and the schema
   header comments are updated.
   Prerequisites: none. Related: USR.2.
-
-- [ ] **DB.59 Nebula age and ionizing rate, and remnant age, stored**
-  Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Add `age_myr` and `q_total` to
-  `nebulae` and `age_years` to the remnants table (the generator's
-  nebula class already holds age_myr, q_total and hosts, the remnant
-  class has `age_range_years`; nothing stores them). Generation fills
-  them for new rows, old rows stay NULL until regenerated. Core 1 places
-  the revision. Done: a regenerated nebula of each hosted class has an
-  age and a Q consistent with its stars, a remnant has an age.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0102, after 0099
-  (GEN.280), 0100 (cell_star_ceiling) and 0101 (DB.55).
-  Prerequisites: none. Related: GEN.95.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item

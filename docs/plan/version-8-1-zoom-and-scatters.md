@@ -190,7 +190,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.172 | Nebula cell aggregates in the region pyramid |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | MAP.172 | Foundations lane 2. |
-| DB.59 | Nebula age and ionizing rate, and remnant age, stored |  | Split from GEN.95. Core 1 owns migrations. |
 
 
 ## Phase 2: Infinite zoom
@@ -281,10 +280,10 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 |---|---|---|---|
 | GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | DB.53 | Whole-sphere build train, Boss 2026-10-15. Step 11. Core. |
 | GEN.319 | Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields |  | Split from GEN.241. |
-| GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | GEN.242, DB.59 | Split from GEN.241. |
+| GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | GEN.242 | Split from GEN.241. |
 | GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | GEN.320 | Whole-sphere build train, Boss 2026-10-15. Step 13. Core. |
 | GEN.258 | Protostars embedded in giant molecular clouds | GEN.242, GEN.320 | Phenomena catalogue, Boss 2026-10-15. Step 8, later. Core. |
-| GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud | DB.59 | Split from GEN.95. |
+| GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud |  | Split from GEN.95. |
 
 ### Region query
 
