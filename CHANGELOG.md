@@ -2,6 +2,174 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1566] - 2026-10-16
+
+**Headline:** The TODO list retires the numba sector-path integrator, which saves sector paths 21 times faster.
+
+### Changed
+- **PERF.88 is done (#1873).** The sector-path integrator is a numba kernel in `planetgen/physics/field_kernel.py` (838 µs to 40 µs a path, bit-identical on 300 random cells); GEN.342, GEN.198 and PERF.72 no longer wait on it.
+
+### Added
+- **TEST.193, a teardown hang in the browser tests (bug).** The `site_db` fixture's `DROP DATABASE` waited 853 s on a metadata lock held by a leftover connection; goal issue #1694.
+
+TODO items resolved: PERF.88 / Added: TEST.193
+
+## [8.0.1565] - 2026-10-16
+
+**Headline:** Saving the sector paths is about twenty times faster: the integrator now runs as one compiled numba call.
+
+### Changed
+- The sector-path integrator (mass selection, integration, exit and spline simplification) is a numba kernel in `planetgen/physics/field_kernel.py`, 40 microseconds a path instead of 840. The saved paths are bit-identical to the old integrator's. The old Python loop is gone, with no fallback.
+- `field_kernel.accelerations` and `field_kernel.potentials` give the Plummer-softened pull and potential of a `MassTable` at any points, the shared force every later gravity feature uses.
+- `sector_path.integrate_path` takes a `Cell` (`sector_inside`, `box_cell`, `ball_cell`) for the region instead of a Python callable, because the compiled loop cannot call back into Python.
+
+## [8.0.1564] - 2026-10-16
+
+**Headline:** The plan now has a study of how a course accounts for the gravity of stars a cell leaves out.
+
+### Added
+- **NAV.62, the gravity of the unresolved mass, in 8.5 (Boss, 5:01 PM EDT).** A dense cell resolves only its brightest stars under the cell cap (GEN.364); the item studies how the pull of the rest, derived from the same density model and address (GEN.281), joins the galactic potential and the courses that bend around gravity wells. NAV.26 waits on it. Goal issue #1680.
+
+TODO items resolved: none / Added: NAV.62
+
+## [8.0.1563] - 2026-10-16
+
+**Headline:** The TODO list records a second sighting of the galaxy-grid fuzz failure and a suggested fix.
+
+### Changed
+- **TEST.192 gains Core 3's finding.** The same fuzz failure came up once in about 17,900 tests, and the item now carries the cause (the rounding error of the halo subtraction is larger than the tolerance on a bound near 2.7e-20) and a suggested tolerance relative to the model.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1562] - 2026-10-16
+
+**Headline:** The TODO list retires the adaptive per-cell system cap, which Core 3 built.
+
+### Changed
+- **GEN.364 is done (#1868, migration 0100).** A cell makes at most 5,000 systems, with a raised cap where the 100 L☉ cap still overfills. The item leaves the open list and the 8.1 plan; GEN.303 still wires the cap to `generation.cell_cap`.
+
+TODO items resolved: GEN.364 / Added: none
+
+## [8.0.1561] - 2026-10-16
+
+**Headline:** The TODO list records a failing galaxy-grid fuzz test as a bug to fix.
+
+### Added
+- **TEST.192, a float-cancellation failure in the galaxy-grid fuzz test (bug).** The Settings lane found that `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails when the halo density is far above a tiny bound; the item carries the reproducer and goes to Core 1's bug phase, goal issue #1694.
+
+TODO items resolved: none / Added: TEST.192
+
+## [8.0.1560] - 2026-10-16
+
+**Headline:** A cell makes at most 5,000 systems, so the galactic core and bulge fill in about a minute and a half instead of up to 17 minutes.
+
+### Changed
+- **The default cell star ceiling is 5,000 systems, from 50,000 (GEN.281).** A system takes about 20 ms to generate, so a cell of 50,000 took 14 to 17 minutes. A galaxy planned earlier at the old default is moved to 5,000 by the migration; `planetgen plan --cell-star-ceiling` still sets it, and it stays one galaxy setting for the admin configuration to edit.
+- **A cell the cap still fills past the ceiling raises its cap.** The nuclear cluster's cell expects 15 million systems, and the 100 solar luminosity cap would still make 40,700 of them. A cell now takes the lowest cap, on a ladder of steps of a quarter, whose stars fit the ceiling; the fill, the sector page and the API read the same cap from the address. A cell the cap already fits keeps it.
+
+TODO items resolved: GEN.364. Added: none.
+
+## [8.0.1559] - 2026-10-16
+
+**Headline:** The TODO list now shows which multi-star and cluster items moved from Core 3 to Core 4.
+
+### Changed
+- **Core 4 takes eight items off Core 3's multi-star and cluster tail (Boss's "Split it", 2026-10-16, 4:49 PM EDT; Core 3 agreed at 4:53 PM EDT).** GEN.252, GEN.253, GEN.270, GEN.271, GEN.272, GEN.274, GEN.275 and MAP.213 now carry an "Owner: Core 4" line that says what each one waits on; Core 4 has 25 items in all. Core 3 keeps the scatter spine, the nebula and young-star line, GEN.129, GEN.311 to GEN.318, GEN.327 to GEN.332, GEN.263, GEN.264, GEN.269, GEN.273, GEN.130 and the cluster items GEN.161 to GEN.163. Only GEN.252 can start today; the others unlock as Core 3 and Core 1 merge their blockers.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1558] - 2026-10-16
+
+**Headline:** The Core 4 item list is corrected: 17 items are unassigned, not 33; the other 16 stay with Core 3.
+
+### Changed
+
+- The first count ignored the multi-star train and cluster items the 3:15 PM EDT lane queue already gives to Core 3 (GEN.252, 253, 263, 264, 269 to 275, 130, MAP.213, GEN.161 to 163). Their owner lines name Core 3 again; Core 4 keeps the 17 items that had no lane.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1557] - 2026-10-16
+
+**Headline:** The new Core 4 lane has its queue: owner lines set on the 33 unassigned scatter-chain items.
+
+### Changed
+
+- Boss approved Core 4 at 4:31 PM EDT. The 33 unassigned items of the 8.1 accurate scatters chain name Core 4 as owner: 11 are ready in queue order, 22 are held until a named blocker on Core 1, Core 2 or Core 3 merges.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1556] - 2026-10-16
+
+**Headline:** The plan now states the rule of no fixed content: everything is seeded, derived or calculated.
+
+### Changed
+
+- The intergalactic space plan records Boss's 4:14 PM EDT rule as a decision: no copied catalogue, preset or hand-placed object; seeds where the science gives a distribution, derivation or calculation everywhere else; real data is reference only; missing research goes to Boss.
+- GEN.368 widens its survey from the Milky Way to all fixed content and keeps the list of research requests; GEN.369, GEN.371 and GEN.297 carry the same words.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1555] - 2026-10-16
+
+**Headline:** There is no Milky Way option: the Harris file and the real satellite list only guide and check the generators.
+
+### Changed
+
+- GEN.297 now calibrates the cluster generator against the Harris file and places no real cluster; GEN.369 and GEN.366 drop the optional preset; GEN.368 and the halo and cluster design notes say the same (Boss, 4:11 PM EDT).
+- The suggested "named generation presets" idea in the roadmap no longer lists a Milky Way preset.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1554] - 2026-10-16
+
+**Headline:** The double-click flight on the Galaxy Map (MAP.226) is retired after the merge, and the satellite derivation chain is recorded.
+
+### Changed
+
+- MAP.226 is removed from the TODO and ticked in the progress ledger (merged as #1859); the empty-space half-way double click it did not build moves to the MAP.225 note.
+- GEN.368, GEN.369 and GEN.371 record the derivation chain for drawn satellites (halo mass to subhalo count, placement, stellar mass, size, metallicity, age), each link to name its source.
+
+TODO items resolved: MAP.226 / Added: none
+
+## [8.0.1553] - 2026-10-16
+
+**Headline:** The drawn satellites must be calculated or derived from real science, not copied.
+
+### Changed
+
+- GEN.369, GEN.371 and GEN.368 carry Boss's 4:04 PM EDT refinement: exact real distances are not needed; count, distances and sizes are calculated or derived from published relations, drawn only where the science gives a distribution.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1552] - 2026-10-16
+
+**Headline:** Boss's request to draw satellites from the seed and plan every appearance rate is filed as items.
+
+### Added
+
+- GEN.368 plans the appearance rates of everything the Milky Way supplies as fixed content, with the places found in the survey listed in the item; GEN.369 draws the satellites from the galaxy seed and keeps the real list as an optional preset; GEN.371 is the feasibility study of generating satellites through the scatter in only the region they occupy; GEN.370 records that Hill spheres use the Milky Way's mass for every galaxy.
+- GEN.366 (verify the real satellite rows) now matters only for the preset and waits on GEN.369. The satellites decision in the halo design note is marked superseded.
+
+TODO items resolved: none / Added: GEN.368, GEN.369, GEN.370, GEN.371
+
+## [8.0.1551] - 2026-10-16
+
+**Headline:** On the Galaxy Map a double click on a star, cloud or body flies the camera to it.
+
+### Changed
+- A double click on a star, phenomenon or body in an opened sector flies the camera to look at it, near enough to see its system (a star), or filling most of the view (a cloud or body), as near as the zoom allows. A selected object's panel has a "Go to" button that does the same, and so does Enter when no choice is lit. A double click on a block or on empty space does what two clicks did.
+
+## [8.0.1550] - 2026-10-16
+
+**Headline:** The settings writer, the backup archive and the one configuration file (ADM.83, ADM.87, ADM.96) are retired after the merge.
+
+### Changed
+
+- ADM.83, ADM.87 and ADM.96 are removed from the TODO and ticked in the progress ledger (merged as #1857); the items that waited on them lose those prerequisites.
+- The settings design note records what was built: the writer module, the roles, the backup library and archive layout, and the retention option.
+
+TODO items resolved: ADM.87, ADM.83, ADM.96 / Added: none
+
 ## [8.0.1549] - 2026-10-16
 
 **Headline:** All program configuration lives in the one `config.json`, which can now be saved from the command line with checks, backups and an audit row, on a new backup archive that the settings page, the control database and the DB repair data will share.

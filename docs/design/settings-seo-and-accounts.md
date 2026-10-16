@@ -54,6 +54,8 @@ Field metadata goes in `json_schema_extra` under `x-` keys, declared through one
 
 **One file (Boss, 2026-10-16, 2:25 and 2:26 PM EDT).** All program configuration lives in one file, the user's own `config.json`: the user copies the shipped `config.json.example` to `config.json` once and edits it (the deployment instructions, unchanged), and nothing else is a settings file. An earlier draft of this note kept a second file, `settings.json`, because the web process could not write a root-owned `config.json`; that obstacle is gone, because `set-permissions.sh` makes the web user own `config.json` (mode 640) and the checkout belongs to that account since 2026-10-16. The load order, lowest to highest, is: model default, `config.json`, `PLANETGEN_*` environment, explicit argument. The settings page and the command line write only that copy, atomically (a temporary file in the same folder, fsync, rename, owner and mode kept), never the example; `update.sh` and the installers never overwrite or recreate it. ADM.96 removes the overlay layer that ADM.42 built.
 
+**Built (#1857, 2026-10-16, 3:52 PM EDT; ADM.96, ADM.83, ADM.87).** The overlay layer is gone and `config check` names a stray `settings.json` as unused. The writer is `planetgen.util.settings_writer`; it takes the caller's role (`admin`, `owner` or `host`; the command line is `host` and may change everything, including the database and secrets) and refuses an option the role may not change, a value that fails validation, and an option that does not exist.
+
 **Three tiers.** Some options are code execution or request-forgery paths if an admin account is stolen: `jobs.python` is the interpreter the web app launches, so editing it from the browser is remote code execution as the web user.
 
 | Tier | Options | Edited in the browser by |
@@ -106,6 +108,8 @@ Save pipeline [C: 20 saves in 0.6 s with fsyncs, mode 0640 kept, backups pruned]
 3. Take a settings backup archive of the current `config.json` through ADM.87 (retention `settings.backups_kept`).
 4. Write a temp file in the same directory, copy mode and owner, `fsync`, `os.replace` (atomic on POSIX), `fsync` the directory.
 5. Write audit rows and bump the cache.
+
+**Built (#1857).** The backup library is `planetgen.backup` with the command line `planetgen.cli.backup`; every backup is one `<state dir>/backups/<UTC time>.tar.bz2`, and the `config.json` copy is its settings part (`settings/config.json` in the archive). Retention is `settings.backups_kept` (default 20, 1 to 200). A web restore restores only the options an admin may change; the command line restores the whole file.
 
 Rollback lists the backups with diffs and a "restore" button that runs the same pipeline, so a restore is itself backed up and audited; one that fails validation under the current model is refused with the reason. Save only `exclude_defaults` values so the file stays short and new defaults reach existing installs.
 

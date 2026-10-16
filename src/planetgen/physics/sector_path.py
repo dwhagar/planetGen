@@ -22,6 +22,11 @@ Everything here is SI (metres, seconds, kilograms) and in the galactic
 axes. Positions are tuples, not `SpatialPosition3D`s, so the module needs
 no database or sector.
 
+The integration itself runs in `physics/field_kernel.py`, compiled by numba (PERF.88); this module holds what
+the kernel needs described in plain terms (`Cell`, `MassTable`, `PointMass`) and builds the `SectorPath`s from what
+it returns. It imports the kernel inside the functions that call it, so the web app, which reads paths but never
+integrates them, never imports numba.
+
 Point masses are softened like the galaxy's own (`Plummer`, 1 pc by
 default, see `docs/design/orbital-updates.md` section 10.1), so the pull
 near a black hole stays finite. A single dominant flyby could use the
@@ -30,7 +35,6 @@ second path.
 """
 
 import bisect
-import heapq
 import math
 from dataclasses import dataclass, field
 
@@ -103,9 +107,17 @@ class MassTable:
         self.positions = np.array([m.position for m in self.masses], dtype=float).reshape(-1, 3)
         self.mus = np.array([m.mu for m in self.masses], dtype=float)
         self.keys = [m.key for m in self.masses]
+        self._by_key = {}
+        for index, key in enumerate(self.keys):
+            if key is not None:
+                self._by_key.setdefault(key, []).append(index)
 
     def __len__(self):
         return len(self.masses)
+
+    def indices_of(self, key):
+        """The indices of the masses named `key` (none for `None`), as the kernel's int64 array."""
+        return np.array(self._by_key.get(key, ()) if key is not None else (), dtype=np.int64)
 
 
 @dataclass(frozen=True)
@@ -115,18 +127,6 @@ class PathKnot:
     t_s: float
     position: tuple
     velocity: tuple
-
-
-def _sub(a, b):
-    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
-
-
-def _dot(a, b):
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-
-
-def _norm(a):
-    return math.sqrt(_dot(a, a))
 
 
 def hermite(a, b, t_s):
@@ -154,11 +154,12 @@ class SectorPath:
     and whether it `exited` the cell (rather than being cut off).
     """
 
-    def __init__(self, knots, exited):
+    def __init__(self, knots, exited, steps=0):
         if not knots:
             raise ValueError("a path needs at least one knot")
         self.knots = list(knots)
         self.exited = bool(exited)
+        self.steps = int(steps)
         self._times = [knot.t_s for knot in self.knots]
 
     @property
@@ -202,19 +203,63 @@ class SectorPath:
         return PathKnot(0.0, self.end.position, self.end.velocity)
 
 
+def _kernel():
+    """The compiled kernel (`field_kernel`), imported when first needed so the web app never loads numba."""
+    from planetgen.physics import field_kernel
+
+    return field_kernel
+
+
+@dataclass(frozen=True)
+class Cell:
+    """
+    The region a path is followed through, described by numbers so the compiled integrator can test it
+    (`field_kernel.inside`): build one with `box_cell`, `ball_cell` or `sector_inside`. Calling it with a position
+    (metres, galactic axes) says whether the position is in the region.
+    """
+
+    kind: int
+    params: tuple
+
+    def contains(self, position):
+        return bool(_kernel().inside(self.kind, self.padded(), float(position[0]), float(position[1]),
+                                     float(position[2])))
+
+    __call__ = contains
+
+    def padded(self):
+        """`params` as the float array the kernel takes."""
+        kernel = _kernel()
+        params = np.zeros(kernel.PARAM_COUNT)
+        params[:len(self.params)] = self.params
+        return params
+
+
+def box_cell(low, high):
+    """A box from `low` to `high` (each `(x, y, z)`, metres), the faces included."""
+    return Cell(0, tuple(map(float, low)) + tuple(map(float, high)))
+
+
+def ball_cell(center, radius):
+    """A ball round `center` (metres) of `radius` metres, the surface left out."""
+    return Cell(1, tuple(map(float, center)) + (float(radius),))
+
+
 def sector_inside(address, edge_pc):
     """
-    A predicate `inside(position_m)` that is true while the point (metres,
-    galactic axes) is in the sector cell `address` of the grid with edge
-    `edge_pc` (`galaxy.spherical`).
+    The `Cell` of the sector `address` of the grid with edge `edge_pc` (`galaxy.spherical`): true exactly where
+    `spherical.sector_address_at` names that address, for a position in metres.
     """
+    address = tuple(address)
+    shell, band, wedge = address
     to_pc = 1.0 / constants.PARSEC_M
-    contains = spherical.sector_cell_test(tuple(address), edge_pc)
-
-    def inside(position_m):
-        return contains((position_m[0] * to_pc, position_m[1] * to_pc, position_m[2] * to_pc))
-
-    return inside
+    spherical.sector_cell_test(address, edge_pc)   # raises for an address that is not a cell
+    if shell == 0:
+        return Cell(2, (edge_pc / 2, to_pc))
+    n = spherical.wedge_count(shell, band)
+    inner, outer = spherical.shell_bounds_pc(shell, edge_pc)
+    north, south = spherical.band_colatitude_bounds(shell, band)
+    return Cell(3, (inner, outer, north, south, float(n), float(wedge), spherical.TWO_PI / n, to_pc))
 
 
 def relevant_masses(position, velocity, masses, edge_m, softening_m=DEFAULT_SOFTENING_M, tolerance_m=None,
@@ -233,120 +278,13 @@ def relevant_masses(position, velocity, masses, edge_m, softening_m=DEFAULT_SOFT
             cheaper when many bodies share the masses.
     """
     table = masses if isinstance(masses, MassTable) else MassTable(masses)
-    speed = _norm(velocity)
-    if speed == 0.0 or not len(table):
-        return []
     if tolerance_m is None:
         tolerance_m = DEFAULT_TOLERANCE_FRACTION * edge_m
-    length = 2.0 * edge_m
-    direction = np.array(velocity, dtype=float) / speed
-    offsets = table.positions - np.array(position, dtype=float)
-    along = np.clip(offsets @ direction, 0.0, length)
-    closest = np.linalg.norm(offsets - np.outer(along, direction), axis=1)
-    impulse = np.minimum(speed, 2.0 * table.mus / (speed * np.maximum(closest, softening_m)))
-    displacement = impulse * (length - along) / speed
-    wanted = np.nonzero(displacement >= 0.1 * tolerance_m)[0]
-    wanted = wanted[np.argsort(-displacement[wanted], kind="stable")]
-    chosen = []
-    for index in wanted:
-        if exclude_key is not None and table.keys[index] == exclude_key:
-            continue
-        chosen.append(table.masses[index])
-        if len(chosen) >= limit:
-            break
-    return chosen
-
-
-def _pull(position, masses, softening_sq):
-    """
-    The pull at `position` and the two limits it sets on the next step: the
-    shortest dynamical time of any mass, and the nearest mass's distance
-    (the step must also be a fraction of that distance over the speed).
-    `masses` as `(x, y, z, mu)` tuples (`integrate_path` unpacks them once).
-    One pass over the masses serves all three, which is the integrator's
-    whole cost.
-
-    Returns:
-        tuple: `(acceleration, dynamical_step, nearest_m)`.
-    """
-    ax = ay = az = 0.0
-    dynamical = math.inf
-    nearest_sq = math.inf
-    px, py, pz = position
-    for mx, my, mz, mu in masses:
-        dx, dy, dz = mx - px, my - py, mz - pz
-        r2 = dx * dx + dy * dy + dz * dz + softening_sq
-        r = math.sqrt(r2)
-        k = mu / (r2 * r)
-        ax += k * dx
-        ay += k * dy
-        az += k * dz
-        dynamical = min(dynamical, STEP_FRACTION * math.sqrt(r * r2 / mu))
-        nearest_sq = min(nearest_sq, r2)
-    return (ax, ay, az), dynamical, math.sqrt(nearest_sq)
-
-
-def _step_size(dynamical, nearest_m, speed, max_step):
-    step = min(max_step, dynamical, STEP_FRACTION * nearest_m / speed)
-    return max(step, max_step * 1.0e-6)
-
-
-def _hermite_position(a, b, t_s):
-    """`hermite(a, b, t_s)[0]` alone, by the same arithmetic (the bisection below asks for nothing else)."""
-    h = b.t_s - a.t_s
-    if h <= 0.0:
-        return a.position
-    s = min(1.0, max(0.0, (t_s - a.t_s) / h))
-    s2, s3 = s * s, s * s * s
-    h00, h10, h01, h11 = 2 * s3 - 3 * s2 + 1, s3 - 2 * s2 + s, -2 * s3 + 3 * s2, s3 - s2
-    return tuple(h00 * pa + h10 * h * va + h01 * pb + h11 * h * vb
-                 for pa, va, pb, vb in zip(a.position, a.velocity, b.position, b.velocity))
-
-
-def _exit_state(inside, t0, p0, v0, t1, p1, v1):
-    """Where the step from `(p0, v0)` to `(p1, v1)` leaves the cell, found by
-    bisecting the step's own Hermite curve."""
-    a, b = PathKnot(t0, p0, v0), PathKnot(t1, p1, v1)
-    low, high = t0, t1
-    for _ in range(40):
-        middle = 0.5 * (low + high)
-        if inside(_hermite_position(a, b, middle)):
-            low = middle
-        else:
-            high = middle
-    position, velocity = hermite(a, b, high)
-    return PathKnot(high, position, velocity)
-
-
-def _simplify(samples, tolerance_m, max_knots):
-    """Picks the knots: the ends, then whichever integrated sample the
-    spline is furthest from, until it is within `tolerance_m` or `max_knots`."""
-    chosen = {0, len(samples) - 1}
-
-    def worst(i, j):
-        a, b = samples[i], samples[j]
-        best_error, best_k = 0.0, None
-        for k in range(i + 1, j):
-            position, _velocity = hermite(a, b, samples[k].t_s)
-            error = _norm(_sub(position, samples[k].position))
-            if error > best_error:
-                best_error, best_k = error, k
-        return best_error, best_k
-
-    heap = []
-    if len(samples) > 2:
-        error, k = worst(0, len(samples) - 1)
-        heap.append((-error, 0, len(samples) - 1, k))
-    while heap and len(chosen) < max_knots:
-        negative_error, i, j, k = heapq.heappop(heap)
-        if -negative_error <= tolerance_m or k is None:
-            break
-        chosen.add(k)
-        for lo, hi in ((i, k), (k, j)):
-            if hi - lo > 1:
-                error, mid = worst(lo, hi)
-                heapq.heappush(heap, (-error, lo, hi, mid))
-    return [samples[index] for index in sorted(chosen)]
+    chosen = _kernel().select(float(position[0]), float(position[1]), float(position[2]),
+                              float(velocity[0]), float(velocity[1]), float(velocity[2]),
+                              table.positions, table.mus, table.indices_of(exclude_key), float(edge_m),
+                              float(softening_m), float(tolerance_m), int(limit))
+    return [table.masses[index] for index in chosen]
 
 
 def integrate_path(position, velocity, masses, inside, edge_m, softening_m=DEFAULT_SOFTENING_M, tolerance_m=None,
@@ -360,8 +298,8 @@ def integrate_path(position, velocity, masses, inside, edge_m, softening_m=DEFAU
         masses (MassTable or iterable of PointMass): The sector's point
             masses and any neighbours'; those that cannot bend the path by
             the tolerance are skipped (`relevant_masses`).
-        inside (callable): `inside(position_m)` is true while the body is in
-            the sector (`sector_inside`).
+        inside (Cell): The region the body is followed through
+            (`sector_inside`, `box_cell`, `ball_cell`).
         edge_m (float): The sector's edge, m, which sets the step limit and
             the spline's tolerance.
         softening_m (float): Plummer softening of every mass.
@@ -375,7 +313,7 @@ def integrate_path(position, velocity, masses, inside, edge_m, softening_m=DEFAU
     Returns:
         SectorPath: Two knots when the path is nearly straight. `exited` is
         false when the body never left (it is at rest, or held by a mass, or
-        the step limit ran out).
+        the step limit ran out); `steps` is how many integration steps it took.
 
     Raises:
         ValueError: For fewer than 2 knots, or a start outside the sector.
@@ -383,41 +321,18 @@ def integrate_path(position, velocity, masses, inside, edge_m, softening_m=DEFAU
     if max_knots < 2:
         raise ValueError(f"a path needs at least 2 knots, got {max_knots!r}")
     position, velocity = tuple(map(float, position)), tuple(map(float, velocity))
-    speed = _norm(velocity)
+    speed = math.sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2])
     start = PathKnot(0.0, position, velocity)
-    if not inside(position):
+    if not inside.contains(position):
         raise ValueError("the path starts outside the sector")
     if speed == 0.0:
         return SectorPath([start], exited=False)
+    table = masses if isinstance(masses, MassTable) else MassTable(masses)
     if tolerance_m is None:
         tolerance_m = DEFAULT_TOLERANCE_FRACTION * edge_m
-    softening_sq = softening_m * softening_m
-    active = relevant_masses(position, velocity, masses, edge_m, softening_m, tolerance_m, exclude_key=exclude_key)
-    active = [(m.position[0], m.position[1], m.position[2], m.mu) for m in active]
-    max_step = edge_m / (speed * 20.0)
-    max_time = CROSSINGS_ALLOWED * edge_m / speed
-
-    samples = [start]
-    t, p, v = 0.0, position, velocity
-    a, dynamical, nearest = _pull(p, active, softening_sq)
-    exited = False
-    turned = 0.0
-    for _ in range(max_steps):
-        speed_prev = _norm(v)
-        h = _step_size(dynamical, nearest, speed_prev, max_step)
-        v_half = tuple(vi + 0.5 * h * ai for vi, ai in zip(v, a))
-        p_next = tuple(pi + h * vi for pi, vi in zip(p, v_half))
-        a_next, dynamical_next, nearest_next = _pull(p_next, active, softening_sq)
-        v_next = tuple(vi + 0.5 * h * ai for vi, ai in zip(v_half, a_next))
-        if not inside(p_next):
-            samples.append(_exit_state(inside, t, p, v, t + h, p_next, v_next))
-            exited = True
-            break
-        speed_next = _norm(v_next)
-        if speed_next > 0.0:
-            turned += math.acos(max(-1.0, min(1.0, _dot(v, v_next) / (speed_prev * speed_next))))
-        t, p, v, a, dynamical, nearest = t + h, p_next, v_next, a_next, dynamical_next, nearest_next
-        samples.append(PathKnot(t, p, v))
-        if t > max_time or turned > MAX_TURN_RAD:
-            break
-    return SectorPath(_simplify(samples, tolerance_m, max_knots), exited)
+    times, positions, velocities, exited, steps = _kernel().integrate(
+        np.array(position), np.array(velocity), table.positions, table.mus, table.indices_of(exclude_key),
+        inside.kind, inside.padded(), float(edge_m), float(softening_m), float(tolerance_m), int(max_knots),
+        int(max_steps), DEFAULT_RELEVANT_MASSES, STEP_FRACTION, CROSSINGS_ALLOWED, MAX_TURN_RAD)
+    knots = [PathKnot(t, tuple(p), tuple(v)) for t, p, v in zip(times.tolist(), positions.tolist(), velocities.tolist())]
+    return SectorPath(knots, bool(exited), steps=int(steps))

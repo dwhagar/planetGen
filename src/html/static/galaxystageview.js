@@ -320,14 +320,14 @@ export function createStageView(host) {
 
   // The view's zoom policy: a short range round the fit; the whole galaxy
   // only zooms in from its own.
-  function zoomPolicyFor(r) {
+  function zoomPolicyFor(r, at) {
     if (enteredSystem) return SYSTEM_ZOOM;
     if (r && r.view && isWholeGalaxy(r)) return GALAXY_ZOOM;
     if (entered && !pinned && view && view.fit && host.fetchSystemScene) {
       // MAP.152: in an opened sector the camera may come right up to a star near the middle of the view, to
       // where its system's disc is whole, but no closer to the middle than keeps that star in reach.
       const fit = fitDistance(entered.fitPoints, view.fit.target, view.quat);
-      const near = nearestStarTo(view.target);
+      const near = nearestStarTo(at || view.target);
       if (fit > 0 && near) {
         const radius = systemRadii.get(near.entry.href) || SYS.NOMINAL_RADIUS_PC;
         const discPc = SYS.distanceForPixels(SYS.FULL_PX * 1.5, radius, canvasEl.clientHeight || 600, camera.fov);
@@ -1243,6 +1243,7 @@ export function createStageView(host) {
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
     openSystem: !pinned && host.fetchSystemScene ? openSystemFromAmbient : null,
+    flyToEntry: !pinned ? flyToEntry : null,
   });
   const systemStage = createSystemStage({
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
@@ -2254,6 +2255,44 @@ export function createStageView(host) {
     centreOn(goal);
   }
 
+  // MAP.146: how far from `entry` the camera comes to look at it: a star with a system, to where its system's disc is
+  // whole (the nearest zoom allows); a cloud or body of a radius, to where it fills most of the view; anything else
+  // keeps the distance the view has.
+  function distanceToLookAt(entry) {
+    const heightPx = canvasEl.clientHeight || 600;
+    if (entry.href && entry.endpoint && entry.endpoint.indexOf("system:") === 0) {
+      return SYS.distanceForPixels(SYS.FULL_PX * 1.5, systemRadii.get(entry.href) || SYS.NOMINAL_RADIUS_PC, heightPx, camera.fov);
+    }
+    if (entry.r > 0) return entry.r / (0.6 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    return view.dist;
+  }
+
+  // Flies the camera to look at `goal` (a world point) from `wanted` away, as near as the view's zoom allows, keeping
+  // the angle: the view then turns and zooms about it (MAP.199).
+  function flyToPoint(goal, wanted) {
+    if (!view || animation || !resolved || !view.fit || !isFree(resolved)) return;
+    const point = goal.slice();
+    clampPan(point, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
+    const fit = fitDistance(around, view.fit.target, view.quat);
+    if (!(fit > 0)) return;
+    const zoom = MC.clampDistance(zoomPolicyFor(resolved, point), wanted / fit, 1);
+    const to = { target: point, dist: zoom * fit, quat: view.quat.clone() };
+    const kept = view;
+    followBody = null;
+    flyCamera(viewNow(), to, null, function () {
+      view = Object.assign({}, kept, { target: point.slice(), dist: to.dist, quat: to.quat.clone(), zoom: zoom });
+      applyView();
+    });
+  }
+
+  // Flies the camera to an object of the sector scene (a star, a phenomenon): a double click on it, its Go to
+  // button, Enter with it selected.
+  function flyToEntry(entry) {
+    if (!view || !entry || entry.x == null) return;
+    flyToPoint([entry.x, entry.y, entry.z], distanceToLookAt(entry));
+  }
+
   // Flies the orbit center to `goal` (a world point), keeping the angle and
   // the zoom: turning and zooming then both go about it (MAP.199).
   function centreOn(goal) {
@@ -2320,6 +2359,8 @@ export function createStageView(host) {
     const found = picker.pick(event.clientX, event.clientY);
     if (found && found.layer !== choiceLayer) {
       showTooltip("", 0, 0);
+      // Picking an object takes the light off a choice the arrow keys left lit, so Enter then goes to the object.
+      if (hover && hover.sticky) setHover(null);
       if (found.layer.select) found.layer.select(found.entry);
       return;
     }
@@ -2336,6 +2377,26 @@ export function createStageView(host) {
     touchPending = -1;
     showTooltip("", 0, 0);
     act(index, found && found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null);
+  }
+
+  // MAP.146: a double click on something of the scene (a star, a phenomenon, a body of the open system) flies the
+  // camera to it. On anything else it is two clicks, as ever (a touch screen's second tap on a block acts on it).
+  function doubleClickAt(event, type) {
+    if (animation) return;
+    const found = picker.pick(event.clientX, event.clientY);
+    if (!found || found.layer === choiceLayer) {
+      clickAt(event, type);
+      return;
+    }
+    showTooltip("", 0, 0);
+    if (enteredSystem) {
+      if (found.entry && found.entry.ref && systemStage.where(found.entry.ref)) {
+        if (found.layer.select && systemStage.selected() !== found.entry.ref) found.layer.select(found.entry);
+        flyToBody(found.entry);
+      }
+      return;
+    }
+    flyToEntry(found.entry);
   }
 
   // Drag turns the view, right-drag or Shift-drag moves it, two fingers
@@ -2358,6 +2419,7 @@ export function createStageView(host) {
       },
     },
     onClick: clickAt,
+    onDoubleClick: doubleClickAt,
     onPanClick: centreAtPointer,
     onHover: hoverAt,
     onLeave: onPointerLeave,
@@ -2415,7 +2477,13 @@ export function createStageView(host) {
       }
       return;
     }
-    if (animation || !display || !display.options.length) return;
+    if (animation) return;
+    // MAP.146: with nothing lit among the choices, Enter flies to the selected object of the scene.
+    if (key === "Enter" && !(hover && hover.option != null && display && display.options.length)) {
+      flyToEntry(sectorStage.selectedEntry());
+      return;
+    }
+    if (!display || !display.options.length) return;
     const options = display.options;
     const current = hover && hover.option != null ? hover.option : -1;
     if (key === "Enter") {
