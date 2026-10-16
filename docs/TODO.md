@@ -3069,6 +3069,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss 2026-10-15): step 4. The same value serves the halo (about -1.6
   inside 25 kpc, -2.2 outside) and the clusters; the planet cull for
   both is in GEN.236 and GEN.162.
+  Cap-tier note (Boss, 2026-10-16, 12:49 AM EDT, GEN.279): the sector
+  profile needs room for a cap-tier parameter, a per-sector tier that
+  raises the stellar mass and luminosity caps about 10% at the core and
+  lowers them about 10% in the halo and intergalactic space. Leave a
+  place for it in the profile and keep metallicity separate from it;
+  Core 3's note for GEN.279 fixes the exact form.
   Prerequisites: none.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -3601,6 +3607,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the floor tests are rewritten. The local-density alternative
   (about 2.7 times higher) is kept as a documented constant. Owner: Core
   (2026-10-15).
+  Cap-tier note (Boss, 2026-10-16, 12:49 AM EDT, GEN.279): the sector
+  profile needs room for a cap-tier parameter, a per-sector tier that
+  raises the stellar mass and luminosity caps about 10% at the core and
+  lowers them about 10% in the halo and intergalactic space. Leave a
+  place for it in the profile; Core 3's note for GEN.279 fixes the exact
+  form.
   Prerequisite: GEN.233. Related: GEN.78, GEN.134.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3631,6 +3643,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing is kept for the sake of production data. The sector rows, the
   profile fields and the generated flag may be redesigned together; only
   the rules above are fixed.
+  Cap-tier note (Boss, 2026-10-16, 12:49 AM EDT, GEN.279): the sector
+  profile needs room for a cap-tier parameter, a per-sector tier that
+  raises the stellar mass and luminosity caps about 10% at the core and
+  lowers them about 10% in the halo and intergalactic space. Leave a
+  place for it in the profile; Core 3's note for GEN.279 fixes the exact
+  form.
   Prerequisites: GEN.233, GEN.234. Related: GEN.76, GEN.81, GEN.42.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3683,6 +3701,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   layouts as the work needs, with one migration or a fresh galaxy;
   nothing is kept for the sake of production data. The component table
   is designed for what it holds, not squeezed into existing tables.
+  Cap-tier note (Boss, 2026-10-16, 12:49 AM EDT, GEN.279): the sector
+  profile needs room for a cap-tier parameter, a per-sector tier that
+  raises the stellar mass and luminosity caps about 10% at the core and
+  lowers them about 10% in the halo and intergalactic space. Leave a
+  place for it in the profile; Core 3's note for GEN.279 fixes the exact
+  form.
   Prerequisites: GEN.235, GEN.159, GEN.160. Related: GEN.9, GEN.161,
   GEN.164.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
@@ -4656,6 +4680,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   columns Core 1 must plan, and Core 3 asks the TODO lane for numbers
   for them. Nothing is built before the note is read. Owner: Core 3
   (Boss, 2026-10-16). Not blocking anything unless the note says so.
+  Boss (2026-10-16, 12:49 AM EDT): "we may have to do a tiered system
+  for mass and luminosity, where at the core both are 10% higher caps at
+  the core, and then 10% lower in the halo and intergalactic space."
+  Core 3 folds a tiered mass and luminosity cap into the plan note: one
+  cap-tier parameter per sector profile (about 10% higher caps at the
+  core, about 10% lower in the halo and intergalactic space, tiers in
+  between), applied by the same generation rules everywhere; the note
+  names the tier boundaries and any column Core 1 must plan for it.
   Prerequisites: none. Related: GEN.155, GEN.210, GEN.234, GEN.235,
   GEN.237, GEN.233.
 
