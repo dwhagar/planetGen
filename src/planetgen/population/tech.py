@@ -10,7 +10,7 @@ drawn from a species' age, and the tech level as their weighted sum. See "Tech l
 for the six scales and the weights.
 
 The functions take no database. `draw_indices` draws from a stream of its own (callers use
-`draw.Stream(f"tech:{planet_id}")`), never the stream `scan_life_worlds` draws a species' traits and age
+`draw.Stream(f"tech:{object_key(uid)}")`, the homeworld's unique ID), never the stream `scan_life_worlds` draws a species' traits and age
 from, so the stored ages never change.
 """
 
