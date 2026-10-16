@@ -54,3 +54,4 @@ Commit each file came from:
 - v99: 47705939 (GEN.280 nuclear structures, before GEN.281 cell star ceiling default and CHECK)
 - v100: 21884c05 (GEN.364 cell star ceiling 5,000 and its CHECK, before DB.54 scatter limits by place)
 - v101: a438b42f (DB.54 scatter limits by place, before DB.55 point columns)
+- v102: 5094fb0d (DB.55 point columns, before GEN.336 movement vector; the branch commit, to be replaced by main's commit at merge)

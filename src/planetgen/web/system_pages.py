@@ -794,6 +794,15 @@ CLASS_COLUMNS = {
 links by its letter."""
 
 
+def _with_galactic_speed(detail):
+    """`detail` plus `galactic_orbital_speed_kms`, the length of the movement vector it stores (GEN.336): the page shows
+    a speed, the table keeps the vector."""
+    parts = [detail.get(f"velocity_{axis}_kms") for axis in "xyz"]
+    if any(part is None for part in parts):
+        return detail
+    return {**detail, "galactic_orbital_speed_kms": math.sqrt(sum(part * part for part in parts))}
+
+
 def _with_derived_fields(phenomenon_type, detail):
     """`detail` plus the values worked out from it rather than stored: the
     Einstein radius (GEN.154) of a black hole, neutron star or rogue planet
@@ -825,7 +834,7 @@ def phenomenon_fields(phenomenon_type, detail):
             detail["temperature_k"] = hawking_temperature_k(detail["mass_solar"])
         if not detail.get("luminosity_w"):
             detail["luminosity_w"] = hawking_luminosity_w(detail["mass_solar"])
-    detail = _with_derived_fields(phenomenon_type, detail)
+    detail = _with_derived_fields(phenomenon_type, _with_galactic_speed(detail))
     for column, label, formatter in FIELD_SPECS.get(phenomenon_type, []):
         raw = detail.get(column)
         if raw is None:

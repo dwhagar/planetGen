@@ -175,7 +175,9 @@ def test_galactic_motion_moves_only_what_has_moved_its_threshold(mysql_config):
             bh_id = store.insert_black_hole(conn, BlackHole(SystemConfig()))
         star = conn.execute("SELECT * FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()
         bh = conn.execute("SELECT * FROM black_holes WHERE id = ?", (bh_id,)).fetchone()
-        interval = update_interval_s(star["galactic_orbital_speed_kms"] * 1000.0, "galactic")
+        placed = conn.execute("SELECT velocity_x_kms, velocity_y_kms, velocity_z_kms FROM star_systems WHERE id = ?",
+                              (system_id,)).fetchone()
+        interval = update_interval_s(store._speed_kms(placed) * 1000.0, "galactic")
         assert 1 * 86400 < interval < 60 * 86400  # 0.01 mpc at about 200 km/s: days to weeks
 
         day = store.orbit_clock(conn, DAY_YEARS / 10)

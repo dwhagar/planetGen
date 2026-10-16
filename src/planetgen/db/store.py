@@ -72,7 +72,7 @@ from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, radiation, spin
+from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import steps
@@ -1519,6 +1519,8 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (103, lambda shape: ("sectors", "max_mass_id") in shape["columns"]
+     and ("stars", "galactic_orbital_speed_kms") not in shape["columns"]),
     (102, _column_marker("sectors", "max_mass_id")),
     (101, _column_marker("galaxy_shape", "core_min_luminosity_sol")),
     (100, _check_marker("chk_galaxy_shape_cell_star_ceiling", "cell_star_ceiling")),
@@ -2750,7 +2752,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             temperature_k, luminosity_w, age_gy, lifespan_gy,
             habitable_zone_inner_km, habitable_zone_outer_km,
             system_perimeter_km, heliosphere_radius_km,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             wide_binary_a_crit_km,
             reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
@@ -2758,7 +2760,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j,
             lethal_event_rate_per_gyr, metallicity_fe_h
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?, ?, ?)
+                  ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2768,7 +2770,6 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.habitable_zone[1] * physical_constants.AU_TO_KM,
             star.system_perimeter * physical_constants.AU_TO_KM,
             star.heliosphere_radius * physical_constants.AU_TO_KM,
-            star.galactic_orbital_speed_kms,
             star.galactic_orbital_period_gy,
             star.galactic_orbital_phase_deg,
             star.galactic_min_update_interval_years,
@@ -3131,8 +3132,8 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
     elif star_id is None:
         _take_core_id(conn, black_hole, "black-hole-core", placement)
     galactic_fields = (
-        (None, None, None, None) if star_id is not None else (
-            black_hole.galactic_orbital_speed_kms, black_hole.galactic_orbital_period_gy,
+        (None,) * 6 if star_id is not None else (
+            *_free_vector(black_hole, placement), black_hole.galactic_orbital_period_gy,
             black_hole.galactic_orbital_phase_deg, black_hole.galactic_min_update_interval_years,
         )
     )
@@ -3144,11 +3145,11 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
         INSERT INTO black_holes (
             star_id, sector_id, name, mass_class, mass_solar, event_horizon_radius_km, spin,
             has_accretion_disk, temperature_k, luminosity_w, age_gy,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
             spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_id, sector_id, black_hole.name, black_hole.mass_class, black_hole.mass_solar,
@@ -3196,8 +3197,8 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
     elif star_id is None:
         _take_core_id(conn, neutron_star, "neutron-star-core", placement)
     galactic_fields = (
-        (None, None, None, None) if star_id is not None else (
-            neutron_star.galactic_orbital_speed_kms, neutron_star.galactic_orbital_period_gy,
+        (None,) * 6 if star_id is not None else (
+            *_free_vector(neutron_star, placement), neutron_star.galactic_orbital_period_gy,
             neutron_star.galactic_orbital_phase_deg, neutron_star.galactic_min_update_interval_years,
         )
     )
@@ -3209,11 +3210,11 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
         INSERT INTO neutron_stars (
             star_id, sector_id, name, mass_solar, radius_km, spin_period_ms, magnetic_field_gauss,
             pulsar_type, surface_temperature_k, luminosity_w, age_gy,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
             spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_id, sector_id, neutron_star.name, neutron_star.mass_solar, neutron_star.radius,
@@ -3258,17 +3259,17 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         INSERT INTO nebulae (
             sector_id, name, nebula_class, nebula_type, radius_ly, composition, formation_cause,
             dominant_species, density_cm3, temperature_k, extinction_av, age_myr, q_total, hosts,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, nebula.name, nebula.nebula_class, nebula.nebula_type, nebula.radius_ly,
             nebula.composition, nebula.formation_cause,
             nebula.dominant_species, nebula.density_cm3, nebula.temperature_k, nebula.extinction_av,
             nebula.age_myr, nebula.q_total, nebula.hosts,
-            nebula.galactic_orbital_speed_kms, nebula.galactic_orbital_period_gy,
+            *_free_vector(nebula, placement), bulk_mass.gas_cloud_mass_kg(nebula.density_cm3, nebula.radius_ly), nebula.galactic_orbital_period_gy,
             nebula.galactic_orbital_phase_deg, nebula.galactic_min_update_interval_years,
             placement.get("center_x_pc"), placement.get("center_y_pc"),
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
@@ -3306,6 +3307,30 @@ def _placement_values(placement):
         placement.get("center_x_pc"), placement.get("center_y_pc"),
         placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
     )
+
+_DEFAULT_PLACE_PC = (ly_to_pc(physical_constants.GALACTIC_CENTER_DISTANCE_LY), 0.0, 0.0)
+"""tuple: Where an object with no place in the galaxy is taken to be for its movement vector: the Sun's distance from the
+centre on the +x axis, the place `galactic_orbit.generate_galactic_orbit_fields` works its speed out for."""
+
+
+def _speed_kms(row):
+    """km/s: the length of the movement vector a row stores in `velocity_x/y/z_kms` -- the galactic speed every
+    reader used to take from the scalar `galactic_orbital_speed_kms` (GEN.336). `None` when the row has no vector."""
+    parts = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+    if any(part is None for part in parts):
+        return None
+    return math.sqrt(sum(part * part for part in parts))
+
+
+def _free_vector(phenomenon, placement):
+    """`(vx, vy, vz)`, km/s, galactic axes: the movement a free object is stored with (GEN.336) -- its
+    `galactic_orbital_speed_kms` along the tangent of the galaxy's rotation at its place (`galactic_velocity_ms`), or at
+    `_DEFAULT_PLACE_PC` when it has none (a phenomenon never put in the galaxy)."""
+    if not placement or placement.get("center_x_pc") is None:
+        point = _DEFAULT_PLACE_PC
+    else:
+        point = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
+    return tuple(c / 1000.0 for c in galactic_velocity_ms(point, phenomenon.galactic_orbital_speed_kms))
 
 
 def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, placement=None) -> int:
@@ -3361,16 +3386,16 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
             sector_id, name, remnant_class, morphology, age_years, radius_ly, progenitor_type,
             compact_remnant_kind, compact_remnant_black_hole_id, compact_remnant_neutron_star_id,
             dominant_species, density_cm3, temperature_k, extinction_av,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, remnant.name, remnant.remnant_class, remnant.morphology, remnant.age_years,
             remnant.radius_ly, remnant.progenitor_type, compact_remnant_kind, black_hole_id, neutron_star_id,
             remnant.dominant_species, remnant.density_cm3, remnant.temperature_k, remnant.extinction_av,
-            remnant.galactic_orbital_speed_kms, remnant.galactic_orbital_period_gy,
+            *_free_vector(remnant, placement), bulk_mass.gas_cloud_mass_kg(remnant.density_cm3, remnant.radius_ly), remnant.galactic_orbital_period_gy,
             remnant.galactic_orbital_phase_deg, remnant.galactic_min_update_interval_years,
             *_placement_values(placement),
         ),
@@ -3408,18 +3433,18 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
         INSERT INTO rogue_planets (
             sector_id, name, planet_type, planet_class, mass_bin, mass_kg, radius_km, composition,
             has_internal_heat, has_moons, {", ".join(ROGUE_SURFACE_FIELDS)},
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
             rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join("?" * len(ROGUE_SURFACE_FIELDS))},
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join("?" * len(ROGUE_SURFACE_FIELDS))},
                   ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, planet.name, planet.planet_type, getattr(planet, "planet_class", None), planet.mass_bin, planet.mass_kg, planet.radius_km,
             planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
             *_rogue_surface_values(planet),
-            planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
+            *_free_vector(planet, placement), planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
             *_placement_values(placement),
             getattr(planet, "rotation_period_hours", None), *spin.spin_values(planet),
@@ -3483,16 +3508,16 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
         """
         INSERT INTO interstellar_comets (
             sector_id, name, nucleus_diameter_km, velocity_kms, is_active, composition_summary,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
             rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, comet.name, comet.nucleus_diameter_km, comet.velocity_kms,
             int(comet.is_active), comet.get_composition_summary(),
-            comet.galactic_orbital_speed_kms, comet.galactic_orbital_period_gy,
+            *_free_vector(comet, placement), bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km), comet.galactic_orbital_period_gy,
             comet.galactic_orbital_phase_deg, comet.galactic_min_update_interval_years,
             *_placement_values(placement),
             getattr(comet, "rotation_period_hours", None), *spin.spin_values(comet),
@@ -3539,15 +3564,15 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
         """
         INSERT INTO asteroid_fields (
             sector_id, name, field_class, composition_family, density, radius_ly, composition_summary,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, mass_kg, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, field.name, field.field_class, field.composition_family, field.density,
             field.radius_ly, field.get_composition_summary(),
-            field.galactic_orbital_speed_kms, field.galactic_orbital_period_gy,
+            *_free_vector(field, placement), 0.0, field.galactic_orbital_period_gy,
             field.galactic_orbital_phase_deg, field.galactic_min_update_interval_years,
             placement.get("center_x_pc"), placement.get("center_y_pc"),
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
@@ -3729,8 +3754,8 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
         conn.close()
 
 
-_NULL_PROXY_ONLY_BINARY_FIELDS = (None,) * 15
-"""Placeholder for the 15 `star_systems.binary_*` columns that only ever
+_NULL_PROXY_ONLY_BINARY_FIELDS = (None,) * 14
+"""Placeholder for the 14 `star_systems.binary_*` columns that only ever
 describe a merged `BinaryStarProxy` (a 'close'/P-type pair) -- always NULL
 for a 'wide'/S-type pair or a single star, since no merged effective star
 exists to describe in either of those cases. See `schema.sql`'s "v15"
@@ -3748,7 +3773,7 @@ with) -- NULL for a single (non-binary) star. See
 
 def _proxy_only_binary_fields(proxy: BinaryStarProxy):
     """
-    Extracts the 15 `star_systems.binary_*` column values that only ever
+    Extracts the 14 `star_systems.binary_*` column values that only ever
     apply to a merged `BinaryStarProxy` -- `binary_type` (the pair's
     combined spectral-summary string) through
     `binary_galactic_min_update_interval_years` -- in the exact order
@@ -3775,7 +3800,6 @@ def _proxy_only_binary_fields(proxy: BinaryStarProxy):
         proxy.habitable_zone[1] * physical_constants.AU_TO_KM,
         proxy.system_perimeter * physical_constants.AU_TO_KM,
         proxy.heliosphere_radius * physical_constants.AU_TO_KM,
-        proxy.galactic_orbital_speed_kms,
         proxy.galactic_orbital_period_gy,
         proxy.galactic_orbital_phase_deg,
         proxy.galactic_min_update_interval_years,
@@ -3949,14 +3973,14 @@ def _system_velocity_kms(conn, star_system, sector_id, position_pc):
     The galactic velocity, km/s, `star_system` has at `position_pc`
     (`(x, y, z)` parsecs from the center of sector `sector_id`): the rotation
     curve's tangent at its place plus its runaway motion
-    (`system_position.system_velocity_ms`). At rest while it has no place.
+    (`system_position.system_velocity_ms`). While it has no place it is taken at `_DEFAULT_PLACE_PC`, where the
+    generators draw its speed, so its vector keeps that speed.
     """
-    if sector_id is None or position_pc is None:
-        return (0.0, 0.0, 0.0)
-    center = _sector_center_pc(conn, sector_id)
+    center = None if sector_id is None or position_pc is None else _sector_center_pc(conn, sector_id)
     if center is None:
-        return (0.0, 0.0, 0.0)
-    place = tuple(c + offset for c, offset in zip(center, position_pc))
+        place = _DEFAULT_PLACE_PC
+    else:
+        place = tuple(c + offset for c, offset in zip(center, position_pc))
     return tuple(v / 1000.0 for v in system_velocity_ms(star_system, place))
 
 
@@ -4082,7 +4106,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_effective_mass_kg, binary_effective_luminosity_w, binary_age_gy, binary_lifespan_gy,
             binary_habitable_zone_inner_km, binary_habitable_zone_outer_km,
             binary_system_perimeter_km, binary_heliosphere_radius_km,
-            binary_galactic_orbital_speed_kms, binary_galactic_orbital_period_gy,
+            binary_galactic_orbital_period_gy,
             binary_galactic_orbital_phase_deg, binary_galactic_min_update_interval_years,
             binary_mutual_orbital_period_years, binary_mutual_orbital_speed_kms,
             binary_mutual_orbital_inclination_deg, binary_mutual_orbital_ascending_node_deg,
@@ -4094,7 +4118,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
             system_flavor_text, runaway_class, runaway_speed_kms,
             velocity_x_kms, velocity_y_kms, velocity_z_kms, schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.name,
@@ -5302,8 +5326,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         f"""
         SELECT ss.id, ss.sector_id, {_SYSTEM_POINT.select("position", "velocity", "epoch", "due", alias="ss")},
                ss.binary_configuration, ss.runaway_class, ss.runaway_speed_kms,
-               COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy,
-               COALESCE(ss.binary_galactic_orbital_speed_kms, s.galactic_orbital_speed_kms) AS speed_kms
+               COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy
         FROM star_systems ss
         LEFT JOIN stars s ON s.star_system_id = ss.id AND s.role IN ('single', 'primary')
         WHERE ss.next_update_due IS NULL OR ss.next_update_due <= ?
@@ -5315,8 +5338,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     close_pairs = 0
     for row in systems:
         ballistic = row["runaway_class"] == "hypervelocity" and row["runaway_speed_kms"]
-        epoch, interval, due = _due_interval_s(row, clock, row["runaway_speed_kms"] if ballistic else row["speed_kms"],
-                                               "galactic")
+        epoch, interval, due = _due_interval_s(
+            row, clock, row["runaway_speed_kms"] if ballistic else _speed_kms(row), "galactic")
         if due > clock.end_unix or (budget is not None and not budget.take("star_systems")):
             scheduled.append((epoch, due, row["id"]))
             continue
@@ -5388,11 +5411,11 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         scheduled, clocks, updates, refile_updates = [], [], [], []
         for row in conn.execute(
             f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy,"
-            f" galactic_orbital_speed_kms, epoch_unix, next_update_due FROM {table}"
+            f" velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM {table}"
             f" WHERE (next_update_due IS NULL OR next_update_due <= ?){anchored} ORDER BY next_update_due, id",
             (clock.end_unix,)
         ).fetchall():
-            epoch, interval, due = _due_interval_s(row, clock, row["galactic_orbital_speed_kms"], "galactic")
+            epoch, interval, due = _due_interval_s(row, clock, _speed_kms(row), "galactic")
             if due > clock.end_unix or (budget is not None and not budget.take(table)):
                 scheduled.append((epoch, due, row["id"]))
                 continue
@@ -5402,15 +5425,16 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             if angle == 0.0 or row["center_x_pc"] is None:
                 continue
             point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
+            velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
             radius = math.sqrt(sum(c * c for c in point))
             moved += 1
             sector_id = index.sector_at(point, row["sector_id"]) if row["sector_id"] is not None else None
             if sector_id != row["sector_id"]:
                 refiled += 1
                 touched.update((sector_id, row["sector_id"]))
-                refile_updates.append((sector_id, *point, radius, row["id"]))
+                refile_updates.append((sector_id, *point, radius, *velocity, row["id"]))
             else:
-                updates.append((*point, radius, row["id"]))
+                updates.append((*point, radius, *velocity, row["id"]))
         if scheduled:
             conn.executemany(f"UPDATE {table} SET epoch_unix = ?, next_update_due = ?, modified_at = modified_at"
                              f" WHERE id = ?", scheduled)
@@ -5424,11 +5448,13 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         if updates:
             conn.executemany(
                 f"UPDATE {table} SET center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
+                f" velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                 f" modified_at = modified_at WHERE id = ?", updates)
         if refile_updates:
             conn.executemany(
                 f"UPDATE {table} SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
-                f" galactic_radius_pc = ? WHERE id = ?", refile_updates)
+                f" galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+                refile_updates)
             _refile_nearest_rows(conn, table, [(update[0], update[-1]) for update in refile_updates])
         counts[table] = len(clocks)
         _report(on_progress, table, done, steps)
@@ -6895,7 +6921,7 @@ _SYSTEM_CONTENT_COLUMNS = (
     "binary_effective_mass_kg", "binary_effective_luminosity_w", "binary_age_gy", "binary_lifespan_gy",
     "binary_habitable_zone_inner_km", "binary_habitable_zone_outer_km",
     "binary_system_perimeter_km", "binary_heliosphere_radius_km",
-    "binary_galactic_orbital_speed_kms", "binary_galactic_orbital_period_gy",
+    "binary_galactic_orbital_period_gy",
     "binary_galactic_orbital_phase_deg", "binary_galactic_min_update_interval_years",
     "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
     "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
@@ -8000,7 +8026,7 @@ def load_system_config(conn, config_id) -> SystemConfig:
     })
 
 
-def _star_row_to_dict(row):
+def _star_row_to_dict(row, speed_kms):
     """Maps a `stars` row to `Star.from_dict`'s expected dict shape,
     inverting every unit conversion `insert_star` applies.
 
@@ -8032,7 +8058,7 @@ def _star_row_to_dict(row):
         ],
         "system_perimeter": row["system_perimeter_km"] / physical_constants.AU_TO_KM,
         "heliosphere_radius": row["heliosphere_radius_km"] / physical_constants.AU_TO_KM,
-        "galactic_orbital_speed_kms": row["galactic_orbital_speed_kms"],
+        "galactic_orbital_speed_kms": speed_kms,
         "galactic_orbital_period_gy": row["galactic_orbital_period_gy"],
         "galactic_orbital_phase_deg": row["galactic_orbital_phase_deg"],
         "galactic_min_update_interval_years": row["galactic_min_update_interval_years"],
@@ -8054,7 +8080,7 @@ def _star_row_to_dict(row):
     }
 
 
-def _black_hole_row_to_dict(star_row, black_hole_row):
+def _black_hole_row_to_dict(star_row, black_hole_row, speed_kms):
     """
     Maps a `stars` row plus its owning `black_holes` satellite row to
     `BlackHole.from_dict`'s expected dict shape -- `_star_row_to_dict`'s
@@ -8070,7 +8096,7 @@ def _black_hole_row_to_dict(star_row, black_hole_row):
     Returns:
         dict: In the shape `BlackHole.to_dict()` produces.
     """
-    data = _star_row_to_dict(star_row)
+    data = _star_row_to_dict(star_row, speed_kms)
     data["mass_solar"] = black_hole_row["mass_solar"]
     data["event_horizon_radius_km"] = black_hole_row["event_horizon_radius_km"]
     data["spin"] = black_hole_row["spin"]
@@ -8079,7 +8105,7 @@ def _black_hole_row_to_dict(star_row, black_hole_row):
     return data
 
 
-def _neutron_star_row_to_dict(star_row, neutron_star_row):
+def _neutron_star_row_to_dict(star_row, neutron_star_row, speed_kms):
     """
     Maps a `stars` row plus its owning `neutron_stars` satellite row to
     `NeutronStar.from_dict`'s expected dict shape -- see
@@ -8092,7 +8118,7 @@ def _neutron_star_row_to_dict(star_row, neutron_star_row):
     Returns:
         dict: In the shape `NeutronStar.to_dict()` produces.
     """
-    data = _star_row_to_dict(star_row)
+    data = _star_row_to_dict(star_row, speed_kms)
     data["mass_solar"] = neutron_star_row["mass_solar"]
     data["spin_period_ms"] = neutron_star_row["spin_period_ms"]
     data["magnetic_field_gauss"] = neutron_star_row["magnetic_field_gauss"]
@@ -8101,7 +8127,7 @@ def _neutron_star_row_to_dict(star_row, neutron_star_row):
     return data
 
 
-def _load_single_star(conn, star_system_id, system_config):
+def _load_single_star(conn, star_system_id, system_config, speed_kms):
     """
     Loads the `stars` row for a single (non-binary) system and reconstructs
     the correct Python class from it: a `BlackHole`/`NeutronStar` when a
@@ -8120,6 +8146,7 @@ def _load_single_star(conn, star_system_id, system_config):
         conn (Connection): An open, schema-initialized connection.
         star_system_id (int): The owning `star_systems.id`.
         system_config (SystemConfig): The system's shared config.
+        speed_kms (float): The system's galactic speed, the length of its stored vector (`_speed_kms`).
 
     Returns:
         Star, BlackHole, or NeutronStar: The reconstructed single star.
@@ -8134,11 +8161,11 @@ def _load_single_star(conn, star_system_id, system_config):
         neutron_star_row = conn.execute("SELECT * FROM neutron_stars WHERE star_id = ?", (star_row["id"],)).fetchone()
 
     if black_hole_row is not None:
-        star = BlackHole.from_dict(_black_hole_row_to_dict(star_row, black_hole_row), system_config)
+        star = BlackHole.from_dict(_black_hole_row_to_dict(star_row, black_hole_row, speed_kms), system_config)
     elif neutron_star_row is not None:
-        star = NeutronStar.from_dict(_neutron_star_row_to_dict(star_row, neutron_star_row), system_config)
+        star = NeutronStar.from_dict(_neutron_star_row_to_dict(star_row, neutron_star_row, speed_kms), system_config)
     else:
-        star = Star.from_dict(_star_row_to_dict(star_row), system_config)
+        star = Star.from_dict(_star_row_to_dict(star_row, speed_kms), system_config)
     star.db_id = star_row["id"]
     return star
 
@@ -8162,7 +8189,7 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         ],
         "system_perimeter": row["binary_system_perimeter_km"] / physical_constants.AU_TO_KM,
         "heliosphere_radius": row["binary_heliosphere_radius_km"] / physical_constants.AU_TO_KM,
-        "galactic_orbital_speed_kms": row["binary_galactic_orbital_speed_kms"],
+        "galactic_orbital_speed_kms": _speed_kms(row),
         "galactic_orbital_period_gy": row["binary_galactic_orbital_period_gy"],
         "galactic_orbital_phase_deg": row["binary_galactic_orbital_phase_deg"],
         "galactic_min_update_interval_years": row["binary_galactic_min_update_interval_years"],
@@ -8404,6 +8431,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         raise ValueError(f"no star_systems row with id {star_system_id}")
 
     system_config = load_system_config(conn, row["system_config_id"])
+    speed_kms = _speed_kms(row)
 
     # binary_configuration is the authoritative discriminator (see
     # schema.sql's "v15" header note); a row written before that column
@@ -8424,7 +8452,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             "SELECT * FROM stars WHERE star_system_id = ? AND role = 'secondary'", (star_system_id,)
         ).fetchone()
         proxy_data = _binary_proxy_row_to_dict(
-            row, _star_row_to_dict(primary_row), _star_row_to_dict(secondary_row)
+            row, _star_row_to_dict(primary_row, speed_kms), _star_row_to_dict(secondary_row, speed_kms)
         )
         star = BinaryStarProxy.from_dict(proxy_data, system_config)
     elif binary_configuration == "wide":
@@ -8434,13 +8462,13 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         secondary_row = conn.execute(
             "SELECT * FROM stars WHERE star_system_id = ? AND role = 'secondary'", (star_system_id,)
         ).fetchone()
-        star = Star.from_dict(_star_row_to_dict(primary_row), system_config)
-        secondary_star = Star.from_dict(_star_row_to_dict(secondary_row), system_config)
+        star = Star.from_dict(_star_row_to_dict(primary_row, speed_kms), system_config)
+        secondary_star = Star.from_dict(_star_row_to_dict(secondary_row, speed_kms), system_config)
         wide_binary = WideBinaryPair.from_dict(
             _wide_binary_row_to_dict(row), system_config, star, secondary_star
         )
     else:
-        star = _load_single_star(conn, star_system_id, system_config)
+        star = _load_single_star(conn, star_system_id, system_config, speed_kms)
 
     # The page is titled with the system's name (`star_systems.name`). A
     # single star, or a close pair's proxy, shares it -- a close pair's

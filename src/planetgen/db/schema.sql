@@ -1312,6 +1312,11 @@
 --   nullable except the planet and moon state, which default to a bound body of its star (planet) or planet (moon).
 --   A star has no columns of its own: it moves with its system.
 --
+-- v103 (GEN.336): the scalar `galactic_orbital_speed_kms` is gone from `stars`, `black_holes`, `neutron_stars`, `nebulae`,
+--   `supernova_remnants`, `rogue_planets`, `interstellar_comets` and `asteroid_fields`, and `binary_galactic_orbital_speed_kms`
+--   from `star_systems`. The movement vector of v101 (`velocity_x/y/z_kms`) is the one record; a speed is its length. A star
+--   takes its system's vector.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1721,7 +1726,6 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_habitable_zone_outer_km  DOUBLE,
     binary_system_perimeter_km      DOUBLE,
     binary_heliosphere_radius_km    DOUBLE,
-    binary_galactic_orbital_speed_kms   DOUBLE,
     binary_galactic_orbital_period_gy   DOUBLE,
     binary_galactic_orbital_phase_deg          DOUBLE,  -- v13, see header comment
     binary_galactic_min_update_interval_years  DOUBLE,  -- v13, see header comment
@@ -1845,7 +1849,6 @@ CREATE TABLE IF NOT EXISTS stars (
     habitable_zone_outer_km   DOUBLE NOT NULL,
     system_perimeter_km       DOUBLE NOT NULL,
     heliosphere_radius_km     DOUBLE NOT NULL,
-    galactic_orbital_speed_kms    DOUBLE NOT NULL,
     galactic_orbital_period_gy    DOUBLE NOT NULL,
     galactic_orbital_phase_deg          DOUBLE NOT NULL,  -- v13, see header comment
     galactic_min_update_interval_years  DOUBLE NOT NULL,  -- v13, see header comment
@@ -2479,7 +2482,6 @@ CREATE TABLE IF NOT EXISTS black_holes (
     -- v17: NULL when star_id is set (an anchored remnant's galactic motion
     -- lives on its own stars row instead); populated only for a standalone
     -- black hole. See this file's "v17" header note.
-    galactic_orbital_speed_kms           DOUBLE,
     galactic_orbital_period_gy           DOUBLE,
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
@@ -2565,7 +2567,6 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     luminosity_w              DOUBLE NOT NULL,
     age_gy                    DOUBLE NOT NULL,
     -- v17: same nullable-when-anchored convention as black_holes above.
-    galactic_orbital_speed_kms           DOUBLE,
     galactic_orbital_period_gy           DOUBLE,
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
@@ -2662,7 +2663,6 @@ CREATE TABLE IF NOT EXISTS nebulae (
     hosts             VARCHAR(512),
     -- v17: always populated (a nebula is always standalone). See this
     -- file's "v17" header note.
-    galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
@@ -2789,7 +2789,6 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     temperature_k                     DOUBLE NOT NULL,
     extinction_av                     DOUBLE NOT NULL,
     -- v17: always populated (a supernova remnant is always standalone).
-    galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
@@ -2933,7 +2932,6 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     has_liquid_water         TINYINT(1),
     hp_ice_km                DOUBLE,  -- v74 (GEN.88)
     -- v17: always populated (a rogue planet is always standalone).
-    galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
@@ -3016,7 +3014,6 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     -- v17: always populated (an interstellar comet is always standalone).
     -- Its own hyperbolic velocity_kms above is a separate, non-advancing
     -- descriptive stat -- see this file's "v17" header note.
-    galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
@@ -3118,7 +3115,6 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     density               VARCHAR(16) NOT NULL CHECK (density IN ('dense', 'sparse', 'typical')),
     radius_ly             DOUBLE NOT NULL,
     composition_summary   TEXT NOT NULL,
-    galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
