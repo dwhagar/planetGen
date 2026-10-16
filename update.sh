@@ -64,6 +64,13 @@
 # two can't disagree about what a working server needs. `sudo
 # ./install.sh` is still there for a full reinstall.
 #
+# Before it changes anything (OPS.41) it takes the update guard
+# (`planetgen.cli.update_guard`): it closes the site (maintenance mode, cause
+# "update") and takes the update's lock. A good update opens the site again at
+# the end; a failed one leaves it closed, says which step failed and how to
+# open it (`python3 -m planetgen.cli.maintenance off`), because the database
+# may be half migrated.
+#
 # Usage:
 #   sudo ./update.sh
 #   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (make the venv from another Python)
@@ -114,6 +121,15 @@ if [[ -z "$PYTHON" ]]; then
     exit 1
 fi
 
+# OPS.41, OPS.53: the guard comes before the first change. The checkout may
+# not have it yet (the first update that brings it), then it is taken right
+# after the pull; without a virtual environment yet, after step 2.
+UPDATE_STEP="starting"
+export PLANETGEN_UPDATE_PID=$$
+trap finish_update_guard EXIT
+ensure_update_guard
+
+UPDATE_STEP="step 1/9, pulling the latest changes"
 echo "== 1/9: Pulling the latest changes =="
 
 # Mode changes are not local edits: set-permissions.sh makes scripts and
@@ -146,6 +162,7 @@ else
     echo "Updated $before..$after:"
     git log --oneline "$before..$after"
 fi
+ensure_update_guard
 # The scripts below are run directly, so this comes before any of them.
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
@@ -155,24 +172,30 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 echo
+UPDATE_STEP="step 2/9, checking the Python libraries"
 echo "== 2/9: Checking the Python libraries =="
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
+ensure_update_guard required
 
 echo
+UPDATE_STEP="step 3/9, checking the NLTK words corpus"
 echo "== 3/9: Checking the NLTK 'words' corpus =="
 ensure_nltk_words "$NLTK_DATA_DIR"
 
 echo
+UPDATE_STEP="step 4/9, checking the generator's math"
 echo "== 4/9: Checking the generator's math =="
 check_math
 
 echo
+UPDATE_STEP="step 5/9, migrating the database"
 echo "== 5/9: Migrating the configured MySQL database to the current schema =="
 migrate_or_reset_db
 record_version_key
 
 echo
+UPDATE_STEP="step 6/9, checking Apache's modules"
 echo "== 6/9: Checking Apache's modules (macOS: the gunicorn daemon) =="
 APACHE_NEEDS_RESTART=0
 if is_macos; then
@@ -182,10 +205,12 @@ else
 fi
 
 echo
+UPDATE_STEP="step 7/9, setting ownership and permissions"
 echo "== 7/9: Setting ownership/permissions: the checkout belongs to Apache's user =="
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
 echo
+UPDATE_STEP="step 8/9, checking the cache, jobs and log locations"
 echo "== 8/9: Checking the cache, jobs and debug log locations =="
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 # The logs never stop an update (OPS.5): setup-debug-log.sh warns, with
@@ -194,6 +219,7 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
     || echo "warning: the log setup didn't finish (see above); the update carries on." >&2
 
 echo
+UPDATE_STEP="step 9/9, checking that the web app imports"
 echo "== 9/9: Checking that the web app imports =="
 check_app_imports
 

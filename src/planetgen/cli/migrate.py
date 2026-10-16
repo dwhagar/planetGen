@@ -41,10 +41,12 @@ Usage:
 """
 
 import argparse
+import contextlib
+import os
 import sys
 import time
 
-from planetgen.admin import auth, maintenance
+from planetgen.admin import auth, maintenance, updateguard
 from planetgen.cli import stage_progress
 from planetgen.generation import run_common
 from planetgen.db.store import (
@@ -167,8 +169,11 @@ def close_site_for_the_sector_switch(config, write=print):
         version, _pending = schema_status(config)
     except Exception:  # noqa: BLE001 -- the migration itself reports what is wrong
         return False
-    if not 0 < version < SECTOR_SWITCH_VERSION <= SCHEMA_VERSION or maintenance.is_on():
+    state = maintenance.read()
+    if not 0 < version < SECTOR_SWITCH_VERSION <= SCHEMA_VERSION:
         return False
+    if state["enabled"] and state["cause"] != updateguard.UPDATE_CAUSE:
+        return False        # an admin's own closing stays theirs; an update's is taken over (the warm-up opens it)
     try:
         maintenance.turn_on(by="migration", reason=maintenance.SECTOR_SWITCH_REASON,
                             cause=maintenance.SECTOR_SWITCH)
@@ -178,6 +183,38 @@ def close_site_for_the_sector_switch(config, write=print):
         return False
     write("Maintenance mode is on: only admins can use the site until the new Galaxy Map is built.")
     return True
+
+
+@contextlib.contextmanager
+def _update_guard(config):
+    """
+    OPS.41 for a migration run by hand: when there is something to migrate and `update.sh` is not running it (it
+    holds the guard already), close the site for the migration and open it again when it has finished. A failure
+    leaves the site closed (the message says how to open it). Exits with status 1, having changed nothing, when
+    another update runs.
+    """
+    if updateguard.inside_update():
+        yield
+        return
+    try:
+        _version, pending = schema_status(config)
+    except Exception:  # noqa: BLE001 -- the migration reports what is wrong
+        pending = 0
+    if not pending:
+        yield
+        return
+    pid = os.getpid()
+    if not updateguard.begin(pid, by="migrate"):
+        sys.exit(1)
+    ok = False
+    try:
+        yield
+        ok = True
+    except SystemExit as exc:
+        ok = exc.code in (None, 0)
+        raise
+    finally:
+        updateguard.end(pid, ok=ok, step="the migration")
 
 
 def main():
@@ -203,35 +240,36 @@ def main():
         print(version, SCHEMA_VERSION, pending, config.database)
         return
 
-    close_site_for_the_sector_switch(config)
-    try:
-        version = _migrate_with_progress(config)
-    except Exception as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        sys.exit(1)
+    with _update_guard(config):
+        close_site_for_the_sector_switch(config)
+        try:
+            version = _migrate_with_progress(config)
+        except Exception as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            sys.exit(1)
 
-    if version == SCHEMA_VERSION:
-        print(f"Database is at schema v{SCHEMA_VERSION} (current).")
-    else:
-        print(f"Database is at schema v{version}, expected v{SCHEMA_VERSION} -- no migration path available yet.")
-        sys.exit(1)
+        if version == SCHEMA_VERSION:
+            print(f"Database is at schema v{SCHEMA_VERSION} (current).")
+        else:
+            print(f"Database is at schema v{version}, expected v{SCHEMA_VERSION} -- no migration path available yet.")
+            sys.exit(1)
 
-    # The control schema (admin_users/admin_sessions/admin_api_keys/
-    # admin_audit_log) is a separate schema from the content database just
-    # migrated above (see control_schema.sql's header comment) -- ensured/
-    # seeded here too so a fresh deploy's first admin login exists without
-    # a separate manual step. Reuses this same account's host/user/password
-    # (the full-access account this script already runs as, same as
-    # install.sh's existing step 2) against the control schema's own name
-    # instead of the content database's.
-    try:
-        seeded = auth.bootstrap_control_schema(control_mysql_config(config))
-    except Exception as exc:
-        print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
-        sys.exit(1)
-    if seeded is not None:
-        print_initial_admin_login(*seeded)
-    print("Control schema (admin logins) is up to date.")
+        # The control schema (admin_users/admin_sessions/admin_api_keys/
+        # admin_audit_log) is a separate schema from the content database just
+        # migrated above (see control_schema.sql's header comment) -- ensured/
+        # seeded here too so a fresh deploy's first admin login exists without
+        # a separate manual step. Reuses this same account's host/user/password
+        # (the full-access account this script already runs as, same as
+        # install.sh's existing step 2) against the control schema's own name
+        # instead of the content database's.
+        try:
+            seeded = auth.bootstrap_control_schema(control_mysql_config(config))
+        except Exception as exc:
+            print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
+            sys.exit(1)
+        if seeded is not None:
+            print_initial_admin_login(*seeded)
+        print("Control schema (admin logins) is up to date.")
 
 
 if __name__ == "__main__":

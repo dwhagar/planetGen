@@ -53,6 +53,7 @@ os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-te
 
 # Maintenance mode's state file (UX.112) stays out of the real /var/lib/planetGen, and the autouse fixture
 # `_site_open` below removes it before every test, since a test that migrates an old database turns it on.
+os.environ["PLANETGEN_STATE_DIR"] = tempfile.mkdtemp(prefix="planetgen-test-state-")
 os.environ["PLANETGEN_MAINTENANCE_FILE"] = os.path.join(tempfile.mkdtemp(prefix="planetgen-test-maintenance-"),
                                                         "maintenance.json")
 
@@ -541,8 +542,13 @@ def key_prefix(redis_server):
 
 @pytest.fixture(autouse=True)
 def _site_open():
-    """Every test starts with maintenance mode off (UX.112)."""
+    """Every test starts with maintenance mode off (UX.112) and no update running (OPS.41)."""
     try:
         os.unlink(os.environ["PLANETGEN_MAINTENANCE_FILE"])
+    except FileNotFoundError:
+        pass
+    from planetgen.admin import updateguard
+    try:
+        os.unlink(updateguard.lock_path())
     except FileNotFoundError:
         pass
