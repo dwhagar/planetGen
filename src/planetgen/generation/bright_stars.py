@@ -55,6 +55,7 @@ import numpy as np
 
 from planetgen.physics import constants, metallicity
 from planetgen import tuning
+from planetgen.galaxy.component_field import KINDS_IN_THE_GATE
 from planetgen.galaxy.density import population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
     band_center_pc,
@@ -151,8 +152,13 @@ def _in_range(row, min_luminosity_sol, max_luminosity_sol):
 
 def _densities(position_pc, shape):
     """`population_densities`, with a negative term (a shape with a
-    negative bulge amplitude) counted as none."""
-    return {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
+    negative bulge amplitude) counted as none, and the clusters' and satellites' systems counted as none: the scatter
+    pre-places no component star (they are filled, GEN.161, or scattered by their own pass, GEN.240), which is what
+    `_densities_at` and the band majorants already assume."""
+    found = {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
+    for kind in KINDS_IN_THE_GATE:
+        found[kind] = 0.0
+    return found
 
 
 def _densities_at(points, z, shape):
