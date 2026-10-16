@@ -37,3 +37,25 @@ def test_needs_and_unblocks_mirror_each_other():
     for item_id, it in items.items():
         for dep in it["deps"]:
             assert item_id in items[dep]["unblocks"]
+
+
+def test_progress_counts_every_open_item_once_and_matches_the_ledger():
+    data = build_todo_docs.build_data(build_todo_docs.ROOT)["plan"]
+    progress = data["progress"]
+    assert sum(t["open"] for t in progress["tiers"]) == len(data["items"])
+    for t in progress["tiers"]:
+        assert t["total"] == t["done"] + t["open"]
+        assert t["pct"] == (round(100 * t["done"] / t["total"], 1) if t["total"] else 0.0)
+    assert progress["tiers"][0]["key"] == "0" and progress["tiers"][0]["open"] == 0
+
+
+def test_a_finished_item_without_a_ledger_row_fails_the_build():
+    items = {"GEN.1": {"status": "done", "statusText": "done, PR #9999", "phase": ""}}
+    try:
+        build_todo_docs.build_progress(items, {}, 1000, [])
+    except SystemExit as err:
+        assert "GEN.1" in str(err) and "progress-ledger.md" in str(err)
+    else:
+        raise AssertionError("a retired item with no ledger row must fail the build")
+    done = build_todo_docs.build_progress(items, {"GEN.1": "2"}, 1000, [])
+    assert done["tiers"][2]["done"] == 1
