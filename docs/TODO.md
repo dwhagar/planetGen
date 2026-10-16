@@ -918,6 +918,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
   Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
+  Owner: Core 2 (Boss, 2026-10-16, 11:32 AM EDT), right after MAP.152; the 8.1 headline.
 
 - [ ] **MAP.147 The Galaxy Map wire format: the investigation (done) and the record of what was built from it**
   Boss (2026-10-09 22:41Z): "File section 5.6 as an item please, and
@@ -1002,6 +1003,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switch (PR #1607) replaced the cylinder grid this item assumed (plan:
   docs/design/spherical-sector-coordinates.md section 4).
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+  Owner: Core 2 (Boss, 2026-10-16, 11:32 AM EDT: "move MAP.152 and get it assigned"), first in its queue after the in-flight PERF.104 step; MAP.146 follows it.
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
