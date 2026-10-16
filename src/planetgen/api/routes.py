@@ -1068,6 +1068,10 @@ def galaxy_profile():
     body["in_galaxy"] = bounds.qualifies(address[0], address[1]) if bounds is not None else None
     body["unresolved"] = unresolved_of(conn, {"placed": True, "shell_index": address[0], "band_index": address[1],
                                               "wedge_index": address[2]})
+    resolution = cell_resolution(profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol,
+                                 store.bright_star_mass_limit(conn))
+    body["estimate"] = run_galaxy.estimate_cell(profile.density, resolution.resolved_systems,
+                                                config=_resolve_requested_db_config())
     return jsonify(body)
 
 

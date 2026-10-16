@@ -325,7 +325,9 @@ connectivity to that specific schema rather than the default one.
   `radius_pc`, `ambient_density_cm3`, `temperature_k`, `center_pc`, `centre_distance_pc`), `dark_matter`
   (`density_solar_pc3`, `mass_solar`), `kind_factors` (kind -> the factor the place applies to that kind's rate per star),
   `sector_id` (the generated sector there, or `null`), `in_galaxy` (as in `/api/galaxy/cell`) and `unresolved` (as on a
-  sector: what a cell above the cell star ceiling leaves unresolved, else `null`). `404` before a galaxy is planned,
+  sector: what a cell above the cell star ceiling leaves unresolved, else `null`) and `estimate` (UX.113: what filling this one
+  cell would make and take, from this server's stored speeds and sizes: `systems`, `stars`, `bytes`, `seconds`, and
+  `measured`, whether the speed is this server's own). `404` before a galaxy is planned,
   `400` for a bad or incomplete query, a negative shell, a cell that does not exist or one past the grid's outermost
   shell.
 - `GET /api/galaxy/uncharted?shell=<i>&band=<j>&wedge=<k>` — one cell's

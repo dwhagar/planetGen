@@ -1,0 +1,28 @@
+{#- The Sector Profile panel (UX.113, web/profile_view.py): what the program expects in a cell, charted or not. -#}
+{% macro profile_panel(view) %}
+<section class="panel" id="sector-profile" aria-labelledby="profile-heading">
+  <h2 id="profile-heading">Profile</h2>
+  <p class="hint">What the galaxy's shape says this place holds, worked out from its address alone; it is the same rule set everywhere in the galaxy. {{ view.region }}: about {{ view.expected_systems }} star systems expected in the cell (relative density {{ view.density }}).</p>
+  {%- if view.rows %}
+  <div class="table-scroll" tabindex="0"><table>
+    <caption>Stellar populations here</caption>
+    <thead><tr><th scope="col">Population</th><th scope="col">Share</th><th scope="col">Age (Gyr)</th><th scope="col">[Fe/H]</th><th scope="col">Velocity dispersion</th><th scope="col">Motion</th></tr></thead>
+    <tbody>
+    {%- for row in view.rows %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.share_percent }}%</td><td>{{ row.age }}</td><td>{{ row.fe_h }}</td><td>{{ row.dispersion }}</td><td>{{ row.rotation }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- else %}
+  <p class="hint">No stars are expected here.</p>
+  {%- endif %}
+  <p class="sector-details"><strong>Gas:</strong> {{ view.gas.ambient }}, about {{ view.gas.ambient_density_cm3 }} atoms per cm³, {{ view.gas.mass_solar }} solar masses in the cell. Molecular gas is {{ view.gas.cold_percent }}% of the solar circle's.
+  {%- if view.gas.superbubble %} The place lies in a cavity {{ "%g"|format(view.gas.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(view.gas.superbubble.centre_distance_pc) }} pc from its centre, where no molecular cloud survives.{% endif %}</p>
+  <p class="sector-details"><strong>Dark matter:</strong> {{ view.dark_matter.density_solar_pc3 }} solar masses per pc³ at the centre of the cell, {{ view.dark_matter.mass_solar }} solar masses in it. It pulls and makes no stars.</p>
+  {%- if view.heavy %}
+  <p class="hint" id="heavy-cell" role="status"><strong>Heavy cell:</strong>
+  {%- if view.unresolved %} it expects about {{ num(view.unresolved.expected_systems) }} systems, more than the {{ num(view.unresolved.ceiling_systems) }} a cell resolves, so only the stars at or above {{ num(view.unresolved.luminosity_cap_sol) }} solar luminosities are made and the other {{ num(view.unresolved.unresolved_systems) }} are worked out from the address.{% endif %}
+  {%- if view.heavy.slow %} Filling it takes about {{ view.heavy.time }} on one worker and {{ view.heavy.size }} of database{% if not view.heavy.measured %} (speed not yet measured on this server){% endif %}.{% endif %}</p>
+  {%- endif %}
+</section>
+{% endmacro %}

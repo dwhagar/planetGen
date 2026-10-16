@@ -114,3 +114,13 @@ def test_bad_queries_are_clean_400s_and_an_unplanned_galaxy_is_a_404(client, mys
         response = client.get("/api/galaxy/profile?" + query)
         assert response.status_code == 400, query
         assert "error" in response.get_json(), query
+
+
+def test_the_profile_carries_the_size_and_time_of_charting_the_cell(client, mysql_config):
+    """UX.113: `estimate` is the one-cell fill's expected systems, stars, bytes and seconds, from the stored speeds."""
+    _plan(mysql_config)
+    body = client.get("/api/galaxy/profile?shell=40&band=0&wedge=3").get_json()
+    estimate = body["estimate"]
+    assert set(estimate) == {"systems", "stars", "bytes", "seconds", "measured"}
+    assert estimate["systems"] >= 0 and estimate["stars"] >= estimate["systems"]
+    assert estimate["seconds"] > 0 and estimate["bytes"] > 0
