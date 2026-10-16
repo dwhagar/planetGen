@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1445] - 2026-10-16
+
+**Headline:** GEN.158's model slice is recorded, DB.33 has an owner, and the tuning header rule is filed as DOC.53.
+
+### Changed
+
+- GEN.158 notes the merged model slice (#1739); the stored column (revision 0094) and the sector-page display stay open.
+- DB.33 is Core 2's to fix; the earlier "unowned" wording is corrected.
+- TEST.163 records Core 2's load sighting on a newer tree.
+- DOC.53 is filed: the tuning.py header names the rule for a new signed constant (a dict or a positive "fall").
+
+TODO items resolved: none / Added: DOC.53
+
 ## [8.0.1444] - 2026-10-16
 
 **Headline:** Every star now has a metallicity, and a metal-poor star's disk holds fewer solids.
