@@ -491,7 +491,7 @@ Parents marked "new parent" had no old number of their own.
 | API.4 | API compatibility data in the docs | none | open |
 | API.5 | API version and compatibility checking | none | open |
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | none | open |
-| API.7 | Investigate and plan upload limits | none | done, PR #PRNUM |
+| API.7 | Investigate and plan upload limits | none | done, PR #1849 |
 | API.8 | Verify uploaded data before it is finalized | none | open |
 | API.9 | Key scopes | none | done, PR #1033 |
 | API.10 | Reservations: claimed sectors and id blocks per run | none | open |
@@ -582,7 +582,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
-| DOC.4 | Correct the stale statements the research found in docs, docstrings and comments | none | done, PR #PRNUM |
+| DOC.4 | Correct the stale statements the research found in docs, docstrings and comments | none | done, PR #1849 |
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | none | done, PR #1075 |
 | DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test | none | open |
 | DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box | none | open |
@@ -645,7 +645,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.6 | Finish the correlative update (galactic motion) | 27 (2026-09-30 18:14Z); 32 (2026-09-30 18:39Z to 2026-10-01 02:35Z) | done in 7.37.0, PR #157 |
 | GEN.7 | Star population and bright stars (new parent) | none | done |
 | GEN.8 | Give rogue planets a planet class, with a rogue flag in the class constants | 106 (2026-10-01 05:43Z to 05:54Z) | done, PR #245 |
-| GEN.9 | Plan for more than one galaxy in the database | none | done, PR #PRNUM |
+| GEN.9 | Plan for more than one galaxy in the database | none | done, PR #1849 |
 | GEN.10 | Generate nebulae and remnants with their stars, and map them | 27 (2026-09-30 18:39Z to 2026-10-01 03:53Z) | done in 7.30.0 (PR #144), 7.36.0 (PR #153) and 7.41.1 (PR #148) |
 | GEN.11 | Class nebulae and remnants A-W | 28 (2026-09-30 18:39Z to 23:32Z) | done in 7.19.0, PR #138 |
 | GEN.12 | Record what sits inside a nebula | 29 (2026-09-30 18:39Z to 2026-10-01 00:35Z) | done in 7.24.0, PR #140 |
@@ -748,7 +748,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | none | open |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | none | open |
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | none | open |
-| GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | done, PR #PRNUM |
+| GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | done, PR #1849 |
 | GEN.113 | Analyze the anomaly docs: which anomalies to add and how | none | done, PR #1721 |
 | GEN.114 | Add the chosen anomalies to the starmap | none | split into GEN.254, GEN.255, GEN.256 and GEN.257 (2026-10-15) |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
@@ -1146,7 +1146,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | open |
-| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | done, PR #PRNUM |
+| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | done, PR #1849 |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | done, PR #1160 |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | done, PR #1141 |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | done, PR #1382 |
