@@ -396,6 +396,9 @@ function enhance(root) {
 
   // Everything has to be fetched again from the first row.
   let loadToken = 0;
+  // True after a reload that got no rows, so Apply filters can ask again.
+  let reloadFailed = false;
+
   function reload() {
     loadToken += 1;
     const mine = loadToken;
@@ -403,7 +406,11 @@ function enhance(root) {
     drawn = "";
     root.setAttribute("aria-busy", "true");
     return store.ensure(0).then((loaded) => {
-      if (mine !== loadToken || !loaded) {
+      if (mine !== loadToken) {
+        return;
+      }
+      reloadFailed = !loaded;
+      if (!loaded) {
         return;
       }
       root.removeAttribute("aria-busy");
@@ -466,9 +473,18 @@ function enhance(root) {
 
   if (filterForm) {
     filterForm.addEventListener("change", filtersFromForm);
+    // Apply filters: before the table has its own rows (still loading, or the load failed) the form goes to the
+    // server as it always did; once it is live the button applies the filters here, and asks again if the last
+    // fetch failed.
     filterForm.addEventListener("submit", (event) => {
+      if (root.dataset.enhanced !== "true") {
+        return;
+      }
       event.preventDefault();
       filtersFromForm();
+      if (reloadFailed) {
+        reload();
+      }
     });
     if (clearLink) {
       clearLink.addEventListener("click", (event) => {
