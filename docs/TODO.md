@@ -616,6 +616,8 @@ with `clamp()`.
   #1784): call galaxy.profile.sector_profile(address, skeleton) for the
   profile and GalaxyBounds.describe_miss for the "outside the outline"
   line.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 3).
   Prerequisite: API.27. Related: GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -633,6 +635,8 @@ with `clamp()`.
   companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
   catalogue), hierarchical trees only, a row's members deleted when its
   sector builds it, pair rates from the middle of the evidence.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 6).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
@@ -1712,6 +1716,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.311 (Core 3, after DB.53)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.311. Related: GEN.129.
 
 - [ ] **MAP.214 Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space**
@@ -2193,7 +2201,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     chain of wraps, 40 tiny spheres on a long line, an overlapping pair,
     a scene shifted by 2e4 pc (same answer). Say "short detour", not
     "shortest".
-    Prerequisites: NAV.55, NAV.56.
+    Waits on NAV.62: the study of how the gravity of the stars a cell
+    leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
+    Prerequisites: NAV.55, NAV.56, NAV.62.
 
   - [ ] **NAV.27 Moving bodies inside a system**
     Inside a system the planets move. Done: the in-system planner uses
@@ -2286,6 +2296,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cell key through NAV.60 and the radius ladder and early-stop count of
   NAV.61, so it stays fast in the dense core and shows "300+" from the
   capped count.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 7).
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
   Boss (2026-10-07 11:47Z): "Then you can go find another location
@@ -2432,8 +2444,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spherical sector layout is, then we'll skip it and move to the next
   sequence until it's finished research and we can plan it." The
   research is finished and merged (#1659), so stage C is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: NAV.60 (Core 2). Core 4 takes it when it unblocks.
   Prerequisite: NAV.60. Related: NAV.12, NAV.44, NAV.45.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
+
+- [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
+  Boss (2026-10-16, 5:01 PM EDT, on the cell cap of GEN.364): "in the
+  core there are just too many stars to make all of them, no matter how
+  scientifically accurate it would be. I would like to figure out how we
+  can account for the gravity of items left out, but let's put that as a
+  TODO for the courses that bend around gravity wells phase." A cell
+  that expects more systems than its cap resolves the brightest and
+  leaves the rest unmade; GEN.281 already derives the unresolved count
+  and mass of a cell from its address (`galaxy/resolution.py`), from the
+  same density model as every other cell. Done: a written study (a
+  section in docs/design/realistic-galactic-core.md) that says how the
+  pull of that unresolved mass is added: as a smooth field summed per
+  cell from the derived unresolved mass and the cell centre, how it
+  joins the galactic potential of GEN.285 and the keep-out spheres of
+  NAV.54, whether a course that bends around wells (NAV.26) and the
+  orbital update need it at every zoom or only inside the dense core,
+  its cost per query, and a recommendation with the work it needs as new
+  items. No fixed table: the mass comes from the density model and the
+  address, never from a stored list. No build in this item. Owner: not
+  assigned; the courses lane of 8.5.
+  Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
+  NAV.26, NAV.6.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 ## GEN: Generation and physics
 
@@ -2980,6 +3019,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not pre-fill; keep lazy fill. Decided (Boss, 2026-10-10 18:44Z,
   defaults approved; default no):
   do you still want the sparse rim filled?
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 4).
 
 - [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
   Boss (2026-10-07 11:47Z): "Research and add tiered structure
@@ -3000,6 +3041,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-kind factors are built (GEN.234, GEN.236); what is left is the
   population-dependent rules for the type draws. Fold into GEN.269 or
   close once GEN.270 to GEN.275 land.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
@@ -3493,6 +3536,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.317, GEN.318.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
@@ -3504,6 +3550,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by radius (peak at 5 kpc, -0.28 dex per kpc beyond, the dip inside 3
   kpc), the B share and the bulge's young tail, without the Central
   Molecular Zone, which GEN.282 owns.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 11; start
+  after Core 3 merges GEN.283 and GEN.333 (tuning.py and the profile)).
   Prerequisites: none. Related: GEN.133 (done).
 
 - [ ] **GEN.135 Deterministic math helpers for every stored float, with a lint and frozen constants**
@@ -3723,6 +3772,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.324.
 
@@ -3754,6 +3806,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.325, GEN.326.
 
@@ -3773,6 +3828,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.317.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -4529,6 +4587,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; ready: no blocker). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: none. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4552,6 +4614,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.318.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4613,6 +4679,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.242, GEN.320. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4653,6 +4722,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: none. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4691,6 +4763,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -4717,6 +4792,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 9; start
+  after Core 3 merges UX.116 (Generate page)).
   Prerequisite: GEN.261. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4775,6 +4853,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -4808,6 +4889,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisite: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4839,6 +4924,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3) and GEN.253). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.269, GEN.253. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4868,6 +4957,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
@@ -4904,6 +4997,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.274 Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova**
@@ -4941,6 +5037,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.329 and GEN.330 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.275 Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets**
@@ -4976,6 +5076,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.331 and GEN.332 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.331, GEN.332. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -5076,6 +5180,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and dispersion (from GEN.280) into the one survival function that the
   first child of GEN.162 builds, and add the survival table as a test;
   no second cull.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.325 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.325. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5472,50 +5579,51 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.159).
   Prerequisites: none. Related: GEN.158, MAP.211.
 
-- [ ] **GEN.297 Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback**
-  Follow-up from Core 2 (2026-10-16, 7:52 AM EDT, GEN.159 merged as
-  #1810, migration 0097): the cluster table (galaxy_components), the
-  King tables and solver and a synthetic generator are built; the Milky
-  Way's own catalogue (the Harris globular cluster file, about 150
-  clusters with position, distance, [Fe/H], mass, King concentration and
-  age) is not loaded and waits on Boss's file. Done: a loader (a CLI
-  step, no hand-edited data) imports it into
-  galaxy_components with its source recorded, the Milky Way uses the
-  catalogue rows instead of generated clusters, a test pins a few
-  well-known clusters (47 Tuc, Omega Centauri, M13) against the file,
-  and the design note records the file's version and licence. Owner:
-  Core 3, in the cluster line (the file arrived 2026-10-16, 3:04 PM EDT).
-  Decided (Boss, 2026-10-16, 2:51 PM EDT, decision card, and 2:52 PM EDT):
-  the globular clusters are built from the synthetic generator now, and this item
-  updates them from the Harris file once Boss supplies it: the catalogue rows replace the synthetic ones, and the generator stays as the fallback for any cluster the catalogue lacks.
-  Boss asked for the item, so this is it. The file arrived (Boss, 2026-10-16, 3:04 PM EDT), so nothing outside waits any more and the item moved into 8.1 with the other cluster items.
-  The file (Boss, 2026-10-16, 3:04 PM EDT; kept at
-  /mnt/project-files/data/harris/mwgc.dat, Harris 1996 (2010 edition),
-  December 2010 revision): 157 clusters in three parts. Part I has the
-  name, RA and Dec, galactic longitude and latitude, the distance from
-  the Sun and from the Galactic centre (R0 = 8.0 kpc) and X, Y, Z; Part
-  II the [Fe/H], reddening, V magnitude of the horizontal branch,
-  distance modulus, integrated V, M_V, the colours, spectral type and
-  ellipticity; Part III the radial velocity, dispersion, King
-  concentration c (a 'c' marks a core-collapsed cluster), core and
-  half-light radii in arcminutes, central surface brightness and
-  luminosity density, and the relaxation times. It has NO mass and NO
-  age, which the first text of this item assumed: the loader takes the
-  mass from M_V with a stated mass-to-light ratio (recorded with the
-  source) and the age from a stated rule or a second table, and says so
-  in the design note; gaps in a column (several clusters have no
-  dispersion or ellipticity) fall back to the generator. Licence: free
-  to use if the original source is named; cite 'Harris 1996 (2010
-  edition)' in the design note and the file header.
-  GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the component table
-  exists, so this item can load the file as soon as GEN.324 is in.
-  Boss (2026-10-16, 4:00 PM EDT) said identical copies of the Milky Way
-  make no sense in a random galaxy, and the same logic applies to these
-  157 real clusters. Open question for Boss, put on a decision card:
-  keep the Harris rows as the default for every galaxy, or
-  as an optional Milky Way preset with the seeded generator as the
-  default. This item builds the loader either way; the card decides
-  which galaxies use it.
+- [ ] **GEN.297 Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy**
+  Boss (2026-10-16, 4:11 PM EDT, in the TODO thread): "There should be
+  no option to pick a Milky Way preset. The Harris file is designed to
+  give you an idea of how to build the procedure to generate a realistic
+  galaxy." Follow-up from Core 2 (2026-10-16, 7:52 AM EDT, GEN.159
+  merged as #1810, migration 0097): the cluster table
+  (galaxy_components), the King tables and solver and a seeded generator
+  are built. Done: the Harris file (kept at
+  /mnt/project-files/data/harris/mwgc.dat) is read by a reference reader
+  used by the tests and the design note, never loaded into a galaxy; the
+  generator's laws (the count from the halo and bulge mass, the mass
+  function, the radial profiles of the halo and bulge groups, the
+  bimodal [Fe/H], the King concentration, the age spread) are calculated
+  or derived from published science and checked against the file's
+  distributions statistically, not row for row; a test shows the
+  generated population matches the file's medians and spreads within
+  stated bounds; the design note records the file's version, licence and
+  the mass-to-light assumption. There is no Milky Way option and no real
+  cluster (47 Tuc, Omega Centauri, M13) appears by name. Owner: Core 3,
+  in the cluster line. The file arrived 2026-10-16, 3:04 PM EDT. The
+  file: Harris 1996 (2010 edition), December 2010 revision, 157 clusters
+  in three parts. Part I has the name, RA and Dec, galactic longitude
+  and latitude, the distance from the Sun and from the Galactic centre
+  (R0 = 8.0 kpc) and X, Y, Z; Part II the [Fe/H], reddening, V magnitude
+  of the horizontal branch, distance modulus, integrated V, M_V, the
+  colours, spectral type and ellipticity; Part III the radial velocity,
+  dispersion, King concentration c (a "c" marks a core-collapsed
+  cluster), core and half-light radii in arcminutes, central surface
+  brightness and luminosity density, and the relaxation times. It has no
+  mass and no age: the reader takes mass from M_V with a stated
+  mass-to-light ratio and says so; gaps in a column fall back to the
+  generator's own laws. Licence: free to use if the original source is
+  named; cite "Harris 1996 (2010 edition)" in the design note and the
+  file header. GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the
+  component table exists.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
   Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
@@ -6536,6 +6644,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.99's regenerate in place. Done: a system inside a seeded nebula
   gets the cloud while it is generated, a system outside is
   byte-identical.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: DB.59 (Core 2). Core 4 takes it when it unblocks.
   Prerequisites: DB.59. Related: GEN.95.
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
@@ -6631,24 +6742,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.362. Related: GEN.112, GEN.139.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.364 Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling**
-  Decided by Boss (2026-10-16, 1:46 PM EDT, in the GEN.280 thread),
-  recorded by the TODO thread. The per-cell cap is 5,000 systems and it
-  is adaptive: a cell makes min(expected, cap) systems; above the cap
-  the luminosity floor of that cell rises until what is resolved fits
-  the cap, taking the brightest stars first, and the unresolved count
-  and mass come from the address as GEN.281 does. There is no step at
-  the ceiling: a cell just above the cap loses only its faintest stars.
-  Owner Core 3, built with GEN.280, goal issue #1677. Done: the fill
-  reads the cap from one named setting, raises the per-cell floor to
-  fit, never stores more than the cap, and a math check shows the stored
-  plus unresolved count and mass equal the expected totals on cells
-  below, at and above the cap. GEN.303 wires the cap to
-  `generation.cell_cap` and ADM.84.
-  GEN.280 merged (#1855, 2026-10-16, 3:31 PM EDT). Core 3 builds this
-  next with migration 0100 (the 5,000 cell ceiling default).
-  Prerequisites: GEN.280. Related: GEN.281, GEN.280, GEN.303, GEN.283.
-
 - [ ] **GEN.365 Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. The radius
   stored for a hot white dwarf or the central star of a planetary nebula
@@ -6661,7 +6754,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from L and T.
   Prerequisites: none. Related: GEN.149.
 
-- [ ] **GEN.366 Check the real Milky Way satellite rows against McConnachie 2012: they matter only for the optional preset**
+- [ ] **GEN.366 Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible**
   Found by a lane (2026-10-16), filed by the TODO thread. The table of
   Milky Way satellites (11 rows) was written from memory of McConnachie
   (2012) and is unverified. Done: every row (position, distance,
@@ -6674,8 +6767,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A galaxy planned before #1851 has no satellites until `planetgen plan`
   runs again on it.
   Folded into GEN.369 (Boss, 2026-10-16, 4:01 PM EDT, "Draw them"): the
-  real rows are kept only as an optional Milky Way preset, so this check
-  matters only for that preset and waits on GEN.369.
+  real rows are kept only as reference data for the plausibility test of
+  GEN.369, with no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so
+  this check matters only for that test and waits on GEN.369.
   Prerequisites: GEN.369.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
@@ -6703,7 +6797,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   share, arm count, halo mass), the central black hole mass and the
   nuclear cluster from their mass relations, the home position, and the
   rotation curve and enclosed mass. Each row gives its law, its
-  parameters, the sources named, and what the Milky Way preset keeps.
+  parameters, the sources named, and the source it comes from; there is
+  no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so the real
+  values appear only as reference data for plausibility tests.
   Boss reads and approves the table before any build. The fixed places
   found on 2026-10-16 (TODO thread survey): MILKY_WAY_SATELLITES (11
   copied rows, generation/satellites.py); the Harris clusters of GEN.297
@@ -6735,10 +6831,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   disk. Each link names its source in the doc and the code. The real
   Milky Way rows serve only as a check that the derived population looks
   plausible.
+  Boss (2026-10-16, 4:11 PM EDT, in the TODO thread): "There should be
+  no option to pick a Milky Way preset. The Harris file is designed to
+  give you an idea of how to build the procedure to generate a realistic
+  galaxy." The Milky Way is a reference for building and checking the
+  laws, never selectable content.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
+  This widens the survey from the Milky Way to all fixed content: any
+  catalogue, table of named objects, preset, hand-placed object or
+  hand-set value that stands for content rather than for a physical
+  constant. Each row of the table is replaced by a derived or calculated
+  law, with a seeded draw only where the science gives a distribution.
+  The item also keeps a list of the pieces that cannot be looked up,
+  each with what is needed and why, and hands it to Boss as research
+  requests (the TODO thread puts them to him).
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age follow stated laws, and the real Milky Way list stays only as an optional preset**
+- [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
   Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
   them" on the decision card at 4:01 PM EDT): asked whether the
   satellites are placed as in the Milky Way, said this is a random
@@ -6754,7 +6873,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/intergalactic-and-halo-contents.md section 8, item 2.
   Done: `place_satellites` draws the population from
   `unit_seed(galaxy_seed, ...)` through the laws GEN.368 sets, the real
-  rows move to a named Milky Way preset that is off by default, a test
+  rows are removed from the generator and kept only as reference data
+  for the plausibility test of GEN.366 (Boss, 2026-10-16, 4:11 PM EDT:
+  no option to pick a Milky Way preset), a test
   shows two seeds give different populations and one seed gives the same
   one, and the count scales with the halo mass. Owner: Core 1 (the code
   owner), after the global top 5 blockers unless Boss moves it up; the
@@ -6789,6 +6910,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   disk. Each link names its source in the doc and the code. The real
   Milky Way rows serve only as a check that the derived population looks
   plausible.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -6844,6 +6975,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Each link names its source in the doc and the code. The real Milky Way
   rows serve only as a check that the derived population looks
   plausible.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -8430,6 +8571,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   #1784): call galaxy.profile.sector_profile(address, skeleton) for the
   profile and GalaxyBounds.describe_miss for the "outside the outline"
   line.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 2).
   Prerequisite: GEN.235. Related: UX.113, API.15.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -9958,6 +10101,9 @@ clears each one.
   body first. Done: each test exists and runs in the normal suite.
   Owner: Quality (all TEST items are Quality's), written beside the
   build step.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: TEST.186 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: TEST.186. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -9983,6 +10129,10 @@ clears each one.
   sector builds it, pair rates from the middle of the evidence.
   The multiplicity checks as census checks on the harness (2026-10-16
   review).
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.315 and TEST.186 (Core 3). Core 4 takes it when it
+  unblocks.
   Prerequisites: GEN.315, TEST.186. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -10009,6 +10159,10 @@ clears each one.
   GEN.329, TEST.186. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.269-272, 275, 327, 329 and TEST.186. Core 4 takes it when
+  it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **TEST.165 Re-measure the region query on a real generated galaxy, warm and cold**
@@ -10027,6 +10181,9 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.276 (Core 2). Core 4 takes it when it unblocks.
   Prerequisite: GEN.276. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -10041,6 +10198,8 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 1).
   Prerequisite: DB.34. Related: DB.35, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -10426,6 +10585,35 @@ clears each one.
   asserts the real directory is untouched. Fails on main: no failure, a
   side effect on every run. Frequency: every run. Reproducer: run the
   plan tests and list the jobs directory.
+  Prerequisites: none.
+
+- [ ] **TEST.192 The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug)**
+  Found by the Settings lane (2026-10-16, 4:57 PM EDT), filed by the
+  TODO thread. Hypothesis finds an example where `model - halo_density`
+  is 1.4882030977187565e-12 minus 1.488203070457534e-12, about 2.7e-20
+  apart, against a bound of 2.7261222351049663e-20, so the assertion
+  `(model - halo_density) <= bound*(1+1e-9)+1e-300` fails by rounding:
+  the two halo terms are about 1e-12 and agree to 8 digits, so the
+  subtraction cannot resolve a bound of 1e-20. Done: the test (or the
+  bound) allows for the rounding of the halo term, scaled by the size of
+  the halo density and not by the bound alone, and the same example
+  passes; no loosening of the real property that the skeleton bound is
+  an upper bound. Fails on main: not run on a clean main; the Settings
+  lane branch does not touch galaxy code, so probably yes. Frequency:
+  found in one `scripts/test.py changed` run, and it should repeat while
+  the example sits in the .hypothesis database. Reproducer:
+  `build_galaxy_shape(disk_scale_length_pc=50.0,
+  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
+  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
+  arm_amplitude=0.0)` with r_cyl=0.0, z=36706.0, theta=0.0, in
+  src/tests/test_fuzz_galaxy_grid.py. Owner: Core 1, in its bug phase
+  (flaky tests last; fix the cause, no quarantine).
+  Core 3 hit the same failure independently (2026-10-16, 4:58 PM EDT):
+  once in about 17,900 tests in a 76 minute run, so Hypothesis finds it
+  only sometimes. Its diagnosis: the model and the halo density cancel to
+  the bound itself, and the subtraction's rounding error (about 1e-28)
+  is larger than the 1e-9 tolerance on 2.7e-20 (2.7e-29). Suggested fix:
+  a tolerance relative to the model, such as `bound*(1+1e-9) + 1e-12*model`.
   Prerequisites: none.
 
 ## USR: User accounts

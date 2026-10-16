@@ -1516,6 +1516,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (100, _check_marker("chk_galaxy_shape_cell_star_ceiling", "cell_star_ceiling")),
     (99, _column_marker("galaxy_shape", "nuclear_amplitude")),
     (98, _column_marker("galaxy_shape", "fill_luminosity_cap_sol")),
     (97, _table_marker("galaxy_components")),

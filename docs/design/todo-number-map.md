@@ -15,14 +15,14 @@ release is stamped.
 |---|---|
 | UX | UX.134 |
 | MAP | MAP.234 |
-| NAV | NAV.62 |
+| NAV | NAV.63 |
 | GEN | GEN.372 |
 | PERF | PERF.111 |
 | DB | DB.65 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.192 |
+| TEST | TEST.193 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.59 |
@@ -933,7 +933,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | none | open |
 | GEN.295 | Nebulae as point groups whose shape follows the orbital update (design and research) | none | open |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars | none | open |
-| GEN.297 | Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback | none | open |
+| GEN.297 | Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy | none | open |
 | GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in | none | open |
 | GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | open |
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | open |
@@ -1000,12 +1000,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.361 | The asteroid field page has a 3D view | none | open |
 | GEN.362 | Rocks are instanced meshes in chunks with three levels of detail, within a frame budget | none | open |
 | GEN.363 | Belt bodies move on the GPU: the vertex shader solves Kepler from per-instance elements | none | open |
-| GEN.364 | Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling | none | open |
+| GEN.364 | Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling | none | done, PR #1868 |
 | GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) | none | open |
-| GEN.366 | Check the real Milky Way satellite rows against McConnachie 2012: they matter only for the optional preset | none | open |
+| GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | none | open |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae | none | open |
 | GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | open |
-| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age follow stated laws, and the real Milky Way list stays only as an optional preset | none | open |
+| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | none | open |
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | open |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
@@ -1302,6 +1302,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | none | open |
 | NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | none | open |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | none | open |
+| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -1976,6 +1977,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | open |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | open |
 | TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database | none | open |
+| TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

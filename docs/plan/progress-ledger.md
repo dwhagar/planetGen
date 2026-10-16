@@ -706,3 +706,4 @@ Baseline: PR #1817.
 | ADM.87 | 8.1 | Settings page |
 | ADM.83 | 8.1 | Settings page |
 | MAP.226 | 8.1 | Fly-through map |
+| GEN.364 | 8.1 | Galactic core and halo |
