@@ -670,6 +670,16 @@ CLUSTER_HALO_RADIUS_RANGE_PC = (1000.0, 120000.0)
 CLUSTER_HALO_DISPERSION_KMS = 110.0
 CLUSTER_BULGE_DISPERSION_KMS = 60.0
 
+# A cluster's density in the sector gate (`galaxy/cluster_field.py`, GEN.160): the density a cell gets is the cluster's
+# systems inside the cell over the systems a cell holds at density 1, so the cube is integrated: on
+# `CLUSTER_CELL_SUBSAMPLES` points a side within `CLUSTER_NEAR_EDGES` cell edges of a cluster's centre (where its core
+# varies faster than a cell) and at the centre alone beyond. The skeleton's bound grows a cluster by
+# `CLUSTER_BOUND_SLACK_EDGES` cell edges so a band that holds part of one still qualifies.
+CLUSTER_CELL_SUBSAMPLES = 6
+CLUSTER_NEAR_EDGES = 3.0
+CLUSTER_BOUND_SLACK_EDGES = 2.0
+CLUSTER_GRID_PC = 1024.0
+
 # The galaxy density model's fixed Milky Way structure
 # (`galaxy.density`, GEN.118, GEN.119): everything that isn't a
 # `GalaxyShape` field, as ratios to those fields so it scales with the

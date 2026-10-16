@@ -50,12 +50,15 @@ GalaxyShape = namedtuple(
         "bulge_scale_radius_pc", "bulge_amplitude",
         "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "core_amplitude",
         "spiral_reference_radius_pc", "spiral_reference_angle_rad",
-        "k_norm",
+        "k_norm", "clusters",
     ],
+    defaults=(None,),
 )
 """A galaxy's disk/bulge/spiral shape, at whatever physical scale the
 caller chooses -- see `GalaxyShape.build` to construct one with `k_norm`
-computed automatically rather than guessed."""
+computed automatically rather than guessed. `clusters` is the galaxy's
+`galaxy.cluster_field.ClusterField` (GEN.160), `None` for a galaxy without
+globular clusters; it is not part of the stored shape row."""
 
 
 def _sech_squared(x):
@@ -223,7 +226,9 @@ def halo_local_density_scale(shape):
 def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
-    return {**shape._asdict(), **model_terms(shape), **halo_terms(shape)}
+    fields = shape._asdict()
+    del fields["clusters"]
+    return {**fields, **model_terms(shape), **halo_terms(shape)}
 
 
 def _interarm_angle(radius_pc, shape):
@@ -327,8 +332,8 @@ def population_densities(position_pc, shape):
 
     The components always sum to `relative_density`, so no sector's total
     changes. The bulge term is the "bulge" population, the halo term the
-    "halo" population (GEN.234) and the thick disk is "old". "cluster" is 0 until the
-    cluster components (GEN.237) add their density. The thin disk is shared among the three
+    "halo" population (GEN.234) and the thick disk is "old". "cluster" is the globular clusters'
+    systems in the cell's cube over a cell's at density 1 (`shape.clusters`, GEN.160; 0 for a galaxy without). The thin disk is shared among the three
     disk populations in proportion to how many stars each would put here:
     its share of disk star formation (the length of its age range), times
     its own vertical profile (`sech^2(z/2h)/h`, a thinner disk for younger
@@ -363,7 +368,7 @@ def population_densities(position_pc, shape):
     densities["old"] += max(shape.k_norm * thick, 0.0)
     densities["bulge"] = shape.k_norm * bulge
     densities["halo"] = max(halo, 0.0)
-    densities["cluster"] = 0.0
+    densities["cluster"] = _cluster_density(position_pc, shape)
     return densities
 
 
@@ -418,6 +423,8 @@ def population_densities_array(x, y, z, shape):
     densities["old"] = densities["old"] + np.maximum(shape.k_norm * thick, 0.0)
     densities["bulge"] = shape.k_norm * bulge
     densities["halo"] = np.maximum(halo, 0.0)
+    # The clusters are not in the array form: its points are band bins far wider than a cluster, so the scatter's
+    # per-band weights leave them to their own pass (GEN.161); the one-point form is the cell's.
     densities["cluster"] = np.zeros_like(densities["halo"])
     return densities
 
@@ -477,6 +484,13 @@ def halo_mass(shape):
         terms["halo_axis_ratio"])
 
 
+def _cluster_density(position_pc, shape):
+    """The globular clusters' part of the density at `position_pc` (GEN.160): the systems they put in the cell's
+    cube over the systems a cell holds at density 1, `0.0` for a galaxy without clusters."""
+    clusters = shape.clusters
+    return 0.0 if clusters is None else clusters.relative_density(position_pc)
+
+
 def relative_density(position_pc, shape):
     """
     This galaxy's stellar density at `position_pc`, relative to
@@ -492,7 +506,7 @@ def relative_density(position_pc, shape):
               (bulge, spiral arm crests near the core); `< 1.0` in sparser
               ones (outer disk, inter-arm, off-plane).
     """
-    return shape.k_norm * _raw_density(position_pc, shape)
+    return shape.k_norm * _raw_density(position_pc, shape) + _cluster_density(position_pc, shape)
 
 
 def total_density_array(x, y, z, shape):

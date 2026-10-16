@@ -3866,7 +3866,7 @@ CREATE TABLE IF NOT EXISTS population_state (
 -- (a profile of its mass about a centre), not a list of stars; its stars come from the profile when a sector is
 -- generated. `profile` 'king' carries the King (1966) concentration `king_w0` (3 to 12) and the `tidal_radius_pc` (`Component` checks that, not the table);
 -- `planetgen/physics/king.py` turns a row into a density. `source` is 'catalogue' for a real object and 'generated' for
--- one drawn from the galaxy seed (`planetgen/generation/clusters.py`); nothing writes rows until GEN.160 plans them.
+-- one drawn from the galaxy seed (`planetgen/generation/clusters.py`); `planetgen plan` draws the clusters (GEN.160).
 CREATE TABLE IF NOT EXISTS galaxy_components (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     kind                 VARCHAR(12) NOT NULL,
