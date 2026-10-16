@@ -2640,6 +2640,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approved; default no): are the
   subspace and other fiction anomalies wanted? Tier 3 only through a
   default-off `lore-anomaly` kind with `K_lore` 0.
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
 
 - [ ] **GEN.129 Multi-star systems of up to twelve stars**
   Boss (GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777)): "We need to add scientifically accurate star
@@ -3018,6 +3021,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and `physics/constants.py` (`HOT_WHITE_DWARF_MIN_MASS_SOL`,
   `TEMP_RANGES`, `WD_LUMINOSITY_RANGE_SOL`). Affects the
   planetary-nebula scatter and `PLANETARY_NEBULA_CENTRAL_STAR_TYPES`.
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: none.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
@@ -3026,6 +3032,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density of about 220 cm^-3, while the remnant classes list 0.1 to 100)
   with `1.03 ly (E51/n)^0.2 (t/yr)^0.4`, capped where the snowplow phase
   begins.
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: none.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
@@ -3035,12 +3044,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a `PHENOMENON_RATE_SCALE`-style override. Decided (Boss, 2026-10-10
   18:44Z, defaults approved; default physical): keep 70% as a gameplay
   choice?
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: none.
   Design: [docs/design/anomalies.md](design/anomalies.md)
 
 - [ ] **GEN.154 Show the Einstein radius on compact-object pages**
   Tier 1 of GEN.113: show the Einstein radius on the pages of compact
   objects.
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: none.
   Design: [docs/design/anomalies.md](design/anomalies.md)
 
@@ -3049,6 +3064,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Sgr A* sector. Decided (Boss, 2026-10-10 18:44Z, defaults
   approved; default: leave the model
   alone and note it).
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
@@ -3221,6 +3239,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rates, the design note records the sources, and a test checks that a
   planet near a burst-prone region gets the flag more often. Low
   priority.
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
 - [ ] **GEN.197 Object IDs on ejection, merger and split events**
@@ -3994,6 +4015,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Catalogue (Boss 2026-10-15 6:08 PM EDT;
   docs/design/multi-star-systems.md sections 13 to 16): OB associations
   hold the trapezia of GEN.273 and the runaway origins of GEN.274.
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: GEN.237, GEN.241. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -4004,6 +4028,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars show a debris disk on the star page, with a radius and a dust
   mass. Later: not part of the whole-sphere train and nothing in it
   waits on this; plan after it. Owner: Core, later (2026-10-15).
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisite: GEN.242.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -4014,6 +4041,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   becomes a Wolf-Rayet star or explodes, at the real count, with an
   ejecta nebula. Later: not part of the whole-sphere train and nothing
   in it waits on this; plan after it. Owner: Core, later (2026-10-15).
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisite: GEN.243. Related: GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -4156,6 +4186,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exists, is deterministic from the seed, appears on the map and the
   sector page, and the clouds inside it are gone. Later. Owner: Core,
   later (2026-10-15).
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisite: GEN.235. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4166,6 +4199,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on the object pages and the maps. Done: each of the three kinds shows
   a jet along its spin axis at its own rate. Later. Owner: Core then
   Interface, later (2026-10-15).
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisite: GEN.242. Related: GEN.104, GEN.247.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4177,6 +4213,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radiation term; a flag within 10 pc of an active magnetar. Done: a
   system page shows its score and the terms behind it. Later. Owner:
   Core, later (2026-10-15).
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisites: GEN.243, GEN.153. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4186,6 +4225,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   overlay on the Galaxy Map, no objects. Done: the overlay can be shown
   and hidden and sits where the data puts it. Later. Owner: Interface,
   later (2026-10-15).
+  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
+  replaces any earlier owner named above). Core 1 still owns every
+  migration revision: ask it before adding a table or column.
   Prerequisite: GEN.233. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
