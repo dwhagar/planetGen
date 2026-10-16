@@ -116,7 +116,9 @@ fi
 
 echo "== 1/9: Pulling the latest changes =="
 
-dirty="$(git status --porcelain)"
+# Mode changes are not local edits: set-permissions.sh makes scripts and
+# *.py files executable, which git (with core.fileMode on) would list.
+dirty="$(git -c core.fileMode=false status --porcelain)"
 if [[ -n "$dirty" ]]; then
     echo "warning: uncommitted local changes in $SCRIPT_DIR -- these will be overwritten:" >&2
     echo "$dirty" >&2
