@@ -3043,8 +3043,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   built-in check that the numbers act as expected (filed as TEST.196); (3)
   wide pairs have no metallicity dependence; (4) the encounter limit is
   a sharp cut at a_1/2; (5) the fixed 10,000 AU wide-pair cap is
-  replaced by the derived limit. One card, a fade of the metallicity
-  effect above about 2 solar masses, was still open at 6:15 PM EDT.
+  replaced by the derived limit. The last card, whether the metallicity
+  effect fades above about 2 solar masses, was answered "all masses":
+  no fade, and the check is the safeguard.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
