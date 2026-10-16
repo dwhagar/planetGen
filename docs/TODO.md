@@ -3925,7 +3925,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn (galactic for a sector, system for the System Map, planetary for
   a moon neighbourhood), read from the same constants, not a copy. See
   the new section in docs/design/gravity-map.md.
-  Prerequisites: GEN.338, GEN.342, PERF.88. Related: GEN.105, NAV.6,
+  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6,
   TEST.131,
   PERF.72, MAP.167.
   Scope after the review (2026-10-16 review): the tidal tensor and its
@@ -6453,7 +6453,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The force on a body comes from the shared field kernel (PERF.88); this
   item adds the influence-set term, the galactic gradient hook and the
   velocity update (2026-10-16 review).
-  Prerequisites: GEN.341, GEN.338, GEN.340, PERF.88. Related: GEN.109.
+  Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7122,7 +7122,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisites: GEN.198, PERF.88. Related: GEN.198, GEN.199, MAP.151
+  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151
   (done, PR #1539).
   Scope after the review (2026-10-16 review): the cost study of the grid
   on top of the kernel (measure the kernel and the aggregate split, pick
@@ -7189,40 +7189,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   when they are; it follows the dead-worker bug PERF.93 (done) and the client
   module PERF.94 (done) in Foundations lane 1. DOC.20 rewrites the notes after
   step 6.
-
-- [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md).
-  `physics/sector_path.integrate_path` takes 1.0 ms a path; numba (mass
-  selection, integration and spline check in one compiled call) takes 34
-  to 46 us, so the save step goes from 34.2 s to 13.4 s on the benchmark
-  fill (the rest is database writes). Saved paths agree to 4e-16
-  relative (34,566 of 34,568 knots bit-identical), so tests that compare
-  saved paths use that tolerance. It also speeds the orbital update,
-  which recomputes these paths. Done: the integrator is a numba kernel,
-  the old Python loop removed (no fallback), the tolerance in the path
-  tests, timings in the benchmark report. Owner: Foundations lane 1,
-  after PERF.80 (merged in #1251).
-  Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
-  location (OPS.42, merged in #1291). Acceptance criterion: the integrator imports as the web
-  user (as OPS.42 does), by keeping it out of the web app's import path or by
-  writable `__pycache__` directories, with a test.
-  Widened (2026-10-16 review): the numba kernel is a public module
-  `planetgen/physics/field_kernel.py` (kept out of the web app's import
-  path): `accelerations(points, masses, softening)` and
-  `potentials(points, masses, softening)` over the `MassTable` of
-  `physics/sector_path.py`, with Plummer softening as an argument and an
-  optional hook for the galaxy's smooth term (GEN.115);
-  `sector_path.integrate_path` calls it instead of its own `_pull`.
-  GEN.109's kernel child and GEN.198's evaluator call it and add only
-  what is theirs. Done: the module and a test that it equals a plain
-  NumPy sum to 1e-12 relative, the sector paths reading it, the old loop
-  removed (no fallback), and the timings in the benchmark report.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Related: PERF.31, GEN.105.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
   Math Research (2026-10-14;
@@ -10614,6 +10580,25 @@ clears each one.
   the bound itself, and the subtraction's rounding error (about 1e-28)
   is larger than the 1e-9 tolerance on 2.7e-20 (2.7e-29). Suggested fix:
   a tolerance relative to the model, such as `bound*(1+1e-9) + 1e-12*model`.
+  Prerequisites: none.
+
+- [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
+  Found by Core 2 (2026-10-16, 5:04 PM EDT), filed by the TODO thread.
+  In the gate for PERF.88,
+  `src/tests/test_web_browser_sector_reach.py::test_no_scene_is_loaded_while_the_camera_is_far`
+  hung in teardown: the module fixture `site_db`
+  (`src/tests/test_web_a11y.py:275`) ran `DROP DATABASE IF EXISTS` and
+  waited 853 s on a metadata lock, in the gate's first run and again in
+  its retry. A connection left open by something (the same kind of lock
+  as the interstellar_comets one Boss hit on a migration) holds the
+  lock. Done: the fixture closes or kills the connections that hold the
+  database before the drop, or fails at once with the name of the holder
+  instead of waiting; the teardown never waits more than a few seconds;
+  and a test shows a held connection no longer stalls it. Fails on main:
+  not checked, the PERF.88 diff touches no test fixture. Frequency: once
+  in 3 gates. Reproducer: none; the same file passed alone (7 of 7)
+  right after. Related to TEST.190 (a failing session fixture makes
+  dependents wait their full timeout).
   Prerequisites: none.
 
 ## USR: User accounts

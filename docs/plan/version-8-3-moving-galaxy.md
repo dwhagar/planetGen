@@ -66,7 +66,7 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
 | GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking |  | Foundation found in the review. |
 | GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | GEN.294, GEN.289 | Split from GEN.109. |
-| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.341, GEN.338, GEN.340, PERF.88 | Split from GEN.109. |
+| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.341, GEN.338, GEN.340 | Split from GEN.109. |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342, GEN.289, GEN.140 | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | GEN.341, GEN.342 | Split from GEN.109. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.341, GEN.342, GEN.343, GEN.344 |  |
@@ -113,7 +113,7 @@ The event records, the long-step rules and the gravity field evaluator the cours
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.338, GEN.342, PERF.88 | Gravity map foundation (Boss 2026-10-10). |
+| GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.338, GEN.342 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 
 ### What moved in the last update
