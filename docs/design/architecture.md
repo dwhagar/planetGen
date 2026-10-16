@@ -224,6 +224,7 @@ The constants and the maths behind every generated body.
 | [`radiation.py`](../../src/planetgen/physics/radiation.py) | Surface radiation dose, UV and galactic hazards (GEN.87). |
 | [`rogue_surface.py`](../../src/planetgen/physics/rogue_surface.py) | A rogue planet has no star, so its surface is set by its own heat alone (Boss's research, 2026-10-01; Stevenson 1999, Burrows et al. |
 | [`sector_path.py`](../../src/planetgen/physics/sector_path.py) | A body with no closed orbit (a star, a rogue planet, a hyperbolic or parabolic comet, an interstellar object) crosses a sector on a path that is not a straight line when it passes a heavy mass. |
+| [`field_kernel.py`](../../src/planetgen/physics/field_kernel.py) | The numba-compiled gravity kernel (PERF.88): `accelerations` and `potentials` over a `MassTable`, and the sector-path integrator `sector_path.integrate_path` calls. Kept out of the web app's import path. |
 | [`species_limits.py`](../../src/planetgen/physics/species_limits.py) | A species' environment limits are the human visitor's table (`protection_limits.LIMIT_ROWS`) with some rows replaced: `overrides`, a dict `{limit name: value}`, empty for a species with the human limits. |
 | [`spin.py`](../../src/planetgen/physics/spin.py) | Every rotating body's spin: a unit axis (the direction of its angular velocity, right-handed) and a rate (its rotation period), so the spin vector is `axis * 2 pi / period`. |
 | [`state_vectors.py`](../../src/planetgen/physics/state_vectors.py) | Conversion between a two-body orbit's elements and its state vector, with the Kepler solver (GEN.122, GEN.66). |
@@ -319,6 +320,7 @@ Helpers every package can use.
 |---|---|
 | [`__init__.py`](../../src/planetgen/util/__init__.py) | Shared helpers every planetgen package can use. |
 | [`checks.py`](../../src/planetgen/util/checks.py) | `finite_domain`, the decorator that gives a numeric physics helper one contract: it returns finite numbers or raises `ValueError`. |
+| [`generator_epoch.py`](../../src/planetgen/util/generator_epoch.py) | The generator epoch (OPS.56): the integer a PR bumps when it changes what a seed generates, read from `src/tests/golden/epochs.json`. |
 | [`draw.py`](../../src/planetgen/util/draw.py) | Every random draw generation makes goes through here (GEN.56; see docs/design/reproducible-galaxies.md, section 5). |
 | [`format.py`](../../src/planetgen/util/format.py) | The text every number, distance, speed, duration, temperature, pressure and age is shown in, for the generator's wikitext and Markdown and for the web pages. |
 | [`ladders.py`](../../src/planetgen/util/ladders.py) | The data behind every measurement the site shows (UX.23): for each quantity a ladder of units, smallest first, and the rule for which one a value is shown in. |

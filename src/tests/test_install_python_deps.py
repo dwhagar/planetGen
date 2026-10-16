@@ -250,7 +250,9 @@ def test_the_web_app_never_imports_numba():
             "from planetgen.web.app import create_app\n"
             "from planetgen.api import routes  # noqa: F401\n"
             "import planetgen.web.views, planetgen.web.system_pages  # noqa: F401\n"
-            "assert 'numba' not in sys.modules, 'numba was imported by the web app'\n")
+            "import planetgen.physics.sector_path, planetgen.db.sector_paths  # noqa: F401\n"
+            "assert 'numba' not in sys.modules, 'numba was imported by the web app'\n"
+            "assert 'planetgen.physics.field_kernel' not in sys.modules, 'the field kernel was imported by the web app'\n")
     done = subprocess.run([sys.executable, "-c", code], cwd=os.path.join(ROOT, "src"), capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-1500:]
 

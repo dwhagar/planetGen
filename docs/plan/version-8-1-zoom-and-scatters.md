@@ -28,7 +28,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter |  | Generation performance study. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
-| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue |  | PERF.86 step 3 |
 | PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | PERF.97 | Split from PERF.98. |
@@ -56,10 +55,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy |  | Boss 2026-10-10 21:14Z; Foundations lane 1, before OPS.28. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) |  | Parent of the chain. |
-| OPS.56 | The generator epoch counter and the PR rule that enforces it |  | Split from OPS.28. |
-| GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | OPS.56 | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
-| GEN.306 | Population seeds keyed on the object, not on row ids | OPS.56 | Split from GEN.57. |
-| GEN.307 | The object-ID collision number keyed on the lower address | OPS.56 | Split from GEN.57. |
+| GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants |  | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
+| GEN.306 | Population seeds keyed on the object, not on row ids |  | Split from GEN.57. |
+| GEN.307 | The object-ID collision number keyed on the lower address |  | Split from GEN.57. |
 | TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | GEN.306, GEN.307 | Split from GEN.57. |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.306, GEN.307, TEST.181 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
@@ -75,14 +73,14 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table | DB.18 | Split from GEN.136. Core 1 owns migrations. |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | GEN.304, DB.49 | Split from GEN.136. |
 | GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | GEN.304, DB.49, GEN.305 | Research follow-up to GEN.58 (built). |
-| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | GEN.135, GEN.304, OPS.56 | Split from OPS.28. |
-| OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | OPS.56, OPS.57, ADM.50 | Split from OPS.28. |
-| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.56, OPS.57, OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
+| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | GEN.135, GEN.304 | Split from OPS.28. |
+| OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | OPS.57, ADM.50 | Split from OPS.28. |
+| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.57, OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
 | OPS.15 | Each update says whether it changes generated output |  | Needs the fingerprint, so phase 2. |
-| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.56 | Research follow-up to DB.7 (built). |
+| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns |  | Research follow-up to DB.7 (built). |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
-| OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | OPS.56 | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
-| TEST.77 | A golden-seed regression test | GEN.304, OPS.57, GEN.57, GEN.135, OPS.56 |  |
+| OPS.37 | A Generator version number: one sequential integer, shown in admin and the API |  | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
+| TEST.77 | A golden-seed regression test | GEN.304, OPS.57, GEN.57, GEN.135 |  |
 
 ### Tech levels and species
 
@@ -135,9 +133,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving |  |  |
-| ADM.85 | Settings backups, restore, import and export on the settings page | ADM.84 |  |
-| ADM.43 | A full configuration page under Admin | ADM.84, ADM.85 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
+| ADM.85 | Settings backups, restore, import and export on the settings page |  |  |
+| ADM.43 | A full configuration page under Admin | ADM.85 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). Moved from 8.2 with ADM.43. |
 
 ### Generate page and directives
@@ -181,6 +178,10 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) |  | Test-infrastructure finding. |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. |
 | TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database |  | Test-infrastructure finding. |
+| TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) |  | Test finding from the Settings lane, 4:57 PM EDT. |
+| TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) |  | Test infrastructure finding from Core 2, 5:04 PM EDT. |
+| TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. |
+| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) |  | Flaky test finding from Core 2, 5:52 PM EDT. |
 
 ### Nebula data foundations
 
@@ -305,7 +306,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach |  | Split from GEN.240. |
@@ -355,13 +355,12 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | DB.54 | The three scatter-limit settings as galaxy_shape columns: core luminosity floor, core mass limit and halo luminosity floor |  | Split from GEN.283. Core 1 owns migrations. |
 | GEN.333 | Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill | DB.54 | Split from GEN.283. |
 | GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else | DB.54, GEN.333 | Core 3; step 3b of the galactic core note; shares one Core 1 migration with GEN.281 |
-| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | ADM.84 | Core 3 wires it; Boss 1:47 PM EDT. |
+| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 |  | Core 3 wires it; Boss 1:47 PM EDT. |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.325 | Core 3; step 4 of the galactic core note |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update |  | Core 3; step 5 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) |  | Core 3; folded into GEN.286 unless Core 3 says otherwise |
 | UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | DB.54 | Core 3; sliders for the scatter and fill limits |
-| GEN.364 | Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling |  | Core 3; Boss 1:46 PM EDT decision. |
 
 ### Interface update
 

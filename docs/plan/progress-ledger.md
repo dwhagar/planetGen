@@ -706,3 +706,8 @@ Baseline: PR #1817.
 | ADM.87 | 8.1 | Settings page |
 | ADM.83 | 8.1 | Settings page |
 | MAP.226 | 8.1 | Fly-through map |
+| GEN.364 | 8.1 | Galactic core and halo |
+| PERF.88 | 8.1 | Queue, caches and performance |
+| ADM.84 | 8.1 | Settings page |
+| OPS.56 | 8.1 | Reproducible galaxies |
+| GEN.102 | 8.1 | Components and wanderers |

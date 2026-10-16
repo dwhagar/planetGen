@@ -2,6 +2,145 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1570] - 2026-10-16
+
+**Headline:** The TODO list retires the generator epoch counter and its PR rule, which Core 2 built.
+
+### Changed
+- **OPS.56 is done (#1877).** The generator epoch counter, the `golden_update` tool and the PR rule are in; GEN.135, OPS.57 and OPS.58 no longer wait on it. TEST.193 gains Core 2's reproduction of the teardown hang (an idle connection holds the lock).
+
+### Added
+- **TEST.195, a 30 s request timeout in a browser test under load (bug).** `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out fetching a sector's galaxy view in a full run and passed alone; goal issue #1694.
+
+TODO items resolved: OPS.56 / Added: TEST.195
+
+## [8.0.1569] - 2026-10-16
+
+**Headline:** The generator now has an epoch counter, and a pull request that changes what a seed generates must bump it.
+
+### Added
+- `src/tests/golden/epochs.json` holds the generator epoch, `planetgen.util.generator_epoch.generator_epoch()` reads it, and `python -m tests.golden_update --reason "..."` bumps it (refusing under CI, when no golden file changed, and a second time in one change).
+- `scripts/bump_version.py --check-pr` fails a PR unless the golden files changed, the epoch went up by one, and the note carries a `generation-output: changed` line, all three or none. Stamping the release writes it into the epoch's `first_release`.
+
+## [8.0.1568] - 2026-10-16
+
+**Headline:** The TODO list retires the Admin settings page, which the Settings lane built.
+
+### Changed
+- **ADM.84 is done (#1875).** The Admin settings page at `/admin/settings` has the review step, the restart banner and three new API routes. TEST.192 gains Core 1's sighting of the fuzz failure and its test-only fix.
+
+### Added
+- **TEST.194, a flaky system-map browser test under load (bug).** `test_system_map_selection_drill_and_measure` failed once in a full run and passed alone; goal issue #1694.
+
+TODO items resolved: ADM.84 / Added: TEST.194
+
+## [8.0.1567] - 2026-10-16
+
+**Headline:** Admins can now see and change every program option from a new Settings page, with help for each option, a review of the changes before anything is saved, a backup of the old file and an audit row for every change.
+
+### Changed
+- New Admin page `/admin/settings` (a Settings tab on every admin page and a link on the Admin overview). It lists every option of `config.json` grouped by category, each with its help text, default, limits, unit, where the value in use comes from (default, `config.json` or an environment variable) and whether a change needs a restart. The list is drawn from the settings model, so an option added to the model appears with no page code.
+- Press Review the changes to see the old and new value of each changed option, which ones need a restart and which an environment variable still overrides; a value that does not fit is sent back with its message at its option and nothing is saved. Confirming saves through the settings writer: a backup archive of the old file first, an atomic write and one audit row per option. A file changed by someone else after the form was opened is refused, not overwritten.
+- Options an admin may not change (command line only, or the Owner's) are listed read-only with the reason. A secret is never shown: its box is write-only. Use the default removes a key from the file.
+- While a saved option still needs a restart of the web server, every admin page shows a banner naming it.
+- New API routes `GET /api/admin/settings`, `POST /api/admin/settings/plan` and `POST /api/admin/settings` (`docs/api.md`).
+
+## [8.0.1566] - 2026-10-16
+
+**Headline:** The TODO list retires the numba sector-path integrator, which saves sector paths 21 times faster.
+
+### Changed
+- **PERF.88 is done (#1873).** The sector-path integrator is a numba kernel in `planetgen/physics/field_kernel.py` (838 µs to 40 µs a path, bit-identical on 300 random cells); GEN.342, GEN.198 and PERF.72 no longer wait on it.
+
+### Added
+- **TEST.193, a teardown hang in the browser tests (bug).** The `site_db` fixture's `DROP DATABASE` waited 853 s on a metadata lock held by a leftover connection; goal issue #1694.
+
+TODO items resolved: PERF.88 / Added: TEST.193
+
+## [8.0.1565] - 2026-10-16
+
+**Headline:** Saving the sector paths is about twenty times faster: the integrator now runs as one compiled numba call.
+
+### Changed
+- The sector-path integrator (mass selection, integration, exit and spline simplification) is a numba kernel in `planetgen/physics/field_kernel.py`, 40 microseconds a path instead of 840. The saved paths are bit-identical to the old integrator's. The old Python loop is gone, with no fallback.
+- `field_kernel.accelerations` and `field_kernel.potentials` give the Plummer-softened pull and potential of a `MassTable` at any points, the shared force every later gravity feature uses.
+- `sector_path.integrate_path` takes a `Cell` (`sector_inside`, `box_cell`, `ball_cell`) for the region instead of a Python callable, because the compiled loop cannot call back into Python.
+
+## [8.0.1564] - 2026-10-16
+
+**Headline:** The plan now has a study of how a course accounts for the gravity of stars a cell leaves out.
+
+### Added
+- **NAV.62, the gravity of the unresolved mass, in 8.5 (Boss, 5:01 PM EDT).** A dense cell resolves only its brightest stars under the cell cap (GEN.364); the item studies how the pull of the rest, derived from the same density model and address (GEN.281), joins the galactic potential and the courses that bend around gravity wells. NAV.26 waits on it. Goal issue #1680.
+
+TODO items resolved: none / Added: NAV.62
+
+## [8.0.1563] - 2026-10-16
+
+**Headline:** The TODO list records a second sighting of the galaxy-grid fuzz failure and a suggested fix.
+
+### Changed
+- **TEST.192 gains Core 3's finding.** The same fuzz failure came up once in about 17,900 tests, and the item now carries the cause (the rounding error of the halo subtraction is larger than the tolerance on a bound near 2.7e-20) and a suggested tolerance relative to the model.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1562] - 2026-10-16
+
+**Headline:** The TODO list retires the adaptive per-cell system cap, which Core 3 built.
+
+### Changed
+- **GEN.364 is done (#1868, migration 0100).** A cell makes at most 5,000 systems, with a raised cap where the 100 L☉ cap still overfills. The item leaves the open list and the 8.1 plan; GEN.303 still wires the cap to `generation.cell_cap`.
+
+TODO items resolved: GEN.364 / Added: none
+
+## [8.0.1561] - 2026-10-16
+
+**Headline:** The TODO list records a failing galaxy-grid fuzz test as a bug to fix.
+
+### Added
+- **TEST.192, a float-cancellation failure in the galaxy-grid fuzz test (bug).** The Settings lane found that `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails when the halo density is far above a tiny bound; the item carries the reproducer and goes to Core 1's bug phase, goal issue #1694.
+
+TODO items resolved: none / Added: TEST.192
+
+## [8.0.1560] - 2026-10-16
+
+**Headline:** A cell makes at most 5,000 systems, so the galactic core and bulge fill in about a minute and a half instead of up to 17 minutes.
+
+### Changed
+- **The default cell star ceiling is 5,000 systems, from 50,000 (GEN.281).** A system takes about 20 ms to generate, so a cell of 50,000 took 14 to 17 minutes. A galaxy planned earlier at the old default is moved to 5,000 by the migration; `planetgen plan --cell-star-ceiling` still sets it, and it stays one galaxy setting for the admin configuration to edit.
+- **A cell the cap still fills past the ceiling raises its cap.** The nuclear cluster's cell expects 15 million systems, and the 100 solar luminosity cap would still make 40,700 of them. A cell now takes the lowest cap, on a ladder of steps of a quarter, whose stars fit the ceiling; the fill, the sector page and the API read the same cap from the address. A cell the cap already fits keeps it.
+
+TODO items resolved: GEN.364. Added: none.
+
+## [8.0.1559] - 2026-10-16
+
+**Headline:** The TODO list now shows which multi-star and cluster items moved from Core 3 to Core 4.
+
+### Changed
+- **Core 4 takes eight items off Core 3's multi-star and cluster tail (Boss's "Split it", 2026-10-16, 4:49 PM EDT; Core 3 agreed at 4:53 PM EDT).** GEN.252, GEN.253, GEN.270, GEN.271, GEN.272, GEN.274, GEN.275 and MAP.213 now carry an "Owner: Core 4" line that says what each one waits on; Core 4 has 25 items in all. Core 3 keeps the scatter spine, the nebula and young-star line, GEN.129, GEN.311 to GEN.318, GEN.327 to GEN.332, GEN.263, GEN.264, GEN.269, GEN.273, GEN.130 and the cluster items GEN.161 to GEN.163. Only GEN.252 can start today; the others unlock as Core 3 and Core 1 merge their blockers.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1558] - 2026-10-16
+
+**Headline:** The Core 4 item list is corrected: 17 items are unassigned, not 33; the other 16 stay with Core 3.
+
+### Changed
+
+- The first count ignored the multi-star train and cluster items the 3:15 PM EDT lane queue already gives to Core 3 (GEN.252, 253, 263, 264, 269 to 275, 130, MAP.213, GEN.161 to 163). Their owner lines name Core 3 again; Core 4 keeps the 17 items that had no lane.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1557] - 2026-10-16
+
+**Headline:** The new Core 4 lane has its queue: owner lines set on the 33 unassigned scatter-chain items.
+
+### Changed
+
+- Boss approved Core 4 at 4:31 PM EDT. The 33 unassigned items of the 8.1 accurate scatters chain name Core 4 as owner: 11 are ready in queue order, 22 are held until a named blocker on Core 1, Core 2 or Core 3 merges.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1556] - 2026-10-16
 
 **Headline:** The plan now states the rule of no fixed content: everything is seeded, derived or calculated.

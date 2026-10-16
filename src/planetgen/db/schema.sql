@@ -1295,6 +1295,8 @@
 --   observed nuclear star cluster and nuclear stellar disc the centre holds (1 the observed pair scaled to the bulge,
 --   0 none); `bright_stars.population` (now VARCHAR(16)) also takes `nuclear_cluster` and
 --   `nuclear_disc`.
+-- v100 (GEN.281): `galaxy_shape.cell_star_ceiling` defaults to 5,000 systems (a cell of 50,000 took 14 minutes) and has a
+--   CHECK, `chk_galaxy_shape_cell_star_ceiling`, of at least 1.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1488,7 +1490,7 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     reach_shell_index            INT NOT NULL DEFAULT 65535,  -- v93 (GEN.233), see header comment
     -- v98 (GEN.281): a cell that expects more systems than `cell_star_ceiling` is filled only with the stars at or
     -- above `fill_luminosity_cap_sol` (`galaxy/resolution.py`); the rest is unresolved, computed and never stored.
-    cell_star_ceiling            DOUBLE NOT NULL DEFAULT 50000,
+    cell_star_ceiling            DOUBLE NOT NULL DEFAULT 5000,
     fill_luminosity_cap_sol      DOUBLE NOT NULL DEFAULT 100,
 
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
@@ -1526,7 +1528,9 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- systems a sector got against the systems expected there
     -- (`sector_stats`), and how many fills went into it.
     density_ratio_avg               DOUBLE,
-    density_ratio_samples           BIGINT UNSIGNED NOT NULL DEFAULT 0
+    density_ratio_samples           BIGINT UNSIGNED NOT NULL DEFAULT 0,
+
+    CONSTRAINT chk_galaxy_shape_cell_star_ceiling CHECK (cell_star_ceiling >= 1)  -- v100 (GEN.281)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per shell that holds content (v91; replaces `galaxy_layer` and
