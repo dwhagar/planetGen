@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1436] - 2026-10-16
+
+**Headline:** The scatter and fill levers get a halo floor, a cell star ceiling, a fill luminosity cap and core levers, with sliders (UX.116).
+
+### Changed
+
+- GEN.283 records Boss's halo luminosity floor (default 500 solar luminosities) and the scatter core's own levers (about 10% above the defaults).
+- GEN.281 records the cell star ceiling and the fill luminosity cap used when the star fill would place more stars than the ceiling.
+- UX.116 is filed: a labeled slider with a number box for every scatter and fill floor, ceiling and core lever, in the Generate page's existing layout and segments (Core 3).
+
+TODO items resolved: none / Added: UX.116
+
 ## [8.0.1435] - 2026-10-16
 
 **Headline:** DB.33 records a second confirmation that its six tests fail on clean main.
