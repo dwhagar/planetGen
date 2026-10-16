@@ -12,7 +12,7 @@ as `solids_factor(fe_h)` and giant-planet occurrence as
 `giant_planet_factor(fe_h)`. The constants are in `tuning` ("Metallicity").
 
 The planet cull (GEN.236) is the occurrence of planets against the disk's: `planet_occurrence_factor` for planets of
-any kind and `giant_occurrence_factor` for giants, both 1 at and above `tuning.PLANET_OCCURRENCE_FLOOR_FE_H`;
+any kind and `giant_occurrence_factor` for giants, both 1 at and above `floor_fe_h()`;
 `expected_factor` averages one over a population's [Fe/H] distribution for a place's profile.
 """
 
@@ -72,17 +72,22 @@ def giant_planet_factor(fe_h):
     return min(1.0, 10.0 ** (tuning.GIANT_PLANET_METALLICITY_EXPONENT * fe_h))
 
 
+def floor_fe_h():
+    """The [Fe/H] at and above which planet occurrence is the disk's: `-tuning.PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR`."""
+    return -tuning.PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR
+
+
 def planet_occurrence_factor(fe_h):
     """Planet occurrence at `fe_h` against the disk's, which the generator's counts are those of: 1 at and above
-    `tuning.PLANET_OCCURRENCE_FLOOR_FE_H`, `10^(exponent (fe_h - floor))` below it."""
-    below = fe_h - tuning.PLANET_OCCURRENCE_FLOOR_FE_H
+    `floor_fe_h()`, `10^(exponent (fe_h - floor))` below it."""
+    below = fe_h - floor_fe_h()
     return 1.0 if below >= 0.0 else 10.0 ** (tuning.PLANET_OCCURRENCE_METALLICITY_EXPONENT * below)
 
 
 def giant_occurrence_factor(fe_h):
     """Giant-planet occurrence at `fe_h` against the disk's: `giant_planet_factor` taken from the same floor, so 1 at
     and above it."""
-    return min(1.0, giant_planet_factor(fe_h) / giant_planet_factor(tuning.PLANET_OCCURRENCE_FLOOR_FE_H))
+    return min(1.0, giant_planet_factor(fe_h) / giant_planet_factor(floor_fe_h()))
 
 
 _HERMITE_NODES = ((0.0, 8.0 / 15.0), (1.3556261799742659, 0.2220759220056126), (-1.3556261799742659, 0.2220759220056126),

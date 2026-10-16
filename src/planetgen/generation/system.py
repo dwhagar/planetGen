@@ -1696,7 +1696,7 @@ class StarSystem:
         if occurrence < 1.0:
             # GEN.236: a metal-poor star's disk makes fewer planets than the disk's stars do. The ceiling above is far
             # over what fits, so the cap is a share of the objects a metal-rich system holds in practice; at and above
-            # `tuning.PLANET_OCCURRENCE_FLOOR_FE_H` nothing changes.
+            # `metallicity.floor_fe_h()` nothing changes.
             max_objects = min(max_objects, math.ceil(tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS * occurrence - 1e-9))
 
         min_objects = 1 if self.system_config.PLANETS is True else 0

@@ -630,12 +630,15 @@ METALLICITY_RANGE_FE_H = (-3.5, 0.6)
 # capped at 1 (Fischer and Valenti 2005 form, recalled).
 GIANT_PLANET_METALLICITY_EXPONENT = 2.0
 # GEN.236: the planet cull. The generator's planet counts are those of a disk-population star ([Fe/H] about -0.2 to 0),
-# so occurrence is left alone at and above `PLANET_OCCURRENCE_FLOOR_FE_H` and falls below it: planets of any kind as
+# so occurrence is left alone at and above the floor (`PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR` below the Sun) and falls
+# below it: planets of any kind as
 # `10^(PLANET_OCCURRENCE_METALLICITY_EXPONENT ([Fe/H] - floor))` (small planets keep a weak dependence, so a gentler
 # slope than the giants'), giants as the Fischer and Valenti form above, taken from the floor too. So a metal-poor
 # halo or cluster star hosts a system of one or two small planets at most and almost never a giant (the floor of -0.5
 # is recalled as where Kepler's small-planet occurrence starts to fall, Buchhave 2012; not looked up this session).
-PLANET_OCCURRENCE_FLOOR_FE_H = -0.5
+PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR = 0.5
+"""float: Dex below the Sun's [Fe/H] where planet occurrence starts to fall (the floor is [Fe/H] -0.5), kept as a
+positive depth."""
 PLANET_OCCURRENCE_METALLICITY_EXPONENT = 1.0
 PLANET_OCCURRENCE_REFERENCE_OBJECTS = 16
 """

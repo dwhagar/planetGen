@@ -187,7 +187,7 @@ planet_mass_ranges = get_planet_mass_ranges()
 def _giant_keep(planet):
     """The factor on the weight of a gas giant class in `planet`'s class draw (GEN.236): the giant-planet occurrence of
     its star's [Fe/H] against the disk's (`metallicity.giant_occurrence_factor`), 1 for a moon, for a star without a
-    [Fe/H] and at and above `tuning.PLANET_OCCURRENCE_FLOOR_FE_H`."""
+    [Fe/H] and at and above `metallicity.floor_fe_h()`."""
     fe_h = getattr(planet.star, "metallicity_fe_h", None)
     if planet.is_moon or fe_h is None:
         return 1.0

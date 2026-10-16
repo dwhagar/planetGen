@@ -44,7 +44,7 @@ def _at(position):
 
 
 def test_planet_occurrence_is_one_at_and_above_the_floor_and_falls_below_it():
-    floor = tuning.PLANET_OCCURRENCE_FLOOR_FE_H
+    floor = metallicity.floor_fe_h()
     assert metallicity.planet_occurrence_factor(floor) == 1.0
     assert metallicity.planet_occurrence_factor(0.4) == 1.0
     assert metallicity.planet_occurrence_factor(floor - 1.0) == pytest.approx(
@@ -54,7 +54,7 @@ def test_planet_occurrence_is_one_at_and_above_the_floor_and_falls_below_it():
 
 
 def test_giant_occurrence_is_one_at_and_above_the_floor_and_falls_faster_than_planets():
-    floor = tuning.PLANET_OCCURRENCE_FLOOR_FE_H
+    floor = metallicity.floor_fe_h()
     assert metallicity.giant_occurrence_factor(floor) == 1.0
     assert metallicity.giant_occurrence_factor(0.3) == 1.0
     for fe_h in (-0.8, -1.2, -2.0):
@@ -328,8 +328,8 @@ def test_no_halo_system_carries_more_planets_than_its_metallicity_allows():
         fe_h = system.primary_star.metallicity_fe_h
         allowed = max(math.ceil(tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS
                                 * metallicity.planet_occurrence_factor(fe_h) - 1e-9),
-                      1 if fe_h >= tuning.PLANET_OCCURRENCE_FLOOR_FE_H else 0)
-        if fe_h < tuning.PLANET_OCCURRENCE_FLOOR_FE_H:
+                      1 if fe_h >= metallicity.floor_fe_h() else 0)
+        if fe_h < metallicity.floor_fe_h():
             assert len(system.planets) <= allowed, (fe_h, len(system.planets))
         counts.append(len(system.planets))
     assert sum(counts) / len(counts) < 0.5 * 8.5      # a disk G dwarf holds about 8.5
@@ -361,7 +361,7 @@ def test_the_giant_keep_is_one_for_a_moon_a_star_without_a_metallicity_and_a_met
     assert planetPhysics._giant_keep(_planet(-1.6, is_moon=True)) == 1.0
     assert planetPhysics._giant_keep(_planet(None)) == 1.0
     assert planetPhysics._giant_keep(_planet(0.2)) == 1.0
-    assert planetPhysics._giant_keep(_planet(tuning.PLANET_OCCURRENCE_FLOOR_FE_H)) == 1.0
+    assert planetPhysics._giant_keep(_planet(metallicity.floor_fe_h())) == 1.0
     assert planetPhysics._giant_keep(_planet(-1.6)) == pytest.approx(metallicity.giant_occurrence_factor(-1.6))
 
 
