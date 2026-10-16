@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1542] - 2026-10-16
+
+**Headline:** The asteroid render items and the closed core-disc issue are tracked in the issue table.
+
+### Changed
+
+- GEN.360 to GEN.363 sit in the issue of GEN.112, and the goal issue for GEN.210 (#1222) is marked closed.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1541] - 2026-10-16
 
 **Headline:** The new lane orders are in the plan, ten items are closed on Boss's approval, and the asteroid render plan is filed as four items.
