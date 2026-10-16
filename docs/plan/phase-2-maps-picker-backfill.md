@@ -247,6 +247,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.154 | Show the Einstein radius on compact-object pages |  | Research: Tier 1 of GEN.113. |
 | GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction |  | Research: Tier 1 of GEN.113. |
+| GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) |  | Owner Core 3; Boss, 12:43 AM EDT; note first. |
 | GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250, GEN.235, GEN.153 | Owner Core 3; Core 3 note default stands. |
 
 ### Maps
