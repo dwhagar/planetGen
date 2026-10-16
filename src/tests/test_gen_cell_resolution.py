@@ -56,12 +56,30 @@ def test_a_cell_over_the_ceiling_resolves_the_stars_at_or_above_the_cap_and_the_
     assert found.resolved_systems < 0.01 * found.expected_systems
 
 
+def test_a_cell_the_cap_would_still_fill_past_the_ceiling_raises_its_cap_until_it_fits():
+    """The nuclear cluster's cell expects 15 million systems; the 100 solar luminosity cap would still make 40,000."""
+    profile = _fake_profile(1.5e7, {"nuclear_cluster": 1.0})
+    floor = resolution.cell_resolution(profile, 1e12, 100.0)
+    assert not floor.capped
+    found = resolution.cell_resolution(profile, 5_000.0, 100.0)
+    assert found.capped and found.luminosity_cap_sol > 100.0
+    assert found.resolved_systems <= 5_000.0
+    # The lowest rung that fits: the one below it would not.
+    below = resolution.cell_resolution(profile, 1e12, 100.0).resolved_systems
+    one_down = found.luminosity_cap_sol / resolution.CAP_LADDER_STEP
+    assert one_down < 100.0 or placed_star_fraction(one_down, None, "nuclear_cluster") * 1.5e7 > 5_000.0
+    assert found.resolved_systems + found.unresolved_systems == pytest.approx(1.5e7)
+    assert below > 5_000.0
+    # A cell the cap already fits keeps the cap it was given.
+    assert resolution.cell_resolution(_fake_profile(20_000.0, {"old": 1.0}), 5_000.0, 100.0).luminosity_cap_sol == 100.0
+
+
 def test_a_higher_cap_resolves_fewer_and_the_scatters_mass_limit_adds_back_the_massive_stars():
     mix = {"young": 1.0, "old": 1.0}
     profile = _fake_profile(1e6, mix)
-    caps = [resolution.cell_resolution(profile, 1.0, cap).resolved_systems for cap in (100.0, 1000.0, 9000.0)]
+    caps = [resolution.cell_resolution(profile, 1e5, cap).resolved_systems for cap in (100.0, 1000.0, 9000.0)]
     assert caps[0] > caps[1] > caps[2]
-    with_mass = resolution.cell_resolution(profile, 1.0, 9000.0, mass_limit_sol=14.0).resolved_systems
+    with_mass = resolution.cell_resolution(profile, 1e5, 9000.0, mass_limit_sol=14.0).resolved_systems
     assert with_mass > caps[2]
 
 
