@@ -6716,24 +6716,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.362. Related: GEN.112, GEN.139.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.364 Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling**
-  Decided by Boss (2026-10-16, 1:46 PM EDT, in the GEN.280 thread),
-  recorded by the TODO thread. The per-cell cap is 5,000 systems and it
-  is adaptive: a cell makes min(expected, cap) systems; above the cap
-  the luminosity floor of that cell rises until what is resolved fits
-  the cap, taking the brightest stars first, and the unresolved count
-  and mass come from the address as GEN.281 does. There is no step at
-  the ceiling: a cell just above the cap loses only its faintest stars.
-  Owner Core 3, built with GEN.280, goal issue #1677. Done: the fill
-  reads the cap from one named setting, raises the per-cell floor to
-  fit, never stores more than the cap, and a math check shows the stored
-  plus unresolved count and mass equal the expected totals on cells
-  below, at and above the cap. GEN.303 wires the cap to
-  `generation.cell_cap` and ADM.84.
-  GEN.280 merged (#1855, 2026-10-16, 3:31 PM EDT). Core 3 builds this
-  next with migration 0100 (the 5,000 cell ceiling default).
-  Prerequisites: GEN.280. Related: GEN.281, GEN.280, GEN.303, GEN.283.
-
 - [ ] **GEN.365 Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. The radius
   stored for a hot white dwarf or the central star of a planetary nebula
