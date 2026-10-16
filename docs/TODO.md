@@ -6609,6 +6609,10 @@ clears each one.
   GEN.262 gate, and fails alone: a 123 s timeout in select_option on the
   bookmarks nav group; also red on main in every gate so far (kind
   browser, timeout).
+  Owner (coordinator decision, 2026-10-16, 5:27 AM EDT): Core 3,
+  replacing the Quality owner above; Core 3 fixes it while one of its
+  gates runs, since it is red on main in every gate. When it merges it
+  leaves the known-reds list.
   Prerequisites: none.
 
 - [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
