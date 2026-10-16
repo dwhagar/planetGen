@@ -19,9 +19,7 @@ from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.generation.wide_binary import (
-    sample_wide_binary_eccentricity, sample_wide_binary_separation_au, wide_pair_limit_au,
-)
+from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sample_wide_binary_separation_au
 from planetgen.generation import validation
 from planetgen.generation.comet import Comet
 from planetgen.physics.orbits import hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis, mutual_hill_radius_au
@@ -368,7 +366,7 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
 
         # GEN.103: the widest axis is the place's survival limit (a forced wide pair keeps at least the lower edge).
         lo = tuning.WIDE_BINARY_SEPARATION_MIN_AU
-        hi = max(lo, wide_pair_limit_au(system.system_config, system.primary_star, system.secondary_star))
+        hi = max(lo, system.wide_binary.max_separation_au)
         assert lo <= system.wide_binary.separation_au <= hi
         assert 0 <= system.wide_binary.eccentricity < tuning.WIDE_BINARY_ECCENTRICITY_MAX
         assert system.wide_binary.periapsis_au <= system.wide_binary.separation_au <= system.wide_binary.apoapsis_au

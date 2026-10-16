@@ -2,7 +2,7 @@
 
 """
 What a place does to the stars drawn in it (GEN.103, docs/design/placement-by-population.md 3.1 and 3.3):
-the close-companion factor that follows a star's own [Fe/H] and the widest axis a wide pair can keep.
+the close-companion odds factor that follows a star's own [Fe/H] and the widest axis a wide pair can keep.
 
 Both are functions of numbers the sector profile already holds (the density, the populations' velocity
 dispersions and the star's own [Fe/H] and age), so nothing here is a catalogue by place. `PlaceTerms` carries the
@@ -53,12 +53,26 @@ def from_profile(profile):
 
 def close_companion_factor(fe_h):
     """
-    `F(fe_h) / F(0)`, the factor on a star's chance of a companion inside 10 AU: `F` is the straight line through
-    `tuning.CLOSE_BINARY_FRACTION_BY_FE_H`, held flat past its ends. 1 for a star with no [Fe/H].
+    `F(fe_h) / F(0)`, the factor on the odds of a star's companion inside 10 AU (`scaled_close_chance`): `F` is the
+    straight line through `tuning.CLOSE_BINARY_FRACTION_BY_FE_H`, held flat past its ends. 1 for a star with no [Fe/H].
     """
     if fe_h is None:
         return 1.0
     return _fraction_at(fe_h) / _fraction_at(0.0)
+
+
+def scaled_close_chance(chance, fe_h):
+    """
+    A close-companion chance moved by the star's [Fe/H] (Boss, 2026-10-16, 7:19 PM EDT): the factor
+    `close_companion_factor` multiplies the *odds* `p / (1 - p)`, not `p`, for every primary mass. The result never passes 1,
+    and a star already likely to have a companion rises less in absolute terms: a G dwarf (0.22) goes 0.43, 0.36, 0.25
+    and 0.12 at [Fe/H] -3.0, -1.0, -0.2 and +0.5, inside Moe, Kratter and Badenes 2019's ranges, and an O star (0.45)
+    goes to 0.58 at -0.7, inside the "no change within about 30%" the O and early-B surveys find.
+    """
+    if chance <= 0.0 or chance >= 1.0:
+        return min(max(chance, 0.0), 1.0)
+    odds = chance / (1.0 - chance) * close_companion_factor(fe_h)
+    return odds / (1.0 + odds)
 
 
 def _fraction_at(fe_h):

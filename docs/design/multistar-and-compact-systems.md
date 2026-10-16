@@ -78,7 +78,7 @@ were rerun while writing this document.
 - **Choice.** `StarSystem._companion` rolls
   `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` (O 0.90, B 0.65, A 0.55, F 0.47,
   G 0.44, K 0.40, M 0.26), then `WIDE_BINARY_DEFAULT_CHANCE = 0.5`. Since GEN.103
-  it is one roll: the close share is multiplied by `F([Fe/H]) / F(0)` of the primary's
+  it is one roll: the odds of the close share are multiplied by `F([Fe/H]) / F(0)` of the primary's
   own [Fe/H] (every mass), the wide share is not, and a wide pair's axis is drawn up
   to the place's survival limit instead of 10,000 AU
   ([placement-by-population.md](placement-by-population.md) 3.1 and 3.3).

@@ -647,8 +647,8 @@ class StarSystem:
         letter (real stellar-multiplicity surveys -- Duchene & Kraus 2013; Raghavan et al. 2010; Moe & Di Stefano
         2017, cited on that table -- find companionship rising sharply with primary mass, from ~26% for M dwarfs up
         to ~90%+ for O stars), split between wide and close by `WIDE_BINARY_DEFAULT_CHANCE`. The close share
-        follows the primary's own [Fe/H] (`place_terms.close_companion_factor`, every mass: Moe, Kratter & Badenes
-        2019); the wide share does not, and gives way only where the two together would pass 1. A wide pair the
+        follows the primary's own [Fe/H] (`place_terms.scaled_close_chance`, every mass: Moe, Kratter & Badenes
+        2019, on the odds); the wide share does not, and gives way only where the two together would pass 1. A wide pair the
         place cannot keep (its widest surviving axis is under `WIDE_BINARY_SEPARATION_MIN_AU`: passing stars and
         the tide, `place_terms.wide_axis_limit_au`) becomes a close pair when a companion is forced, else the
         primary alone. This runs after the primary star already exists (`__init__` constructs `self.star`/
@@ -665,11 +665,11 @@ class StarSystem:
         chance = prevalence.scaled_chance(config, "binary_system",
                                            tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44))
         wide_share = prevalence.scaled_chance(config, "wide_binary", tuning.WIDE_BINARY_DEFAULT_CHANCE)
-        factor = place_terms.close_companion_factor(getattr(self.primary_star, "metallicity_fe_h", None))
-        close = min(1.0, chance * (1.0 - wide_share) * factor)
+        fe_h = getattr(self.primary_star, "metallicity_fe_h", None)
+        close = place_terms.scaled_close_chance(chance * (1.0 - wide_share), fe_h)
         wide = min(chance * wide_share, 1.0 - close)
         reason = (f"roll against close {close:g} (BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS {chance:g}, "
-                  f"[Fe/H] factor {factor:.3g}) and wide {wide:g}")
+                  f"[Fe/H] odds factor {place_terms.close_companion_factor(fe_h):.3g}) and wide {wide:g}")
         if config.BINARY_SYSTEM is True:
             kind = "wide" if close + wide > 0.0 and draw.random() * (close + wide) >= close else "close"
             reason = "forced by +binary_system, kind by " + reason

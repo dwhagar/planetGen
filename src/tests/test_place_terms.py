@@ -28,6 +28,21 @@ def test_the_factor_is_the_pooled_line_over_its_solar_value():
     assert place_terms.close_companion_factor(-0.6) == pytest.approx((0.40 + 0.24) / 2 / f0)
 
 
+def test_the_factor_moves_the_odds_and_never_passes_one():
+    # Boss, 7:19 PM EDT: the odds p / (1 - p), not p.
+    assert place_terms.scaled_close_chance(0.22, 0.0) == pytest.approx(0.22)
+    for chance in (0.05, 0.22, 0.45, 0.9, 0.99):
+        for fe_h in (-5.0, -3.0, -1.0, -0.2, 0.0, 0.5, 2.0):
+            moved = place_terms.scaled_close_chance(chance, fe_h)
+            assert 0.0 < moved < 1.0
+            odds = chance / (1 - chance) * place_terms.close_companion_factor(fe_h)
+            assert moved / (1 - moved) == pytest.approx(odds)
+    assert place_terms.scaled_close_chance(0.0, -3.0) == 0.0 and place_terms.scaled_close_chance(1.0, 0.5) == 1.0
+    # A star already likely to have a companion rises less in absolute terms.
+    assert (place_terms.scaled_close_chance(0.45, -1.0) - 0.45) < (1 - place_terms.scaled_close_chance(0.1, -1.0)) * 10
+    assert place_terms.scaled_close_chance(0.45, -0.7) / 0.45 == pytest.approx(1.29, abs=0.02)   # inside "within about 30%"
+
+
 def test_the_factor_falls_as_metallicity_rises():
     values = [place_terms.close_companion_factor(x / 10) for x in range(-40, 10)]
     assert all(a >= b for a, b in zip(values, values[1:]))
@@ -101,10 +116,10 @@ def _kinds(system, n=3000, seed=11):
     return {kind: count / n for kind, count in counts.items()}
 
 
-@pytest.mark.parametrize("fe_h, expected", [(-3.0, 0.58), (-1.0, 0.44), (-0.2, 0.26), (0.5, 0.11)])
+@pytest.mark.parametrize("fe_h, expected", [(-3.0, 0.43), (-1.0, 0.36), (-0.2, 0.25), (0.5, 0.12)])
 def test_a_g_dwarfs_close_share_follows_the_pooled_line(fe_h, expected):
-    # Today's table (G 0.44, split half and half) with the factor: 0.22 times F / F(0), against Moe, Kratter and
-    # Badenes' 53, 40, 24 and 10% (+-12, 6, 4, 3).
+    # Today's table (G 0.44, split half and half) with the factor on the odds: 0.22 moved by F / F(0), against Moe,
+    # Kratter and Badenes' 53, 40, 24 and 10% (+-12, 6, 4, 3).
     shares = _kinds(_system(fe_h=fe_h, terms=place_terms.PlaceTerms(0.05, 30.0)))
     assert shares["close"] == pytest.approx(expected, abs=0.035)
 
@@ -118,8 +133,13 @@ def test_the_wide_share_does_not_follow_metallicity():
 def test_every_mass_follows_the_line_and_the_chances_never_pass_one():
     terms = place_terms.PlaceTerms(0.05, 30.0)
     o_star = _kinds(_system("O", fe_h=-3.0, terms=terms, mass_sol=30.0, age_gy=0.005))
-    assert o_star[None] == pytest.approx(0.0, abs=0.01)         # saturated: a companion every time
-    assert o_star["close"] > 0.9
+    assert o_star[None] == pytest.approx(0.0, abs=0.01)         # the companion chance saturates: one every time
+    assert o_star["close"] == pytest.approx(0.68, abs=0.035)    # the odds form: up from 0.45, not to 1
+    assert o_star["wide"] == pytest.approx(0.32, abs=0.035)     # the wide share gives way where the two pass 1
+    # O stars at [Fe/H] -0.7 change by about 30% at most (the O and early-B surveys find no trend within that).
+    solar = _kinds(_system("O", fe_h=0.0, terms=terms, mass_sol=30.0, age_gy=0.005))["close"]
+    poor = _kinds(_system("O", fe_h=-0.7, terms=terms, mass_sol=30.0, age_gy=0.005))["close"]
+    assert poor / solar < 1.38
     m_dwarf_low, m_dwarf_high = (_kinds(_system("M", fe_h=x, terms=terms, mass_sol=0.3))["close"] for x in (-1.0, 0.5))
     assert m_dwarf_low > 3 * m_dwarf_high
 

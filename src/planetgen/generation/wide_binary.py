@@ -136,7 +136,9 @@ class WideBinaryPair:
         # tuning.WIDE_BINARY_SEPARATION_MIN_AU and
         # WIDE_BINARY_ECCENTRICITY_MAX for the full justification. The widest
         # axis is the place's survival limit (GEN.103), not a constant.
-        self.separation_au = sample_wide_binary_separation_au(wide_pair_limit_au(system_config, primary, secondary))
+        self.max_separation_au = wide_pair_limit_au(system_config, primary, secondary)
+        """float: The widest axis the pair's place allowed when it was drawn (not saved)."""
+        self.separation_au = sample_wide_binary_separation_au(self.max_separation_au)
         self.eccentricity = sample_wide_binary_eccentricity()
 
         self.periapsis_au = self.separation_au * (1 - self.eccentricity)
