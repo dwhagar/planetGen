@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1424] - 2026-10-16
+
+**Headline:** The state folder stays group-writable (770) however the permissions script is run, matching create-cache-dir.sh.
+
+### Fixed
+- `set-permissions.sh` leaves `/var/lib/planetGen/state` at 770 (owner and group may write, others nothing) instead of 750, so re-running it alone no longer takes the group's write bit away from an operator running `python3 -m planetgen.cli.maintenance`.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1423] - 2026-10-16
 
 **Headline:** OPS.31 is retired and Quality's remaining queue is marked unassigned while Quality is idle.
