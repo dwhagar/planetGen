@@ -26,7 +26,9 @@ Columns (`Kind`):
     gate: What decides whether a cell can hold the kind today:
         `stellar density` (the cell's star count scales the rate),
         `nebula field` (the seeded cloud field), `hot stars` (grows around
-        a sector's own hot stars) or `none`.
+        a sector's own hot stars), `young stars` (follows the young
+        population and its arm contrast; used by the classes in
+        `SCATTER_CLASS_GATES`) or `none`.
     mode: How the kind comes about: `scatter` (a row placed after the
         plan), `fill` (made when a sector is filled), `field` (derived from
         a seed), `flag` (an attribute of an ordinary system) or
@@ -74,7 +76,7 @@ SCATTER_PASSES = ("band-density", "bright-star", "wanderer", "nucleus")
 FAMILIES = ("star", "compact-remnant", "nebula", "small-body", "nucleus")
 """tuple: The valid `Kind.family` values."""
 
-GATES = ("stellar density", "nebula field", "hot stars", "none")
+GATES = ("stellar density", "nebula field", "hot stars", "young stars", "none")
 """tuple: The valid `Kind.gate` values."""
 
 COLUMNS = ("kind", "family", "status", "rate", "gate", "mode", "scatter_pass", "sector_roll", "builder",
@@ -165,6 +167,15 @@ them: the sector roll order and the `--type` order are this order."""
 
 BY_KIND = {row.kind: row for row in KINDS}
 """dict: `kind` -> its row."""
+
+SCATTER_CLASS_GATES = {("neutron-star", "magnetar"): "young stars"}
+"""dict: `(kind, subtype)` of a scatter class that is placed by a gate other than its kind's (GEN.278): the magnetars,
+a class of `neutron-star`, follow the young population. A class not listed takes its kind's gate."""
+
+
+def scatter_class_gate(kind, subtype):
+    """The gate (one of `GATES`) that places the scatter class `(kind, subtype)`."""
+    return SCATTER_CLASS_GATES.get((kind, subtype)) or BY_KIND[kind].gate
 
 
 def rows(**match):

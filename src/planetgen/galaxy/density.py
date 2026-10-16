@@ -369,7 +369,8 @@ def population_densities(position_pc, shape):
 
 def population_densities_array(x, y, z, shape):
     """
-    `population_densities` at arrays of points `x`, `y` and one height `z`
+    `population_densities` at arrays of points `x`, `y` and a height `z` (one,
+    or an array that broadcasts against them: a band's height per row, GEN.278)
     (PERF.89): the same terms in the same order, so a point's densities match
     the one-point form (a test compares them).
 
@@ -380,9 +381,9 @@ def population_densities_array(x, y, z, shape):
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     r_cyl = np.hypot(x, y)
-    thin = np.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
+    thin = np.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical_any(z, shape.disk_scale_height_pc)
     thick = (terms["thick_disk_amplitude"] * np.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
-             * _vertical(z, terms["thick_disk_scale_height_pc"]))
+             * _vertical_any(z, terms["thick_disk_scale_height_pc"]))
     along = (x * terms["bar_cos"] + y * terms["bar_sin"]) / shape.bulge_scale_radius_pc
     across = (y * terms["bar_cos"] - x * terms["bar_sin"]) / terms["bulge_scale_y_pc"]
     up = z / terms["bulge_scale_z_pc"]
@@ -404,7 +405,7 @@ def population_densities_array(x, y, z, shape):
     for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
         share = (ages[name][1] - ages[name][0]) / formation_span
-        weights[name] = (share * _vertical(z, height) / height
+        weights[name] = (share * _vertical_any(z, height) / height
                          * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
     total = sum(weights.values())
     # Every profile underflowed: the thickest (old) disk is all that's left.

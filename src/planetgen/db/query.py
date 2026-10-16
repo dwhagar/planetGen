@@ -4402,6 +4402,7 @@ SCATTERED_POINT_CLASSES = (
     ("black-hole", "intermediate", "black_hole", 0.8),
     ("black-hole", "stellar", "black_hole", 0.55),
     ("neutron-star", None, "neutron_star", 0.35),
+    ("neutron-star", "magnetar", "neutron_star", 0.35),
 )
 """tuple: `(scatter kind, subtype, map type, size share)` for the scattered
 objects the Galaxy Map draws as points before their sector is filled
@@ -4469,7 +4470,8 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
         map_type, size = share[(row["kind"], row["subtype"])]
         if row["mass_solar"] is not None:
             size = scattered_point_size(row["mass_solar"])
-        label = {"black_hole": "Black hole", "quasar": "Quasar"}.get(map_type, "Neutron star")
+        label = ("Magnetar" if row["subtype"] == "magnetar"
+                 else {"black_hole": "Black hole", "quasar": "Quasar"}.get(map_type, "Neutron star"))
         points.append({
             "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)" if row["built_at"] is None else label,
             "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
