@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1464] - 2026-10-16
+
+**Headline:** The to-do list retires GEN.149, built by the planetary-nebula central star change.
+
+### Changed
+
+- Retired GEN.149 (planetary-nebula central stars at observed mass, luminosity and temperature), done by #1760, and removed it from the goal table.
+
+TODO items resolved: GEN.149 / Added: none
+
 ## [8.0.1463] - 2026-10-16
 
 **Headline:** The to-do list places the capture and ejection items in the Phase 2 and Phase 3 plan.
