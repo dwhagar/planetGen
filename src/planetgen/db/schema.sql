@@ -1157,9 +1157,8 @@
 --   thin disk's level, the middle of the arm crest and the inter-arm trough:
 --   the arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest is
 --   `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`)
---   and `core_amplitude` (the galactic core's centre density, a Gaussian of
---   scale radius `tuning.CORE_RADIUS_FRACTION` of the bulge's, on top of the
---   bulge; 0 is none). Defaults 1 and 0 are the model before v81.
+--   and `core_amplitude` (the galactic core's centre density, a Gaussian on top
+--   of the bulge; 0 is none; replaced by `nuclear_amplitude` in v99). Defaults 1 and 0 are the model before v81.
 --
 -- v82: indexes and a summary table for the pages that timed out on a big galaxy
 --   (PERF.68, PERF.70, PERF.74). `phenomenon_scatter` gains
@@ -1292,6 +1291,10 @@
 -- v98 (GEN.281): `galaxy_shape.cell_star_ceiling` (default 50,000 systems) and `galaxy_shape.fill_luminosity_cap_sol`
 --   (default 100 solar luminosities): a cell that expects more systems than the ceiling is filled only with the stars
 --   at or above the cap; the rest is computed from the address and never stored.
+-- v99 (GEN.280): `galaxy_shape.core_amplitude` (ADM.49's Gaussian core) becomes `nuclear_amplitude`, how much of the
+--   observed nuclear star cluster and nuclear stellar disc the centre holds (1 the observed pair scaled to the bulge,
+--   0 none); `bright_stars.population` (now VARCHAR(16)) also takes `nuclear_cluster` and
+--   `nuclear_disc`.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1461,7 +1464,7 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     pitch_angle_rad             DOUBLE NOT NULL,
     arm_amplitude               DOUBLE NOT NULL,
     arm_level                   DOUBLE NOT NULL DEFAULT 1,  -- v81 (ADM.49): see header comment
-    core_amplitude              DOUBLE NOT NULL DEFAULT 0,  -- v81 (ADM.49): see header comment
+    nuclear_amplitude           DOUBLE NOT NULL DEFAULT 0,  -- v99 (GEN.280): see header comment
     spiral_reference_radius_pc  DOUBLE NOT NULL,
     spiral_reference_angle_rad  DOUBLE NOT NULL,
     k_norm                      DOUBLE NOT NULL,
@@ -3216,7 +3219,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
     cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(position_x_mpc / 1000.0) < 262144 AND ABS(position_y_mpc / 1000.0) < 262144 AND ABS(position_z_mpc / 1000.0) < 262144, ((((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
     KEY idx_bright_stars_cell (cell_key, position_x_mpc, position_y_mpc, position_z_mpc),
-    population           VARCHAR(12) NOT NULL,
+    population           VARCHAR(16) NOT NULL,
     star_type            VARCHAR(64) NOT NULL,
     yerkes_class         VARCHAR(16) NOT NULL,
     mass_kg              DOUBLE NOT NULL,
@@ -3244,7 +3247,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
-    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster')),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'nuclear_cluster', 'nuclear_disc')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

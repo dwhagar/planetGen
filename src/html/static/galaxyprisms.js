@@ -63,30 +63,45 @@ function vertical(z, h) {
   return sechSquared(z / (2 * h));
 }
 
-// The galactic core (galaxyDensity._core): a Gaussian at the centre, rSq the squared distance from it.
-function core(rSq, shape) {
-  if (!shape.core_amplitude) {
+// The nuclear star cluster (galaxyDensity._nuclear_cluster): a Hernquist profile held flat inside the softening radius.
+function nuclearCluster(r, shape) {
+  if (!shape.nuclear_cluster_mass) {
     return 0;
   }
-  return shape.core_amplitude * Math.exp(-0.5 * rSq / (shape.core_scale_radius_pc * shape.core_scale_radius_pc));
+  var radius = Math.max(r, shape.nuclear_cluster_softening_pc);
+  var scale = shape.nuclear_cluster_scale_pc;
+  return shape.nuclear_cluster_mass * scale / (2 * Math.PI * radius * Math.pow(radius + scale, 3));
 }
 
-// The boxy bar bulge (galaxyDensity._bulge), plus the core.
+// The nuclear stellar disc (galaxyDensity._nuclear_disc): an exponential disc with a sech^2 height.
+function nuclearDisc(rCyl, z, shape) {
+  if (!shape.nuclear_disc_mass) {
+    return 0;
+  }
+  return shape.nuclear_disc_density * Math.exp(-rCyl / shape.nuclear_disc_length_pc)
+    * vertical(z, shape.nuclear_disc_height_pc);
+}
+
+// Both nuclear terms at a cylindrical radius and height (galaxyDensity.nuclear_bound).
+function nuclear(rCyl, z, shape) {
+  return nuclearCluster(Math.hypot(rCyl, z), shape) + nuclearDisc(rCyl, z, shape);
+}
+
+// The boxy bar bulge (galaxyDensity._bulge).
 function bulge(x, y, z, shape) {
   var along = (x * shape.bar_cos + y * shape.bar_sin) / shape.bulge_scale_radius_pc;
   var across = (y * shape.bar_cos - x * shape.bar_sin) / shape.bulge_scale_y_pc;
   var up = z / shape.bulge_scale_z_pc;
   var inPlane = along * along + across * across;
-  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(inPlane * inPlane + up * up * up * up))
-    + core(x * x + y * y + z * z, shape);
+  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(inPlane * inPlane + up * up * up * up));
 }
 
-// The bulge's maximum over azimuth: along the bar (galaxyDensity.bulge_bound).
+// The bulge's maximum over azimuth: along the bar, and the nuclear terms (galaxyDensity.bulge_bound).
 function bulgeBound(r, z, shape) {
   var along = r / shape.bulge_scale_radius_pc;
   var up = z / shape.bulge_scale_z_pc;
   return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(along * along * along * along + up * up * up * up))
-    + core(r * r + z * z, shape);
+    + nuclear(r, z, shape);
 }
 
 // The stellar halo (galaxyDensity._halo): a broken power law on a spheroid of axis ratio q, flat inside the core.
@@ -107,7 +122,7 @@ function thickDisk(rCyl, z, shape) {
 // arm factor's pull.
 function densityParts(x, y, z, shape) {
   var rCyl = Math.hypot(x, y);
-  var rest = bulge(x, y, z, shape) + thickDisk(rCyl, z, shape) + halo(rCyl, z, shape);
+  var rest = bulge(x, y, z, shape) + thickDisk(rCyl, z, shape) + halo(rCyl, z, shape) + nuclear(rCyl, z, shape);
   var disk = shape.arm_level * Math.exp(-rCyl / shape.disk_scale_length_pc) * vertical(z, shape.disk_scale_height_pc);
   var armFactor = 1;
   if (rCyl > 1e-9) {

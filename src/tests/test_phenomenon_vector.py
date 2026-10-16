@@ -40,12 +40,12 @@ def _points(count, seed=3):
     return [(rng.uniform(-300, 300), rng.uniform(-300, 300), rng.uniform(-60, 60)) for _ in range(count)]
 
 
-@pytest.mark.parametrize("bulge_amplitude, core_amplitude", [(2.0, 0.0), (2.0, 5.0), (-1.0, 0.0), (-1.0, -2.0)])
-def test_the_array_density_is_the_sum_of_the_scalar_populations(bulge_amplitude, core_amplitude):
+@pytest.mark.parametrize("bulge_amplitude, nuclear_amplitude", [(2.0, 0.0), (2.0, 1.0), (-1.0, 0.0), (-1.0, 3.0)])
+def test_the_array_density_is_the_sum_of_the_scalar_populations(bulge_amplitude, nuclear_amplitude):
     shape = build_galaxy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
         bulge_amplitude=bulge_amplitude, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
-        core_amplitude=core_amplitude,
+        nuclear_amplitude=nuclear_amplitude,
     )
     for z in (0.0, 7.0, -40.0, 5000.0):
         points = [(x, y, z) for x, y, _z in _points(40)]

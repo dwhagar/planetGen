@@ -265,7 +265,7 @@ def initial_tile_request(orbit_radius_pc, center_pc, bounds_pc):
 DENSITY_SHAPE_FIELDS = (
     "disk_scale_length_pc", "disk_scale_height_pc",
     "bulge_scale_radius_pc", "bulge_amplitude",
-    "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "core_amplitude",
+    "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "nuclear_amplitude",
     "spiral_reference_radius_pc", "spiral_reference_angle_rad",
     "k_norm",
 )
@@ -274,11 +274,13 @@ reads."""
 
 MODEL_TERM_FIELDS = (
     "thick_disk_amplitude", "thick_disk_scale_length_pc", "thick_disk_scale_height_pc",
-    "bulge_scale_y_pc", "bulge_scale_z_pc", "core_scale_radius_pc", "bar_cos", "bar_sin",
+    "bulge_scale_y_pc", "bulge_scale_z_pc", "bar_cos", "bar_sin",
+    "nuclear_cluster_mass", "nuclear_cluster_scale_pc", "nuclear_cluster_softening_pc", "nuclear_disc_mass",
+    "nuclear_disc_length_pc", "nuclear_disc_height_pc", "nuclear_disc_density",
     "halo_amplitude", "halo_core_pc", "halo_break_pc", "halo_axis_ratio", "halo_inner_slope", "halo_outer_slope",
 )
 """The `galaxy.density.model_terms` and `halo_terms` it reads too (the thick
-disk, the bar and the stellar halo), which `db.query.galaxy_density_shape`
+disk, the bar, the stellar halo and the nuclear structures), which `db.query.galaxy_density_shape`
 serves alongside the shape."""
 
 

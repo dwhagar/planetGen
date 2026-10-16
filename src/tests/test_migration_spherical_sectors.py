@@ -113,7 +113,7 @@ def old_galaxy(mysql_config):
     _insert(conn, "galaxy_shape", id=1, disk_scale_length_pc=SHAPE.disk_scale_length_pc,
             disk_scale_height_pc=SHAPE.disk_scale_height_pc, bulge_scale_radius_pc=SHAPE.bulge_scale_radius_pc,
             bulge_amplitude=SHAPE.bulge_amplitude, arm_count=SHAPE.arm_count, pitch_angle_rad=SHAPE.pitch_angle_rad,
-            arm_amplitude=SHAPE.arm_amplitude, arm_level=SHAPE.arm_level, core_amplitude=SHAPE.core_amplitude,
+            arm_amplitude=SHAPE.arm_amplitude, arm_level=SHAPE.arm_level, core_amplitude=0.0,
             spiral_reference_radius_pc=SHAPE.spiral_reference_radius_pc,
             spiral_reference_angle_rad=SHAPE.spiral_reference_angle_rad, k_norm=SHAPE.k_norm, edge_pc=EDGE,
             expected_system_count_at_density_1=expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY),

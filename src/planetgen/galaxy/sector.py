@@ -772,6 +772,26 @@ class _NeighborArrays:
                 return False
         return True
 
+    def overlapping(self, sector, position, hill_new):
+        """The `(position, required)` of every massive neighbour whose Hill sphere a system with Hill radius
+        `hill_new` at `position` would overlap, by the same test as `required_separation_ly` and `distance_between`
+        (one NumPy pass, then the exact test on the few near enough to matter)."""
+        self._refresh(sector)
+        n = self.count
+        if n == 0:
+            return []
+        positions = self.positions[:n]
+        required = hill_new + self.hill[:n]
+        delta = positions - np.asarray(position)
+        squared = np.einsum("ij,ij->i", delta, delta)
+        near = np.nonzero(squared <= (required * (1 + _CLEAR_MARGIN)) ** 2)[0]
+        found = []
+        for i in near:
+            neighbor_position = tuple(positions[i])
+            if math.dist(position, neighbor_position) < required[i]:
+                found.append((neighbor_position, float(required[i])))
+        return found
+
 
 class SpaceSector:
     """
@@ -1026,12 +1046,10 @@ class SpaceSector:
         position = self._check_explicit_position(position)
         if not self.contains(position):
             raise ValueError(f"Sector {self.name!r}: pre-placed position {_fmt_position(position)} is outside the sector")
-        for neighbor, neighbor_position in self._massive_neighbors():
-            required = required_separation_ly(star_system, neighbor)
-            if distance_between(position, neighbor_position) < required:
-                log.debug(f"Sector {self.name!r}: pre-placed system {_system_name(star_system)!r} at "
-                          f"{_fmt_position(position)} is inside {required:.3f} ly of a neighbor at "
-                          f"{_fmt_position(neighbor_position)}; kept at its stored position")
+        for neighbor_position, required in self._neighbor_cache.overlapping(self, position, hill_radius_ly(star_system)):
+            log.debug(f"Sector {self.name!r}: pre-placed system {_system_name(star_system)!r} at "
+                      f"{_fmt_position(position)} is inside {required:.3f} ly of a neighbor at "
+                      f"{_fmt_position(neighbor_position)}; kept at its stored position")
         entry = self.add_system(star_system, position=position, system_config=system_config)
         entry.preplaced = True
         return entry
