@@ -212,10 +212,19 @@ def _add_scattered_phenomenon(config):
 
 def _seat_loose_systems(config):
     """Puts the systems `planetgen system` made alone into the fixture's first sector, so the pages' sample system
-    has planets and a sector; the batch fill of a shell makes planet-less systems on the switch branch (GEN.227)."""
+    has planets and a sector; the batch fill of a shell makes planet-less systems on the switch branch (GEN.227).
+    Each gets a place in the sector too, along its x axis from one end to the other: NAV (TEST.163) needs both
+    ends of a course to have a position, and a loose system had none, so a page that picked one of them as an end
+    showed an error instead of a course whenever the sample pair fell on it."""
     conn = store.get_connection(config)
     try:
         sector = conn.execute("SELECT MIN(id) AS id FROM sectors").fetchone()["id"]
+        edge_mpc = conn.execute("SELECT edge_mpc FROM sectors WHERE id = ?", (sector,)).fetchone()["edge_mpc"]
+        loose = conn.execute("SELECT id FROM star_systems WHERE sector_id IS NULL ORDER BY id").fetchall()
+        for index, row in enumerate(loose):
+            x = edge_mpc * (-0.45 + 0.9 * (index + 1) / (len(loose) + 1))
+            conn.execute("UPDATE star_systems SET sector_id = ?, position_x_mpc = ?, position_y_mpc = ?,"
+                         " position_z_mpc = ? WHERE id = ? AND position_x_mpc IS NULL", (sector, x, 0.0, 0.0, row["id"]))
         conn.execute("UPDATE star_systems SET sector_id = ? WHERE sector_id IS NULL", (sector,))
         conn.commit()
     finally:
