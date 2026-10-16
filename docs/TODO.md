@@ -5472,50 +5472,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.159).
   Prerequisites: none. Related: GEN.158, MAP.211.
 
-- [ ] **GEN.297 Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback**
-  Follow-up from Core 2 (2026-10-16, 7:52 AM EDT, GEN.159 merged as
-  #1810, migration 0097): the cluster table (galaxy_components), the
-  King tables and solver and a synthetic generator are built; the Milky
-  Way's own catalogue (the Harris globular cluster file, about 150
-  clusters with position, distance, [Fe/H], mass, King concentration and
-  age) is not loaded and waits on Boss's file. Done: a loader (a CLI
-  step, no hand-edited data) imports it into
-  galaxy_components with its source recorded, the Milky Way uses the
-  catalogue rows instead of generated clusters, a test pins a few
-  well-known clusters (47 Tuc, Omega Centauri, M13) against the file,
-  and the design note records the file's version and licence. Owner:
-  Core 3, in the cluster line (the file arrived 2026-10-16, 3:04 PM EDT).
-  Decided (Boss, 2026-10-16, 2:51 PM EDT, decision card, and 2:52 PM EDT):
-  the globular clusters are built from the synthetic generator now, and this item
-  updates them from the Harris file once Boss supplies it: the catalogue rows replace the synthetic ones, and the generator stays as the fallback for any cluster the catalogue lacks.
-  Boss asked for the item, so this is it. The file arrived (Boss, 2026-10-16, 3:04 PM EDT), so nothing outside waits any more and the item moved into 8.1 with the other cluster items.
-  The file (Boss, 2026-10-16, 3:04 PM EDT; kept at
-  /mnt/project-files/data/harris/mwgc.dat, Harris 1996 (2010 edition),
-  December 2010 revision): 157 clusters in three parts. Part I has the
-  name, RA and Dec, galactic longitude and latitude, the distance from
-  the Sun and from the Galactic centre (R0 = 8.0 kpc) and X, Y, Z; Part
-  II the [Fe/H], reddening, V magnitude of the horizontal branch,
-  distance modulus, integrated V, M_V, the colours, spectral type and
-  ellipticity; Part III the radial velocity, dispersion, King
-  concentration c (a 'c' marks a core-collapsed cluster), core and
-  half-light radii in arcminutes, central surface brightness and
-  luminosity density, and the relaxation times. It has NO mass and NO
-  age, which the first text of this item assumed: the loader takes the
-  mass from M_V with a stated mass-to-light ratio (recorded with the
-  source) and the age from a stated rule or a second table, and says so
-  in the design note; gaps in a column (several clusters have no
-  dispersion or ellipticity) fall back to the generator. Licence: free
-  to use if the original source is named; cite 'Harris 1996 (2010
-  edition)' in the design note and the file header.
-  GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the component table
-  exists, so this item can load the file as soon as GEN.324 is in.
-  Boss (2026-10-16, 4:00 PM EDT) said identical copies of the Milky Way
-  make no sense in a random galaxy, and the same logic applies to these
-  157 real clusters. Open question for Boss, put on a decision card:
-  keep the Harris rows as the default for every galaxy, or
-  as an optional Milky Way preset with the seeded generator as the
-  default. This item builds the loader either way; the card decides
-  which galaxies use it.
+- [ ] **GEN.297 Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy**
+  Boss (2026-10-16, 4:11 PM EDT, in the TODO thread): "There should be
+  no option to pick a Milky Way preset. The Harris file is designed to
+  give you an idea of how to build the procedure to generate a realistic
+  galaxy." Follow-up from Core 2 (2026-10-16, 7:52 AM EDT, GEN.159
+  merged as #1810, migration 0097): the cluster table
+  (galaxy_components), the King tables and solver and a seeded generator
+  are built. Done: the Harris file (kept at
+  /mnt/project-files/data/harris/mwgc.dat) is read by a reference reader
+  used by the tests and the design note, never loaded into a galaxy; the
+  generator's laws (the count from the halo and bulge mass, the mass
+  function, the radial profiles of the halo and bulge groups, the
+  bimodal [Fe/H], the King concentration, the age spread) are calculated
+  or derived from published science and checked against the file's
+  distributions statistically, not row for row; a test shows the
+  generated population matches the file's medians and spreads within
+  stated bounds; the design note records the file's version, licence and
+  the mass-to-light assumption. There is no Milky Way option and no real
+  cluster (47 Tuc, Omega Centauri, M13) appears by name. Owner: Core 3,
+  in the cluster line. The file arrived 2026-10-16, 3:04 PM EDT. The
+  file: Harris 1996 (2010 edition), December 2010 revision, 157 clusters
+  in three parts. Part I has the name, RA and Dec, galactic longitude
+  and latitude, the distance from the Sun and from the Galactic centre
+  (R0 = 8.0 kpc) and X, Y, Z; Part II the [Fe/H], reddening, V magnitude
+  of the horizontal branch, distance modulus, integrated V, M_V, the
+  colours, spectral type and ellipticity; Part III the radial velocity,
+  dispersion, King concentration c (a "c" marks a core-collapsed
+  cluster), core and half-light radii in arcminutes, central surface
+  brightness and luminosity density, and the relaxation times. It has no
+  mass and no age: the reader takes mass from M_V with a stated
+  mass-to-light ratio and says so; gaps in a column fall back to the
+  generator's own laws. Licence: free to use if the original source is
+  named; cite "Harris 1996 (2010 edition)" in the design note and the
+  file header. GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the
+  component table exists.
   Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
@@ -6661,7 +6652,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from L and T.
   Prerequisites: none. Related: GEN.149.
 
-- [ ] **GEN.366 Check the real Milky Way satellite rows against McConnachie 2012: they matter only for the optional preset**
+- [ ] **GEN.366 Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible**
   Found by a lane (2026-10-16), filed by the TODO thread. The table of
   Milky Way satellites (11 rows) was written from memory of McConnachie
   (2012) and is unverified. Done: every row (position, distance,
@@ -6674,8 +6665,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A galaxy planned before #1851 has no satellites until `planetgen plan`
   runs again on it.
   Folded into GEN.369 (Boss, 2026-10-16, 4:01 PM EDT, "Draw them"): the
-  real rows are kept only as an optional Milky Way preset, so this check
-  matters only for that preset and waits on GEN.369.
+  real rows are kept only as reference data for the plausibility test of
+  GEN.369, with no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so
+  this check matters only for that test and waits on GEN.369.
   Prerequisites: GEN.369.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
@@ -6703,7 +6695,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   share, arm count, halo mass), the central black hole mass and the
   nuclear cluster from their mass relations, the home position, and the
   rotation curve and enclosed mass. Each row gives its law, its
-  parameters, the sources named, and what the Milky Way preset keeps.
+  parameters, the sources named, and the source it comes from; there is
+  no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so the real
+  values appear only as reference data for plausibility tests.
   Boss reads and approves the table before any build. The fixed places
   found on 2026-10-16 (TODO thread survey): MILKY_WAY_SATELLITES (11
   copied rows, generation/satellites.py); the Harris clusters of GEN.297
@@ -6735,10 +6729,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   disk. Each link names its source in the doc and the code. The real
   Milky Way rows serve only as a check that the derived population looks
   plausible.
+  Boss (2026-10-16, 4:11 PM EDT, in the TODO thread): "There should be
+  no option to pick a Milky Way preset. The Harris file is designed to
+  give you an idea of how to build the procedure to generate a realistic
+  galaxy." The Milky Way is a reference for building and checking the
+  laws, never selectable content.
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age follow stated laws, and the real Milky Way list stays only as an optional preset**
+- [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
   Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
   them" on the decision card at 4:01 PM EDT): asked whether the
   satellites are placed as in the Milky Way, said this is a random
@@ -6754,7 +6753,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/intergalactic-and-halo-contents.md section 8, item 2.
   Done: `place_satellites` draws the population from
   `unit_seed(galaxy_seed, ...)` through the laws GEN.368 sets, the real
-  rows move to a named Milky Way preset that is off by default, a test
+  rows are removed from the generator and kept only as reference data
+  for the plausibility test of GEN.366 (Boss, 2026-10-16, 4:11 PM EDT:
+  no option to pick a Milky Way preset), a test
   shows two seeds give different populations and one seed gives the same
   one, and the count scales with the halo mass. Owner: Core 1 (the code
   owner), after the global top 5 blockers unless Boss moves it up; the

@@ -312,7 +312,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | GEN.323 | The phenomena pass runs on the object-first sampler | GEN.322 | Split from GEN.240. |
 | GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed |  | Core 1; Boss 4:00 PM EDT: plan the probabilities. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | GEN.368 | Core 1; Boss 4:02 PM EDT: feasibility study. |
-| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age follow stated laws, and the real Milky Way list stays only as an optional preset | GEN.368, GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
+| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.368, GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
 | GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | GEN.322 | Split from GEN.240. |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.322, GEN.323, GEN.324 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | GEN.323 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
@@ -396,8 +396,8 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.317 | Globular-cluster chain. |
 | GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | GEN.329, GEN.163, GEN.325 | Split from GEN.274. |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | GEN.329, GEN.330 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
-| GEN.297 | Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback |  | The file arrived (Boss, 3:04 PM EDT); Core 3, cluster line. |
-| GEN.366 | Check the real Milky Way satellite rows against McConnachie 2012: they matter only for the optional preset | GEN.369 | Finding from Core 3. |
+| GEN.297 | Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy |  | The file arrived (Boss, 3:04 PM EDT); Core 3, cluster line. |
+| GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | GEN.369 | Finding from Core 3. |
 
 ## Phase 6: The headline closes
 
