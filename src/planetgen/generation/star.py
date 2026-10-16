@@ -22,7 +22,7 @@ import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, spin
+from planetgen.physics import activity, metallicity, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -183,13 +183,16 @@ class Star(LazySaladName):
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
         "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
-        *activity.STAR_ACTIVITY_FIELDS,
+        *activity.STAR_ACTIVITY_FIELDS, "metallicity_fe_h",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
     `system_config` (a shared back-reference threaded into `from_dict`
     rather than serialized redundantly on every star).
     """
+
+    metallicity_fe_h = None
+    """float or None: [Fe/H] in dex (GEN.158); class-level default for the same reason as `a_crit_au`."""
 
     a_crit_au = None
     """
@@ -918,6 +921,14 @@ class Star(LazySaladName):
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
         # GEN.86: coronal X-rays, XUV and flares, from mass and age.
         activity.generate_activity(self)
+        # GEN.158: [Fe/H], from its own stream so no older draw moves.
+        self.metallicity_fe_h = kwargs.get('metallicity_fe_h')
+        if self.metallicity_fe_h is None:
+            self.metallicity_fe_h = metallicity.sample_fe_h(
+                getattr(self.system_config, "POPULATION", None),
+                constants.GALACTIC_CENTER_DISTANCE_LY if self.galactic_center_dist_ly is None
+                else self.galactic_center_dist_ly,
+                draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
 
     def get_table_properties(self):
         """

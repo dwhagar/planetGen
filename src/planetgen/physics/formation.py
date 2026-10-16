@@ -35,7 +35,7 @@ def snow_line_au(luminosity_w):
 
 
 @finite_domain()
-def disk_surface_density_scale(star_mass_kg):
+def disk_surface_density_scale(star_mass_kg, fe_h=0.0):
     """
     How much a star's own protoplanetary disk's solid surface density
     should be scaled relative to the Sun's (MMSN) value, based on the
@@ -46,12 +46,15 @@ def disk_surface_density_scale(star_mass_kg):
 
     Args:
         star_mass_kg (float): The star's mass, in kilograms.
+        fe_h (float): The star's [Fe/H] in dex (GEN.158): the disk's solids
+            scale as `10^[Fe/H]`. Zero (solar) leaves the scale as it was.
 
     Returns:
-        float: A dimensionless scale factor, 1.0 for a solar-mass star.
+        float: A dimensionless scale factor, 1.0 for a solar-mass star of
+            solar metallicity.
     """
     solar_masses = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
-    return solar_masses ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT
+    return solar_masses ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT * 10.0 ** fe_h
 
 
 @finite_domain()

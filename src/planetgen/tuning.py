@@ -601,6 +601,27 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
 
+# Metallicity ([Fe/H], dex; GEN.158, docs/design/globular-clusters.md 5). The
+# disc populations follow a mild radial gradient of -0.06 dex per kpc [recalled,
+# to verify; written as a fall, so positive] that is zero at the Sun's distance from the centre; each population
+# has its own offset and scatter (the young disc is the most uniform, the bulge
+# the widest). The halo is -1.6 inside 25 kpc and -2.2 outside, scatter 0.5
+# (docs/design/intergalactic-and-halo-contents.md 5.3). A cluster carries its own
+# value. `METALLICITY_RANGE_FE_H` clamps every draw.
+METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06
+METALLICITY_BY_POPULATION = {
+    "young": {"offset": 0.0, "sigma": 0.10, "gradient": True},
+    "intermediate": {"offset": 0.0, "sigma": 0.15, "gradient": True},
+    "old": {"offset": -0.2, "sigma": 0.25, "gradient": True},
+    "bulge": {"offset": -0.05, "sigma": 0.40, "gradient": False},
+}
+METALLICITY_HALO = {"inner": -1.6, "outer": -2.2, "break_kpc": 25.0, "sigma": 0.5}
+METALLICITY_RANGE_FE_H = (-3.5, 0.6)
+# Solid surface density of a protoplanetary disk scales as 10^[Fe/H] (solids are
+# a fixed share of the metals), and giant-planet occurrence as 10^(2 [Fe/H]),
+# capped at 1 (Fischer and Valenti 2005 form, recalled).
+GIANT_PLANET_METALLICITY_EXPONENT = 2.0
+
 # The galaxy density model's fixed Milky Way structure
 # (`galaxy.density`, GEN.118, GEN.119): everything that isn't a
 # `GalaxyShape` field, as ratios to those fields so it scales with the
