@@ -15,6 +15,7 @@ Rules:
 | [#1750](https://github.com/dwhagar/planetGen/issues/1750) | open | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | open | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
 | [#1748](https://github.com/dwhagar/planetGen/issues/1748) | open | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
+| [#1758](https://github.com/dwhagar/planetGen/issues/1758) | open | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170) | TEST.170 |
 | [#1726](https://github.com/dwhagar/planetGen/issues/1726) | open | Interface update: every control works on the whole sphere | UX.115, TEST.168 |
 | [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144 |
 | [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10 |
@@ -41,17 +42,17 @@ Rules:
 | [#1671](https://github.com/dwhagar/planetGen/issues/1671) | open | Fly-through Galaxy Map and scale hand-offs | MAP.59, MAP.75, MAP.119, MAP.120, MAP.121, MAP.122, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, MAP.146, MAP.147, MAP.152, MAP.156, MAP.160, MAP.195, MAP.208, MAP.209, MAP.210 |
 | [#1670](https://github.com/dwhagar/planetGen/issues/1670) | open | Gravity field and the gravity map | GEN.115, GEN.198, GEN.199, MAP.167, MAP.168, MAP.169, MAP.170, API.24, UX.94, PERF.72, TEST.131 |
 | [#1669](https://github.com/dwhagar/planetGen/issues/1669) | open | Orbital update: solver, thresholds, collisions and the nightly ceiling | GEN.105, GEN.109, GEN.110, GEN.111, GEN.112, GEN.139, GEN.140, GEN.141, GEN.142, GEN.143, GEN.197, PERF.103, ADM.36, TEST.129, TEST.130, GEN.289, GEN.290, GEN.291, GEN.292, GEN.293 |
-| [#1668](https://github.com/dwhagar/planetGen/issues/1668) | open | Nearby-object queries by cell key (stage C) | GEN.276, DB.34, DB.35, NAV.45, NAV.60, NAV.61, TEST.165, TEST.166, DOC.51 |
-| [#1667](https://github.com/dwhagar/planetGen/issues/1667) | open | Multi-star systems and the scatter member tree (stage M) | GEN.260, GEN.261, GEN.262, GEN.263, GEN.264, GEN.265, GEN.266, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, GEN.130, TEST.162, TEST.164, DOC.50, UX.114 |
+| [#1668](https://github.com/dwhagar/planetGen/issues/1668) | open | Nearby-object queries by cell key (stage C) | GEN.276, NAV.45, NAV.60, NAV.61, TEST.165, TEST.166, DOC.51 |
+| [#1667](https://github.com/dwhagar/planetGen/issues/1667) | open | Multi-star systems and the scatter member tree (stage M) | GEN.261, GEN.262, GEN.263, GEN.264, GEN.265, GEN.266, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, GEN.130, TEST.162, TEST.164, DOC.50, UX.114 |
 | [#1666](https://github.com/dwhagar/planetGen/issues/1666) | open | Phenomena registry, fill stages and the remaining star types | GEN.250, GEN.251, GEN.252, GEN.253, GEN.247, GEN.249, GEN.258, GEN.259, DOC.49 |
-| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.233, GEN.234, GEN.235, GEN.236, GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
+| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.234, GEN.235, GEN.236, GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
 | [#1657](https://github.com/dwhagar/planetGen/issues/1657) | closed | GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for min | GEN.232 |
 | [#1656](https://github.com/dwhagar/planetGen/issues/1656) | open | TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel r | TEST.111 |
 | [#1655](https://github.com/dwhagar/planetGen/issues/1655) | open | TEST.138 test_open_map_menus_hold_no_overlap fails under load: [web.galaxy-1280] once, [web.sector-6 | TEST.138 |
 | [#1654](https://github.com/dwhagar/planetGen/issues/1654) | open | TEST.163 test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count i | TEST.163 |
 | [#1653](https://github.com/dwhagar/planetGen/issues/1653) | open | DB.33 MySQL 8.0.46 reflects fk_facilities_type and fk_facility_field_values_field as RESTRICT, so ch | DB.33 |
 | [#1565](https://github.com/dwhagar/planetGen/issues/1565) | open | Wide binary star systems must be stable: far orbits and Hill spheres must not overlap | GEN.228, GEN.229 |
-| [#1537](https://github.com/dwhagar/planetGen/issues/1537) | open | Orbital update skips the galaxy position move of systems with no placed sector (GEN.223) | GEN.223, GEN.230, PERF.103 |
+| [#1537](https://github.com/dwhagar/planetGen/issues/1537) | open | Orbital update skips the galaxy position move of systems with no placed sector (GEN.223) | PERF.103 |
 | [#1532](https://github.com/dwhagar/planetGen/issues/1532) | open | Overview page: the phenomena count is wrong (UX.110) | UX.110 |
 | [#1503](https://github.com/dwhagar/planetGen/issues/1503) | closed | Galaxy Map: regions under the galactic plane are hard to highlight and select (MAP.204) | MAP.204 |
 | [#1500](https://github.com/dwhagar/planetGen/issues/1500) | closed | Generation output: nebula kinds and layers per slab; no progress for the phenomena indexes | GEN.222, PERF.101 |

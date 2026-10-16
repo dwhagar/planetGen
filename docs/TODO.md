@@ -118,8 +118,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.230, GEN.231, UX.107, UX.108, UX.109, UX.110, GEN.223, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, OPS.41, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, DB.35, DB.34, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.235, GEN.234, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.266, GEN.265, PERF.103, GEN.264, GEN.263, GEN.262, GEN.260, GEN.233, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.151, GEN.93, GEN.149, GEN.112, GEN.154, GEN.153, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, OPS.41, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.235, GEN.234, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.266, GEN.265, PERF.103, GEN.264, GEN.263, GEN.262, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.151, GEN.93, GEN.149, GEN.112, GEN.154, GEN.153, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, GEN.159, GEN.158, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
@@ -528,7 +528,6 @@ with `clamp()`.
   companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
   catalogue), hierarchical trees only, a row's members deleted when its
   sector builds it, pair rates from the middle of the evidence.
-  Prerequisite: GEN.260.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
@@ -1866,7 +1865,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   we'll skip it and move to the next sequence until it's finished
   research and we can plan it." The research is finished and merged
   (#1659), so stage C is live.
-  Prerequisites: DB.34, GEN.276, DB.35. Related: NAV.43, NAV.44, NAV.45,
+  Prerequisite: GEN.276. Related: NAV.43, NAV.44, NAV.45,
   NAV.61, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -3568,100 +3567,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages), and the phenomenon prose. In-universe wording per UX.42
   on public pages. Wording moves into the describer as it is rewritten.
 
-- [ ] **GEN.223 The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug)**
-  Boss (2026-10-15, asked "Does our orbital update include all objects
-  that are not in a charted sector?", then said "Yes" to filing it as a
-  bug) and then rewrote the item (2026-10-15 16:03 EDT): "Modify GEN.223
-  to update so all objects within the galaxy move, that's one of the
-  biggest reasons we built the special coordinate with vector components
-  for speed and direction and such, the point in space object should be
-  used for everything in memory and should be stored part by part in the
-  table (no serialized JSON everything has its own column to rebuild the
-  point exactly as it was). We can even store the point mass of the
-  object inside the point structure if we need to, whatever we need.
-  That's why I made the point. Every single thing that exists in the
-  galaxy needs to move and be updated as needed (algorithm exists
-  already) by the nightly orbital update." Today the orbital update
-  advances the phases and the clock for a star system with no placed
-  (charted) sector but skips the move of its galactic position
-  (`db/store.py` around line 5268, `sector_id not in index.info`), and
-  the follow-up refresh (`refresh_after_motion`, around line 5471)
-  covers only placed sectors, so such a system gets no containment,
-  nearest-systems or location refresh. The unbuilt scatter placeholders
-  (`phenomenon_scatter`, `bright_stars`) and standalone phenomena are
-  not advanced either. Planets, moons, comets and facilities are
-  already selected by due time with no sector filter. Done: (1) the
-  nightly update moves every object that exists in the galaxy: star
-  systems with no placed sector, standalone phenomena, and the scatter
-  placeholders, which get point columns plus an epoch and a
-  `next_update_due` and are advanced with the rest; (2) the point in
-  space is the one in-memory representation of position for everything,
-  and it is stored as separate columns, one per component (position,
-  velocity vector, epoch, and mass if it is needed), with no JSON, so
-  the point is rebuilt exactly as it was; the migration is Core's, and
-  existing rows are converted without changing a position; (3)
-  `refresh_after_motion` (containment, nearest-systems, location) also
-  covers objects with no placed sector; with tests that fail when any
-  kind of object is skipped, and a round-trip test that a stored point
-  rebuilds bit for bit. The sector-index code changed with the
-  Spherical Sector Coordinates work, so reread it against the shell
-  grid first. Owner: Core. Bug and feature: the missing move is the bug,
-  the column layout is the change.
-  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
-  database schema is not a constraint. Redesign tables, columns and
-  layouts as the work needs, with one migration or a fresh galaxy;
-  nothing is kept for the sake of production data. Core does this item
-  and GEN.230 in one shared migration, as the first of the
-  spherical-grid group: the point-in-space columns and the 96-bit layout
-  land together, before the reach (GEN.233) and everything after it.
-  Reworded (Boss, 2026-10-15 5:51 PM EDT;
-  docs/design/multi-star-systems.md): companions of stars and star-like
-  objects are generated at scatter time, planets, moons and belts at
-  sector fill; a scatter row is a system with a barycentre, a total mass
-  and stored members. The scatter row's point is the barycentre of a
-  system, with `system_mass_solar`; the member columns and tables
-  (GEN.260) go into this migration or immediately after it, and the
-  nightly motion of a system is GEN.265.
-  Region query (stage C, Boss 2026-10-15 5:32 PM EDT rule, research
-  #1659): the same migration 0093 also carries the cell key and its
-  covering index on every positioned table (DB.34) and the scatter
-  tables' point columns and key (DB.35); GEN.276
-  (`planetgen/galaxy/cellkey.py`) goes first because DB.34's SQL key is
-  tested against it. Still one migration.
-  Reworded (multi-star thread's inspection of the orbital update code,
-  approved by Boss, 2026-10-15 6:26 PM EDT): (a) two new movement scales
-  next to galactic (0.01 mpc), system (0.01 AU) and planetary (100,000
-  km) in `THRESHOLDS_M` (`src/planetgen/physics/position.py`, with
-  `update_interval_s`): `halo` = 1 mpc (about 206 AU) for objects in the
-  halo and `intergalactic` = 40 mpc (1% of a 4 pc shell) for objects
-  beyond the galaxy's reach. The scale is chosen by the object's region
-  when its `next_update_due` is set; the disc and the bulge keep 0.01
-  mpc. The region boundaries are a tuning value (halo = beyond the disc
-  and bulge profile, intergalactic = beyond the reach of 262 kpc).
-  Reason: at 200 km/s a 2 AU threshold makes a far object due about
-  every two weeks, and 40 mpc makes it about 190 years. (b) A
-  sector-crossing guard: an object that has a sector comes due no later
-  than half the time it needs to reach its sector's boundary at its
-  current speed, interval = min(threshold / speed, 0.5 *
-  distance_to_boundary / speed), so refiling, containment, nearest
-  systems and location never go stale (today the interval is
-  distance-only and refiling happens only when a row is due); it applies
-  on the shell, band and wedge grid, so reread the sector index first.
-  (c) Counting: every kind of object this item adds (sector-less
-  systems, standalone phenomena, scatter placeholders, scatter systems'
-  barycentres) is in the `counts` that `advance_galactic_positions`
-  (`db/store.py`) returns; `refiled` becomes `sector_crossings`, a count
-  per kind, including objects entering or leaving a sector with no
-  previous sector; new counts for rows given their first due time, rows
-  woken by the crossing guard and rows due but not moved; all printed in
-  the CLI summary (`cli/orbits.py`), the job log and the admin page.
-  Done also: a test fails if any object kind is moved without being
-  counted, and a test that an object crossing a boundary is counted once
-  as a crossing and refiled. Scatter members need no scale (they are
-  computed on read, GEN.265). No migration beyond this item's. Owner:
-  Core.
-  Prerequisites: none.
-
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
   GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
   check-db --deep --wide-binaries`, which counts the existing unstable
@@ -3671,43 +3576,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   needs Boss's word before anything is changed. Owner: Core. Source:
   Boss's report 2026-10-15 07:44Z.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
-
-- [ ] **GEN.230 Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug)**
-  Found by Quality's grid fuzz tests (branch claude/test158, not merged
-  yet). `DESIGNATION_BAND_BITS` in `src/planetgen/galaxy/spherical.py`
-  is 12, so the band field holds -2048 to 2047, but a shell's top band
-  (the polar cap) is about 1.57 times the shell number. From shell 1304
-  outward every cap and high-latitude band is out of range, and the
-  default Milky Way reaches shell 3764 with bands up to about plus or
-  minus 5,900. For those cells `provisional_sector_designation` and
-  `describe_sector_cell` raise ValueError. Sectors in the disk plane are
-  unaffected, so the bug is latent: it shows in the halo and over the
-  poles and in `/api/galaxy/cell` lookups there. Decided (the
-  intergalactic research note, approved by Boss 2026-10-15): the layout
-  is 96 bits. The 80-bit object ID was sized for the disk outline, not
-  the sphere (a 41st bit would not fit the 40-bit birth field), so the
-  object ID takes the widened layout `object_uid.fit_layout` already
-  returns for a full sphere, and `provisional_sector_designation` and
-  `parse_sector_designation` take the galaxy's layout instead of the
-  hard-coded 12/12/16 bits. Done: the designation round-trips for every
-  cell of the default galaxy and of the sphere to the shell that layout
-  was fitted for, the layout is documented in
-  `docs/design/intergalactic-and-halo-contents.md` section 1, and
-  `test_designation_rejects_bands_outside_its_bit_field` in
-  `src/tests/test_fuzz_galaxy_grid.py` is updated by whoever fixes it.
-  Owner: Core (2026-10-15). A layout change reaches stored designations
-  and object IDs, so it is Core's migration and is decided before more
-  sectors are created in the halo; the reach setting itself is GEN.233.
-  Bug.
-  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
-  database schema is not a constraint. Redesign tables, columns and
-  layouts as the work needs, with one migration or a fresh galaxy;
-  nothing is kept for the sake of production data. The layout is the
-  96-bit one whatever it costs the stored designations and object IDs.
-  Core does this item and GEN.223 first, in one shared migration,
-  because the spherical grid is finished before the whole-sphere work
-  (GEN.233 and after) starts.
-  Prerequisites: none. Related: GEN.229.
 
 - [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
   The Galaxy Map moved to the shell, band and wedge ladder
@@ -3732,40 +3600,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   m.shell.band.wedge key. This item reworded the message to say what is
   true until the mode is built.
   Prerequisite: PERF.99. Related: GEN.101, MAP.120.
-
-- [ ] **GEN.233 Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits**
-  Step 1 of the whole-sphere train
-  (docs/design/intergalactic-and-halo-contents.md section 9). The grid
-  tiles all of space, but the sectors that exist stop at the disk
-  outline (shell 4,095 at most) and the object ID cannot name the cells
-  beyond it. Add a plan-time `reach` (default 65,535 shells = 262 kpc:
-  the Magellanic Clouds, the Sagittarius remnant, the globular clusters
-  and the satellites out to Leo I), stored with the galaxy next to the
-  outline, with the 96-bit layout from `object_uid.fit_layout`.
-  `GalaxyBounds.contains` answers for the reach and a new `qualifies`
-  answers for the outline; `random_address` and the default
-  neighbourhood stay on the outline (the first pull stays in the
-  galactic region); an explicit address, span or block anywhere in the
-  reach is accepted. The designation functions and
-  `outline_object_id_layout` take the galaxy's layout, the plan refuses
-  a reach the layout cannot hold, and a cell beyond the reach is refused
-  with the text "outside the grid". A galaxy planned without a reach
-  keeps the layout its outline needs; an existing galaxy is re-planned
-  or renumbered by a migration like the shell move's (no backward
-  compatibility). Done: the plan stores the reach, every cell inside it
-  round-trips through its designation and object ID at the widest shell,
-  and a cell beyond it is refused. Owner: Core (2026-10-15); the
-  migration, if any, is Core's. Resolves GEN.230's layout question;
-  GEN.230 fixes the band field for the default galaxy first.
-  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
-  database schema is not a constraint. Redesign tables, columns and
-  layouts as the work needs, with one migration or a fresh galaxy;
-  nothing is kept for the sake of production data. Order (Boss,
-  2026-10-15 5:27 PM EDT): the spherical sector layout finishes first
-  (GEN.230, GEN.223, this item), then the whole-sphere work (GEN.234 and
-  after), then the spherical-region database query.
-  Prerequisites: GEN.230, GEN.223. Related: GEN.9.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.234 A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations**
   Step 3 of the whole-sphere train. `MIN_RELATIVE_DENSITY` (0.1% of the
@@ -3834,7 +3668,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector profile leaves room for a per-sector scatter-threshold tier. It
   does not change the density model or any star's caps; Core 3's note
   for GEN.279 fixes the exact form.
-  Prerequisites: GEN.233, GEN.234. Related: GEN.76, GEN.81, GEN.42.
+  Prerequisite: GEN.234. Related: GEN.76, GEN.81, GEN.42.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.236 Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity**
@@ -3915,7 +3749,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outline, and the counts per radius match the law. Owner: Core
   (2026-10-15), after GEN.232 (a fast body's path integration runs for
   minutes until it is capped).
-  Prerequisites: GEN.233, GEN.235. Related: GEN.223, GEN.240.
+  Prerequisite: GEN.235. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -4462,39 +4296,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.236.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
-- [ ] **GEN.260 Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members**
-  Step 1 of the multi-star train (design note sections 5 and 11 item 1).
-  `member_count` and `system_mass_solar` on `bright_stars` and
-  `phenomenon_scatter`, and the tables `scatter_members` (one row per
-  member, the placed object as member 0, with kind, mass, initial mass
-  and seed) and `scatter_nodes` (the orbit tree, one column per value,
-  the same names as GEN.129's `orbit_nodes`), with no JSON and no
-  foreign key; the build deletes a row's child rows in its transaction
-  and `check-db` counts child rows without a parent. The row's point is
-  the barycentre. Goes in the shared GEN.223 and GEN.230 migration or
-  immediately after it. Done: the columns and tables exist, a reader
-  gets `COALESCE(system_mass_solar, mass_solar)`, and the cleanup check
-  runs. Owner: Core (2026-10-15). Boss (2026-10-15 5:51 PM EDT): stellar
-  companions of stars and star-like objects, including neutron star and
-  black hole pairs, are generated at scatter time because they matter
-  for gravity; planets, moons and belts stay at sector fill. Defaults
-  taken (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
-  catalogue), hierarchical trees only, a row's members deleted when its
-  sector builds it, pair rates from the middle of the evidence.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the same
-  migration also adds `state`, `flags` and `interaction` (VARCHAR(20),
-  on nodes), makes `slot` a SMALLINT on `scatter_members` and
-  `scatter_nodes` (a group has N slots), adds the node kinds `group` and
-  `compact`, and for group members the columns `offset_x_au`,
-  `offset_y_au`, `offset_z_au`, `velocity_x_kms`, `velocity_y_kms`,
-  `velocity_z_kms` and `decay_age_yr`. Still one migration (0093 with
-  GEN.223 and GEN.230); one column per value, no JSON. Done also: those
-  columns exist and `check-db` knows them.
-  Prerequisite: GEN.223. Related: GEN.230, GEN.129.
-  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
-
 - [ ] **GEN.262 Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted**
   Step 3 (design note 4, 6.3, 6.4 and 11 item 3). The passes that place
   bright stars, massive stars, black holes, intermediate-mass black
@@ -4557,7 +4358,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before the 6:08 PM EDT catalogue), hierarchical trees only, a row's
   members deleted when its sector builds it, pair rates from the middle
   of the evidence.
-  Prerequisites: GEN.260, GEN.262, GEN.251. Related: GEN.251,
+  Prerequisites: GEN.262, GEN.251. Related: GEN.251,
   GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4584,7 +4385,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   need no movement scale of their own, they are computed on read; the
   barycentre moves on GEN.223's scale for its region, with the crossing
   guard.
-  Prerequisites: GEN.223, GEN.260. Related: GEN.109.
+  Prerequisite: GEN.260. Related: GEN.109.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.266 Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries**
@@ -4966,7 +4767,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
   #1677. Done: the nuclear cluster and the nuclear disc enter
   galactic-potential.py so orbits near the centre feel them.
-  Prerequisites: GEN.223, GEN.280. Related: GEN.198.
+  Prerequisite: GEN.280. Related: GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.286 Horizontal-branch and AGB phases in the stellar evolution model**
@@ -5068,7 +4869,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets be ejected?) and its answer,
   /mnt/project-files/research/orbital-encounters/answer.md. Boss has not
   asked for this to be built; no owner, no queue change.
-  Prerequisites: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
+  Prerequisite: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
   GEN.223.
 
 - [ ] **GEN.290 An encounter search that cannot miss a pass at large steps (100 years per second)**
@@ -5092,7 +4893,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   got close to a planetary system, and would planets be ejected?) and
   its answer, /mnt/project-files/research/orbital-encounters/answer.md.
   Boss has not asked for this to be built; no owner, no queue change.
-  Prerequisites: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
+  Prerequisite: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
   GEN.223.
 
 - [ ] **GEN.291 A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log**
@@ -5793,54 +5594,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and fk_facility_field_values_field. Owner: Core 2 (in its queue
   after the plan items; Core 2 confirmed 9:17 PM EDT it is its to fix).
   Prerequisites: none.
-
-- [ ] **DB.34 Cell key and covering index on every table that holds a position, in the shared 0093 migration**
-  Step 1 (design note sections 6.2, 6.6 and 9 item 1). In GEN.223's
-  migration: a `cell_key BIGINT UNSIGNED` `STORED` generated column
-  computed by MySQL from the point columns (`IF` guard: `NULL` outside
-  plus or minus 262,144 pc; Morton key of 21 bits per axis at 0.25 pc)
-  and `INDEX idx_cell (cell_key, x, y, z)` on `star_systems`, the
-  standalone phenomenon tables, standalone facilities, interstellar
-  comets, asteroid fields and (with DB.35) the scatter tables. The
-  spread macro is written out as the five mask-and-shift steps. The
-  design measured this with a 65 kpc box and 1,000,000 of 1,000,000 rows
-  equal; the 21-bit constants and the `IF` guard (strict mode raises on
-  a negative `CAST ... AS UNSIGNED`) are untested: test them here. Done:
-  the SQL key equals GEN.276's Python key on a million random points
-  including the box edges and just outside it; a position outside the
-  box gets `NULL` without an error; no position can be written without
-  its key; `check-db` knows the column and the index. The migration is
-  still one file, 0093, shared with GEN.223, GEN.230 and GEN.260 (and
-  DB.35). Owner: Core (2026-10-15). Boss (2026-10-15 5:32 PM EDT): "if
-  it's not ready in time before the spherical sector layout is, then
-  we'll skip it and move to the next sequence until it's finished
-  research and we can plan it." The research is finished and merged
-  (#1659), so stage C is live.
-  Prerequisites: GEN.223, GEN.276. Related: GEN.230, GEN.233, GEN.260,
-  DB.35, NAV.60.
-  Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
-
-- [ ] **DB.35 Scatter rows keep their address columns and gain the point columns and the cell key**
-  Step 5 (design note section 7 and 9 item 5). `phenomenon_scatter` and
-  `bright_stars` get GEN.223's point columns and DB.34's `cell_key` and
-  covering index, and keep their (shell, band, wedge) address columns,
-  which stay the generator's lookup ("the scatter rows of this cell", an
-  equality lookup) and the row's birth address. The scatter pass keeps
-  its bands and its order; the key is computed from whatever position it
-  writes, and a scatter row moved by the nightly update keeps its birth
-  address and gets a new key. Coordinate with GEN.240 (the three
-  scatters fill the whole sphere) and GEN.260 (members and barycentre):
-  the point is the barycentre. Done: both tables carry the point, the
-  key and the index in the same migration, the generator's address
-  lookups are unchanged, and a moved scatter row's key follows it.
-  Owner: Core (2026-10-15). Boss (2026-10-15 5:32 PM EDT): "if it's not
-  ready in time before the spherical sector layout is, then we'll skip
-  it and move to the next sequence until it's finished research and we
-  can plan it." The research is finished and merged (#1659), so stage C
-  is live.
-  Prerequisites: GEN.223, DB.34. Related: GEN.240, GEN.260, GEN.265,
-  NAV.60.
-  Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 ## API: The JSON API
 
@@ -6821,7 +6574,7 @@ clears each one.
   concentrations. Done: each test above exists and runs in the normal
   suite. Owner: Quality (all TEST items are Quality's), written beside
   each build step.
-  Prerequisites: GEN.233, GEN.235, GEN.236, GEN.241, GEN.243. Related:
+  Prerequisites: GEN.235, GEN.236, GEN.241, GEN.243. Related:
   TEST.156.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -6963,7 +6716,7 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
-  Prerequisites: DB.34, GEN.276. Related: NAV.60, DOC.51.
+  Prerequisite: GEN.276. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **TEST.166 The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit**
@@ -6977,7 +6730,7 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
-  Prerequisites: DB.34, GEN.223. Related: DB.35, TEST.165.
+  Prerequisite: DB.34. Related: DB.35, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **TEST.167 test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug)**
@@ -7016,6 +6769,22 @@ clears each one.
   a console error, a bad response or a control that does nothing. Runs
   after ADM.56 and again at the end of the chain.
   Prerequisite: ADM.56. Related: TEST.168, ADM.55.
+
+- [ ] **TEST.170 test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug)**
+  Finding from Core 1 (2026-10-15, PR #1757, kind: load flake, fails on
+  main: not seen, how often: once in the 89-minute changed-tests gate
+  each): in the gate run, test_math_check::test_whole_run_is_fast failed
+  (a timing assertion) and
+  test_web_browser_fixture_maps::test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle
+  failed once and passed on rerun; both pass alone. Reproducer:
+  scripts/test.py changed (the full parallel gate), then run each test
+  alone. Done: each test is made robust to load without loosening what
+  it proves (the speed test measures against a relative budget or the
+  work done instead of a wall-clock limit; the breadcrumb test waits for
+  layout to settle before measuring) or its cost is explained, and the
+  same gate shows neither red. Owner: unassigned. Related: TEST.111,
+  TEST.138, TEST.163, TEST.167.
+  Prerequisites: none. Related: TEST.111, TEST.138, TEST.163, TEST.167.
 
 ## USR: User accounts
 
@@ -7654,7 +7423,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   reach versus the outline, the profile, the components, the kind
   factors, the nebula contents, the Wolf-Rayet state and class X, and
   the 96-bit layout as built. Owner: Quality, after the code.
-  Prerequisites: GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243.
+  Prerequisites: GEN.234, GEN.235, GEN.237, GEN.241, GEN.243.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **DOC.49 Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue**
@@ -7683,7 +7452,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `phenomena-catalogue-and-fill.md` section 4 to the catalogue sections
   13 to 16, and the cap of twelve. Runs after the catalogue code and
   audit.
-  Prerequisites: GEN.260, GEN.262, GEN.264, GEN.266, TEST.164. Related:
+  Prerequisites: GEN.262, GEN.264, GEN.266, TEST.164. Related:
   DOC.49.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -7698,7 +7467,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
-  Prerequisites: DB.34, GEN.276, NAV.60. Related: NAV.61, TEST.165.
+  Prerequisites: GEN.276, NAV.60. Related: NAV.61, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **DOC.52 A docs index page: links to every HTML page under docs/, each with a description of what it contains**
