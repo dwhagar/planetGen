@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1450] - 2026-10-16
+
+**Headline:** The star-size to-do item now covers every phenomenon, and phenomena draw as bright as a star of similar mass.
+
+### Changed
+
+- Widened MAP.208 on Boss's follow-up (2026-10-15, 9:33 and 9:34 PM EDT): black holes, neutron stars, quasars and markers also draw as points of light until near sector level, and each phenomenon's map brightness follows its mass compared with a star of similar mass, black holes a little dimmer still. A phenomenon with no mass takes a one solar mass star as its default. MAP.155 is done and covers only the arrival ramps, so MAP.208 stays a new item.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1449] - 2026-10-16
 
 **Headline:** Every star now has a metallicity, and a metal-poor star's disk holds fewer solids.
