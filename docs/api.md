@@ -794,6 +794,30 @@ forced credential change. They back the admin stats page
   `{"ok": bool}` (`{"cleared": holder}` for the lease) and writes the
   change to the audit and activity logs (`work.pause`, `work.queue.pause`,
   ...).
+- `GET /api/admin/settings` — the configuration page's data (ADM.84):
+  `{"file_hash", "problem", "file_error", "groups", "options",
+  "pending_restart"}`. Each option is `{"path", "title", "description",
+  "category", "kind" ("bool", "int", "float", "text", "list" or "choice"),
+  "choices", "limits", "unit", "default", "value" (what config.json holds,
+  the default where it holds nothing), "effective" (the value in use),
+  "is_set" (a secret only), "source" ("default", "config.json" or
+  "environment"), "env", "restart", "secret", "editable", "min_role",
+  "allowed" (for this admin), "reason"}`. A secret's `value`, `default` and
+  `effective` are `null`. `problem` says why the file can't be saved (missing
+  or not writable by the web user). `pending_restart` lists the options
+  saved since this process started that need a restart.
+  `POST /api/admin/settings/plan` `{"changes": {"jobs.keep": 9,
+  "site_name": {"reset": true}}}` answers what a save would do and writes
+  nothing: `{"ok", "changes": [{"path", "old", "new", "secret", "restart",
+  "reset"}], "errors": {option: message}, "shadowed": {option: variable},
+  "restart", "file_hash"}` (a secret's `old` and `new` are `(changed)`).
+  `POST /api/admin/settings` `{"changes": {...}, "expect_hash": "..."}`
+  checks and saves: the answer has the same shape with `saved` and `backup`
+  (the archive of the old file) and `audit_errors`; a value that doesn't fit
+  is a 200 with `saved` false and the message at its option, a file changed
+  since `expect_hash` or one that can't be written is a 409. One
+  `config.update` audit row per changed option. The Owner's and the command
+  line's options are refused with their reason until accounts (8.2).
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site
