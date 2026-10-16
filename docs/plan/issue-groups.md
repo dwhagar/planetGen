@@ -16,6 +16,7 @@ Rules:
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | closed | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
 | [#1748](https://github.com/dwhagar/planetGen/issues/1748) | closed | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
 | [#1785](https://github.com/dwhagar/planetGen/issues/1785) | open | test_gen_resume forced-scatter test failed once under gate load with no scattered system (TEST.171) | TEST.171 |
+| [#1811](https://github.com/dwhagar/planetGen/issues/1811) | open | Sector page accessibility test failed once under gate load and passes alone (TEST.174) | TEST.174 |
 | [#1808](https://github.com/dwhagar/planetGen/issues/1808) | open | A fill-after-failed-scatter test failed once under gate load with an empty ring (TEST.173) | TEST.173 |
 | [#1802](https://github.com/dwhagar/planetGen/issues/1802) | open | Galaxy Map forward-to-current test failed once: a click on a block with 0 sectors charted did nothing (TEST.172) | TEST.172 |
 | [#1758](https://github.com/dwhagar/planetGen/issues/1758) | open | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170) | TEST.170 |
