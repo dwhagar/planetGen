@@ -573,6 +573,9 @@ with `clamp()`.
   the existing layout and segments of the Generate page (and the sector
   fill form where the same settings apply), with the defaults shown and
   a reset. Owner: a Core lane, Core 3 first (Boss, 1:09 AM EDT).
+  Boss (2026-10-16, 1:10 AM EDT): "halo lowest floor is 100 solar
+  luminosities btw": the halo luminosity floor can be set no lower than
+  100 solar luminosities (default 500); its slider's minimum is 100.
   Prerequisites: GEN.281, GEN.283. Related: GEN.234, ADM.43, UX.49.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -4796,6 +4799,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gets its own levers (floor and mass limit settings) that default to
   about 10% above the matching defaults; the tiers of this item read
   these settings. Core 3 handles it.
+  Boss (2026-10-16, 1:10 AM EDT): "halo lowest floor is 100 solar
+  luminosities btw": the halo luminosity floor can be set no lower than
+  100 solar luminosities (default 500); the setting rejects values below
+  100 and its slider's minimum is 100.
   Prerequisites: GEN.235, GEN.158. Related: GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
