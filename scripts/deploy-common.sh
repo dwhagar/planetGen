@@ -375,9 +375,10 @@ check_mod_wsgi_python() {
     fi
 }
 
-# The update guard (OPS.41; `planetgen.cli.update_guard`): closes the site
-# (maintenance mode, cause "update") and takes the update's lock;
-# `finish_update_guard` (update.sh's EXIT trap) opens the
+# The update guard (OPS.41, OPS.53; `planetgen.cli.update_guard`): lists the work
+# that runs, stops unless the operator agrees to cancel it, closes the site
+# (maintenance mode, cause "update") and takes the lock that keeps anything
+# else from starting; `finish_update_guard` (update.sh's EXIT trap) opens the
 # site again after a good update and leaves it closed, saying why, after a
 # failed one. UPDATE_STEP names the step under way for that message.
 UPDATE_GUARD_HELD=0
@@ -392,7 +393,7 @@ update_guard() {
 # have the guard (the first update that brings it) and a new machine may have
 # no virtual environment: then this does nothing, and is called again after
 # the pull and after step 2. With the argument "required" it fails the update
-# instead of doing nothing.
+# instead of doing nothing. Needs CANCEL_RUNNING (an array, maybe empty).
 ensure_update_guard() {
     if (( UPDATE_GUARD_HELD )); then
         return 0
@@ -400,12 +401,12 @@ ensure_update_guard() {
     if [[ ! -f "$SCRIPT_DIR/src/planetgen/cli/update_guard.py" || ! -x "$VENV/bin/python" ]]; then
         if [[ "${1:-}" == "required" ]]; then
             echo "error: the update guard is missing from this checkout or the virtual environment is, so the update" >&2
-            echo "       cannot close the site. Nothing was changed after the pull." >&2
+            echo "       cannot make sure nothing else is running. Nothing was changed after the pull." >&2
             return 1
         fi
         return 0
     fi
-    if update_guard begin --pid "$$"; then
+    if update_guard begin --pid "$$" ${CANCEL_RUNNING[@]+"${CANCEL_RUNNING[@]}"}; then
         UPDATE_GUARD_HELD=1
     else
         echo "error: the update did not start." >&2

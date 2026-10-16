@@ -70,6 +70,7 @@ import threading
 import time
 import traceback
 
+from planetgen.admin import updateguard
 from planetgen.queue import progress_rate, redisqueue
 from planetgen.util import log
 from planetgen.util import draw
@@ -753,6 +754,7 @@ def open_node(kind, title, control_config=None, state="running", workers=0, hold
         node = Node(kind, title, parent.store, parent.id, parent.root_id, parent.chain, holder, workers,
                     web_job_id or parent.web_job_id, database or parent.database, argv)
     else:
+        updateguard.refuse_while_updating("A run")      # OPS.53: this process's first node is the run's start
         store = _open_store(control_config)
         parent_id = parent_id or os.environ.get(PARENT_ENV_VAR) or None
         chain = []

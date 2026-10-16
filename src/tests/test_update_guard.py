@@ -1,8 +1,9 @@
 # tests/test_update_guard.py
 
 """
-The update guard (OPS.41): `admin/updateguard.py`, its command `cli/update_guard.py`, the manual `cli/migrate.py`
-run, and the wiring in `update.sh`.
+The update guard (OPS.41, OPS.53): `admin/updateguard.py`, its command `cli/update_guard.py`, the manual
+`cli/migrate.py` run, and the wiring in `update.sh`. The running work is fake (`FakeWork`) except where a test
+says it is a real process or a real Generate job directory.
 """
 
 import json
@@ -22,8 +23,32 @@ from planetgen.cli import migrate, update_guard as update_guard_cli
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
+class FakeWork:
+    """A source of running work: `items` are the jobs it holds; `stops` says whether cancelling ends them."""
+
+    name = "fake"
+
+    def __init__(self, *titles, stops=True, queued=()):
+        self.live = [{"source": self.name, "kind": "generate", "id": f"job-{index}", "title": title,
+                      "started": "2026-10-16T03:00:00Z", "holds": "the work lease", "queued": title in queued}
+                     for index, title in enumerate(titles)]
+        self.stops = stops
+        self.cancelled = []
+
+    def items(self):
+        return [dict(item) for item in self.live]
+
+    def cancel(self, item):
+        self.cancelled.append(item["id"])
+        if self.stops:
+            self.live = [other for other in self.live if other["id"] != item["id"]]
+        return True
+
+
 def begin(pid=None, **options):
     options.setdefault("write", lambda text: None)
+    options.setdefault("poll", 0.0)
+    options.setdefault("timeout", 0.2)
     return updateguard.begin(pid or os.getpid(), **options)
 
 
@@ -40,7 +65,7 @@ def say(lines):
 # --- OPS.41: the site is closed while the update runs ------------------------------------------------------
 
 def test_an_update_closes_the_site_and_opens_it_when_it_has_finished(say, lines):
-    assert begin(write=say)
+    assert begin(sources=[], write=say)
     state = maintenance.read()
     assert state["enabled"] and state["cause"] == updateguard.UPDATE_CAUSE and state["by"] == "update.sh"
     assert state["reason"] == updateguard.UPDATE_REASON
@@ -51,24 +76,26 @@ def test_an_update_closes_the_site_and_opens_it_when_it_has_finished(say, lines)
 
 
 def test_a_failed_update_leaves_the_site_closed_and_says_how_to_open_it(say, lines):
-    assert begin()
+    assert begin(sources=[])
     assert not updateguard.end(os.getpid(), ok=False, step="step 5/9, migrating the database", write=say)
     assert maintenance.is_on() and maintenance.read()["cause"] == updateguard.UPDATE_CAUSE
     message = " ".join(lines)
     assert "step 5/9, migrating the database" in message and "half migrated" in message
     assert "python -m planetgen.cli.maintenance off" in message
-    # the lock is released so the update can be run again, but the site counts as being updated while it is closed
+    # the lock is released so the update can be run again, but nothing else may start while the site is closed
     assert updateguard.read_lock() is None and updateguard.is_updating()
-    # the admin opens the site: no update is running any more, and the next one closes and opens it as usual
+    with pytest.raises(updateguard.UpdateRunning):
+        updateguard.refuse_while_updating("A Generate job")
+    # the admin opens the site: work may start, and the next update closes and opens it as usual
     maintenance.turn_off(by="boss")
-    assert not updateguard.is_updating()
-    assert begin() and updateguard.end(os.getpid(), ok=True)
+    updateguard.refuse_while_updating("A Generate job")
+    assert begin(sources=[]) and updateguard.end(os.getpid(), ok=True)
     assert not maintenance.is_on()
 
 
 def test_a_site_an_admin_closed_stays_closed_after_the_update():
     maintenance.turn_on("until noon", by="boss")
-    assert begin()
+    assert begin(sources=[])
     assert maintenance.read()["by"] == "boss" and maintenance.read()["eta"] == "until noon"
     updateguard.end(os.getpid(), ok=True)
     assert maintenance.is_on() and maintenance.read()["by"] == "boss"
@@ -79,14 +106,14 @@ def test_the_lock_of_a_dead_process_is_ignored():
     child.wait()
     updateguard._write_lock(child.pid, "update.sh", kept=False)
     assert updateguard.read_lock() is None and not updateguard.is_updating()
-    assert begin() and updateguard.read_lock()["pid"] == os.getpid()
+    assert begin(sources=[]) and updateguard.read_lock()["pid"] == os.getpid()
 
 
 def test_a_second_update_is_refused_while_one_runs(say, lines):
     sleeper = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     try:
         updateguard._write_lock(sleeper.pid, "update.sh", kept=False)
-        assert not begin(write=say)
+        assert not begin(sources=[], write=say)
         assert f"process {sleeper.pid}" in " ".join(lines)
         assert not maintenance.is_on()
     finally:
@@ -94,18 +121,20 @@ def test_a_second_update_is_refused_while_one_runs(say, lines):
         sleeper.wait()
 
 
-def test_the_update_knows_its_own_commands(monkeypatch):
-    assert begin()
-    assert not updateguard.inside_update()
+def test_the_updates_own_commands_pass_the_guard(monkeypatch):
+    assert begin(sources=[])
+    with pytest.raises(updateguard.UpdateRunning, match="the site is being updated"):
+        updateguard.refuse_while_updating("A Generate job")
     monkeypatch.setenv(updateguard.OWNER_ENV, str(os.getpid()))
-    assert updateguard.inside_update()
+    updateguard.refuse_while_updating("A Generate job")
     monkeypatch.setenv(updateguard.OWNER_ENV, "1")
-    assert not updateguard.inside_update()
+    with pytest.raises(updateguard.UpdateRunning):
+        updateguard.refuse_while_updating("A Generate job")
 
 
 def test_the_sector_switch_takes_over_the_closing_and_the_update_leaves_it_to_the_warm_up(monkeypatch):
     monkeypatch.setattr(migrate, "schema_status", lambda config: (80, 12))
-    assert begin()
+    assert begin(sources=[])
     assert migrate.close_site_for_the_sector_switch(object(), write=lambda text: None)
     assert maintenance.read()["cause"] == maintenance.SECTOR_SWITCH
     updateguard.end(os.getpid(), ok=True)
@@ -154,36 +183,57 @@ def test_the_command_needs_the_process_to_hold_the_lock_for():
 
 # --- a migration run by hand --------------------------------------------------------------------------------
 
-def test_a_manual_migration_with_something_to_migrate_closes_the_site_and_opens_it(monkeypatch):
+@pytest.fixture
+def fake_machine(monkeypatch):
+    """A machine with `FakeWork` running, in place of the real sources."""
+    work = FakeWork()
+    monkeypatch.setattr(updateguard, "default_sources", lambda config=None, url=None: [work])
+    monkeypatch.setattr(updateguard, "STOP_SECONDS", 0.2)
+    monkeypatch.setattr(updateguard, "POLL_SECONDS", 0.0)
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
+    return work
+
+
+def test_a_manual_migration_with_something_to_migrate_closes_the_site_and_opens_it(monkeypatch, fake_machine):
     monkeypatch.setattr(migrate, "schema_status", lambda config: (80, 3))
     seen = []
-    with migrate._update_guard(object()):
+    with migrate._update_guard(object(), False):
         seen.append(maintenance.read()["cause"])
     assert seen == [updateguard.UPDATE_CAUSE] and not maintenance.is_on() and updateguard.read_lock() is None
 
 
-def test_a_manual_migration_that_fails_leaves_the_site_closed(monkeypatch):
+def test_a_manual_migration_that_fails_leaves_the_site_closed(monkeypatch, fake_machine):
     monkeypatch.setattr(migrate, "schema_status", lambda config: (80, 3))
     with pytest.raises(SystemExit):
-        with migrate._update_guard(object()):
+        with migrate._update_guard(object(), False):
             raise SystemExit(1)
     assert maintenance.is_on() and maintenance.read()["cause"] == updateguard.UPDATE_CAUSE
     assert updateguard.read_lock() is None
 
 
-def test_a_migration_with_nothing_to_migrate_closes_nothing(monkeypatch):
+def test_a_migration_with_nothing_to_migrate_closes_nothing(monkeypatch, fake_machine):
     monkeypatch.setattr(migrate, "schema_status", lambda config: (91, 0))
-    with migrate._update_guard(object()):
+    with migrate._update_guard(object(), False):
         assert not maintenance.is_on()
 
 
-def test_a_migration_that_update_sh_runs_leaves_the_guard_to_it(monkeypatch):
+def test_a_migration_that_update_sh_runs_leaves_the_guard_to_it(monkeypatch, fake_machine):
     monkeypatch.setattr(migrate, "schema_status", lambda config: (80, 3))
-    assert begin()
+    assert begin(sources=[])
     monkeypatch.setenv(updateguard.OWNER_ENV, str(os.getpid()))
-    with migrate._update_guard(object()):
+    with migrate._update_guard(object(), False):
         pass
     assert maintenance.is_on() and updateguard.read_lock() is not None      # still update.sh's
+
+
+def test_a_manual_migration_refuses_running_work_without_a_terminal_and_changes_nothing(monkeypatch, fake_machine):
+    monkeypatch.setattr(migrate, "schema_status", lambda config: (80, 3))
+    fake_machine.live = FakeWork("Generate sectors").live
+    with pytest.raises(SystemExit) as stopped:
+        with migrate._update_guard(object(), False):
+            raise AssertionError("the migration must not start")
+    assert stopped.value.code == 1 and fake_machine.cancelled == []
+    assert not maintenance.is_on() and updateguard.read_lock() is None
 
 
 # --- update.sh -----------------------------------------------------------------------------------------------
@@ -202,6 +252,7 @@ def test_update_sh_takes_the_guard_before_its_first_change_and_requires_it_by_st
     assert text.index("git reset --hard") < text.index("\nensure_update_guard\n", first + 1) < text.index("== 2/9")
     assert text.index("use_site_python\nensure_update_guard required") < text.index("== 3/9")
     assert text.index("ensure_update_guard required") < text.index("\nmigrate_or_reset_db\n")
+    assert "--cancel-running" in text
 
 
 def test_update_sh_names_every_step_for_the_failure_message():
@@ -224,6 +275,7 @@ def run_shell(script, *, status_out=None):
         export PLANETGEN_VENV=$(mktemp -d); VENV=$PLANETGEN_VENV
         mkdir -p "$VENV/bin" "$VENV/src"
         printf '#!/bin/sh\\nexit 0\\n' > "$VENV/bin/python"; chmod +x "$VENV/bin/python"
+        CANCEL_RUNNING=()
         source {REPO}/scripts/deploy-common.sh
         update_guard() {{ echo "update_guard $*" >> "$LOG"; return "${{GUARD_STATUS:-0}}"; }}
     '''
@@ -234,13 +286,14 @@ def run_shell(script, *, status_out=None):
 def test_the_shell_functions_hold_the_guard_once_and_end_it_with_the_step(tmp_path):
     log = tmp_path / "calls"
     done = run_shell('''
+        CANCEL_RUNNING=(--cancel-running)
         ensure_update_guard; ensure_update_guard
         UPDATE_STEP="step 5/9, migrating the database"
         (exit 3) || finish_update_guard
     ''', status_out=str(log))
     assert done.returncode == 0, done.stderr
     calls = log.read_text().splitlines()
-    assert calls[0].startswith("update_guard begin --pid ") and calls[0].endswith(tuple("0123456789"))
+    assert calls[0].startswith("update_guard begin --pid ") and calls[0].endswith("--cancel-running")
     assert len(calls) == 2
     assert calls[1].startswith("update_guard end --pid ") and "--failed --step step 5/9, migrating the database" in calls[1]
 

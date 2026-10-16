@@ -47,6 +47,7 @@ import sys
 import tempfile
 import time
 
+from planetgen.admin import updateguard
 from planetgen.queue import redisqueue
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util import log, stagemark
@@ -633,6 +634,7 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
         OSError: No writable jobs directory, no Redis server, or the
             worker can't start.
     """
+    updateguard.refuse_while_updating("A Generate job")     # OPS.53
     root = root or jobs_dir()
     # The directory first, under a fresh id if two jobs drew the same one
     # in the same second (TEST.41); then the lock.
