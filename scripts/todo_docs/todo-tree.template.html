@@ -81,6 +81,7 @@ details[open]>summary .twist{transform:rotate(90deg)}
 .blockers li{display:grid;grid-template-columns:5.4rem minmax(0,1fr) auto;gap:10px;align-items:baseline;font-size:.92rem}
 .blockers li .n{font:600 .8rem var(--f-mono);color:var(--muted);white-space:nowrap}
 .blockers a.id{text-decoration:none}
+.blockers li .ch{grid-column:2/-1;color:var(--muted);font-size:.82rem}
 .blockers details{margin-top:12px}
 .blockers summary{cursor:pointer;font-weight:600}
 .blockers h3{font:600 .74rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 2px}
@@ -251,7 +252,7 @@ render();
 // top blockers
 (function(){
   const B=D.blockers; if(!B) return;
-  const list=rows=>'<ol>'+rows.map(r=>'<li><a class="id" href="#n-'+r.id+'" data-jump="'+r.id+'">'+r.id+'</a><span class="title">'+esc(items[r.id]?items[r.id].title:'')+'</span><span class="n">holds up '+r.blocks+(r.blocks===1?' item':' items')+(r.direct!==r.blocks?' ('+r.direct+' direct)':'')+'</span></li>').join('')+'</ol>';
+  const list=rows=>'<ol>'+rows.map(r=>'<li><a class="id" href="#n-'+r.id+'" data-jump="'+r.id+'">'+r.id+'</a><span class="title">'+esc(items[r.id]?items[r.id].title:'')+'</span><span class="n">holds up '+r.blocks+(r.blocks===1?' item':' items')+(r.direct!==r.blocks?' ('+r.direct+' direct)':'')+'</span>'+(r.chain&&r.chain.length?'<span class="ch">same chain: '+r.chain.join(', ')+'</span>':'')+'</li>').join('')+'</ol>';
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   document.getElementById('bl-overall').innerHTML=list(B.overall);
   document.getElementById('bl-phases').innerHTML=B.phases.map(p=>'<h3>'+esc(p.label)+': '+esc(p.theme)+'</h3>'+(p.rows.length?list(p.rows):'<p class="sub">Nothing in this phase holds up another item.</p>')).join('');
