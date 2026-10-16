@@ -2309,7 +2309,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     velocity_x_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_y_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass; a stated zero where the mass is not known
+    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass, a stated zero where the mass is not known
     epoch_unix                  DOUBLE NULL,  -- v101 (DB.55): when the position and velocity hold
     next_update_due             DOUBLE NULL,  -- v101 (DB.55): when the object next moves
 
@@ -2406,7 +2406,7 @@ CREATE TABLE IF NOT EXISTS comets (
     axial_tilt_deg              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
-    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass; a stated zero where the mass is not known
+    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass, a stated zero where the mass is not known
 
     UNIQUE KEY uq_comets_uid (uid),
     CONSTRAINT fk_comets_star_system
@@ -2669,7 +2669,7 @@ CREATE TABLE IF NOT EXISTS nebulae (
     velocity_x_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_y_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass; a stated zero where the mass is not known
+    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass, a stated zero where the mass is not known
     KEY idx_nebulae_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
@@ -2795,7 +2795,7 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     velocity_x_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_y_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass; a stated zero where the mass is not known
+    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass, a stated zero where the mass is not known
     KEY idx_supernova_remnants_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
@@ -3028,7 +3028,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     velocity_x_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_y_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass; a stated zero where the mass is not known
+    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass, a stated zero where the mass is not known
     KEY idx_interstellar_comets_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
@@ -3124,7 +3124,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     velocity_x_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_y_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v101 (DB.55): galactic-axes velocity, km/s
-    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass; a stated zero where the mass is not known
+    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass, a stated zero where the mass is not known
     formed_at                   DOUBLE NULL,  -- v101 (DB.55)
     origin_event_id             BIGINT UNSIGNED NULL,  -- v101 (DB.55)
     KEY idx_asteroid_fields_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
@@ -3832,7 +3832,7 @@ CREATE TABLE IF NOT EXISTS facilities (
     -- v93 (region queries): where the object is now as one integer, the Morton key of its 0.25 pc cube; MySQL computes it,
     -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
     cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
-    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass; a stated zero where the mass is not known
+    mass_kg                     DOUBLE NULL,  -- v101 (DB.55): point mass, a stated zero where the mass is not known
     KEY idx_facilities_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc   DOUBLE,
     velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,

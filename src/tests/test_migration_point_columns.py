@@ -72,7 +72,8 @@ def test_a_black_hole_takes_the_tangent_at_its_old_speed(mysql_config):
     load_old_schema(mysql_config, 100)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        _insert(conn, "black_holes", center_x_pc=3000.0, center_y_pc=4000.0, galactic_orbital_speed_kms=200.0)
+        _insert(conn, "black_holes", center_x_pc=3000.0, center_y_pc=4000.0, center_z_pc=0.0, galactic_radius_pc=5000.0,
+                galactic_orbital_speed_kms=200.0, mass_class="stellar")
         conn.commit()
     finally:
         conn.close()
@@ -90,7 +91,8 @@ def test_a_field_of_unknown_mass_takes_a_stated_zero_mass_and_vector(mysql_confi
     load_old_schema(mysql_config, 100)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        _insert(conn, "asteroid_fields", center_x_pc=1.0, center_y_pc=0.0, galactic_orbital_speed_kms=0.0)
+        _insert(conn, "asteroid_fields", center_x_pc=1.0, center_y_pc=0.0, center_z_pc=0.0, galactic_radius_pc=1.0,
+                galactic_orbital_speed_kms=0.0, density="typical")
         conn.commit()
     finally:
         conn.close()
