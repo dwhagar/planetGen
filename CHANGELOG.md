@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1504] - 2026-10-16
+
+**Headline:** The to-do list records the corrected migration order: 0097 globular-cluster component table, 0098 galactic core, 0099 onward Core 1.
+
+### Changed
+
+- Updated GEN.159, GEN.237, GEN.280, GEN.281, GEN.283, GEN.289 and GEN.294 and the execution plan with the order Core 3 reported (0097 is GEN.159's table, 0098 the galactic-core migration).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1503] - 2026-10-16
 
 **Headline:** The to-do list retires the failing navigation test fix (TEST.163), the Einstein radius (GEN.154) and the GRB and AGN ozone loss (GEN.189), and files a new flaky-test bug.
