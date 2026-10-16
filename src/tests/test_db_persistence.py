@@ -1560,7 +1560,7 @@ def test_phenomena_store_their_octant_and_nearest_systems(mysql_config):
 def _bright_row(shell=3, band=0, wedge=0, luminosity_sol=800.0):
     return (shell, band, wedge, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
             luminosity_sol * 3.828e26,
-            0.02, 0.03, 7.0, 0.03, 42)
+            0.02, 0.03, 7.0, 0.03, 42, None)
 
 
 def test_bright_stars_store_and_clear(mysql_config):
@@ -1660,7 +1660,7 @@ def _bright_row_at(z_pc, luminosity_sol, slot=1):
 
     shell, band, wedge = sector_address_at((12.0, 3.0, z_pc), 4.0)
     return (shell, band, wedge, 12000, 3000, int(z_pc * 1000), "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
-            luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)
+            luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)
 
 
 def _bright_galaxy(conn):
