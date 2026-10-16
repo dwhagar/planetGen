@@ -18,13 +18,12 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.335 | One definition of the stored point columns, and a test that lists every object table |  | Split from GEN.294. |
 | DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance |  | Split from GEN.294. Core 1 owns migrations. |
-| GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | GEN.335, DB.55 | Split from GEN.294. |
-| GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | GEN.335, DB.55, GEN.336 | Split from GEN.294. |
-| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | GEN.335, DB.55, GEN.336, GEN.337 | Boss 2026-10-15 11:12 PM EDT. |
+| GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | DB.55 | Split from GEN.294. |
+| GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | DB.55, GEN.336 | Split from GEN.294. |
+| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | DB.55, GEN.336, GEN.337 | Boss 2026-10-15 11:12 PM EDT. |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
-| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | GEN.335, DB.55 |  |
+| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | DB.55 |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | GEN.336 | Research: prerequisite of GEN.110. |
 
 ### Nightly maintenance
@@ -66,7 +65,7 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
 | GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking |  | Foundation found in the review. |
 | GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | GEN.294, GEN.289 | Split from GEN.109. |
-| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.341, GEN.338, GEN.340, PERF.88 | Split from GEN.109. |
+| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.341, GEN.338, GEN.340 | Split from GEN.109. |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342, GEN.289, GEN.140 | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | GEN.341, GEN.342 | Split from GEN.109. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.341, GEN.342, GEN.343, GEN.344 |  |
@@ -113,7 +112,7 @@ The event records, the long-step rules and the gravity field evaluator the cours
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.338, GEN.342, PERF.88 | Gravity map foundation (Boss 2026-10-10). |
+| GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.338, GEN.342 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 
 ### What moved in the last update

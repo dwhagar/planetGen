@@ -1295,6 +1295,11 @@
 --   observed nuclear star cluster and nuclear stellar disc the centre holds (1 the observed pair scaled to the bulge,
 --   0 none); `bright_stars.population` (now VARCHAR(16)) also takes `nuclear_cluster` and
 --   `nuclear_disc`.
+-- v101 (DB.54): `galaxy_shape.core_min_luminosity_sol` and `core_mass_limit_sol` (NULL until set: the core follows the
+--   baseline scatter limits times 1.1) and `halo_min_luminosity_sol` (default 500, at least 50), the scatter limits by
+--   place that the tiers of GEN.333 read.
+-- v100 (GEN.281): `galaxy_shape.cell_star_ceiling` defaults to 5,000 systems (a cell of 50,000 took 14 minutes) and has a
+--   CHECK, `chk_galaxy_shape_cell_star_ceiling`, of at least 1.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1488,8 +1493,14 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     reach_shell_index            INT NOT NULL DEFAULT 65535,  -- v93 (GEN.233), see header comment
     -- v98 (GEN.281): a cell that expects more systems than `cell_star_ceiling` is filled only with the stars at or
     -- above `fill_luminosity_cap_sol` (`galaxy/resolution.py`); the rest is unresolved, computed and never stored.
-    cell_star_ceiling            DOUBLE NOT NULL DEFAULT 50000,
+    cell_star_ceiling            DOUBLE NOT NULL DEFAULT 5000,
     fill_luminosity_cap_sol      DOUBLE NOT NULL DEFAULT 100,
+    -- v101 (DB.54): the scatter limits by place (docs/design/realistic-galactic-core.md 5.1). The core's luminosity
+    -- floor and mass limit are NULL until set, and then follow the baseline's times 1.1; the halo has a luminosity
+    -- floor and no mass limit of its own.
+    core_min_luminosity_sol      DOUBLE,
+    core_mass_limit_sol          DOUBLE,
+    halo_min_luminosity_sol      DOUBLE NOT NULL DEFAULT 500,
 
     -- v43: the luminosity threshold (L_sun) and seed the bright-star
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
@@ -1526,7 +1537,12 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- systems a sector got against the systems expected there
     -- (`sector_stats`), and how many fills went into it.
     density_ratio_avg               DOUBLE,
-    density_ratio_samples           BIGINT UNSIGNED NOT NULL DEFAULT 0
+    density_ratio_samples           BIGINT UNSIGNED NOT NULL DEFAULT 0,
+
+    CONSTRAINT chk_galaxy_shape_cell_star_ceiling CHECK (cell_star_ceiling >= 1),  -- v100 (GEN.281)
+    CONSTRAINT chk_galaxy_shape_scatter_limits CHECK (  -- v101 (DB.54)
+        halo_min_luminosity_sol >= 50 AND (core_min_luminosity_sol IS NULL OR core_min_luminosity_sol > 0)
+        AND (core_mass_limit_sol IS NULL OR core_mass_limit_sol > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per shell that holds content (v91; replaces `galaxy_layer` and

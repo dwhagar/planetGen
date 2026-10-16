@@ -68,7 +68,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, login, scatter_systems
+from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
@@ -112,6 +112,9 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
+
+_SYSTEM_POINT = point_columns.LAYOUTS["star_systems"]
+"""point_columns.PointLayout: The point of a star system (GEN.335), whose SQL below takes its column lists from it."""
 
 SCHEMA_VERSION = alembic_runner.head_version()
 """int: Matches `star_systems.schema_version` and the highest row in the
@@ -1516,6 +1519,8 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (101, _column_marker("galaxy_shape", "core_min_luminosity_sol")),
+    (100, _check_marker("chk_galaxy_shape_cell_star_ceiling", "cell_star_ceiling")),
     (99, _column_marker("galaxy_shape", "nuclear_amplitude")),
     (98, _column_marker("galaxy_shape", "fill_luminosity_cap_sol")),
     (97, _table_marker("galaxy_components")),
@@ -2811,8 +2816,7 @@ _BODY_COLUMNS = (
     "habitable_zone_inner_km", "habitable_zone_outer_km",
     "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
     "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
-    "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
-    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
+    *point_columns.LAYOUTS["planets"].position, "orbital_speed_kms", *point_columns.LAYOUTS["planets"].velocity,
     "min_update_interval_years",
     "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
     *atmosphere.ATMOSPHERE_FIELDS,
@@ -5294,10 +5298,9 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     steps = len(PLACED_PHENOMENON_TABLES) + 1 + len(SCATTER_MOTION_TABLES)
 
     systems = conn.execute(
-        """
-        SELECT ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
-               ss.velocity_x_kms, ss.velocity_y_kms, ss.velocity_z_kms, ss.binary_configuration,
-               ss.epoch_unix, ss.next_update_due, ss.runaway_class, ss.runaway_speed_kms,
+        f"""
+        SELECT ss.id, ss.sector_id, {_SYSTEM_POINT.select("position", "velocity", "epoch", "due", alias="ss")},
+               ss.binary_configuration, ss.runaway_class, ss.runaway_speed_kms,
                COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy,
                COALESCE(ss.binary_galactic_orbital_speed_kms, s.galactic_orbital_speed_kms) AS speed_kms
         FROM star_systems ss
@@ -5363,13 +5366,13 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             " WHERE star_system_id = ? AND galactic_orbital_period_gy > 0", phases)
     if updates:
         conn.executemany(
-            "UPDATE star_systems SET position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?, galaxy_x_pc = ?,"
-            " galaxy_y_pc = ?, galaxy_z_pc = ?, quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?, modified_at = modified_at WHERE id = ?",
+            f"UPDATE star_systems SET {_SYSTEM_POINT.assignments('position', 'galaxy_position')}, quadrant = ?,"
+            f" {_SYSTEM_POINT.assignments('velocity')}, modified_at = modified_at WHERE id = ?",
             updates)
     if refile_updates:
         conn.executemany(
-            "UPDATE star_systems SET sector_id = ?, position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?,"
-            " galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ?, quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+            f"UPDATE star_systems SET sector_id = ?, {_SYSTEM_POINT.assignments('position', 'galaxy_position')},"
+            f" quadrant = ?, {_SYSTEM_POINT.assignments('velocity')} WHERE id = ?",
             refile_updates)
         _refile_nearest_rows(conn, "star_systems", [(update[0], update[-1]) for update in refile_updates])
     counts["star_systems"] = len(clocks)
@@ -5535,9 +5538,9 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
     for table in SCATTER_MOTION_TABLES:
         scheduled, updates = [], []
         rows = conn.execute(
-            f"SELECT {_SCATTER_COLUMNS[table]}, shell_index, band_index, wedge_index, position_x_mpc,"
-            f" position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix,"
-            f" next_update_due FROM {table} WHERE {_SCATTER_ROWS[table]}"
+            f"SELECT {_SCATTER_COLUMNS[table]}, shell_index, band_index, wedge_index,"
+            f" {point_columns.LAYOUTS[table].select('position', 'velocity', 'epoch', 'due')}"
+            f" FROM {table} WHERE {_SCATTER_ROWS[table]}"
             f" AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id",
             (clock.end_unix,)).fetchall()
         for row in rows:
@@ -5574,9 +5577,9 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             conn.executemany(f"UPDATE {table} SET epoch_unix = ?, next_update_due = ? WHERE id = ?", scheduled)
         if updates:
             conn.executemany(
-                f"UPDATE {table} SET shell_index = ?, band_index = ?, wedge_index = ?, position_x_mpc = ?,"
-                f" position_y_mpc = ?, position_z_mpc = ?, velocity_x_kms = ?, velocity_y_kms = ?,"
-                f" velocity_z_kms = ?, epoch_unix = ?, next_update_due = ? WHERE id = ?", updates)
+                f"UPDATE {table} SET shell_index = ?, band_index = ?, wedge_index = ?,"
+                f" {point_columns.LAYOUTS[table].assignments('position', 'velocity', 'epoch', 'due')} WHERE id = ?",
+                updates)
         counts[table] = len(updates)
         done += 1
         _report(on_progress, table, done, total)
@@ -5679,7 +5682,7 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
 # ---------------------------------------------------------------------------
 
 BRIGHT_STAR_COLUMNS = (
-    "shell_index", "band_index", "wedge_index", "position_x_mpc", "position_y_mpc", "position_z_mpc",
+    "shell_index", "band_index", "wedge_index", *point_columns.LAYOUTS["bright_stars"].position,
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
     "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
 )
@@ -5907,8 +5910,9 @@ def phenomenon_scatter_seed(conn):
 
 
 PHENOMENON_SCATTER_COLUMNS = (
-    "shell_index", "band_index", "wedge_index", "kind", "subtype", "position_x_mpc", "position_y_mpc",
-    "position_z_mpc", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar", "map_luminosity_sol",
+    "shell_index", "band_index", "wedge_index", "kind", "subtype",
+    *point_columns.LAYOUTS["phenomenon_scatter"].named("position", "velocity"), "seed", "mass_solar",
+    "map_luminosity_sol",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 `insert_phenomenon_scatter` expects each row's values."""
@@ -7167,8 +7171,10 @@ def get_sector_id_at(conn, shell_index, band_index, wedge_index):
 GalaxySkeletonInfo = namedtuple(
     "GalaxySkeletonInfo",
     ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1", "galaxy_seed",
-     "reach_shell_index", "cell_star_ceiling", "fill_luminosity_cap_sol"],
-    defaults=(None, 65535, tuning.CELL_STAR_CEILING, tuning.FILL_LUMINOSITY_CAP_SOL),
+     "reach_shell_index", "cell_star_ceiling", "fill_luminosity_cap_sol", "core_min_luminosity_sol",
+     "core_mass_limit_sol", "halo_min_luminosity_sol"],
+    defaults=(None, 65535, tuning.CELL_STAR_CEILING, tuning.FILL_LUMINOSITY_CAP_SOL, None, None,
+              tuning.HALO_MIN_LUMINOSITY_SOL),
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
@@ -7176,12 +7182,15 @@ note). `shape` is a `galaxy.density.GalaxyShape`; the other fields are
 `galaxy_shape`'s own remaining columns, `galaxy_seed` (v51, GEN.39) the
 16-byte seed or `None` for a galaxy planned before it, `reach_shell_index`
 (v93, GEN.233) the outermost shell the grid has addresses for, `cell_star_ceiling` and `fill_luminosity_cap_sol` (v98,
-GEN.281) the systems a cell may expect before it is filled only down to the cap, and that cap in solar luminosities."""
+GEN.281) the systems a cell may expect before it is filled only down to the cap, and that cap in solar luminosities,
+`core_min_luminosity_sol` and `core_mass_limit_sol` (v101, DB.54) the core's scatter limits (`None`: follow the
+baseline times `tuning.CORE_TIER_FACTOR`, see `galaxy.scatter_limits`) and `halo_min_luminosity_sol` the halo's."""
 
 
 def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                        expected_system_count_at_density_1, config=None, galaxy_seed=None,
-                       reach_shell_index=65535, cell_star_ceiling=None, fill_luminosity_cap_sol=None):
+                       reach_shell_index=65535, cell_star_ceiling=None, fill_luminosity_cap_sol=None,
+                       core_min_luminosity_sol=None, core_mass_limit_sol=None, halo_min_luminosity_sol=None):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
     one galaxy, so this always overwrites whatever was there before rather
@@ -7201,6 +7210,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
             fill luminosity cap (GEN.281); `None` is `tuning.CELL_STAR_CEILING`.
         fill_luminosity_cap_sol (float, optional): That cap, solar luminosities; `None` is
             `tuning.FILL_LUMINOSITY_CAP_SOL`.
+        core_min_luminosity_sol (float, optional): The core's luminosity floor (DB.54); `None` follows the baseline.
+        core_mass_limit_sol (float, optional): The core's mass limit (DB.54); `None` follows the baseline.
+        halo_min_luminosity_sol (float, optional): The halo's luminosity floor (DB.54); `None` is
+            `tuning.HALO_MIN_LUMINOSITY_SOL`.
         expected_system_count_at_density_1 (float): See
             `galaxy.skeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -7224,6 +7237,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                 cell_star_ceiling = tuning.CELL_STAR_CEILING
             if fill_luminosity_cap_sol is None:
                 fill_luminosity_cap_sol = tuning.FILL_LUMINOSITY_CAP_SOL
+            if halo_min_luminosity_sol is None:
+                halo_min_luminosity_sol = tuning.HALO_MIN_LUMINOSITY_SOL
             conn.execute(
                 """
                 INSERT INTO galaxy_shape (
@@ -7232,8 +7247,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     pitch_angle_rad, arm_amplitude, arm_level, nuclear_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index,
-                    cell_star_ceiling, fill_luminosity_cap_sol
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
+                    halo_min_luminosity_sol
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -7253,6 +7269,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     reach_shell_index = ?,
                     cell_star_ceiling = ?,
                     fill_luminosity_cap_sol = ?,
+                    core_min_luminosity_sol = ?,
+                    core_mass_limit_sol = ?,
+                    halo_min_luminosity_sol = ?,
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
                     galaxy_seed = ?
@@ -7264,8 +7283,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
-                    cell_star_ceiling, fill_luminosity_cap_sol,
-                    reach_shell_index, cell_star_ceiling, fill_luminosity_cap_sol, bytes(galaxy_seed),
+                    cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
+                    halo_min_luminosity_sol,
+                    reach_shell_index, cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol,
+                    core_mass_limit_sol, halo_min_luminosity_sol, bytes(galaxy_seed),
                 ),
             )
             if stored_seed != bytes(galaxy_seed):
@@ -7425,6 +7446,9 @@ def get_galaxy_shape(conn):
         reach_shell_index=row.get("reach_shell_index", 65535),
         cell_star_ceiling=row.get("cell_star_ceiling", tuning.CELL_STAR_CEILING),
         fill_luminosity_cap_sol=row.get("fill_luminosity_cap_sol", tuning.FILL_LUMINOSITY_CAP_SOL),
+        core_min_luminosity_sol=row.get("core_min_luminosity_sol"),
+        core_mass_limit_sol=row.get("core_mass_limit_sol"),
+        halo_min_luminosity_sol=row.get("halo_min_luminosity_sol", tuning.HALO_MIN_LUMINOSITY_SOL),
     )
 
 
@@ -8590,8 +8614,7 @@ def load_sector(conn, sector_id) -> SpaceSector:
         sector.place_in_galaxy(tuple(pc_to_ly(row[f"center_{axis}_pc"]) for axis in "xyz"))
 
     system_rows = conn.execute(
-        "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
-        " FROM star_systems WHERE sector_id = ? ORDER BY id",
+        f"SELECT id, {_SYSTEM_POINT.select('position', 'velocity')} FROM star_systems WHERE sector_id = ? ORDER BY id",
         (sector_id,),
     ).fetchall()
 

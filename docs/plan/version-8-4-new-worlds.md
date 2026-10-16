@@ -39,8 +39,8 @@ Planet classes, nebula conditions, asteroid fields and habitability on the pages
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | DB.59, GEN.357 | Split from GEN.95. |
-| GEN.95 | Nebula conditions applied when planets and surfaces are generated | DB.59, GEN.357, GEN.358 |  |
+| GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | GEN.357 | Split from GEN.95. |
+| GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.357, GEN.358 |  |
 | GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
 
 ### Habitability on the pages

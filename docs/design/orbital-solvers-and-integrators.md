@@ -15,7 +15,7 @@ Informs: GEN.105, GEN.106, GEN.107, GEN.108, GEN.109, GEN.104, GEN.111, GEN.115,
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
-**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The library table's Python-version columns ("needs Python 3.11 or later", "last for 3.9") describe the old floor; numba is now required, and the numba sector-path integrator (PERF.88) is still open.
+**Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The library table's Python-version columns ("needs Python 3.11 or later", "last for 3.9") describe the old floor; numba is now required, and the numba sector-path integrator (PERF.88) is built as `physics/field_kernel.py`.
 
 Evidence tags: [S] seen in a search result or package page, [C] computed in the
 research sandbox, [R] recalled and unconfirmed. The research environment could

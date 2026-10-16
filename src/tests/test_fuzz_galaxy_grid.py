@@ -561,7 +561,10 @@ def test_skeleton_bound_is_an_upper_bound_at_every_angle(shape, r_cyl, z, theta)
     bound = galaxySkeleton.bound_relative_density_at(shape, r_cyl, z)
     # The stellar halo (GEN.234) is left out of the skeleton's outline on purpose, so it can't widen it.
     model = shape.k_norm * galaxyDensity._raw_density(point, shape)
-    assert model - galaxyDensity.halo_density(point, shape) <= bound * (1 + 1e-9) + 1e-300
+    # The remainder of two nearly equal numbers carries their rounding error, a few ulps of the model, which can top
+    # the bound's own size when the halo is nearly all of the density (TEST.192).
+    rounding = 4 * math.ulp(model)
+    assert model - galaxyDensity.halo_density(point, shape) <= bound * (1 + 1e-9) + rounding + 1e-300
     assert galaxyDensity.relative_density(point, shape) == model
 
 

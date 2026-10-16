@@ -13,7 +13,7 @@ always had (`routes.MAX_NAME_LENGTH` and the rest).
 """
 
 import math
-from typing import Annotated, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import (
     BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, ValidationError, field_validator,
@@ -573,6 +573,15 @@ class ApiKeyCreate(Lenient):
         if value is not None and not (0 < value <= MAX_API_KEY_LIFETIME_DAYS):
             raise ValueError(f"'expires_days' must be more than 0 and at most {MAX_API_KEY_LIFETIME_DAYS}")
         return value
+
+
+class SettingsChanges(Body):
+    """`POST /api/admin/settings/plan` and `POST /api/admin/settings`: `changes` maps an option's dotted path to its
+    new value, or to `{"reset": true}` to remove it from config.json so the default applies. `expect_hash` is the
+    `file_hash` the form was drawn from."""
+
+    changes: Dict[StrictStr, Any]
+    expect_hash: Optional[StrictStr] = None
 
 
 class NamingKeyChange(Body):
