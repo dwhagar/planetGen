@@ -2130,7 +2130,7 @@ Migration 0099 renames `galaxy_shape.core_amplitude` to `nuclear_amplitude` (DOU
 
 ### v98 (GEN.281): the cell star ceiling and the fill luminosity cap
 
-Migration 0098 adds two columns to `galaxy_shape`, both `DOUBLE NOT NULL` and set for the whole galaxy: `cell_star_ceiling` (default 50,000 systems) and `fill_luminosity_cap_sol` (default 100 solar luminosities). A cell that expects more systems than the ceiling is filled only with the stars at or above the cap; the rest is unresolved, and its count and mass are worked out from the address by `planetgen/galaxy/resolution.py`, never stored. Nothing else changes and no row is touched. It is skipped when the columns are already there. The version is detected from `galaxy_shape.cell_star_ceiling`.
+Migration 0098 adds two columns to `galaxy_shape`, both `DOUBLE NOT NULL` and set for the whole galaxy: `cell_star_ceiling` (default 5,000 systems) and `fill_luminosity_cap_sol` (default 100 solar luminosities). A cell that expects more systems than the ceiling is filled only with the stars at or above the cap; the rest is unresolved, and its count and mass are worked out from the address by `planetgen/galaxy/resolution.py`, never stored. Nothing else changes and no row is touched. It is skipped when the columns are already there. The version is detected from `galaxy_shape.cell_star_ceiling`.
 
 ### v97 (GEN.159): `galaxy_components`
 
