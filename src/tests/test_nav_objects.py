@@ -88,7 +88,7 @@ def test_nav_refuses_a_sector_and_bad_references(client, mysql_config):
     for params, status in (
         (f"from=sector:{pid('sector', 1)}&to=system:{pid('system', a_system)}", 400),
         (f"from=ship:1&to=system:{pid('system', a_system)}", 400),
-        (f"from=moon:FFFFFFFFFF-FFFFFFF-FFF&to=system:{pid('system', a_system)}", 404),
+        (f"from=moon:FFFFFFFFFFFFFF-FFFFFFF-FFF&to=system:{pid('system', a_system)}", 404),
         (f"from={pid('system', a_system)}", 400),
     ):
         response = client.get(f"/api/nav?{params}")

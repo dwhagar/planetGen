@@ -22,7 +22,7 @@ pytestmark = pytest.mark.db
 BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
-    "nearest_systems", "sector_paths", "sector_path_knots",
+    "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
 the name registries, generation progress, and the galaxy skeleton and
@@ -69,6 +69,9 @@ NULL_IN_THIS_GALAXY = {
     **{("interstellar_comets", column): CHANCE for column in SECTOR_PLACEMENT},
     # Only a lit class (C to G) has host stars (GEN.150), and the seeded galaxy's few nebulae may all be dark.
     **{("nebulae", column): CHANCE for column in ("age_myr", "q_total", "hosts")},
+    # The cell key is derived from the center, so it is NULL wherever the center is.
+    ("facilities", "cell_key"): "facility hosts used", ("quasars", "cell_key"): CHANCE,
+    ("interstellar_comets", "cell_key"): CHANCE,
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
     ("sectors", "wiki_url"): "never published", ("star_systems", "wikijs_url"): "never published",
@@ -109,6 +112,7 @@ NEVER_READ = {
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
+    ("facilities", "cell_key"): "an index column MySQL fills; the region query reads it (NAV.43)",
     # GEN.106: the orbit update's own clock, read only by planetgen.cli.orbits.
     **{(table, column): "the orbit update's clock" for table, column in (
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),

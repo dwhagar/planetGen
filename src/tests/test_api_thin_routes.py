@@ -110,7 +110,7 @@ def test_bright_stars_out_of_range_address_is_an_empty_list(client, mysql_config
 
 @pytest.mark.parametrize("kind", ["stars", "planets", "moons"])
 def test_rename_unknown_ids_are_404(admin_client, kind):
-    for body_id in ("0000000000-0000000-000", "FFFFFFFFFF-FFFFFFF-FFF"):
+    for body_id in ("0000000000-0000000-000", "FFFFFFFFFFFFFF-FFFFFFF-FFF"):
         _assert_json_error(admin_client.patch(f"/api/{kind}/{body_id}", json={"name": "Nowhere"}), 404)
     # A negative or non-hex id never matches the route at all.
     for raw in ("-1", "zz"):
@@ -143,7 +143,7 @@ def test_rename_with_the_wrong_kind_of_id(admin_client, mysql_config):
     top_planet = _one(mysql_config, "SELECT MAX(id) AS top FROM planets")["top"]
     top_star = _one(mysql_config, "SELECT MAX(id) AS top FROM stars")["top"]
 
-    nowhere = "FFFFFFFFFF-FFFFFFF-FFF"
+    nowhere = "FFFFFFFFFFFFFF-FFFFFFF-FFF"
     _assert_json_error(admin_client.patch(f"/api/planets/{nowhere}", json={"name": "Misfiled"}), 404)
     _assert_json_error(admin_client.patch(f"/api/stars/{nowhere}", json={"name": "Misfiled"}), 404)
     # A moon's own ID sent to the planet route names no planet: IDs are unique across kinds.
@@ -209,7 +209,7 @@ def test_create_facility_non_object_bodies_are_400(admin_client):
     ("space", "standalone", "station"),
 ])
 def test_create_facility_unknown_host_is_404(admin_client, host_type, placement, kind):
-    body = _facility(host_type=host_type, placement=placement, kind=kind, host_id=("FFFFFFFFFF" if host_type == "space" else "FFFFFFFFFF-FFFFFFF-FFF"))
+    body = _facility(host_type=host_type, placement=placement, kind=kind, host_id=("FFFFFFFFFF" if host_type == "space" else "FFFFFFFFFFFFFF-FFFFFFF-FFF"))
     _assert_json_error(admin_client.post("/api/facilities", json=body), 404)
 
 

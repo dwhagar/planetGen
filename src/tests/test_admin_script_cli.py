@@ -185,7 +185,7 @@ def test_query_db_lists_sectors_systems_planets_and_moons(seeded, monkeypatch, c
 
 
 def test_query_db_near_an_unknown_or_unplaced_place(seeded, monkeypatch, capsys):
-    argv = mysql_argv(seeded) + ["near", "system:FFFFFFFFFF-FFFFFFF-FFF", "--distance", "5"]
+    argv = mysql_argv(seeded) + ["near", "system:FFFFFFFFFFFFFF-FFFFFFF-FFF", "--distance", "5"]
     assert _run_main(query, argv, monkeypatch) == 1
     assert "names nothing" in capsys.readouterr().err
     system_id = _query(seeded, "SELECT MIN(id) AS i FROM star_systems")[0]["i"]

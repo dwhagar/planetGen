@@ -7126,7 +7126,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     edge_pc = VALUES(edge_pc),
                     expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
                     outer_shell_index = VALUES(outer_shell_index),
-                    reach_shell_index = VALUES(reach_shell_index),
+                    reach_shell_index = ?,
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
                     galaxy_seed = ?
@@ -7138,7 +7138,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
-                    bytes(galaxy_seed),
+                    reach_shell_index, bytes(galaxy_seed),
                 ),
             )
             if stored_seed != bytes(galaxy_seed):

@@ -570,7 +570,7 @@ def test_nav_requires_from_and_to(client, seeded_sector):
 def test_nav_returns_404_for_unknown_system(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 
-    response = client.get(f"/api/nav?from={pid('system', system_ids[0])}&to=system:FFFFFFFFFF-FFFFFFF-000")
+    response = client.get(f"/api/nav?from={pid('system', system_ids[0])}&to=system:FFFFFFFFFFFFFF-FFFFFFF-000")
     assert response.status_code == 404
     assert "error" in response.get_json()
 
@@ -2316,7 +2316,7 @@ def test_rename_requires_an_admin(client):
 
 
 def test_rename_validation(admin_client, mysql_config):
-    nowhere = "FFFFFFFFFF-FFFFFFF-FFF"
+    nowhere = "FFFFFFFFFFFFFF-FFFFFFF-FFF"
     assert admin_client.patch(f"/api/planets/{nowhere}", json={"name": "Nope"}).status_code == 404
     assert admin_client.patch(f"/api/moons/{nowhere}", json={"name": "Nope"}).status_code == 404
     assert admin_client.patch(f"/api/stars/{nowhere}", json={"name": "Nope"}).status_code == 404
@@ -2567,7 +2567,7 @@ def test_facility_routes(admin_client, mysql_config):
     orbit = admin_client.get(f"/api/facilities/orbit?host_type=moon&host_id={pid('moon', moon_id)}").get_json()
     assert orbit["period_years"] > 0 and orbit["orbital_speed_kms"] > 0
     assert 0 < orbit["min_distance_km"] < orbit["distance_km"] <= orbit["max_distance_km"]
-    assert admin_client.get("/api/facilities/orbit?host_type=moon&host_id=FFFFFFFFFF-FFFFFFF-FFF").status_code == 404
+    assert admin_client.get("/api/facilities/orbit?host_type=moon&host_id=FFFFFFFFFFFFFF-FFFFFFF-FFF").status_code == 404
 
     response = admin_client.post("/api/facilities", json={
         "name": "Moonport", "kind": "station", "placement": "orbital", "host_type": "moon", "host_id": pid("moon", moon_id),

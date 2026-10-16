@@ -237,9 +237,11 @@ def _save_comet_orbit(conn, comet):
 # ---------------------------------------------------------------------
 
 def _table_columns(conn, table):
+    """The columns of `table` a row copy can write: a generated column (the `cell_key`) is MySQL's to fill."""
     rows = conn.execute(
         "SELECT COLUMN_NAME AS name FROM information_schema.COLUMNS"
-        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION",
+        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND LOCATE('GENERATED', EXTRA) = 0"
+        " ORDER BY ORDINAL_POSITION",
         (table,),
     ).fetchall()
     return [row["name"] for row in rows]

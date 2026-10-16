@@ -38,6 +38,13 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO facility_type_fields (type_id, `key`, label, datatype)"
         " VALUES (1, 'crop', 'Crop', 'text')"),
     # Only a `planetgen plan` scatter writes these.
+    "scatter_members": (
+        "INSERT INTO scatter_members (source, source_id, member_no, parent_node_no, slot, kind, mass_solar,"
+        " initial_mass_solar, seed) VALUES (1, 1, 0, 1, 0, 'main-sequence', 1, 1, 1)"),
+    "scatter_nodes": (
+        "INSERT INTO scatter_nodes (source, source_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
+        " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind)"
+        " VALUES (1, 1, 1, 2, 1e8, 0, 0, 0, 0, 0, 0, 1, 'close')"),
     "phenomenon_scatter": (
         "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
         " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),
@@ -81,11 +88,15 @@ def test_every_check_rejects_a_bad_row(rich_galaxy):
             try:
                 if table in _EMPTY_TABLE_ROWS and conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is None:
                     conn.execute(_EMPTY_TABLE_ROWS[table])
-                row = conn.execute(f"SELECT * FROM {table} ORDER BY id LIMIT 1").fetchone()
+                key = [r["c"] for r in conn.execute(
+                    "SELECT COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
+                    " AND TABLE_NAME = ? AND COLUMN_KEY = 'PRI' ORDER BY ORDINAL_POSITION", (table,)).fetchall()]
+                row = conn.execute(f"SELECT * FROM {table} ORDER BY {', '.join(key)} LIMIT 1").fetchone()
                 assert row is not None, f"the seeded galaxy has no {table} row to break {name} on"
                 column, value = _breaking_value(conn, table, check["clause"], row)
                 try:
-                    conn.execute(f"UPDATE {table} SET {column} = ? WHERE id = ?", (value, row["id"]))
+                    conn.execute(f"UPDATE {table} SET {column} = ? WHERE {' AND '.join(f'{k} = ?' for k in key)}",
+                                 (value, *(row[k] for k in key)))
                 except pymysql.err.MySQLError as exc:
                     if exc.args[0] not in CHECK_VIOLATED:
                         failures.append(f"{table}.{name}: {column} = {value!r} failed with {exc.args}")
