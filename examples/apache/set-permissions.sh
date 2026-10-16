@@ -28,7 +28,8 @@
 #     them last. install.sh and update.sh both call this script, which is
 #     what keeps a fresh install and an updated one identical
 #     (test_deploy_scripts.py checks it).
-#   - Directories: 750 (owner rwx, group r-x, others none).
+#   - Directories: 750 (owner rwx, group r-x, others none); the state
+#     directory 770 (the group may write too, never others).
 #   - Regular files: 640 (owner rw, group r, others none); a file that
 #     already has its owner execute bit, and every `*.py` and `*.sh`
 #     file at any depth (no -maxdepth on purpose: an earlier version
@@ -101,5 +102,9 @@ apply_permissions "$INSTALL_DIR"
 if [[ "$(cd "$STATE_DIR" && pwd -P)/" != "$(cd "$INSTALL_DIR" && pwd -P)/"* ]]; then
     apply_permissions "$STATE_DIR"
 fi
+# The one folder the group may also write (an operator in Apache's group
+# runs `python3 -m planetgen.cli.maintenance`); never world-writable.
+# create-cache-dir.sh sets the same mode.
+chmod 770 "$STATE_DIR"
 
 echo "Done."
