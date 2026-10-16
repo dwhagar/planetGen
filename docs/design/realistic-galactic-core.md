@@ -217,6 +217,41 @@ Boss: each control a slider, clearly labelled, with a text box at the end of the
 - **Server side.** `generate_page.py` parses each field like `mass_limit_argv` does today (a number, within the range, else a form error naming the field) and passes it as a `planetgen plan` option; the settings are stored with the galaxy and shown on the Stats page beside the existing floor and limit.
 - **Tests.** The macro renders the slider, the datalist and the box with matching ids; a typed value reaches the form and snaps; the defaults come from `tuning`; the server refuses out-of-range values and a core floor above 4 million; the options round-trip through the plan to `galaxy_shape` and back to the page; the existing mass slider and floor tests change to the new macro.
 
+### 5.3 Horizontal-branch and AGB stars
+
+Boss (9:12 PM EDT): why not build horizontal-branch stars into the mix? There is no good reason beyond the stellar evolution model not having the phases.
+
+**What the model has** [S, `physics/stellar_evolution.py` `evolve_star`]: main sequence, then a subgiant that brightens to twice its main-sequence light, then one giant phase of 0.1 of the main-sequence lifetime (log-uniform luminosity 50 to 1,000 solar luminosities, 2% of it a tip of 1,000 to 2,500, 3,500 to 5,000 K), then a white dwarf at once. That giant phase is the red giant branch. The core helium-burning phase (the horizontal branch and the red clump) and the asymptotic giant branch are missing, so a star goes from the branch tip to a white dwarf. It was a simple chain built before the model had a metallicity or a halo, and the horizontal branch's colour depends on both [R].
+
+**What the real phases are** [R, unconfirmed]:
+
+| Phase | Luminosity (L_sun) | Temperature (K) | Lasts | Who has it |
+|---|---|---|---|---|
+| Red clump, red horizontal branch | 40 to 60 | 4,600 to 5,300 | about 0.1 Gyr | metal-rich stars, [Fe/H] above -0.7: the bulge and the disc |
+| RR Lyrae (instability strip) | 40 to 60 | 5,900 to 7,400 | within the 0.1 Gyr | the intermediate halo, [Fe/H] about -1.5 |
+| Blue horizontal branch | 30 to 60 | 7,500 to 20,000 | within the 0.1 Gyr | the metal-poor halo, [Fe/H] below -1.6 |
+| Extreme horizontal branch (hot subdwarfs) | 10 to 40 | 20,000 to 35,000 | within the 0.1 Gyr | a few percent of old stars with heavy mass loss |
+| Asymptotic giant branch | 100 to 2,500 (tip near 3,000 in the halo) | 3,500 to 5,000 | about 0.02 Gyr | all low-mass stars after the horizontal branch |
+
+How blue the branch is depends on [Fe/H] first, with age, helium and mass loss as the "second parameters"; the share of blue against red falls from nearly all-blue at [Fe/H] -2.2 to nearly all-red above -0.5 [R]. The model would draw the colour from [Fe/H] (GEN.158, Core 2) and from the population's age; until GEN.158 lands it uses the population's default [Fe/H] (halo -1.6 inside 25 kpc and -2.2 outside, bulge and disc about -0.1 [S, halo note 5.3]).
+
+**What it does to the scatter** [C for the base, I for the additions: AGB lasting 0.002 of the main-sequence lifetime from 100 to 2,500, log-uniform]. The halo rows at the floors Boss named:
+
+| Floor (L_sun) | Rows now | Added by AGB | Added by horizontal branch | Rows after |
+|---|---|---|---|---|
+| 100 | 12 million | +2.6% | 0 | 12.2 million |
+| 500 | 3.8 million | +4% | 0 | 4.0 million |
+| 1,000 | 310,000 | +28% | 0 | 400,000 |
+
+**The horizontal branch adds nothing at any floor of 100 or more**, because its stars sit at 10 to 60 solar luminosities. It shows up in the scatter only when the floor is under about 60, where it adds about 10% to the giants (0.1 Gyr against about 1 Gyr on the red giant branch) and, more to the point, makes the blue and red horizontal-branch types, RR Lyrae and hot subdwarfs exist in the halo, the bulge and the clusters at all. The sector fill draws them below any floor, so they appear in every filled cell and every cluster, which is where the real bright halo stars are. The asymptotic giant branch matters at the high floors (+28% at 1,000). The base count is itself an approximation: the model spreads giants log-uniformly in luminosity, while a real red-giant luminosity function falls roughly as L^-0.9 [R], which would roughly halve the rows at 500 and above; that is a separate refinement, noted here and not planned.
+
+**Build** (a new item, Core 3, after the metallicity input exists or with its interim defaults):
+1. `evolve_star` gains the phases after the giant phase for stars below the helium-flash mass (about 2.2 solar masses): horizontal branch (0.1 Gyr, luminosity 40 to 60 and a temperature from the colour draw) and AGB (0.02 Gyr, 100 to 2,500, tip by metallicity), then the white dwarf. The lifespan to the white dwarf lengthens by about 1.2% of the main-sequence lifetime. Constants in `tuning.py`.
+2. The colour draw from [Fe/H] and age (a table of blue, RR Lyrae, red and extreme fractions), seeded from the star's own stream so a star's record does not change.
+3. `star_population._bright_windows`, `_bright_table` and the mass-band tables mirror the new phases (they mirror `evolve_star`; the file says so), so the pre-placed fractions and the fill's complement stay consistent.
+4. Naming and storage: the star keeps Yerkes class III (a horizontal-branch star is a giant by luminosity class) and the spectral letter its temperature gives, with "horizontal branch" or "asymptotic giant" in the type text; no column. Planets around them follow the existing giant-host rules.
+5. Tests: the phase durations sum to the lifetime; the colour shares at [Fe/H] -2.2, -1.5 and -0.1; no horizontal-branch star at or above 100 solar luminosities; the halo counts at the three floors against the table above; the scatter and fill still sum to the untiered expected total.
+
 ## 6. Scatter and fill at the core
 
 The rules of [later-phenomena-scatter-rules.md](later-phenomena-scatter-rules.md) apply unchanged. What the core changes:
@@ -267,6 +302,7 @@ Order within my chain: after the free #1677 items, unless a step is wanted soone
 | 3b | Tiered limits (5.1) and the sliders (5.2): `tier` in the profile, the five settings (columns on `galaxy_shape`: Core 1 migration, `planetgen plan` options, Generate page sliders), the band's limits in the passes, the backfill and the fill, `placed_star_fraction` with the cell's cuts | GEN.235 profile; Core 2 (GEN.158) for the metallicity argument |
 | 4 | Planet cull at the core: metallicity factor and the survival formula | cluster note slice 3, step 1 |
 | 5 | Potential and orbits: nuclear mass components in the potential | GEN.223 |
+| 7 | Horizontal-branch and AGB phases (5.3): `evolve_star`, the colour draw, the bright windows, tests | [Fe/H] (GEN.158, Core 2) or its interim defaults |
 | 6 | Tests: the cell counts of sections 1 and 4; floor chosen by `N`; a cell taken down in two steps equals one taken down once; no cell above the cap resolved without a request; the survival table of section 7 | each step |
 
 Tests for step 2 that matter most: for 30 random cells across the core the resolved count never exceeds the cap, and the unresolved count plus the resolved count equals the cell's expected count to within the Poisson spread.
