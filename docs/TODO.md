@@ -3117,6 +3117,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector profile leaves room for a per-sector scatter-threshold tier. It
   does not change the density model or any star's caps; Core 3's note
   for GEN.279 fixes the exact form.
+  Progress (Core 2, 2026-10-16, 9:18 PM EDT, PR #1739): the model slice
+  is merged: every star gets an [Fe/H] from its population and galactic
+  position, metal-poor stars' disks hold fewer solids (disk solids x
+  10^[Fe/H]), the giant factor is written. Still open: the stored column
+  Star.metallicity_fe_h (migration revision 0094, Core 2's, after Core
+  1's 0093 lands) and the display on the sector page. Core 3 can use the
+  model now (GEN.283, GEN.286).
   Prerequisites: none.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -5426,8 +5433,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Confirmed again by Core 3 (2026-10-16, 9:05 PM EDT, GEN.149 test run):
   the same six tests fail on clean origin/main (5b48f34) on every run (2
   of 2), with the same remove_fk and add_fk items for fk_facilities_type
-  and fk_facility_field_values_field. Unowned; no lane fixes it unless
-  handed it.
+  and fk_facility_field_values_field. Owner: Core 2 (in its queue
+  after the plan items; Core 2 confirmed 9:17 PM EDT it is its to fix).
   Prerequisites: none.
 
 - [ ] **DB.34 Cell key and covering index on every table that holds a position, in the shared 0093 migration**
@@ -6552,6 +6559,12 @@ clears each one.
   route page is probably not finding both ends or a direct course for
   those addresses. Likely area: Interface (nav page). The earlier
   under-load sightings may have had this same cause.
+  Sighting (Core 2, 2026-10-16, 9:17 PM EDT): failed once in the full
+  changed run at load 10.3 and passed alone immediately after, on a tree
+  after Core 2's GEN.158 slice; this is the load behaviour again, not
+  the every-time failure of 12:10 AM EDT, so main may have changed in
+  between: Quality or whoever owns TEST.163 re-checks alone on current
+  main before chasing the nav page.
   Prerequisites: none.
 
 - [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
@@ -7368,6 +7381,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   description and links back to it, and the test passes. Owner: Quality
   (2026-10-15).
   Prerequisites: none.
+
+- [ ] **DOC.53 The tuning module header names the rule for a new signed constant: the fuzz tests accept only a dict or a positive "fall"**
+  Finding from Core 2 (2026-10-16, 9:17 PM EDT, kind: documentation
+  gap): the tuning fuzz tests reject negative top-level constants and
+  unordered pairs, so a new signed constant must be a dict or a positive
+  "fall". Done: one or two lines in the header of
+  src/planetgen/tuning.py (and the tuning notes in docs if there are
+  any) say so, so the next lane that adds a signed constant does not
+  find out from a red test. Owner: any Core lane, with the next tuning
+  change.
+  Prerequisites: none. Related: DOC.52.
 
 ## VIEW: The view from a planet
 

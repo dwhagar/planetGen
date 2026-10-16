@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.170 |
 | USR | USR.12 |
 | OPS | OPS.53 |
-| DOC | DOC.53 |
+| DOC | DOC.54 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
 
@@ -559,6 +559,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
 | DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
+| DOC.53 | The tuning module header names the rule for a new signed constant: the fuzz tests accept only a dict or a positive "fall" | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
