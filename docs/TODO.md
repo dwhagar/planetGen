@@ -1414,6 +1414,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   details. Owner: Core 2, next after its running item, with MAP.208 (the
   same map and scene code, so one lane avoids conflicts; Boss,
   2026-10-15 9:42 PM EDT, via the coordinator).
+  Status (Core 2, 2026-10-16, 2:21 AM EDT): not reproduced. On a
+  generated-database site in headless Chromium with reduced motion off
+  (so the camera flight plays; every older map browser test ran with
+  reduced motion), opening a charted sector by address, by clicking its
+  cell and by a wheel run from the whole galaxy each gave one document
+  (no reload), one URL, the panel filled with the sector's details, a
+  star click selecting it, and no page or console errors; requests
+  peaked at 3 a second, so the page limit is not the cause. Tests only
+  merged (#1776, src/tests/test_web_browser_sector_open.py); the item
+  stays open. Reading the code ruled out a polling reload (the stamp is
+  used only on tile fetch) and openSectorPage runs only on a pinned
+  sector page. Needed from Boss: browser and device, whether he used the
+  wheel, a click or a link, the sector name, any red text in the browser
+  console (F12) when it happens, and whether it still happens on the
+  rebuilt database (his ran code from before migration 0093 and
+  MAP.208).
   Prerequisites: none. Related: MAP.210, MAP.66, MAP.208, TEST.163.
 
 - [ ] **MAP.210 Nothing on the map can be selected, even in sector view (bug)**
@@ -1431,6 +1447,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a click on a star selects it, the details panel shows its facts, and
   the browser test catches a regression. Owner: Core 2, with MAP.209
   (Boss, 2026-10-15 9:42 PM EDT, via the coordinator).
+  Status (Core 2, 2026-10-16, 2:21 AM EDT): not reproduced, see
+  MAP.209's status note (same sector-open tests, #1776, found one
+  document, a filled panel and working star selection); the item stays
+  open and waits on Boss's answers listed there.
   Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163.
 
 - [ ] **MAP.211 Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug)**
