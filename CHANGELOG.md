@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1576] - 2026-10-16
+
+**Headline:** The TODO list retires the single definition of the stored point columns and the galaxy-grid fuzz bug.
+
+### Changed
+- **GEN.335 and TEST.192 are done (#1883).** The stored point of an object is defined once, with a test that lists every object table, and the fuzz test's tolerance now allows for the rounding of the halo subtraction. The migration order is now DB.55 0101, DB.54 0102, GEN.336 0103, DB.53 0104; belts and asteroid fields store a stated zero mass until a mass model is asked for, which NAV.62 notes.
+
+TODO items resolved: GEN.335, TEST.192 / Added: none
+
 ## [8.0.1575] - 2026-10-16
 
 **Headline:** The columns that hold an object's position, mass and movement are defined in one place.
