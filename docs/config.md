@@ -92,9 +92,10 @@ now, `config.json`).
 ## Saving settings
 
 The writer (`planetgen.util.settings_writer`) is the only thing that writes
-`config.json`; the command line uses it today and the Admin settings page will
-use it too. The file must belong to the web server's user (`update.sh` and
-`set-permissions.sh` see to that) so the page can replace it.
+`config.json`; the command line and the Admin settings page (`/admin/settings`,
+below) both use it. The file must belong to the web server's user (`update.sh`
+and `set-permissions.sh` see to that) so the page can replace it; when it doesn't,
+the page lists the options and says so instead of offering a Save button.
 
 - **Who may change what.** The web (an admin) changes the options the table marks
   "any admin"; the Owner (from 8.2) the "the Owner" ones; only the command line,
@@ -122,6 +123,22 @@ use it too. The file must belong to the web server's user (`update.sh` and
   `config.restore`; target `config:<option>`; detail `{"old":..,"new":..}`) and
   one `DB` line in the activity log. A secret's values are written `(changed)`.
 - **Restart.** The result lists the changed options marked "after a restart".
+
+## The settings page
+
+`/admin/settings` (Admin, Settings tab; ADM.84) lists every option of the model
+from the model itself, so an option added with `settings.opt(...)` appears there
+with its help, default, limits and unit and needs no page code. Each shows where
+the value in use comes from: the default, `config.json`, or an environment
+variable (which still wins over the file; the page and the review say so). Change
+what you want and press Review the changes: a bad value is sent back with its
+message at its option and nothing is saved; a good form shows the old and new
+value of each changed option, marks the ones that need a restart, and Save these
+changes writes it as described in [Saving settings](#saving-settings). Use the
+default removes a key from the file; a secret's box is write-only (empty keeps
+it, typing replaces it, Clear it removes it). While a saved option still needs a
+restart of the web server, every admin page shows a banner naming it; the banner
+goes when the server restarts. The page is described in [html-interface.md](html-interface.md).
 
 ## Backups
 

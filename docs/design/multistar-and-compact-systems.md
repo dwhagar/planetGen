@@ -518,6 +518,38 @@ should shrink there. This is rate shaping on the population mix of
 [galaxy-disk-density.md](galaxy-disk-density.md) (its section 4) and does not touch
 GEN.100's densities.
 
+**Research supplied (Boss, 2026-10-16, 5:55 PM EDT, for GEN.103).** Two constants Core 4 could not look up
+arrived as research, and they are written here as rules the type draw derives, not as values it stores. The
+sources Boss named are Badenes et al. 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018, El-Badry, Rix
+and Heintz 2021, Kratter and Lodato 2016, Bate 2018, Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and
+Tremaine 2010 and Stegmann et al. 2024. **The reference list is unverified; Core 4 checks each source and each
+number before any of it is coded.**
+
+1. **Close-binary fraction against metallicity.** For solar-type primaries (about 0.6 to 1.2 Msun) the fraction
+   inside about 10 AU (P below about 10^3.5 days) falls as [Fe/H] rises: about 50% to 60% at [Fe/H] below -1
+   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the Moe et al. 2019
+   points as 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5, and El-Badry and Rix as 2019, so the
+   rounder figures here are summaries to be replaced by the points). The dependence vanishes
+   for separations above about 200 AU. The cause is disk fragmentation: low metallicity means low dust
+   opacity, so the outer disk cools fast (t_cool below about 3 over Omega, with Toomre Q near 1 or below),
+   fragments into companions that migrate inward and stall inside about 10 AU, while metal-rich disks
+   suppress fragmentation. **Rule:** the close-companion share of a draw is a function of the cell's [Fe/H]
+   (from the population mix) and of nothing else, and the wide-companion share is not changed by [Fe/H].
+2. **Encounter-disruption limit for wide pairs.** A wide pair loses its outer end to flybys and clouds
+   (Heggie's law: soft binaries widen and dissociate) and, as the absolute outer envelope, to the Galactic
+   tide. **Rule:** the survival limit is computed from the cell's own environment, never read from a table.
+   (a) The diffusive limit: the largest separation whose binding energy survives the summed impulses of
+   perturbers over the age of the population, from the local stellar number density, the mean perturber
+   mass, the velocity dispersion, the Coulomb logarithm and the age (Bahcall et al. 1985; Jiang and
+   Tremaine 2010; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
+   the Jacobi radius from the galactic potential at the cell, (G M / (4 Omega^2 - kappa^2))^(1/3) = (G M /
+   (2 A (A - B)))^(1/3) for a pair of total mass M, which the generator evaluates from the same potential
+   as the orbital update. A pair is kept only below the smaller of the two. **Check values, not inputs:** the
+   solar neighbourhood should give a diffusive limit near 2 to 5 x 10^4 AU and a Jacobi radius near 1.5 to
+   2 pc for 2 Msun, with Gaia wide-binary catalogues truncating near 0.1 to 0.25 pc. Where GEN.103 lands, this
+   derived limit takes the place of the fixed 10,000 AU cap, and it shrinks in the bulge, clusters and halo
+   because the density and dispersion there are higher.
+
 ## 7. Compact-object primaries
 
 ### 7.1 How they arise

@@ -1005,6 +1005,30 @@ def admin_galaxy_settings_file(cookie_header, name):
     return body
 
 
+def admin_settings(cookie_header):
+    """`GET /api/admin/settings` -- every option with its help, limits, default, value and source, the file's
+    hash, why it can't be written, and the options waiting for a restart (ADM.84)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/settings", cookie_header=cookie_header)
+    return body
+
+
+def admin_settings_plan(cookie_header, changes):
+    """`POST /api/admin/settings/plan` -- the diff a save of `changes` (`{option: value or {"reset": true}}`)
+    would make, or the error at each option; nothing is written (ADM.84)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/settings/plan", cookie_header=cookie_header,
+                                              json_body={"changes": changes})
+    return body
+
+
+def admin_settings_save(cookie_header, changes, expect_hash=None):
+    """`POST /api/admin/settings` -- checks and saves `changes`. A refused save is an answer with `saved` false
+    and the error at each option; a file changed since `expect_hash` or one that can't be written raises
+    `ApiError` (409) (ADM.84)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/settings", cookie_header=cookie_header,
+                                              json_body={"changes": changes, "expect_hash": expect_hash})
+    return body
+
+
 def admin_set_naming_key(cookie_header, db, key=None, draw=False):
     """`POST /api/admin/naming-key?db=` -- sets the key (8 hex digits) or,
     with `draw`, a fresh random one (GEN.70)."""

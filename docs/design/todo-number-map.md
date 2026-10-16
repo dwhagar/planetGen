@@ -22,7 +22,7 @@ release is stamped.
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.193 |
+| TEST | TEST.196 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.59 |
@@ -472,7 +472,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.81 | Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue | none | open |
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons | none | open |
 | ADM.83 | Settings writer: validate, write and back up the user's config.json, with an audit row per change | none | done, PR #1857 |
-| ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | open |
+| ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | done, PR #1875 |
 | ADM.85 | Settings backups, restore, import and export on the settings page | none | open |
 | ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | open |
 | ADM.87 | Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part | none | done, PR #1857 |
@@ -573,7 +573,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings | none | open |
 | DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | none | open |
 | DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses | none | open |
-| DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | open |
+| DB.59 | Nebula age and ionizing rate, and remnant age, stored | none | done, already built (v87, DB.26 and GEN.150), found by Core 2 2026-10-16 6:05 PM EDT |
 | DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | none | open |
 | DB.61 | Migration: unnamed clusters and a star-to-cluster parent link (migration only) | none | open |
 | DB.62 | Upload bookkeeping tables in the control database (migration only) | none | open |
@@ -738,7 +738,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | none | dropped (Boss, 2026-10-16, 2:51 PM EDT: the required stars are made with the nebula, GEN.241) |
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | done, PR #793 |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | done, PR #1807 |
-| GEN.102 | Investigate filling all near-zero-density void space at once | none | open |
+| GEN.102 | Investigate filling all near-zero-density void space at once | none | done, decided no pre-fill (Boss, 2026-10-16, 5:55 PM EDT) |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | done, PR #826 |
 | GEN.105 | Orbital updates | none | open |
@@ -1358,7 +1358,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.53 | Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends | none | done, PR #1781 |
 | OPS.54 | The orbital update refuses to run while an update is running, with tests | none | done, PR #1782 |
 | OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | none | open |
-| OPS.56 | The generator epoch counter and the PR rule that enforces it | none | open |
+| OPS.56 | The generator epoch counter and the PR rule that enforces it | none | done, PR #1877 |
 | OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | open |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | none | open |
 | OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | open |
@@ -1449,7 +1449,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | done, PR #1265 |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls | none | done, PR #1300 |
-| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | none | open |
+| PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | none | done, PR #1873 |
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) | none | done, PR #1308 |
 | PERF.90 | Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill) | none | done, PR #1300 |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) | none | open |
@@ -1951,7 +1951,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) | none | done, PR #1801 |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
-| TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | open |
+| TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | done, PR #1881 |
 | TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | open |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | none | open |
 | TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | none | open |
@@ -1978,6 +1978,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | open |
 | TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database | none | open |
 | TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | open |
+| TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) | none | open |
+| TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) | none | open |
+| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

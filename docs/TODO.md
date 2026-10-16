@@ -2858,7 +2858,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `--check-pr` rule. Needs the deterministic math helpers first. Once
     GEN.42 lands, include one block-first backfill in the golden galaxy.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135, OPS.56.
+    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -2992,35 +2992,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     that drops to 0.6 Msun moves to 1/0.6 = 1.67 AU.
     Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
     chunks and shared work): this item is now the umbrella and is done
-    when its subitems are: DB.59, GEN.357, GEN.358. Three deliverables,
+    when its subitems are: GEN.357, GEN.358 (DB.59 was found already built). Three deliverables,
     and the first two are needed a version earlier than the third:
     GEN.99 (8.1-4) must rebuild planets with the same `apply_cloud` (its
     own research note says so) and draws an age-capped population from
     the nebula's stored `age_myr`, which the design says 'waits on a
     schema column' (nebula-and-asteroid-field-classes.md, Applying the
     rules at generation, and Nebula volume backfill step 3).
-    Prerequisites: DB.59, GEN.357, GEN.358.
+    Prerequisites: GEN.357, GEN.358.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
-  Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
-  that plots to have a 0 or nearly 0 star density) at once, since those
-  sectors have the least in them, we can afford to fill them." Done: a
-  count of such sectors, the time and storage a fill would take, and a
-  recommendation for Boss.
-  Research (2026-10-09, sampling-backfill-and-resume.md): re-scope the
-  "count": there are no zero-density sectors inside the outline (minimum
-  density 0.069). Define "void" as expected systems below 1: 12.4% of
-  sectors (2.97 billion) and 0.77% of systems; the density-below-0.1
-  subset is 2.44% of sectors (5.8e8). Cost (design doc 5.2): about 330
-  days on one worker for density below 0.1, about 5 years for expected
-  systems below 1; the fixed cost per sector is the lever (the timing
-  report's three levers could roughly halve the 40 ms). Recommendation:
-  do not pre-fill; keep lazy fill. Decided (Boss, 2026-10-10 18:44Z,
-  defaults approved; default no):
-  do you still want the sparse rim filled?
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 4).
 
 - [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
   Boss (2026-10-07 11:47Z): "Research and add tiered structure
@@ -3041,6 +3021,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-kind factors are built (GEN.234, GEN.236); what is left is the
   population-dependent rules for the type draws. Fold into GEN.269 or
   close once GEN.270 to GEN.275 land.
+  Research supplied (Boss, 2026-10-16, 5:55 PM EDT, in the project
+  chat): the two constants Core 4 could not look up, the close-binary
+  fraction against [Fe/H] and the encounter-disruption limit for wide
+  pairs with the Jacobi radius as the outer limit. Sources named by Boss:
+  Badenes 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018,
+  El-Badry, Rix and Heintz 2021, Kratter and Lodato 2016, Bate 2018,
+  Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and Tremaine 2010,
+  Stegmann 2024. The reference list is unverified and Core 4 checks it.
+  Filed as derivation rules of the type draw, not fixed values, in
+  docs/design/multistar-and-compact-systems.md section 6.6: the close
+  share follows the cell's [Fe/H] and the wide-pair limit is computed
+  from the cell's density, dispersion, age and tidal field.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
@@ -3925,7 +3917,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn (galactic for a sector, system for the System Map, planetary for
   a moon neighbourhood), read from the same constants, not a copy. See
   the new section in docs/design/gravity-map.md.
-  Prerequisites: GEN.338, GEN.342, PERF.88. Related: GEN.105, NAV.6,
+  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6,
   TEST.131,
   PERF.72, MAP.167.
   Scope after the review (2026-10-16 review): the tidal tensor and its
@@ -6064,7 +6056,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.242, DB.59. Related: GEN.241.
+  Prerequisites: GEN.242. Related: GEN.241.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6453,7 +6445,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The force on a body comes from the shared field kernel (PERF.88); this
   item adds the influence-set term, the galactic gradient hook and the
   velocity update (2026-10-16 review).
-  Prerequisites: GEN.341, GEN.338, GEN.340, PERF.88. Related: GEN.109.
+  Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6645,9 +6637,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gets the cloud while it is generated, a system outside is
   byte-identical.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: DB.59 (Core 2). Core 4 takes it when it unblocks.
-  Prerequisites: DB.59. Related: GEN.95.
+  PM EDT, 2026-10-16; queue in the lane report). READY: its blocker DB.59
+  turned out to be built already (the nebula and remnant age columns have
+  existed since v87 and v38; Core 2, 6:05 PM EDT), so Core 4 can take it
+  now.
+  Prerequisites: none. Related: GEN.95, DB.59.
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6662,7 +6656,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vis-viva, unbound above half the mass lost, engulfment overrides).
   Done: a test for each rule and the worked example (1 AU round 1 Msun
   dropping to 0.6 Msun moves to 1.67 AU).
-  Prerequisites: DB.59, GEN.357. Related: GEN.95.
+  Prerequisites: GEN.357. Related: GEN.95.
 
 - [ ] **GEN.359 Sector fill links cluster stars to their cluster and names the cluster at its first fill**
   Split from GEN.209 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7122,7 +7116,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisites: GEN.198, PERF.88. Related: GEN.198, GEN.199, MAP.151
+  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151
   (done, PR #1539).
   Scope after the review (2026-10-16 review): the cost study of the grid
   on top of the kernel (measure the kernel and the aggregate split, pick
@@ -7189,40 +7183,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   when they are; it follows the dead-worker bug PERF.93 (done) and the client
   module PERF.94 (done) in Foundations lane 1. DOC.20 rewrites the notes after
   step 6.
-
-- [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md).
-  `physics/sector_path.integrate_path` takes 1.0 ms a path; numba (mass
-  selection, integration and spline check in one compiled call) takes 34
-  to 46 us, so the save step goes from 34.2 s to 13.4 s on the benchmark
-  fill (the rest is database writes). Saved paths agree to 4e-16
-  relative (34,566 of 34,568 knots bit-identical), so tests that compare
-  saved paths use that tolerance. It also speeds the orbital update,
-  which recomputes these paths. Done: the integrator is a numba kernel,
-  the old Python loop removed (no fallback), the tolerance in the path
-  tests, timings in the benchmark report. Owner: Foundations lane 1,
-  after PERF.80 (merged in #1251).
-  Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
-  location (OPS.42, merged in #1291). Acceptance criterion: the integrator imports as the web
-  user (as OPS.42 does), by keeping it out of the web app's import path or by
-  writable `__pycache__` directories, with a test.
-  Widened (2026-10-16 review): the numba kernel is a public module
-  `planetgen/physics/field_kernel.py` (kept out of the web app's import
-  path): `accelerations(points, masses, softening)` and
-  `potentials(points, masses, softening)` over the `MassTable` of
-  `physics/sector_path.py`, with Plummer softening as an argument and an
-  optional hook for the galaxy's smooth term (GEN.115);
-  `sector_path.integrate_path` calls it instead of its own `_pull`.
-  GEN.109's kernel child and GEN.198's evaluator call it and add only
-  what is theirs. Done: the module and a test that it equals a plain
-  NumPy sum to 1e-12 relative, the sector paths reading it, the old loop
-  removed (no fallback), and the timings in the benchmark report.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Related: PERF.31, GEN.105.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
   Math Research (2026-10-14;
@@ -8033,7 +7993,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   below 50 for the halo floor is refused with the reason, and the
   settings round-trip.
   Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0103, after 0102
-  (DB.59).
+  (DB.59). DB.59 turned out to be built already (Core 2, 6:05 PM EDT: no
+  migration), so 0102 is free: this item takes 0102, after DB.55's 0101,
+  and Core 1 fixes the order if this one merges first.
   Prerequisites: none. Related: GEN.283.
 
 - [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
@@ -8112,22 +8074,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   one Owner), a second Owner insert fails in MySQL, and the schema
   header comments are updated.
   Prerequisites: none. Related: USR.2.
-
-- [ ] **DB.59 Nebula age and ionizing rate, and remnant age, stored**
-  Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Add `age_myr` and `q_total` to
-  `nebulae` and `age_years` to the remnants table (the generator's
-  nebula class already holds age_myr, q_total and hosts, the remnant
-  class has `age_range_years`; nothing stores them). Generation fills
-  them for new rows, old rows stay NULL until regenerated. Core 1 places
-  the revision. Done: a regenerated nebula of each hosted class has an
-  age and a Q consistent with its stars, a remnant has an age.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0102, after 0099
-  (GEN.280), 0100 (cell_star_ceiling) and 0101 (DB.55).
-  Prerequisites: none. Related: GEN.95.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -8765,7 +8711,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
   2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
   it goes idle).
-  Prerequisites: ADM.84, ADM.85.
+  Prerequisites: ADM.85.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
   Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
@@ -9326,33 +9272,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
-  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
-  somewhere, that needs to get bumped up because we're starting to
-  desperately need that." Part of the configuration page of ADM.43
-  (GitHub issue
-  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. An Admin page generated from the ADM.42 model:
-  sections, then every option with its help text, default, current value
-  and where the value comes from (default, `config.json` or an
-  environment variable);
-  editable options as controls by type; read-only options
-  (`jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix`,
-  `admin_cookie_insecure`, `redis.url`, `api_base_url`, the database
-  settings) shown with the reason they are command line only. Save shows
-  a
-  before-and-after diff of the changed options, confirms, saves through
-  ADM.83 and shows per-field errors; a pending-restart banner on every
-  admin page comes from a snapshot taken at startup. Options marked for
-  the Owner tier are shown and disabled until ADM.86. It is built in the
-  admin layout of the day; ADM.56 moves it into the one admin shell.
-  Done: the page, the diff and confirm step, the banner and a browser
-  test that edits, saves and restores one option of each type.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.83. Related: ADM.43, ADM.56.
-
 - [ ] **ADM.85 Settings backups, restore, import and export on the settings page**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
   somewhere, that needs to get bumped up because we're starting to
@@ -9400,7 +9319,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner account that USR.2 creates, so it belongs to 8.2 and not to the
   umbrella ADM.43. Done: the prompt, the tier check in the writer, and
   tests that an admin and a stale-password Owner are both refused.
-  Prerequisites: ADM.84, USR.26. Related: ADM.43, USR.3.
+  Prerequisites: USR.26. Related: ADM.43, USR.3.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -10187,22 +10106,6 @@ clears each one.
   Prerequisite: GEN.276. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
-- [ ] **TEST.166 The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit**
-  Step 7 (design note section 9 item 7). The nightly-update test moves
-  objects across a 0.25 pc cube boundary and asserts the key follows; a
-  position written and read back gives the same point columns and the
-  same key; an object pushed outside the box gets `NULL` and comes back
-  when moved in. Done: the tests exist and run in the suite. Owner:
-  Quality (2026-10-15). Boss (2026-10-15 5:32 PM EDT): "if it's not
-  ready in time before the spherical sector layout is, then we'll skip
-  it and move to the next sequence until it's finished research and we
-  can plan it." The research is finished and merged (#1659), so stage C
-  is live.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 1).
-  Prerequisite: DB.34. Related: DB.35, TEST.165.
-  Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
-
 - [ ] **TEST.167 test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug)**
   Reported by Interface (2026-10-15, 5:43 PM EDT gate run, relayed by
   the coordinator): `tests/test_generate*`
@@ -10614,6 +10517,68 @@ clears each one.
   the bound itself, and the subtraction's rounding error (about 1e-28)
   is larger than the 1e-9 tolerance on 2.7e-20 (2.7e-29). Suggested fix:
   a tolerance relative to the model, such as `bound*(1+1e-9) + 1e-12*model`.
+  Core 1 hit it too (2026-10-16, 5:49 PM EDT, in the GEN.335 gate:
+  2.4e-9 over the bound) and will push a test-only fix in its next PR,
+  adding a few ulps of the model, `4e-16*model`, to the tolerance; that
+  PR resolves this item.
+  Core 4 reproduced it on main (6:02 PM EDT, no database needed): the
+  same example replays to the same failure every time (model minus halo
+  2.726122241710625e-20 against a bound of 2.7261222351049663e-20, 2.4e-9
+  relative against the 1e-9 tolerance), so it is deterministic once
+  Hypothesis has found it.
+  Prerequisites: none.
+
+- [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
+  Found by Core 2 (2026-10-16, 5:04 PM EDT), filed by the TODO thread.
+  In the gate for PERF.88,
+  `src/tests/test_web_browser_sector_reach.py::test_no_scene_is_loaded_while_the_camera_is_far`
+  hung in teardown: the module fixture `site_db`
+  (`src/tests/test_web_a11y.py:275`) ran `DROP DATABASE IF EXISTS` and
+  waited 853 s on a metadata lock, in the gate's first run and again in
+  its retry. A connection left open by something (the same kind of lock
+  as the interstellar_comets one Boss hit on a migration) holds the
+  lock. Done: the fixture closes or kills the connections that hold the
+  database before the drop, or fails at once with the name of the holder
+  instead of waiting; the teardown never waits more than a few seconds;
+  and a test shows a held connection no longer stalls it. Fails on main:
+  not checked, the PERF.88 diff touches no test fixture. Frequency: once
+  in 3 gates. Reproducer: none; the same file passed alone (7 of 7)
+  right after. Related to TEST.190 (a failing session fixture makes
+  dependents wait their full timeout).
+  Core 2 reproduced it twice in a row (2026-10-16, 5:52 PM EDT, the
+  OPS.56 gate and its rerun alone): the holder is an idle connection
+  (state Sleep, database `planetgen_a11y_*`, the same MySQL) that stays
+  open while `DROP DATABASE planetgen_a11y_*` waits 853 s; the PERF.88
+  gate hit the same shape. Reproducer: run `scripts/test.py changed`
+  with the browser tests selected and read `show full processlist` in
+  mysql during the teardown.
+  Prerequisites: none.
+
+- [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
+  Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
+  TODO thread.
+  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
+  failed once in the browser phase of a full `scripts/test.py changed`
+  run (load 8.7, 2 browser workers) and passed when rerun alone (call
+  122.9 s on gw1). Done: the cause is found (a wait that is too short
+  under load, or a real race in the system map drill), the test waits on
+  the condition it needs and not a fixed time, and it passes under the
+  same load with 2 browser workers, with no quarantine. Fails on main:
+  unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
+  full browser phase; try the file with two browser workers and a busy
+  machine.
+  Prerequisites: none.
+
+- [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
+  Found by Core 2 (2026-10-16, 5:52 PM EDT), filed by the TODO thread.
+  `src/tests/test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel`:
+  `page.request.get` of `/sector/<id>/galaxy` timed out at 30 s in the
+  full gate run with 2 browser workers, and the test passed alone. Done:
+  the cause is found (a slow first request that builds the whole galaxy
+  scene under load, or a real stall in the route), and the test either
+  waits on the condition it needs or the route is made fast enough, with
+  no quarantine. Fails on main: unknown. Frequency: once so far.
+  Reproducer: none beyond the full browser phase with 2 workers.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -10727,7 +10692,7 @@ clears each one.
     and builds the mail module and the "send test email" action; the
     form is the generated settings page (ADM.84 and ADM.86), not a
     second form.
-    Prerequisites: ADM.86, USR.26, ADM.84.
+    Prerequisites: ADM.86, USR.26.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -11225,7 +11190,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nothing), the battery digest (needs GEN.135 and the encoder), and the
   history row plus the galaxy record (a control-database migration and
   the update script).
-  Prerequisites: OPS.56, OPS.57, OPS.58.
+  Prerequisites: OPS.57, OPS.58.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
@@ -11311,27 +11276,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: OPS.16, ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
 
-- [ ] **OPS.56 The generator epoch counter and the PR rule that enforces it**
-  Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). An integer `generator_epoch`, bumped
-  only by a PR that changes generated output, kept in
-  `src/tests/golden/epochs.json` (epoch, first release of that epoch)
-  with an accessor `generator_epoch()`. `scripts/bump_version.py
-  --check-pr` enforces all or none: a change under `src/tests/golden/`,
-  the epoch bumped, and a `generation-output: changed` line in the
-  `changes/` note. A `golden_update` tool (`python -m
-  tests.golden_update --reason "..."`) bumps the epoch, records the
-  reason and refuses under `CI` and on an empty diff. Why: GEN.135,
-  DB.31, GEN.57 and every later generation change must be able to say
-  'epoch bumped' and have the guard check it. Done: the file, the
-  accessor, the rule and the tool, with a test for each failure (golden
-  changed without a bump; bump without golden change; note line missing)
-  and a sentence in docs/contributing.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Prerequisites: none. Related: OPS.28.
-
 - [ ] **OPS.57 generator_battery_digest(): a database-free digest over 6 to 8 canned cases**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A pure function in the package, no
@@ -11346,7 +11290,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   function and a test that it is stable across two runs and two hash
   seeds, and that changing one canned draw changes exactly one case's
   digest.
-  Prerequisites: GEN.135, GEN.304, OPS.56. Related: OPS.28.
+  Prerequisites: GEN.135, GEN.304. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -11364,7 +11308,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
-  Prerequisites: OPS.56, OPS.57, ADM.50. Related: OPS.28.
+  Prerequisites: OPS.57, ADM.50. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. Sending

@@ -1,0 +1,221 @@
+# tests/test_web_settings_browser.py
+
+"""
+The Admin settings page (ADM.84) in a real browser: the form passes the same accessibility and phone-fit checks as
+every other page (test_web_a11y.py only sees the page without a config.json, which has no form), and an admin can
+edit, review, save and put back an option of each kind.
+
+An admin may change only some options (`x-editable`, `x-min_role`), so the page is drawn twice: as the admin the
+web has today (text, whole number, number and on/off options), and as the command line's role (`host`), which
+adds the list, the choice and the secret. Needs Playwright with Chromium and the MySQL test server, like
+test_web_a11y.py; skipped without them.
+
+Run with: pytest tests/test_web_settings_browser.py
+"""
+
+import json
+import threading
+
+import pytest
+
+sync_api = pytest.importorskip("playwright.sync_api")
+
+from werkzeug.serving import make_server  # noqa: E402
+
+from planetgen.admin import auth  # noqa: E402
+from planetgen.api import settings as settings_api  # noqa: E402
+from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
+from planetgen.api.config import Config  # noqa: E402
+from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.db import store  # noqa: E402
+from planetgen.util import logpaths, settings, settings_view  # noqa: E402
+from planetgen.web.app import create_app  # noqa: E402
+
+from tests.test_web_a11y import (  # noqa: E402,F401 -- the browser and axe fixtures, and the checks
+    CSP_LISTENER, SCHEMES, VIEWPORTS, _axe_blocking, _overflow, axe_source, browser,
+)
+
+START = {"mysql": {"host": "db.internal", "password": "db-secret"}, "secret_key": "csrf-secret",
+         "site_name": "Mine", "jobs": {"keep": 12}}
+
+
+@pytest.fixture
+def config(tmp_path, monkeypatch):
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps(START, indent=2) + "\n")
+    monkeypatch.setattr(logpaths, "CONFIG_PATH", str(path))
+    monkeypatch.setenv("PLANETGEN_STATE_DIR", str(tmp_path / "state"))
+    for variable in settings.env_names():
+        monkeypatch.delenv(variable, raising=False)
+    settings.reset_cache()
+    yield path
+    settings.reset_cache()
+    settings_view.forget_startup()
+
+
+@pytest.fixture
+def server(mysql_config, config):
+    class SiteConfig(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+        SESSION_COOKIE_SECURE = False
+        SECRET_KEY = "settings-browser-secret"
+        RATELIMIT_PAGES = PAGE_LIMITS_OFF
+
+    auth.bootstrap_control_schema(mysql_config)
+    conn = store.get_control_connection(mysql_config)
+    try:
+        conn.execute("UPDATE admin_users SET must_change_credentials = 0")
+        conn.commit()
+        admin_id = conn.execute("SELECT id FROM admin_users ORDER BY id LIMIT 1").fetchone()["id"]
+        session = auth.create_session(conn, admin_id)
+    finally:
+        conn.close()
+    app = create_app(SiteConfig)
+    app.testing = True
+    httpd = make_server("127.0.0.1", 0, app, threaded=True)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{httpd.server_port}", session
+    finally:
+        httpd.shutdown()
+        thread.join(timeout=10)
+
+
+@pytest.fixture(params=["admin", "host"])
+def role(request, monkeypatch):
+    monkeypatch.setattr(settings_api, "ROLE", request.param)
+    return request.param
+
+
+def _page(browser, server, viewport="desktop", scheme="light"):
+    base_url, session = server
+    context = browser.new_context(viewport=VIEWPORTS[viewport], color_scheme=scheme, device_scale_factor=1,
+                                  reduced_motion="reduce")
+    context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": session, "url": base_url}])
+    context.add_init_script(CSP_LISTENER)
+    page = context.new_page()
+    problems = []
+    # A refused form is a 422 page, which the browser logs; a request cut off by the next click is not a failure.
+    page.on("console", lambda msg: msg.type == "error" and "status of 422" not in msg.text
+            and problems.append(f"console error: {msg.text}"))
+    page.on("pageerror", lambda exc: problems.append(f"uncaught exception: {exc}"))
+    page.on("requestfailed", lambda req: "ERR_ABORTED" in str(req.failure)
+            or problems.append(f"request failed: {req.url} ({req.failure})"))
+    return context, page, problems, base_url
+
+
+def _document(config):
+    return json.loads(config.read_text())
+
+
+@pytest.mark.parametrize("scheme", SCHEMES)
+@pytest.mark.parametrize("viewport", sorted(VIEWPORTS))
+def test_the_form_is_accessible_and_fits(browser, axe_source, server, role, config, viewport, scheme):
+    context, page, problems, base_url = _page(browser, server, viewport, scheme)
+    try:
+        response = page.goto(base_url + "/admin/settings", wait_until="load")
+        assert response.status == 200
+        assert page.locator("form.settings-form").count() == 1
+        assert page.locator("button:has-text('Review the changes')").count() == 1
+        problems += _overflow(page) + _axe_blocking(page, axe_source)
+        problems += [f"CSP violation: {v}" for v in page.evaluate("window.__cspViolations || []")]
+    finally:
+        context.close()
+    assert not problems, f"/admin/settings as {role} at {viewport}/{scheme}:\n  " + "\n  ".join(problems)
+
+
+def test_the_review_and_error_pages_are_accessible(browser, axe_source, server, role, config):
+    context, page, problems, base_url = _page(browser, server, "phone", "dark")
+    try:
+        page.goto(base_url + "/admin/settings", wait_until="load")
+        page.fill("#opt-site_name", "Home")
+        page.click("button:has-text('Review the changes')")
+        page.wait_for_selector("table.settings-diff")
+        problems += _overflow(page) + _axe_blocking(page, axe_source)
+        page.click("a:has-text('Go back without saving')")
+        page.fill("#opt-jobs-keep", "0")
+        page.click("button:has-text('Review the changes')")
+        page.wait_for_selector("#err-jobs-keep")
+        problems += _overflow(page) + _axe_blocking(page, axe_source)
+    finally:
+        context.close()
+    assert not problems, f"as {role}:\n  " + "\n  ".join(problems)
+    assert _document(config)["site_name"] == "Mine"
+
+
+def _save(page, base_url, expect_rows):
+    page.click("button:has-text('Review the changes')")
+    page.wait_for_selector("table.settings-diff")
+    assert page.locator("table.settings-diff tbody tr").count() == expect_rows
+    page.click("button:has-text('Save these changes')")
+    page.wait_for_selector("text=Saved ")
+
+
+def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, config):
+    context, page, problems, base_url = _page(browser, server)
+    try:
+        page.goto(base_url + "/admin/settings", wait_until="load")
+        page.fill("#opt-site_name", "Home")                       # text
+        page.fill("#opt-jobs-keep", "7")                          # whole number
+        page.fill("#opt-tile_cache-max_mb", "300")                # number
+        page.uncheck("#opt-page_cache-stored_counts")             # on/off
+        rows = 4
+        if role == "host":
+            page.fill("#opt-login_allowlist", "10.0.0.0/8\n192.168.1.5")        # list
+            page.select_option("#opt-log_rotation", "app")                      # choice
+            page.fill("#opt-wiki-wikijs-api_token", "wiki-token-123")           # secret
+            rows += 3
+        _save(page, base_url, rows)
+
+        saved = _document(config)
+        assert saved["site_name"] == "Home" and saved["jobs"] == {"keep": 7}
+        assert saved["tile_cache"] == {"max_mb": 300.0} and saved["page_cache"] == {"stored_counts": False}
+        if role == "host":
+            assert saved["login_allowlist"] == ["10.0.0.0/8", "192.168.1.5"] and saved["log_rotation"] == "app"
+            assert saved["wiki"]["wikijs"]["api_token"] == "wiki-token-123"
+        # What was entered is shown back, a secret is not, and nothing was left unsaved.
+        assert page.input_value("#opt-site_name") == "Home" and page.input_value("#opt-jobs-keep") == "7"
+        assert not page.is_checked("#opt-page_cache-stored_counts")
+        assert "wiki-token-123" not in page.content()
+
+        # Put every one of them back to its default (the keys leave the file).
+        page.check("input[name='reset.tile_cache.max_mb']")
+        page.check("input[name='reset.page_cache.stored_counts']")
+        page.check("input[name='reset.jobs.keep']")
+        page.check("input[name='reset.site_name']")
+        rows = 4
+        if role == "host":
+            page.check("input[name='reset.login_allowlist']")
+            page.check("input[name='reset.log_rotation']")
+            page.check("input[name='clear.wiki.wikijs.api_token']")
+            rows += 3
+        _save(page, base_url, rows)
+        restored = _document(config)
+        assert restored["mysql"] == START["mysql"] and restored["secret_key"] == "csrf-secret"
+        for path in ("site_name", "jobs", "tile_cache", "page_cache", "login_allowlist", "log_rotation", "wiki"):
+            assert path not in restored, path
+        assert page.input_value("#opt-site_name") == "planetGen"
+    finally:
+        context.close()
+    assert not problems, "\n".join(problems)
+
+
+def test_a_bad_value_in_the_browser_is_marked_and_saves_nothing(browser, server, config):
+    before = config.read_bytes()
+    context, page, problems, base_url = _page(browser, server)
+    try:
+        page.goto(base_url + "/admin/settings", wait_until="load")
+        page.fill("#opt-jobs-keep", "lots")
+        page.fill("#opt-site_name", "Home")
+        page.click("button:has-text('Review the changes')")
+        page.wait_for_selector("#err-jobs-keep")
+        assert page.get_attribute("#opt-jobs-keep", "aria-invalid") == "true"
+        assert page.input_value("#opt-jobs-keep") == "lots" and page.input_value("#opt-site_name") == "Home"
+        assert "Nothing was saved" in page.content()
+    finally:
+        context.close()
+    assert config.read_bytes() == before
+    assert not problems, problems
