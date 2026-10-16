@@ -10582,6 +10582,12 @@ clears each one.
   arm_amplitude=0.0)` with r_cyl=0.0, z=36706.0, theta=0.0, in
   src/tests/test_fuzz_galaxy_grid.py. Owner: Core 1, in its bug phase
   (flaky tests last; fix the cause, no quarantine).
+  Core 3 hit the same failure independently (2026-10-16, 4:58 PM EDT):
+  once in about 17,900 tests in a 76 minute run, so Hypothesis finds it
+  only sometimes. Its diagnosis: the model and the halo density cancel to
+  the bound itself, and the subtraction's rounding error (about 1e-28)
+  is larger than the 1e-9 tolerance on 2.7e-20 (2.7e-29). Suggested fix:
+  a tolerance relative to the model, such as `bound*(1+1e-9) + 1e-12*model`.
   Prerequisites: none.
 
 ## USR: User accounts
