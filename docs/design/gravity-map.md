@@ -1,12 +1,12 @@
 # Gravity map: the field of a sector as a heat map
 
-**Status (2026-10-15):** decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the feature of the 9.0 headline.
+**Status (2026-10-15):** decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the feature of the 9.1 headline.
 
 Boss (2026-10-10 20:57Z): the orbits are worked out from point-mass
 vectors, so show "a gravitational map of a sector, probably using colors
 and calculating it per zone ... the gravitational gradients of the vector
 field as kind of a heat map of the inside of the sector". Foundations are
-phase 2; the feature roll-out is phase 3 and the seminal feature of 9.0.
+phase 2; the feature roll-out is phase 3 and the seminal feature of 9.1 (Boss moved it from 9.0 on 2026-10-16).
 
 ## What is drawn
 
@@ -75,5 +75,5 @@ The plan, to be settled in GEN.198, GEN.199 and PERF.72:
 GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
 per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
 MAP.168 Sector Map layer; MAP.169 System Map layer; UX.94 wording and
-legend (phase 3, the 9.0 headline). MAP.170 Galaxy Map layer (phase 3+).
+legend (phase 3, the 9.1 headline). MAP.170 Galaxy Map layer (phase 3+).
 Course planning (NAV.6) reuses the evaluator instead of its own pull model.

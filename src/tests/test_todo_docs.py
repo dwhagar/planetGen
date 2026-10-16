@@ -123,3 +123,24 @@ def test_a_blocker_in_a_later_phase_is_reported():
     assert [b["id"] for b in build_todo_docs.check_order(same_phase)] == ["GEN.2"]
     later = items(("GEN.1", "8.1-2", [], "t"), ("GEN.2", "8.1-1", ["GEN.1"], "t"))
     assert [b["needs"] for b in build_todo_docs.check_order(later)] == ["GEN.1"]
+
+
+def test_the_tree_lists_the_top_five_blockers_overall_and_per_phase():
+    plan = build_todo_docs.build_data(build_todo_docs.ROOT)["plan"]
+    blockers = plan["blockers"]
+    assert 0 < len(blockers["overall"]) <= 5
+    weights = [r["blocks"] for r in blockers["overall"]]
+    assert weights == sorted(weights, reverse=True)
+    assert [p["key"] for p in blockers["phases"]] == [p["key"] for p in plan["phases"]]
+    for p in blockers["phases"]:
+        assert len(p["rows"]) <= 5
+        for r in p["rows"]:
+            assert plan["items"][r["id"]]["phase"] == p["key"] and r["blocks"] >= 1
+
+
+def test_blocker_weight_counts_a_chain_once_per_item():
+    def item(*unblocks):
+        return {"status": "open", "unblocks": list(unblocks), "phase": "8.1-1"}
+    items = {"A.1": item("A.2", "A.3"), "A.2": item("A.4"), "A.3": item("A.4"), "A.4": item()}
+    rows = {r["id"]: r for r in build_todo_docs.build_blockers(items, [])["overall"]}
+    assert rows["A.1"]["blocks"] == 3 and rows["A.1"]["direct"] == 2 and "A.4" not in rows

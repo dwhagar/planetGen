@@ -87,11 +87,11 @@ Suggested:
 - S8.5-f: Compare courses: straight, bent and safest, side by side.
 
 ## Release 8.6: Edit everything
-Status: Boss named it (1:07 PM EDT); items are filed in the next change
+Status: Boss named it (1:07 PM EDT); items filed
 Headline: Edit everything: the admin has complete control and the world adjusts to what the admin wants, after the admin approves a generation plan
 Today: (new)
-Change: New headline (ADM.57). Boss: the admin can move stars in a sector, change orbits in a system, change densities for a sector or region and regenerate any star to any specification; changing an A planet into an M planet makes the system work out how to rearrange the star system and show that generation plan for approval before anything changes. In every regen screen the admin picks the aspects to keep and the aspects to regenerate. The existing admin editors (ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120) and the admin streamline items (ADM.55, ADM.56) are the first phase; the breakdown of the headline into items, with dependencies, is filed in the next change.
-Needs: ADM.36 (edit orbits) and ADM.52 (the planet editor) from 8.3 and 8.4 are in earlier versions; the override layer has to keep regeneration, parity repair and the golden-seed tests (GEN.57, DB.17 in 8.1 phase 1) working, so those come first. The approval screen needs the queue steps in 8.1 phase 1.
+Change: New headline (ADM.57), filed as 35 items in 5 phases with the design in docs/design/edit-everything.md. Boss: the admin can move stars in a sector, change orbits in a system, change densities for a sector or region and regenerate any star to any specification; changing an A planet into an M planet makes the system work out how to rearrange the star system and show that generation plan for approval before anything changes. In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves, applies as one job and can undo. Two pieces are shared with 8.9 and built here once (Boss, 1:33 PM EDT): the unit finalizer (ADM.82, also API.8) and the recipe schema (API.28, also API.18).
+Needs: The plan model, aspects and regions come first (phase 1); then the approval screen, locks, regen screens and density overrides (phase 2); then the editors that make plans and the rearranger (phase 3); then regeneration to a specification (phase 4); then the end-to-end tests, the help and the headline (phase 5). ADM.36 (edit orbits) comes from the orbital update foundations in 8.3 and ADM.52 (the planet editor) from earlier. The override journal has to keep regeneration, parity repair and the golden-seed tests (GEN.57, DB.9, DB.17 in 8.1 phase 1) working.
 Suggested:
 - S8.6-a: Batch edits: apply one plan to a list or a region of systems, with one approval for the whole batch.
 - S8.6-b: Two candidate plans for one request, side by side, and the admin picks one.
@@ -130,7 +130,7 @@ Suggested:
 Status: proposed
 Headline: Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it
 Today: (new)
-Change: The remote generation chain (API.3 and its parts) and recipes (API.18, API.19) have no headline today. It depends only on the reproducibility items of 8.1 phase 1, so it can move ahead of 8.6 to 8.8 if Boss wants it sooner.
+Change: The remote generation chain (API.3 and its parts) and recipes (API.18, API.19) have no headline today. Boss (1:33 PM EDT): 8.6 and this version are closely related, so what both need is built once in 8.6: the unit finalizer (ADM.82, used by API.8) and the recipe schema and runner (API.28, used by API.18); API.8 and API.18 here keep only the upload and route parts, and API.19 uses the region object of 8.6 (GEN.302). It depends only on the reproducibility items of 8.1 phase 1 and those 8.6 pieces, so it can move earlier if Boss wants it sooner.
 Needs: GEN.57, GEN.135, OPS.28 and TEST.77 (reproducibility, 8.1 phase 1) first: remote generation must reproduce what the server makes (API.17). API.10, API.11 and API.12 are the base; API.19 needs API.18.
 Suggested:
 - S8.9-a: A pip and Docker package of the generator with a one-command local run.
@@ -205,9 +205,9 @@ Suggested:
 - SL-e: Lookback time and travel-time readouts for objects in other galaxies.
 
 ## Questions for Boss
-- 8.1 stamp: keep the rule that 8.1 stamps only when all of 8.1 (all five phases) is complete, or stamp it when the zoom (phase 2) is done and let the scatter phases ride into 8.2? Default: keep the rule.
-- Phase 1 gate: ADM.32, ADM.35, ADM.55, ADM.56, MAP.119 and MAP.120 were in the old Phase 1 tail and sit in 8.6, and UX.46 and UX.47 in 8.2, so they no longer gate 8.1. OK? Default: yes.
-- 8.3 and 8.4 as proposed (the orbital update after the scatters, then new worlds)? Default: yes.
-- 9.0 headline: the view from a planet (recommended), politics and territories, generate anywhere, or another? Default: the view from a planet.
-- Multiple galaxies stays under "later" with no version? Default: yes.
+- Decided (Boss, 1:29 PM EDT, "defaults are acceptable"): keep the rule that 8.1 stamps only when all of its phases are done; ADM.32, ADM.35, ADM.55, ADM.56, MAP.119 and MAP.120 sit in 8.6 and UX.46 and UX.47 in 8.2; 8.3 to 8.9 as proposed; 9.0 is the view from a planet; multiple galaxies stays under "later".
+- 8.6 undo: an applied plan can be undone while no newer plan touched the same objects. Default: yes.
+- 8.6 approval: any admin may approve a plan another admin proposed. Default: yes (two-person approval waits for the roles of 8.2).
+- 8.6 density plans: the planner may remove generated, unnamed, unpopulated systems inside an approved plan, listed with counts per sector. Default: yes.
+- 8.6 specifications: forced values the generator would not draw are allowed and marked on the plan as forced. Default: yes.
 - Which suggestions to file as items? Name the codes, for example "file S8.1-a and S8.2-c".

@@ -88,7 +88,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [course-routing.md](course-routing.md) | Course routing and nearby search | partly built |
 | [course-avoidance.md](course-avoidance.md) | Keep-out radii and path bending | research |
 | [sky-view.md](sky-view.md) | The view from a planet | research |
-| [gravity-map.md](gravity-map.md) | The field of a sector as a heat map | plan (the 9.0 headline) |
+| [gravity-map.md](gravity-map.md) | The field of a sector as a heat map | plan (the 9.1 headline) |
 
 ## Maps and the web interface
 
@@ -96,6 +96,7 @@ A note's own status line, at its top, is the authority; this page only points at
 |---|---|---|
 | [galaxy-drilldown-navigation.md](galaxy-drilldown-navigation.md) | The Galaxy Map's drill-down | built (partly replaced by the fly-through) |
 | [drilldown-region-sizes.md](drilldown-region-sizes.md) | Step sizes and region shapes for the drill-down | built (MAP.151) |
+| [edit-everything.md](edit-everything.md) | The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger | plan |
 | [fly-through-view-distance.md](fly-through-view-distance.md) | The fly-through map: view distance, near field, free camera | partly built |
 | [zoom-star-visibility.md](zoom-star-visibility.md) | Smoother star visibility while zooming | research (superseded in part by MAP.152) |
 | [galaxy-map-wire-format.md](galaxy-map-wire-format.md) | What the browser downloads for the map | built |
