@@ -2470,6 +2470,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   items. No fixed table: the mass comes from the density model and the
   address, never from a stored list. No build in this item. Owner: not
   assigned; the courses lane of 8.5.
+  Core 1 note (2026-10-16, 6:13 PM EDT): belts and asteroid fields have
+  no mass model, so DB.55 and GEN.337 store a stated zero mass for them;
+  the study says whether a real model is needed (GEN.295 refines nebula
+  mass).
   Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
   NAV.26, NAV.6.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
@@ -3033,6 +3037,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multistar-and-compact-systems.md section 6.6: the close
   share follows the cell's [Fe/H] and the wide-pair limit is computed
   from the cell's density, dispersion, age and tidal field.
+  Boss answered the GEN.103 cards (2026-10-16, 6:12 to 6:15 PM EDT):
+  (1) the close-binary trend is the pooled one, read at the star's own
+  [Fe/H]; (2) the metallicity effect applies to every star mass, with a
+  built-in check that the numbers act as expected (filed as TEST.196); (3)
+  wide pairs have no metallicity dependence; (4) the encounter limit is
+  a sharp cut at a_1/2; (5) the fixed 10,000 AU wide-pair cap is
+  replaced by the derived limit. The last card, whether the metallicity
+  effect fades above about 2 solar masses, was answered "all masses":
+  no fade, and the check is the safeguard.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
@@ -5158,7 +5171,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chunks and shared work): this item is now the umbrella and is done
   when its subitems are: DB.54, GEN.333. GEN.283 mixes a Core 1
   migration with the tier logic, and the sliders wait on the wrong half.
-  Prerequisites: DB.54, GEN.333. Related: GEN.234, GEN.237.
+  Prerequisites: GEN.333. Related: GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
@@ -5290,7 +5303,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object; the one migration for both is DB.55, whose revision number
   Core 1 names. Design:
   /mnt/project-files/research/orbital-encounters/capture-and-ejection-design.md.
-  Prerequisites: GEN.335, DB.55. Related: GEN.105, GEN.109, GEN.110,
+  Prerequisites: DB.55. Related: GEN.105, GEN.109, GEN.110,
   GEN.223,
   GEN.294.
   Rewritten (2026-10-16 review): this item is the build, not a design
@@ -5492,11 +5505,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass or the vector, so a new object kind cannot ship without them. The
   planet and moon dynamical state (parent, bound state, the replaced
   circular phase) belongs to GEN.289, which builds on this object; both
-  go in the one migration DB.55, revision 0101 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 and 0100 are Core 3's), with the later drop revisions following in order; Core 1
+  go in the one migration DB.55, revision 0102 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 and 0100 are Core 3's; DB.54 merged first as 0101, 6:22 PM EDT, so DB.55 is 0102), with the later drop revisions following in order; Core 1
   owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
-  Prerequisites: GEN.335, DB.55, GEN.336, GEN.337. Related: GEN.74,
+  Prerequisites: DB.55, GEN.336, GEN.337. Related: GEN.74,
   GEN.109, GEN.223, GEN.289,
   GEN.290.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
@@ -6300,26 +6313,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   black-hole test (2026-10-16 review).
   Prerequisites: none. Related: GEN.110, GEN.290.
 
-- [ ] **GEN.335 One definition of the stored point columns, and a test that lists every object table**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). SpatialPosition3D (GEN.74) and
-  the GEN.223 columns exist, but every table spells its own position,
-  velocity, mass and epoch columns, which is how the kinds drifted
-  apart. Build the definition once: the column names and types, the
-  SELECT list, and read-back into one SpatialPosition3D and write from
-  one. Why first: the migration, the conversions and GEN.289's planet
-  and moon columns all read it. Done: one module owns the layout; the
-  tables that already have every part (planets, moons, bright_stars,
-  phenomenon_scatter, star systems) read and write through it; a test
-  lists every uid table and fails when one has no point, no mass or no
-  vector and is not on a named allow-list of tables still to convert;
-  children b and c remove tables from the list and the last one deletes
-  it, so a new kind cannot ship without the three parts.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: none. Related: GEN.294.
-
 - [ ] **GEN.336 Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants**
   Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). These eight tables keep only the
@@ -6335,7 +6328,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
   top 5 blockers, starting right after GEN.237 merges; estimates from
   Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: GEN.335, DB.55. Related: GEN.294.
+  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT, renumbered 6:22
+  PM EDT after DB.54 merged as 0101): 0103, after 0102 (DB.55).
+  Prerequisites: DB.55. Related: GEN.294.
 
 - [ ] **GEN.337 Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members**
   Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6349,7 +6344,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
   top 5 blockers, starting right after GEN.237 merges; estimates from
   Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: GEN.335, DB.55, GEN.336. Related: GEN.294.
+  Prerequisites: DB.55, GEN.336. Related: GEN.294.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7976,27 +7971,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT and 3:00 PM EDT: the
   global top blockers; after the GEN.335, DB.55, GEN.336, GEN.337,
   GEN.294 chain).
+  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT): 0104, after
+  0103 (GEN.336).
   Prerequisites: none. Related: GEN.129.
-
-- [ ] **DB.54 The three scatter-limit settings as galaxy_shape columns: core luminosity floor, core mass limit and halo luminosity floor**
-  Split from GEN.283 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Add core_min_luminosity_sol
-  (default 9,900, following the baseline times 1.1 until moved),
-  core_mass_limit_sol (default 15.4) and halo_min_luminosity_sol
-  (default 500, accepted from 50 up to 4,000,000) to galaxy_shape in the
-  next free Core 1 revision (Core 1, 2026-10-16, 2:44 PM EDT: 0099 is GEN.280's GalaxyShape fields and 0100 is Core 3's cell_star_ceiling change, so this item shares one of those two; it can share the
-  revision GEN.280 asks for), with GalaxyShape fields, the store read
-  and write, and the planetgen plan options --core-min-luminosity,
-  --core-mass-limit and --halo-min-luminosity; the halo has no mass
-  limit of its own. Done: the revision applies on a fresh and an
-  existing galaxy, plan stores and shows the three settings, a value
-  below 50 for the halo floor is refused with the reason, and the
-  settings round-trip.
-  Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0103, after 0102
-  (DB.59). DB.59 turned out to be built already (Core 2, 6:05 PM EDT: no
-  migration), so 0102 is free: this item takes 0102, after DB.55's 0101,
-  and Core 1 fixes the order if this one merges first.
-  Prerequisites: none. Related: GEN.283.
 
 - [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
   Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -10490,44 +10467,6 @@ clears each one.
   plan tests and list the jobs directory.
   Prerequisites: none.
 
-- [ ] **TEST.192 The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug)**
-  Found by the Settings lane (2026-10-16, 4:57 PM EDT), filed by the
-  TODO thread. Hypothesis finds an example where `model - halo_density`
-  is 1.4882030977187565e-12 minus 1.488203070457534e-12, about 2.7e-20
-  apart, against a bound of 2.7261222351049663e-20, so the assertion
-  `(model - halo_density) <= bound*(1+1e-9)+1e-300` fails by rounding:
-  the two halo terms are about 1e-12 and agree to 8 digits, so the
-  subtraction cannot resolve a bound of 1e-20. Done: the test (or the
-  bound) allows for the rounding of the halo term, scaled by the size of
-  the halo density and not by the bound alone, and the same example
-  passes; no loosening of the real property that the skeleton bound is
-  an upper bound. Fails on main: not run on a clean main; the Settings
-  lane branch does not touch galaxy code, so probably yes. Frequency:
-  found in one `scripts/test.py changed` run, and it should repeat while
-  the example sits in the .hypothesis database. Reproducer:
-  `build_galaxy_shape(disk_scale_length_pc=50.0,
-  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
-  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
-  arm_amplitude=0.0)` with r_cyl=0.0, z=36706.0, theta=0.0, in
-  src/tests/test_fuzz_galaxy_grid.py. Owner: Core 1, in its bug phase
-  (flaky tests last; fix the cause, no quarantine).
-  Core 3 hit the same failure independently (2026-10-16, 4:58 PM EDT):
-  once in about 17,900 tests in a 76 minute run, so Hypothesis finds it
-  only sometimes. Its diagnosis: the model and the halo density cancel to
-  the bound itself, and the subtraction's rounding error (about 1e-28)
-  is larger than the 1e-9 tolerance on 2.7e-20 (2.7e-29). Suggested fix:
-  a tolerance relative to the model, such as `bound*(1+1e-9) + 1e-12*model`.
-  Core 1 hit it too (2026-10-16, 5:49 PM EDT, in the GEN.335 gate:
-  2.4e-9 over the bound) and will push a test-only fix in its next PR,
-  adding a few ulps of the model, `4e-16*model`, to the tolerance; that
-  PR resolves this item.
-  Core 4 reproduced it on main (6:02 PM EDT, no database needed): the
-  same example replays to the same failure every time (model minus halo
-  2.726122241710625e-20 against a bound of 2.7261222351049663e-20, 2.4e-9
-  relative against the 1e-9 tolerance), so it is deterministic once
-  Hypothesis has found it.
-  Prerequisites: none.
-
 - [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
   Found by Core 2 (2026-10-16, 5:04 PM EDT), filed by the TODO thread.
   In the gate for PERF.88,
@@ -10579,6 +10518,49 @@ clears each one.
   waits on the condition it needs or the route is made fast enough, with
   no quarantine. Fails on main: unknown. Frequency: once so far.
   Reproducer: none beyond the full browser phase with 2 workers.
+  Prerequisites: none.
+
+- [ ] **TEST.196 Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged**
+  Boss (2026-10-16, 6:15 PM EDT, on the GEN.103 cards): the metallicity
+  effect on close binaries applies to every star mass, "but let's build
+  into that a check to see if the numbers act as expected". Done: a
+  check in the census harness (TEST.186, `src/tests/audit/census.py`)
+  that fills seeded sectors across the [Fe/H] range, counts the
+  close-companion share (inside about 10 AU) by primary-mass bin and
+  [Fe/H] bin, compares each bin to the published range with the Poisson
+  allowance (the Moe, Kratter and Badenes 2019 points, as Core 4 reads
+  them: 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 for
+  solar-type stars, and whatever the sources give for other masses),
+  flags every out-of-range bin in the audit report, shows that the
+  wide-companion share does not move with [Fe/H], and fails the test run
+  when a bin is out of range. The ranges are reference values for the
+  check, never inputs to the draw. Owner: Core 4 (near TEST.186, which
+  is Core 3's harness; ask Core 3 before editing census.py).
+  Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
+  TEST.161, TEST.164.
+
+- [ ] **TEST.197 `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug)**
+  Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
+  `src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-phone-light]`
+  failed in a full `changed` run (78 minutes, load 9.6) on a branch that
+  touches neither maps nor the sector page, and passed alone. Done: the
+  cause is found (a timing assumption under load, or a real layout race
+  on the phone sector page), the test waits on the condition it needs
+  and not a fixed time, and it passes under the same load, with no
+  quarantine. Fails on main: not checked. Frequency: once. Reproducer:
+  none beyond the full suite at load about 9.
+  Prerequisites: none.
+
+- [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
+  Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
+  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_map_does_not_prefetch_on_a_data_saving_connection`
+  failed with "request failed ... /galaxy/tiles?... net::ERR" in the
+  same full run (load 9.6) and passed alone. Done: the cause is found
+  (the test or the server drops a request when a page closes under load,
+  or the test reads the request log too early), the test waits on the
+  condition it needs, and it passes under the same load, with no
+  quarantine. Fails on main: not checked. Frequency: once. Reproducer:
+  none beyond the full suite at load about 9.
   Prerequisites: none.
 
 ## USR: User accounts

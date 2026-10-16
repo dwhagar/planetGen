@@ -1,6 +1,6 @@
 """The point of every kind of object, in one additive revision (DB.55, for GEN.294, GEN.289, GEN.142, GEN.110, GEN.109).
 
-Schema v101. Every object in the galaxy is one `SpatialPosition3D`: a position, a point mass and a movement vector at an
+Schema v102. Every object in the galaxy is one `SpatialPosition3D`: a position, a point mass and a movement vector at an
 epoch (`planetgen/db/point_columns.py`). This revision adds, nullable and backfilled, what the tables lack of that, so
 the code items that fill them (GEN.336, GEN.337, GEN.289) do not each need a revision of their own:
 
@@ -31,8 +31,8 @@ mark the revision done. Columns go on the end of their table, which MySQL adds w
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0101"
-down_revision = "0100"
+revision = "0102"
+down_revision = "0101"
 branch_labels = None
 depends_on = None
 

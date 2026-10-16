@@ -524,6 +524,9 @@ galaxy_shape = sa.Table(
     sa.Column('reach_shell_index', mysql.INTEGER(), server_default=sa.text("'65535'"), nullable=False),
     sa.Column('cell_star_ceiling', mysql.DOUBLE(), server_default=sa.text("'5000'"), nullable=False),
     sa.Column('fill_luminosity_cap_sol', mysql.DOUBLE(), server_default=sa.text("'100'"), nullable=False),
+    sa.Column('core_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_mass_limit_sol', mysql.DOUBLE(), nullable=True),
+    sa.Column('halo_min_luminosity_sol', mysql.DOUBLE(), server_default=sa.text("'500'"), nullable=False),
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('bright_star_mass_limit_sol', mysql.DOUBLE(), nullable=True),
@@ -537,6 +540,7 @@ galaxy_shape = sa.Table(
     sa.Column('density_ratio_avg', mysql.DOUBLE(), nullable=True),
     sa.Column('density_ratio_samples', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
     sa.CheckConstraint('(`cell_star_ceiling` >= 1)', name='chk_galaxy_shape_cell_star_ceiling'),
+    sa.CheckConstraint('((`halo_min_luminosity_sol` >= 50) and ((`core_min_luminosity_sol` is null) or (`core_min_luminosity_sol` > 0)) and ((`core_mass_limit_sol` is null) or (`core_mass_limit_sol` > 0)))', name='chk_galaxy_shape_scatter_limits'),
     sa.CheckConstraint('(`id` = 1)', name='galaxy_shape_chk_1'),
     mysql_engine="InnoDB",
 )

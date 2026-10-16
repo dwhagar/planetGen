@@ -1,7 +1,7 @@
 # tests/test_migration_point_columns.py
 
 """
-DB.55: migration 0101 adds the point columns the layouts of `db/point_columns.py` say an object lacks, backfills them
+DB.55: migration 0102 adds the point columns the layouts of `db/point_columns.py` say an object lacks, backfills them
 from what is stored, and can be run again.
 """
 
@@ -15,7 +15,7 @@ from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
-MIGRATION = importlib.import_module("planetgen.db.migrations.versions.0101_point_columns")
+MIGRATION = importlib.import_module("planetgen.db.migrations.versions.0102_point_columns")
 
 
 def _columns(conn, table):
@@ -41,27 +41,27 @@ def _insert(conn, table, **given):
     conn.execute(f"INSERT INTO {table} ({names}) VALUES ({', '.join('?' for _ in values)})", tuple(values.values()))
 
 
-def test_a_v100_database_gets_every_new_column(mysql_config):
-    load_old_schema(mysql_config, 100)
-    assert store.schema_status(mysql_config)[0] == 100
+def test_a_v101_database_gets_every_new_column(mysql_config):
+    load_old_schema(mysql_config, 101)
+    assert store.schema_status(mysql_config)[0] == 101
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table, columns in MIGRATION.ADDITIONS.items():
             assert {name for name, _ in columns} <= _columns(conn, table), table
         assert {name for name, _ in MIGRATION.SECTOR_COLUMNS} <= _columns(conn, "sectors")
-        assert store.detect_schema_version(conn) == 101
+        assert store.detect_schema_version(conn) == 102
     finally:
         conn.close()
 
 
 def test_a_migration_run_again_changes_nothing(mysql_config):
-    load_old_schema(mysql_config, 100)
+    load_old_schema(mysql_config, 101)
     store.migrate_database(mysql_config)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM alembic_version")
-        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('0100')")
+        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('0101')")
         conn.commit()
     finally:
         conn.close()
@@ -69,7 +69,7 @@ def test_a_migration_run_again_changes_nothing(mysql_config):
 
 
 def test_a_black_hole_takes_the_tangent_at_its_old_speed(mysql_config):
-    load_old_schema(mysql_config, 100)
+    load_old_schema(mysql_config, 101)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         _insert(conn, "black_holes", center_x_pc=3000.0, center_y_pc=4000.0, center_z_pc=0.0, galactic_radius_pc=5000.0,
@@ -88,7 +88,7 @@ def test_a_black_hole_takes_the_tangent_at_its_old_speed(mysql_config):
 
 
 def test_a_field_of_unknown_mass_takes_a_stated_zero_mass_and_vector(mysql_config):
-    load_old_schema(mysql_config, 100)
+    load_old_schema(mysql_config, 101)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         _insert(conn, "asteroid_fields", center_x_pc=1.0, center_y_pc=0.0, center_z_pc=0.0, galactic_radius_pc=1.0,
