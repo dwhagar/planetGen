@@ -47,13 +47,15 @@ from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars
 from planetgen.generation.bright_stars import MPC_PER_PC
+from planetgen.generation.phenomena import registry
 from planetgen.physics import stellar_evolution as stellarEvolution
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 from planetgen.util.random import log_uniform
 
-SCATTERED_KINDS = ("black-hole", "neutron-star", "planetary-nebula", "supernova-remnant")
-"""tuple: The kinds drawn per band from the density."""
+SCATTERED_KINDS = registry.kinds(scatter_pass="band-density")
+"""tuple: The kinds drawn per band from the density (the phenomena registry's
+`scatter_pass == "band-density"` rows, GEN.250)."""
 
 SCATTER_CLASSES = (
     ("black-hole", "stellar"), ("neutron-star", None), ("planetary-nebula", None),

@@ -115,8 +115,6 @@ Each row is generated from the item's own entry in TODO.md on 2026-10-15; the en
 
 | Item | What | Owner | Needs | Unlocks |
 |---|---|---|---|---|
-| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | Core | none | DOC.49, GEN.251, GEN.261, GEN.268, TEST.160 |
-| GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | Core | GEN.250 | GEN.261, GEN.274, GEN.275, TEST.164 |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | Core | GEN.250, GEN.235 | DOC.49, GEN.130, GEN.241, GEN.252, GEN.264, TEST.160, TEST.161 |
 | GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | Core | GEN.251, GEN.266 | DOC.49, GEN.163, GEN.247, GEN.253 |
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | Core | GEN.130, GEN.158, GEN.159 | (leaf) |
@@ -125,7 +123,6 @@ Each row is generated from the item's own entry in TODO.md on 2026-10-15; the en
 
 | Item | What | Owner | Needs | Unlocks |
 |---|---|---|---|---|
-| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | Core | GEN.250, GEN.268 | GEN.262, GEN.264, GEN.266, GEN.267, GEN.269, GEN.273 |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | Core | GEN.223, GEN.260 | (leaf) |
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | Core | GEN.260, GEN.261 | DOC.50, GEN.263, GEN.264, TEST.162 |
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | Core | GEN.261 | DOC.50, GEN.130, GEN.272 |

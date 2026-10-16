@@ -32,24 +32,14 @@ seventeenth moves on one mark step.
 import math
 
 from planetgen.galaxy.navigation import course_between
+from planetgen.generation.phenomena import registry
 
-KIND_CODES = {
-    "rogue-planet": 1,
-    "black-hole": 2,
-    "neutron-star": 3,
-    "nebula": 4,
-    "supernova-remnant": 5,
-    "quasar": 6,
-    "comet": 7,
-    "asteroid-field": 8,
-    "bright-star": 9,
-    "black-hole-core": 10,
-    "neutron-star-core": 11,
-}
+KIND_CODES = registry.id_codes()
 """dict: Object kind (`program_constants.PHENOMENON_TYPE_CHOICES`'
 spelling, plus `"bright-star"` for a bright-sweep system and the two
 `-core` kinds for a supernova remnant's collapsed core) -> the 6-bit
-type code. 0 and 12-63 are unused."""
+type code, read from the phenomena registry (GEN.250). 0 and 12-63 are
+unused."""
 
 KINDS_BY_CODE = {code: kind for kind, code in KIND_CODES.items()}
 

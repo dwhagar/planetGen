@@ -1,0 +1,735 @@
+# planetgen/generation/multistar.py
+
+"""
+The member-tree generator (GEN.261): the stars, brown dwarfs, remnants and
+protostars that share a system, in a stable hierarchy of up to twelve
+members, drawn for one placed object (a scattered star or compact object, or
+any object the fill creates). One function, `draw_member_tree`, with two call
+sites: the scatter passes and the fill. It draws the members and their orbits
+only: planets, moons and belts stay at sector fill.
+
+The laws and numbers are in docs/design/multi-star-systems.md (sections 4, 6
+and 13) and docs/design/multistar-and-compact-systems.md (sections 3, 4, 5
+and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
+`planetgen.physics.stability`. In short:
+
+1. **How many stars.** `STAR_COUNT_PROBABILITIES` by the placed star's
+   spectral class (O to M, from its initial mass), a tail for 8 to 12 stars
+   that continues the table's last column, and the `prevalence` knob on the
+   five-or-more columns. A forced `n_stars` or a lower `max_stars` wins.
+2. **Which members.** The other stars have initial masses `m1 * U(0.1, 1)`
+   and take their present state from the system's age (main sequence, giant,
+   white dwarf, pre-main-sequence, protostar; a brown dwarf below 0.08
+   solar masses). A compact companion (white dwarf, neutron star, black hole)
+   is added at the odds of `MEMBER_STATE_BY_PLACED`, one uniform draw per
+   placed object, so the scatter's bulk pass can screen with it
+   (`companion_state`) and call the tree only for the hits.
+3. **The shape.** Random splitting of the members into a binary tree
+   (2+1; 3+1 at 60% or 2+2 at 40%; k = 2 weighted 1.5 for five or more). A
+   compact companion starts as a pair with the placed object.
+4. **The orbits, top down.** Each pair gets a period from its law (the
+   truncated log-normal for stars, a log-uniform one for a compact object
+   with a star and for a compact pair), a thermal eccentricity (circular
+   under 7 days) and an isotropic orientation. A pair inside a larger one has
+   its axis bounded by `stability.max_inner_axis` and is then checked with
+   `stability.is_triple_stable` and the Kozai screen; up to 60 tries a
+   pair, 30 restarts a tree, then the lightest star is dropped.
+5. **The compact filters.** A compact pair whose Peters time is shorter than
+   the age is rejected; a bound companion beyond 1,000 AU of a neutron star
+   or a black hole that did not collapse directly is rejected; at most three
+   compact members to a tree.
+
+Every draw comes from `rng` (a `draw.Stream` or the `draw` module) in a fixed
+order, so the same stream gives the same tree. Orbit angles are in degrees,
+separations in AU (and km), periods in years and times in years.
+"""
+
+import math
+from dataclasses import dataclass
+from statistics import NormalDist
+
+from planetgen import tuning
+from planetgen.physics import constants, stability
+from planetgen.physics import stellar_evolution as evolution
+from planetgen.util import draw
+
+STAR_COUNT_PROBABILITIES = {
+    "M": (0.73000, 0.23500, 0.02800, 0.00560, 0.00123, 0.00015, 0.00001),
+    "K": (0.60000, 0.31000, 0.06500, 0.02002, 0.00440, 0.00053, 0.00005),
+    "G": (0.54500, 0.33500, 0.08000, 0.03202, 0.00705, 0.00085, 0.00008),
+    "F": (0.50000, 0.34000, 0.11000, 0.04003, 0.00881, 0.00106, 0.00011),
+    "A": (0.40000, 0.40000, 0.15000, 0.03741, 0.01048, 0.00189, 0.00023),
+    "B": (0.25000, 0.40000, 0.22000, 0.08962, 0.03137, 0.00784, 0.00118),
+    "O": (0.10000, 0.25000, 0.30000, 0.21354, 0.09610, 0.03363, 0.00673),
+}
+"""dict: The chance of 1 to 7 stars to a system, by the placed star's spectral
+class (multistar-and-compact-systems.md 3.3)."""
+
+SPECTRAL_CLASS_LOWER_MASS_SOL = (("O", 16.0), ("B", 2.1), ("A", 1.4), ("F", 1.04), ("G", 0.8), ("K", 0.45), ("M", 0.0))
+"""tuple: The initial mass at which each spectral class begins, heaviest first."""
+
+TAIL_RATIOS = (0.12, 0.10)
+"""tuple: The chance a system of 7 stars has an 8th (0.12) and the chance each
+further star follows the last (0.10), up to `max_stars` (multi-star-systems.md
+13.1). The tail comes out of the 7-star column, so the table's totals stand."""
+
+PERIOD_LAWS_LOG10_DAYS = {"solar": (5.03, 2.28), "massive": (3.5, 1.5)}
+"""dict: The mean and sigma of the log-normal in log10 of the period in days: the
+solar-type law (Raghavan 2010) and, for a primary of `MASSIVE_PRIMARY_MIN_MASS_SOL`
+or more, the law that peaks at log P = 3.5 (Moe and Di Stefano 2017); the sigma of
+the second is a design default."""
+
+MASSIVE_PRIMARY_MIN_MASS_SOL = 2.1
+ROOT_MAX_AXIS_AU = 20_000.0
+"""float: The widest root pair (0.1 pc), a directive raises it."""
+
+ROOT_ECCENTRICITY_CAP = 0.95
+INNER_ECCENTRICITY_CAP = 0.8
+CIRCULAR_BELOW_DAYS = 7.0
+COMPACT_PAIR_AXIS_AU = (0.003, 100.0)
+COMPACT_PAIR_CIRCULAR_BELOW_AU = 0.1
+INTERACTED_PERIOD_DAYS = (0.3, 1.0e4)
+"""tuple: The log-uniform period range of a neutron star or black hole with a star."""
+
+EXTENT_AXIS_FACTOR = 2.5
+"""float: A pair's axis is at least this many times its members' summed radii."""
+
+PERICENTRE_EXTENT_FACTOR = 2.0
+"""float: The pericentre must clear this many times the members' extent."""
+
+PAIR_RETRIES = 60
+TREE_RESTARTS = 30
+MAX_COMPACT_MEMBERS = 3
+WIDE_COMPACT_AXIS_AU = 1000.0
+"""float: A bound companion beyond this of a neutron star or a black hole that did
+not collapse directly does not survive the collapse."""
+
+DIRECT_COLLAPSE_PROGENITOR_SOL = 40.0
+DIRECT_COLLAPSE_HOLE_SOL = 20.0
+"""float: A black hole counts as a direct collapse when its progenitor was
+`DIRECT_COLLAPSE_PROGENITOR_SOL` or more, or, when the progenitor is not known, when the hole is
+`DIRECT_COLLAPSE_HOLE_SOL` or more (a stand-in; the note leaves it open)."""
+
+BLACK_HOLE_TERTIARY_CHANCE = 0.30
+COMPACT_TERTIARY_SHARE = 0.10
+"""float: A black hole with a companion has a third member in 30% of systems, which is
+a neutron star or a black hole in 10% of those (a design default)."""
+
+BROWN_DWARF_MAX_MASS_SOL = 0.08
+BROWN_DWARF_DESERT_AU = 5.0
+BROWN_DWARF_DESERT_KEEP = 0.01
+"""A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
+
+KELVIN_HELMHOLTZ_YR = 31.0e6
+KELVIN_HELMHOLTZ_MAX_YR = 1.0e9
+"""float: The pre-main-sequence time is `KELVIN_HELMHOLTZ_YR * m^-2.5`, capped here: the law gives 10 Gyr
+at 0.1 solar masses, where models give about 1 Gyr (a design default)."""
+PROTOSTAR_MAX_AGE_YR = 0.5e6
+PRE_MAIN_SEQUENCE_RADIUS_FACTOR = 2.0
+PROTOSTAR_RADIUS_FACTOR = 4.0
+BROWN_DWARF_RADIUS_SOL = 0.1
+NEUTRON_STAR_RADIUS_KM = 12.0
+REMNANT_WINDOW_FRACTION = 1.0 / 3.0
+"""float: A remnant companion of a living star exists only in the last third of the star's
+life, so the table value (a mean over all ages) is divided by this inside the window."""
+
+NEUTRON_STAR_PROGENITOR_SOL = (8.0, 30.0)
+BLACK_HOLE_PROGENITOR_SOL = (20.0, 100.0)
+WHITE_DWARF_PROGENITOR_SOL = (0.8, 8.0)
+
+COMPACT_KINDS = ("neutron-star", "black-hole")
+MEMBER_KINDS = ("main-sequence", "giant", "white-dwarf", "neutron-star", "black-hole", "brown-dwarf",
+                "pre-main-sequence", "protostar")
+PLACED_KINDS = ("star", "black-hole", "intermediate-mass-black-hole", "neutron-star", "white-dwarf")
+
+MEMBER_DIRECT_COLLAPSE = 1
+NODE_INTERACTED = 1
+NODE_KL_ACTIVE = 2
+
+MEMBER_STATE_BY_PLACED = {
+    "star-massive": {"neutron-star": (0.002, 0.00033, 0.0133), "black-hole": (0.001, 0.00017, 0.0067)},
+    "star-intermediate": {"white-dwarf": (0.01, 0.002, 0.05), "neutron-star": (0.0003, 0.00005, 0.0015),
+                          "black-hole": (0.0002, 0.00005, 0.0015)},
+    "black-hole": {"star": (0.010, 0.001, 0.022), "black-hole": (0.002, 0.00017, 0.024),
+                   "neutron-star": (0.0005, 0.000075, 0.0007)},
+    "intermediate-mass-black-hole": {"star": (0.01, 0.001, 0.05)},
+    "neutron-star": {"star": (0.02, 0.01, 0.03), "neutron-star": (1.8e-4, 6e-5, 4.3e-4),
+                     "black-hole": (2.5e-5, 7e-6, 7e-5)},
+    "recycled-pulsar": {"white-dwarf": (0.62, 0.50, 0.70), "star": (0.12, 0.05, 0.20),
+                        "brown-dwarf": (0.04, 0.01, 0.08), "neutron-star": (2.0e-3, 6e-4, 4.3e-3),
+                        "black-hole": (2.5e-5, 7e-6, 7e-5)},
+    "white-dwarf": {"star": (0.25, 0.20, 0.30), "white-dwarf": (0.05, 0.03, 0.10)},
+    "planetary-nebula-star": {"star": (0.15, 0.10, 0.20), "white-dwarf": (0.05, 0.03, 0.10)},
+}
+"""dict: Per class of placed object, the chance of a companion of each state as
+`(default, low, high)`, the mean over all ages and per object
+(multi-star-systems.md 4.2 to 4.4). A star class (`star-massive` for an initial mass of 14
+solar masses or more, `star-intermediate` for 2 to 14) adds a compact companion to its
+tree of stars, inside the last third of its life; the other classes decide whether the
+placed object has a companion at all, and which one. Other placed stars get no compact
+companion here."""
+
+
+@dataclass(frozen=True)
+class Placed:
+    """The object a tree is drawn for. `mass_solar` is its present mass; `initial_mass_solar` its birth mass
+    (defaults to the present mass). `recycled` marks a millisecond pulsar; `planetary_nebula` a
+    planetary-nebula central star (a white dwarf)."""
+    kind: str
+    mass_solar: float
+    initial_mass_solar: float | None = None
+    recycled: bool = False
+    planetary_nebula: bool = False
+
+    @property
+    def birth_mass_solar(self):
+        return self.mass_solar if self.initial_mass_solar is None else self.initial_mass_solar
+
+
+@dataclass(frozen=True)
+class Member:
+    """One member of a tree: member 0 is the placed object. `radius_au` is its extent; `flags` bit 0 is a
+    direct-collapse black hole."""
+    member_no: int
+    parent_node_no: int | None
+    slot: int
+    kind: str
+    state: str | None
+    flags: int
+    mass_solar: float
+    initial_mass_solar: float
+    radius_au: float
+    seed: int
+
+
+@dataclass(frozen=True)
+class Node:
+    """One orbit: the relative orbit of the child in `slot` 1 about the child in `slot` 0. Node 1 is the
+    root. `kind` is `close`, `wide` or `compact`; `interaction` is `detached` until the Roche classifier
+    (GEN.269) sets it; `flags` bit 0 is an interacted pair (the tight law), bit 1 `kl_active`."""
+    node_no: int
+    parent_node_no: int | None
+    slot: int
+    mass_solar: float
+    separation_au: float
+    separation_km: float
+    eccentricity: float
+    inclination_deg: float
+    ascending_node_deg: float
+    arg_periapsis_deg: float
+    mean_anomaly_deg: float
+    period_years: float
+    kind: str
+    interaction: str
+    flags: int
+
+
+@dataclass(frozen=True)
+class MemberTree:
+    """The result: `members` (placed object first), `nodes` (empty for a single object) and `dropped`, the
+    number of members the generator could not fit and left out."""
+    members: tuple
+    nodes: tuple
+    age_yr: float
+    dropped: int = 0
+
+    @property
+    def member_count(self):
+        return len(self.members)
+
+    @property
+    def system_mass_solar(self):
+        return sum(member.mass_solar for member in self.members)
+
+    @property
+    def star_count(self):
+        return sum(member.kind not in COMPACT_KINDS for member in self.members)
+
+    @property
+    def compact_count(self):
+        return sum(member.kind in COMPACT_KINDS for member in self.members)
+
+
+@dataclass
+class _Leaf:
+    kind: str
+    state: str | None
+    mass: float
+    initial: float
+    radius_au: float
+    flags: int = 0
+
+    @property
+    def compact(self):
+        return self.kind in COMPACT_KINDS
+
+    @property
+    def direct_collapse(self):
+        return bool(self.flags & MEMBER_DIRECT_COLLAPSE)
+
+
+def spectral_class(initial_mass_sol):
+    """The spectral class (O to M) of a star of this initial mass."""
+    for letter, lower in SPECTRAL_CLASS_LOWER_MASS_SOL:
+        if initial_mass_sol >= lower:
+            return letter
+    return "M"
+
+
+def placed_class(placed):
+    """The `MEMBER_STATE_BY_PLACED` key of a placed object, or None when it has no companion table
+    (a star of under 2 solar masses)."""
+    if placed.kind == "star":
+        birth = placed.birth_mass_solar
+        return "star-massive" if birth >= 14.0 else "star-intermediate" if birth >= 2.0 else None
+    if placed.kind == "neutron-star":
+        return "recycled-pulsar" if placed.recycled else "neutron-star"
+    if placed.kind == "white-dwarf":
+        return "planetary-nebula-star" if placed.planetary_nebula else "white-dwarf"
+    if placed.kind in PLACED_KINDS:
+        return placed.kind
+    raise ValueError(f"unknown placed kind {placed.kind!r}; choose from {PLACED_KINDS}")
+
+
+def companion_state(placed, rng=draw):
+    """
+    One uniform draw against the cumulative odds of `MEMBER_STATE_BY_PLACED` for a placed object that is
+    not a star: the companion state it gets (`star`, `white-dwarf`, `brown-dwarf`, `neutron-star` or
+    `black-hole`), or None. This is the bulk screen of the scatter (multi-star-systems.md 6.3):
+    only a row it names needs `draw_member_tree`.
+    """
+    table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
+    pick = rng.random()
+    for state, (default, _low, _high) in table.items():
+        if pick < default:
+            return state
+        pick -= default
+    return None
+
+
+def star_count_weights(initial_mass_sol, prevalence=1.0):
+    """The weights of 1 to 7 stars for a star of this initial mass, the five-or-more columns scaled by
+    `prevalence`."""
+    row = STAR_COUNT_PROBABILITIES[spectral_class(initial_mass_sol)]
+    return tuple(weight * (prevalence if count >= 5 else 1.0) for count, weight in enumerate(row, start=1))
+
+
+def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng):
+    count = rng.choices(range(1, 8), star_count_weights(initial_mass_sol, prevalence))[0]
+    ratio = TAIL_RATIOS[0]
+    while count >= 7 and count < max_stars and rng.random() < min(1.0, ratio * prevalence):
+        count += 1
+        ratio = TAIL_RATIOS[1]
+    return min(count, max_stars)
+
+
+def _radius_au(state):
+    if state["radius_km"] is not None:
+        return state["radius_km"] * constants.KM_TO_M_FACTOR / constants.AU_M
+    radius_sol = math.sqrt(state["luminosity_sol"]) * (tuning.SUN_EFFECTIVE_TEMPERATURE_K / state["temperature_k"]) ** 2
+    return radius_sol * constants.SOLAR_RADIUS_M / constants.AU_M
+
+
+def _star_leaf(initial_mass, age_yr, rng, lighten=True):
+    """A star-like member of this birth mass at the system's age."""
+    if initial_mass < BROWN_DWARF_MAX_MASS_SOL:
+        return _Leaf("brown-dwarf", None, initial_mass, initial_mass,
+                     BROWN_DWARF_RADIUS_SOL * constants.SOLAR_RADIUS_M / constants.AU_M)
+    ms_radius_au = evolution.main_sequence_radius_sol(initial_mass) * constants.SOLAR_RADIUS_M / constants.AU_M
+    if age_yr < PROTOSTAR_MAX_AGE_YR:
+        return _Leaf("protostar", "protostar", initial_mass, initial_mass, ms_radius_au * PROTOSTAR_RADIUS_FACTOR)
+    if age_yr < min(KELVIN_HELMHOLTZ_YR * initial_mass ** -2.5, KELVIN_HELMHOLTZ_MAX_YR):
+        return _Leaf("pre-main-sequence", "pre-main-sequence", initial_mass, initial_mass,
+                     ms_radius_au * PRE_MAIN_SEQUENCE_RADIUS_FACTOR)
+    mass = initial_mass
+    while True:
+        state = evolution.evolve_star(mass, age_yr / 1.0e9, rng)
+        if state is not None or not lighten:
+            break
+        mass *= 0.8
+    if state is None:
+        raise ValueError(f"a star of {initial_mass:g} solar masses has collapsed by {age_yr:g} years")
+    yerkes = state["yerkes_class"]
+    kind = "main-sequence" if yerkes == "V" else "white-dwarf" if yerkes == "VII" else "giant"
+    return _Leaf(kind, yerkes, state["mass_sol"], mass, _radius_au(state))
+
+
+def _schwarzschild_au(mass_solar):
+    return (2.0 * constants.G * mass_solar * constants.SOLAR_MASS_TO_KG / constants.SPEED_OF_LIGHT_M_S ** 2
+            / constants.AU_M)
+
+
+def _remnant_leaf(kind, progenitor, mass, direct=False):
+    if kind == "white-dwarf":
+        radius = evolution.white_dwarf_radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M
+        return _Leaf(kind, "VII", mass, progenitor, radius)
+    if kind == "neutron-star":
+        return _Leaf(kind, None, mass, progenitor, NEUTRON_STAR_RADIUS_KM * constants.KM_TO_M_FACTOR / constants.AU_M)
+    return _Leaf(kind, None, mass, progenitor, _schwarzschild_au(mass), MEMBER_DIRECT_COLLAPSE if direct else 0)
+
+
+def _youngest_progenitor_sol(age_yr):
+    """The lightest star whose giant phase has ended by this age."""
+    return (tuning.SOLAR_MS_LIFESPAN_GY * tuning.GIANT_PHASE_END_MS_FRACTION * 1.0e9
+            / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+
+
+def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
+    """A remnant of this kind that has had time to form by `age_yr`, from a progenitor no lighter than
+    `lowest`, or None when no progenitor can have collapsed yet."""
+    low, high = {"neutron-star": NEUTRON_STAR_PROGENITOR_SOL, "black-hole": BLACK_HOLE_PROGENITOR_SOL,
+                 "white-dwarf": WHITE_DWARF_PROGENITOR_SOL}[kind]
+    low = max(low, lowest, _youngest_progenitor_sol(age_yr))
+    if low >= high:
+        return None
+    progenitor = evolution.sample_imf_mass_sol(low, high, rng)
+    if kind == "white-dwarf":
+        mass = min(max(tuning.WD_IFMR_SLOPE * progenitor + tuning.WD_IFMR_INTERCEPT_SOL, tuning.WD_MASS_RANGE_SOL[0]),
+                   tuning.WD_MASS_RANGE_SOL[1])
+        return _remnant_leaf(kind, progenitor, mass)
+    mass_range = tuning.NEUTRON_STAR_MASS_RANGE_SOLAR if kind == "neutron-star" else tuning.BLACK_HOLE_MASS_RANGE_SOLAR
+    mass = rng.uniform(*mass_range)
+    if limit_mass is not None:
+        mass = min(mass, limit_mass)
+    return _remnant_leaf(kind, progenitor, mass, direct=kind == "black-hole" and progenitor >= DIRECT_COLLAPSE_PROGENITOR_SOL)
+
+
+def _alive_star_mass(low, high, age_yr, rng):
+    """An IMF mass in `[low, high]` that is still on the main sequence at this age (the heaviest such mass
+    caps the range)."""
+    cap = (tuning.SOLAR_MS_LIFESPAN_GY * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+    high = max(min(high, cap), low * 1.0001)
+    return evolution.sample_imf_mass_sol(low, high, rng)
+
+
+def _is_direct_collapse(leaf):
+    if leaf.kind != "black-hole":
+        return False
+    return leaf.direct_collapse
+
+
+class _Failed(Exception):
+    """A pair could not be placed in `PAIR_RETRIES` tries; the tree restarts."""
+
+
+class _Builder:
+    """Draws the orbits of one tree shape, top down."""
+
+    def __init__(self, leaves, age_yr, rng):
+        self.leaves = leaves
+        self.age_yr = age_yr
+        self.rng = rng
+        self.nodes = []
+
+    def leaves_of(self, sub):
+        return (sub,) if isinstance(sub, int) else self.leaves_of(sub[0]) + self.leaves_of(sub[1])
+
+    def mass(self, sub):
+        return sum(self.leaves[i].mass for i in self.leaves_of(sub))
+
+    def extent(self, sub):
+        return sum(self.leaves[i].radius_au for i in self.leaves_of(sub))
+
+    def law(self, left, right):
+        if isinstance(left, int) and isinstance(right, int):
+            a, b = self.leaves[left], self.leaves[right]
+            if a.compact and b.compact:
+                return "compact-pair"
+            if a.compact or b.compact:
+                return "interacted"
+        return "star"
+
+    def wide_cap(self, sub):
+        """The widest axis the pair can have: 1,000 AU if it holds a neutron star or a black hole that did not
+        collapse directly, else unbounded."""
+        if any(self.leaves[i].compact and not _is_direct_collapse(self.leaves[i]) for i in self.leaves_of(sub)):
+            return WIDE_COMPACT_AXIS_AU
+        return math.inf
+
+    def period_days(self, law, mass, a_lo, a_hi, massive):
+        lo = 365.25 * math.sqrt(a_lo ** 3 / mass)
+        hi = 365.25 * math.sqrt(a_hi ** 3 / mass) if math.isfinite(a_hi) else math.inf
+        u = self.rng.random()
+        if law == "compact-pair":
+            lo = max(lo, 365.25 * math.sqrt(COMPACT_PAIR_AXIS_AU[0] ** 3 / mass))
+            hi = min(hi, 365.25 * math.sqrt(COMPACT_PAIR_AXIS_AU[1] ** 3 / mass))
+        elif law == "interacted":
+            lo, hi = max(lo, INTERACTED_PERIOD_DAYS[0]), min(hi, INTERACTED_PERIOD_DAYS[1])
+        if not lo < hi:
+            return None
+        log_lo, log_hi = math.log10(lo), math.log10(hi) if math.isfinite(hi) else 12.0
+        if law != "star":
+            return 10.0 ** (log_lo + u * (log_hi - log_lo))
+        mu, sigma = PERIOD_LAWS_LOG10_DAYS["massive" if massive else "solar"]
+        dist = NormalDist(mu, sigma)
+        p_lo, p_hi = dist.cdf(log_lo), dist.cdf(log_hi)
+        if p_hi - p_lo < 1.0e-12:
+            return 10.0 ** (log_lo + u * (log_hi - log_lo))
+        return 10.0 ** dist.inv_cdf(min(max(p_lo + u * (p_hi - p_lo), 1.0e-15), 1.0 - 1.0e-15))
+
+    def eccentricity(self, law, period_d, a_au, root):
+        u = self.rng.random()
+        if (law == "compact-pair" and a_au < COMPACT_PAIR_CIRCULAR_BELOW_AU) or period_d < CIRCULAR_BELOW_DAYS:
+            return 0.0
+        cap = min(1.0 - (period_d / 2.0) ** (-2.0 / 3.0),
+                  ROOT_ECCENTRICITY_CAP if root else INNER_ECCENTRICITY_CAP)
+        return cap * math.sqrt(u)
+
+    def place(self, sub, parent, slot, parent_no):
+        """Places the orbit of the pair `sub`, then its child pairs. `parent` is
+        `(axis, eccentricity, inclination, node, sibling_mass)` or None for the root."""
+        left, right = sub
+        if self.mass(left) < self.mass(right):
+            left, right = right, left
+        m_left, m_right = self.mass(left), self.mass(right)
+        total = m_left + m_right
+        law = self.law(left, right)
+        extent = self.extent(left) + self.extent(right)
+        a_lo = EXTENT_AXIS_FACTOR * extent
+        cap = self.wide_cap(sub)
+        heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
+        massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
+        for _ in range(PAIR_RETRIES):
+            rng = self.rng
+            inclination = math.acos(1.0 - 2.0 * rng.random())
+            node = 2.0 * math.pi * rng.random()
+            arg = 2.0 * math.pi * rng.random()
+            anomaly = 2.0 * math.pi * rng.random()
+            mutual = None
+            a_hi = ROOT_MAX_AXIS_AU
+            if parent is not None:
+                mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])
+                a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual)
+            period_d = self.period_days(law, total, a_lo, min(a_hi, cap), massive)
+            if period_d is None:
+                continue
+            axis = stability.axis_au(period_d / 365.25, total)
+            e = self.eccentricity(law, period_d, axis, parent is None)
+            if axis * (1.0 - e) < PERICENTRE_EXTENT_FACTOR * extent:
+                continue
+            flags = NODE_INTERACTED if law != "star" else 0
+            if parent is not None:
+                if not stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual):
+                    continue
+                verdict = stability.kozai_verdict(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
+                                                  self.age_yr, extent)
+                if verdict == "unsafe":
+                    continue
+                if verdict == "kl_active":
+                    flags |= NODE_KL_ACTIVE
+            if law == "compact-pair" and not stability.survives_gravitational_waves(m_left, m_right, axis, e, self.age_yr):
+                continue
+            if self._in_desert(left, right, axis):
+                continue
+            break
+        else:
+            raise _Failed
+        node_no = len(self.nodes) + 1
+        kind = "compact" if law != "star" else "close" if axis < 50.0 else "wide"
+        record = {"node_no": node_no, "parent_node_no": parent_no, "slot": slot, "mass_solar": total,
+                  "separation_au": axis, "eccentricity": e, "inclination_deg": math.degrees(inclination),
+                  "ascending_node_deg": math.degrees(node), "arg_periapsis_deg": math.degrees(arg),
+                  "mean_anomaly_deg": math.degrees(anomaly), "period_years": period_d / 365.25, "kind": kind,
+                  "flags": flags, "left": left, "right": right, "sub": sub}
+        self.nodes.append(record)
+        for child_slot, (child, sibling) in enumerate(((left, right), (right, left))):
+            if not isinstance(child, int):
+                self.place(child, (axis, e, inclination, node, self.mass(sibling)), child_slot, node_no)
+        return node_no
+
+    def _in_desert(self, left, right, axis):
+        if axis >= BROWN_DWARF_DESERT_AU or not (isinstance(left, int) and isinstance(right, int)):
+            return False
+        kinds = {self.leaves[left].kind, self.leaves[right].kind}
+        if "brown-dwarf" not in kinds or kinds == {"brown-dwarf"}:
+            return False
+        return self.rng.random() >= BROWN_DWARF_DESERT_KEEP
+
+    def clears_extents(self):
+        """The final check: every pair's pericentre clears the apocentres of what it holds."""
+        by_sub = {id(record["sub"]): record for record in self.nodes}
+        for record in self.nodes:
+            extent = 0.0
+            for child in (record["left"], record["right"]):
+                if isinstance(child, int):
+                    extent += self.leaves[child].radius_au
+                else:
+                    inner = by_sub[id(child)]
+                    extent += inner["separation_au"] * (1.0 + inner["eccentricity"])
+            if record["separation_au"] * (1.0 - record["eccentricity"]) < PERICENTRE_EXTENT_FACTOR * extent:
+                return False
+        return True
+
+
+def _shape(units, rng):
+    """A random binary tree over `units` (indices or nested pairs of them)."""
+    if len(units) == 1:
+        return units[0]
+    items = list(units)
+    rng.shuffle(items)
+    count = len(items)
+    if count <= 3:
+        split = 1
+    elif count == 4:
+        split = 1 if rng.random() < 0.6 else 2
+    else:
+        sizes = list(range(1, count // 2 + 1))
+        split = rng.choices(sizes, [1.5 if size == 2 else 1.0 for size in sizes])[0]
+    return (_shape(items[:split], rng), _shape(items[split:], rng))
+
+
+def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence):
+    """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
+    birth = placed.birth_mass_solar
+    if placed.kind == "star":
+        leaf = _star_leaf(birth, age_yr, rng, lighten=False)
+        leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
+        leaves, units = [leaf], [0]
+        compact = _star_compact_companion(placed, age_yr, rng)
+        if n_stars is None:
+            count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
+        else:
+            count = max(1, min(n_stars, max_stars - (compact is not None)))
+        for _ in range(count - 1):
+            leaves.append(_star_leaf(birth * rng.uniform(0.1, 1.0), age_yr, rng))
+        if compact is not None:
+            leaves.append(compact)
+            units[0] = (0, len(leaves) - 1)
+        units.extend(range(1, count))
+        return leaves, units
+    base = {"black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
+            "intermediate-mass-black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, True),
+            "neutron-star": _remnant_leaf("neutron-star", birth, placed.mass_solar),
+            "white-dwarf": _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]
+    leaves = [base]
+    state = companion_state(placed, rng)
+    if state is None:
+        return leaves, [0]
+    companion = _compact_pair_companion(placed, state, age_yr, rng)
+    if companion is None:
+        return leaves, [0]
+    leaves.append(companion)
+    units = [(0, 1)]
+    if placed.kind == "black-hole" and rng.random() < BLACK_HOLE_TERTIARY_CHANCE and max_stars >= 3:
+        third = _black_hole_tertiary(placed, age_yr, rng)
+        if third is not None and sum(leaf.compact for leaf in leaves + [third]) <= MAX_COMPACT_MEMBERS:
+            leaves.append(third)
+            units.append(2)
+    return leaves, units
+
+
+def _placed_direct_collapse(placed):
+    """Whether a placed black hole collapsed directly: its progenitor, when known, else its own mass."""
+    if placed.initial_mass_solar is not None:
+        return placed.initial_mass_solar >= DIRECT_COLLAPSE_PROGENITOR_SOL
+    return placed.mass_solar >= DIRECT_COLLAPSE_HOLE_SOL
+
+
+def _star_compact_companion(placed, age_yr, rng):
+    """The compact companion of a living star, or None (one draw)."""
+    table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
+    lifetime_yr = (evolution.main_sequence_lifetime_gy(placed.birth_mass_solar)
+                   * tuning.GIANT_PHASE_END_MS_FRACTION * 1.0e9)
+    in_window = age_yr >= lifetime_yr * (1.0 - REMNANT_WINDOW_FRACTION)
+    pick = rng.random()
+    for kind, (default, _low, _high) in table.items():
+        chance = default / REMNANT_WINDOW_FRACTION
+        if pick < chance:
+            return _remnant(kind, age_yr, placed.birth_mass_solar, rng) if in_window else None
+        pick -= chance
+    return None
+
+
+def _compact_pair_companion(placed, state, age_yr, rng):
+    """The companion leaf of a compact (or white dwarf) placed object, drawn for `state`."""
+    if state in ("star", "brown-dwarf"):
+        if state == "brown-dwarf":
+            return _star_leaf(rng.uniform(0.02, 0.07), age_yr, rng)
+        low, high = (0.5, 16.0) if placed.kind == "neutron-star" else (0.1, 8.0)
+        return _star_leaf(_alive_star_mass(low, high, age_yr, rng), age_yr, rng)
+    limit = placed.mass_solar if state == "black-hole" else None
+    return _remnant(state, age_yr, 0.0, rng, limit_mass=limit)
+
+
+def _black_hole_tertiary(placed, age_yr, rng):
+    if rng.random() < COMPACT_TERTIARY_SHARE:
+        kind = "black-hole" if rng.random() < 0.8 else "neutron-star"
+        return _remnant(kind, age_yr, 0.0, rng, limit_mass=placed.mass_solar)
+    return _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng), age_yr, rng)
+
+
+def _assemble(leaves, builder, age_yr, dropped, rng):
+    """The result for the placed shape in `builder`: members renumbered by roster order."""
+    used = sorted({i for record in builder.nodes for i in builder.leaves_of((record["left"], record["right"]))})
+    number = {leaf_index: n for n, leaf_index in enumerate(used)}
+    where = {}
+    nodes = []
+    for record in builder.nodes:
+        for child_slot, child in enumerate((record["left"], record["right"])):
+            if isinstance(child, int):
+                where[child] = (record["node_no"], child_slot)
+        nodes.append(Node(node_no=record["node_no"], parent_node_no=record["parent_node_no"], slot=record["slot"],
+                          mass_solar=record["mass_solar"], separation_au=record["separation_au"],
+                          separation_km=record["separation_au"] * constants.AU_M / constants.KM_TO_M_FACTOR,
+                          eccentricity=record["eccentricity"], inclination_deg=record["inclination_deg"],
+                          ascending_node_deg=record["ascending_node_deg"],
+                          arg_periapsis_deg=record["arg_periapsis_deg"], mean_anomaly_deg=record["mean_anomaly_deg"],
+                          period_years=record["period_years"], kind=record["kind"], interaction="detached",
+                          flags=record["flags"]))
+    members = []
+    for leaf_index in used:
+        leaf = leaves[leaf_index]
+        node_no, slot = where[leaf_index]
+        members.append(Member(member_no=number[leaf_index], parent_node_no=node_no, slot=slot, kind=leaf.kind,
+                              state=leaf.state, flags=leaf.flags, mass_solar=leaf.mass, initial_mass_solar=leaf.initial,
+                              radius_au=leaf.radius_au, seed=rng.getrandbits(63)))
+    return MemberTree(tuple(members), tuple(nodes), age_yr, dropped)
+
+
+def _single(leaf, age_yr, dropped, rng):
+    member = Member(0, None, 0, leaf.kind, leaf.state, leaf.flags, leaf.mass, leaf.initial, leaf.radius_au,
+                    rng.getrandbits(63))
+    return MemberTree((member,), (), age_yr, dropped)
+
+
+def draw_member_tree(placed, age_yr, rng=draw, max_stars=12, n_stars=None, prevalence=1.0):
+    """
+    The members of the system around `placed` and their orbits, as a `MemberTree`.
+
+    Args:
+        placed (Placed): The scattered or filled object.
+        age_yr (float): The system's age in years; states, remnants and the Peters and
+            Kozai-Lidov checks read it.
+        rng: The random source (a `draw.Stream` or the `draw` module).
+        max_stars (int): The most members in the tree (`GEN.267`'s cap; 12).
+        n_stars (int or None): Forces the number of stars of a star's tree (a directive).
+            Ignored for a compact or white dwarf placed object, whose companions come from
+            `MEMBER_STATE_BY_PLACED`.
+        prevalence (float): Scales the chance of five or more stars (1 is the table).
+
+    Returns:
+        MemberTree: The placed object is member 0. A single object has one member and no nodes.
+    """
+    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence)
+    dropped = 0
+    while True:
+        if len(units) == 1 and isinstance(units[0], int):
+            return _single(leaves[units[0]], age_yr, dropped, rng)
+        for _ in range(TREE_RESTARTS):
+            builder = _Builder(leaves, age_yr, rng)
+            try:
+                builder.place(_shape(units, rng), None, 0, None)
+            except _Failed:
+                continue
+            if not builder.clears_extents():
+                continue
+            return _assemble(leaves, builder, age_yr, dropped, rng)
+        loose = [u for u in units[1:] if isinstance(u, int)]
+        if loose:
+            drop = min(loose, key=lambda i: leaves[i].mass)
+            units.remove(drop)
+        elif len(units) > 1:
+            units.pop()
+        else:
+            units[0] = units[0][0]
+        dropped += 1

@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.168 |
 | USR | USR.12 |
-| OPS | OPS.51 |
+| OPS | OPS.52 |
 | DOC | DOC.53 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
@@ -525,7 +525,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | none | open |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | open |
-| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | open |
+| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | done, PR #1698 |
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | done, PR #1599 |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | open |
@@ -806,7 +806,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | none | open |
 | GEN.248 | Tidal streams as placed components of the halo (later) | none | open |
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | none | open |
-| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | none | open |
+| GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | none | done, PR #1700 |
 | GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | none | open |
 | GEN.252 | Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert | none | open |
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets | none | open |
@@ -817,14 +817,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.258 | Protostars embedded in giant molecular clouds | none | open |
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) | none | open |
 | GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | none | open |
-| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | none | open |
+| GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | none | done, PR #1705 |
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | open |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | none | open |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | none | open |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | none | open |
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | none | open |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | none | open |
-| GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | none | open |
+| GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | none | done, PR #1702 |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds | none | open |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | none | open |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | none | open |
@@ -1151,6 +1151,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) | none | done, PR #1395 |
 | OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) | none | done, PR #1387 |
 | OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix | none | done, PR #1425 |
+| OPS.51 | The maintenance-mode flag file cannot be written by the web user on the server, so maintenance mode fails with a PermissionError (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1680,7 +1681,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.155 | Wording and index agree: property test | none | open |
 | TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
 | TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | done, PR #1572 |
-| TEST.158 | The math check tests the spherical shell, band and wedge grid | none | open |
+| TEST.158 | The math check tests the spherical shell, band and wedge grid | none | done, PR #1697 |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | open |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | open |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |

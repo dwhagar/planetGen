@@ -2,6 +2,98 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1413] - 2026-10-16
+
+**Headline:** The execution plan lists OPS.51 under the Interface lane.
+
+### Changed
+
+- The execution plan page places OPS.51 (the maintenance-mode flag file bug) in the Interface lane list.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1412] - 2026-10-16
+
+**Headline:** GEN.261 (the member-tree generator) is retired, OPS.51 is filed, and Core 2's findings are on GEN.242 and GEN.269.
+
+### Changed
+
+- GEN.261 (#1705) leaves the open list.
+- OPS.51 filed: the maintenance-mode flag file cannot be written by the web user on the server (bug, Interface).
+- GEN.242 and GEN.269 carry Core 2's findings (the pre-main-sequence time law, the outer-companion mass draw, the defaults taken).
+
+TODO items resolved: GEN.261 / Added: OPS.51
+
+## [8.0.1411] - 2026-10-15
+
+**Headline:** A star, black hole or neutron star can now be given a stable tree of companions: stars, brown dwarfs, white dwarfs, neutron stars and black holes in hierarchies of up to twelve members.
+
+### Changed
+- A new generator, `draw_member_tree`, draws the members and orbits around a placed object from its own random stream: the number of stars by the object's spectral class (with a tail to twelve stars and a prevalence knob for five or more), each member's state at the system's age (protostar, pre-main-sequence, main sequence, giant, white dwarf, brown dwarf), a compact companion at the table odds, and every orbit top down under the Mardling-Aarseth, Eggleton-Kiseleva and Vynatheya stability criteria and the Kozai-Lidov screen. Nothing the sector fill or the scatter makes changes yet; the next steps call it.
+- A new stability module holds the three triple-stability criteria behind one switch, the Kozai-Lidov screen with its relativistic quench, and the Peters merger time. Compact pairs that would already have merged are rejected, and a bound companion beyond 1,000 AU of a neutron star or a black hole that did not collapse directly is rejected.
+- The system-type table test now requires a generator to exist once the item that builds it has landed, instead of requiring every generator the moment the module exists.
+
+TODO items resolved: GEN.261 / Added: none
+
+## [8.0.1410] - 2026-10-15
+
+**Headline:** One scroll of the wheel now carries the Galaxy Map from the whole galaxy down through its windows to a sector and a system, and back out.
+
+### Changed
+- Zoomed right in on the whole galaxy or a window of blocks, the wheel goes on into the block under the pointer, as a click on it would: the window one size down, or the sector opened in place. Zoomed right out of a window or a sector, it goes back up a stage (MAP.152). Moving from a sector to a system and back already worked this way (MAP.125). A move across takes one gesture: the wheel must go quiet for a moment before it moves across again, so a long scroll stops at the next stage instead of running through every scale.
+
+TODO items resolved: MAP.152 / Added: none
+
+## [8.0.1409] - 2026-10-15
+
+**Headline:** GEN.268 (the system-type registry) is retired; GEN.261 is next.
+
+### Changed
+
+- GEN.268 (#1702) leaves the open list; GEN.261 carries Core 2's note on its module name and the integer owner numbers.
+
+TODO items resolved: GEN.268 / Added: none
+
+## [8.0.1408] - 2026-10-15
+
+**Headline:** Every multi-star and star-like-object system type in the catalogue now has an entry in one rate table, ready for the member-tree generator to read.
+
+### Changed
+- A new table, `SYSTEM_TYPE_RATES`, holds one entry for each of the 57 types in the system-type catalogue (stellar architecture, interacting binaries, white-dwarf systems, compact-object systems, substellar companions, runaways): the reference class, default, low and high, evidence tag, hosting populations, generator, scatter or fill mode, theoretical flag and audit numbers. The tuning knobs for the tight-period tail, post-common-envelope share, accreting share and merger-product shares sit beside it. Nothing the generator makes changes yet; a default is now an edit to this table.
+- A test reads the catalogue and fails when a row has no entry, an entry lacks a generator, owner or audit, a range is out of order, or a number with no value of its own does not say where it comes from.
+
+TODO items resolved: GEN.268 / Added: none
+
+## [8.0.1407] - 2026-10-15
+
+**Headline:** GEN.250 (the phenomena registry) is retired; GEN.268 and GEN.261 are unblocked.
+
+### Changed
+
+- GEN.250 (#1700) leaves the open list; DB.33 carries Quality's note that the check-db column-name case fix is merged.
+
+TODO items resolved: GEN.250 / Added: none
+
+## [8.0.1406] - 2026-10-15
+
+**Headline:** Every kind of object the generator makes is now one row in a single registry, and the lists that used to repeat the kinds read it.
+
+### Changed
+- A new phenomena registry (`planetgen/generation/phenomena/registry.py`) holds one row per kind: family, rate, gate, mode, builder, system model, what it carries, object ID code, class page and map marker. The sector roll list, the scatter list, the `--type` choices, the object ID codes, the naming key kinds and the rate scale table now read from it; nothing the generator makes changes.
+- A completeness test checks every row has every column, every builder resolves, no ID code repeats, and that the database tables, insert functions, class pages and the scatter table's constraint name exactly the registry's kinds.
+
+TODO items resolved: GEN.250 / Added: none
+
+## [8.0.1405] - 2026-10-15
+
+**Headline:** TEST.158 and DOC.21 are retired, and the findings Quality reported are on their items.
+
+### Changed
+
+- TEST.158 (#1697) and DOC.21 (#1698) leave the open list; TEST.156, DOC.24, GEN.231 and DB.33 carry Quality's notes.
+
+TODO items resolved: TEST.158, DOC.21 / Added: none
+
 ## [8.0.1404] - 2026-10-15
 
 **Headline:** The code's own docs name the modules and the shell, band and wedge grid as they are now.

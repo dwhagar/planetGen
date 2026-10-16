@@ -29,7 +29,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
-| TEST.158 | The math check tests the spherical shell, band and wedge grid |  |  |
 
 ### References
 
@@ -156,6 +155,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations |  | Lane 1 report 2026-10-10. |
+| OPS.51 | The maintenance-mode flag file cannot be written by the web user on the server, so maintenance mode fails with a PermissionError (bug) |  | Priority bug in flight. Interface. |
 
 ### Admin control
 
@@ -210,7 +210,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count is 0 (bug) |  | Quality run 2026-10-15. Quality. |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
-| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions |  |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete |  |  |

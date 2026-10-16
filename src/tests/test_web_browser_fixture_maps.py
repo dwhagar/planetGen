@@ -2215,9 +2215,8 @@ def test_galaxy_map_wheel_carries_the_zoom_into_a_system_and_back(page, map_site
     state = _galaxy_system(page)
     assert state["id"] and f"&system={state['id']}" in _query(page)
     page.wait_for_timeout(1000)
-    for _ in range(80):
-        page.mouse.wheel(0, 400)
-        page.wait_for_timeout(30)
+    # One gesture carries across one stage (MAP.152): the scroll stops at the sector, however it runs on.
+    assert _wheel_until(page, 400, lambda: not (_galaxy_system(page) or {}).get("id"), ticks=80), "the wheel never came back out of the system"
     _wait_system(page, present=False)
     assert _query(page) == OPEN_PRIME[1:]
 
@@ -2482,3 +2481,32 @@ def test_galaxy_map_fetches_each_of_its_modules_once_with_the_hints_it_was_given
     repeated = sorted({url for url in urls if urls.count(url) > 1})
     assert not repeated, f"fetched more than once: {repeated}"
     assert set(hinted) <= set(urls)
+
+
+def _wheel_until(page, deltas, changed, ticks=80):
+    """Turns the wheel (as real wheel events, a pause between) until `changed()` holds; returns whether it did."""
+    for _ in range(ticks):
+        page.mouse.wheel(0, deltas)
+        page.wait_for_timeout(30)
+        if changed():
+            return True
+    return False
+
+
+def test_galaxy_map_wheel_carries_the_zoom_down_through_the_windows_and_back_up(page, map_site):
+    """MAP.152: zoomed right in on a window the wheel goes on into the block
+    under the pointer (the window one size down), and zoomed right out it comes
+    back to the window it came from (one stage a gesture, held by the gate
+    `tests/js/mapcontrol.test.mjs` tests)."""
+    _open_galaxy(page, map_site, "?win=243.0.0.0")
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    start = _query(page)
+    assert _wheel_until(page, -400, lambda: _query(page) != start), "the wheel never carried on into a block"
+    inside = parse_qs(_query(page))["win"][0]
+    assert inside.startswith("81."), f"one stage down is the 81-shell window, not {inside!r}"
+    _settle(page)
+    page.wait_for_timeout(1000)
+    assert _wheel_until(page, 400, lambda: parse_qs(_query(page)).get("win", [""])[0] != inside, ticks=120), "the wheel never came back out"
+    _settle(page)
+    assert parse_qs(_query(page))["win"][0].startswith("243."), "back out on the parent window, the 243-shell blocks"

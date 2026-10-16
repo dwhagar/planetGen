@@ -105,6 +105,9 @@ const WHEEL_ZOOM_PER_PX = 0.0025;
 // long before another can, and a star counts as the one zoomed on when it is
 // within this share of the view's distance from its middle.
 const ACROSS_COOLDOWN_MS = 900;
+// ... and the next needs a new gesture: the wheel quiet for this long, so a
+// long scroll carries across one stage and stops there (MAP.152).
+const ACROSS_PAUSE_MS = 300;
 const NEAREST_STAR_REACH = 0.35;
 // The zoom policies (mapcontrol.js): a short range around the fit, and
 // on the whole galaxy only closer than its fit.
@@ -1818,37 +1821,59 @@ export function createStageView(host) {
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
-    if (deltaPx && !zoomAcross(deltaPx)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+    if (deltaPx && !zoomAcross(deltaPx, event)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
     return true;
   }
 
-  // MAP.125: the wheel carries the zoom from one stage to the next. Zoomed
-  // right in on a sector, in goes the star picked, else the one nearest the
-  // middle of the view (its system opens); zoomed right out of a system, out comes the sector.
-  // A move across takes one gesture: further wheel ticks within
-  // ACROSS_COOLDOWN_MS (a trackpad's glide) only zoom. True when this tick
+  // MAP.125, MAP.152: the wheel carries the zoom from one stage to the next, in
+  // and out, so one scroll runs from the whole galaxy down to a system and back.
+  // Zoomed right in on a stage (the galaxy, a window), the block under the
+  // pointer (else the one at the middle of the view) is taken as a click would
+  // take it: the window one size down, or the sector opened. Zoomed right in on
+  // a sector, in goes the star picked, else the one nearest the middle of the
+  // view (its system opens). Zoomed right out of a system, a sector or a window,
+  // out comes the sector, the stage or the parent window. The two ends are
+  // far apart in zoom (a new stage starts at its fit, between MIN_ZOOM and
+  // MAX_ZOOM) and a move across takes one gesture: further wheel ticks within
+  // ACROSS_COOLDOWN_MS (a trackpad's glide), or before the wheel has been
+  // quiet for ACROSS_PAUSE_MS, only zoom, so the view never flips between two
+  // scales and a long scroll stops at the next stage. True when this tick
   // moved across.
-  let acrossAt = -Infinity;
+  const acrossGate = MC.createAcrossGate(ACROSS_COOLDOWN_MS, ACROSS_PAUSE_MS);
 
-  function zoomAcross(deltaPx) {
-    const now = performance.now();
-    if (animation || pinned || now - acrossAt < ACROSS_COOLDOWN_MS) return false;
-    if (enteredSystem && deltaPx > 0 && view.zoom >= MAX_ZOOM * 0.999) {
-      acrossAt = now;
+  function zoomAcross(deltaPx, event) {
+    const now = event && event.timeStamp > 0 ? event.timeStamp : performance.now();
+    if (!acrossGate.tick(now) || animation || pinned) return false;
+    const policy = zoomPolicyFor(resolved);
+    if (deltaPx > 0 && view.zoom >= policy.farthest * 0.999 && (enteredSystem || entered || !isWholeGalaxy(resolved))) {
+      acrossGate.spend(now);
       up();
       return true;
     }
-    if (entered && !enteredSystem && deltaPx < 0 && view.zoom <= MIN_ZOOM * 1.001 && host.fetchSystemScene) {
+    if (deltaPx >= 0 || view.zoom > policy.nearest * 1.001) return false;
+    if (entered && !enteredSystem) {
+      if (!host.fetchSystemScene) return false;
       const picked = sectorStage.selectedEntry();
       const star = picked && picked.endpoint && picked.endpoint.indexOf("system:") === 0 && picked.href
         ? picked : nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
-      if (star) {
-        acrossAt = now;
-        enterSystem(star, { push: true });
-        return true;
-      }
+      if (!star) return false;
+      acrossGate.spend(now);
+      enterSystem(star, { push: true });
+      return true;
     }
-    return false;
+    if (enteredSystem || !display || !resolved) return false;
+    const rect = canvasEl.getBoundingClientRect();
+    const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+    const x = onMap ? event.clientX : rect.left + rect.width / 2;
+    const y = onMap ? event.clientY : rect.top + rect.height / 2;
+    let found = picker.pick(x, y, function (layer) { return layer === choiceLayer; });
+    if (!found && onMap) found = picker.pick(rect.left + rect.width / 2, rect.top + rect.height / 2, function (layer) { return layer === choiceLayer; });
+    if (!found || found.entry < 0 || !pickable(found.entry)) return false;
+    acrossGate.spend(now);
+    touchPending = -1;
+    showTooltip("", 0, 0);
+    act(found.entry, found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null);
+    return true;
   }
 
   // The star of the open sector nearest `point` (parsecs) within `reach`.
