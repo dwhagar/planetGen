@@ -655,13 +655,15 @@ def test_galaxy_runs_clean_with_hostile_numbers(mysql_config, data, seed):
     argv = data.draw(galaxy_argv(_FLAT_CENTERS[mysql_config.database]))
     note(f"argv={argv}")
     assert_clean(argv + mysql_argv(mysql_config), seed=seed, limit=60)
-    # Nothing generated may ever land outside the stored outline.
+    # GEN.235: a cell the run is asked for may be generated anywhere in the grid's reach, outside the outline too,
+    # and nothing may ever land beyond the reach.
     conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT shell_index, band_index FROM sectors").fetchall()
+        bounds = store.get_galaxy_bounds(conn)
     finally:
         conn.close()
-    assert all(0 <= r["shell_index"] <= _OUTER_SHELL and -1 <= r["band_index"] <= 1 for r in rows), rows
+    assert all(bounds.contains(r["shell_index"], r["band_index"]) for r in rows), rows
 
 
 def test_galaxy_before_plan_is_a_clean_refusal(mysql_config):
