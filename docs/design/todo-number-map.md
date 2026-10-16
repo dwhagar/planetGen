@@ -711,7 +711,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) | none | done, PR #1239 |
 | GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | open |
 | GEN.154 | Show the Einstein radius on compact-object pages | none | open |
-| GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | open |
+| GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | dropped (not built; decision note, PR #1716) |
 | GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) | none | done, PR #1310 |
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies | none | open |
 | GEN.158 | Add a metallicity value to stars | none | open |
