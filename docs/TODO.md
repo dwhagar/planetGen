@@ -6672,15 +6672,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   so the settings (this item) now, and the control database (ADM.88) and
   the parity data (DB.40) in 9.0 plug in without a new layout. The
   layout is fixed here for all three: `manifest.json` (format 1, time,
-  who, version key, and per part its name, directory, sizes and SHA-256)
+  who, version key, kind: manual, settings-save or nightly, and per part
+  its name, directory, sizes and SHA-256)
   and one directory per part (`settings/`, `control/`, `parity/`); a
   restore of an archive that holds a part this build has no provider for
   skips it, reports it and never drops it when an archive is copied.
   `take(parts)` writes `backups/<UTC timestamp>.tar.bz2` (stdlib
   `tarfile`, mode 0600, owned by the web user), `list()` reads the
   manifests, `verify(archive)` checks the hashes, `prune()` keeps the
-  newest `settings.backups_kept` archives and never deletes the newest
-  archive that holds every registered part, and `restore(archive,
+  newest `settings.backups_kept` archives of the manual and
+  settings-save kinds and the newest `settings.nightly_backups_kept`
+  nightly ones (OPS.55), and never deletes the newest archive that holds
+  every registered part, and `restore(archive,
   parts=None)` verifies first and restores the whole archive or only the
   named parts. The settings part is the `settings.json` overlay. A save
   on the settings page (ADM.83) writes a small archive with the settings
@@ -6783,7 +6786,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   archive, the repair page, the end-to-end test and the guide are in
   9.0.
   Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
-  DOC.56. Related: ADM.43, ADM.87, DB.9.
+  DOC.56, OPS.55. Related: ADM.43, ADM.87, DB.9.
 
 ## SEC: Security
 
@@ -7532,7 +7535,9 @@ clears each one.
   restore leaving the others alone, retention keeping the newest full
   archive, and every restore refused while the update guard is on. Done:
   the test in the gate, with the run named in the PR.
-  Prerequisites: ADM.89, DB.42, ADM.90. Related: ADM.91.
+  Also covers the nightly step (OPS.55): due and not due, and the
+  pruning by kind.
+  Prerequisites: ADM.89, DB.42, ADM.90, OPS.55. Related: ADM.91.
 
 ## USR: User accounts
 
@@ -8069,6 +8074,34 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
+
+- [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
+  Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
+  from the daily maintenance run. Target 9.0 (the backups and repair
+  chain, umbrella ADM.91). The maintenance logic of OPS.16 (`--if-due`,
+  `--only STEP`, lock, log, exit codes) gets a `backup` step that calls
+  `planetgen.backup.take` of ADM.87 with every registered part
+  (settings, control database ADM.88, parity data DB.40), so archives
+  are taken without a click. The archive manifest carries a kind
+  (`manual`, `settings-save`, `nightly`). The step is due when no
+  nightly archive exists for the local day and the local hour has
+  reached `settings.nightly_backup_hour` (0 to 23, default 4; the
+  scheduler may call the script hourly), and it is switched off by
+  `settings.nightly_backup` (default on). Nightly archives are pruned by
+  their own count, `settings.nightly_backups_kept` (1 to 60, default 7),
+  while `settings.backups_kept` (default 20, 1 to 200) keeps counting
+  manual and settings-save archives, so a week of nightly archives never
+  pushes out the archive an admin took by hand; the newest archive
+  holding every part is never pruned. A failed step logs, exits non-zero
+  like any other step and leaves the earlier archives alone; a run that
+  finds the guard on (maintenance, an update, a run) skips and is
+  retried when next due. The options go into the ADM.42 model and show
+  on the settings page. Done: the step with tests for due and not due,
+  off, a failure that leaves archives alone, pruning by kind, and a
+  second run started during the first exiting at once; the daily run
+  lists the step in its log.
+  Prerequisites: OPS.16, ADM.87, ADM.88, DB.40. Related: OPS.16, ADM.87,
+  ADM.91.
 
 ## DOC: Documentation
 

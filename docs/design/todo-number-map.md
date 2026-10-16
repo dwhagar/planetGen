@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.181 |
 | USR | USR.26 |
-| OPS | OPS.55 |
+| OPS | OPS.56 |
 | DOC | DOC.57 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
@@ -1236,6 +1236,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.52 | Everything under the planetGen install is owned by www-data:www-data, and the example Apache2 config restricts directories | none | done, PR #1711 |
 | OPS.53 | Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends | none | done, PR #1781 |
 | OPS.54 | The orbital update refuses to run while an update is running, with tests | none | done, PR #1782 |
+| OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
