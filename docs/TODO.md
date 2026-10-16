@@ -4374,22 +4374,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.233.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
-- [ ] **GEN.278 Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars**
-  From Core 3's scatter note (GEN.277, PR #1721,
-  docs/design/later-phenomena-scatter-rules.md, sections 3 and 8). Done:
-  ("neutron-star", "magnetar") is appended to SCATTER_CLASSES; a
-  registry gate "young stars" (GEN.250) limits it to young populations;
-  the free neutron-star draw's age floor is raised to 1e4 yr
-  (COMPACT_REMNANT_AGE_RANGE_GY lower bound 1e-5 Gy) so only young
-  remnant cores and scatter rows are magnetars; the build forces the
-  magnetar branch from the row's subtype; a test counts about 100
-  magnetar rows over a full scatter and none in the halo or the
-  clusters. Default stands without Boss's word (magnetars are scatter
-  rows; the alternative is fill only). No migration: the row uses the
-  existing columns of phenomenon_scatter. Owner: Core 3, after GEN.250
-  (GEN.235 and GEN.153 are built).
-  Prerequisite: GEN.250. Related: GEN.256, GEN.277.
-
 - [ ] **GEN.280 Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49**
   Build step of the realistic galactic core plan
   (docs/design/realistic-galactic-core.md, section 9; Boss's item,

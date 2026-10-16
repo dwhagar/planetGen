@@ -252,7 +252,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.280 | Core 3; step 5 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) |  | Core 3; folded into GEN.286 unless Core 3 says otherwise |
-| GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250 | Owner Core 3; Core 3 note default stands. |
 
 ### Maps
 
