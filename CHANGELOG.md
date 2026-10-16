@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1591] - 2026-10-16
+
+**Headline:** A far-tail precision failure in the galaxy density fuzz test is on the list as TEST.199 and attached to the precision audit.
+
+### Added
+- TEST.199 (bug): `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main when the halo is subtracted from a much larger sum (found by Core 2).
+
+### Changed
+- GEN.372 lists TEST.199 as its first attached precision finding.
+
+TODO items resolved: none / Added: TEST.199
+
 ## [8.0.1590] - 2026-10-16
 
 **Headline:** ADM.50 (remove the galaxy settings files) leaves the TODO list, and the central black hole is recorded as staying exactly on the origin.
