@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1568] - 2026-10-16
+
+**Headline:** The TODO list retires the Admin settings page, which the Settings lane built.
+
+### Changed
+- **ADM.84 is done (#1875).** The Admin settings page at `/admin/settings` has the review step, the restart banner and three new API routes. TEST.192 gains Core 1's sighting of the fuzz failure and its test-only fix.
+
+### Added
+- **TEST.194, a flaky system-map browser test under load (bug).** `test_system_map_selection_drill_and_measure` failed once in a full run and passed alone; goal issue #1694.
+
+TODO items resolved: ADM.84 / Added: TEST.194
+
 ## [8.0.1567] - 2026-10-16
 
 **Headline:** Admins can now see and change every program option from a new Settings page, with help for each option, a review of the changes before anything is saved, a backup of the old file and an audit row for every change.
