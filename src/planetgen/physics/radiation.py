@@ -39,7 +39,9 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    events deliver 100 mSv/yr at the ozone layer (X = 10 g/cm2).
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
    supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
-   `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre).
+   `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts
+   (2 per Gyr at the Sun, falling outward) and nuclear-activity episodes (10
+   per Gyr inside 2.9 kpc), GEN.189.
 
 A planet of a pulsar or a black hole is rated by GEN.89, not here.
 """

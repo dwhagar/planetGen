@@ -396,10 +396,21 @@ atmosphere around an active M dwarf with no dipole receives Sv per year.
   10 s) destroys 35 percent of ozone globally; a 50 percent cut triples UVB
   [S]. Quoted radii vary (1.4 to 14 kpc); Spinelli et al. 2021: GRBs dominate
   beyond about 2 kpc, supernovae inside [S]. Rule: ozone-loss flag at gamma
-  fluence >= 30 to 100 kJ/m2.
+  fluence >= 30 to 100 kJ/m2. **Built (GEN.189):** Melott et al. 2004 put a
+  beamed burst within about 2 kpc at one per 0.5 Gyr at the Sun [S], so
+  `activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR` = 2 per Gyr; long bursts need
+  low-metal massive stars (Stanek et al. 2006 [S]), so the rate falls off
+  outward with the supernova scale length (1.45 kpc) but is not raised toward
+  the metal-rich centre.
 - **AGN and quasars.** No source found. A 1e44 erg/s X-ray source on for 1 Myr
   delivers 2.7e5 J/m2 at 3 kpc [C], so a luminous nucleus within a few kpc
-  destroys unshielded ozone.
+  destroys unshielded ozone. **Built (GEN.189) as a design estimate, not a
+  measurement:** the Fermi bubbles and the X-ray echoes of the Galactic Centre
+  clouds (Su et al. 2010; Ponti et al. 2013 [S]) show Seyfert-like activity in
+  the last few Myr, so `activity.AGN_EPISODES_PER_GYR` = 10 (1e44 erg/s for 1
+  Myr every 100 Myr) within `AGN_LETHAL_RADIUS_PC` = 2.9 kpc, where one episode
+  delivers 30 kJ/m2 (1e44 erg/s * 3.15e13 s / (4 pi r^2); 30 kJ/m2 = 3e7
+  erg/cm2). Confidence is low; the episode rate is the unsettled number.
 - **UV.** Blackbody 200 to 300 nm flux relative to the Sun: 2.8x (F0), 0.54
   (K0), 0.043 (M0), 0.0011 (M6) [C]; real M dwarfs have chromospheric UV well
   above that, so floor it at 0.05 to 0.2 of the Sun's [R]. Surface DNA-weighted
@@ -451,8 +462,9 @@ leave open:
 - `ozone_loss_flag` is set when ozone exists and either the star's
   `lethal_event_rate_per_gyr` (1.5 x `exp((8 kpc - R) / 1.45 kpc)`, at most 250
   times that) exceeds 10 (one lethal event per 100 Myr) or particles give
-  100 mSv/yr at the ozone layer (X = 10 g/cm2). Gamma-ray bursts and AGN
-  (section 4.5) are not modelled yet.
+  100 mSv/yr at the ozone layer (X = 10 g/cm2). The rate adds gamma-ray
+  bursts and nuclear-activity episodes to the supernovae (GEN.189, section
+  4.5).
 
 ## 5. Hydrosphere and ocean chemistry (GEN.88)
 
