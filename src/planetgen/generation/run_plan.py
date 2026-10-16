@@ -1291,7 +1291,7 @@ def redo_nebula_field(args):
             if match is None:
                 continue
             stored[row["nebula_class"]] += 1
-            if not nebulaField.cloud_kept(galaxy_seed, index, match[0], match[1]):
+            if not nebulaField.cloud_kept(galaxy_seed, index, match[0], match[1], center, skeleton.shape):
                 rejected[row["nebula_class"]] += 1
                 doomed.append((row["id"], center, row["radius_ly"]))
         log.normal("Nebula field cleanup (dry run): " + (

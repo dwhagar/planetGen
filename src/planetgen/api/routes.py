@@ -96,7 +96,7 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_suggest, facility_types
-from planetgen.galaxy import objectref as object_ref, version_check
+from planetgen.galaxy import objectref as object_ref, superbubble_field, version_check
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
@@ -492,10 +492,12 @@ def sectors():
 
 @bp.route("/sectors/<uid:sector_id>")
 def sector_detail(sector_id):
+    conn = get_db()
     try:
-        detail = query_sector_detail(get_db(), sector_id)
+        detail = query_sector_detail(conn, sector_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
+    detail["superbubble"] = superbubble_of(conn, detail)
     return jsonify(detail)
 
 
@@ -910,6 +912,41 @@ def galaxy_shape():
     return jsonify({"shape": galaxy_density_shape(conn), "bright_stars": bright_star_scatter_status(conn),
                     "version_warning": version_check.galaxy_warning(conn),
                     "shells": galaxy_shell_specs(conn, skeleton.edge_pc) if skeleton else None})
+
+
+@bp.route("/galaxy/superbubbles")
+def galaxy_superbubbles():
+    """
+    The galaxy's superbubbles (GEN.254, `galaxy.superbubble_field`): the cavities the Galaxy Map draws as faint
+    shells, `{"superbubbles": [{"x", "y", "z", "radius_pc"}, ...]}` in galaxy-frame parsecs, the biggest first;
+    empty before a plan. Nothing is stored: they are drawn from the galaxy's seed.
+    """
+    skeleton = get_galaxy_shape(get_db())
+    if skeleton is None or skeleton.galaxy_seed is None:
+        return jsonify({"superbubbles": []})
+    reach = (skeleton.outer_shell_index + 1) * skeleton.edge_pc
+    bubbles = sorted(superbubble_field.all_bubbles(skeleton.galaxy_seed, skeleton.shape, reach),
+                     key=lambda bubble: (-bubble.radius_pc, bubble.index, bubble.n))
+    return jsonify({"superbubbles": [
+        {"x": round(b.center_pc[0], 1), "y": round(b.center_pc[1], 1), "z": round(b.center_pc[2], 1),
+         "radius_pc": round(b.radius_pc, 1)} for b in bubbles]})
+
+
+def superbubble_of(conn, detail):
+    """
+    The superbubble a placed sector's centre lies in (`sector_detail`'s `superbubble`), or `None`:
+    `{"radius_pc", "ambient_density_cm3", "temperature_k", "centre_distance_pc"}`.
+    """
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is None or skeleton.galaxy_seed is None or not detail.get("placed"):
+        return None
+    center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
+    bubble = superbubble_field.containing(skeleton.galaxy_seed, skeleton.shape, center)
+    if bubble is None:
+        return None
+    return {"radius_pc": round(bubble.radius_pc, 1), "ambient_density_cm3": float("%.3g" % bubble.ambient_density_cm3),
+            "temperature_k": bubble.temperature_k,
+            "centre_distance_pc": round(math.dist(bubble.center_pc, center), 1)}
 
 
 @bp.route("/galaxy/cell")

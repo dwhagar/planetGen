@@ -8,8 +8,8 @@ The program has the same rules everywhere in the sphere, and each sector carries
 rules to where it is (docs/design/intergalactic-and-halo-contents.md section 5). This module computes those
 parameters: `sector_profile(address, skeleton)` for a grid cell, `profile_at(position_pc, ...)` for a point.
 
-It is a pure function of the galaxy's shape, its sector edge and the address. It reads no database, draws no random
-number and is closed form, so the same code answers for an uncharted preview, a scatter and a fill, and two calls
+It is a pure function of the galaxy's shape, its sector edge, the address and (for the superbubble a place lies in) the
+galaxy's seed. It reads no database, draws no random number of the run's and is closed form, so the same code answers for an uncharted preview, a scatter and a fill, and two calls
 give the same profile. Nothing here generates anything: a profile of a cell nobody asked for is computed, shown and
 dropped.
 
@@ -21,7 +21,8 @@ A profile holds:
   which is the mean of the sector's Poisson draw;
 * `mix`: the density by population (`young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`), summing to `density`;
 * `populations`: for each, its age window, [Fe/H] distribution, velocity dispersion and what its net motion follows;
-* `gas`: the cold-gas fraction against the solar circle and the ambient medium with its density;
+* `gas`: the cold-gas fraction against the solar circle and the ambient medium with its density, and the superbubble
+  (GEN.254) the place lies in, if any;
 * `dark_matter`: the NFW halo's density at the cell and the mass in it.
 
 Later items add to it (kind factors, GEN.236; the components, GEN.237; the scatter-limit tier, GEN.279): each adds a
@@ -33,7 +34,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.galaxy import density as galaxyDensity
-from planetgen.galaxy import nebula_field, spherical
+from planetgen.galaxy import nebula_field, spherical, superbubble_field
 from planetgen.physics import metallicity
 from planetgen.physics.units import pc_to_ly
 
@@ -75,14 +76,18 @@ class GasProfile:
     Attributes:
         cold_fraction (float): Molecular gas here against the solar circle's average, capped at 1: 0 in the
             halo, 1 where the disk holds at least as much as the Sun's neighbourhood.
-        ambient (str): The densest ambient medium: `disk`, `hot-halo` or `intergalactic`.
+        ambient (str): The densest ambient medium: `disk`, `superbubble`, `hot-halo` or `intergalactic`.
         ambient_density_cm3 (float): Its density, H atoms per cm3.
         mass_solar (float): The ambient gas in the cell, solar masses.
+        superbubble (Superbubble or None): The cavity the place lies in (GEN.254; `superbubble_field`): there the
+            disk's gas is its thin, ionised gas, `cold_fraction` is 0 and no molecular cloud is kept. `None` outside
+            one, or when no seed was given.
     """
     cold_fraction: float
     ambient: str
     ambient_density_cm3: float
     mass_solar: float
+    superbubble: object = None
 
 
 @dataclass(frozen=True)
@@ -169,8 +174,9 @@ def dark_matter_density(radius_pc, shape):
     return tuning.DARK_MATTER_SCALE_MASS_SOLAR * scale / (4.0 * math.pi * r_h ** 3) / (u * (1.0 + u) ** 2)
 
 
-def _ambient(position_pc, shape, cold_fraction):
-    """`(medium, density per cm3)` of the densest of the disk's ISM, the hot halo and the intergalactic medium."""
+def _ambient(position_pc, shape, cold_fraction, superbubble=None):
+    """`(medium, density per cm3)` of the densest of the disk's ISM (a superbubble's gas inside one), the hot halo and
+    the intergalactic medium."""
     scale = _scale(shape)
     radius = math.sqrt(sum(c * c for c in position_pc))
     core = tuning.HOT_HALO_CORE_PC * scale
@@ -180,11 +186,13 @@ def _ambient(position_pc, shape, cold_fraction):
         "hot-halo": hot,
         "intergalactic": tuning.COSMIC_MEAN_DENSITY_CM3 * tuning.LOCAL_GROUP_GAS_OVERDENSITY,
     }
+    if superbubble is not None:
+        media = {"superbubble": superbubble.ambient_density_cm3, "hot-halo": hot, "intergalactic": media["intergalactic"]}
     name = max(media, key=media.get)
     return name, media[name]
 
 
-def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None, volume_pc3=None):
+def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None, volume_pc3=None, galaxy_seed=None):
     """
     The profile of the place at `position_pc`.
 
@@ -197,6 +205,8 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
             `expected_system_count_at_density_1`).
         address (tuple, optional): The cell's `(shell, band, wedge)`, for the record.
         volume_pc3 (float, optional): The cell's volume; a cube of `edge_pc` when not given.
+        galaxy_seed (bytes, optional): The galaxy's seed, for the superbubble field (GEN.254); without it the place
+            is taken to lie in none.
 
     Returns:
         SectorProfile
@@ -214,10 +224,11 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
             fe_h=_fe_h(name, distance_ly), dispersion_kms=tuning.STELLAR_POPULATION_DISPERSION_KMS[name],
             rotation=tuning.STELLAR_POPULATION_ROTATION[name])
         for name in POPULATIONS}
-    cold = min(1.0, max(nebula_field.gas_factor(position_pc, shape), 0.0))
-    medium, n_cm3 = _ambient(position_pc, shape, cold)
+    bubble = None if galaxy_seed is None else superbubble_field.containing(galaxy_seed, shape, position_pc)
+    cold = 0.0 if bubble is not None else min(1.0, max(nebula_field.gas_factor(position_pc, shape), 0.0))
+    medium, n_cm3 = _ambient(position_pc, shape, cold, bubble)
     gas = GasProfile(cold_fraction=cold, ambient=medium, ambient_density_cm3=n_cm3,
-                     mass_solar=n_cm3 * tuning.GAS_SOLAR_MASS_PER_PC3_PER_CM3 * volume)
+                     mass_solar=n_cm3 * tuning.GAS_SOLAR_MASS_PER_PC3_PER_CM3 * volume, superbubble=bubble)
     rho = dark_matter_density(math.sqrt(sum(c * c for c in position_pc)), shape)
     return SectorProfile(
         address=None if address is None else tuple(address), position_pc=position_pc, edge_pc=edge_pc,
@@ -241,7 +252,8 @@ def sector_profile(address, skeleton):
     shell, band, wedge = address
     position = spherical.sector_position_pc(shell, band, wedge, skeleton.edge_pc)
     return profile_at(position, skeleton.shape, skeleton.edge_pc, skeleton.expected_system_count_at_density_1,
-                      address=address, volume_pc3=spherical.cell_volume(shell, band, wedge, skeleton.edge_pc))
+                      address=address, volume_pc3=spherical.cell_volume(shell, band, wedge, skeleton.edge_pc),
+                      galaxy_seed=skeleton.galaxy_seed)
 
 
 def expected_systems_in(addresses, skeleton):

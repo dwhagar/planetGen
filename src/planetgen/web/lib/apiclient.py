@@ -483,6 +483,16 @@ def get_galaxy_sectors(db):
     return _request("/galaxy/sectors", {"db": db})["items"]
 
 
+def get_superbubbles(db):
+    """Returns `GET /api/galaxy/superbubbles`'s `superbubbles` list (GEN.254): `{"x", "y", "z", "radius_pc"}` per
+    cavity, galaxy-frame parsecs; empty when the galaxy has none to show (or the API can't say)."""
+    _require_db(db)
+    try:
+        return _request("/galaxy/superbubbles", {"db": db})["superbubbles"]
+    except ApiError:
+        return []
+
+
 def get_galaxy_made(db, since, until=None):
     """Returns `GET /api/galaxy/made` (`total` and `items`): the sectors
     created from `since` to `until`, Unix seconds (ADM.31)."""

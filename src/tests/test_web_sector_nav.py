@@ -1303,6 +1303,17 @@ def test_sector_header_chips_are_facts_only(client, fake):
 
 
 
+def test_a_sector_inside_a_superbubble_says_so_under_its_map(client, fake):
+    """GEN.254: the cavity's size, the distance from its centre, its gas, and that no molecular cloud survives."""
+    assert 'id="superbubble"' not in client.get("/sector/5").get_data(as_text=True)
+    fake.sectors[5]["superbubble"] = {"radius_pc": 180.5, "ambient_density_cm3": 0.005, "temperature_k": 1.0e6,
+                                      "centre_distance_pc": 42.0}
+    html = client.get("/sector/5").get_data(as_text=True)
+    text = re.search(r'<p class="hint sector-details" id="superbubble">(.*?)</p>', html, re.S).group(1)
+    assert "361 pc across" in text and "42 pc from its centre" in text
+    assert "1e+06 K" in text and "0.005 atoms per cm" in text and "no molecular cloud survives" in text
+
+
 def test_nav_route_runs_left_to_right_with_the_hop_after_each_stop(client, fake):
     """UX.35: a stop, then the hop to the next one; the last stop has none; still an ordered list."""
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)

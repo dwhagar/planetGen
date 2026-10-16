@@ -433,7 +433,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
-                              uncharted_phenomenon_url=None):
+                              uncharted_phenomenon_url=None, superbubbles=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -529,6 +529,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         course (dict or None): A NAV course to draw over the map
             (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
             frame parsecs), `sector` and `navUrl`. `None` draws none.
+        superbubbles (list or None): The galaxy's superbubbles (GEN.254; `apiclient.get_superbubbles`): `x`, `y`,
+            `z` and `radius_pc` each, drawn as faint thin shells under everything else. `None` draws none.
         made (dict or None): The sectors a generate job made (ADM.31):
             `total`, `points` (their centres, parsecs) and `sectors`
             (`[shell, band, wedge]`), up to a cap. The map rings them and
@@ -550,6 +552,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "nebulaShapePath": nebula_shape_path,
         "course": course,
         "made": made,
+        "superbubbles": [[b["x"], b["y"], b["z"], b["radius_pc"]] for b in superbubbles or []],
         "pick": pick["pick"] if pick else None,
         # The NAV pick the page opened with (static/navpick.js carries on
         # from it): the other end already chosen and where Cancel goes.

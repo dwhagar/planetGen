@@ -139,6 +139,9 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 {%- if debris %}
 <p class="hint sector-details"><strong>Details:</strong> {{ debris }}</p>
 {%- endif %}
+{%- if sector.superbubble %}
+<p class="hint sector-details" id="superbubble"><strong>Superbubble:</strong> inside a cavity {{ "%g"|format(sector.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(sector.superbubble.centre_distance_pc) }} pc from its centre. The gas here is ionised, about {{ "%g"|format(sector.superbubble.temperature_k) }} K and {{ "%g"|format(sector.superbubble.ambient_density_cm3) }} atoms per cm³, and no molecular cloud survives in it.</p>
+{%- endif %}
 <section class="panel" id="sector-contents" aria-labelledby="contents-heading">
   <h2 id="contents-heading">Contents</h2>
   {{ datatable(contents) }}

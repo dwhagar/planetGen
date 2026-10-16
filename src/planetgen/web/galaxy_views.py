@@ -212,6 +212,7 @@ def galaxy():
         nav_url=page_url("nav"),
         uncharted_scene_url=uncharted_scene_url_template(),
         uncharted_phenomenon_url=uncharted_phenomenon_url_template(),
+        superbubbles=apiclient.get_superbubbles(db),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}

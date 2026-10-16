@@ -21,6 +21,9 @@ and near the plane). A sector takes every cloud whose sphere reaches it
 (`clouds_reaching`), and `store.insert_sector` stores each one once: the
 first sector saved that it reaches is its home, and later sectors find it
 already stored.
+
+Molecular gas does not survive in a superbubble (GEN.254, `superbubble_field`): `cloud_kept` loses a cloud whose centre
+lies in one, after the draw, so the clouds that stay and their object IDs are as they were.
 """
 
 import functools
@@ -109,9 +112,15 @@ def cell_index(position_pc):
     return tuple(math.floor(coordinate / edge) for coordinate in position_pc)
 
 
-def cloud_kept(galaxy_seed, index, n, nebula):
+def cloud_kept(galaxy_seed, index, n, nebula, center=None, shape=None):
     """Whether the galaxy keeps draw number `n` of cell `index` (GEN.152): a hash of the two against the share
-    `tuning.NEBULA_FIELD_KEEP` keeps of the cloud's class, so what the draw makes does not change, only what is kept."""
+    `tuning.NEBULA_FIELD_KEEP` keeps of the cloud's class, so what the draw makes does not change, only what is kept.
+    With the cloud's `center` and the galaxy's `shape` given, a cloud whose centre is inside a superbubble is lost too
+    (GEN.254): molecular gas does not survive in the hot cavity. The draw and the object IDs still count it."""
+    if center is not None and shape is not None:
+        from planetgen.galaxy import superbubble_field  # imports this module for the gas factor
+        if superbubble_field.containing(galaxy_seed, shape, center) is not None:
+            return False
     share = tuning.NEBULA_FIELD_KEEP.get(nebula.nebula_class, 1.0)
     if share >= 1.0:
         return True
@@ -124,7 +133,7 @@ def cell_clouds(galaxy_seed, shape, index):
     every time for the same galaxy.
     """
     return [(nebula, center) for n, nebula, center in cell_draw(galaxy_seed, shape, index)
-            if cloud_kept(galaxy_seed, index, n, nebula)]
+            if cloud_kept(galaxy_seed, index, n, nebula, center, shape)]
 
 
 def cell_draw(galaxy_seed, shape, index):
@@ -283,5 +292,5 @@ def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
         for k in range(k_low, k_high + 1):
             index = (i, j, k)
             for n, nebula, center in cell_draw(galaxy_seed, shape, index):
-                if nebula.nebula_class in TABLE_CLASSES and cloud_kept(galaxy_seed, index, n, nebula):
+                if nebula.nebula_class in TABLE_CLASSES and cloud_kept(galaxy_seed, index, n, nebula, center, shape):
                     yield (i, j, k, n, nebula.nebula_class, nebula.radius_ly, *center)

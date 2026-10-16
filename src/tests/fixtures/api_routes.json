@@ -63,6 +63,7 @@
   "/api/galaxy/shape GET",
   "/api/galaxy/stage GET",
   "/api/galaxy/stamp GET",
+  "/api/galaxy/superbubbles GET",
   "/api/galaxy/tiles GET",
   "/api/galaxy/uncharted GET",
   "/api/galaxy/window GET",

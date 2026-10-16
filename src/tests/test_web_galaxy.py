@@ -67,6 +67,10 @@ class FakeData:
         self.dbs.add(db)
         return {"items": [], "total": self.polity_total, "limit": limit, "offset": offset}
 
+    def get_superbubbles(self, db):
+        self.dbs.add(db)
+        return []
+
     def get_galaxy_sectors(self, db):
         self.dbs.add(db)
         return self.sectors
@@ -108,7 +112,7 @@ class FakeData:
 @pytest.fixture
 def fake(monkeypatch, tmp_path):
     data = FakeData()
-    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me"):
+    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)

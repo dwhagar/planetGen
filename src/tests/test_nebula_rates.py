@@ -11,7 +11,7 @@ import types
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import nebula_field
+from planetgen.galaxy import nebula_field, superbubble_field
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.generation import run_sector
 from planetgen.generation.config import SystemConfig
@@ -89,7 +89,16 @@ def test_the_nebula_counts_and_fillings_stay_inside_the_observed_bands():
     assert hosted and all(0.1 <= chance <= 0.5 for chance in hosted), hosted
 
 
-def test_the_field_keeps_the_drawn_share_of_each_class_and_the_survivors_do_not_move():
+@pytest.fixture
+def no_superbubbles(monkeypatch):
+    """GEN.254's superbubbles take the clouds inside them: a test of the hash's keep rates leaves them out."""
+    monkeypatch.setattr(tuning, "SUPERBUBBLE_FILL_FRACTION", 0.0)
+    superbubble_field.cell_bubbles.cache_clear()
+    yield
+    superbubble_field.cell_bubbles.cache_clear()
+
+
+def test_the_field_keeps_the_drawn_share_of_each_class_and_the_survivors_do_not_move(no_superbubbles):
     drawn = collections.Counter()
     kept = collections.Counter()
     for i in range(20, 50):

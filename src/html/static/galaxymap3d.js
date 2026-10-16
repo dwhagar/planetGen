@@ -2601,6 +2601,44 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
+  // --- Superbubbles (GEN.254) --------------------------------------------------------
+  //
+  // The cavities the supernovae of OB associations blow in the gas (the Local Bubble
+  // is one), from the galaxy's seed: the page embeds each one's centre and radius in
+  // galaxy-frame parsecs. Each is drawn as three faint great circles, a thin shell,
+  // in one line object under everything else and never picked. No molecular cloud
+  // lies inside one.
+  var bubbles = data.superbubbles || [];
+  if (bubbles.length) {
+    var BUBBLE_SEGMENTS = 48;
+    var bubbleVertices = [];
+    bubbles.forEach(function (bubble) {
+      for (var plane = 0; plane < 3; plane += 1) {
+        for (var step = 0; step < BUBBLE_SEGMENTS; step += 1) {
+          [step, step + 1].forEach(function (at) {
+            var u = bubble[3] * Math.cos(2 * Math.PI * at / BUBBLE_SEGMENTS);
+            var v = bubble[3] * Math.sin(2 * Math.PI * at / BUBBLE_SEGMENTS);
+            // The xy, xz and yz circles.
+            bubbleVertices.push(
+              bubble[0] + (plane === 2 ? 0 : u),
+              bubble[1] + (plane === 0 ? v : plane === 1 ? 0 : u),
+              bubble[2] + (plane === 0 ? 0 : v));
+          });
+        }
+      }
+    });
+    var bubbleGeometry = new THREE.BufferGeometry();
+    bubbleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(bubbleVertices, 3));
+    var bubbleLines = new THREE.LineSegments(bubbleGeometry, new THREE.LineBasicMaterial({
+      color: new THREE.Color(0x6fb3d8), transparent: true, opacity: 0.14, depthWrite: false, depthTest: false,
+    }));
+    bubbleLines.renderOrder = 0;
+    bubbleLines.frustumCulled = false;
+    bubbleLines.name = "superbubbles";
+    scene.add(bubbleLines);
+    renderer.domElement.dataset.superbubbles = String(bubbles.length);
+  }
+
   // --- Sectors a generate job made (ADM.31) ---------------------------------------
   //
   // With ?made=<since>,<until> (the job page's "Show on Galaxy Map") the page
