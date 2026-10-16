@@ -55,3 +55,7 @@ EnvironmentFile=-/etc/planetgen/maintenance.env
 Environment=PLANETGEN_MYSQL_DATABASE=%i
 # planetGen's own Python (OPS.45): scripts/install-python-deps.sh makes this venv.
 ExecStart=/usr/local/planetgen/venv/bin/python -m planetgen.cli.orbits
+# Exit status 75 (EX_TEMPFAIL, OPS.54) means an update is running (or failed and left
+# the site closed): the run moved nothing, which is not a failure; the timer's
+# next firing simply tries again.
+SuccessExitStatus=75

@@ -105,6 +105,16 @@ A night's work has a ceiling (PERF.103, `--row-ceiling`, default `tuning.ORBIT_U
 due than that, the run moves the oldest-due rows of each table up to a share of the ceiling, warns with the backlog and
 the tables it sits in, and leaves the rest due, so the next run takes them first. 0 moves everything that is due.
 
+While an update runs (`update.sh`, or a failed one that left the site closed:
+`planetgen.admin.updateguard`, OPS.54) it moves nothing: it leaves every epoch
+and due time as they were, says why and exits with 75 (`EX_TEMPFAIL`), so the
+next timer firing simply tries again. The update lists and cancels a run that
+is already under way (OPS.53); the run then finishes the update of the stored
+positions it is in, so a cancel never leaves them half moved: each row's
+position and its epoch change in one statement, and the containment, nearest
+systems and sector paths that follow the move are recomputed before the run
+ends (`_Cancel`).
+
 Run it as `python3 -m planetgen.cli.orbits` from anywhere (the editable
 install makes `planetgen` importable).
 
@@ -121,9 +131,12 @@ Usage:
 """
 
 import argparse
+import contextlib
+import signal
 import sys
 
 from planetgen import tuning
+from planetgen.admin import updateguard
 from planetgen.cli.stage_progress import StageProgress
 from planetgen.util import log, stagemark
 from planetgen.db.sector_paths import compute_sector_paths
@@ -183,6 +196,42 @@ def _stage_label(index):
     return f"{stagemark.marker(index + 1, len(STAGES))}: {STAGES[index]}"
 
 
+class _Cancel:
+    """
+    SIGTERM and SIGINT during a run (the update's cancel, Ctrl+C). Before anything has moved the run stops at once;
+    once the first stage has begun it finishes the whole update of the positions (the rows' epochs, the refiling,
+    the containment and nearest systems, the sector paths, the clock) and only then exits, so a cancel never
+    leaves positions half moved. A second Ctrl+C stops it regardless.
+    """
+
+    def __init__(self):
+        self.moving = False
+        self.requested = False
+        self.previous = {}
+
+    def handle(self, signum, frame):
+        if not self.moving or (self.requested and signum == signal.SIGINT):
+            raise KeyboardInterrupt
+        if not self.requested:
+            print("Cancel requested: finishing this orbital update first so the stored positions stay consistent.",
+                  flush=True)
+        self.requested = True
+
+    def __enter__(self):
+        for signum in (signal.SIGTERM, signal.SIGINT):
+            with contextlib.suppress(ValueError):      # not the main thread
+                self.previous[signum] = signal.signal(signum, self.handle)
+        return self
+
+    def __exit__(self, *exc):
+        for signum, handler in self.previous.items():
+            signal.signal(signum, handler)
+
+
+def _stage_label(index):
+    return f"{stagemark.marker(index + 1, len(STAGES))}: {STAGES[index]}"
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Advance every planet's, moon's, star's, binary system's, and standalone exotic "
@@ -202,78 +251,98 @@ def main():
     config = mysql_config_from_args(args)
 
     try:
+        updateguard.refuse_while_updating("The orbital update")
+    except updateguard.UpdateRunning as exc:
+        print(f"The orbital update did not run and moved nothing: {exc}", file=sys.stderr)
+        sys.exit(updateguard.EX_TEMPFAIL)
+
+    try:
         conn = get_connection(config)
     except Exception as exc:
         print(f"error: could not open the database ({exc}).", file=sys.stderr)
         sys.exit(1)
 
+    cancel = _Cancel()
     try:
-        elapsed_years = get_orbit_update_elapsed_years(conn)
-        if elapsed_years is None:
-            print("No previous orbit update found for this database -- moving what is due since each "
-                  "object was made.")
-        elif elapsed_years < 0:
-            # The server's clock went back since the last run: never move
-            # anything backwards; this run restarts the clock from now.
-            print(f"The last orbit update is {-elapsed_years:.6f} years in the future (the database server's "
-                  "clock moved back?) -- moving nothing and restarting the clock from now.")
-        else:
-            print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing what is due.")
-        clock = orbit_clock(conn)
-        budget = RowBudget(args.row_ceiling)
-        budget.plan(conn, clock)
-
-        # A bar over the steps, with the tables (or sectors) of the step
-        # under way beneath it; the Generate page's job status draws the
-        # same two bars.
-        with StageProgress(len(STAGES), kind="orbits") as bar:
-            bar.stage(_stage_label(0))
-            counts = advance_orbital_phases(conn, clock, on_progress=bar.detail, budget=budget)
-            # A comet's position needs Kepler's or Barker's equation, so it
-            # moves in Python rather than in advance_orbital_phases' SQL.
-            bar.stage(_stage_label(1))
-            counts["comets"] = advance_comet_orbits(conn, clock, budget=budget)
-            counts["facilities"] = advance_facility_orbits(conn, clock, budget=budget)
-
-            # Galactic motion: move what is due along its galactic orbit,
-            # refile what drifted into another sector, then recompute what
-            # depends on position (containment, octants, nearest systems,
-            # location text).
-            bar.stage(_stage_label(2))
-            motion = advance_galactic_positions(conn, clock, on_progress=bar.detail, budget=budget)
-            counts.update(motion["counts"])
-            finish_orbit_update(conn, clock)
-            bar.stage(_stage_label(3))
-            after = refresh_after_motion(conn, motion["sectors"], on_progress=bar.detail)
-            conn.commit()
-            # Paths of every sector holding a star system, rogue planet or comet (they all begin
-            # where their body is now, which just moved), and of the ones that emptied.
-            bar.stage(_stage_label(4))
-            holding = conn.execute(
-                "SELECT sector_id FROM star_systems UNION SELECT sector_id FROM rogue_planets"
-                " UNION SELECT sector_id FROM interstellar_comets").fetchall()
-            sectors = sorted({row["sector_id"] for row in holding}.union(motion["sectors"]) - {None})
-            for done, sector_id in enumerate(sectors, start=1):
-                compute_sector_paths(conn, sector_id)
-                bar.detail("sector paths", done, len(sectors))
-            conn.commit()
-        summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
-        print(f"Updated: {summary} (only what was due).")
-        warning = budget.warning()
-        if warning:
-            print(f"warning: {warning}", file=sys.stderr)
-            log.normal(f"orbit update: {warning}")
-        elif budget.limits:
-            print("Everything that was due fit under the row ceiling.")
-        print(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
-              f"sector. Refreshed nearest systems and containment; rewrote {after['locations']} location(s).")
-        print(f"{after['entered_nebula']} object(s) entered a nebula and {after['left_nebula']} left one; "
-              f"{after['entered_remnant']} entered a supernova remnant and {after['left_remnant']} left one.")
+        with updateguard.running("orbits", "Orbital update"), cancel:
+            _run(conn, cancel, args.row_ceiling)
+        if cancel.requested:
+            print("The cancel request came during the run: the update finished first, so nothing is half moved.")
+    except KeyboardInterrupt:
+        print("Stopped part-way by a second interrupt: run the orbital update again to finish it." if cancel.moving
+              else "Cancelled before any position moved.", file=sys.stderr)
+        sys.exit(130)
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
     finally:
         conn.close()
+
+
+def _run(conn, cancel, row_ceiling):
+    """One orbital update on `conn`; from the first stage on it does not stop for a cancel (`_Cancel`)."""
+    elapsed_years = get_orbit_update_elapsed_years(conn)
+    if elapsed_years is None:
+        print("No previous orbit update found for this database -- moving what is due since each "
+              "object was made.")
+    elif elapsed_years < 0:
+        # The server's clock went back since the last run: never move
+        # anything backwards; this run restarts the clock from now.
+        print(f"The last orbit update is {-elapsed_years:.6f} years in the future (the database server's "
+              "clock moved back?) -- moving nothing and restarting the clock from now.")
+    else:
+        print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing what is due.")
+    clock = orbit_clock(conn)
+    budget = RowBudget(row_ceiling)
+    budget.plan(conn, clock)
+    cancel.moving = True
+
+    # A bar over the steps, with the tables (or sectors) of the step
+    # under way beneath it; the Generate page's job status draws the
+    # same two bars.
+    with StageProgress(len(STAGES), kind="orbits") as bar:
+        bar.stage(_stage_label(0))
+        counts = advance_orbital_phases(conn, clock, on_progress=bar.detail, budget=budget)
+        # A comet's position needs Kepler's or Barker's equation, so it
+        # moves in Python rather than in advance_orbital_phases' SQL.
+        bar.stage(_stage_label(1))
+        counts["comets"] = advance_comet_orbits(conn, clock, budget=budget)
+        counts["facilities"] = advance_facility_orbits(conn, clock, budget=budget)
+
+        # Galactic motion: move what is due along its galactic orbit,
+        # refile what drifted into another sector, then recompute what
+        # depends on position (containment, octants, nearest systems,
+        # location text).
+        bar.stage(_stage_label(2))
+        motion = advance_galactic_positions(conn, clock, on_progress=bar.detail, budget=budget)
+        counts.update(motion["counts"])
+        finish_orbit_update(conn, clock)
+        bar.stage(_stage_label(3))
+        after = refresh_after_motion(conn, motion["sectors"], on_progress=bar.detail)
+        conn.commit()
+        # Paths of every sector holding a star system, rogue planet or comet (they all begin
+        # where their body is now, which just moved), and of the ones that emptied.
+        bar.stage(_stage_label(4))
+        holding = conn.execute(
+            "SELECT sector_id FROM star_systems UNION SELECT sector_id FROM rogue_planets"
+            " UNION SELECT sector_id FROM interstellar_comets").fetchall()
+        sectors = sorted({row["sector_id"] for row in holding}.union(motion["sectors"]) - {None})
+        for done, sector_id in enumerate(sectors, start=1):
+            compute_sector_paths(conn, sector_id)
+            bar.detail("sector paths", done, len(sectors))
+        conn.commit()
+    summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
+    print(f"Updated: {summary} (only what was due).")
+    warning = budget.warning()
+    if warning:
+        print(f"warning: {warning}", file=sys.stderr)
+        log.normal(f"orbit update: {warning}")
+    elif budget.limits:
+        print("Everything that was due fit under the row ceiling.")
+    print(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
+          f"sector. Refreshed nearest systems and containment; rewrote {after['locations']} location(s).")
+    print(f"{after['entered_nebula']} object(s) entered a nebula and {after['left_nebula']} left one; "
+          f"{after['entered_remnant']} entered a supernova remnant and {after['left_remnant']} left one.")
 
 
 if __name__ == "__main__":
