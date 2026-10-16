@@ -188,6 +188,8 @@ Boss named neutron-star pairs. At the default cut they would never be scattered,
 | Any wide companion (over 1,000 AU) of a collapsed object | as stars | as stars | **only for a direct-collapse black hole** |
 | Tertiary of a compact binary | as the star law, outer axis at least the Mardling-Aarseth minimum | as stars | the tree checks; V404 Cygni (axis ratio 25,700) passes |
 
+As built (GEN.261, pinned by GEN.266's tests in `test_gen_compact_orbit_laws.py`): every row of this table is in `multistar._Builder` (`law`, `period_days`, `eccentricity`, `place`): a pairing of a compact object with a star uses the `interacted` law (`INTERACTED_PERIOD_DAYS`), a pairing of two compact objects the `compact-pair` law (`COMPACT_PAIR_AXIS_AU`, `COMPACT_PAIR_CIRCULAR_BELOW_AU`, the Peters filter), a wide companion of a hole that did not collapse directly is capped at `WIDE_COMPACT_AXIS_AU`, and every other pair, a tertiary included, takes the star law. The relativistic quench is in `stability.kozai_verdict`.
+
 ## 5. The stored form
 
 The placed object stays the scatter row (nothing about a row without companions changes). A row with companions gains columns and child rows:
