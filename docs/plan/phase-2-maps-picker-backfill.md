@@ -79,7 +79,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
-| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.262, GEN.264, GEN.266, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
+| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.262, GEN.264, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | GEN.276, NAV.60 | Spherical region query, stage C. Step 8. Quality. |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | GEN.251, GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 9. Quality. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
@@ -181,11 +181,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
 | GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 17. Core. |
-| GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | GEN.269, GEN.266 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
+| GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
-| GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 7. Core. |
 | PERF.104 | Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates |  |  |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | GEN.262 | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
@@ -315,7 +314,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
 | GEN.129 | Multi-star systems of up to twelve stars |  | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
-| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.251, GEN.266 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
+| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
