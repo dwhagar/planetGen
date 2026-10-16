@@ -58,6 +58,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 from pydantic import Field, TypeAdapter, ValidationError
 
 from planetgen.queue import api_jobs, progress_rate
+from planetgen.web import limit_sliders
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
@@ -338,10 +339,39 @@ def mass_limit_argv(form):
     return ["--phenomenon-min-mass", f"{value:g}"] + compact_limit_argv(form)
 
 
+LIMIT_OPTIONS = (
+    (limit_sliders.CORE_FLOOR, "--core-min-luminosity"),
+    (limit_sliders.CORE_MASS, "--core-mass-limit"),
+    (limit_sliders.HALO_FLOOR, "--halo-min-luminosity"),
+    (limit_sliders.CELL_CEILING, "--cell-star-ceiling"),
+    (limit_sliders.FILL_CAP, "--fill-luminosity-cap"),
+)
+"""tuple: The limits a plan stores with the galaxy (UX.116): each slider and the `planetgen plan` option it sets."""
+
+
+def limits_argv(form):
+    """
+    The plan options for the core, halo and dense-cell limits (UX.116): a number inside its slider's range, blank
+    leaving the default. The core's two follow the galaxy-wide limits while "Follow the galaxy-wide limits" is
+    ticked, and then give no option.
+
+    Raises:
+        FormError: A value that isn't a number inside the slider's range.
+    """
+    argv = []
+    for slider, flag in LIMIT_OPTIONS:
+        if slider.name.startswith("core_") and form.get("core_follow"):
+            continue
+        value = _number(form, slider.name, slider.label, float, minimum=slider.low, maximum=slider.high)
+        if value is not None:
+            argv += [flag, limit_sliders.plain(value)]
+    return argv
+
+
 def plan_argv(form):
     """`planetgen plan` arguments from the Plan fields (blank means
-    the default), and the mass limit."""
-    argv = mass_limit_argv(form)
+    the default), the mass limit and the limits stored with the galaxy (`limits_argv`)."""
+    argv = mass_limit_argv(form) + limits_argv(form)
     for name, flag, label, kind, _default, minimum, maximum in PLAN_FIELDS:
         value = _number(form, name, label, kind, minimum=minimum, maximum=maximum, exclusive_max=True)
         if value is not None:
@@ -1151,6 +1181,13 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         prevalence_fields=PREVALENCE_FIELDS,
         star_mix_fields=STAR_MIX_FIELDS,
         directive_fields=DIRECTIVE_FIELDS,
+        sliders=limit_sliders.SLIDERS,
+        core_factor=tuning.CORE_TIER_FACTOR,
+        core_factor_percent=round(tuning.CORE_TIER_FACTOR * 100),
+        core_floor_default=round(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL * tuning.CORE_TIER_FACTOR, 6),
+        core_mass_default=round(tuning.PHENOMENON_MIN_MASS_SOLAR * tuning.CORE_TIER_FACTOR, 6),
+        seconds_per_system=tuning.CELL_SECONDS_PER_SYSTEM,
+        bytes_per_system=tuning.CELL_BYTES_PER_SYSTEM,
         bright_min_luminosity=tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         bright_floor_presets=luminosity_floor.PRESETS,
         bright_threshold_label=BRIGHT_THRESHOLD_LABEL,
