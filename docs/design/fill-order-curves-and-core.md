@@ -513,6 +513,14 @@ a special-case object (a nuclear cluster phenomenon with a statistical star
 population and Sgr A* as a black hole), not a sector fill. Ring 0 slot 0
 already holds the black-hole nucleus (`add_galactic_nucleus`).
 
+**Decision (Boss, 2026-10-10, defaults approved; GEN.155 closed):** leave the
+model alone. The Sgr A* sector keeps the black-hole nucleus
+(`add_galactic_nucleus`) and the ordinary fill, with the density the model
+gives it, which is far below the real 1e6 to 1e7 stars. There is no
+nuclear-cluster object. Reopen it as a new item if the real galactic centre is
+ever wanted; the shape above (a statistical star population around Sgr A* as
+one phenomenon, not a sector fill) is where to start.
+
 ### 4.3 Time and storage for the core fill
 
 Speeds are the PERF.3 defaults (`DEFAULT_SECONDS_PER_SYSTEM` = 0.2 s,
