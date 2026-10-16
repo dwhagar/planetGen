@@ -2,6 +2,72 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1492] - 2026-10-16
+
+**Headline:** The to-do list records the new migration revision order: 0096 magnetar CHECK, 0097 galactic core, 0098 globular-cluster component table.
+
+### Changed
+
+- Updated GEN.153, GEN.159, GEN.237, GEN.280, GEN.281, GEN.283, GEN.289 and GEN.294 with the revision numbers Core 1 reassigned (GEN.237 reuses the GEN.159 component table and takes the next free number).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1491] - 2026-10-16
+
+**Headline:** The to-do list retires the stored star metallicity (GEN.158) and files the uncharted-star panel gap.
+
+### Changed
+
+- Retired GEN.158 (#1789), added notes on GEN.159, GEN.236 and GEN.269, and filed GEN.296 (the uncharted-star panel shows [Fe/H]).
+
+TODO items resolved: GEN.158 / Added: GEN.296
+
+## [8.0.1490] - 2026-10-16
+
+**Headline:** Every star now has a stored metallicity, and the sector map shows it.
+
+### Changed
+- Migration 0095 adds `metallicity_fe_h` (DOUBLE, nullable) to `stars` and `bright_stars`: the star's [Fe/H] in dex against the Sun. A scattered star draws its own at scatter time from its population and its distance from the galactic centre, on a stream of its own seed, so no other scatter draw moves; the fill that builds its system keeps it, and the two stars of a binary share one. Rows made before 0095 hold NULL, and so does a cluster star until the cluster table (GEN.159) gives it its cluster's value; a star built from a NULL draws its own as it did before.
+- The info panel of a star on the Sector Map and in an opened sector now has a "Metallicity [Fe/H]" row (for example "−0.12 dex") when one is stored.
+- `store.BRIGHT_STAR_COLUMNS` ends with `metallicity_fe_h`, so a scatter row has one more value.
+
+TODO items resolved: GEN.158 (the stored column and the display) / Added: none
+
+## [8.0.1489] - 2026-10-16
+
+**Headline:** The to-do list retires MAP.211, the information page for hypervelocity and scattered objects.
+
+### Changed
+
+- Retired MAP.211 (#1787) and removed it from the goal table; the MAP.211 issue (#1749) closes.
+
+TODO items resolved: MAP.211 / Added: none
+
+## [8.0.1488] - 2026-10-16
+
+**Headline:** Every uncharted phenomenon, hypervelocity stars included, now has a page you can open, and a generated one takes you to what was made.
+
+### Added
+- **A page for an uncharted phenomenon.** A black hole, neutron star, supernova remnant, planetary nebula, quasar or hypervelocity star the scatter placed in a sector that is not generated had no page, so the Phenomena list showed it greyed out and the maps offered nothing to open. The list rows are now links, and so is the "View phenomenon" button in the Galaxy Map's info panel and in an opened uncharted sector. The page shows what the scatter drew: the class, mass when stored, distance from the Galactic Center, sector cell and position.
+- **What kind of star a hypervelocity star is.** Its page says it will be a young B-type main-sequence star of about 15,000 K and 2,000 solar luminosities (the real star is drawn when its sector is generated), its speed, how long it has been in flight from the central black hole, and where it was ejected from. The opened uncharted sector shows the same type and speed in its info panel.
+- **`GET /api/uncharted-phenomena/<id>`** answers the same data for a scatter row.
+
+### Changed
+- **Once the sector is generated, the page sends you on.** A hypervelocity star opens its star system and any other kind opens its phenomenon page. The object is found by what it kept (the hypervelocity system with the row's speed, or the nearest object of its kind in the sector); if none matches, the page says so.
+- The Phenomena API's scattered rows carry a `scatter_id` beside their `id`.
+
+TODO items resolved: MAP.211 / Added: none
+
+## [8.0.1487] - 2026-10-16
+
+**Headline:** The to-do list retires the sector profile (GEN.235) and files a new flaky-test bug.
+
+### Changed
+
+- Retired GEN.235 (#1784) and added build notes on GEN.236, GEN.237, GEN.283, API.27, UX.113 and DOC.48; filed TEST.171 (a resume test that failed once under load) and added a sighting to TEST.163.
+
+TODO items resolved: GEN.235 / Added: TEST.171
+
 ## [8.0.1486] - 2026-10-16
 
 **Headline:** Any sector in the grid's reach can be asked for and is generated from a profile of its place, in the disk or out in the halo.

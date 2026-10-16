@@ -53,10 +53,16 @@ export function infoSpec(entry, data, navPick) {
   var spec = { title: entry.name || "Unknown", nav: [], links: [] };
   if (entry.uncharted) {
     // Left by a scatter in a sector nothing was generated in (MAP.162): it has no
-    // page, bookmark or NAV endpoint until the sector is made.
+    // bookmark or NAV endpoint until the sector is made.
     spec.fields = entry.kind
       ? [["Type", entry.typeLabel], ["Distance", entry.distanceText], ["Status", UNCHARTED_NOTE]]
-      : [["Star type", entry.starType], ["Temperature", entry.temp], ["Status", UNCHARTED_NOTE]];
+      : (entry.typeLabel ? [["Type", entry.typeLabel]] : []).concat([["Star type", entry.starType], ["Temperature", entry.temp]],
+        entry.speedText ? [["Speed", entry.speedText]] : [], [["Status", UNCHARTED_NOTE]]);
+    // MAP.211: a scattered phenomenon has a page of what is known of it (the star it will be, its speed, its
+    // origin); a bright star waiting for its sector has none.
+    if (entry.href && !picking) {
+      spec.links.push({ href: entry.href, label: "View phenomenon →" });
+    }
     return spec;
   }
   if (entry.kind) {
@@ -68,8 +74,8 @@ export function infoSpec(entry, data, navPick) {
     }
     return spec;
   }
-  spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Octant", entry.quadrant],
-    ["Location", entry.location]];
+  spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Metallicity [Fe/H]", entry.metallicity],
+    ["Octant", entry.quadrant], ["Location", entry.location]];
   spec.bookmark = endpointBookmark(entry.endpoint, entry.name, entry.href);
   if (navPick) spec.nav = navPick.actionsFor(entry.endpoint, entry.name);
   if (!picking) {

@@ -83,6 +83,7 @@ from planetgen.db.query import (
     nav_course,
     open_readonly,
     phenomenon_detail as query_phenomenon_detail,
+    scattered_phenomenon_detail as query_scattered_phenomenon_detail,
     resolve_object,
     nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
@@ -1170,6 +1171,20 @@ def phenomenon(phenomenon_type, phenomenon_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(detail)
+
+
+@bp.route("/uncharted-phenomena/<int:scatter_id>")
+def uncharted_phenomenon(scatter_id):
+    """
+    `GET /api/uncharted-phenomena/<id>` -- one scattered phenomenon by its `phenomenon_scatter` row (MAP.211):
+    what is known of a black hole, neutron star, remnant, planetary nebula, quasar or hypervelocity star
+    before its sector is generated, and once it is, the object it became (`db.query.scattered_phenomenon_detail`).
+    404 for an id that is no row.
+    """
+    try:
+        return jsonify(query_scattered_phenomenon_detail(get_db(), scatter_id))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
 
 
 @bp.route("/objects/<ref>")

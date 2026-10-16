@@ -733,6 +733,12 @@ def get_phenomenon(db, phenomenon_type, phenomenon_id):
     return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
+def get_uncharted_phenomenon(db, scatter_id):
+    """Returns `GET /api/uncharted-phenomena/<id>`'s dict -- see `db.query.scattered_phenomenon_detail`."""
+    _require_db(db)
+    return _request(f"/uncharted-phenomena/{int(scatter_id)}", {"db": db})
+
+
 def get_object(db, ref):
     """Returns `GET /api/objects/<ref>`'s dict (kind, name, parent chain,
     sibling references, positions) -- see `db.query.resolve_object`."""

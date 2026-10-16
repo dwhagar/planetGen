@@ -154,7 +154,7 @@ def _add_bright_stars(config, count=300):
             point = (r * math.cos(theta), r * math.sin(theta), rng.uniform(-30.0, 30.0))
             rows.append((*sector_address_at(point, edge_pc), *(int(round(v * 1000)) for v in point), "young", "B",
                          "III", 2e31, 1e7, rng.uniform(3000.0, 30000.0), rng.uniform(500.0, 1e6) * 3.82e26,
-                         0.05, 0.1, 10.0, None, 1))
+                         0.05, 0.1, 10.0, None, 1, None))
         store.insert_bright_stars(conn, rows)
         conn.commit()
     finally:
@@ -189,6 +189,22 @@ def _add_population(config):
         polity_id = conn.execute("SELECT id FROM polities WHERE species_id = ?", (species_id,)).fetchone()["id"]
         conn.execute("REPLACE INTO system_owners (star_system_id, polity_id, distance_ly) VALUES (?, ?, 0)",
                      (planet["star_system_id"], polity_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+SCATTER_SEED = 424242
+"""int: The seed of the one unbuilt scattered black hole the sample galaxy holds (`_add_scattered_phenomenon`)."""
+
+
+def _add_scattered_phenomenon(config):
+    """One unbuilt scattered black hole, so the uncharted phenomenon page (MAP.211) has a row to show."""
+    conn = store.get_connection(config)
+    try:
+        store.insert_phenomenon_scatter(conn, [(7, 2, 3, "black-hole", "stellar", 30000, 40000, 0,
+                                                None, None, None, SCATTER_SEED, None, None)])
+        store.record_phenomenon_scatter_classes(conn, {("black-hole", "stellar"): 1})
         conn.commit()
     finally:
         conn.close()
@@ -238,6 +254,7 @@ def site_db(_mysql_server_available):
             for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
             _add_population(config)
+            _add_scattered_phenomenon(config)
         finally:
             draw.setstate(state)
         yield config
@@ -361,6 +378,11 @@ def sample_params(site_app, sample_job, sample_job_tree):
     sample_system = (with_bodies or systems)[0]   # the pages' sample system has planets for the body-row tests
     phenomena = items("/api/phenomena?limit=100")
     phenomenon = phenomena[0]
+    conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
+    try:
+        scatter_id = conn.execute("SELECT id FROM phenomenon_scatter WHERE seed = ?", (SCATTER_SEED,)).fetchone()["id"]
+    finally:
+        conn.close()
     return {
         "sector_id": sector["id"],
         "system_id": sample_system["id"],
@@ -368,6 +390,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "to_id": systems[-1]["id"],
         "phenomenon_type": phenomenon["type"],
         "phenomenon_id": phenomenon["id"],
+        "scatter_id": scatter_id,  # web.uncharted_phenomenon
         "quadrant": "I",
         "page": 1,
         "job_id": sample_job,

@@ -1781,7 +1781,8 @@ def sector_detail(conn, sector_id):
     nearest = nearest_systems(conn, "star_systems", [row["id"] for row in system_rows])
     stars_by_system = {}
     for star in conn.execute(
-        "SELECT st.star_system_id, st.role, st.name, st.star_type, st.temperature_k, st.radius_km, st.luminosity_w"
+        "SELECT st.star_system_id, st.role, st.name, st.star_type, st.temperature_k, st.radius_km, st.luminosity_w,"
+        " st.metallicity_fe_h"
         " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?"
         " ORDER BY st.star_system_id, CASE st.role WHEN 'secondary' THEN 1 ELSE 0 END, st.id",
         (sector_id,),
@@ -2137,7 +2138,7 @@ def _scattered_page(conn, classes, limit, offset):
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
     return [
-        {"id": row["id"], "type": by_class[(row["kind"], row["subtype"])]["type"],
+        {"id": row["id"], "scatter_id": row["id"], "type": by_class[(row["kind"], row["subtype"])]["type"],
          "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}."
                  f"{row['wedge_index']}",
          "descriptor": by_class[(row["kind"], row["subtype"])]["descriptor"], "radius_ly": 0.0,
@@ -2691,6 +2692,106 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
                 "SELECT component FROM interstellar_comet_composition"
                 " WHERE comet_id = ? ORDER BY position", (phenomenon_id,)).fetchall()
         ]
+    return detail
+
+
+_SCATTER_BUILT_TABLES = {
+    "black-hole": ("black_holes", "black_hole", "AND star_id IS NULL"),
+    "neutron-star": ("neutron_stars", "neutron_star", "AND star_id IS NULL"),
+    "supernova-remnant": ("supernova_remnants", "supernova_remnant", ""),
+    "planetary-nebula": ("nebulae", "nebula", ""),
+    "quasar": ("quasars", "quasar", ""),
+}
+"""dict: A `phenomenon_scatter` kind -> `(table, phenomenon type, extra WHERE)` of the object a sector's save makes
+from a row of that kind."""
+
+SCATTER_BUILT_MATCH_PC = 0.05
+"""float: How far (parsecs) a built object's centre may be from its scatter row's point and still be that row's."""
+
+
+def _scattered_built_target(conn, row):
+    """
+    The object a built scatter row became, as `{"kind", "id", "name"}` (`kind` is a phenomenon type, or `"system"`
+    for a hypervelocity star), or `None` when it cannot be found. The save does not link the two, so the object
+    is found by what it kept: a hypervelocity star is the sector's hypervelocity system with the row's speed
+    (the speed is a continuous draw, so two never match), every other kind the nearest object of its table in the
+    sector, within `SCATTER_BUILT_MATCH_PC` of the row's point.
+    """
+    sector = conn.execute(
+        "SELECT id FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? ORDER BY id LIMIT 1",
+        (row["shell_index"], row["band_index"], row["wedge_index"])).fetchone()
+    if sector is None:
+        return None
+    if row["kind"] == "hypervelocity-star":
+        speed = math.sqrt(sum((row[f"velocity_{axis}_kms"] or 0.0) ** 2 for axis in "xyz"))
+        found = conn.execute(
+            "SELECT id, name FROM star_systems WHERE sector_id = ? AND runaway_class = 'hypervelocity'"
+            " AND ABS(runaway_speed_kms - ?) <= ? ORDER BY ABS(runaway_speed_kms - ?), id LIMIT 1",
+            (sector["id"], speed, 1e-6 * max(speed, 1.0), speed)).fetchone()
+        return None if found is None else {"kind": "system", "id": found["id"], "name": found["name"]}
+    entry = _SCATTER_BUILT_TABLES.get(row["kind"])
+    if entry is None:
+        return None
+    table, phenomenon_type, extra = entry
+    point = [row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz"]
+    candidates = conn.execute(
+        f"SELECT id, name, center_x_pc, center_y_pc, center_z_pc FROM {table} WHERE sector_id = ? {extra}"
+        " AND center_x_pc IS NOT NULL", (sector["id"],)).fetchall()
+    best = min(
+        ((math.dist(point, (c["center_x_pc"], c["center_y_pc"], c["center_z_pc"])), c) for c in candidates),
+        key=lambda pair: (pair[0], pair[1]["id"]), default=None)
+    if best is None or best[0] > SCATTER_BUILT_MATCH_PC:
+        return None
+    return {"kind": phenomenon_type, "id": best[1]["id"], "name": best[1]["name"]}
+
+
+def scattered_phenomenon_detail(conn, scatter_id):
+    """
+    One `phenomenon_scatter` row as a page needs it (MAP.211): an uncharted black hole, neutron star, remnant,
+    planetary nebula, quasar or hypervelocity star has no table row yet, so this is its page.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        scatter_id (int): The row's id.
+
+    Returns:
+        dict: `id`, `kind`, `subtype`, `type` (as `_SCATTER_TYPES`), `built` (bool), `address` (`[shell, band,
+            wedge]`), `x`/`y`/`z` (galaxy-frame parsecs), `distance_from_core_pc`, `mass_solar` (or `None`), and
+            for a row with a velocity `speed_kms`, `direction` (a unit vector) and `flight_years` (the time to
+            fly its distance from the core at that speed, the age bound of a star ejected from the centre). A
+            built row also has `target`: `{"kind", "id", "name"}` of what it became (`"system"` for a
+            hypervelocity star), or `None` when that cannot be found. `sector_id`/`sector_name` are those of its
+            cell when that is charted.
+
+    Raises:
+        ValueError: If no such row exists.
+    """
+    row = conn.execute("SELECT * FROM phenomenon_scatter WHERE id = ?", (int(scatter_id),)).fetchone()
+    if row is None:
+        raise ValueError(f"no phenomenon_scatter row with id {scatter_id}")
+    point = [row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz"]
+    distance_pc = math.sqrt(sum(value * value for value in point))
+    detail = {
+        "id": row["id"], "kind": row["kind"], "subtype": row["subtype"],
+        "type": _SCATTER_TYPES.get(row["kind"], row["kind"]), "built": row["built_at"] is not None,
+        "address": [row["shell_index"], row["band_index"], row["wedge_index"]],
+        "x": point[0], "y": point[1], "z": point[2], "distance_from_core_pc": distance_pc,
+        "mass_solar": row["mass_solar"],
+    }
+    velocity = [row[f"velocity_{axis}_kms"] for axis in "xyz"]
+    if all(value is not None for value in velocity):
+        speed = math.sqrt(sum(value * value for value in velocity))
+        detail["speed_kms"] = speed
+        detail["direction"] = [value / speed for value in velocity] if speed > 0.0 else None
+        if speed > 0.0:
+            detail["flight_years"] = distance_pc * constants.PARSEC_M / (speed * 1000.0) / constants.SECONDS_PER_YEAR
+    sector = conn.execute(
+        "SELECT id, name FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? ORDER BY id LIMIT 1",
+        (row["shell_index"], row["band_index"], row["wedge_index"])).fetchone()
+    detail["sector_id"] = None if sector is None else sector["id"]
+    detail["sector_name"] = None if sector is None else sector["name"]
+    if detail["built"]:
+        detail["target"] = _scattered_built_target(conn, row)
     return detail
 
 
@@ -3836,7 +3937,8 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
         stars = []
     rows = conn.execute(
         """
-        SELECT id, kind, subtype, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc
+        SELECT id, kind, subtype, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc,
+               velocity_x_kms, velocity_y_kms, velocity_z_kms
         FROM phenomenon_scatter
         WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND built_at IS NULL
         ORDER BY id
@@ -3848,7 +3950,9 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
         {"id": row["id"], "kind": row["kind"], "subtype": row["subtype"],
          "type": _SCATTER_TYPES.get(row["kind"], row["kind"]), "mass_solar": row["mass_solar"],
          "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
-         "z": row["position_z_mpc"] / MPC_PER_PC}
+         "z": row["position_z_mpc"] / MPC_PER_PC,
+         "speed_kms": None if row["velocity_x_kms"] is None else math.sqrt(
+             row["velocity_x_kms"] ** 2 + row["velocity_y_kms"] ** 2 + row["velocity_z_kms"] ** 2)}
         for row in rows
     ]
     return {"stars": stars, "scattered": scattered}

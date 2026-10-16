@@ -28,6 +28,7 @@ from planetgen.web.lib.fmt import (
     nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table
+from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
 from planetgen.web.maps.systemmap import render_system_map_panel
@@ -457,7 +458,8 @@ def _phenomena_load(state, limit, offset, want_facets):
         db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
         facets=want_facets, **filters)
     rows = [[
-        {"text": row["name"], "muted": True} if row["scattered"] else
+        {"text": row["name"], "href": page_url("uncharted_phenomenon", scatter_id=row["scatter_id"])}
+        if row["scattered"] else
         {"text": row["name"], "href": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])},
         {"text": TYPE_LABELS.get(row["type"], row["type"])},
         {"text": _title_case(row["descriptor"])},
@@ -501,6 +503,83 @@ def phenomena():
         description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.",
         table=table,
         total=table["total"],
+    )
+
+
+_SCATTER_SUBTYPE_NOTES = {
+    "supermassive": "a supermassive black hole",
+    "intermediate": "an intermediate-mass black hole",
+    "stellar": "a stellar-mass black hole",
+}
+
+_SCATTER_ORIGINS = {
+    "hypervelocity_star": "Ejected from the central black hole, flying outward",
+}
+
+
+def _uncharted_fields(detail):
+    """`[(label, text, url)]` for an uncharted phenomenon's data table (MAP.211): what the scatter drew and
+    nothing it has not. A star's own spectral class, mass and luminosity are drawn when its sector is made."""
+    kind = detail["type"]
+    subtype = detail.get("subtype")
+    label = TYPE_LABELS.get(kind, kind)
+    fields = [("Type", f"{label} ({_title_case(subtype)})" if subtype else label, None),
+              ("Status", "Uncharted: its sector has not been generated, so it has no record of its own yet", None)]
+    if kind == "hypervelocity_star":
+        star = HYPERVELOCITY_EXPECTED_STAR
+        fields.append((
+            "Expected star",
+            Markup(f"{star['star_type']}-type, a young main-sequence star of about "
+                   f"{_kelvin(star['temperature_k'])} and {format_number(star['luminosity_sol'], ',.0f')} "
+                   "solar luminosities; the star itself is drawn when its sector is generated"), None))
+    if detail.get("mass_solar") is not None:
+        fields.append(("Mass", _solar_mass(detail["mass_solar"]), None))
+    if detail.get("speed_kms") is not None:
+        fields.append(("Speed", speed_kms_html(detail["speed_kms"]), None))
+        if detail.get("flight_years"):
+            fields.append(("Time in flight", period_years_html(detail["flight_years"]), None))
+    if kind in _SCATTER_ORIGINS:
+        fields.append(("Origin", _SCATTER_ORIGINS[kind], None))
+    shell, band, wedge = detail["address"]
+    fields.append(("Sector cell", f"Shell {shell}, band {band}, wedge {wedge}", None))
+    fields.append(("Position x, y, z", ", ".join(format_number(detail[axis], ",.1f") for axis in "xyz") + " pc", None))
+    return fields
+
+
+@bp.route("/uncharted-phenomenon/<int:scatter_id>")
+def uncharted_phenomenon(scatter_id):
+    """
+    A phenomenon the scatter placed (MAP.211). While its sector is not generated this is its page: what is known
+    of it, with the kind of star a hypervelocity star will be. Once the sector is generated it is the object
+    itself, so the page sends the visitor to that object's page: the star system for a hypervelocity star, the
+    phenomenon page for anything else.
+    """
+    try:
+        detail = apiclient.get_uncharted_phenomenon(db_name(), scatter_id)
+    except apiclient.NotFoundError:
+        abort(404)
+    target = detail.get("target")
+    if detail["built"] and target:
+        if target["kind"] == "system":
+            return redirect(page_url("system", system_id=target["id"]), code=302)
+        return redirect(page_url("phenomenon", phenomenon_type=target["kind"], phenomenon_id=target["id"]), code=302)
+    label = TYPE_LABELS.get(detail["type"], detail["type"])
+    name = f"{label} (uncharted)" if not detail["built"] else f"{label} (generated)"
+    sector = None
+    if detail.get("sector_id") is not None:
+        sector = {"name": detail.get("sector_name") or "Sector", "url": page_url("sector", sector_id=detail["sector_id"])}
+    return render_page(
+        "uncharted_phenomenon.html",
+        title=name,
+        section="phenomena",
+        breadcrumbs=[crumb("Phenomena", "phenomena"), crumb(name)],
+        description=f"{name}, scattered across this galaxy and not yet generated.",
+        type_label=label,
+        distance=quantity_html("length", detail["distance_from_core_pc"], physical_constants.PARSEC_M),
+        sector=sector,
+        built_note=None if not detail["built"] else
+        "Its sector has been generated, but this record could not be matched to what was made from it.",
+        fields=_uncharted_fields(detail),
     )
 
 
