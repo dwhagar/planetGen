@@ -48,7 +48,7 @@ const UNCHARTED_NOTE = "Uncharted: its sector is not charted yet";
 // being picked; without one the panel has neither.
 export function infoSpec(entry, data, navPick) {
   if (entry.isNeighbor) {
-    return neighborSpec(entry, data);
+    return neighborSpec(entry, data, navPick);
   }
   var picking = !!(navPick && navPick.active());
   var spec = { title: entry.name || "Unknown", nav: [], links: [] };
@@ -73,6 +73,7 @@ export function infoSpec(entry, data, navPick) {
     if (!picking) {
       spec.links.push({ href: entry.href, label: "View phenomenon →" });
     }
+    if (navPick) spec.links = spec.links.concat(navPick.nearbyLinks(entry.key)); // NAV.45
     return spec;
   }
   spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Metallicity [Fe/H]", entry.metallicity],
@@ -82,10 +83,11 @@ export function infoSpec(entry, data, navPick) {
   if (!picking) {
     spec.links.push({ href: entry.href, label: "View system →" });
   }
+  if (navPick) spec.links = spec.links.concat(navPick.nearbyLinks(entry.endpoint)); // NAV.45
   return spec;
 }
 
-function neighborSpec(entry, data) {
+function neighborSpec(entry, data, navPick) {
   var fields = [["Address", formatAddress(entry.shellIndex, entry.bandIndex, entry.wedgeIndex)],
     ["Designation", entry.designation]];
   if (entry.brightStarCount) {
@@ -100,6 +102,8 @@ function neighborSpec(entry, data) {
       sectorId: entry.sectorId != null ? entry.sectorId : null,
     };
     spec.links = [{ href: entry.href, label: "View sector →" }];
+    // NAV.45
+    if (navPick && entry.sectorId != null) spec.links = spec.links.concat(navPick.nearbyLinks("sector:" + entry.sectorId));
   } else if (data && data.generate) {
     spec.generate = generateButtons(data.generate, entry.shellIndex, entry.bandIndex, entry.wedgeIndex, data.edgeLy);
   }

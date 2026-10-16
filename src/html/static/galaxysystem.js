@@ -128,6 +128,8 @@ export function createSystemStage(host) {
     return {
       title: entry.name,
       fields: fields,
+      // NAV.45: what is within 10 pc of this body.
+      links: host.navPick ? host.navPick.nearbyLinks(entry.ref) : [],
       buttons: [
         { label: "Fly to", onClick: function () { host.flyTo(entry); } },
         {

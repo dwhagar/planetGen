@@ -51,7 +51,7 @@ from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
 )
 from .nav_page import endpoint, nav_url
-from .nearby_page import nearby_url
+from .nearby_page import DEFAULT_DISTANCE_PC, nearby_url
 
 # ---------------------------------------------------------------------
 # /system/<id>
@@ -113,20 +113,26 @@ def pick_nav(kind, entity_id, args):
     return {"pick": back, "pickLabel": pick["label"]}, pick
 
 
-def body_nav(args):
+def body_nav(args, course=True):
     """
-    The NAV buttons a body's info panel on the System Map gets (NAV.50), as
-    URL templates with `{ref}` where the body's object reference goes
-    (`static/systemnav.js`): `take` and `label` while a NAV start or
-    destination is being picked (`?pick=from|to`), else `start` and `end`.
+    The links a body's info panel on the System Map gets, as URL templates
+    with `{ref}` where the body's object reference goes (`static/systemnav.js`):
+    the NAV buttons (NAV.50), `take` and `label` while a NAV start or
+    destination is being picked (`?pick=from|to`), else `start` and `end`,
+    and the "What's within N pc" link (`nearby`, `nearby-label`, NAV.45),
+    which a course being picked leaves out. `course=False` (a system with no
+    sector, which NAV cannot measure from) gives the nearby link alone.
     """
     from .sector_page import _pick_mode
 
     token = "__REF__"
-    pick = _pick_mode(args)
+    pick = _pick_mode(args) if course else None
+    nearby = {"nearby": nearby_url(token, DEFAULT_DISTANCE_PC).replace(token, "{ref}"),
+              "nearby-label": f"What’s within {DEFAULT_DISTANCE_PC} pc"}
     if pick is None:
-        return {"start": nav_url(origin=token).replace(token, "{ref}"),
-                "end": nav_url(destination=token).replace(token, "{ref}")}
+        nav = ({"start": nav_url(origin=token).replace(token, "{ref}"),
+                "end": nav_url(destination=token).replace(token, "{ref}")} if course else {})
+        return {**nav, **nearby}
     url = (nav_url(origin=token, destination=pick["other"]) if pick["pick"] == "from"
            else nav_url(origin=pick["other"], destination=token))
     return {"take": url.replace(token, "{ref}"), "label": pick["label"]}
@@ -303,7 +309,7 @@ def system(system_id):
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
                                            facilities=facilities,
                                            scene_url=page_url("system_scene", system_id=system_id),
-                                           nav=body_nav(request.args) if detail["sector_id"] is not None else None)
+                                           nav=body_nav(request.args, course=detail["sector_id"] is not None))
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)

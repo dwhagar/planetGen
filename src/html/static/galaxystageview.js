@@ -1249,6 +1249,7 @@ export function createStageView(host) {
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
     accentColor: host.accentColor || "#4f5fe8",
     fetchScene: host.fetchSystemScene, showInfo: host.showInfo || function () {}, viewport: host.viewport || null,
+    navPick: host.navPick || null,
     flyTo: function (entry) { flyToBody(entry); },
     setMode: function (mode) { setSystemMode(mode); },
     deselected: function () { host.showHint(hintFor(resolved)); },
