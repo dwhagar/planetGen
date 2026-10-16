@@ -2,6 +2,38 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1470] - 2026-10-16
+
+**Headline:** The to-do list files the design question of nebulae as point groups whose shape follows the orbital update.
+
+### Changed
+
+- Filed GEN.295 (design and research, Phase 3, no lane): should a nebula be a group of points with mass and movement vector whose shape changes as orbits update, with the point count and storage cost, how the shape and bounds are derived, what point-mass gravity cannot capture and the timescale problem. Boss's question of 1:01 AM EDT. It follows GEN.294, GEN.109 and GEN.292.
+
+TODO items resolved: none / Added: GEN.295
+
+## [8.0.1469] - 2026-10-16
+
+**Headline:** The to-do list retires GEN.265, built by the system member tree change.
+
+### Changed
+
+- Retired GEN.265 (the nightly motion of a multi-star system from its stored member tree), done by #1766, and removed it from the goal table. Noted on GEN.109 that its influence rule reads the stored point masses of a scatter system.
+
+TODO items resolved: GEN.265 / Added: none
+
+## [8.0.1468] - 2026-10-16
+
+**Headline:** A scattered multi-star system moves as one point and its members are placed from their stored orbits.
+
+### Changed
+
+- A scattered system's barycentre is its scatter point and moves with the nightly update like every other point; the update writes no member or node row.
+- A member's position at any time is the barycentre plus the offsets of the stored orbit tree, each orbit's phase read from its epoch and period (`planetgen/physics/system_tree.py`).
+- `planetgen/db/scatter_systems.py` stores, reads and places a drawn tree under a `bright_stars` or `phenomenon_scatter` row, and gives the mass a point carries for the influence rule (the system's mass where it has members).
+
+TODO items resolved: GEN.265. Added: none.
+
 ## [8.0.1467] - 2026-10-16
 
 **Headline:** The to-do list retires GEN.234, built by the measured stellar halo change.
