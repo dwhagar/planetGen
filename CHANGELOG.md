@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1551] - 2026-10-16
+
+**Headline:** On the Galaxy Map a double click on a star, cloud or body flies the camera to it.
+
+### Changed
+- A double click on a star, phenomenon or body in an opened sector flies the camera to look at it, near enough to see its system (a star), or filling most of the view (a cloud or body), as near as the zoom allows. A selected object's panel has a "Go to" button that does the same, and so does Enter when no choice is lit. A double click on a block or on empty space does what two clicks did.
+
 ## [8.0.1550] - 2026-10-16
 
 **Headline:** The settings writer, the backup archive and the one configuration file (ADM.83, ADM.87, ADM.96) are retired after the merge.
