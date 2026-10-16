@@ -3050,13 +3050,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/placement-by-population.md. The build follows in its own PR
   and covers 3.1 (close pairs by [Fe/H], every mass) and 3.3 (the derived
   wide-pair limit). Section 3.2, massive multiples sitting in young
-  regions through `prevalence`, is NOT in that PR: it belongs with the
-  multi-star items (GEN.269, GEN.270 to GEN.275). GEN.103 stays open for
-  3.2, and when the build merges Core 4 says so and the TODO thread moves
-  3.2 to the multi-star item that builds it. Open constant: the cap on
-  `prevalence` (a design default, not a value from a source; the note
-  asks Boss, and under the no-fixed-content rule Core 4 proposes a derived
-  value first).
+  regions through `prevalence`, is NOT in that PR: it is GEN.373, with the
+  multi-star items (GEN.269, GEN.270 to GEN.275), and its cap on the rise
+  is the open constant (a design default, not a value from a source).
+  GEN.103 closes when the 3.1 and 3.3 build merges. The metallicity
+  effect applies to every mass, so the numbers need a ceiling that is not
+  a per-mass value: Core 4's recommendation (2026-10-16, 7:25 PM EDT): no new
+  constant; apply the pooled [Fe/H] factor F/F(0) to the odds p/(1-p) of
+  a close companion, not to the chance p, for every mass. It cannot pass
+  1, and a star already likely to have a companion rises less. Core 4's
+  check values: G dwarf 0.43, 0.36, 0.25, 0.12 at [Fe/H] -3.0, -1.0,
+  -0.2, +0.5 against Moe, Kratter and Badenes 53+-12, 40+-6, 24+-4,
+  10+-3% (all within 1 sigma); an O star at [Fe/H] -0.7 goes 0.45 to 0.58
+  (+29%) against the "no change within about 30%" read for O and early-B
+  stars in the Large Cloud and stays under Sana's 0.69+-0.09 (plain
+  scaling gives 0.77). Core 4 builds the odds form unless Boss prefers
+  plain scaling, and needs Boss's word before the GEN.103 gate starts
+  (about 8:25 PM EDT; the coordinator puts it on a card).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
@@ -7032,6 +7042,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.146, NAV.62, TEST.192, PERF.88, DB.55.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
+- [ ] **GEN.373 Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise**
+  Split from GEN.103 (Core 4, 2026-10-16, 7:16 PM EDT; the coordinator
+  asked it be an item of its own at 7:17 PM EDT).
+  docs/design/placement-by-population.md section 3.2: high-mass stars
+  are far more often in multiples, and the most massive sit in clusters
+  and associations. The mass dependence is already in
+  `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` and
+  `STAR_COUNT_PROBABILITIES`; the place dependence is not. Done:
+  `prevalence` of `draw_member_tree` is the cell's young share (the
+  profile's `populations["young"].share`) over the solar circle's
+  reference share (`profile._reference_young_share(shape)`), so it is 1
+  where a cell looks like the solar circle, above 1 in arms and
+  associations and 0 in the halo; the five-or-more columns scale with
+  it. The cap on the rise is the one open constant (a design default,
+  not a value from a source): under Boss's no-fixed-content rule it is
+  derived, not typed in; the odds form Core 4 recommended for GEN.103
+  (the factor applied to the odds, so nothing passes 1) is the model.
+  Boss decides the cap on a card. Test: the massive-multiple census bins
+  of TEST.164, and the metallicity check of TEST.196. Owner: Core 4,
+  with the multi-star items (GEN.269 to GEN.275).
+  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.164,
+  TEST.196.
+  Design: [docs/design/placement-by-population.md](design/placement-by-population.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -10593,9 +10627,11 @@ clears each one.
   is Core 3's harness; ask Core 3 before editing census.py).
   Status (Core 4, 2026-10-16, 7:16 PM EDT): TEST.186 is not on main yet,
   so the check cannot be built. The note lists the expected ranges. The
-  massive-star flatness bins are expected to fail until the `prevalence`
-  cap of GEN.103 3.2 is decided; the test lands only with a green run,
-  so it waits for that decision as well (no skip, no quarantine).
+  massive-star flatness bins fail with plain scaling of the metallicity
+  factor; with the odds form Core 4 recommends in GEN.103 they are
+  expected to pass at the edge. The test lands only with a green run (no
+  skip, no quarantine). The 3.2 prevalence cap is GEN.373 and does not
+  gate this test.
   Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
 
