@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1477] - 2026-10-16
+
+**Headline:** The to-do list retires MAP.208, built by the points-of-light map change.
+
+### Changed
+
+- Retired MAP.208 (stars and phenomena draw as points of light until near sector level, phenomena as bright as a star of similar mass), done by #1774, and removed it from the goal table.
+
+TODO items resolved: MAP.208 / Added: none
+
 ## [8.0.1476] - 2026-10-16
 
 **Headline:** Stars and black holes, neutron stars and quasars are points of light on the maps until you fly near a sector.
