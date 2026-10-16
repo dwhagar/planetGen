@@ -3129,45 +3129,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: DB.59, GEN.357, GEN.358.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.99 Nebula volume backfill with the star types the nebula needs**
-  Boss (2026-10-03 05:38Z): "Some Nebulae must have certain stars in
-  them by their definition, so backfill nebula volume sectors to seed
-  with stars of required types.  Any nebulae that requires backfill
-  after it's created will trigger a back fill for the nebula volume down
-  to 750 Solar Luminisities with the probability skewed to ensure
-  dominance of the correct types of stars.  Existing backfilled stars
-  should also be regenerated in-place (star location doesn't change)
-  with the skewed probabilities favoring the correct class and similar
-  luminocity as the original if possible (it won't always be compatible
-  between what is required and what brightness to use, if it is NOT
-  possible, then don't regenerate the star." Done as he says, using the
-  nebula's shape for its volume.
-  Research (2026-10-09, nebula-and-asteroid-field-classes.md): the draw
-  must use a young, age-capped population (measured 76% K/M giants
-  otherwise); Hill-sphere separation needs a spread-out placement
-  (default; classes D and E) or a flat 0.5 ly override for class C if a
-  second star is wanted; "regenerate in place" must also rebuild the
-  system's planets (use the same `apply_cloud` as GEN.95). Specify
-  mark-only skewing (keep each cell's count, tilt the type law; a weight
-  of about 40 to 50 gives about 80% O/B from the natural 8%) and
-  conditional redraw on luminosity keyed by (star seed, nebula id);
-  leave the star alone when no compatible type exists. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults taken): backfill down
-  to 750 Lsun only inside the
-  nebula; only 750+ stars plus normal field density, not the realistic
-  crowd of low-mass stars.
-  After the review (2026-10-16 review): required nebula stars are made
-  with the nebula (the second child of GEN.241), so this after-the-fact
-  backfill is retired, or reduced to an optional in-place retype of
-  stars in sectors filled before a nebula existed (early alpha rebuilds
-  instead). Question for Boss: keep that retype? Default: retire.
-  Needs the stored nebula age and the cloud-aware generation (children a
-  and b of GEN.95, moved to version 8.1) because the regenerated planets
-  use the same `apply_cloud` and the age-capped draw reads `age_myr`
-  (2026-10-16 review).
-  Prerequisites: DB.59, GEN.357.
-  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
 - [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
   Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
   that plots to have a 0 or nearly 0 star density) at once, since those
@@ -4288,7 +4249,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the best-known dwarfs, placed with the embedding of the
   multiple-galaxies note. Verify positions, sizes and masses against
   McConnachie (2012) or the current Gaia census before any row ships.
-  Open question for Boss (default synthetic generator first): the
+  Decided (Boss, 2026-10-16, 2:51 PM EDT, decision card: synthetic generator first): the
   repository has no catalogue file and this environment cannot reach the
   Harris catalogue's host; supply the public table (about 157 rows) or
   allow that host for a one-time ingestion script; until then GEN.164
@@ -4319,7 +4280,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Core 1, 2026-10-16, 5:03 AM EDT): this item takes the next free
   number after 0098 (0099 or later); it reuses the component table GEN.159 builds
   (Core 2 adds parent_component_id and catalogue_id to it) and adds no
-  table of its own.
+  table of its own. Revision update (Core 1, 2026-10-16, 2:44 PM EDT):
+  this item needs no migration at all; 0099 is GEN.280's GalaxyShape
+  fields and 0100 is Core 3's cell_star_ceiling change.
   Related: GEN.9, GEN.161, GEN.164.
   Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
   #1784): this item adds the components table to SectorProfile (a field
@@ -5231,7 +5194,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the published numbers named in the note. The new GalaxyShape
   fields need a migration: Core 1 owns the revision and Core 3 asks it
   first.
-  Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone (galaxy_shape.cell_star_ceiling and fill_luminosity_cap_sol); this item's GalaxyShape fields need the next free revision after Core 1's, asked of Core 1 first (0099 or later).
+  Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone (galaxy_shape.cell_star_ceiling and fill_luminosity_cap_sol); this item's GalaxyShape fields take revision 0099 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 is this item's, 0100 is Core 3's cell_star_ceiling change).
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5619,8 +5582,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass or the vector, so a new object kind cannot ship without them. The
   planet and moon dynamical state (parent, bound state, the replaced
   circular phase) belongs to GEN.289, which builds on this object; both
-  go in the one migration, the next free revision, 0099 or later, placed by
-  Core 1 (it owns every revision). Placed in Phase 2 before GEN.109,
+  go in the one migration DB.55, revision 0101 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 and 0100 are Core 3's), with the later drop revisions following in order; Core 1
+  owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
   Prerequisites: GEN.335, DB.55, GEN.336, GEN.337. Related: GEN.74,
@@ -5639,6 +5602,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object table (a), one additive Core 1 revision for the 8.3 schema (m,
   shared with GEN.289, GEN.142, GEN.110 and GEN.109), and the vector and
   mass for compact and free objects (b) and for the rest (c).
+  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
+  top 5 blockers, starting right after GEN.237 merges; estimates from
+  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
 
 - [ ] **GEN.295 Nebulae as point groups whose shape follows the orbital update (design and research)**
   Boss asked (2026-10-16, 1:01 AM EDT, project chat): "should nebulae be
@@ -5695,7 +5661,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.159).
   Prerequisites: none. Related: GEN.158, MAP.211.
 
-- [ ] **GEN.297 Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters**
+- [ ] **GEN.297 Update the globular clusters from Boss's Harris file once it is supplied: the catalogue rows replace the synthetic ones, the generator stays as the fallback**
   Follow-up from Core 2 (2026-10-16, 7:52 AM EDT, GEN.159 merged as
   #1810, migration 0097): the cluster table (galaxy_components), the
   King tables and solver and a synthetic generator are built; the Milky
@@ -5707,9 +5673,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   catalogue rows instead of generated clusters, a test pins a few
   well-known clusters (47 Tuc, Omega Centauri, M13) against the file,
   and the design note records the file's version and licence. Owner:
-  unassigned; waits on Boss supplying the file (the open question
-  'Harris cluster table' stands with its default of the synthetic
-  generator).
+  unassigned; waits on Boss supplying the file (decided 2026-10-16, 2:51 PM EDT: the synthetic generator is what ships until then).
+  Decided (Boss, 2026-10-16, 2:51 PM EDT, decision card, and 2:52 PM EDT):
+  the globular clusters are built from the synthetic generator now, and this item
+  updates them from the Harris file once Boss supplies it: the catalogue rows replace the synthetic ones, and the generator stays as the fallback for any cluster the catalogue lacks.
+  Boss asked for the item, so this is it; it keeps its 8.8 place so the 8.1 headline does not wait on an outside file.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
@@ -6314,6 +6282,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vector and is not on a named allow-list of tables still to convert;
   children b and c remove tables from the list and the last one deletes
   it, so a new kind cannot ship without the three parts.
+  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
+  top 5 blockers, starting right after GEN.237 merges; estimates from
+  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
   Prerequisites: none. Related: GEN.294.
 
 - [ ] **GEN.336 Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants**
@@ -6328,6 +6299,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is removed from the table, its model, the store, describe, edits,
   sector_paths and the generators in the same PR (a small drop revision
   from Core 1, no compatibility layer); the tables leave the allow-list.
+  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
+  top 5 blockers, starting right after GEN.237 merges; estimates from
+  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
   Prerequisites: GEN.335, DB.55. Related: GEN.294.
 
 - [ ] **GEN.337 Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members**
@@ -6339,6 +6313,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a mass (its own, the mass of what a facility sits on, or a stated
   zero), reads back through child a's definition, the allow-list is
   empty and the coverage test now fails for any table missing a part.
+  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
+  top 5 blockers, starting right after GEN.237 merges; estimates from
+  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
   Prerequisites: GEN.335, DB.55, GEN.336. Related: GEN.294.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -7707,7 +7684,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (default 9,900, following the baseline times 1.1 until moved),
   core_mass_limit_sol (default 15.4) and halo_min_luminosity_sol
   (default 500, accepted from 50 up to 4,000,000) to galaxy_shape in the
-  next free Core 1 revision after 0098 (0099 or later; it can share the
+  next free Core 1 revision (Core 1, 2026-10-16, 2:44 PM EDT: 0099 is GEN.280's GalaxyShape fields and 0100 is Core 3's cell_star_ceiling change, so this item shares one of those two; it can share the
   revision GEN.280 asks for), with GalaxyShape fields, the store read
   and write, and the planetgen plan options --core-min-luminosity,
   --core-mass-limit and --halo-min-luminosity; the halo has no mass
@@ -7740,6 +7717,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   applies on a galaxy at the previous head and on an empty one,
   downgrades as the other revisions do, and the schema docs list the new
   columns.
+  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
+  top 5 blockers, starting right after GEN.237 merges; estimates from
+  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
   Prerequisites: none. Related: GEN.294.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**

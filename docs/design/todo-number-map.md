@@ -735,7 +735,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.96 | Generation directives for a sector (an override button) | none | done, PR #915 |
 | GEN.97 | Generate N random neighborhoods | none | done, PR #950 |
 | GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | done, PR #795 |
-| GEN.99 | Nebula volume backfill with the star types the nebula needs | none | open |
+| GEN.99 | Nebula volume backfill with the star types the nebula needs | none | dropped (Boss, 2026-10-16, 2:51 PM EDT: the required stars are made with the nebula, GEN.241) |
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | done, PR #793 |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | done, PR #1807 |
 | GEN.102 | Investigate filling all near-zero-density void space at once | none | open |
@@ -933,7 +933,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | none | open |
 | GEN.295 | Nebulae as point groups whose shape follows the orbital update (design and research) | none | open |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars | none | open |
-| GEN.297 | Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters | none | open |
+| GEN.297 | Update the globular clusters from Boss's Harris file once it is supplied: the catalogue rows replace the synthetic ones, the generator stays as the fallback | none | open |
 | GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in | none | open |
 | GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | open |
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | open |

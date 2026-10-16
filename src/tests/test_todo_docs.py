@@ -144,3 +144,13 @@ def test_blocker_weight_counts_a_chain_once_per_item():
     items = {"A.1": item("A.2", "A.3"), "A.2": item("A.4"), "A.3": item("A.4"), "A.4": item()}
     rows = {r["id"]: r for r in build_todo_docs.build_blockers(items, [])["overall"]}
     assert rows["A.1"]["blocks"] == 3 and rows["A.1"]["direct"] == 2 and "A.4" not in rows
+
+
+def test_blocker_ranking_lists_a_chain_once():
+    def item(*unblocks):
+        return {"status": "open", "unblocks": list(unblocks), "phase": "8.1-1"}
+    items = {"A.1": item("A.3"), "A.2": item("A.3"), "A.3": item("A.4", "A.5"), "A.4": item(), "A.5": item(),
+             "B.1": item("B.2"), "B.2": item()}
+    rows = build_todo_docs.build_blockers(items, [])["overall"]
+    ids = [r["id"] for r in rows]
+    assert ids == ["A.1", "B.1"] and rows[0]["chain"] == ["A.2", "A.3"]

@@ -294,7 +294,9 @@ def build_blockers(items: dict, phases: list[dict], top: int = 5) -> dict:
     """Boss (2026-10-16): the top blockers overall and for each phase: the open items that hold up the most others.
 
     An item's weight is the number of open items that wait on it directly or through a chain; ties break on the
-    direct count, then the ID."""
+    direct count, then the ID. An item that waits on, or is waited on by, a blocker already listed, or holds up almost the same items (80% overlap), is part of that
+    blocker's chain and is not listed again (Boss, 2026-10-16: an umbrella and its pieces count once); the row
+    names those chain members in `chain`."""
     open_ids = {i for i, it in items.items() if it["status"] == "open"}
     waiting: dict[str, set] = {}
 
@@ -313,9 +315,28 @@ def build_blockers(items: dict, phases: list[dict], top: int = 5) -> dict:
     rows = {i: {"id": i, "blocks": len(below(i)),
                 "direct": sum(1 for u in items[i]["unblocks"] if u in open_ids)} for i in open_ids}
 
+    def related(a: str, b: str) -> bool:
+        """One chain: one waits on the other, or the two hold up almost the same set of items."""
+        if b in below(a) or a in below(b):
+            return True
+        shared = len(below(a) & below(b))
+        return shared >= 0.8 * min(len(below(a)), len(below(b))) > 0
+
     def best(ids) -> list[dict]:
         ranked = sorted((rows[i] for i in ids if rows[i]["blocks"]), key=lambda r: (-r["blocks"], -r["direct"], id_key(r["id"])))
-        return ranked[:top]
+        picked: list[dict] = []
+        for r in ranked:
+            if len(picked) < top and not any(related(r["id"], p["id"]) for p in picked):
+                picked.append(dict(r, chain=[]))
+        for r in ranked:
+            if all(r["id"] != p["id"] for p in picked):
+                for p in picked:
+                    if related(r["id"], p["id"]):
+                        p["chain"].append(r["id"])
+                        break
+        for p in picked:
+            p["chain"] = p["chain"][:6]
+        return picked
 
     return {"overall": best(open_ids),
             "phases": [{"key": p["key"], "label": p["label"], "theme": p["theme"],

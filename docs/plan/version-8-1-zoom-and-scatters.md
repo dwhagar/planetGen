@@ -307,7 +307,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.99 | Nebula volume backfill with the star types the nebula needs | DB.59, GEN.357 |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
