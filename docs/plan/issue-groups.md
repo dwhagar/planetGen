@@ -12,7 +12,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#1750](https://github.com/dwhagar/planetGen/issues/1750) | open | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
+| [#1750](https://github.com/dwhagar/planetGen/issues/1750) | closed | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | closed | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
 | [#1748](https://github.com/dwhagar/planetGen/issues/1748) | closed | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
 | [#1785](https://github.com/dwhagar/planetGen/issues/1785) | open | test_gen_resume forced-scatter test failed once under gate load with no scattered system (TEST.171) | TEST.171 |
