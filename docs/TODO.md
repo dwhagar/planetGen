@@ -1374,7 +1374,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.237, GEN.238.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **MAP.208 Stars on the Galaxy Map, sector map and system map draw as points of light until the view is near sector level**
+- [ ] **MAP.208 Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass**
   Boss (2026-10-15 9:33 PM EDT): the stars are too big; they should be
   more like points of light until the view gets down near the sector
   level. Today each star is a sprite whose size grows with brightness
@@ -1387,14 +1387,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the difference between stars (apparent magnitude, MAP.148). Only near
   sector level does a star grow into a larger disc with its glow, and
   the size ramps up smoothly over the last zoom steps, never snapping.
+  Phenomena (Boss, 2026-10-15 9:33 and 9:34 PM EDT): every phenomenon
+  (black holes, neutron stars, quasars, nebula and other markers) draws
+  as a point of light the same way, and its map brightness follows its
+  mass compared with a star of similar mass, not its own physical
+  luminosity: a 10 solar mass black hole draws about as bright as a 10
+  solar mass star. Black holes then render a little dimmer than that
+  (a named factor, default 0.8 of the star's brightness) and keep their
+  purple, neutron stars their dark blue (POINT_LOOKS in
+  galaxymap3d.js). Today the phenomena use fixed looks (size shares
+  0.8 to 0.95 and PHENOMENON_MAGNITUDE of -40 in starmagnitude.js), so
+  they sit far brighter and larger than any star; that goes. A
+  phenomenon with no mass (nebulae and similar markers) takes the
+  default of a one solar mass star, and no phenomenon draws brighter
+  than the brightest star on the map. The brightness comes from one
+  mass-to-star-brightness function shared by the three maps.
   The near-sector threshold is one named constant shared by the Galaxy
   Map and the sector scene, so the hand-off between the two scenes shows
   no size jump (MAP.203 matched them once already). The system map draws
   the primary and companions at their drawn size and keeps its own
   scale, but its background stars (src/html/static/systemview3d.js)
   become points of light as well. Tests: a shader-string or constants
-  test for the point size at far, mid and near zoom, and the hand-off
-  check between the two scenes. Done: flying in from the whole-galaxy
+  test for the point size at far, mid and near zoom, the hand-off
+  check between the two scenes, and one for the mass rule (a black hole
+  dimmer than a star of the same mass, a massless marker equal to a
+  one solar mass star). Done: flying in from the whole-galaxy
   view, stars stay pinpoints until about one sector away, then grow;
   flying back out they shrink to points again. Owner: Core 2, next after
   GEN.269 (Boss, 2026-10-15 9:33 PM EDT: whichever Core lane frees
