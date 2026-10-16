@@ -1516,6 +1516,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (101, _column_marker("sectors", "max_mass_id")),
     (98, _column_marker("galaxy_shape", "fill_luminosity_cap_sol")),
     (97, _table_marker("galaxy_components")),
     (96, _check_marker("neutron_stars_chk_1", "magnetar")),
