@@ -5509,7 +5509,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
-  Prerequisites: DB.55, GEN.336, GEN.337. Related: GEN.74,
+  Prerequisites: DB.55, GEN.336, GEN.337, GEN.372. Related: GEN.74,
   GEN.109, GEN.223, GEN.289,
   GEN.290.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
@@ -5528,6 +5528,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
   top 5 blockers, starting right after GEN.237 merges; estimates from
   Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
+  Waits on GEN.372, the numeric precision audit, before it closes (Boss,
+  2026-10-16, 6:54 PM EDT); the audit does not hold up DB.55, GEN.336 or
+  GEN.337, which Core 1 starts first.
 
 - [ ] **GEN.295 Nebulae as point groups whose shape follows the orbital update (design and research)**
   Boss asked (2026-10-16, 1:01 AM EDT, project chat): "should nebulae be
@@ -6976,6 +6979,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research if there are pieces missing that you can't look up yourself."
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.372 Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation**
+  Boss (2026-10-16, 6:54 PM and 6:55 PM EDT, project chat): are 64-bit
+  numbers enough for positions at galactic scale, or do we need 128 or
+  256 bits, and who should own all of our bugs and concerns about it.
+  This is the one place they are collected. Existing coverage is
+  scattered: docs/design/orbital-updates.md (positions as integer
+  milliparsecs relative to the sector and kilometres relative to a
+  system, and a float64 spacing line of 32.8 km at 8.128 kpc),
+  docs/design/orbital-solvers-and-integrators.md (a float64 spacing
+  table), docs/design/galactic-potential.md (cancellation and float32
+  notes), the spherical sector design (a coarse integer address with a
+  local offset), the field kernel of PERF.88 (float64 sums), TEST.192 (a
+  cancellation in a test), and a GEN.142 note that says "about 14 km at
+  8 kpc". These disagree: 2^-40 pc is about 28 km at 8.128 kpc, and at
+  the 262 kpc reach the spacing is about 900 km below 262,144 pc and
+  about 1,800 km above it. Done: a written audit
+  (docs/design/numeric-precision-audit.md) with one table row for each
+  float quantity the galaxy stores, computes or draws (the galactic
+  position of every object kind, the sector-relative offset, system,
+  planet and moon frames, velocities, epochs and phases, orbital
+  elements, the field kernel and potential sums, the camera and render
+  path including float32 in the browser, the JavaScript twins, the API
+  wire formats, the 96-bit ID and cell key arithmetic), giving the
+  largest distance from its origin it reaches (up to the 262 kpc reach),
+  the spacing of a float64 there in kilometres, the smallest change that
+  must survive (a moon's move, the 0.01 mpc threshold, a planet's
+  orbit), and the first place the error shows. It says for each row
+  whether float64 plus the coarse integer address and a local offset is
+  enough, or where a wider sum is needed (a compensated or integer sum,
+  or mpmath, for long integrations from the galactic centre), recommends
+  the cases that need work as new items, and names a test for each (for
+  example a differenced-position test at 262 kpc). No build in this
+  item. Findings rule: any lane that meets a precision bug or concern
+  sends it to the TODO thread, which attaches it here. Owner proposed
+  (not yet set): Core 1, who owns the point columns (DB.55, GEN.336,
+  GEN.337, GEN.294) and the IDs, with Core 2 reading the camera and
+  render rows.
+  Prerequisites: none. Related: GEN.294, GEN.139, GEN.142, GEN.223,
+  MAP.146, NAV.62, TEST.192, PERF.88, DB.55.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
