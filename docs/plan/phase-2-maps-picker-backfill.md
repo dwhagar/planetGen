@@ -257,6 +257,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 100), and the baseline everywhere else | GEN.235, GEN.158 | Core 3; step 3b of the galactic core note; shares one Core 1 migration with GEN.281 |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.280, GEN.162 | Core 3; step 4 of the galactic core note |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.223, GEN.280 | Core 3; step 5 of the galactic core note |
+| GEN.286 | Horizontal-branch phase in the stellar evolution model: red clump, blue horizontal branch and RR Lyrae, extreme horizontal branch, by age and metallicity | GEN.158 | Core 3; horizontal-branch phase (Boss, 1:12 AM EDT); plan note first |
 | GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250, GEN.235, GEN.153 | Owner Core 3; Core 3 note default stands. |
 
 ### Maps
