@@ -1,10 +1,12 @@
-"""The two TODO pages in docs/plan/ match their sources.
+"""The TODO pages in docs/plan/ match their sources.
 
-`scripts/build_todo_docs.py` builds docs/plan/tier-plan.html and
-docs/plan/todo-reference.html from docs/TODO.md, the phase plans, the plan
-notes and the number map. Boss (2026-10-07) asked for both to be rebuilt
+`scripts/build_todo_docs.py` builds docs/plan/version-plan.html,
+docs/plan/todo-reference.html, docs/plan/todo-tree.html and
+docs/plan/release-roadmap.html from docs/TODO.md, the version files, the
+plan notes and the number map. Boss (2026-10-07) asked for them to be rebuilt
 with every TODO.md change, so a change that forgets the rebuild fails here
-with the command to run.
+with the command to run. Boss (2026-10-16) turned the tiers into a version
+map: versions with phases, a blocker never in a later phase.
 """
 
 import importlib.util
@@ -42,20 +44,103 @@ def test_needs_and_unblocks_mirror_each_other():
 def test_progress_counts_every_open_item_once_and_matches_the_ledger():
     data = build_todo_docs.build_data(build_todo_docs.ROOT)["plan"]
     progress = data["progress"]
-    assert sum(t["open"] for t in progress["tiers"]) == len(data["items"])
-    for t in progress["tiers"]:
+    assert sum(t["open"] for t in progress["versions"]) == len(data["items"])
+    for t in progress["versions"]:
         assert t["total"] == t["done"] + t["open"]
         assert t["pct"] == (round(100 * t["done"] / t["total"], 1) if t["total"] else 0.0)
-    assert progress["tiers"][0]["key"] == "0" and progress["tiers"][0]["open"] == 0
+        assert sum(p["open"] for p in t["phases"]) == t["open"]
+    assert progress["versions"][0]["key"] == "8.0" and progress["versions"][0]["open"] == 0
+
+
+def test_every_open_item_sits_in_one_phase_of_one_version():
+    data = build_todo_docs.build_data(build_todo_docs.ROOT)["plan"]
+    phases = {p["key"]: p for p in data["phases"]}
+    placed = [i for p in data["phases"] for g in p["groups"] for i in g["ids"]]
+    assert len(placed) == len(set(placed)), "an item is listed twice in the version files"
+    for item_id, it in data["items"].items():
+        assert it["phase"] in phases, f"{item_id} is in no phase"
+        assert it["version"] == phases[it["phase"]]["version"]
 
 
 def test_a_finished_item_without_a_ledger_row_fails_the_build():
-    items = {"GEN.1": {"status": "done", "statusText": "done, PR #9999", "phase": ""}}
+    items = {"GEN.1": {"status": "done", "statusText": "done, PR #9999", "phase": "", "version": ""}}
+    versions = [{"key": "8.1", "title": "A", "phases": []}]
     try:
-        build_todo_docs.build_progress(items, {}, 1000, [])
+        build_todo_docs.build_progress(items, {}, 1000, versions, [])
     except SystemExit as err:
         assert "GEN.1" in str(err) and "progress-ledger.md" in str(err)
     else:
         raise AssertionError("a retired item with no ledger row must fail the build")
-    done = build_todo_docs.build_progress(items, {"GEN.1": "2"}, 1000, [])
-    assert done["tiers"][2]["done"] == 1
+    done = build_todo_docs.build_progress(items, {"GEN.1": "8.1"}, 1000, versions, [])
+    assert [t["done"] for t in done["versions"] if t["key"] == "8.1"] == [1]
+
+
+def test_the_release_roadmap_is_in_build_order_with_a_headline_per_release():
+    data = build_todo_docs.build_data(build_todo_docs.ROOT)
+    road = data["roadmap"]
+    assert road["violations"] == [], f"items placed before something they need: {road['violations']}"
+    assert road["unplaced"] == [] and road["unlisted"] == []
+    versions = [r["version"] for r in road["releases"]]
+    assert versions[0] == "8.1" and versions[-1] == "later" and len(set(versions)) == len(versions)
+    assert "10.0" not in versions, "Boss (2026-10-16): no 10.0 headline"
+    for rel in road["releases"]:
+        assert rel["fields"].get("Headline"), f"release {rel['version']} has no headline"
+        prefix = "SL-" if rel["version"] == "later" else f"S{rel['version']}-"
+        for sug in rel["suggested"]:
+            assert sug["code"].startswith(prefix), sug
+
+
+def test_every_headline_tag_names_a_version_of_the_map():
+    data = build_todo_docs.build_data(build_todo_docs.ROOT)
+    keys = {v["key"] for v in data["plan"]["versions"]}
+    for h in data["plan"]["headlines"]:
+        assert h["version"] in keys | {"8.0"}, h
+
+
+def _roadmap_error(tmp_path, text, items):
+    plan = tmp_path / "docs" / "plan"
+    plan.mkdir(parents=True)
+    (plan / "release-roadmap.md").write_text(text, encoding="utf-8")
+    try:
+        build_todo_docs.build_roadmap(tmp_path, items, {"versions": []}, [], [])
+    except SystemExit as err:
+        return str(err)
+    return ""
+
+
+def test_the_release_roadmap_refuses_a_version_twice(tmp_path):
+    twice = "## Release 8.1: A\nHeadline: x\n\n## Release 8.1: B\nHeadline: y\n"
+    assert "8.1" in _roadmap_error(tmp_path, twice, {})
+
+
+def test_a_blocker_in_a_later_phase_is_reported():
+    def items(*rows):
+        return {i: {"id": i, "status": "open", "phase": ph, "version": ph.partition("-")[0],
+                    "thread": thread, "deps": deps} for i, ph, deps, thread in rows}
+    ok = items(("GEN.1", "8.1-1", [], "t"), ("GEN.2", "8.1-2", ["GEN.1"], "t"), ("GEN.3", "8.2-1", ["GEN.2"], "t"))
+    assert build_todo_docs.check_order(ok) == []
+    same_phase = items(("GEN.1", "8.1-1", [], "a"), ("GEN.2", "8.1-1", ["GEN.1"], "b"))
+    assert [b["id"] for b in build_todo_docs.check_order(same_phase)] == ["GEN.2"]
+    later = items(("GEN.1", "8.1-2", [], "t"), ("GEN.2", "8.1-1", ["GEN.1"], "t"))
+    assert [b["needs"] for b in build_todo_docs.check_order(later)] == ["GEN.1"]
+
+
+def test_the_tree_lists_the_top_five_blockers_overall_and_per_phase():
+    plan = build_todo_docs.build_data(build_todo_docs.ROOT)["plan"]
+    blockers = plan["blockers"]
+    assert 0 < len(blockers["overall"]) <= 5
+    weights = [r["blocks"] for r in blockers["overall"]]
+    assert weights == sorted(weights, reverse=True)
+    assert [p["key"] for p in blockers["phases"]] == [p["key"] for p in plan["phases"]]
+    for p in blockers["phases"]:
+        assert len(p["rows"]) <= 5
+        for r in p["rows"]:
+            assert plan["items"][r["id"]]["phase"] == p["key"] and r["blocks"] >= 1
+
+
+def test_blocker_weight_counts_a_chain_once_per_item():
+    def item(*unblocks):
+        return {"status": "open", "unblocks": list(unblocks), "phase": "8.1-1"}
+    items = {"A.1": item("A.2", "A.3"), "A.2": item("A.4"), "A.3": item("A.4"), "A.4": item()}
+    rows = {r["id"]: r for r in build_todo_docs.build_blockers(items, [])["overall"]}
+    assert rows["A.1"]["blocks"] == 3 and rows["A.1"]["direct"] == 2 and "A.4" not in rows

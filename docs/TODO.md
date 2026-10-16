@@ -55,10 +55,10 @@ that default.
   on its own line under the item:
   `Design: [docs/design/x.md](design/x.md), section N`. Design documents
   don't list item IDs.
-- The phase plans in [plan/](plan/) are the other place that lists
-  item IDs: each phase file has a table of its items (see "Plan:
-  phases" below). File a new item into one phase's table in the same
-  PR, and delete its row when it ships.
+- The version files in [plan/](plan/) are the other place that lists
+  item IDs: each version file has a table of its items per thread and
+  phase (see "Plan: versions" below). File a new item into one thread's
+  table of one phase in the same PR, and delete its row when it ships.
 - Code tags cite the ID: `TODO(MAP.16): what to do here`. Grep
   `"TODO(MAP."` for an area, or `"TODO(MAP.16)"` for one item.
 - `changes/` notes, PR titles and commit messages cite the ID, for
@@ -97,59 +97,79 @@ density skeleton, and the Flask API (`src/html/api/`) with server-rendered
 pages served by the same app (`src/html/web/`): Galaxy, Sector and System
 maps, search, NAV, admin auth and wiki publishing.
 
-## Plan: phases
+## Plan: versions
 
 Boss (2026-10-01 23:53Z) asked for the open work to be planned in
-phases, one plan file per phase with everything that phase needs, and
-this file as the master and index. On 2026-10-02 the phases were
-rebuilt from the dependency report, and on 2026-10-07 rebuilt again
-from Boss's lists of 2026-10-03 and 2026-10-07. Phase 0 (every bug and
-the groundwork) was finished on 2026-10-09 and its plan file deleted;
-the open bugs now sit in phase 1. Every open item below is in exactly one phase, and every
-item's prerequisites are in its own phase or an earlier one. Each phase
-file gives the goal, the build threads with their order and
-prerequisites, and the open questions;
+phases, with this file as the master and index. Phase 0 (every bug and
+the groundwork) was finished on 2026-10-09 and is now version 8.0. Boss
+(2026-10-16, 1:07 PM EDT) rebuilt the tiers as a version map: one version
+per release, one plan file per version, starting at 8.1, which is the old
+Phase 1 we were building. A version has one or more phases (Boss, 1:09 PM
+EDT: one version can have several phases when there is too much, with a
+logical breakdown), each with a theme and its build threads. Every open
+item below is in exactly one thread of one phase of one version, and a
+blocker is done in the phase before: in an earlier position of its own
+thread, in an earlier phase of its version or in an earlier version; the
+threads of one phase are independent work trees that lanes can build side
+by side. Each version file gives the goal, the phases with their themes,
+the threads with their order and prerequisites, and any open questions;
 [plan/notes.md](plan/notes.md) keeps the research notes, the files
-several items share and the judgment calls. The whole-sphere work (GEN.233 onwards, the phenomena
-catalogue and the fill) has its own plan,
-[plan/intergalactic-space-plan.md](plan/intergalactic-space-plan.md). This file keeps each
-item's full text. A new item goes into a phase's table in the same PR
-that files it.
-When an item ships, its row leaves the phase file and is copied into
+several items share and the judgment calls, and
+[plan/release-roadmap.md](plan/release-roadmap.md) holds each version's
+headline, what it needs and the ideas not yet filed. The whole-sphere work
+(GEN.233 onwards, the phenomena catalogue and the fill) has its own plan,
+[plan/intergalactic-space-plan.md](plan/intergalactic-space-plan.md). This
+file keeps each item's full text. A new item goes into a version file's
+table in the same PR that files it.
+When an item ships, its row leaves the version file and is copied into
 [plan/progress-ledger.md](plan/progress-ledger.md) in the same PR: the
-progress bar on every tier of the tier plan counts finished items from
-that ledger (Boss, 2026-10-16), and the build fails if a retired item has
-no row there.
+progress bar on every version of the version plan counts finished items
+from that ledger (Boss, 2026-10-16), and the build fails if a retired
+item has no row there.
 
-| Phase | Plan | Goal | Items |
-|---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75, PERF.105, UX.118 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, API.19, GEN.299, GEN.300 |
-| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
+| Version | Plan | Headline |
+|---|---|---|
+| 8.1 | [version-8-1-zoom-and-scatters.md](plan/version-8-1-zoom-and-scatters.md) | Infinite zoom and the new generate scatters |
+| 8.2 | [version-8-2-accounts-and-invitations.md](plan/version-8-2-accounts-and-invitations.md) | User accounts with email invitations |
+| 8.3 | [version-8-3-moving-galaxy.md](plan/version-8-3-moving-galaxy.md) | The moving galaxy |
+| 8.4 | [version-8-4-new-worlds.md](plan/version-8-4-new-worlds.md) | New worlds |
+| 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
+| 8.6 | [version-8-6-edit-everything.md](plan/version-8-6-edit-everything.md) | Edit everything |
+| 8.7 | [version-8-7-console-and-help.md](plan/version-8-7-console-and-help.md) | The pilot's console and built-in help |
+| 8.8 | [version-8-8-deep-sky.md](plan/version-8-8-deep-sky.md) | The deep sky |
+| 8.9 | [version-8-9-generate-anywhere.md](plan/version-8-9-generate-anywhere.md) | Generate anywhere |
+| 9.0 | [version-9-0-view-from-a-planet.md](plan/version-9-0-view-from-a-planet.md) | The view from a planet |
+| 9.1 | [version-9-1-gravity-map.md](plan/version-9-1-gravity-map.md) | The gravity map |
+| 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
+| 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
+| later | [version-later-future-features.md](plan/version-later-future-features.md) | Future features (not scheduled) |
 
-Phases overlap: a phase's later threads can start while the next
-phase's first ones run, as long as the order inside each phase holds.
+Version 8.0 is the finished Phase 0 and has no file. Version "later" holds
+possible future features that belong to no version yet (multiple
+galaxies).
 
 Version: the next revision is 8.1 (Boss, 2026-10-09 18:12Z: no 8.1 until
-Phase 1 is complete). Boss (23:07Z) put the fly-through Galaxy Map
-(MAP.146 and MAP.147 to MAP.155) into phase 1 as the main feature that
-earns the 8.1 bump. Phase 1 is complete only when those are done too;
-until then every release stays on 8.0 (`REVISION_HOLD` in
-`scripts/bump_version.py`), and the TODO thread flips the hold when Boss
-declares phase 1 complete.
+Phase 1 is complete; Phase 1 is now version 8.1). Boss (23:07Z) put the
+fly-through Galaxy Map (MAP.146 and MAP.147 to MAP.155) into it as the
+main feature that earns the 8.1 bump, and on 2026-10-16 (1:07 PM EDT) added
+the new generate scatters, accurate galactic generation and scattering
+including the halo (GEN.301), as the second 8.1 headline. 8.1 is complete
+only when all its phases are done; until then every release stays on 8.0
+(`REVISION_HOLD` in `scripts/bump_version.py`), and the TODO thread flips
+the hold when Boss declares it complete.
 
-Seminal features (Boss, 2026-10-10 20:58Z): 8.0 the orbital update
-system, 8.1 infinite zoom (the fly-through Galaxy Map), 9.0 the
-gravitational map (MAP.167: foundations in phase 2, roll-out in phase
-3). Phase 2, when finished, is 8.5, and Boss (21:05Z) chose its
-headline: courses that bend around gravity wells, with waypoints,
-editable and saved courses (NAV.59). A headline feature carries a
-`Headline: VERSION (name).` line in its item; `scripts/build_todo_docs.py`
-reads it and shows, in every plan page, each headline with all the open
-items it needs in build order. Every release in CHANGELOG.md opens with a
-**Headline:** line (Boss, 2026-10-10); the TODO thread adds one to each
-newly stamped release.
+Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
+(MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
+sign-up by an email invitation only an admin can send (USR.1), 8.3 the
+orbital update system (GEN.105), 8.5 courses that bend around gravity wells
+(NAV.59), 8.6 edit everything (ADM.57), 9.1 the gravity map (MAP.167). 9.0
+has no chosen headline yet (the view from a planet is proposed) and there
+is no 10.0 headline; multiple galaxies is a possible future feature. A
+headline feature carries a `Headline: VERSION (name).` line in its item;
+`scripts/build_todo_docs.py` reads it and shows, in every plan page, each
+headline with all the open items it needs in build order. Every release in
+CHANGELOG.md opens with a **Headline:** line (Boss, 2026-10-10); the TODO
+thread adds one to each newly stamped release.
 
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
@@ -1079,7 +1099,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   umbrella carries the rule for all layers: gradient step and zone size
   come from those thresholds, and the legend names the scale in use. See
   docs/design/gravity-map.md.
-  Headline: 9.0 (the gravity map).
+  Headline: 9.1 (the gravity map).
   Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
   GEN.105, NAV.6.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
@@ -1461,6 +1481,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   document, a filled panel and working star selection); the item stays
   open and waits on Boss's answers listed there.
   Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163.
+
+- [ ] **MAP.212 A region selection tool on the Galaxy Map and the Sector Map, for admin actions**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. An admin draws or types a
+  region (sphere by centre and radius, box, shell, band, wedge, or the
+  sectors in view) on the Galaxy Map and the Sector Map, sees it
+  outlined with a count of the systems and phenomena inside, and passes
+  it to an admin action (a density edit, a regeneration). Done: the tool
+  on both maps (browser test), the count from the region object, and the
+  hand-off to the actions of ADM.73 and ADM.80.
+  Prerequisites: GEN.302. Related: ADM.57, NAV.45.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 ## NAV: Navigation and courses
 
@@ -2486,7 +2519,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
-  Headline: 8.0 (the orbital update system).
+  Headline: 8.3 (the orbital update system).
   Prerequisites: GEN.115, GEN.109, GEN.110, GEN.289, GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
   Research (2026-10-09, orbital-solvers-and-integrators.md): the Full
@@ -4758,6 +4791,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class itself.
   Prerequisites: GEN.299, UX.107. Related: GEN.294, UX.108.
 
+- [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
+  Boss (2026-10-16, 1:07 PM EDT): "I also want the new generate scatters
+  as a headline of 8.1 as well as infinite zoom. Accurate galactic
+  generation and scattering including the halo." Umbrella and the second
+  headline of 8.1 (the first is the fly-through Galaxy Map, MAP.146).
+  Done when the three scatters fill the whole sphere out to the 262 kpc
+  reach from one rule set and a per-sector profile (GEN.240), with the
+  satellites, clusters and wanderers placed as components (GEN.237,
+  GEN.238, GEN.244), every nebula built with real stars (GEN.241 to
+  GEN.243), a realistic galactic core with real density and a per-cell
+  cap (GEN.280 to GEN.285), the halo luminosity floor tier (GEN.283) and
+  its sliders (UX.116), the stellar evolution fixes that keep the bright
+  giants honest (GEN.286, GEN.287, GEN.259), and the audits that show
+  every kind of object is represented at its expected frequency
+  (TEST.159, TEST.160).
+  Headline: 8.1 (the new generate scatters: accurate galactic generation
+  and scattering, including the halo).
+  Prerequisites: GEN.237, GEN.238, GEN.240, GEN.241, GEN.242, GEN.243,
+  GEN.244, GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.285,
+  GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. One library type for "an area
+  the admin chose": its shape and parameters, a stable text form for
+  plans and the density table, a membership test, and the list of stored
+  objects and unbuilt scatter cells inside it, read through the cell key
+  (GEN.276). Done: the type with tests for every shape, containment edge
+  cases and the cover of a region by cell key runs.
+  Prerequisites: GEN.276. Related: ADM.57, NAV.60.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -5120,8 +5187,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   holes in the phenomena page) it should add a task to get that
   information to redis, have a progress bar in the search page so the
   user knows it is loading, that is one of the main issues, give it to
-  Core 2's chain". Owner Core 2, in its queue right after MAP.152 and
-  before MAP.146 (coordinator's default, 12:22 PM EDT). The mechanism. A
+  Core 2's chain". Owner Core 2, in its queue after MAP.152 and MAP.146 (Boss, 12:23 PM EDT: MAP.152, then MAP.146, then this item). The mechanism. A
   page route that expects a slow answer (a full list of one phenomenon
   kind, a wide search, a large count) checks the tagged Redis page cache
   that PERF.104 built; on a miss it does not build the answer inside the
@@ -5354,6 +5420,46 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   after the plan items; Core 2 confirmed 9:17 PM EDT it is its to fix).
   Prerequisites: none.
 
+- [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. One Alembic migration adds
+  `change_plans` (who asked, the request, the state: draft, proposed,
+  approved, applied, undone, stale or rejected, who approved and when,
+  the job that applied it), `change_plan_ops` (plan, order, operation
+  kind, target object ID, before and after values as JSON, status) and
+  `edit_journal` (an append-only list of every applied operation: plan,
+  object ID, aspect, before, after and the generator epoch, indexed by
+  object ID and by sector). Core 1 owns the migration number. Done: the
+  migration, the regenerated models, an old-schema fixture, an
+  idempotent upgrade and a round-trip test; no code reads the tables
+  yet.
+  Prerequisites: none. Related: ADM.57, ADM.58, ADM.59.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **DB.37 Lock marks table (migration only)**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. One Alembic migration adds
+  `object_locks` (object ID, aspect or all, locked by, locked at,
+  reason): a lock is a standing keep mark. Core 1 owns the migration
+  number. Done: the migration, models and an idempotent upgrade with a
+  round-trip test.
+  Prerequisites: none. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **DB.38 Region density overrides table (migration only)**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. One Alembic migration adds
+  `region_density_overrides` (region shape and parameters, multiplier
+  from 0.1 to 10, set by, set at, undone at), append-only, for the
+  density edits of MAP.119 and ADM.57. MAP.119's block and slab case is
+  a region too. Core 1 owns the migration number. Done: the migration,
+  models and an idempotent upgrade with a round-trip test.
+  Prerequisites: none. Related: MAP.119, ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -5419,6 +5525,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     existing `_allocate_id` hi/lo mechanism, with a new
     `upload_id_ranges` table and a "reserve more" call; sizes from the
     rows per system in design doc 6.1 plus 25%.
+    When the claims exist, applying a change plan (ADM.60) refuses a
+    sector an upload run has claimed, as server-side runs do.
 
   - [ ] **API.11 Staging tables**
     Done: staging storage (a galaxy schema migration) for received
@@ -5617,6 +5725,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Decided (2026-10-10): Boss (19:16Z, Accept all): the server auto-fixes
   only a clashing name and purely derived columns, and rejects
   everything else so the client regenerates it.
+  Narrowed (2026-10-16, Boss 1:33 PM EDT): the checks, the
+  one-transaction finalize and the limited auto-fix are the unit
+  finalizer ADM.82, built in 8.6 for change plans. This item is what
+  remains: the batch and unit sync with checksums, the staged units, and
+  calling the finalizer when a unit is sealed.
+  Prerequisites: ADM.82.
 
 - [ ] **API.18 Generate by recipe: JSON for sectors, systems, planets, moons and phenomena**
   Boss (2026-10-07 11:47Z): "API should contain a 'generate recipe'
@@ -5643,6 +5757,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `seed_used` rule. Existing routes keep 400 (open question for Boss,
   default: only recipes and uploads move to 422). The
   `require_json_body` depth fix is a prerequisite.
+  Narrowed (2026-10-16, Boss 1:33 PM EDT: build once what 8.6 and 8.9
+  both need): the recipe schema, its validation and its runner are
+  API.28, built in 8.6 with the regeneration specifications. This item
+  is what remains: the route that accepts a recipe, the job it runs as,
+  and the 400 and 422 JSON error bodies.
+  Prerequisites: API.28.
 
 - [ ] **API.19 Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON**
   Boss (2026-10-07 11:47Z): "The idea is that one could go so far as to
@@ -5656,7 +5776,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   can be applied region by region to build one up over time.
   Research (2026-10-09, api-design-standards.md): recipes stay one
   region per request.
-  Prerequisite: API.18.
+  Needs the region object (GEN.302, built in 8.6): a recipe applied to a
+  region uses the same shapes as the admin region tools.
+  Prerequisites: API.18, GEN.302.
 
 - [ ] **API.24 GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON**
   Done: the endpoint returns a sector's grid (GEN.199) for one mode
@@ -5699,6 +5821,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   line.
   Prerequisite: GEN.235. Related: UX.113, API.15.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **API.28 Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Shared with 8.9 (generate
+  anywhere; Boss, 1:33 PM EDT: build once what both need). A recipe
+  (API.18) and a regeneration specification (ADM.70) are the same thing:
+  for each aspect of an object, a fixed value, a range or "draw it".
+  Build the schema once as data on top of the aspect catalogue (ADM.62)
+  and the keep-or-regenerate marks (ADM.64): a recipe for a system,
+  planet, moon or phenomenon with nested children, validation that
+  separates nonsense (envelope errors) from rejected values (kind and
+  physics checks), the size caps of the API design note, and a runner
+  that draws the object from it with the object's own seed stream. No
+  route, no job, no HTTP in this item. Done:
+  `planetgen/generation/recipe.py` with the schema, the validator and
+  the runner, a round trip from marks to a recipe and back, and tests
+  for fixed, ranged and random fields.
+  Prerequisites: ADM.62, ADM.64. Related: API.18, API.19, ADM.70,
+  ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 ## ADM: Admin tools
 
@@ -5756,7 +5899,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   filled in); the Galaxy Map can regenerate or erase whole sectors and
   blocks and re-run the bright-star backfill for the wedge or slab in
   view; erasing always asks first.
-  Prerequisite: MAP.120.
+  Prerequisites: MAP.120, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81.
 
 - [ ] **ADM.36 Change an object's trajectory vector**
   Boss (2026-10-07 11:47Z): "Give the user the ability to change an
@@ -5910,6 +6053,387 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   inside this shell.
   Prerequisites: ADM.55, ADM.50. Related: ADM.43, ADM.44, ADM.13,
   ADM.35, UX.102, UX.49.
+
+- [ ] **ADM.57 Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan**
+  Boss (2026-10-16, 1:07 PM EDT): "I want the 'edit everything' to be a
+  headline feature for 8.6, and by that I mean that the admin has
+  complete control they can edit and change anything how they want. They
+  can move stars in a sector, change orbits in a system, change
+  densities for a sector or region, regenerate any star they want to any
+  specification they want. The world will adjust to what the admin
+  wants. That means if I want to change an A to an M planet the system
+  will figure out how to rearrange the star system to make that happen
+  but it will get approval for the new generation plan first. In regen
+  screens the admin should also be able to select aspects they want to
+  keep and what they want regenerated." Umbrella of 8.6, broken into
+  items in the 8.6 version file (design:
+  [docs/design/edit-everything.md](design/edit-everything.md)); it is done
+  when its items are.
+  Headline: 8.6 (edit everything: the admin can change anything and the
+  world adjusts, after approving a plan).
+  Prerequisites: ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120,
+  POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.78, ADM.79,
+  ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54.
+
+- [ ] **ADM.58 Change plan engine: operations, the effect diff and the plan states, as a library**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. A plan is an ordered list of
+  operations (move an object, set an aspect, regenerate with a keep set,
+  add, remove) on stored objects. Build `planetgen/admin/plans.py`: the
+  operation types, validation of each against the stored object (Hill
+  spheres, spacing, bounds), the computed effect diff (every row that
+  would change, with before and after, and every object touched
+  indirectly), the state machine (draft, proposed, approved, applied,
+  undone, stale, rejected) and the stale check (a plan is stale when any
+  object it touches changed after the plan was proposed). An operation
+  serialises in the versioned envelope the remote upload uses
+  (`StarSystem.to_dict()`, API.13), so a plan and an upload describe a
+  system the same way. Pure Python over loaded objects, no database, so
+  it can be tested on its own. Done: the library with unit tests for
+  every operation kind, the diff and the stale check.
+  Prerequisites: none. Related: ADM.57, ADM.6, ADM.7, ADM.8.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.59 Change plan store: save, load and list plans, and mark them stale**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Read and write plans through
+  the tables of DB.36: `save_plan`, `load_plan`, `list_plans` (by state,
+  by object, by admin), and the stale marking when an object a proposed
+  plan touches is edited by anything else. Done: the store with tests
+  against MySQL, and a plan that survives a restart with its computed
+  diff intact so the admin approves exactly what they were shown.
+  Prerequisites: DB.36, ADM.58. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.60 Apply, undo and audit a plan: one job, one activity-log entry per operation**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Each unit is written through
+  the unit finalizer (ADM.82). An approved plan is applied as a visible
+  queue job (the Generate page job log): operations run in order inside
+  one transaction per sector, each writes its journal rows and an
+  activity-log entry, and a failure rolls the whole plan back and leaves
+  it proposed with the reason. An applied plan can be undone as long as
+  nothing newer touched the same objects: undo is the inverse plan built
+  from the stored before values. Apply refuses while the update guard is
+  on (maintenance, a running update, or the orbital update). Done:
+  apply, undo and audit with tests, including a failed apply that
+  changes nothing and an undo that restores every stored row.
+  Prerequisites: ADM.59. Related: ADM.57, OPS.41, ADM.82.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.61 Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. A sector rebuilt from its seed
+  (DB.17) or repaired from a parity file (DB.9) would lose every admin
+  edit, and GEN.57 says a sector depends only on the seed, the version
+  and its address. Keep that rule: the generated sector is the base and
+  the edit journal is replayed over it, in order, so the rebuilt sector
+  equals the edited one. A journal row that no longer applies (the base
+  changed with a generator epoch) is listed for the admin, not dropped.
+  Done: replay after both rebuild paths, a test that a sector with edits
+  rebuilds to the same stored rows, and the list of rows that cannot
+  replay.
+  Prerequisites: ADM.60, DB.17, DB.9, GEN.57. Related: DB.9, DB.17,
+  GEN.57, GEN.59.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.62 Aspect catalogue for systems, stars, planets, moons and belts: every stored field and every generation input, with how they depend on each other**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. An aspect is one thing about
+  an object that can be kept or regenerated: for a star its class, mass,
+  luminosity, age, metallicity, name, position and companions; for a
+  planet its class, mass, radius, orbit, rotation, atmosphere,
+  composition, moons, name and facilities; for a system the set of
+  bodies and their order. Write the catalogue as data in
+  `planetgen/admin/aspects.py`: each aspect, the stored columns it
+  covers, the generation input that draws it, whether it is derived from
+  other aspects (a planet's radius follows its class and mass) and what
+  depends on it. Done: the catalogue with a test that every stored
+  column of every body table belongs to exactly one aspect.
+  Prerequisites: none. Related: ADM.57, ADM.35, ADM.6, ADM.7.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.63 Aspect catalogue for phenomena: black holes, neutron stars, nebulae, remnants, rogue planets, comets, asteroid fields and quasars**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The same catalogue for the
+  phenomenon tables (`PHENOMENON_TABLES` in planetgen/db/edits.py),
+  including the scatter rows of the whole-sphere build: each aspect, its
+  columns, its generation input and its dependencies. Done: the
+  catalogue extended, with the same every-column-belongs-to-one-aspect
+  test.
+  Prerequisites: ADM.62. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.64 Keep-or-regenerate resolution: from the admin's marks to the exact set of aspects redrawn**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Every aspect is marked keep,
+  regenerate (the default draw), set to a value, or draw within a range.
+  Resolve the marks into what the generator redraws: a regenerated
+  aspect redraws its derived aspects unless they are kept (kept radius
+  with a regenerated class is a conflict to report), a kept aspect is
+  fed to the generator as a fixed input, and the draw uses the object's
+  own seed stream so the same marks give the same result. Done:
+  `resolve(marks)` returning the redraw set, the fixed inputs and any
+  conflicts, with tests for every dependency edge in the catalogue;
+  `regenerate_planet` in planetgen/admin/edits.py gains the fixed-input
+  path.
+  Prerequisites: ADM.62. Related: ADM.57, ADM.35.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.65 Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. An admin can lock an object or
+  one aspect of it (a star's class, a planet's orbit). Every plan treats
+  a locked aspect as kept and refuses an operation that would change it
+  unless the admin lifts the lock inside the plan; the system page and
+  the maps mark locked objects. The plan engine takes a lock predicate
+  and this item registers it, so every plan refuses an operation on a
+  locked aspect. Done: lock and unlock from the object page, the
+  registered predicate, the marks, and a test that the plan engine
+  refuses a change to a locked aspect (the regeneration, rearrangement
+  and density items each test their own).
+  Prerequisites: DB.37, ADM.62, ADM.58. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.66 Plan approval screen: every operation with its before and after, approve, reject one, or cancel**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. When a plan is proposed the
+  admin sees it before anything changes: a summary, then each operation
+  with the values before and after, the objects touched indirectly,
+  warnings (a locked aspect, an unbound orbit), the number of rows and
+  sectors it changes, and buttons to approve the whole plan, reject
+  single operations (which re-validates the rest), or cancel. Done: the
+  screen, per-operation reject with re-validation, approval stored with
+  who and when, and a browser test.
+  Prerequisites: ADM.60. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.67 Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Reuse the system diagram of
+  ADM.52 to draw a plan: the system before and after side by side with
+  changed, added and removed bodies marked, and the sector view with
+  moved systems drawn from old to new position. Done: both views on the
+  approval screen with a browser test.
+  Prerequisites: ADM.52, ADM.66. Related: ADM.57, ADM.52.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.68 Plan history: every plan with who asked, approved, applied and undid it, and an undo button**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. An admin page lists plans by
+  state, object and admin, opens any plan as it was approved, and undoes
+  an applied plan when nothing newer touched its objects (the undo
+  itself is a plan that goes through approval). Done: the page, undo
+  through approval, and a browser test.
+  Prerequisites: ADM.66, ADM.60. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.69 Keep-or-regenerate matrix: the one screen component every regen screen uses**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. In every regen screen the
+  admin picks what to keep and what to regenerate: a list of the
+  object's aspects, each a keep, regenerate or set-to-value control,
+  with presets (regenerate everything, keep everything except one
+  aspect, keep only the name), locked aspects shown as kept and fixed,
+  and the conflicts from the resolution step shown as they appear. Build
+  it as one component for the object, system, sector and region screens.
+  Done: the component, used by one screen to prove it, with a browser
+  test.
+  Prerequisites: ADM.64, ADM.65. Related: ADM.57, ADM.35.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.70 Specification form: "regenerate to this specification" built from the aspect catalogue and the system generator options**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The input half of a regen
+  screen: the values the admin may set (star class and mass, age, planet
+  count, a habitable world, a binary, the +/- options of the system
+  command and the system file keys) generated from the catalogue so a
+  new aspect appears in every form without code. Done: the form, a round
+  trip to and from a recipe (API.28), and a browser test.
+  Prerequisites: ADM.62, ADM.69. Related: ADM.57, ADM.35, API.28.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.71 Move a star system or phenomenon within its sector or to another sector, as a plan**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The admin moves a star system
+  or a phenomenon by new coordinates (the three coordinate forms of
+  ADM.32, relative to the sector or the galaxy centre), by dragging on
+  the Sector Map, or to the emptiest spot: the plan checks Hill spheres
+  and cover lists, changes the sector membership and the neighbours'
+  cover lists, and never moves anything else unless the admin approves
+  it. Done: the plan operation, the Sector Map drag, and tests for a
+  move inside a sector, across a sector edge and a refused move.
+  Prerequisites: ADM.32, ADM.58, ADM.65. Related: ADM.57, ADM.32.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.72 Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The admin sets a planet's or
+  belt's orbital elements (distance, eccentricity, inclination, node,
+  argument, phase) from its page or the system diagram of ADM.52; moons
+  follow their planet, the plan checks Hill spacing and stability and
+  recomputes `next_update_due`, and the velocity-vector edit of ADM.36
+  is the same operation in another form. Done: the plan operation, the
+  page form, and tests for a planet with moons and for a refused
+  crossing orbit.
+  Prerequisites: ADM.36, ADM.52, ADM.58, ADM.65. Related: ADM.57,
+  ADM.36, ADM.52.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.73 Density overrides for any region: store them, show them, and apply them to later fills**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Extend the density edit of
+  MAP.119 from the slab or block in view to any region: the admin picks
+  a region (the tool of MAP.212), sets a multiplier from 0.1 to 10,
+  previews the effect, confirms, and can undo; the override table of
+  DB.38 holds it and every later fill reads it. Done: the edit, preview
+  and undo, the later-fill read, the logged entry, and tests that two
+  overlapping regions combine in a stated order.
+  Prerequisites: DB.38, GEN.302, MAP.212, MAP.119. Related: ADM.57,
+  MAP.119.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.74 Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. A density change on a region
+  that already holds systems proposes the plan that makes the stored
+  world match it: the systems to add (from the bright-star and fill
+  backfill, with their draws) or to remove (the fewest, never a locked,
+  named or populated one without the admin's approval), with counts per
+  sector. Done: the plan generator, the approval of it through the
+  screen of ADM.66, and tests that a raised and a lowered density each
+  reach the target within a stated tolerance.
+  Prerequisites: ADM.73, ADM.58, ADM.65. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.75 Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The admin changes one body (a
+  class A planet to class M, a mass, a distance) and the system works
+  out how to rearrange itself: which other bodies move, resize,
+  regenerate, appear or go, chosen to change as little as possible,
+  honouring keep marks and locks, validated for spacing, Hill spheres,
+  the habitable zone and moons. The result is a plan, never applied
+  silently. Generalises `validation.stabilize_star_system`, which moves
+  bodies and never removes them. Done: `rearrange(system, change,
+  marks)` returning a plan, tests for the A to M case, a refused case
+  that explains why, and a determinism test.
+  Prerequisites: ADM.58, ADM.64, ADM.65. Related: ADM.57, ADM.6.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.76 Rearrange a system around a change to a star: class, mass, luminosity or companions**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The same planner for a star
+  change: a new class or mass moves the habitable zone and the frost
+  line, so bodies rescale or move with it; a companion added or removed
+  in a multi-star system changes which orbits are stable. Extends
+  `change_star` in planetgen/admin/edits.py from a single star to every
+  kind of system. Done: the star cases of `rearrange`, tests for a
+  single star, a binary and a three-star system, and a refused case that
+  explains why.
+  Prerequisites: ADM.75. Related: ADM.57, ADM.7.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.77 Regenerate a planet, moon or belt to a specification, with a keep set, rearranging the system if it must**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The regen screen of a body:
+  the specification form and the matrix; the request becomes a plan (the
+  body redrawn with the kept aspects fixed, plus whatever the rearranger
+  changes) that goes through approval. Done: the screen for planets,
+  moons and belts, the plan, and a browser test of the A to M example
+  from the headline.
+  Prerequisites: ADM.70, ADM.69, ADM.75, ADM.66. Related: ADM.57,
+  ADM.35, ADM.8.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.78 Regenerate a star or a whole system to a specification, with a keep set**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The regen screen of a star or
+  system: choose the specification, keep the aspects wanted (the name,
+  the position, a planet), regenerate the rest; the rearranger handles a
+  changed star. Done: the screen, the plan through approval, and a
+  browser test that a kept name, position and chosen planet survive.
+  Prerequisites: ADM.70, ADM.69, ADM.76, ADM.66. Related: ADM.57,
+  ADM.35, ADM.7.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.79 Regenerate a phenomenon to a specification, with a keep set**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The regen screen for every
+  phenomenon kind, from the phenomenon catalogue; a regenerated nebula
+  keeps its stars, or redraws them, as marked. Done: the screen for each
+  kind and a browser test for two of them.
+  Prerequisites: ADM.63, ADM.70, ADM.69, ADM.66. Related: ADM.57,
+  ADM.35.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.80 Regenerate a sector or a region keeping chosen aspects: locked objects, positions, names**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. From the Galaxy Map,
+  regenerate a sector, block, slab, wedge or any region (MAP.212) with
+  the matrix: keep the stars' positions and names and redraw their
+  planets, keep named systems, redraw the rest. The plan counts what
+  changes per sector and goes through approval; a long run applies as a
+  job. Done: the action, the plan, tests that locked and kept aspects
+  survive, and a browser test.
+  Prerequisites: ADM.69, MAP.212, ADM.74, ADM.66, ADM.65. Related:
+  ADM.57, ADM.35, MAP.120.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.81 Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. The detail screen of every
+  object kind offers each stored field as an edit through a plan, with
+  the same approval, history and undo; the field list comes from the
+  catalogue, so a new column appears without new screens. Done: the
+  editor for every kind with a browser test for a star, a planet, a
+  nebula and a black hole.
+  Prerequisites: ADM.63, ADM.66, ADM.69. Related: ADM.57, ADM.35.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **ADM.82 Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Shared with 8.9 (generate
+  anywhere; Boss, 1:33 PM EDT: build once what both need). A change plan
+  (ADM.60) and a remote upload (API.8) both end the same way: a unit (a
+  star system or a sector) is checked and written whole or not at all.
+  Build it once in `planetgen/admin/finalize.py`: the physics and shape
+  checks of the existing validator (ADM.5,
+  `planetgen/generation/validation.py`), the check that the unit stays
+  inside its sector, the one-transaction write through `db/edits.py`,
+  the auto-fix limited to a clashing name and purely derived columns
+  (the rule Boss accepted for uploads, 2026-10-10), a rename map, and a
+  rejection that lists every reason and changes nothing. Done: the
+  library with tests for a valid unit, a name clash, a derived column
+  fix and each kind of rejection, and `save_system_edits` goes through
+  it.
+  Prerequisites: none. Related: ADM.57, ADM.60, API.8.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 ## SEC: Security
 
@@ -6577,6 +7101,43 @@ clears each one.
   parametrisation (phone-light).
   Prerequisites: none. Related: TEST.170, TEST.172.
 
+- [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. Browser and server tests of
+  the headline cases as an admin would run them: change an A planet to
+  class M and approve the rearranged system; move a star in a sector;
+  change an orbit; change a region's density and approve the added and
+  removed systems; regenerate a star to a specification keeping its name
+  and a planet; then undo each. Done: one test per case, each asserting
+  the stored rows before, after approval and after undo.
+  Prerequisites: ADM.77, ADM.78, ADM.71, ADM.72, ADM.74, ADM.80.
+  Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **TEST.176 Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. A randomised test over many
+  seeded systems: apply random plans (moves, orbit edits, class changes,
+  star changes) and assert every system still validates and no locked
+  aspect changed; undo them in reverse and assert every stored row
+  equals the original. Done: the test, runs in the gate with a fixed
+  seed set and in `full` with a larger one.
+  Prerequisites: ADM.76, ADM.60, ADM.77. Related: ADM.57.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
+- [ ] **TEST.177 Edited sectors survive repair, regeneration and the golden seed**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. A golden-seed test with edits
+  applied: rebuild the sector from its seed (DB.17) and from parity
+  (DB.9) and assert the replayed journal gives the edited rows; assert a
+  generator epoch change lists the rows that cannot replay instead of
+  dropping them. Done: the test.
+  Prerequisites: ADM.61, ADM.80. Related: ADM.57, TEST.77.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -6606,6 +7167,8 @@ clears each one.
   `src/planetgen/admin/auth.py` and `src/planetgen/admin/throttle.py`
   with `api/loginguard.py`.
 
+  Headline: 8.2 (user accounts, with sign-up by an email invitation that
+  only an admin can send).
   - [ ] **USR.2 Accounts with roles: user, admin and Owner**
     Boss: "Admin can
     then make a user admin or take away admin rights on everything but the
@@ -7258,7 +7821,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2026-10-15 7:01 PM EDT): "Add a TODO item in DOCS to build an
   index with links to pages with descriptions of what each page contains
   under docs to link the HTML together." Today the HTML pages under
-  docs/ (the execution plan, the tier plan, the TODO tree, the TODO
+  docs/ (the execution plan, the version plan, the TODO tree, the TODO
   reference, the architecture page, and any page added later) do not
   link to each other except by hand. Build `docs/index.html`: one entry
   per HTML page with its title, a one-or-two sentence description of
@@ -7284,6 +7847,18 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   find out from a red test. Owner: any Core lane, with the next tuning
   change.
   Prerequisites: none. Related: DOC.52.
+
+- [ ] **DOC.54 Admin help: how to edit, regenerate, lock, approve and undo**
+  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
+  has complete control; the world adjusts to what the admin wants, after
+  the admin approves the generation plan. A help page for the admin
+  chain: the plan and its states, approving and rejecting operations,
+  the keep-or-regenerate matrix, locks, density edits, undo and the
+  history page, with a screenshot of the A to M example. Done: the page
+  in the help section (DOC.6 template) and a link from every approval
+  and regen screen.
+  Prerequisites: TEST.175, ADM.68. Related: ADM.57, DOC.6.
+  Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 ## VIEW: The view from a planet
 
