@@ -246,7 +246,7 @@ def test_the_system_is_the_same_from_the_same_seed_and_in_any_order(certain):
         for entry, s in zip(entries, order):
             entry.system_seed = s
         system_pass.run(sector, _args(), entries)
-        return {entry.star_system.star.mass: [(planet.name, round(planet.distance_au, 9))
+        return {entry.star_system.star.mass: [(planet.name, round(planet.distance, 9))
                                               for planet in entry.star_system.planets]
                 for entry in sector.entries}
 
@@ -357,13 +357,16 @@ def test_a_filled_sector_gives_its_scattered_pulsar_planets_at_fill_from_the_row
     rolled = made[fill_stages.SYSTEM_PASS]
     assert rolled["neutron-star:millisecond"] == 2
     assert rolled.get("neutron-star:millisecond:system", 0) + rolled.get("neutron-star:millisecond:empty", 0) == 2
-    assert len(sector.entries) == rolled.get("neutron-star:millisecond:system", 0)
-    assert len(sector.phenomena) == rolled.get("neutron-star:millisecond:empty", 0)
-    assert {entry.scatter_id for entry in sector.entries} | {entry.scatter_id for entry in sector.phenomena} == {1, 2}
-    assert all(entry.star_system.planets for entry in sector.entries)
+    systems = [entry for entry in sector.entries if isinstance(entry.star_system.star, NeutronStar)]
+    bare = [entry for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]
+    assert len(systems) == rolled.get("neutron-star:millisecond:system", 0)
+    assert len(bare) == rolled.get("neutron-star:millisecond:empty", 0)
+    assert {entry.scatter_id for entry in systems + bare} == {1, 2}
+    assert all(entry.star_system.planets for entry in systems)
     if len(seeds) >= 2:
         again = fill(list(reversed(seeds[:2])))
-        key = lambda s: sorted((entry.star_system.star.mass, len(entry.star_system.planets)) for entry in s.entries)
+        key = lambda s: sorted((entry.star_system.star.mass, len(entry.star_system.planets)) for entry in s.entries
+                               if isinstance(entry.star_system.star, NeutronStar))
         assert key(again) == key(sector)
 
 
@@ -383,7 +386,7 @@ def test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_buil
     _id, _name, sector = run_galaxy.generate_and_save_sector_at(
         args, address, sector_position_pc(*address, ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)),
         ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY))
-    systems = [entry for entry in sector.entries if getattr(entry, "scatter_id", None) is not None]
+    systems = [entry for entry in sector.entries if isinstance(entry.star_system.star, NeutronStar)]
     bare = [entry for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]
     assert len(systems) + len(bare) == len(rows)
     made = fill_stages.counts(sector).get(fill_stages.SYSTEM_PASS, {})
