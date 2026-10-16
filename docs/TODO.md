@@ -7161,8 +7161,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chose it by card, 2026-10-16, 6:59 PM EDT), who owns the point columns
   (DB.55, GEN.336, GEN.337, GEN.294) and the IDs, with Core 2 reading the
   camera and render rows.
+  Finding attached (Core 2, 2026-10-16, 7:27 PM EDT): TEST.199, the
+  halo subtraction in the density skeleton loses precision in the far tail
+  (a relative gap of 2.4e-9 against 1e-9 at z = 36,706 pc).
   Prerequisites: none. Related: GEN.294, GEN.139, GEN.142, GEN.223,
-  MAP.146, NAV.62, TEST.192, PERF.88, DB.55.
+  MAP.146, NAV.62, TEST.192, PERF.88, DB.55, TEST.199.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.373 Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise**
@@ -10733,6 +10736,32 @@ clears each one.
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
   Prerequisites: none.
+
+- [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
+  Found by Core 2 (2026-10-16, 7:27 PM EDT, in its ADM.50 gate), filed
+  by the TODO thread. Kind: test, deterministic for the shrunk case.
+  `src/tests/test_fuzz_galaxy_grid.py::test_skeleton_bound_is_an_upper_bound_at_every_angle`
+  failed once in an 88 minute `changed` run, found by hypothesis, and
+  fails on main. Failure text: `assert (1.4882030977187565e-12 -
+  1.488203070457534e-12) <= ((2.7261222351049663e-20 * (1 + 1e-09)) +
+  1e-300)`. Reproducer:
+  `shape=build_galaxy_shape(disk_scale_length_pc=50.0,
+  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
+  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
+  arm_amplitude=0.0)`, `r_cyl=0.0`, `z=36706.0`, `theta=0.0`: `k_norm *
+  _raw_density` minus `halo_density` is 2.7261222417e-20 against a
+  skeleton bound of 2.7261222351e-20, a relative gap of 2.4e-9 against
+  the 1e-9 tolerance, so subtracting the halo from a sum two orders of
+  magnitude larger loses precision in the far tail. Done: the cause is
+  settled (a cancellation in the subtraction: compute the component
+  density without subtracting the halo from a total, or state the
+  tolerance the cancellation allows and why), the bound holds for this
+  case and a test pins it, and hypothesis finds no further case in a
+  full run; no quarantine, no loosened tolerance without the stated
+  reason. It is also a precision finding, so it is attached to GEN.372
+  (the precision audit). Related: TEST.192 (an earlier fuzz bound).
+  Owner: Core 1 (proposed: its bug phase and GEN.372).
+  Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
 
 ## USR: User accounts
 
