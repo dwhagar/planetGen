@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1569] - 2026-10-16
+
+**Headline:** The generator now has an epoch counter, and a pull request that changes what a seed generates must bump it.
+
+### Added
+- `src/tests/golden/epochs.json` holds the generator epoch, `planetgen.util.generator_epoch.generator_epoch()` reads it, and `python -m tests.golden_update --reason "..."` bumps it (refusing under CI, when no golden file changed, and a second time in one change).
+- `scripts/bump_version.py --check-pr` fails a PR unless the golden files changed, the epoch went up by one, and the note carries a `generation-output: changed` line, all three or none. Stamping the release writes it into the epoch's `first_release`.
+
 ## [8.0.1568] - 2026-10-16
 
 **Headline:** The TODO list retires the Admin settings page, which the Settings lane built.
