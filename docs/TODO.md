@@ -5120,8 +5120,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   holes in the phenomena page) it should add a task to get that
   information to redis, have a progress bar in the search page so the
   user knows it is loading, that is one of the main issues, give it to
-  Core 2's chain". Owner Core 2, in its queue right after MAP.152 and
-  before MAP.146 (coordinator's default, 12:22 PM EDT). The mechanism. A
+  Core 2's chain". Owner Core 2, in its queue after MAP.152 and MAP.146 (Boss, 12:23 PM EDT: MAP.152, then MAP.146, then this item). The mechanism. A
   page route that expects a slow answer (a full list of one phenomenon
   kind, a wide search, a large count) checks the tagged Redis page cache
   that PERF.104 built; on a miss it does not build the answer inside the
