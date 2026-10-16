@@ -335,7 +335,7 @@ Scaled by 32 to 1.6 x 10^8 rows (cached; much worse when the table does not fit 
 
 ## 8. Backup tooling facts
 
-- The repo has no database dump step, and OPS.18 rotates the JSON settings file, not dumps. Parity and seed regeneration are the only repair paths for sector data; nothing covers the non-sector tables (control database, admin logins, population tables).
+- The repo has no database dump step, and there is no settings file to rotate any more (ADM.50). Parity and seed regeneration are the only repair paths for sector data; nothing covers the non-sector tables (control database, admin logins, population tables).
 - `mysqldump` (MySQL 8.4) has `--source-data` (and `--master-data` as a deprecated alias); `mariadb-dump` (MariaDB 11.4) has `--master-data`, `--gtid`, `--as-of` and `--system` but no `--source-data` [S: `client/mysqldump.cc`]. One script cannot pass the same replication options to both: use `--single-transaction` and leave them out. MySQL's `mysqldump` against MariaDB needs `--column-statistics=0` [R].
 - Point in time needs the binary log (on by default in MySQL 8.4, off in MariaDB 11.4 [R]); parity and seed regeneration do not.
 

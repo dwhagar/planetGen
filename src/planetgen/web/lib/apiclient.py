@@ -992,19 +992,6 @@ def admin_naming_key(cookie_header, db):
     return body
 
 
-def admin_galaxy_settings(cookie_header):
-    """`GET /api/admin/galaxy-settings` -- the creation-settings files (ADM.18)."""
-    body, _set_cookie_headers = _auth_request("GET", "/admin/galaxy-settings", cookie_header=cookie_header)
-    return body
-
-
-def admin_galaxy_settings_file(cookie_header, name):
-    """`GET /api/admin/galaxy-settings/<name>` -- one file's JSON (ADM.18)."""
-    body, _set_cookie_headers = _auth_request(
-        "GET", f"/admin/galaxy-settings/{urllib.parse.quote(name, safe='')}", cookie_header=cookie_header)
-    return body
-
-
 def admin_settings(cookie_header):
     """`GET /api/admin/settings` -- every option with its help, limits, default, value and source, the file's
     hash, why it can't be written, and the options waiting for a restart (ADM.84)."""
