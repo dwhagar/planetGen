@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1491] - 2026-10-16
+
+**Headline:** The to-do list retires the stored star metallicity (GEN.158) and files the uncharted-star panel gap.
+
+### Changed
+
+- Retired GEN.158 (#1789), added notes on GEN.159, GEN.236 and GEN.269, and filed GEN.296 (the uncharted-star panel shows [Fe/H]).
+
+TODO items resolved: GEN.158 / Added: GEN.296
+
 ## [8.0.1490] - 2026-10-16
 
 **Headline:** Every star now has a stored metallicity, and the sector map shows it.
