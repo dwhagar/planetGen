@@ -3126,6 +3126,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): built as
   written (magnetar by age, pulsar fraction by age); the scatter class
   is the separate item GEN.278.
+  Migration note (Core 1, 2026-10-16, 5:03 AM EDT): the small magnetar
+  CHECK is migration 0096 (Core 3 pushes it); Core 3's galactic-core
+  migration is 0097, GEN.159's component table 0098.
   Prerequisites: none.
   Design: [docs/design/anomalies.md](design/anomalies.md)
 
@@ -3169,6 +3172,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Built-on note (Core 2, 2026-10-16, 4:58 AM EDT, GEN.158 merged as
   #1789): a cluster star keeps a NULL [Fe/H] until this item gives each
   cluster its own value.
+  Migration note (Core 1, 2026-10-16, 5:03 AM EDT): this item's
+  component table is migration 0098 (0096 is Core 3's GEN.153 magnetar
+  CHECK, 0097 Core 3's galactic-core migration). Core 1 asked Core 2 to
+  give the table parent_component_id and catalogue_id so GEN.237
+  (satellites and clusters) reuses it and adds no table.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.160 Cluster density in the sector gate, with a "cluster" population**
@@ -3563,8 +3571,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   now young, intermediate, old, bulge, halo and cluster, and cluster is
   0 until this item; satellite classes (one class per satellite) were
   NOT added as populations and arrive with this component table;
-  migration 0094 widened the bright_stars.population CHECK; this item's
-  revision is 0096.
+  migration 0094 widened the bright_stars.population CHECK. Revision
+  (Core 1, 2026-10-16, 5:03 AM EDT): this item takes the next free
+  number after 0098; it reuses the component table GEN.159 builds
+  (Core 2 adds parent_component_id and catalogue_id to it) and adds no
+  table of its own.
   Prerequisites: GEN.159, GEN.160. Related: GEN.9, GEN.161,
   GEN.164.
   Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
@@ -4470,7 +4481,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the published numbers named in the note. The new GalaxyShape
   fields need a migration: Core 1 owns the revision and Core 3 asks it
   first.
-  Migration revision: Core 1 named 0097 for GEN.280, GEN.281 and GEN.283 together (0093 and 0094 are Core 1's and merged, 0095 is Core 2's, 0096 is Core 1's for GEN.237); Core 3 asks again once 0096 merges.
+  Migration revision (Core 1, 2026-10-16, 5:03 AM EDT): 0097 for GEN.280, GEN.281 and GEN.283 together (0093, 0094 and 0095 are merged, 0096 is Core 3's GEN.153 magnetar CHECK, 0098 is Core 2's GEN.159 component table).
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4492,7 +4503,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy_shape columns (cell_star_ceiling, fill_luminosity_cap_sol)
   share one Core 1 migration revision with GEN.283; option planetgen
   plan --cell-star-ceiling and --fill-luminosity-cap.
-  Migration revision: Core 1 named 0097 for GEN.280, GEN.281 and GEN.283 together (0093 and 0094 are Core 1's and merged, 0095 is Core 2's, 0096 is Core 1's for GEN.237); Core 3 asks again once 0096 merges.
+  Migration revision (Core 1, 2026-10-16, 5:03 AM EDT): 0097 for GEN.280, GEN.281 and GEN.283 together (0093, 0094 and 0095 are merged, 0096 is Core 3's GEN.153 magnetar CHECK, 0098 is Core 2's GEN.159 component table).
   Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234, GEN.283.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4539,7 +4550,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` from 100 to 50 so
   `star_population._check_threshold` accepts it (Core 3's finding;
   GEN.149, now built, changed the same white-dwarf constants), and the plan option `--halo-min-luminosity` accepts 50.
-  Migration revision: Core 1 named 0097 for GEN.280, GEN.281 and GEN.283 together (0093 and 0094 are Core 1's and merged, 0095 is Core 2's, 0096 is Core 1's for GEN.237). Core 1's 0096 adds the scatter-threshold tier column to the profile and component tables; GEN.283 reuses it instead of a second tier column if it fits (Core 3 checks when 0096 is visible).
+  Migration revision (Core 1, 2026-10-16, 5:03 AM EDT): 0097 for GEN.280, GEN.281 and GEN.283 together (0093, 0094 and 0095 are merged, 0096 is Core 3's GEN.153 magnetar CHECK, 0098 is Core 2's GEN.159 component table). The scatter-limit tier itself is a field on SectorProfile with a tuning constant, no column.
   Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
   #1784): the scatter-limit tier is a field plus a tuning constant on
   SectorProfile in galaxy/profile.py, no columns.
@@ -4662,7 +4673,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   orbital elements shown on the pages are derived from the vector, and
   the circular phase columns are replaced, not kept beside them (no
   compatibility layer). GEN.294 gives every other object kind the same
-  object and shares one migration with this item: Core 1 places it, next free 0098. Design:
+  object and shares one migration with this item: Core 1 places it, next free 0099 (0098 is GEN.159's). Design:
   /mnt/project-files/research/orbital-encounters/capture-and-ejection-design.md.
   Prerequisite: GEN.115. Related: GEN.105, GEN.109, GEN.110, GEN.223,
   GEN.294.
@@ -4845,7 +4856,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass or the vector, so a new object kind cannot ship without them. The
   planet and moon dynamical state (parent, bound state, the replaced
   circular phase) belongs to GEN.289, which builds on this object; both
-  go in the one migration, revision 0098 or the next free one, placed by
+  go in the one migration, the next free revision after 0098 (GEN.159's), placed by
   Core 1 (it owns every revision). Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
