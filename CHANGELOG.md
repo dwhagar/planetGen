@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1563] - 2026-10-16
+
+**Headline:** The TODO list records a second sighting of the galaxy-grid fuzz failure and a suggested fix.
+
+### Changed
+- **TEST.192 gains Core 3's finding.** The same fuzz failure came up once in about 17,900 tests, and the item now carries the cause (the rounding error of the halo subtraction is larger than the tolerance on a bound near 2.7e-20) and a suggested tolerance relative to the model.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1562] - 2026-10-16
 
 **Headline:** The TODO list retires the adaptive per-cell system cap, which Core 3 built.
