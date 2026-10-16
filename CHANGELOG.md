@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1479] - 2026-10-16
+
+**Headline:** The to-do list records that the sector-open bugs MAP.209 and MAP.210 did not reproduce and what is needed from Boss.
+
+### Changed
+
+- Added Core 2's status to MAP.209 and MAP.210: opening a sector by address, click and wheel with the camera flight playing gave one document, a filled panel and working star selection in headless Chromium (tests merged in #1776). Both stay open and wait on Boss's browser, device, console output and whether it still happens on the rebuilt database.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1478] - 2026-10-16
 
 **Headline:** Browser tests now guard the move from the Galaxy Map into a sector and picking its stars.
