@@ -11,12 +11,12 @@ module is the one place that knows the spellings:
 * `LAYOUTS`: for each table that holds every part, a `PointLayout` naming its columns, their frame and units. The SQL of
   the tables' reads and writes takes its column lists from the layout (`select`, `assignments`, `columns`), and
   `spatial_from_row` / `values_from_spatial` turn a row into a `SpatialPosition3D` and back.
-* `ALLOW_LIST`: the tables that are still to convert, each with the parts it lacks and the item that adds them. The
-  tests (`test_point_columns.py`) list every table that holds an object, fail when one is on neither list, fail when a
-  table on the allow-list has gained every part (so its entry must go), and fail when an entry names a part the table
-  already has. GEN.336 and GEN.337 take tables off the list; the last one deletes it, so a new kind cannot ship
-  without a point, a mass and a vector.
+* `MOVES_WITH`: the tables whose object has no point of its own because it moves with another's (a star with its
+  system), each with the layout it reads.
 * `NOT_BODIES`: the tables that carry a point but hold no object of their own (a sector, a density component).
+
+The tests (`test_point_columns.py`) list every table that holds an object and fail when one is on none of the three, so
+a new kind of object cannot ship without a point, a mass, a movement vector and an epoch.
 
 The parts and how a table is seen to have them are in `detected_parts`.
 """
@@ -58,7 +58,7 @@ class PointLayout:
         mass_from (tuple or None): `(table, key, column)`: the mass is the sum of `column` over that table's rows whose
             `key` is this row's id (a star system's is its stars').
         epoch (str): The column holding when the position and velocity hold, Unix seconds.
-        due (str): The column holding when the object next moves.
+        due (str or None): The column holding when the object next moves (`None` when its owner's does).
         galaxy_position (tuple or None): The galactic position beside a `sector` frame position, parsecs.
     """
 
@@ -70,7 +70,7 @@ class PointLayout:
     mass: str | None
     mass_unit: str
     epoch: str
-    due: str
+    due: str | None
     mass_from: tuple | None = None
     galaxy_position: tuple | None = None
 
@@ -85,7 +85,7 @@ class PointLayout:
     def columns(self):
         """Every column the layout names, in the order position, galaxy position, velocity, mass, epoch, due."""
         return (*self.position, *(self.galaxy_position or ()), *self.velocity, *((self.mass,) if self.mass else ()),
-                self.epoch, self.due)
+                self.epoch, *((self.due,) if self.due else ()))
 
     def select(self, *parts, alias=""):
         """A SELECT list of the named parts (`position`, `galaxy_position`, `velocity`, `mass`, `epoch`, `due`), each
@@ -120,6 +120,10 @@ _BODY_POINT = dict(
     velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_kg", mass_unit="kg",
     epoch="epoch_unix", due="next_update_due")
 
+_FREE_POINT = dict(
+    frame="galaxy", position=("center_x_pc", "center_y_pc", "center_z_pc"), position_unit="pc",
+    velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), epoch="epoch_unix", due="next_update_due")
+
 LAYOUTS = {
     "planets": PointLayout(table="planets", **_BODY_POINT),
     "moons": PointLayout(table="moons", **_BODY_POINT),
@@ -129,37 +133,34 @@ LAYOUTS = {
     "star_systems": PointLayout(
         table="star_systems", frame="sector", mass=None, mass_unit="kg", mass_from=("stars", "star_system_id", "mass_kg"),
         galaxy_position=("galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc"), **_SCATTER_POINT),
+    "black_holes": PointLayout(table="black_holes", mass="mass_solar", mass_unit="solar", **_FREE_POINT),
+    "neutron_stars": PointLayout(table="neutron_stars", mass="mass_solar", mass_unit="solar", **_FREE_POINT),
+    "rogue_planets": PointLayout(table="rogue_planets", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
+    "interstellar_comets": PointLayout(table="interstellar_comets", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
+    "asteroid_fields": PointLayout(table="asteroid_fields", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
+    "nebulae": PointLayout(table="nebulae", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
+    "supernova_remnants": PointLayout(table="supernova_remnants", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
+    "quasars": PointLayout(table="quasars", mass="black_hole_mass_solar", mass_unit="solar", **_FREE_POINT),
+    "facilities": PointLayout(table="facilities", mass="mass_kg", mass_unit="kg", **_FREE_POINT),
+    "comets": PointLayout(table="comets", **_BODY_POINT),
+    "asteroid_belts": PointLayout(table="asteroid_belts", **_BODY_POINT),
+    "scatter_members": PointLayout(
+        table="scatter_members", frame="system", position=("offset_x_au", "offset_y_au", "offset_z_au"),
+        position_unit="au", velocity=("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), mass="mass_solar",
+        mass_unit="solar", epoch="epoch_unix", due=None),
 }
-"""dict: Table -> the `PointLayout` of every table that holds all four parts."""
+"""dict: Table -> the `PointLayout` of every table that holds all four parts. A `system` frame position is measured
+from the object's star (a scatter member's offset, from its scatter point)."""
 
-FREE_OBJECTS = "free objects"
-"""str: The step (GEN.336) that gives stars, black holes, neutron stars, rogue planets, comets, fields, nebulae and remnants
-their vector and mass."""
-OTHER_OBJECTS = "belts and the rest"
-"""str: The step (GEN.337) that gives belts, the quasar, comets, facilities and scatter members their missing parts."""
-
-ALLOW_LIST = {
-    "stars": (("point", "vector", "epoch"), FREE_OBJECTS, "takes its place and epoch from its system; keeps a scalar speed"),
-    "black_holes": (("vector",), FREE_OBJECTS, "keeps a scalar speed"),
-    "neutron_stars": (("vector",), FREE_OBJECTS, "keeps a scalar speed"),
-    "rogue_planets": (("vector",), FREE_OBJECTS, "keeps a scalar speed"),
-    "interstellar_comets": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
-    "asteroid_fields": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
-    "nebulae": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
-    "supernova_remnants": (("mass", "vector"), FREE_OBJECTS, "keeps a scalar speed"),
-    "nebula_field": (("mass", "vector", "epoch"), FREE_OBJECTS, "a field cloud: a centre and a radius only"),
-    "asteroid_belts": (("point", "mass", "vector", "epoch"), OTHER_OBJECTS, "keeps its orbit index only"),
-    "quasars": (("vector", "epoch"), OTHER_OBJECTS, "does not move; needs a stated zero vector and an epoch"),
-    "comets": (("mass",), OTHER_OBJECTS, "keeps a position, a vector and an epoch"),
-    "facilities": (("mass",), OTHER_OBJECTS, "keeps a position, a vector and an epoch"),
-    "scatter_members": (("epoch",), OTHER_OBJECTS, "keeps an offset, a velocity and a mass"),
+MOVES_WITH = {
+    "stars": ("star_systems", "a star moves with its system: the point, vector and epoch are the system's"),
 }
-"""dict: Table -> `(parts it lacks, the step that adds them, a note)`: the tables still to convert. GEN.336 and GEN.337
-remove entries; the last deletes the dict."""
+"""dict: Table -> `(layout read instead, why)`: an object that holds no point of its own."""
 
 NOT_BODIES = {
     "sectors": "a cell of the grid, not an object in it",
     "galaxy_components": "a density component of the galaxy (a profile about a centre), drawn from when a sector is made",
+    "nebula_field": "the index of cloud sites the nebula draws from: a centre and a radius, not an object",
 }
 """dict: Table -> why it carries a point (or a uid) and holds no object."""
 
