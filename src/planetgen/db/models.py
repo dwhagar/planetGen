@@ -947,7 +947,7 @@ neutron_stars = sa.Table(
     sa.ForeignKeyConstraint(['inside_remnant_id'], ['supernova_remnants.id'], name='fk_neutron_stars_inside_remnant', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_neutron_stars_sector', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['star_id'], ['stars.id'], name='fk_neutron_stars_star', ondelete='CASCADE'),
-    sa.CheckConstraint("(`pulsar_type` in (_utf8mb4'young',_utf8mb4'millisecond',_utf8mb4'non-pulsing'))", name='neutron_stars_chk_1'),
+    sa.CheckConstraint("(`pulsar_type` in (_utf8mb4'young',_utf8mb4'millisecond',_utf8mb4'magnetar',_utf8mb4'non-pulsing'))", name='neutron_stars_chk_1'),
     sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='neutron_stars_chk_2'),
     mysql_engine="InnoDB",
 )

@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE neutron_stars DROP CHECK neutron_stars_chk_1")  # v96
         conn.execute("ALTER TABLE bright_stars DROP COLUMN metallicity_fe_h")  # v95
         conn.execute("ALTER TABLE stars DROP COLUMN metallicity_fe_h")  # v95
         conn.execute("ALTER TABLE bright_stars DROP CHECK chk_bright_stars_population")  # v94

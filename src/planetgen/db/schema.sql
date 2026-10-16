@@ -1284,6 +1284,9 @@
 -- v95 (GEN.158): `stars.metallicity_fe_h` and `bright_stars.metallicity_fe_h` (DOUBLE, nullable), a star's [Fe/H]
 --   in dex against the Sun (`planetgen/physics/metallicity.py`); NULL on rows made before v95.
 --
+-- v96 (GEN.153): `neutron_stars.pulsar_type` also takes 'magnetar' (its CHECK, `neutron_stars_chk_1`, is
+--   replaced; the quadrant CHECK stays `neutron_stars_chk_2`).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2491,7 +2494,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     radius_km                 DOUBLE NOT NULL,
     spin_period_ms            DOUBLE NOT NULL,
     magnetic_field_gauss      DOUBLE NOT NULL,
-    pulsar_type               VARCHAR(16) NOT NULL CHECK (pulsar_type IN ('young', 'millisecond', 'non-pulsing')),
+    -- v96 (GEN.153): 'magnetar' joins the pulsar types.
+    pulsar_type               VARCHAR(16) NOT NULL CHECK (pulsar_type IN ('young', 'millisecond', 'magnetar', 'non-pulsing')),
     surface_temperature_k     DOUBLE NOT NULL,
     luminosity_w              DOUBLE NOT NULL,
     age_gy                    DOUBLE NOT NULL,

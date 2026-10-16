@@ -1528,7 +1528,7 @@ standalone (no owning `StarSystem` at all).
 | `name` | TEXT | NOT NULL | |
 | `mass_solar`, `radius_km` | DOUBLE | NOT NULL | |
 | `spin_period_ms`, `magnetic_field_gauss` | DOUBLE | NOT NULL | |
-| `pulsar_type` | TEXT | NOT NULL, CHECK IN ('young','millisecond','non-pulsing') | |
+| `pulsar_type` | TEXT | NOT NULL, CHECK IN ('young','millisecond','magnetar','non-pulsing') | `magnetar` since v96 (GEN.153). |
 | `surface_temperature_k`, `luminosity_w` | DOUBLE | NOT NULL | `luminosity_w` is thermal blackbody emission (Stefan-Boltzmann), always nonzero. |
 | `age_gy` | DOUBLE | NOT NULL | Time since the core-collapse supernova. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. Same nullable-when-anchored convention as `black_holes` above. |
@@ -2096,6 +2096,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v96 (GEN.153): the magnetar pulsar type
+
+Migration 0096 replaces the CHECK on `neutron_stars.pulsar_type` (`neutron_stars_chk_1`, the name MySQL gave it) with one that also allows `magnetar`: a neutron star younger than a magnetar's active life may be born one (`tuning.MAGNETAR_*`). The quadrant CHECK beside it stays `neutron_stars_chk_2` and no row is touched. The version is detected from the text of `neutron_stars_chk_1`.
 
 ### v95 (GEN.158): the stored [Fe/H]
 
