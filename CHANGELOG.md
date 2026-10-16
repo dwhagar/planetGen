@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1508] - 2026-10-16
+
+**Headline:** The to-do list retires the Hilbert fill order (GEN.101) and files a new flaky-test bug.
+
+### Changed
+
+- Retired GEN.101 (#1807), removed it from the fill-planning goal table and filed TEST.173 (a fill edge test that failed once under load).
+
+TODO items resolved: GEN.101 / Added: TEST.173
+
 ## [8.0.1507] - 2026-10-16
 
 **Headline:** A neighbourhood fill now generates the centre sector first and fills outward in a fixed, space-filling order.
