@@ -51,8 +51,13 @@ def main():
           f"in {result['seconds']:.1f} s.")
     # The Galaxy Map is back on the new sector grid (MAP.206): the site reopens (UX.112). An admin's own
     # maintenance, and one with another cause, stays.
-    if maintenance.turn_off_for(maintenance.SECTOR_SWITCH, by="map rebuild"):
-        print("Maintenance mode is off: the Galaxy Map is rebuilt.")
+    try:
+        if maintenance.turn_off_for(maintenance.SECTOR_SWITCH, by="map rebuild"):
+            print("Maintenance mode is off: the Galaxy Map is rebuilt.")
+    except maintenance.MaintenanceWriteError as exc:
+        # The site stays closed, so say so where it is read, and fail: the admin page shows it too.
+        print(f"error: the Galaxy Map is built but the site is still in maintenance mode. {exc}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

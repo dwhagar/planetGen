@@ -18,6 +18,9 @@
 </section>
 <section class="panel" id="maintenance" aria-labelledby="maintenance-heading">
   <h2 id="maintenance-heading">Maintenance mode</h2>
+  {%- if maintenance_problem %}
+  <p class="error" role="alert">{{ maintenance_problem }}</p>
+  {%- endif %}
   {%- if maintenance.enabled %}
   <p><strong>On.</strong> Every page and API call answers "being updated" to anyone but an admin
     {%- if maintenance.since %}, since <time datetime="{{ maintenance.since }}">{{ maintenance.since }}</time>{% endif %}

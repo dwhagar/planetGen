@@ -196,6 +196,8 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_WORK_PARENT": "set by a job for its child processes",
     "PLANETGEN_WORKER_HOOKS": "set by a work queue for its workers",
     "PLANETGEN_MAINTENANCE_FILE": "where maintenance mode keeps its state (the test suite points it at a temporary file)",
+    "PLANETGEN_STATE_DIR": "the folder maintenance mode's state lives in, which install.sh/update.sh give to the web user "
+                           "(examples/apache/create-cache-dir.sh reads the same variable)",
 }
 
 

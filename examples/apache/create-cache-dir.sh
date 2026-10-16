@@ -4,7 +4,7 @@
 #
 # Creates the web interface's on-disk Galaxy Map tile cache (see
 # src/planetgen/web/lib/tilecache.py), and the admin Generate page's jobs directory
-# (src/planetgen/web/jobs.py), and gives them to Apache's worker user, so the
+# (src/planetgen/web/jobs.py), and the state directory (the maintenance switch, planetgen.admin.maintenance), and gives them to Apache's worker user, so the
 # web interface can write to them (on macOS, _www). Runs on Linux and
 # macOS. Safe to run again: an
 # existing directory is only re-owned. Called by install.sh, and by update.sh when there's
@@ -33,6 +33,7 @@ fi
 
 CACHE_DIR="${1:-}"
 JOBS_DIR=""
+STATE_DIR=""
 if [[ -z "$CACHE_DIR" ]]; then
     PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
     if [[ -z "$PYTHON" ]]; then
@@ -49,9 +50,10 @@ if [[ -z "$CACHE_DIR" ]]; then
     {
         IFS= read -r CACHE_DIR || true
         IFS= read -r JOBS_DIR || true
+        IFS= read -r STATE_DIR || true
     } < <(cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" "$REPO_DIR")
-    if [[ -z "$JOBS_DIR" ]]; then
-        echo "error: could not read the jobs directory from config.json (see above)." >&2
+    if [[ -z "$JOBS_DIR" || -z "$STATE_DIR" ]]; then
+        echo "error: could not read the jobs and state directories from config.json (see above)." >&2
         exit 1
     fi
 fi
@@ -86,4 +88,15 @@ if [[ -z "${1:-}" ]]; then
     chown "$APACHE_USER:$APACHE_GROUP" "$JOBS_DIR"
     chmod 750 "$JOBS_DIR"
     echo "Generate jobs: $JOBS_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+fi
+
+# The state directory: the maintenance switch (planetgen.admin.maintenance), which the web app's admin page and
+# `planetgen.cli.warm_map` (Apache's user) write. The install folder above is root's, so a file beside it can
+# be read but never replaced by the web app. The group may write too (mode 770, never world-writable) so an
+# operator in the web group can use `python3 -m planetgen.cli.maintenance`.
+if [[ -z "${1:-}" ]]; then
+    mkdir -p "$STATE_DIR"
+    chown "$APACHE_USER:$APACHE_GROUP" "$STATE_DIR"
+    chmod 770 "$STATE_DIR"
+    echo "State (maintenance switch): $STATE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
 fi

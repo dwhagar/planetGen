@@ -9,9 +9,9 @@ Turns maintenance mode on or off (UX.112).
     python3 -m planetgen.cli.maintenance status
 
 While it is on, every page and API call answers 503 to anyone but a
-signed-in admin. The switch is the `maintenance.json` file beside
-`settings.json` (`PLANETGEN_MAINTENANCE_FILE` overrides it), so it works
-without a database. The admin page has the same switch.
+signed-in admin. The switch is the `maintenance.json` file in the state
+folder, `/var/lib/planetGen/state` (`PLANETGEN_STATE_DIR` or
+`PLANETGEN_MAINTENANCE_FILE` override it), so it works without a database. The admin page has the same switch.
 """
 
 import argparse
@@ -25,14 +25,14 @@ def main(argv=None):
     parser.add_argument("command", choices=("on", "off", "status"))
     parser.add_argument("--eta", default="", help="When it should finish, in words (shown to visitors)")
     args = parser.parse_args(argv)
-    if args.command == "on":
-        try:
+    try:
+        if args.command == "on":
             maintenance.turn_on(args.eta, by="command line")
-        except ValueError as exc:
-            print(exc, file=sys.stderr)
-            return 1
-    elif args.command == "off":
-        maintenance.turn_off(by="command line")
+        elif args.command == "off":
+            maintenance.turn_off(by="command line")
+    except (ValueError, maintenance.MaintenanceWriteError) as exc:
+        print(exc, file=sys.stderr)
+        return 1
     state = maintenance.read()
     if state["enabled"]:
         print("Maintenance mode is ON" + (f" (expected finish: {state['eta']})" if state["eta"] else "")

@@ -468,12 +468,14 @@ def _admin_action(cookie_header):
         if action in ("maintenance_on", "maintenance_off"):
             admin = current_admin()
             who = admin["username"] if admin else None
-            if action == "maintenance_off":
-                maintenance.turn_off(by=who)
-                return {"message": "Maintenance mode is off. The site is open to everyone."}, "maintenance"
             try:
+                if action == "maintenance_off":
+                    maintenance.turn_off(by=who)
+                    return {"message": "Maintenance mode is off. The site is open to everyone."}, "maintenance"
                 maintenance.turn_on(request.form.get("eta", ""), by=who)
-            except ValueError as exc:
+            except (ValueError, maintenance.MaintenanceWriteError) as exc:
+                if isinstance(exc, maintenance.MaintenanceWriteError):
+                    current_app.logger.error("%s", exc)
                 return {"error": str(exc)}, "maintenance"
             return {"message": "Maintenance mode is on. Only admins can use the site."}, "maintenance"
         if action == "revoke_key":
@@ -508,7 +510,7 @@ def admin():
     flashed = _take_flash()
     return _render(
         "admin.html", flashed=True, title="Admin", section="admin", breadcrumbs=[crumb("Admin")],
-        admin=identity, keys_table=keys_table, maintenance=maintenance.read(),
+        admin=identity, keys_table=keys_table, maintenance=maintenance.read(), maintenance_problem=maintenance.write_problem(),
         new_key=flashed.get("new_key"), message=flashed.get("message"), error=flashed.get("error"),
     )
 
