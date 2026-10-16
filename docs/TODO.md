@@ -6731,6 +6731,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the rotation curve (220 km/s, 3,000 pc; physics/constants.py). Owner:
   Core 1 (it built GEN.237 and knows the table), after the global top 5
   blockers unless Boss moves it up.
+  Boss (2026-10-16, 4:04 PM EDT, in the Core 1 thread): "we don't need
+  them to be the exact distances. What we need is for that to be
+  calculated or derived or generated, preferably calculated and derived
+  using real science." The table prefers a calculated or derived law
+  over a drawn one for every row, with the real science named; a drawn
+  value is allowed only where the science gives a distribution.
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -6762,6 +6768,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through the scatter (Boss, 2026-10-16, 4:02 PM EDT); if the study
   finds it feasible, the drawn satellites are made by the scatter in the
   cells they occupy.
+  Boss (2026-10-16, 4:04 PM EDT, in the Core 1 thread): "we don't need
+  them to be the exact distances. What we need is for that to be
+  calculated or derived or generated, preferably calculated and derived
+  using real science." Acceptance: the satellites' count, distances and
+  sizes are calculated from real science wherever a published relation
+  exists (the subhalo mass function and its radial distribution for
+  count and distance, the mass-size and mass-metallicity relations for
+  size and [Fe/H]), drawn only where the science gives a distribution
+  and not a value, and never copied or hand-picked; each law names its
+  source in the code and in the GEN.368 table.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -6798,6 +6814,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, and a recommendation with the work it needs as new items. No build
   in this item. Owner: Core 1, with GEN.368, after the global top 5
   blockers unless Boss moves it up.
+  Boss (2026-10-16, 4:04 PM EDT, in the Core 1 thread): "we don't need
+  them to be the exact distances. What we need is for that to be
+  calculated or derived or generated, preferably calculated and derived
+  using real science." The study also reports which of a satellite's
+  properties can be calculated rather than drawn from the halo mass and
+  the galaxy's history, and what the scatter needs to make its region
+  from those.
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
