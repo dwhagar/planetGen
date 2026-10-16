@@ -298,7 +298,10 @@ connectivity to that specific schema rather than the default one.
   `ambient_density_cm3`, `temperature_k`, `centre_distance_pc`) or `null`.
   It also carries `unresolved` (GEN.281): `null` for a cell filled whole, else what a cell above the cell star
   ceiling leaves unresolved (`ceiling_systems`, `luminosity_cap_sol`, `expected_systems`, `unresolved_systems`,
-  `unresolved_mass_solar`), worked out from its address and never stored.
+  `unresolved_mass_solar`), worked out from its address and never stored. It also carries `scatter_tier` (GEN.333): `null`
+  outside the galaxy or before a scatter ran, else the tier of the sector's band (`core`, `baseline` or `halo`) and the
+  limits the galaxy scatter drew its stars at there (`min_luminosity_sol`, `mass_limit_sol`, the latter `null` when the
+  scatter had no mass pass).
 - `GET /api/galaxy/cell?shell=<i>&band=<j>&wedge=<k>` (or `?x=&y=&z=`,
   parsecs, for the cell holding that point) — one cell of the spherical
   sector grid, whether or not anything was generated there
