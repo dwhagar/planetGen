@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1419] - 2026-10-16
+
+**Headline:** An update.sh that was already running when it pulled the web-user ownership change says to run it again instead of only refusing.
+
+### Fixed
+- `set-permissions.sh` now says, when it is handed `src/html` (what the update.sh that pulled the OPS.52 change still passes), that it takes the checkout and that `./update.sh` should be run again. The second run is complete.
+- `update.sh`'s warning about uncommitted local changes ignores file-mode changes, which `set-permissions.sh` makes on every script.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1418] - 2026-10-16
 
 **Headline:** TEST.163 now fails every time on main, not only under load, and its item says so.
