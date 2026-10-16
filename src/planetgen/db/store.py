@@ -1516,6 +1516,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (98, _column_marker("galaxy_shape", "fill_luminosity_cap_sol")),
     (97, _table_marker("galaxy_components")),
     (96, _check_marker("neutron_stars_chk_1", "magnetar")),
     (95, _column_marker("bright_stars", "metallicity_fe_h")),
@@ -6261,6 +6262,7 @@ def record_sector_stats(conn, sector_id, address, center_pc):
         address (tuple): Its `(shell, band, wedge)`.
         center_pc (tuple): Its galaxy-frame center, parsecs.
     """
+    from planetgen.galaxy import profile as galaxyProfile, resolution as galaxyResolution, spherical
     from planetgen.galaxy.density import relative_density
 
     skeleton = get_galaxy_shape(conn)
@@ -6268,6 +6270,14 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     if skeleton is not None:
         density = max(relative_density(center_pc, skeleton.shape), 0.0)
         expected = density * skeleton.expected_system_count_at_density_1
+        cell_expected = expected * spherical.cell_volume(*address, skeleton.edge_pc) / skeleton.edge_pc ** 3
+        if cell_expected > skeleton.cell_star_ceiling:
+            # GEN.281: a capped cell aimed at the stars it resolves, so its ratio to what it got stays meaningful.
+            found = galaxyResolution.cell_resolution(
+                galaxyProfile.sector_profile(address, skeleton), skeleton.cell_star_ceiling,
+                skeleton.fill_luminosity_cap_sol, bright_star_mass_limit(conn))
+            if found.capped:
+                expected = found.resolved_systems
     systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
     stars = conn.execute(
         "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity,"
@@ -7156,20 +7166,21 @@ def get_sector_id_at(conn, shell_index, band_index, wedge_index):
 GalaxySkeletonInfo = namedtuple(
     "GalaxySkeletonInfo",
     ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1", "galaxy_seed",
-     "reach_shell_index"],
-    defaults=(None, 65535),
+     "reach_shell_index", "cell_star_ceiling", "fill_luminosity_cap_sol"],
+    defaults=(None, 65535, tuning.CELL_STAR_CEILING, tuning.FILL_LUMINOSITY_CAP_SOL),
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
 note). `shape` is a `galaxy.density.GalaxyShape`; the other fields are
 `galaxy_shape`'s own remaining columns, `galaxy_seed` (v51, GEN.39) the
 16-byte seed or `None` for a galaxy planned before it, `reach_shell_index`
-(v93, GEN.233) the outermost shell the grid has addresses for."""
+(v93, GEN.233) the outermost shell the grid has addresses for, `cell_star_ceiling` and `fill_luminosity_cap_sol` (v98,
+GEN.281) the systems a cell may expect before it is filled only down to the cap, and that cap in solar luminosities."""
 
 
 def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                        expected_system_count_at_density_1, config=None, galaxy_seed=None,
-                       reach_shell_index=65535):
+                       reach_shell_index=65535, cell_star_ceiling=None, fill_luminosity_cap_sol=None):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
     one galaxy, so this always overwrites whatever was there before rather
@@ -7185,6 +7196,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
         reach_shell_index (int): The outermost shell the grid has
             addresses for (GEN.233); the plan has checked the object ID
             can name it (`spherical.check_reach`).
+        cell_star_ceiling (float, optional): The systems a cell may expect before it is filled only down to the
+            fill luminosity cap (GEN.281); `None` is `tuning.CELL_STAR_CEILING`.
+        fill_luminosity_cap_sol (float, optional): That cap, solar luminosities; `None` is
+            `tuning.FILL_LUMINOSITY_CAP_SOL`.
         expected_system_count_at_density_1 (float): See
             `galaxy.skeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -7204,6 +7219,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
             stored_seed = get_galaxy_seed(conn)
             if galaxy_seed is None:
                 galaxy_seed = stored_seed or galaxySeed.new_seed()
+            if cell_star_ceiling is None:
+                cell_star_ceiling = tuning.CELL_STAR_CEILING
+            if fill_luminosity_cap_sol is None:
+                fill_luminosity_cap_sol = tuning.FILL_LUMINOSITY_CAP_SOL
             conn.execute(
                 """
                 INSERT INTO galaxy_shape (
@@ -7211,8 +7230,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     bulge_scale_radius_pc, bulge_amplitude, arm_count,
                     pitch_angle_rad, arm_amplitude, arm_level, core_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index,
+                    cell_star_ceiling, fill_luminosity_cap_sol
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -7230,6 +7250,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
                     outer_shell_index = VALUES(outer_shell_index),
                     reach_shell_index = ?,
+                    cell_star_ceiling = ?,
+                    fill_luminosity_cap_sol = ?,
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
                     galaxy_seed = ?
@@ -7241,7 +7263,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
-                    reach_shell_index, bytes(galaxy_seed),
+                    cell_star_ceiling, fill_luminosity_cap_sol,
+                    reach_shell_index, cell_star_ceiling, fill_luminosity_cap_sol, bytes(galaxy_seed),
                 ),
             )
             if stored_seed != bytes(galaxy_seed):
@@ -7399,6 +7422,8 @@ def get_galaxy_shape(conn):
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
         galaxy_seed=None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"]),
         reach_shell_index=row.get("reach_shell_index", 65535),
+        cell_star_ceiling=row.get("cell_star_ceiling", tuning.CELL_STAR_CEILING),
+        fill_luminosity_cap_sol=row.get("fill_luminosity_cap_sol", tuning.FILL_LUMINOSITY_CAP_SOL),
     )
 
 

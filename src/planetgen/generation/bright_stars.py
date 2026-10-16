@@ -718,10 +718,13 @@ class FillContext:
             already placed from (the scatter's mass pass, or lower where a
             mass backfill took this sector, GEN.187); the sector draws only
             lighter stars. `None` when nothing was placed by mass.
+        resolution (CellResolution or None): What the cell resolves (GEN.281), `None` when no ceiling applies. A
+            capped cell (`capped`) holds its pre-placed stars down to the fill luminosity cap and no others.
     """
 
     def __init__(self, profile, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
-                 below_cut=None, star_mass_limit_sol=None):
+                 below_cut=None, star_mass_limit_sol=None, resolution=None):
+        self.resolution = resolution
         self.star_mass_limit_sol = star_mass_limit_sol
         self.profile = profile
         self.center_pc = profile.position_pc
@@ -733,10 +736,18 @@ class FillContext:
         self.phenomenon_rows = list(phenomenon_rows or ())
         self.below_cut = below_cut
 
+    @property
+    def capped(self):
+        """Whether the cell expects more systems than the cell star ceiling (GEN.281): it is built from its
+        pre-placed stars alone, and draws no dimmer system of its own."""
+        return self.resolution is not None and self.resolution.capped
+
     def bright_share(self):
         """The share of this position's stars at or above the threshold
         (0 when no scatter ran): the part of the sector's expected count
-        its pre-placed stars already stand for."""
+        its pre-placed stars already stand for. A capped cell's pre-placed stars stand for all of what it makes."""
+        if self.capped:
+            return 1.0
         if self.min_luminosity_sol is None and self.star_mass_limit_sol is None:
             return 0.0
         total = sum(self.densities.values())

@@ -171,7 +171,7 @@ def test_the_mass_limit_must_be_a_preset(mysql_config):
 
 def _seed_galaxy(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 
