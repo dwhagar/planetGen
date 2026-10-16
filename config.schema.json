@@ -234,6 +234,19 @@
           "x-secret": false,
           "x-unit": "MB"
         },
+        "shared_seconds": {
+          "default": 21600,
+          "description": "How long an answer is kept in Redis, where every web process and the warm-up share it. Each answer is served only while the data it read has not changed, so this only bounds the memory.",
+          "exclusiveMinimum": 0,
+          "title": "Shared Seconds",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false,
+          "x-unit": "seconds"
+        },
         "stamp_seconds": {
           "default": 15,
           "description": "How often the galaxy's content stamp is checked.",
@@ -258,6 +271,19 @@
           "x-min_role": "admin",
           "x-restart": false,
           "x-secret": false
+        },
+        "warm_max_objects": {
+          "default": 5000,
+          "description": "Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy centre first); the rest are built on their first visit, and the warm-up says how many it left out.",
+          "minimum": 0,
+          "title": "Warm Max Objects",
+          "type": "integer",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "objects"
         }
       },
       "title": "PageCache",
@@ -666,8 +692,10 @@
         "max_age_seconds": 300.0,
         "max_entries": 2000,
         "max_mb": 64.0,
+        "shared_seconds": 21600.0,
         "stamp_seconds": 15.0,
-        "stored_counts": true
+        "stored_counts": true,
+        "warm_max_objects": 5000
       }
     },
     "proxy_fix": {

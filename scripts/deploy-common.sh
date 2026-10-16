@@ -424,11 +424,15 @@ finish_update_guard() {
     fi
 }
 
-# Builds the Galaxy Map's opening view into the tile cache (MAP.134), in the
-# background as Apache's user (the cache belongs to it), so the update
-# doesn't wait for it and the first visitor after it doesn't either. At
-# most 30 minutes; the output goes to $WARM_MAP_LOG. Never fails the
-# update: the first visit builds the view itself when this doesn't.
+# Builds the site's caches (MAP.134, PERF.104): the Galaxy Map's opening view,
+# the lists, every sector, system and phenomenon page (up to the warm-up cap)
+# and the search, in the background as Apache's user (the caches belong to it),
+# so the update doesn't wait for it and the first visitor after it doesn't
+# either. One job per family on the admin runs page; the script waits for the
+# update to finish, then for them, and prints one line per family. At most 30
+# minutes; the output goes to $WARM_MAP_LOG, and its exit status is non-zero if
+# any family failed. Never fails the update: the first visit builds what the
+# warm-up did not.
 warm_galaxy_map() {
     local user="" runner=()
     WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
@@ -448,7 +452,7 @@ warm_galaxy_map() {
     fi
     (cd / && nohup ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.warm_map \
         >"$WARM_MAP_LOG" 2>&1 </dev/null &) || true
-    echo "Building the Galaxy Map's opening view in the background (log: $WARM_MAP_LOG)."
+    echo "Building the site's caches in the background (log: $WARM_MAP_LOG; the jobs are on the admin runs page)."
 }
 
 # Tells the admin when an update changed an example config they copied

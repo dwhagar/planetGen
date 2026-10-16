@@ -500,7 +500,7 @@ Shared page-building code.
 | [`habitability_ref.py`](../../src/planetgen/web/lib/habitability_ref.py) | The text of the habitability levels page (`/classes/habitability`, UX.90): the five equipment levels, the six PHI-6 domains with their Blue, Green, Yellow and Red thresholds, the compact-host rule and the chips a planet row shows. |
 | [`mdrender.py`](../../src/planetgen/web/lib/mdrender.py) | Renders the generator's narrow Markdown subset to HTML with the `markdown` package (UX.39); anything outside the subset stays plain text and is escaped. |
 | [`modulegraph.py`](../../src/planetgen/web/lib/modulegraph.py) | The modules a page's script pulls in, for `<link rel="modulepreload">` hints (MAP.161). |
-| [`pagecache.py`](../../src/planetgen/web/lib/pagecache.py) | In-memory cache of the API's public GET answers for the pages (PERF.2): cleared by any API write in the process, checked against the galaxy content stamp, capped by age and size. `page_cache` in `config.json`; `PLANETGEN_PAGE_CACHE=off` turns it off. |
+| [`pagecache.py`](../../src/planetgen/web/lib/pagecache.py) | Cache of the API's public GET answers for the pages (PERF.2, PERF.104): in memory per process and shared through Redis, each answer served only while the data tags it read are unchanged ([`pagetags.py`](../../src/planetgen/web/lib/pagetags.py), [`dataversion.py`](../../src/planetgen/db/dataversion.py)), capped by age and size. `page_cache` in `config.json`; `PLANETGEN_PAGE_CACHE=off` turns it off. See [cache-warm-up.md](cache-warm-up.md). |
 | [`pagination.py`](../../src/planetgen/web/lib/pagination.py) | The site's one pager. |
 | [`privatedir.py`](../../src/planetgen/web/lib/privatedir.py) | Safe private fallback directories in the system temp folder. |
 | [`singleflight.py`](../../src/planetgen/web/lib/singleflight.py) | One build of each Galaxy Map tile or stage at a time (PERF.38). |
@@ -877,21 +877,29 @@ details, search, nav) or `store.load_*`. The view then builds map data with
 **The page cache.** Before a public GET (one that sends no cookie, so
 every visitor gets the same answer), `apiclient._request` asks the app's
 `pagecache.ResponseCache` (installed by `web.init_app`). A hit skips the
-API and the database; a miss stores the raw JSON body. Any successful
-`POST`, `PATCH`, `PUT` or `DELETE` under `/api` in the process clears the
-cache. At most once per `stamp_seconds` per database, the cache reads the
-same content stamp the tile cache uses (`GET /api/galaxy/changes`), so
-sectors and systems added by a generation job or another worker are seen
-within 15 seconds by default. Nothing is kept past `max_age_seconds` (5
-minutes by default). It fails open, and `page_cache` in `config.json`
-tunes or disables it.
+API and the database; a miss stores the raw JSON body with the data tags it
+read and their counters (`planetgen.db.dataversion`, in Redis), also in Redis
+so every worker and the warm-up share it. A copy is served only while its
+counters stand. Any successful `POST`, `PATCH`, `PUT` or `DELETE` under `/api`
+bumps the tags it changes before the response goes out
+(`pagetags.change_for_write`), so only the answers that read them are rebuilt;
+the population pass, the orbital update and generation do the same when they
+finish. At most once per `stamp_seconds` per database, the cache reads the
+same content stamp the tile cache uses (`GET /api/galaxy/changes`), the
+backstop for a change nobody recorded: sectors and systems added by a direct
+database edit are seen within 15 seconds by default. Nothing is kept past
+`max_age_seconds` (5 minutes by default) in a process. It fails open (no Redis,
+no cache), and `page_cache` in `config.json` tunes or disables it. The
+warm-up fills the shared copies after an update (`planetgen.cli.warm_map`,
+[cache-warm-up.md](cache-warm-up.md)).
 
 **Admin writes from the pages.** The system page's facility form
 (`web/system_facilities.py`) previews a placement against
 `planetgen.population.facilities.check_facility` and `GET
 /api/facilities/orbit`, then saves with `POST /api/facilities` or removes
 with `DELETE /api/facilities/<id>`, each a plain CSRF-checked POST with a
-303 back to the page. Like every API write it clears the page cache.
+303 back to the page. Like every API write it bumps the data tags it changes
+(the page cache).
 
 **The Galaxy Map.** `/galaxy` (`web/galaxy_views.py`) draws the 3D map on the
 shell grid, and the sector page's Sector Map is the same map locked to its

@@ -153,6 +153,11 @@ def set_response_cache(provider):
     _response_cache = provider
 
 
+cache_stats = {"hits": 0, "misses": 0}
+"""dict: How many cached GETs were answered from the response cache and how many had to be fetched, in this
+process (the warm-up reports them, PERF.104)."""
+
+
 def _cache_db(params):
     """The `db` a GET's params name, or `None`."""
     if isinstance(params, dict):
@@ -265,10 +270,11 @@ def _request(path, params=None):
         return _parse_json(_send("GET", target).body)
     db = _cache_db(params)
     body = cache.get(db, target)
+    cache_stats["hits" if body is not None else "misses"] += 1
     if body is None:
-        generation = cache.generation
+        token = cache.begin(db)
         body = _send("GET", target).body
-        cache.put(db, target, body, generation)
+        cache.put(db, target, body, token)
     return _parse_json(body)
 
 

@@ -1103,12 +1103,19 @@ def galaxy_stamp_route():
 def galaxy_changes_route():
     """
     `?since=<state>` -- which cube tiles changed since that state (see
-    `db.query.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`.
+    `db.query.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`, and, unless `full`, `sectors` (the printed IDs of the sectors changed) and
+    `grew` (a sector or a system was added), which the page cache (PERF.104) reads.
     `planetgen/web/lib/tilecache.py` calls this about once a minute and deletes
     only the listed tiles, or all of them when `full`. A missing or
     unreadable `since` just answers `full`.
     """
-    return jsonify(galaxy_changes(get_db(), request.args.get("since")))
+    conn = get_db()
+    changes = galaxy_changes(conn, request.args.get("since"))
+    if "sector_ids" in changes:
+        # The page cache tags a sector by its printed ID (API.23), as the pages and the API speak it.
+        printed = ids.printed_many(conn, ids.SECTOR, changes.pop("sector_ids"))
+        changes["sectors"] = sorted(printed.values())
+    return jsonify(changes)
 
 @bp.route("/uncharted-systems")
 def uncharted_systems():

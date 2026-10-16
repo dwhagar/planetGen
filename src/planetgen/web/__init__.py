@@ -32,8 +32,9 @@ Pieces:
 """
 
 import os
+import re
 
-from flask import Blueprint, current_app, has_app_context, request
+from flask import Blueprint, current_app, g, has_app_context, request
 from markupsafe import Markup, escape
 
 # src/html/static/, which Apache serves directly.
@@ -44,6 +45,8 @@ from planetgen.admin import maintenance  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
+from planetgen.web.lib import pagetags  # noqa: E402
+from planetgen.db import dataversion  # noqa: E402
 from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
 from planetgen.web.lib.modulegraph import module_graph  # noqa: E402
@@ -196,11 +199,44 @@ def _app_page_cache():
     return current_app.extensions.get(PAGE_CACHE_EXTENSION)
 
 
+def _written_database():
+    """The database a write through the API changes: `?db=`, else the site's own."""
+    return request.args.get("db") or current_app.config.get("WEB_DATABASE") or current_app.config["MYSQL_CONFIG"].database
+
+
+def _sector_of_system(system_id):
+    """The printed ID of the sector holding `system_id`, or `None` (standalone, or not there)."""
+    try:
+        return apiclient.get_system(_written_database(), system_id).get("sector_id")
+    except Exception:  # noqa: BLE001 -- not found, or no database: the change is then placed more widely
+        return None
+
+
+def _record_write(response, sector_before):
+    """Notes the data change a successful write through the API made (PERF.104), before the response goes out."""
+    path = request.path[len("/api"):]
+    kind, ids = pagetags.change_for_write(request.method, path)
+    if kind in ("system-edited", "system-set"):
+        sector = sector_before
+        if sector is None and kind == "system-set" and request.method == "POST":
+            sector = (request.get_json(silent=True) or {}).get("sector_id")
+        if sector is not None:
+            ids["sector_id"] = sector
+        elif kind == "system-edited":
+            kind, ids = "system-any", {}
+    try:
+        dataversion.record(_written_database(), kind, **ids)
+    except ValueError:
+        dataversion.record(_written_database(), "everything")
+
+
 def _install_page_cache(app):
     """
     Gives `app` its own `pagecache.ResponseCache` (PERF.2) unless
-    `page_cache.enabled` is off, and clears it after every successful
-    write under `/api` -- a page's admin form or an API client alike.
+    `page_cache.enabled` is off, and notes the data change of every successful
+    write under `/api` -- a page's admin form or an API client alike -- by bumping the
+    tags it touches (`pagetags.change_for_write`, `dataversion.record`), so only the answers that read it
+    are rebuilt.
     """
     settings = get_settings().page_cache.model_dump()
     if not settings["enabled"]:
@@ -209,11 +245,17 @@ def _install_page_cache(app):
     app.extensions[PAGE_CACHE_EXTENSION] = cache
     apiclient.set_response_cache(_app_page_cache)
 
+    @app.before_request
+    def _remember_sector_of_system():
+        g.page_cache_sector = None
+        if request.method in _WRITE_METHODS and re.match(r"/api/systems/[^/]+", request.path):
+            g.page_cache_sector = _sector_of_system(request.path.split("/")[3])
+
     @app.after_request
-    def _clear_page_cache_after_writes(response):
+    def _record_api_writes(response):
         if (request.method in _WRITE_METHODS and request.path.startswith("/api/")
                 and response.status_code < 400):
-            cache.clear()
+            _record_write(response, g.get("page_cache_sector"))
         return response
 
 

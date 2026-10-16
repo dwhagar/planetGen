@@ -22,6 +22,7 @@ cache's API calls are fakes, as in `test_tilecache.py`.
 import json
 import os
 import sys
+import secrets
 import threading
 
 import pytest
@@ -81,10 +82,10 @@ def _body(db, target):
 
 
 def _stored_bytes(cache):
-    return sum(len(body) for body in cache._entries.values())
+    return sum(len(entry[2]) for entry in cache._entries.values())
 
 
-def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
+def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often, redis_server):
     stamp_calls = []
     stamp_lock = threading.Lock()
 
@@ -93,10 +94,10 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
         # changes too while other threads fill and read.
         with stamp_lock:
             stamp_calls.append(db)
-            return {"stamp": f"{db}-{len(stamp_calls) // 25}", "state": None}
+            return {"stamp": f"{db}-{len(stamp_calls) // 400}", "state": None}
 
     cache = pagecache.ResponseCache(changes_for, dict(pagecache.DEFAULTS, max_entries=50, stamp_seconds=0))
-    dbs = ("galaxy_a", "galaxy_b", None)
+    dbs = (f"galaxy_a_{secrets.token_hex(4)}", f"galaxy_b_{secrets.token_hex(4)}", None)
     targets = [f"/sectors/{n}" for n in range(80)]
     served = []
     served_lock = threading.Lock()
@@ -107,10 +108,10 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
             for n in range(ROUNDS):
                 db = dbs[(seed + n) % len(dbs)]
                 target = targets[(seed * 7 + n * 3) % len(targets)]
-                generation = cache.generation
+                token = cache.begin(db)
                 body = cache.get(db, target)
                 if body is None:
-                    cache.put(db, target, _body(db, target), generation)
+                    cache.put(db, target, _body(db, target), token)
                 else:
                     hits.append((db, target, body))
             with served_lock:
@@ -121,7 +122,7 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
         for n in range(ROUNDS // 4):
             cache.clear()
             len(cache)
-            cache.generation
+            cache.begin(None)
 
     errors = _run_threads([filler(seed) for seed in range(THREADS)] + [clearer, clearer])
     assert errors == []
@@ -130,17 +131,20 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
         assert body == _body(db, target), (db, target)
     assert len(cache) <= 50
     assert cache._entries.currsize == _stored_bytes(cache)
-    for (db, target), body in cache._entries.items():
+    for (db, target), (_incarnation, _tags, body) in cache._entries.items():
         assert body == _body(db, target)
 
     cache.clear()
     assert len(cache) == 0 and cache._entries.currsize == 0
-    for db in dbs:
+    for target in targets:
+        assert cache.get(None, target) is None
+    for db in dbs[:2]:
+        # The copies Redis holds are still good (nothing changed): they come back, whole.
         for target in targets:
-            assert cache.get(db, target) is None
+            assert cache.get(db, target) in (None, _body(db, target))
 
 
-def test_page_cache_clear_beats_fills_in_flight_from_many_threads(_switch_often):
+def test_page_cache_clear_beats_fills_in_flight_from_many_threads(_switch_often, redis_server):
     """Answers fetched before a `clear()` (their generation read before
     it) are never stored after it, however the threads interleave."""
     cache = pagecache.ResponseCache(lambda db, since: {"stamp": "stamp", "state": None}, dict(pagecache.DEFAULTS, stamp_seconds=1e9))
@@ -153,11 +157,11 @@ def test_page_cache_clear_beats_fills_in_flight_from_many_threads(_switch_often)
             for n in range(ROUNDS // 4):
                 target = f"/systems/{seed}/{n}"
                 cache.get("g", target)  # a miss: the answer is "fetched"
-                pending.append((target, cache.generation))
+                pending.append((target, cache.begin("g")))
             fetched.wait(JOIN_TIMEOUT)  # every "fetch" is in flight...
             cleared.wait(JOIN_TIMEOUT)  # ...when an edit clears the cache
-            for target, generation in pending:
-                cache.put("g", target, _body("g", target), generation)
+            for target, token in pending:
+                cache.put("g", target, _body("g", target), token)
         return run
 
     def editor():

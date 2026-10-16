@@ -6,6 +6,9 @@ the cache on its own with a fake clock, then the Flask pages serving a
 repeat visit without the API, and an API write clearing it.
 """
 
+import json
+import secrets
+
 import pytest
 
 from planetgen.web.app import create_app
@@ -14,7 +17,9 @@ from planetgen.api.config import Config
 from planetgen import web
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
+from planetgen.db import dataversion  # noqa: E402
 from planetgen.db import store  # noqa: E402
+from planetgen.queue import redisclient  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from tests.publicids import pid, pids
 
@@ -27,7 +32,18 @@ class _Clock:
         return self.now
 
 
+@pytest.fixture
+def db(redis_server):
+    """A database name of this test's own, so its versions and entries in the shared Redis are its own."""
+    name = f"pgtest_{secrets.token_hex(6)}"
+    yield name
+    client = redisclient.client(decode_responses=True)
+    for key in client.scan_iter(f"planetgen:*:{name}*"):
+        client.delete(key)
+
+
 def _cache(stamps, clock, **settings):
+    """A cache whose changes come from `stamps[db]`: a state string, an exception, or a dict (`stamp`, `state`, ...)."""
     calls = []
 
     def changes_for(db, since):
@@ -44,115 +60,140 @@ def _cache(stamps, clock, **settings):
 
 def _miss_then_put(cache, db, target, body):
     assert cache.get(db, target) is None
-    cache.put(db, target, body, cache.generation)
+    cache.put(db, target, body, cache.begin(db))
 
 
-def test_hit_until_the_stamp_changes():
+def test_hit_until_the_state_changes(db):
     clock = _Clock()
-    stamps = {"g": "a"}
+    stamps = {db: "a"}
     cache, calls = _cache(stamps, clock, stamp_seconds=15)
-    _miss_then_put(cache, "g", "/sectors/1?db=g", '{"id": 1}')
-    assert cache.get("g", "/sectors/1?db=g") == '{"id": 1}'
-    assert calls == ["g"]  # one stamp check covers the next 15 s
-    stamps["g"] = "b"
+    _miss_then_put(cache, db, "/sectors/1?db=g", '{"id": 1}')
+    assert cache.get(db, "/sectors/1?db=g") == '{"id": 1}'
+    assert calls == [db]  # one check covers the next 15 s
+    stamps[db] = "b"
     clock.now += 10
-    assert cache.get("g", "/sectors/1?db=g") == '{"id": 1}'
+    assert cache.get(db, "/sectors/1?db=g") == '{"id": 1}'
     clock.now += 10
-    assert cache.get("g", "/sectors/1?db=g") is None
-    assert calls == ["g", "g"]
+    assert cache.get(db, "/sectors/1?db=g") is None  # a change nothing places bumps `epoch`
+    assert calls == [db, db]
 
 
-def test_a_busy_fill_keeps_the_entries_and_the_state_until_they_age_out():
-    """PERF.38: while the galaxy changes faster than pages can be rebuilt, a new stamp
+def test_a_change_to_one_sector_rebuilds_only_what_read_it(db):
+    clock = _Clock()
+    stamps = {db: "a"}
+    cache, _ = _cache(stamps, clock, stamp_seconds=0)
+    for sector in ("AAA", "BBB"):
+        _miss_then_put(cache, db, f"/sectors/{sector}", json.dumps({"id": sector, "neighbors": []}))
+    _miss_then_put(cache, db, "/systems/SYS-1", json.dumps({"id": "SYS-1", "sector_id": "BBB"}))
+    _miss_then_put(cache, db, "/polities", "[]")
+    stamps[db] = {"stamp": "b", "state": "state-b", "full": False, "sectors": ["AAA"], "grew": False}
+    assert cache.get(db, "/sectors/AAA") is None
+    assert cache.get(db, "/sectors/BBB") is not None
+    assert cache.get(db, "/systems/SYS-1") is not None
+    assert cache.get(db, "/polities") == "[]"
+
+
+def test_a_busy_fill_keeps_the_entries_and_the_state_until_they_age_out(db):
+    """PERF.38: while the galaxy changes faster than pages can be rebuilt, a new state
     no longer empties the cache at every check."""
     clock = _Clock()
-    stamps = {"g": "a"}
+    stamps = {db: "a"}
     cache, calls = _cache(stamps, clock, stamp_seconds=15, max_age_seconds=300)
-    _miss_then_put(cache, "g", "/t", "body")
+    _miss_then_put(cache, db, "/t", "body")
     clock.now += 20
-    stamps["g"] = {"stamp": "b", "state": "state-b", "busy": True}
-    assert cache.get("g", "/t") is None  # the first busy check is an ordinary change
-    cache.put("g", "/t", "body", cache.generation)
+    stamps[db] = {"stamp": "b", "state": "state-b", "full": True, "busy": True}
+    assert cache.get(db, "/t") is None  # the first busy check is an ordinary change
+    cache.put(db, "/t", "body", cache.begin(db))
     clock.now += 20
-    stamps["g"] = {"stamp": "c", "state": "state-c", "busy": True}
-    assert cache.get("g", "/t") == "body"  # still busy: a fill, so kept
+    stamps[db] = {"stamp": "c", "state": "state-c", "full": True, "busy": True}
+    assert cache.get(db, "/t") == "body"  # still busy: a fill, so kept
     clock.now += 20
-    stamps["g"] = {"stamp": "d", "state": "state-d", "busy": True}
-    assert cache.get("g", "/t") == "body"
-    assert cache._stamps["g"][2] == "state-b"  # still comparing against what it accepted
-    stamps["g"] = {"stamp": "d", "state": "state-d"}
+    stamps[db] = {"stamp": "d", "state": "state-d", "full": True, "busy": True}
+    assert cache.get(db, "/t") == "body"
+    assert cache._stamps[db][2] == "state-b"  # still comparing against what it accepted
+    stamps[db] = {"stamp": "d", "state": "state-d"}
     clock.now += 20
-    clock.now += 20
-    assert cache.get("g", "/t") is None  # settled: a plain change drops it
-    assert cache._stamps["g"][2] == "state-d"
+    assert cache.get(db, "/t") is None  # settled: a plain change drops it
+    assert cache._stamps[db][2] == "state-d"
 
 
-def test_a_fill_that_stays_busy_past_max_age_drops_the_entries():
+def test_a_fill_that_stays_busy_past_max_age_drops_the_entries(db):
     clock = _Clock()
-    stamps = {"g": "a"}
+    stamps = {db: "a"}
     cache, _ = _cache(stamps, clock, stamp_seconds=15, max_age_seconds=300)
-    _miss_then_put(cache, "g", "/t", "body")
-    stamps["g"] = {"stamp": "b", "state": "state-b", "busy": True}
+    _miss_then_put(cache, db, "/t", "body")
+    stamps[db] = {"stamp": "b", "state": "state-b", "full": True, "busy": True}
     clock.now += 20
-    assert cache.get("g", "/t") is None  # the first busy check
-    cache.put("g", "/t", "body", cache.generation)
-    stamps["g"] = {"stamp": "c", "state": "state-c", "busy": True}
+    assert cache.get(db, "/t") is None  # the first busy check
+    cache.put(db, "/t", "body", cache.begin(db))
+    stamps[db] = {"stamp": "c", "state": "state-c", "full": True, "busy": True}
     clock.now += 100
-    assert cache.get("g", "/t") == "body"
-    clock.now += 250  # busy since 320 s ago: the state is taken at last
-    assert cache.get("g", "/t") is None
-    assert cache._stamps["g"][2] == "state-c"
+    assert cache.get(db, "/t") == "body"
+    clock.now += 250  # busy since 370 s ago: the state is taken at last
+    assert cache.get(db, "/t") is None
+    assert cache._stamps[db][2] == "state-c"
 
 
-def test_stamp_change_drops_only_that_database():
+def test_a_change_in_one_database_leaves_the_other(db):
     clock = _Clock()
-    stamps = {"g": "a", "h": "x"}
+    other = db + "_other"
+    stamps = {db: "a", other: "x"}
     cache, _ = _cache(stamps, clock, stamp_seconds=0)
-    _miss_then_put(cache, "g", "/t1", "1")
-    _miss_then_put(cache, "h", "/t2", "2")
-    stamps["g"] = "b"
-    assert cache.get("g", "/t1") is None
-    assert cache.get("h", "/t2") == "2"
+    _miss_then_put(cache, db, "/t1", "1")
+    _miss_then_put(cache, other, "/t2", "2")
+    stamps[db] = "b"
+    assert cache.get(db, "/t1") is None
+    assert cache.get(other, "/t2") == "2"
 
 
-def test_entries_expire_after_max_age():
+def test_entries_expire_after_max_age(db):
     clock = _Clock()
-    cache, _ = _cache({"g": "a"}, clock, max_age_seconds=300, stamp_seconds=1e9)
-    _miss_then_put(cache, "g", "/t", "body")
+    cache, _ = _cache({db: "a"}, clock, max_age_seconds=300, stamp_seconds=1e9)
+    _miss_then_put(cache, db, "/t", "body")
     clock.now += 299
-    assert cache.get("g", "/t") == "body"
+    assert cache.get(db, "/t") == "body"
     clock.now += 2
-    assert cache.get("g", "/t") is None
+    assert cache._entries.get((db, "/t")) is None
 
 
-def test_unreadable_stamp_means_uncached():
+def test_unreadable_state_means_uncached(db):
     clock = _Clock()
-    cache, _ = _cache({"g": RuntimeError("no galaxy tables")}, clock)
-    assert cache.get("g", "/t") is None
-    cache.put("g", "/t", "body", cache.generation)
+    cache, _ = _cache({db: RuntimeError("no galaxy tables")}, clock)
+    assert cache.get(db, "/t") is None
+    cache.put(db, "/t", "body", cache.begin(db))
     assert len(cache) == 0
 
 
-def test_clear_beats_a_fetch_in_flight():
+def test_a_change_beats_a_fetch_in_flight(db):
     clock = _Clock()
-    cache, _ = _cache({"g": "a"}, clock)
-    assert cache.get("g", "/t") is None
-    generation = cache.generation
-    cache.clear()  # an edit lands while the old answer is being fetched
-    cache.put("g", "/t", "old", generation)
-    assert cache.get("g", "/t") is None
+    cache, _ = _cache({db: "a"}, clock)
+    assert cache.get(db, "/t") is None
+    token = cache.begin(db)
+    dataversion.record(db, "everything")  # an edit lands while the old answer is being fetched
+    cache.put(db, "/t", "old", token)
+    assert cache.get(db, "/t") is None
 
 
-def test_least_recently_used_goes_first_and_size_is_bounded():
+def test_clear_beats_a_fetch_in_flight(db):
     clock = _Clock()
-    cache, _ = _cache({"g": "a"}, clock, max_entries=2, stamp_seconds=1e9)
+    cache, _ = _cache({db: "a"}, clock)
+    assert cache.get(db, "/t") is None
+    token = cache.begin(db)
+    cache.clear()
+    cache.put(db, "/t", "old", token)
+    assert cache.get(db, "/t") is None
+
+
+def test_least_recently_used_goes_first_and_size_is_bounded(db):
+    clock = _Clock()
+    cache, _ = _cache({db: "a"}, clock, max_entries=2, stamp_seconds=1e9)
     for target in ("/a", "/b"):
-        _miss_then_put(cache, "g", target, target)
-    assert cache.get("g", "/a") == "/a"
-    _miss_then_put(cache, "g", "/c", "/c")
-    assert cache.get("g", "/b") is None and cache.get("g", "/a") == "/a"
-    small, _ = _cache({"g": "a"}, clock, max_mb=0.001)
-    _miss_then_put(small, "g", "/big", "x" * 1000)  # over a quarter of the budget
+        _miss_then_put(cache, db, target, target)
+    assert cache.get(db, "/a") == "/a"
+    _miss_then_put(cache, db, "/c", "/c")
+    assert (db, "/b") not in cache._entries and cache.get(db, "/a") == "/a"
+    small, _ = _cache({db: "a"}, clock, max_mb=0.001)
+    _miss_then_put(small, db, "/big", "x" * 1000)  # over a quarter of the budget
     assert len(small) == 0
 
 
@@ -194,7 +235,7 @@ def _count_sends(monkeypatch):
     return seen
 
 
-def test_repeat_visit_is_served_from_the_cache(db_app, mysql_config, monkeypatch):
+def test_repeat_visit_is_served_from_the_cache(db_app, mysql_config, monkeypatch, redis_server):
     sector = SpaceSector(name="Cached Sector", edge_ly=40.0)
     sector_id = store.save_sector(sector, config=mysql_config)
     client = db_app.test_client()
@@ -204,10 +245,10 @@ def test_repeat_visit_is_served_from_the_cache(db_app, mysql_config, monkeypatch
     del seen[:]
     second = client.get(f"/sector/{pid('sector', sector_id)}").get_data(as_text=True)
     assert "Cached Sector" in first and "Cached Sector" in second
-    assert ("GET", f"/sectors/{sector_id}") not in seen
+    assert ("GET", f"/sectors/{pid('sector', sector_id)}") not in seen
 
 
-def test_a_write_through_the_api_clears_the_cache(db_app, mysql_config):
+def test_a_write_through_the_api_makes_what_it_changed_stale(db_app, mysql_config, redis_server):
     @db_app.route("/api/test-write", methods=["POST"])
     def test_write():
         return {"ok": True}
@@ -221,13 +262,15 @@ def test_a_write_through_the_api_clears_the_cache(db_app, mysql_config):
     client = db_app.test_client()
     client.get(f"/sector/{pid('sector', sector_id)}")
     cache = db_app.extensions[web.PAGE_CACHE_EXTENSION]
-    assert len(cache) > 0
-    # A refused write changes nothing, so the cache stays...
+    database = mysql_config.database
+    target = f"/sectors/{pid('sector', sector_id)}?db={database}"
+    assert cache.get(database, target) is not None
+    # A refused write changes nothing, so the copy stands...
     assert client.post("/api/test-refused").status_code == 409
-    assert len(cache) > 0
-    # ...and a successful one clears it.
+    assert cache.get(database, target) is not None
+    # ...and a successful one nothing describes makes every copy stale.
     assert client.post("/api/test-write").status_code == 200
-    assert len(cache) == 0
+    assert cache.get(database, target) is None
 
 
 def test_cache_can_be_turned_off(mysql_config, monkeypatch):

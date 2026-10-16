@@ -19,6 +19,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [design-decisions.md](design-decisions.md) | The choices that shape the project, each with its status | reference |
 | [later-phenomena-scatter-rules.md](later-phenomena-scatter-rules.md) | Which later phenomena are scattered, backfilled or fill-only (goal issue #1677): what each item stores, the magnetar scatter class, what the rule set and the profile gain, the columns for Core 1, and the changes to the TODO items | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
 | [todo-number-map.md](todo-number-map.md) | Old TODO numbers to category IDs, and the next free ID of each category | reference |
+| [cache-warm-up.md](cache-warm-up.md) | The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104) | built (Core 2, 2026-10-16) |
 | [library-migration.md](library-migration.md) | Moving to third-party libraries and into packages | built (queue being redone, PERF.86) |
 | [math-and-library-efficiency.md](math-and-library-efficiency.md) | Where the heavy math runs; Python 3.12 and numba | partly built (PERF.88 open) |
 
@@ -37,7 +38,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [sampling-backfill-and-resume.md](sampling-backfill-and-resume.md) | Sampling, backfill, void filling, resumable runs and directives | research (resume on hold, PERF.86) |
 | [mass-backfill.md](mass-backfill.md) | Four rings of heavier stars around generated sectors | built |
 | [multiple-galaxies.md](multiple-galaxies.md) | Neighbour galaxies and a second galaxy | research |
-| [globular-clusters.md](globular-clusters.md) | Globular clusters in generation | partly built (GEN.159: cluster table, King tables, generator) |
+| [globular-clusters.md](globular-clusters.md) | Globular clusters in generation | partly built (GEN.159: cluster table, King tables, generator; GEN.160: cluster density in the sector gate) |
 | [intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) | What fills the sphere off the disk: the stellar halo, satellites, ejected stars, gas, and how to give every cell contents | research (reach approved; build plan for TODO) |
 | [spherical-region-queries.md](spherical-region-queries.md) | Selecting a sphere of the galaxy with a database query: the cell key, key runs, a covering index, measured against the box, the spatial index and the sector walk | research (2026-10-15; nothing built) |
 | [phenomena-catalogue-and-fill.md](phenomena-catalogue-and-fill.md) | The master list of every phenomenon kind: observed rate, system odds, required contents, profile gate, scatter or fill, and the fill rules and audit | design (rules of 2026-10-15; items for TODO) |

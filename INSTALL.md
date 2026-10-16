@@ -269,10 +269,11 @@ bulk generation refuses to start until it passes), migrates the database
 and records the version key, re-applies folders, permissions and the
 logs, checks that the site imports, and checks Redis as the installer
 does. It never reinstalls what is already there. Last, it starts
-building the Galaxy Map's opening view into the tile cache in the
-background (`planetgen.cli.warm_map`, at most 30 minutes, log at
-`/tmp/planetgen-warm-map.log`), so the first visit after an update is
-fast; the update does not wait for it.
+building the site's caches in the background (`planetgen.cli.warm_map`:
+the Galaxy Map's opening view, the lists, the sector, system and phenomenon
+pages and the search; at most 30 minutes, log at
+`/tmp/planetgen-warm-map.log`, one job per part on the admin runs page), so
+the first visit after an update is fast; the update does not wait for it.
 
 When the update includes a schema migration, it first asks whether to
 **delete the galaxy data instead** (y/N, defaulting to N after 30

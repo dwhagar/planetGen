@@ -805,6 +805,28 @@ def _finish(node, state):
         log.debug(f"Job tree: can't record the end of node {node.title!r} ({exc}).")
 
 
+def record_task(node, kind, key, state="done", seconds=None, error=None):
+    """
+    Writes one finished task row under `node` -- how a node that is not a work queue shows a line of
+    its log on the admin page (the cache warm-up's one line per family, PERF.104).
+
+    Args:
+        node (Node): An open node.
+        kind (str): The task's kind (its column on the page).
+        key (str): The line shown (cut to 255 characters).
+        state (str): `"done"` or `"failed"`.
+        seconds (float, optional): How long it took.
+        error (str, optional): What went wrong, for a failed one.
+    """
+    task = _Task(kind, key, None, None, 1.0, None)
+    try:
+        node.store.add_tasks(node.id, [task])
+        node.store.start_tasks([task])
+        node.store.finish_task(node.id, task, state, seconds=seconds, error=error)
+    except Exception as exc:  # noqa: BLE001 -- the log line is lost, the run is not
+        log.debug(f"Job tree: can't record the task {key!r} ({exc}).")
+
+
 @contextlib.contextmanager
 def job_node(kind, title, control_config=None, **options):
     """`with job_node("bright-stars", "Bright stars"):` -- `open_node`

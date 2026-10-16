@@ -49,6 +49,8 @@
     "max_mb": 64.0,
     "stamp_seconds": 15.0,
     "max_age_seconds": 300.0,
+    "shared_seconds": 21600.0,
+    "warm_max_objects": 5000,
     "stored_counts": true
   },
   "jobs": {

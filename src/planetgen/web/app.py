@@ -53,7 +53,8 @@ def create_app(config_object=Config):
                 static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
     naming.install(app)
-    maintenance_gate.install(app)  # UX.112: first, so a refused visitor reaches nothing behind it
+    if not app.config.get("WARMUP"):   # the cache warm-up (PERF.104) visits the pages while the site is closed
+        maintenance_gate.install(app)  # UX.112: first, so a refused visitor reaches nothing behind it
     app.before_request(_reject_undecodable_query_string)
     app.before_request(_reject_oversized_body)
     ids.install(app)
