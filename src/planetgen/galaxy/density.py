@@ -29,7 +29,7 @@ a Milky-Way-scale one. `GalaxyShape.build` computes the one derived value
 specific constant, since that would only make sense for a galaxy actually
 built to that real scale.
 
-This module is pure and side-effect-free, like `galaxy/geometry.py` --
+This module is pure and side-effect-free, like `galaxy/spherical.py` --
 callers own deciding what to do with a `relative_density` value (whether
 that's an occupancy decision, a `--density` multiplier, or just an
 analysis figure), and own persistence, if any.

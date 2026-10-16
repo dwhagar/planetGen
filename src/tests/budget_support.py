@@ -168,7 +168,7 @@ def build(server_kwargs, name, systems, sectors, log=print, drop_others=True):
 
         clone("sectors", "center_x_pc IS NOT NULL", {
             "id": "s.seq + 1000000000", "name": "CONCAT('Sector ', CHAR(65 + (s.seq * 7919) % 26), ' ', (s.seq * 2654435761) % 1000003)",
-            "ring_index": "s.seq DIV 1000", "layer_index": "0", "ring_slot_index": "s.seq MOD 1000", "uid": "s.seq + 1000000000"}, sectors)
+            "shell_index": "s.seq DIV 1000", "band_index": "0", "wedge_index": "s.seq MOD 1000", "uid": "s.seq + 1000000000"}, sectors)
         clone("star_systems", "is_binary = 0 AND sector_id IS NOT NULL", {
             "id": "s.seq + 1000000000", "sector_id": f"1000000000 + 2 + (s.seq * 7) % {sectors - 1}", "system_config_id": str(config_id),
             "name": "CONCAT(ELT(1 + s.seq % 6, 'Alder', 'Brae', 'Cinder', 'Dune', 'Ember', 'Fell'), ' ', (s.seq * 2654435761) % 9000017)",

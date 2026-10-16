@@ -24,7 +24,7 @@ from hypothesis import strategies as st
 
 from planetgen import tuning
 from planetgen.galaxy import (
-    density as galaxyDensity, geometry as gg, skeleton as galaxySkeleton, spherical, viewport as gv,
+    density as galaxyDensity, skeleton as galaxySkeleton, spherical, viewport as gv,
 )
 from tests.fuzz_support import finite
 
@@ -754,5 +754,6 @@ def test_planned_slots_in_a_tile_lie_in_that_tile(tile, edge):
     slots = gv.planned_slots_in_tile(*tile, edge, shape, e, set())
     lo, hi = gv.tile_bounds_pc(*tile)
     for slot in slots:
-        position = gg.sector_position_pc(slot["ring_index"], slot["layer_index"], slot["ring_slot_index"], edge)
+        position = spherical.sector_position_pc(slot["shell_index"], slot["band_index"], slot["wedge_index"], edge)
+        assert position == pytest.approx((slot["x"], slot["y"], slot["z"]))
         assert all(l <= v < h for l, v, h in zip(lo, position, hi))

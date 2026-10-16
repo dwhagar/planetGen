@@ -57,7 +57,7 @@ except ImportError:
     SOLAR_RADIUS_M = 6.957e8
 
 try:
-    from planetgen.galaxy.geometry import binary_companion_offset_pc
+    from planetgen.galaxy.frame import binary_companion_offset_pc
     from planetgen.galaxy.spherical import (
         band_colatitude_bounds,
         sector_cell_vertices_pc,

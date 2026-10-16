@@ -233,7 +233,7 @@ def test_phenomenon_endpoint_key_joins_like_a_system():
 # ---------------------------------------------------------------------
 
 EDGE_PC = ly_to_pc(EDGE_LY)
-RING = 1980  # about the Sun's radius at the default sector edge
+SHELL = 1980  # about the Sun's radius at the default sector edge
 
 
 def _make_system():
@@ -243,19 +243,19 @@ def _make_system():
     return StarSystem(system_config=cfg), cfg
 
 
-def _save_grid_sector(config, name, slot, local_positions, layer=0):
+def _save_grid_sector(config, name, wedge, local_positions, band=0):
     """Saves one sector at its grid address with systems at the given
     sector-local light-year positions; returns its system ids in order."""
     sector = SpaceSector(name, edge_ly=EDGE_LY)
     for position in local_positions:
         system, cfg = _make_system()
         sector.add_system(system, position=position, system_config=cfg)
-    center = sector_position_pc(RING, layer, slot, EDGE_PC)
+    center = sector_position_pc(SHELL, band, wedge, EDGE_PC)
     sector_id = store.save_sector(sector, config=config, galaxy_position={
         "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
         "galactic_radius_pc": math.hypot(center[0], center[1]),
         "vertices_pc": {"inner": [], "outer": []},
-        "ring_index": RING, "layer_index": layer, "ring_slot_index": slot,
+        "shell_index": SHELL, "band_index": band, "wedge_index": wedge,
     })
     conn = store.get_connection(config)
     try:
@@ -283,7 +283,7 @@ def _nav(config, from_id, to_id):
 
 
 def test_nav_between_routes_between_two_separately_generated_areas(mysql_config):
-    # Two generated sectors 20 slots apart, each an island of its own.
+    # Two generated sectors 20 wedges apart, each an island of its own.
     west = _save_grid_sector(mysql_config, "West", 0, _cluster((0.0, 0.0, 0.0)))
     east = _save_grid_sector(mysql_config, "East", 20, _cluster((0.0, 0.0, 0.0)))
 
@@ -297,7 +297,7 @@ def test_nav_between_routes_between_two_separately_generated_areas(mysql_config)
 def test_nav_between_reaches_a_lone_system_in_the_halo(mysql_config):
     home = _save_grid_sector(mysql_config, "Home", 0, _cluster((0.0, 0.0, 0.0)))
     # Layer 500 is about 2 kpc above the disk at the default edge.
-    halo = _save_grid_sector(mysql_config, "Halo", 0, [(0.0, 0.0, 0.0)], layer=500)
+    halo = _save_grid_sector(mysql_config, "Halo", 0, [(0.0, 0.0, 0.0)], band=500)
 
     result = _nav(mysql_config, home[0], halo[0])
     assert result["route"] is not None
@@ -306,7 +306,7 @@ def test_nav_between_reaches_a_lone_system_in_the_halo(mysql_config):
 
 def test_nav_between_reports_the_longest_hop(mysql_config):
     home = _save_grid_sector(mysql_config, "Home", 0, _cluster((0.0, 0.0, 0.0)))
-    halo = _save_grid_sector(mysql_config, "Halo", 0, [(0.0, 0.0, 0.0)], layer=500)
+    halo = _save_grid_sector(mysql_config, "Halo", 0, [(0.0, 0.0, 0.0)], band=500)
 
     route = _nav(mysql_config, home[0], halo[0])["route"]
     hops = [
@@ -335,7 +335,7 @@ def test_nav_between_same_sector_route_uses_nearer_stars_next_door(mysql_config)
     near_top, near_bottom = EDGE_LY / 2 - 0.3, -EDGE_LY / 2 + 0.3
     home = _save_grid_sector(mysql_config, "Home", 0, [(-5.0, 0.0, near_top), (5.0, 0.0, near_top)])
     above = _save_grid_sector(
-        mysql_config, "Above", 0, [(float(x), 0.0, near_bottom) for x in range(-5, 6)], layer=1,
+        mysql_config, "Above", 0, [(float(x), 0.0, near_bottom) for x in range(-5, 6)], band=1,
     )
 
     result = _nav(mysql_config, home[0], home[1])

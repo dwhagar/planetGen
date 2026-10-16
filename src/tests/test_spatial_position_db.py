@@ -36,7 +36,7 @@ def test_a_saved_sector_loads_back_with_every_entry_and_body_in_place(mysql_conf
     sector = _sector_with_moons()
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": CENTER_PC[0], "center_y_pc": CENTER_PC[1], "center_z_pc": CENTER_PC[2],
-        "galactic_radius_pc": 8100.0, "ring_index": 3, "layer_index": 0, "ring_slot_index": 5,
+        "galactic_radius_pc": 8100.0, "shell_index": 3, "band_index": 0, "wedge_index": 5,
     })
     conn = store.get_connection(mysql_config)
     try:
@@ -97,7 +97,7 @@ def test_a_loaded_sector_knows_every_objects_cell_and_velocity(mysql_config):
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": float((center_pc[0] ** 2 + center_pc[1] ** 2 + center_pc[2] ** 2) ** 0.5),
-        "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+        "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
     })
     conn = store.get_connection(mysql_config)
     try:

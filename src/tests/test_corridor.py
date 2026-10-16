@@ -53,7 +53,7 @@ def test_the_corridor_holds_the_systems_near_the_line_and_not_the_others(mysql_c
     west = _save_grid_sector(mysql_config, "West", 0, _cluster((0.0, 0.0, 0.0)))
     middle = _save_grid_sector(mysql_config, "Middle", 3, _cluster((0.0, 0.0, 0.0)))
     east = _save_grid_sector(mysql_config, "East", 6, _cluster((0.0, 0.0, 0.0)))
-    aside = _save_grid_sector(mysql_config, "Aside", 3, _cluster((0.0, 0.0, 0.0)), layer=40)
+    aside = _save_grid_sector(mysql_config, "Aside", 3, _cluster((0.0, 0.0, 0.0)), band=40)
     centers = _centers(mysql_config)
     a, b = (tuple(pc_to_ly(v) for v in centers[name]) for name in ("West", "East"))
     conn = store.get_connection(mysql_config)
@@ -90,7 +90,7 @@ def test_nav_between_reads_the_corridor_not_the_whole_galaxy(mysql_config, monke
     west = _save_grid_sector(mysql_config, "West", 0, _cluster((0.0, 0.0, 0.0)))
     middle = _save_grid_sector(mysql_config, "Middle", 3, _cluster((0.0, 0.0, 0.0)))
     east = _save_grid_sector(mysql_config, "East", 6, _cluster((0.0, 0.0, 0.0)))
-    aside = _save_grid_sector(mysql_config, "Aside", 3, _cluster((0.0, 0.0, 0.0)), layer=40)
+    aside = _save_grid_sector(mysql_config, "Aside", 3, _cluster((0.0, 0.0, 0.0)), band=40)
     seen = []
     real = query.positions_near_segment
     monkeypatch.setattr(query, "positions_near_segment",

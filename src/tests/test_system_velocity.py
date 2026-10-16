@@ -51,7 +51,7 @@ def _save(sector, center_pc, mysql_config):
     return store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": _norm(center_pc),
-        "ring_index": ADDRESS[0], "layer_index": ADDRESS[1], "ring_slot_index": ADDRESS[2],
+        "shell_index": ADDRESS[0], "band_index": ADDRESS[1], "wedge_index": ADDRESS[2],
     })
 
 
