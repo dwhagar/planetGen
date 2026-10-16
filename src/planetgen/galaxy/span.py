@@ -4,10 +4,12 @@ bands and, inside one shell and band, an arc of wedges -- the shape the
 Generate page's and `planetgen galaxy`'s span fills describe.
 
 Every range is inclusive. A missing range means "all of it": every shell
-the outline reaches, every band it holds, every wedge of the band. A wedge
-arc whose start is past its end wraps through wedge 0 (`50:5` on a band of
-60 wedges is wedges 50 to 59 and 0 to 5). Only cells inside the galaxy's
-stored outline count.
+the outline reaches, every band it holds, every wedge of the band. A range
+that is named is taken as named, anywhere in the grid's reach (GEN.235): the
+cells of a named shell or band outside the outline are generated from their
+profiles like any other. A wedge arc whose start is past its end wraps
+through wedge 0 (`50:5` on a band of 60 wedges is wedges 50 to 59 and 0 to
+5).
 """
 from planetgen.galaxy import spherical
 
@@ -66,16 +68,20 @@ class Span:
         return "the span of " + ", ".join(parts) if parts else "the whole galaxy"
 
     def _shells(self, bounds):
-        low, high = self.shells if self.shells is not None else (0, bounds.outer_shell_index)
-        return [shell for shell in sorted(bounds.high_band) if low <= shell <= high]
+        """The shells the span covers: the named ones the grid's reach holds, else the outline's."""
+        if self.shells is None:
+            return sorted(bounds.high_band)
+        low, high = self.shells
+        return list(range(low, min(high, bounds.reach_shell_index) + 1))
 
     def _band_range(self, bounds, shell):
-        """The bands `low..high` this span covers in `shell` (the outline's
-        own range when the span names none), or `None` when none."""
-        reach = bounds.high_band[shell]
+        """The bands `low..high` this span covers in `shell`: the named ones
+        the shell holds, else the outline's own range, or `None` when none."""
         if self.bands is None:
-            return -reach, reach
-        low, high = max(self.bands[0], -reach), min(self.bands[1], reach)
+            reach = bounds.high_band.get(shell)
+            return None if reach is None else (-reach, reach)
+        lowest, highest = spherical.band_range(shell)
+        low, high = max(self.bands[0], lowest), min(self.bands[1], highest)
         return (low, high) if low <= high else None
 
     def _wedge_total(self):

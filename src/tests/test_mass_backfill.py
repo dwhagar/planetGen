@@ -19,7 +19,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.physics import constants
 from planetgen import tuning
-from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, SHAPE, THRESHOLD, _row_dict
+from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, SHAPE, THRESHOLD, _profile, _row_dict
 
 EDGES = [1.0, 2.0, 5.0, 8.0, 20.0]
 
@@ -142,18 +142,18 @@ def test_a_white_dwarf_row_stores_null_infinities_and_reads_them_back():
 
 
 def test_a_fill_below_a_backfilled_mass_caps_both_the_mass_and_the_luminosity():
-    center = sector_position_pc(2, 0, 3, EDGE_PC)
-    only_mass = brightStars.FillContext(center, SHAPE, star_mass_limit_sol=2.0)
+    center = _profile(sector_position_pc(2, 0, 3, EDGE_PC))
+    only_mass = brightStars.FillContext(center, star_mass_limit_sol=2.0)
     assert 0.02 < only_mass.bright_share() < 0.05   # about the share of stars born at 2 solar masses or more
     config = only_mass.apply(SystemConfig(), random.Random(1))
     assert config.MAX_STAR_MASS_SOL == 2.0 and config.MAX_STAR_LUMINOSITY_SOL is None
 
-    both = brightStars.FillContext(center, SHAPE, min_luminosity_sol=THRESHOLD, star_mass_limit_sol=2.0)
+    both = brightStars.FillContext(center, min_luminosity_sol=THRESHOLD, star_mass_limit_sol=2.0)
     config = both.apply(SystemConfig(), random.Random(1))
     assert config.MAX_STAR_MASS_SOL == 2.0 and config.MAX_STAR_LUMINOSITY_SOL == THRESHOLD
     assert both.bright_share() >= only_mass.bright_share() - 1e-9
 
-    neither = brightStars.FillContext(center, SHAPE)
+    neither = brightStars.FillContext(center)
     assert neither.bright_share() == 0.0
     config = neither.apply(SystemConfig(), random.Random(1))
     assert config.MAX_STAR_MASS_SOL is None and config.MAX_STAR_LUMINOSITY_SOL is None

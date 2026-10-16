@@ -58,9 +58,26 @@ def test_wedge_arc_wraps_through_zero():
     assert wedges == [total - 2, total - 1, 0, 1]
 
 
-def test_shells_beyond_a_bands_edge_are_left_out():
-    listed = list(Span(shells=(5, 6), bands=(3, 3)).addresses(_bounds()))
-    assert listed == []  # band 3 ends at shell 4
+def test_a_named_range_outside_the_outline_is_taken_as_named_inside_the_reach():
+    # GEN.235: band 3 ends at shell 4 in the outline, but shells 5 and 6 hold band 3 and the reach holds them
+    span = Span(shells=(5, 6), bands=(3, 3))
+    listed = list(span.addresses(_bounds()))
+    assert listed and {(shell, band) for shell, band, _wedge in listed} == {(5, 3), (6, 3)}
+    assert span.count(_bounds()) == len(listed) == wedge_count(5, 3) + wedge_count(6, 3)
+
+
+def test_shells_past_the_reach_are_left_out():
+    bounds = GalaxyBounds([(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 2), (6, 1)], 4.0, reach_shell_index=8)
+    span = Span(shells=(7, 12), bands=(0, 0))
+    assert {shell for shell, _band, _wedge in span.addresses(bounds)} == {7, 8}
+    assert span.count(bounds) == wedge_count(7, 0) + wedge_count(8, 0)
+
+
+def test_a_span_that_names_no_band_stays_inside_the_outline():
+    bounds = _bounds()
+    listed = list(Span(shells=(5, 8)).addresses(bounds))
+    assert {shell for shell, _band, _wedge in listed} == {5, 6}    # the outline ends at shell 6
+    assert all(abs(band) <= bounds.high_band[shell] for shell, band, _wedge in listed)
 
 
 def test_a_span_lists_bands_north_to_south_a_shell_at_a_time():

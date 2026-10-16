@@ -679,13 +679,15 @@ class BelowCut(collections.namedtuple("BelowCut", "address min_mass_solar seed e
 
 class FillContext:
     """
-    What a galaxy-placed sector's fill needs beyond its arguments: the
-    stellar population mix at its center, and its pre-placed bright stars
-    with the threshold they were scattered at.
+    What a galaxy-placed sector's fill needs beyond its arguments: its sector
+    profile (`galaxy.profile`, GEN.235: the stellar population mix at its
+    center and the rest), and its pre-placed bright stars with the threshold
+    they were scattered at.
 
     Attributes:
+        profile (SectorProfile): The sector's profile.
         center_pc (tuple): The sector's center, galaxy-frame parsecs.
-        densities (dict): `population_densities` at the center.
+        densities (dict): The profile's `mix`: `population_densities` at the center.
         bright_rows (list): The sector's unfilled `bright_stars` rows.
         min_luminosity_sol (float or None): The scatter's threshold;
             `None` when no scatter ran (no star is capped then).
@@ -706,12 +708,13 @@ class FillContext:
             lighter stars. `None` when nothing was placed by mass.
     """
 
-    def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
+    def __init__(self, profile, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
                  below_cut=None, star_mass_limit_sol=None):
         self.star_mass_limit_sol = star_mass_limit_sol
-        self.center_pc = center_pc
-        self.shape = shape
-        self.densities = _densities(center_pc, shape)
+        self.profile = profile
+        self.center_pc = profile.position_pc
+        self.shape = profile.shape
+        self.densities = dict(profile.mix)
         self.bright_rows = list(bright_rows)
         self.min_luminosity_sol = min_luminosity_sol
         self.phenomena_scattered = phenomenon_rows is not None

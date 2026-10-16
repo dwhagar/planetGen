@@ -21,7 +21,7 @@ from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import sample_living_star
 from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 from tests.test_bright_star_scatter import (
-    EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _row_dict, _seed_galaxy,
+    EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _profile, _row_dict, _seed_galaxy,
 )
 
 MASS_LIMIT = 3.0
@@ -70,9 +70,9 @@ def test_a_sectors_own_stars_are_lighter_than_the_mass_limit():
 
 
 def test_fill_context_draws_lighter_stars_and_counts_the_mass_pass_in_its_share():
-    center = sector_position_pc(2, 0, 3, EDGE_PC)
-    plain = brightStars.FillContext(center, SHAPE, min_luminosity_sol=THRESHOLD)
-    limited = brightStars.FillContext(center, SHAPE, min_luminosity_sol=THRESHOLD, star_mass_limit_sol=MASS_LIMIT)
+    center = _profile(sector_position_pc(2, 0, 3, EDGE_PC))
+    plain = brightStars.FillContext(center, min_luminosity_sol=THRESHOLD)
+    limited = brightStars.FillContext(center, min_luminosity_sol=THRESHOLD, star_mass_limit_sol=MASS_LIMIT)
     assert limited.bright_share() >= plain.bright_share() > 0.0
     cfg = limited.apply(SystemConfig(), random.Random(1))
     assert cfg.MAX_STAR_MASS_SOL == MASS_LIMIT and cfg.MAX_STAR_LUMINOSITY_SOL == THRESHOLD

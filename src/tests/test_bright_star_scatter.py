@@ -23,6 +23,7 @@ from planetgen.generation.star_population import bright_star_fraction
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
+from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.spherical import neighbor_addresses, sector_address_at, sector_position_pc
 from planetgen.physics.units import ly_to_pc
 from planetgen import tuning
@@ -50,6 +51,11 @@ SHAPE = build_galaxy_shape(
 E_VALUE = 2000.0
 EXTENTS = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
 """`(shell, highest band)` of the toy outline: a small ball, bands -3 to 3 from shell 3 out."""
+
+
+def _profile(center):
+    """The toy galaxy's sector profile at `center` (what a fill reads, GEN.235)."""
+    return profile_at(center, SHAPE, EDGE_PC, E_VALUE)
 
 
 def _scatter(seed=7, **kwargs):
@@ -112,13 +118,13 @@ def test_a_band_scatter_draws_only_stars_between_its_limits():
 
 
 def test_fill_context_caps_dim_stars_and_sets_their_population():
-    fill = brightStars.FillContext(sector_position_pc(2, 0, 3, EDGE_PC), SHAPE, min_luminosity_sol=THRESHOLD)
+    fill = brightStars.FillContext(_profile(sector_position_pc(2, 0, 3, EDGE_PC)), min_luminosity_sol=THRESHOLD)
     assert 0.0 < fill.bright_share() < 0.05
     cfg = fill.apply(SystemConfig(), random.Random(1))
     assert cfg.POPULATION in brightStars.POPULATIONS
     assert cfg.MAX_STAR_LUMINOSITY_SOL == THRESHOLD
 
-    no_scatter = brightStars.FillContext(sector_position_pc(2, 0, 3, EDGE_PC), SHAPE)
+    no_scatter = brightStars.FillContext(_profile(sector_position_pc(2, 0, 3, EDGE_PC)))
     assert no_scatter.bright_share() == 0.0
     assert no_scatter.apply(SystemConfig()).MAX_STAR_LUMINOSITY_SOL is None
 
@@ -555,7 +561,7 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_step_masses(mysql_
     assert not [entry for entry in sector.entries if entry.preplaced]
 
     neighbor = (3, 0, 5)
-    fill = run_galaxy._fill_context(args, neighbor, sector_position_pc(*neighbor, EDGE_PC))
+    fill = run_galaxy._fill_context(args, neighbor)
     assert fill.star_mass_limit_sol == STEP_MASSES[0] and fill.min_luminosity_sol is None
 
 

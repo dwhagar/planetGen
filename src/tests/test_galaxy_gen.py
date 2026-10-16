@@ -46,7 +46,7 @@ from planetgen.db import query
 from planetgen.db import store as _db
 from planetgen.db import store
 from planetgen import tuning
-from planetgen.galaxy import spherical
+from planetgen.galaxy import profile as galaxy_profile, spherical
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
 from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.spherical import (
@@ -119,7 +119,7 @@ def _plan_wide_galaxy(mysql_config, galaxy_seed=None):
 
 
 def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e_value=1.0, shells=(),
-                   galaxy_seed=None):
+                   galaxy_seed=None, reach_shell_index=65535):
     """
     Directly writes a `galaxy_shape`/`galaxy_shell` skeleton, without
     running `planetgen plan`'s own scan -- these tests exercise
@@ -136,10 +136,11 @@ def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e
             `_db.replace_galaxy_shells`.
         galaxy_seed (bytes, optional): The galaxy's seed; drawn at random
             by default.
+        reach_shell_index (int): The outermost shell the grid has addresses for.
     """
     _db.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=outer_shell_index,
                            expected_system_count_at_density_1=e_value, config=mysql_config,
-                           galaxy_seed=galaxy_seed)
+                           galaxy_seed=galaxy_seed, reach_shell_index=reach_shell_index)
     _db.replace_galaxy_shells(list(shells), config=mysql_config)
 
 
@@ -563,16 +564,46 @@ def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_confi
     assert len(_all_sectors(mysql_config)) == 1, _all_sectors(mysql_config)
 
 
-def test_ensure_sector_generated_reports_no_content_outside_every_stored_band(mysql_config):
-    # A shell past the galaxy's edge, or a band past its shell's stored high
-    # band -- the skeleton's bound is exact, so this must be a certain "no",
-    # no live density check needed.
-    _seed_skeleton(mysql_config, shells=_shells(2, 1))
+def test_ensure_sector_generated_refuses_only_beyond_the_reach(mysql_config):
+    # GEN.235: the reach is the only refusal. A shell past it has no address, and neither has a band past what
+    # its shell holds; the skeleton's reach is exact, so this is a certain "no", no density check needed.
+    _seed_skeleton(mysql_config, shells=_shells(2, 1), reach_shell_index=100)
 
-    no_content = {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
+    no_content = {"created": False, "qualifies": False, "in_reach": False, "sector_id": None, "sector_name": None}
     assert run_galaxy.ensure_sector_generated(5000, 0, 0, config=mysql_config) == no_content
-    assert run_galaxy.ensure_sector_generated(2, 3, 0, config=mysql_config) == no_content
+    assert run_galaxy.ensure_sector_generated(101, 0, 0, config=mysql_config) == no_content
+    assert run_galaxy.ensure_sector_generated(2, 9, 0, config=mysql_config) == no_content
     assert _all_sectors(mysql_config) == []
+
+
+def test_ensure_sector_generated_saves_a_halo_sector_from_its_profile_even_when_empty(mysql_config, monkeypatch):
+    """GEN.235: a cell the outline does not hold but the reach does is generated from its profile when asked, and
+    saved and marked generated though its draw comes out empty; the second ask returns the same sector."""
+    _seed_skeleton(mysql_config, shells=_shells(2, 1), reach_shell_index=200)
+    address = (150, 0, 3)     # 600 pc out in the toy galaxy (a scale length is 40 pc): the halo
+    densities = []
+    real = run_galaxy.generate_and_save_sector_at
+
+    def spy(args, *rest, **kwargs):
+        densities.append(args.density)
+        return real(args, *rest, **kwargs)
+
+    monkeypatch.setattr(run_galaxy, "generate_and_save_sector_at", spy)
+    first = run_galaxy.ensure_sector_generated(*address, config=mysql_config, backfill=False, settle=False)
+    assert first["created"] is True and first["qualifies"] is False and first["in_reach"] is True, first
+    assert first["sector_id"] is not None
+    conn = _db.get_connection(mysql_config)
+    try:
+        skeleton = _db.get_galaxy_shape(conn)
+    finally:
+        conn.close()
+    expected = galaxy_profile.sector_profile(address, skeleton)
+    assert expected.region == "halo" and 0.0 < expected.density < 1e-3
+    assert densities == [expected.density]
+    assert {_address(row) for row in _all_sectors(mysql_config)} == {address}
+
+    again = run_galaxy.ensure_sector_generated(*address, config=mysql_config, backfill=False, settle=False)
+    assert again["created"] is False and again["sector_id"] == first["sector_id"]
 
 
 def test_ensure_sector_generated_generates_sparse_wedges_within_a_stored_band(mysql_config):
@@ -786,7 +817,7 @@ def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_co
 
     result = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
     assert result == {
-        "created": False, "qualifies": True,
+        "created": False, "qualifies": True, "in_reach": True,
         "sector_id": winner["sector_id"], "sector_name": None,
     }
 
@@ -1199,25 +1230,26 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
         )
 
 
-def test_shell_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysql_config):
+def test_a_shell_beyond_the_real_skeletons_outer_edge_generates_from_its_profiles(mysql_config):
     """
     Deterministic companion to the neighborhood test above (that one's
     outcome depends on where the random draw lands; this one doesn't): a
-    shell chosen well beyond the real skeleton's own discovered outer edge
-    is refused up front under --strict, before anything is generated --
-    even with an explicit --num-systems, which once skipped every galaxy
-    check.
+    shell and band named well beyond the real skeleton's own discovered outer edge
+    are inside the grid's reach, so (GEN.235) their sectors are generated from their
+    profiles, with or without an explicit --num-systems, and saved though they come
+    out empty.
     """
     summary = _build_real_skeleton(mysql_config)
     beyond_edge_shell = summary["outer_shell_index"] + 10
 
-    for extra in ([], ["--num-systems", "1"]):
-        with pytest.raises(SystemExit):
-            _run_cli([
-                "--shell", str(beyond_edge_shell), "--band", "0", "--limit", "25", "--strict",
-            ] + extra + _mysql_argv(mysql_config), planets=False)
+    for extra, limit in (([], "3"), (["--num-systems", "1"], "5")):
+        _run_cli([
+            "--shell", str(beyond_edge_shell), "--band", "0", "--limit", limit,
+        ] + extra + _mysql_argv(mysql_config), planets=False)
 
-    assert _all_sectors(mysql_config) == []
+    sectors = _all_sectors(mysql_config)
+    assert len(sectors) == 3 + 5       # each run takes its limit of the not-yet-generated sectors
+    assert {row["shell_index"] for row in sectors} == {beyond_edge_shell}
 
 
 # ---------------------------------------------------------------------------
@@ -1520,16 +1552,17 @@ _SMALL_PLAN = [(0, 0), (1, 1), (2, 1)]
 
 
 @pytest.mark.parametrize("argv", [
-    ["--shell", "3", "--band", "0"],               # past the outermost shell (2)
-    ["--shell", "2", "--band", "2"],               # above shell 2's highest band (1)
-    ["--shell", "2", "--band", "-2"],              # below its lowest
-    ["--shell", "3", "--band", "0", "--wedge", "0"],
-    ["--shell", "2", "--band", "2", "--wedge", "0"],
+    ["--shell", "6", "--band", "0"],               # past the reach (shell 5)
+    ["--shell", "2", "--band", "9"],               # a band shell 2 does not hold (-3 to 3)
+    ["--shell", "6", "--band", "0", "--wedge", "0"],
+    ["--shell", "2", "--band", "9", "--wedge", "0"],
 ])
-def test_addresses_outside_the_outline_are_refused_before_generating_under_strict(mysql_config, argv):
-    _seed_skeleton(mysql_config, shells=_SMALL_PLAN)
+@pytest.mark.parametrize("strict", [[], ["--strict"]])
+def test_addresses_beyond_the_reach_are_refused_before_generating(mysql_config, argv, strict):
+    # GEN.235: the reach is the only refusal, with or without --strict.
+    _seed_skeleton(mysql_config, shells=_SMALL_PLAN, reach_shell_index=5)
     with pytest.raises(SystemExit):
-        _run_cli(argv + ["--num-systems", "1", "--strict"] + _mysql_argv(mysql_config))
+        _run_cli(argv + ["--num-systems", "1"] + strict + _mysql_argv(mysql_config))
     assert _all_sectors(mysql_config) == []
 
 
@@ -1538,12 +1571,12 @@ def test_addresses_outside_the_outline_are_refused_before_generating_under_stric
     (["--shell", "2", "--band", "2", "--wedge", "0"], {(2, 2, 0)}),
     (["--shell", "2", "--band", "2"], _band_cells(2, 2)),
 ])
-def test_an_address_named_outside_the_outline_warns_and_is_generated(mysql_config, capsys, argv, expected):
-    # GEN.81: the console never says no to an address the user named.
+def test_an_address_named_outside_the_outline_is_generated_from_its_profile(mysql_config, capsys, argv, expected):
+    # GEN.235: an address the user named is generated anywhere in the reach, with no warning.
     _seed_skeleton(mysql_config, shells=_SMALL_PLAN)
-    _run_cli(argv + _mysql_argv(mysql_config), planets=False)
+    _run_cli(argv + ["--strict"] + _mysql_argv(mysql_config), planets=False)
     assert {_address(row) for row in _all_sectors(mysql_config)} == expected
-    assert "WARNING:" in capsys.readouterr().out
+    assert "WARNING:" not in capsys.readouterr().out
 
 
 def test_neighborhood_is_trimmed_to_the_outline_even_with_explicit_num_systems(mysql_config):
@@ -1568,24 +1601,28 @@ def test_neighborhood_is_trimmed_to_the_outline_even_with_explicit_num_systems(m
     assert {_address(row) for row in _all_sectors(mysql_config)} == inside
 
 
-def test_neighborhood_around_a_sector_outside_the_outline_is_refused(mysql_config):
+def test_neighborhood_around_a_sector_outside_the_outline_takes_the_reach_and_says_how_big_it_is(mysql_config, capsys):
+    # GEN.235: the pull from a cell inside the outline stays in it (the test above); the pull from a halo sector
+    # takes every cell of the reach within the radius, each from its own profile, and reports the size first.
     _seed_skeleton(mysql_config, shells=_SMALL_PLAN)
     far = (40, 0, 0)
+    center = sector_position_pc(*far, EDGE_PC)
     run_galaxy.generate_and_save_sector_at(
-        _fake_args_for_direct_generation(mysql_config), far, sector_position_pc(*far, EDGE_PC), EDGE_PC,
+        _fake_args_for_direct_generation(mysql_config), far, center, EDGE_PC,
     )
     center_id = _all_sectors(mysql_config)[0]["id"]
 
-    with pytest.raises(SystemExit):
-        _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1", "--strict"]
-                 + _mysql_argv(mysql_config))
-    # GEN.81: without --strict, a warning; the sphere holds nothing inside
-    # the outline, so nothing more is generated.
-    _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1"]
+    _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1", "--strict"]
              + _mysql_argv(mysql_config))
-    with pytest.raises(ValueError):
-        run_galaxy.generate_sector_neighborhood(center_id, radius_ly=10.0, config=mysql_config)
-    assert len(_all_sectors(mysql_config)) == 1
+    sphere = {c[:3] for c in enumerate_sectors_within_radius(center, 12.0, EDGE_PC)}
+    assert {_address(row) for row in _all_sectors(mysql_config)} == sphere
+    assert len(sphere) > 20
+    out = capsys.readouterr().out
+    assert f"{len(sphere):,} sector(s) lie within 12 pc of" in out and "outside the galaxy's outline" in out
+    assert "systems in all" in out
+    # The API job's version takes the same cells (nothing left to add, the sphere is generated).
+    counts = run_galaxy.generate_sector_neighborhood(center_id, radius_ly=12.0 / ly_to_pc(1.0), config=mysql_config)
+    assert counts["outside_galaxy"] == 0
 
 
 def test_random_start_and_its_neighborhood_stay_inside_a_real_plan(mysql_config):

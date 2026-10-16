@@ -161,17 +161,27 @@ negative south, and the two end bands are the circular polar caps), and each ban
 cut into **wedges** (vertical slices from pole to pole). A sector is one
 (shell, band, wedge) address. Every band of every shell has 6 times m wedges,
 where m has no prime factor above 7 and is picked so each sector is close to
-4 pc across. The grid covers all of space; the galaxy's outline (below)
-only says which sectors may be generated: every shell out to the last one
+4 pc across. The grid covers all of space out to its reach (262 kpc by
+default); the galaxy's outline (below) says where the disk and bulge expect
+a system, which is where random starts, the maps' planned sectors and a
+neighborhood around an outline sector look: every shell out to the last one
 whose equatorial band could still hold a star, and in each shell the bands
-the galaxy still expects a star in.
+the galaxy still expects a star in. A sector that is asked for outside it is
+generated from the profile of its place (`galaxy/profile.py`).
 
 `--shell I` generates every not-yet-generated sector in shell I that the
 outline holds; adding `--band J` narrows it to one band, and adding
 `--wedge K` too generates exactly that one sector (and, with
 `--radius-pc R`, its neighborhood within R parsecs as well). A single
-address that is outside the outline is skipped with exit status 1; one that
-was already generated reports its sector ID. A whole shell is usually
+address is generated wherever the grid's reach holds it, inside the outline or
+out in the halo (its density comes from the sector's profile, so a halo sector
+is usually saved empty); one beyond the reach, or in a band its shell does not
+hold, stops with exit status 1, and one that was already generated reports its
+sector ID. A range named in a span (`--shells`, `--bands`) is taken as named
+anywhere in the reach; a span with no range means the outline's cells. A
+`--center-sector` neighbourhood around a halo sector takes every cell of the
+reach within the radius and says how many sectors that is, and how many
+systems they expect, before it runs. A whole shell is usually
 thousands of sectors, so past 2,000 sectors a run needs `--limit` (generate
 only the first N) or `--yes`.
 The span form picks sectors by range instead: `--shells FIRST:LAST`,
