@@ -578,7 +578,7 @@ with `clamp()`.
   defaults shown and a Reset per segment; the halo luminosity floor
   slider runs from 50 (default 500; Boss, 2026-10-15 10:06 PM EDT, was
   100). Owner Core 3 (Boss, 1:09 AM EDT).
-  Prerequisites: GEN.281, GEN.283. Related: GEN.234, ADM.43, UX.49.
+  Prerequisite: GEN.283. Related: GEN.234, ADM.43, UX.49.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -4235,30 +4235,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the published numbers named in the note. The new GalaxyShape
   fields need a migration: Core 1 owns the revision and Core 3 asks it
   first.
-  Migration revision (corrected by Core 3, 2026-10-16, 6:34 AM EDT): 0098 for GEN.280, GEN.281 and GEN.283 together (0093 to 0096 are merged, 0097 is Core 2's GEN.159 component table).
+  Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone (galaxy_shape.cell_star_ceiling and fill_luminosity_cap_sol); this item's GalaxyShape fields need the next free revision after Core 1's, asked of Core 1 first (0099 or later).
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
-- [ ] **GEN.281 Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address**
-  Build step of the realistic galactic core plan
-  (docs/design/realistic-galactic-core.md, sections 5 and 9; Boss's
-  item, 2026-10-16, 12:43 AM EDT; note updated for Boss's 1:09 and 1:10
-  AM EDT messages, #1733). Owner Core 3, goal issue #1677. Boss (1:09 AM
-  EDT): "another one being the fill cap in solar luminosities for
-  sectors exceeding another value for the cell star ceiling where we
-  then use the solar luminosity cap if the star fill wants to have over
-  that filled." Done: two settings, a cell star ceiling (default 50,000
-  systems) and a fill luminosity cap (default 100 solar luminosities,
-  lowest allowed 100): a cell expecting more stars than the ceiling
-  fills only stars at or above the cap; the unresolved count and mass
-  are computed from the address and shown on the sector page and in
-  region-query results, nothing stored. No luminosity ladder; white
-  dwarfs change only if the cap is ever set under 100. Two new
-  galaxy_shape columns (cell_star_ceiling, fill_luminosity_cap_sol)
-  share one Core 1 migration revision with GEN.283; option planetgen
-  plan --cell-star-ceiling and --fill-luminosity-cap.
-  Migration revision (corrected by Core 3, 2026-10-16, 6:34 AM EDT): 0098 for GEN.280, GEN.281 and GEN.283 together (0093 to 0096 are merged, 0097 is Core 2's GEN.159 component table).
-  Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234, GEN.283.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
@@ -4304,11 +4282,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` from 100 to 50 so
   `star_population._check_threshold` accepts it (Core 3's finding;
   GEN.149, now built, changed the same white-dwarf constants), and the plan option `--halo-min-luminosity` accepts 50.
-  Migration revision (corrected by Core 3, 2026-10-16, 6:34 AM EDT): 0098 for GEN.280, GEN.281 and GEN.283 together (0093 to 0096 are merged, 0097 is Core 2's GEN.159 component table). The scatter-limit tier itself is a field on SectorProfile with a tuning constant, no column.
+  Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone. The scatter-limit tier itself is a field on SectorProfile with a tuning constant, no column.
   Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
   #1784): the scatter-limit tier is a field plus a tuning constant on
   SectorProfile in galaxy/profile.py, no columns.
-  Prerequisite: GEN.158. Related: GEN.234, GEN.237, GEN.281.
+  Prerequisite: GEN.158. Related: GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
