@@ -40,7 +40,7 @@ import pymysql
 from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
-from planetgen.db import countcache
+from planetgen.db import countcache, point_columns
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
@@ -3936,9 +3936,8 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
     except pymysql.err.ProgrammingError:  # no bright_stars table yet (before v43)
         stars = []
     rows = conn.execute(
-        """
-        SELECT id, kind, subtype, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc,
-               velocity_x_kms, velocity_y_kms, velocity_z_kms
+        f"""
+        SELECT id, kind, subtype, mass_solar, {point_columns.LAYOUTS["phenomenon_scatter"].select("position", "velocity")}
         FROM phenomenon_scatter
         WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND built_at IS NULL
         ORDER BY id

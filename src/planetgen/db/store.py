@@ -68,7 +68,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, login, scatter_systems
+from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
@@ -112,6 +112,9 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
+
+_SYSTEM_POINT = point_columns.LAYOUTS["star_systems"]
+"""point_columns.PointLayout: The point of a star system (GEN.335), whose SQL below takes its column lists from it."""
 
 SCHEMA_VERSION = alembic_runner.head_version()
 """int: Matches `star_systems.schema_version` and the highest row in the
@@ -2810,8 +2813,7 @@ _BODY_COLUMNS = (
     "habitable_zone_inner_km", "habitable_zone_outer_km",
     "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
     "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
-    "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
-    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
+    *point_columns.LAYOUTS["planets"].position, "orbital_speed_kms", *point_columns.LAYOUTS["planets"].velocity,
     "min_update_interval_years",
     "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
     *atmosphere.ATMOSPHERE_FIELDS,
@@ -5293,10 +5295,9 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     steps = len(PLACED_PHENOMENON_TABLES) + 1 + len(SCATTER_MOTION_TABLES)
 
     systems = conn.execute(
-        """
-        SELECT ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
-               ss.velocity_x_kms, ss.velocity_y_kms, ss.velocity_z_kms, ss.binary_configuration,
-               ss.epoch_unix, ss.next_update_due, ss.runaway_class, ss.runaway_speed_kms,
+        f"""
+        SELECT ss.id, ss.sector_id, {_SYSTEM_POINT.select("position", "velocity", "epoch", "due", alias="ss")},
+               ss.binary_configuration, ss.runaway_class, ss.runaway_speed_kms,
                COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy,
                COALESCE(ss.binary_galactic_orbital_speed_kms, s.galactic_orbital_speed_kms) AS speed_kms
         FROM star_systems ss
@@ -5362,13 +5363,13 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             " WHERE star_system_id = ? AND galactic_orbital_period_gy > 0", phases)
     if updates:
         conn.executemany(
-            "UPDATE star_systems SET position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?, galaxy_x_pc = ?,"
-            " galaxy_y_pc = ?, galaxy_z_pc = ?, quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?, modified_at = modified_at WHERE id = ?",
+            f"UPDATE star_systems SET {_SYSTEM_POINT.assignments('position', 'galaxy_position')}, quadrant = ?,"
+            f" {_SYSTEM_POINT.assignments('velocity')}, modified_at = modified_at WHERE id = ?",
             updates)
     if refile_updates:
         conn.executemany(
-            "UPDATE star_systems SET sector_id = ?, position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?,"
-            " galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ?, quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+            f"UPDATE star_systems SET sector_id = ?, {_SYSTEM_POINT.assignments('position', 'galaxy_position')},"
+            f" quadrant = ?, {_SYSTEM_POINT.assignments('velocity')} WHERE id = ?",
             refile_updates)
         _refile_nearest_rows(conn, "star_systems", [(update[0], update[-1]) for update in refile_updates])
     counts["star_systems"] = len(clocks)
@@ -5534,9 +5535,9 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
     for table in SCATTER_MOTION_TABLES:
         scheduled, updates = [], []
         rows = conn.execute(
-            f"SELECT {_SCATTER_COLUMNS[table]}, shell_index, band_index, wedge_index, position_x_mpc,"
-            f" position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix,"
-            f" next_update_due FROM {table} WHERE {_SCATTER_ROWS[table]}"
+            f"SELECT {_SCATTER_COLUMNS[table]}, shell_index, band_index, wedge_index,"
+            f" {point_columns.LAYOUTS[table].select('position', 'velocity', 'epoch', 'due')}"
+            f" FROM {table} WHERE {_SCATTER_ROWS[table]}"
             f" AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id",
             (clock.end_unix,)).fetchall()
         for row in rows:
@@ -5573,9 +5574,9 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             conn.executemany(f"UPDATE {table} SET epoch_unix = ?, next_update_due = ? WHERE id = ?", scheduled)
         if updates:
             conn.executemany(
-                f"UPDATE {table} SET shell_index = ?, band_index = ?, wedge_index = ?, position_x_mpc = ?,"
-                f" position_y_mpc = ?, position_z_mpc = ?, velocity_x_kms = ?, velocity_y_kms = ?,"
-                f" velocity_z_kms = ?, epoch_unix = ?, next_update_due = ? WHERE id = ?", updates)
+                f"UPDATE {table} SET shell_index = ?, band_index = ?, wedge_index = ?,"
+                f" {point_columns.LAYOUTS[table].assignments('position', 'velocity', 'epoch', 'due')} WHERE id = ?",
+                updates)
         counts[table] = len(updates)
         done += 1
         _report(on_progress, table, done, total)
@@ -5678,7 +5679,7 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
 # ---------------------------------------------------------------------------
 
 BRIGHT_STAR_COLUMNS = (
-    "shell_index", "band_index", "wedge_index", "position_x_mpc", "position_y_mpc", "position_z_mpc",
+    "shell_index", "band_index", "wedge_index", *point_columns.LAYOUTS["bright_stars"].position,
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
     "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
 )
@@ -5906,8 +5907,9 @@ def phenomenon_scatter_seed(conn):
 
 
 PHENOMENON_SCATTER_COLUMNS = (
-    "shell_index", "band_index", "wedge_index", "kind", "subtype", "position_x_mpc", "position_y_mpc",
-    "position_z_mpc", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar", "map_luminosity_sol",
+    "shell_index", "band_index", "wedge_index", "kind", "subtype",
+    *point_columns.LAYOUTS["phenomenon_scatter"].named("position", "velocity"), "seed", "mass_solar",
+    "map_luminosity_sol",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 `insert_phenomenon_scatter` expects each row's values."""
@@ -8589,8 +8591,7 @@ def load_sector(conn, sector_id) -> SpaceSector:
         sector.place_in_galaxy(tuple(pc_to_ly(row[f"center_{axis}_pc"]) for axis in "xyz"))
 
     system_rows = conn.execute(
-        "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
-        " FROM star_systems WHERE sector_id = ? ORDER BY id",
+        f"SELECT id, {_SYSTEM_POINT.select('position', 'velocity')} FROM star_systems WHERE sector_id = ? ORDER BY id",
         (sector_id,),
     ).fetchall()
 
