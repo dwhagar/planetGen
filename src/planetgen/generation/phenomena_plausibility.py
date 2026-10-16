@@ -118,7 +118,8 @@ _ROGUE_GAS_GIANT_FRACTION = _rogue_gas_giant_fraction()
 def _neutron_star_type_shares():
     """The expected `pulsar_type` shares of a neutron star with a uniform age
     in `COMPACT_REMNANT_AGE_RANGE_GY` (GEN.153): magnetars are the young ones
-    that were born as one, young pulsars the rest that still pulse
+    that were born as one (none now, GEN.278: the range starts at a magnetar's
+    active life, and magnetars are scatter rows and remnant cores), young pulsars the rest that still pulse
     (`exp(-age / PULSAR_ACTIVE_LIFETIME_YR)`, averaged over the range),
     recycled millisecond pulsars a fixed share of the others."""
     low, high = prog_c.COMPACT_REMNANT_AGE_RANGE_GY

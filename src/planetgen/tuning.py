@@ -1934,12 +1934,26 @@ PULSAR_RATE_SCALE = 1.0
 # Magnetars (GEN.153), a subtype of neutron star: B of 1e14 to 1e15 G and a
 # spin of 2 to 12 s, active only about 1e4 years (an older one has decayed
 # to an ordinary high-field star), born in 1 to 10% of core collapses,
-# default 10% (Olausen & Kaspi 2014, ApJS 212:6; Gill & Heyl 2007). With a
-# uniform 1e-7 to 10 Gyr age that gives tens to hundreds in the Galaxy.
+# default 10% (Olausen & Kaspi 2014, ApJS 212:6; Gill & Heyl 2007). The
+# birth lottery applies to the cores of young supernova remnants; the
+# free-standing ones are scatter rows (below).
 MAGNETAR_ACTIVE_LIFETIME_YR = 1.0e4
 MAGNETAR_BIRTH_FRACTION = 0.10
 MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE = (1e14, 1e15)
 MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
+
+# Magnetars as a scatter class of neutron stars (GEN.278, design note
+# later-phenomena-scatter-rules.md section 3): about 100 active in the
+# Galaxy against about 1e9 neutron stars (Olausen & Kaspi 2014; 30 to 600),
+# so 1e-7 of them. They follow the young population, not the stars, so the
+# rate per star is divided by the young population's share of all stars in
+# a Milky Way-like galaxy (the integral of the young density over that of
+# every component, 0.48%: test_gen_magnetar_scatter checks it); a galaxy
+# with a different young share holds proportionally more or fewer.
+MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
+MAGNETAR_YOUNG_STAR_SHARE = 0.0048
+# A scattered magnetar's age: from the first century to the end of its active life.
+MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 
 # Neutron star surface temperature range in Kelvin, from thermal
 # X-ray emission measurements of young-to-middle-aged isolated
@@ -1951,8 +1965,11 @@ NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K = (5e4, 3e6)
 # Age since the core-collapse supernova that formed the compact
 # remnant, in billions of years -- capped well below
 # UNIVERSE_AGE_GY since these are always described as galactic
-# (Population I/II), not primordial, remnants.
-COMPACT_REMNANT_AGE_RANGE_GY = (1.0e-7, 10.0)
+# (Population I/II), not primordial, remnants. The floor is a magnetar's
+# active life (MAGNETAR_ACTIVE_LIFETIME_YR): a free neutron star is never
+# young enough to be one (GEN.278); the magnetars are scatter rows and the
+# cores of young supernova remnants, which carry their own ages.
+COMPACT_REMNANT_AGE_RANGE_GY = (1.0e-5, 10.0)
 
 # The time the node phases of a scatter drawn before any orbit update hold at (GEN.262): 2000-01-01 00:00 UTC. The
 # orbit clock does not exist until the first update, and a fixed origin keeps one galaxy seed's members identical in

@@ -57,13 +57,17 @@ SCATTERED_KINDS = registry.kinds(scatter_pass="band-density")
 """tuple: The kinds drawn per band from the density (the phenomena registry's
 `scatter_pass == "band-density"` rows, GEN.250)."""
 
+MAGNETAR_SUBTYPE = "magnetar"
+"""str: The `subtype` of a scattered magnetar (GEN.278), a class of `neutron-star`."""
+
 SCATTER_CLASSES = (
     ("black-hole", "stellar"), ("neutron-star", None), ("planetary-nebula", None),
-    ("supernova-remnant", None), ("black-hole", "intermediate"),
+    ("supernova-remnant", None), ("black-hole", "intermediate"), ("neutron-star", MAGNETAR_SUBTYPE),
 )
 """tuple: `(kind, subtype)` in the order each shell's stream draws them (a
 new class goes last, so earlier ones keep their draws). A black hole's
-subtype is its mass class (GEN.166)."""
+subtype is its mass class (GEN.166); a neutron star's, when it has one, is
+`magnetar` (GEN.278)."""
 
 FILL_STREAM = "phenomena-fill"
 """str: The per-sector stream name of the below-cut draw (GEN.168)."""
@@ -153,8 +157,12 @@ def mass_law(kind, subtype):
 
 def class_rate_per_star(kind, subtype):
     """A class's expected count per star: the kind's rate, split between
-    the two black-hole classes by `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`."""
+    the two black-hole classes by `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`. The
+    magnetars' (GEN.278) is `MAGNETAR_PER_NEUTRON_STAR` of the neutron stars',
+    per star of the young population they follow (`MAGNETAR_YOUNG_STAR_SHARE`)."""
     rate = tuning.phenomenon_rate_per_star(kind)
+    if subtype == MAGNETAR_SUBTYPE:
+        return rate * tuning.MAGNETAR_PER_NEUTRON_STAR / tuning.MAGNETAR_YOUNG_STAR_SHARE
     if kind == "black-hole":
         chance = tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE
         rate *= chance if subtype == "intermediate" else 1.0 - chance
@@ -165,9 +173,10 @@ def share_above(kind, subtype, min_mass_solar):
     """S_k(c): the share of a class's mass law at or above `min_mass_solar`
     (1 for a kind not drawn by mass). Neutron stars `(2.2 - c) / 1.1`,
     stellar-mass black holes `(20 - c) / 15`, intermediate-mass
-    `ln(1e5 / c) / ln(1e3)`, clamped to 0 to 1."""
+    `ln(1e5 / c) / ln(1e3)`, clamped to 0 to 1. The magnetars are all
+    scattered whatever the cut (1): the fill never draws one (GEN.278)."""
     law = mass_law(kind, subtype)
-    if law is None:
+    if law is None or subtype == MAGNETAR_SUBTYPE:
         return 1.0
     (low, high), logarithmic = law
     if min_mass_solar <= low:
@@ -187,6 +196,8 @@ def mass_range(kind, subtype, min_mass_solar, above):
     if law is None or min_mass_solar is None:
         return None
     low, high = law[0]
+    if subtype == MAGNETAR_SUBTYPE:
+        return (low, high) if above else None      # the cut does not touch them (share_above)
     return (max(min_mass_solar, low), high) if above else (low, min(min_mass_solar, high))
 
 
@@ -280,24 +291,31 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rn
     colat = [spherical.band_colatitude_bounds(shell_index, int(band)) for band in bands]
     cos_north, cos_south = np.cos([c[0] for c in colat]), np.cos([c[1] for c in colat])
     bin_angle = (np.arange(bins) + 0.5) * (2.0 * math.pi / bins)
-    base = density.total_density_array(plane[:, None] * np.cos(bin_angle)[None, :],
-                                       plane[:, None] * np.sin(bin_angle)[None, :], z_mid[:, None], shape)
+    x_bins, y_bins = plane[:, None] * np.cos(bin_angle)[None, :], plane[:, None] * np.sin(bin_angle)[None, :]
+    base = density.total_density_array(x_bins, y_bins, z_mid[:, None], shape)
     r_low, r_high = spherical.shell_bounds_pc(shell_index, edge_pc)
     row_of_band = np.arange(band_count)
     tables = {}
     for kind, subtype, rate in rates:
-        if kind not in tables:
-            factor = np.full(band_count, 1.0)
-            if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
-                factor = (remnant_distribution.vertical_factor_array(kind, z_mid, shape.disk_scale_height_pc)
-                          * remnant_distribution.radial_factor_array(kind, plane))
-            weights = base * factor[:, None]
+        young = registry.scatter_class_gate(kind, subtype) == "young stars"
+        table = (kind, subtype) if young else kind
+        if table not in tables:
+            if young:
+                # The young population and its arm contrast, none in the halo or a cluster (GEN.278); a magnetar is
+                # too young to have drifted, so no remnant thickening.
+                weights = density.population_densities_array(x_bins, y_bins, z_mid[:, None], shape)["young"]
+            else:
+                factor = np.full(band_count, 1.0)
+                if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
+                    factor = (remnant_distribution.vertical_factor_array(kind, z_mid, shape.disk_scale_height_pc)
+                              * remnant_distribution.radial_factor_array(kind, plane))
+                weights = base * factor[:, None]
             cumulative = np.cumsum(weights, axis=1)
             top = cumulative[:, -1]
             # Rows are offset by 2 each, so one sorted array holds every band's cumulative shares.
             shares = cumulative / np.where(top > 0.0, top, 1.0)[:, None] + 2.0 * row_of_band[:, None]
-            tables[kind] = (top, shares.ravel())
-        top, shares = tables[kind]
+            tables[table] = (top, shares.ravel())
+        top, shares = tables[table]
         means = rate * expected_at_density_1 * (wedges * volume / bins) * top
         counts = np.array([poisson_count(float(mean), rng) if mean > 0.0 else 0 for mean in means], dtype=np.int64)
         total = int(counts.sum())
@@ -415,11 +433,21 @@ def shell_expected(shape, shell_index, high_band, edge_pc, expected_at_density_1
     total = 0.0
     for _band, plane, z, stars in bright_stars.sampled_band_expectations(
             shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions):
-        total += stars * sum(
-            rate * remnant_distribution.vertical_factor(kind, z, shape.disk_scale_height_pc)
-            * remnant_distribution.radial_factor(kind, plane)
-            for kind, _subtype, rate in rates)
+        total += stars * sum(rate * _expectation_factor(shape, kind, subtype, plane, z)
+                             for kind, subtype, rate in rates)
     return total
+
+
+def _expectation_factor(shape, kind, subtype, plane, z):
+    """What a class's rate per star is multiplied by at a band centre `plane` and `z` parsecs out (the progress bar's
+    estimate of `_band_rows`): the remnant factors of a neutron star or black hole, the young population's share of
+    the stars for a class that follows it (GEN.278)."""
+    if registry.scatter_class_gate(kind, subtype) == "young stars":
+        shares = density.population_densities((plane, 0.0, z), shape)
+        total = sum(shares.values())
+        return shares["young"] / total if total > 0.0 else 0.0
+    return (remnant_distribution.vertical_factor(kind, z, shape.disk_scale_height_pc)
+            * remnant_distribution.radial_factor(kind, plane))
 
 
 def nucleus_row(seed):
