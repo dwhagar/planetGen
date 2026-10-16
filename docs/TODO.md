@@ -3046,6 +3046,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replaced by the derived limit. The last card, whether the metallicity
   effect fades above about 2 solar masses, was answered "all masses":
   no fade, and the check is the safeguard.
+  Design note landed (Core 4, 2026-10-16, 7:16 PM EDT, #1891):
+  docs/design/placement-by-population.md. The build follows in its own PR
+  and covers 3.1 (close pairs by [Fe/H], every mass) and 3.3 (the derived
+  wide-pair limit). Section 3.2, massive multiples sitting in young
+  regions through `prevalence`, is NOT in that PR: it belongs with the
+  multi-star items (GEN.269, GEN.270 to GEN.275). GEN.103 stays open for
+  3.2, and when the build merges Core 4 says so and the TODO thread moves
+  3.2 to the multi-star item that builds it. Open constant: the cap on
+  `prevalence` (a design default, not a value from a source; the note
+  asks Boss, and under the no-fixed-content rule Core 4 proposes a derived
+  value first).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
@@ -10580,6 +10591,11 @@ clears each one.
   when a bin is out of range. The ranges are reference values for the
   check, never inputs to the draw. Owner: Core 4 (near TEST.186, which
   is Core 3's harness; ask Core 3 before editing census.py).
+  Status (Core 4, 2026-10-16, 7:16 PM EDT): TEST.186 is not on main yet,
+  so the check cannot be built. The note lists the expected ranges. The
+  massive-star flatness bins are expected to fail until the `prevalence`
+  cap of GEN.103 3.2 is decided; the test lands only with a green run,
+  so it waits for that decision as well (no skip, no quarantine).
   Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
 
