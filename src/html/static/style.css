@@ -438,8 +438,7 @@ h2 {
   background: var(--bg-elevated);
 }
 
-.datatable-enhanced .datatable-pager,
-.datatable-enhanced .datatable-apply {
+.datatable-enhanced .datatable-pager {
   display: none;
 }
 

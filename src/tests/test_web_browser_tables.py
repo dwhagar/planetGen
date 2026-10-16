@@ -534,3 +534,71 @@ def test_search_results_scroll_through_every_match(page, table_site):
     page.locator("#search-sectors .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
     page.locator("#search-sectors tbody tr[data-index]", has_text="Found 119").wait_for(state="attached", timeout=10000)
     assert page.url.endswith("sector_q=Found")
+
+
+# --- UX.117: the Apply filters button never goes away ------------------------------------------------
+
+def _wait_held(page, held, count=1):
+    deadline = time.monotonic() + 10
+    while len(held) < count and time.monotonic() < deadline:
+        page.wait_for_timeout(50)
+    assert len(held) >= count, "the table never asked for its rows"
+
+
+def test_apply_filters_stays_while_the_first_rows_load_and_after(page, table_site):
+    """The first rows are held back: the button is there while they load and still there once the table is live."""
+    held = []
+    page.route("**/table/**", lambda route: held.append(route))
+    assert page.goto(f"{table_site}/phenomena", wait_until="load").status == 200
+    apply = page.locator(".datatable-apply")
+    _wait_held(page, held)
+    assert apply.is_visible()
+    for route in held:
+        route.continue_()
+    page.locator("[data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert apply.is_visible()
+
+
+def test_apply_filters_works_when_the_first_load_fails(page, table_site):
+    """A failed first fetch leaves the server's table; the button then submits the form to the server."""
+    failing = [True]
+    page.route("**/table/**", lambda route: route.abort() if failing[0] else route.continue_())
+    assert page.goto(f"{table_site}/phenomena", wait_until="load").status == 200
+    apply = page.locator(".datatable-apply")
+    assert apply.is_visible()
+    kind = page.locator(".datatable-facet[data-param='type']")
+    kind.locator("summary").click()
+    kind.get_by_label("Rogue Planet").check()
+    failing[0] = False                      # the server answers from here on
+    with page.expect_navigation(timeout=10000):
+        apply.click()
+    # The server was asked for the filtered page: its address carries the filter (the test site renders every
+    # row whatever the address says, so the count line is not what this checks).
+    assert parse_qs(urlparse(page.url).query) == {"type": ["rogue_planet"]}
+    assert page.locator(".datatable-facet[data-param='type'] input:checked").count() == 1
+
+
+def test_apply_filters_retries_a_reload_that_failed(page, table_site):
+    """The table is live, a later fetch fails, and the same button asks again."""
+    _open(page, table_site)
+    page.route("**/table/**", lambda route: route.abort())
+    kind = page.locator(".datatable-facet[data-param='type']")
+    kind.locator("summary").click()
+    kind.get_by_label("Rogue Planet").check()
+    apply = page.locator(".datatable-apply")
+    assert apply.is_visible()
+    page.unroute("**/table/**")
+    apply.click()
+    rogue = sum(1 for row in ROWS if row["type"] == "rogue_planet")
+    _wait_count(page, f"{rogue} phenomena match")
+    assert parse_qs(urlparse(page.url).query) == {"type": ["rogue_planet"]}
+
+
+def test_every_filtered_table_keeps_its_apply_button(page, table_site, admin_site):
+    for base, path, root in ((table_site, "/sector/5", "#sector-contents"), (admin_site, "/admin?keys_sort=label", "#api-keys")):
+        if base is admin_site:
+            _sign_in(page, admin_site)
+        page.route("**/galaxymap3d.js*", lambda route: route.abort())
+        assert page.goto(f"{base}{path}", wait_until="load").status == 200
+        page.locator(f"{root} [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+        assert page.locator(f"{root} .datatable-apply").is_visible(), root
