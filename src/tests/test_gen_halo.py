@@ -1,14 +1,13 @@
-# tests/test_gen_density_floor.py
+# tests/test_gen_halo.py
 
 """
-GEN.78 Some regions have a star probability of zero, and GEN.79 Bright
+GEN.234 A measured stellar halo replaces the flat density floor, and GEN.79 Bright
 stars only land between layers -121 and 121 (docs/TODO.md); on the shell grid
 "far above the plane" is a band near a pole and a height of more than 485 pc.
 
-GEN.78: the density model never falls below the halo floor
-(`tuning.MIN_RELATIVE_DENSITY`), so the sector draw, the bright-star
-scatter and the backfill give every cell inside the galaxy's outline some
-chance of a star, at the far edge of the disk and in the halo above it.
+GEN.234: the density model has a halo term (a broken power law on a spheroid, 1.5e9 solar masses, 3.75e9
+systems for the Milky Way) in place of GEN.78's flat 0.1% floor. It is half the floor's density at the Sun, a
+fifth to 340,000th of it at 20 to 262 kpc, and it changes no cell's chance of a star inside the outline.
 
 GEN.79: old disk and bulge giants reach the 1000 Lsun bright-star threshold
 (their short bright tip, `tuning.GIANT_TIP_FRACTION`), so a galaxy with a
@@ -17,15 +16,20 @@ large bulge gets bright stars far above the plane (more than 485 pc).
 
 import math
 
+import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import spherical
-from planetgen.galaxy.density import _raw_density, build_galaxy_shape, population_densities, relative_density
+from planetgen.galaxy import density, spherical
+from planetgen.galaxy.density import (
+    _halo, build_galaxy_shape, component_masses, halo_density, halo_local_density_scale, halo_mass, halo_terms,
+    population_densities, population_densities_array, relative_density,
+)
 from planetgen.galaxy.skeleton import build_shell_extents, expected_system_count_at_density_1
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation.star_population import bright_star_fraction
+from planetgen.physics import mathcheck
 
 MILKY_WAY = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
@@ -45,29 +49,108 @@ FAR_POINTS = [
     (0.0, -16000.0, 300.0),
     (9000.0, 9000.0, 4000.0),   # the halo above the disk
     (0.0, 0.0, 30000.0),        # far above the centre
-    (0.0, 0.0, -100000.0),      # where every profile underflows
+    (0.0, 0.0, -100000.0),      # where every disk profile underflows
 ]
 
 
+def test_the_flat_floor_is_gone():
+    assert not hasattr(tuning, "MIN_RELATIVE_DENSITY")
+
+
 @pytest.mark.parametrize("point", FAR_POINTS)
-def test_the_density_never_falls_below_the_halo_floor(point):
-    assert relative_density(point, MILKY_WAY) >= tuning.MIN_RELATIVE_DENSITY
+def test_the_populations_still_sum_to_the_density_and_the_halo_is_the_far_stars(point):
     densities = population_densities(point, MILKY_WAY)
+    assert set(densities) == set(tuning.STELLAR_POPULATION_AGE_RANGES_GY)
     assert sum(densities.values()) == pytest.approx(relative_density(point, MILKY_WAY))
-    # The halo's stars are old.
-    assert densities["old"] >= 0.99 * tuning.MIN_RELATIVE_DENSITY
+    assert densities["halo"] == pytest.approx(halo_density(point, MILKY_WAY))
+    assert densities["cluster"] == 0.0
+    x, y, z = point
+    array = population_densities_array(np.array([x]), np.array([y]), z, MILKY_WAY)
+    assert {name: float(value[0]) for name, value in array.items()} == pytest.approx(densities)
 
 
-def test_the_floor_leaves_the_dense_disk_alone():
-    # Near the Sun (density about 1) the model is untouched.
-    point = (8000.0, 0.0, 0.0)
-    assert relative_density(point, MILKY_WAY) == MILKY_WAY.k_norm * _raw_density(point, MILKY_WAY)
+def test_far_above_the_disk_only_the_halo_is_left():
+    point = (0.0, 0.0, -100000.0)
+    densities = population_densities(point, MILKY_WAY)
+    assert densities["halo"] == pytest.approx(relative_density(point, MILKY_WAY))
+    assert densities["halo"] < 1e-6    # nowhere near the old floor's 1e-3
 
 
-def test_the_floor_does_not_widen_the_outline():
-    # A sector at the floor expects fewer than one star, so the skeleton's
-    # one-star outline (which reads the model, not the floor) is unchanged.
-    assert tuning.MIN_RELATIVE_DENSITY * E_VALUE < 1.0
+# The design note's table (docs/design/intergalactic-and-halo-contents.md section 4), relative density in the plane.
+@pytest.mark.parametrize("radius_kpc, relative", [(8.2, 1.8e-3), (50.0, 5.0e-6), (100.0, 2.2e-7), (262.0, 2.9e-9)])
+def test_the_halo_matches_the_design_notes_table(radius_kpc, relative):
+    assert halo_density((radius_kpc * 1000.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(relative, rel=0.15)
+
+
+def test_the_halo_is_far_below_the_old_floor_in_the_distance_and_near_it_at_the_sun():
+    old_floor = 1.0e-3
+    assert halo_density((8200.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(old_floor * 1.9, rel=0.1)
+    assert halo_density((50000.0, 0.0, 0.0), MILKY_WAY) < old_floor / 100
+    assert halo_density((262000.0, 0.0, 0.0), MILKY_WAY) < old_floor / 1e5
+
+
+def test_the_halo_integrates_to_its_share_of_the_visible_systems():
+    visible = sum(component_masses(MILKY_WAY, steps=60).values())
+    assert halo_mass(MILKY_WAY) == pytest.approx(tuning.HALO_SYSTEM_FRACTION * visible, rel=1e-12)
+    # And the closed form agrees with adding the density up: shells of the spheroid, 4 pi q m^2 dm, m log-spaced.
+    terms = halo_terms(MILKY_WAY)
+    m = np.logspace(0.0, 8.0, 400001)
+    profile = _halo(m * terms["halo_axis_ratio"] ** 0, 0.0, terms)
+    total = float(np.trapezoid(profile * 4.0 * math.pi * terms["halo_axis_ratio"] * m ** 2 * m, np.log(m)))
+    assert total == pytest.approx(halo_mass(MILKY_WAY), rel=2e-3)
+
+
+def test_the_halo_is_one_point_two_five_percent_of_the_milky_ways_systems():
+    # 1.5e9 solar masses at 0.4 solar masses a system, against 3.0e11 systems.
+    assert tuning.HALO_SYSTEM_FRACTION == pytest.approx(0.0125)
+    systems = tuning.HALO_MASS_SOLAR / tuning.HALO_MEAN_SYSTEM_MASS_SOLAR
+    assert systems == pytest.approx(3.75e9)
+
+
+def test_the_halo_is_continuous_at_the_break_and_flat_in_the_core():
+    terms = halo_terms(MILKY_WAY)
+    below = _halo(terms["halo_break_pc"] * (1 - 1e-9), 0.0, terms)
+    above = _halo(terms["halo_break_pc"] * (1 + 1e-9), 0.0, terms)
+    assert below == pytest.approx(above, rel=1e-6)
+    assert _halo(10.0, 0.0, terms) == _halo(terms["halo_core_pc"], 0.0, terms)
+
+
+def test_the_halo_is_flattened_toward_the_poles():
+    # q = 0.7: a point q times as high is as far out in the spheroid's own terms.
+    terms = halo_terms(MILKY_WAY)
+    assert _halo(0.0, 20000.0 * terms["halo_axis_ratio"], terms) == pytest.approx(_halo(20000.0, 0.0, terms))
+
+
+def test_the_halo_scales_with_the_galaxy():
+    small = build_galaxy_shape(
+        disk_scale_length_pc=1300.0, disk_scale_height_pc=150.0, bulge_scale_radius_pc=790.0,
+        bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
+    assert halo_terms(small)["halo_break_pc"] == pytest.approx(halo_terms(MILKY_WAY)["halo_break_pc"] / 2)
+    assert halo_mass(small) == pytest.approx(tuning.HALO_SYSTEM_FRACTION * sum(component_masses(small, 60).values()),
+                                             rel=1e-12)
+
+
+def test_the_local_density_alternative_is_about_two_point_seven_times_higher():
+    assert halo_local_density_scale(MILKY_WAY) == pytest.approx(2.7, rel=0.1)
+
+
+def test_no_cell_beyond_the_halos_dense_core_expects_a_whole_system():
+    # At most 0.02 systems in a cell from 8.7 kpc out, at any angle (the note: about 0.01 there).
+    for radius in (8700.0, 12000.0, 25000.0, 100000.0):
+        for colatitude in np.linspace(0.0, math.pi, 13):
+            point = (radius * math.sin(colatitude), 0.0, radius * math.cos(colatitude))
+            assert halo_density(point, MILKY_WAY) * E_VALUE < 0.02
+
+
+def test_the_halo_does_not_widen_the_outline():
+    # The outline reads the disk and bulge only (`skeleton._bound_raw_density_at`), and the halo is under 0.3% of the
+    # one-star threshold where it ends. Calibrating the Sun to 1.0 with the halo in lowers `k_norm` by 0.2%, so the
+    # default galaxy's edge moves in by two shells (3,764 to 3,762) and its band total by 0.05%; nothing moves out.
+    extents, outer, _confirmed = build_shell_extents(mathcheck._default_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
+    assert outer == 3762
+    assert len(extents) == 3763
+    assert sum(high for _shell, high in extents) == 1618939
+    assert sum(high for _shell, high in extents) < 1619713
 
 
 def _halo_and_edge_cells(shape):

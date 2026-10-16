@@ -68,7 +68,9 @@ def _bound_raw_density_at(shape, r_cyl, z):
     """The maximum over `theta` of `galaxy.density._raw_density` at
     cylindrical radius `r_cyl` and height `z` (unnormalized), or a hair
     above it: each term at its own maximum (the bar along its long axis,
-    the thin disk on an arm crest)."""
+    the thin disk on an arm crest). The halo (GEN.234) is left out on purpose: it is under 0.3% of the
+    one-star threshold anywhere an outline could end, and counting it would move the outline, which only
+    the disk and bulge decide."""
     terms = model_terms(shape)
     thin = math.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
     thick = (terms["thick_disk_amplitude"] * math.exp(-r_cyl / terms["thick_disk_scale_length_pc"])

@@ -561,8 +561,8 @@ pass. `population_state` keeps the highest planet id scanned.
 least `galaxy_shape.bright_star_min_luminosity_sol` bright, generated and
 placed galaxy-wide by `planetgen plan` before any sector is filled: its
 cell (`ring_index`, `layer_index`, `ring_slot_index`), galaxy-frame
-position in milliparsecs, population (young, intermediate, old or
-bulge), the finished star's properties (including `initial_mass_sol`,
+position in milliparsecs, population (young, intermediate, old,
+bulge, halo or cluster), the finished star's properties (including `initial_mass_sol`,
 which a companion's mass is drawn from, and `phase_end_age_gy`) and a
 seed for its later system. Rows carry no name until their sector is
 filled, which builds a system around each and sets `star_system_id`
@@ -1803,7 +1803,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `id` | BIGINT UNSIGNED | PK | |
 | `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | Galaxy-frame position, milliparsecs. |
-| `population` | VARCHAR(12) | NOT NULL, CHECK IN ('young','intermediate','old','bulge') | |
+| `population` | VARCHAR(12) | NOT NULL, CHECK IN ('young','intermediate','old','bulge','halo','cluster') | |
 | `star_type`, `yerkes_class` | VARCHAR | NOT NULL | As on `stars`. |
 | `mass_kg`, `radius_km`, `temperature_k`, `luminosity_w`, `age_gy` | DOUBLE | NOT NULL | The finished star. `luminosity_w` is indexed. |
 | `lifespan_gy`, `phase_end_age_gy` | DOUBLE | nullable | |
@@ -2094,6 +2094,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v94 (GEN.234): the halo and cluster populations
+
+Migration 0094 widens the CHECK on `bright_stars.population` from the four disk and bulge populations to also allow `halo` and `cluster`: the stellar halo replaces the flat density floor, so a pre-placed star can belong to it. Nothing is renumbered. The version is detected from that constraint's text (`store._check_marker`).
 
 ### v93 (GEN.230, GEN.233, GEN.223, GEN.260, DB.34, DB.35): 96-bit IDs, reach, scatter points, cell keys
 

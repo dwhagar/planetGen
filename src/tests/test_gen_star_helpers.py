@@ -224,7 +224,7 @@ def test_population_age_ranges():
         assert stellar_evolution.population_age_range_gy(name) == window
 
 
-@pytest.mark.parametrize("population", ["halo", "", "Young"])
+@pytest.mark.parametrize("population", ["mystery", "", "Young"])
 def test_unknown_population_raises(population):
     with pytest.raises(ValueError, match=rf"unknown stellar population {population!r}; expected one of "):
         stellar_evolution.population_age_range_gy(population)

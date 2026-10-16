@@ -1509,7 +1509,12 @@ def _table_marker(table):
     return lambda shape: table in shape["tables"]
 
 
+def _check_marker(name, text):
+    return lambda shape: text in shape["checks"].get(name, "")
+
+
 _VERSION_MARKERS = (
+    (94, _check_marker("chk_bright_stars_population", "halo")),
     (93, _column_marker("galaxy_shape", "reach_shell_index")),
     (92, _column_marker("galaxy_block_stats", "shell_index")),
     (91, _table_marker("galaxy_shell")),
@@ -1579,6 +1584,9 @@ def detect_schema_version(conn):
         "indexes": {(row["t"].lower(), row["i"].lower()) for row in conn.execute(
             "SELECT DISTINCT table_name AS t, index_name AS i FROM information_schema.statistics"
             " WHERE table_schema = DATABASE()").fetchall()},
+        "checks": {row["n"].lower(): row["c"] for row in conn.execute(
+            "SELECT constraint_name AS n, check_clause AS c FROM information_schema.check_constraints"
+            " WHERE constraint_schema = DATABASE()").fetchall()},
     }
     for version, marked in _VERSION_MARKERS:
         if marked(shape):

@@ -1278,6 +1278,9 @@
 --   covering index (cell_key, x, y, z) (region queries; `galaxy/cellkey.py`); `star_systems`
 --   gets `galaxy_x/y/z_pc` for it, since its own position is relative to its sector.
 --
+-- v94 (GEN.234): `bright_stars.population` also takes 'halo' and 'cluster' (the stellar halo
+--   replaces the flat density floor; the globular clusters get their own population).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3221,7 +3224,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
-    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge')),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

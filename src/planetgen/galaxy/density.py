@@ -6,8 +6,8 @@ Galaxy Disk/Spiral Density Model
 
 Implements the galaxy density model from
 `docs/design/galaxy-disk-density.md`: an exponential thin disk carrying
-the spiral arms, an exponential thick disk, and a boxy bar bulge, each
-fitted to published Milky Way structure (GEN.118, GEN.119; sources in
+the spiral arms, an exponential thick disk, a boxy bar bulge and a stellar
+halo, each fitted to published Milky Way structure (GEN.118, GEN.119, GEN.234; sources in
 `tuning`'s "galaxy density model" block).
 
 The model gives a `relative_density` at any galaxy-frame position,
@@ -143,10 +143,87 @@ def model_terms(shape):
     }
 
 
+def _halo_unit_integral(inner_slope, outer_slope, core_pc, break_pc, axis_ratio):
+    """
+    The volume integral of the halo's unit-amplitude profile over all space, in pc^3: the flat core, the inner
+    power law out to the break and the outer one beyond it, each a closed form in the spheroidal radius `m`
+    (a shell at `m` holds `4 pi q m^2 dm`).
+    """
+    def power(n, low, high):
+        # integral of (m / break) ** -n * m ** 2 dm from `low` to `high` (`high` may be infinity)
+        k = 3.0 - n
+        if abs(k) < 1e-12:
+            return break_pc ** n * math.log(high / low)
+        top = 0.0 if math.isinf(high) else high ** k
+        return break_pc ** n * (top - low ** k) / k
+
+    core = (core_pc / break_pc) ** -inner_slope * core_pc ** 3 / 3.0
+    return 4.0 * math.pi * axis_ratio * (core + power(inner_slope, core_pc, break_pc)
+                                         + power(outer_slope, break_pc, math.inf))
+
+
+@functools.lru_cache(maxsize=64)
+def halo_terms(shape):
+    """
+    The stellar halo's parameters for `shape` (GEN.234): a spheroid with a broken power law, `amplitude *
+    (max(m, core) / break) ** -slope`, `m = sqrt(R**2 + (z / axis_ratio)**2)`, the slope `halo_inner_slope`
+    inside `halo_break_pc` and `halo_outer_slope` beyond. The radii are `tuning`'s ratios to the disk scale
+    length. The amplitude is solved, like `k_norm`, so the halo's integral is `tuning.HALO_SYSTEM_FRACTION` of
+    the visible components' (`component_masses`), in the model's unnormalized density.
+
+    Returns:
+        dict: `halo_amplitude`, `halo_core_pc`, `halo_break_pc`, `halo_axis_ratio`, `halo_inner_slope`,
+            `halo_outer_slope`.
+    """
+    length = shape.disk_scale_length_pc
+    core, break_pc = tuning.HALO_CORE_RATIO * length, tuning.HALO_BREAK_RATIO * length
+    unit = _halo_unit_integral(tuning.HALO_INNER_SLOPE, tuning.HALO_OUTER_SLOPE, core, break_pc,
+                               tuning.HALO_AXIS_RATIO)
+    visible = sum(component_masses(shape, steps=HALO_MASS_STEPS).values())
+    return {
+        "halo_amplitude": tuning.HALO_SYSTEM_FRACTION * visible / unit,
+        "halo_core_pc": core, "halo_break_pc": break_pc, "halo_axis_ratio": tuning.HALO_AXIS_RATIO,
+        "halo_inner_slope": tuning.HALO_INNER_SLOPE, "halo_outer_slope": tuning.HALO_OUTER_SLOPE,
+    }
+
+
+HALO_MASS_STEPS = 60
+"""int: `component_masses` steps the halo's amplitude is solved with (finer than the default 40; cached per shape)."""
+
+
+def _halo_scalar(r_cyl, z, terms):
+    """`_halo` at one point, in plain floats (the one-point forms run per cell)."""
+    ratio = max(math.hypot(r_cyl, z / terms["halo_axis_ratio"]), terms["halo_core_pc"]) / terms["halo_break_pc"]
+    return terms["halo_amplitude"] * ratio ** -(terms["halo_inner_slope"] if ratio < 1.0 else terms["halo_outer_slope"])
+
+
+def _halo(r_cyl, z, terms):
+    """The halo at cylindrical radius `r_cyl` and height `z` (arrays, or one of them), unnormalized."""
+    m = np.sqrt(np.square(r_cyl) + np.square(z / terms["halo_axis_ratio"]))
+    ratio = np.maximum(m, terms["halo_core_pc"]) / terms["halo_break_pc"]
+    slope = np.where(ratio < 1.0, terms["halo_inner_slope"], terms["halo_outer_slope"])
+    return terms["halo_amplitude"] * np.power(ratio, -slope)
+
+
+def halo_density(position_pc, shape):
+    """The halo's `relative_density` at `position_pc` (`k_norm` applied): what the halo adds to a cell."""
+    x, y, z = position_pc
+    return shape.k_norm * _halo_scalar(math.hypot(x, y), z, halo_terms(shape))
+
+
+def halo_local_density_scale(shape):
+    """
+    How much the halo would grow if it were normalised to the local density (`tuning.HALO_LOCAL_DENSITY_FRACTION`
+    of the thin disk's density at the Sun) instead of to its mass: the alternative the design note keeps, about 2.7.
+    """
+    solar = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
+    return tuning.HALO_LOCAL_DENSITY_FRACTION / halo_density((solar, 0.0, 0.0), shape)
+
+
 def shape_with_terms(shape):
-    """`shape`'s fields and its `model_terms` in one plain dict: what the
+    """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
-    return {**shape._asdict(), **model_terms(shape)}
+    return {**shape._asdict(), **model_terms(shape), **halo_terms(shape)}
 
 
 def _interarm_angle(radius_pc, shape):
@@ -218,11 +295,12 @@ def _raw_density(position_pc, shape):
                              value).
 
     Returns:
-        float: `bulge + thin_disk * arm_factor + thick_disk`,
+        float: `bulge + thin_disk * arm_factor + thick_disk + halo`,
               unnormalized (`>= 0`).
     """
     bulge, thin, thick, arm_cos = _components(position_pc, shape)
-    return bulge + thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos) + thick
+    halo = _halo_scalar(math.hypot(position_pc[0], position_pc[1]), position_pc[2], halo_terms(shape))
+    return bulge + thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos) + thick + halo
 
 
 def _arm_cosine(x, y, shape):
@@ -243,13 +321,14 @@ def _arm_cosine(x, y, shape):
 def population_densities(position_pc, shape):
     """
     `relative_density` at `position_pc` split by stellar population
-    (young, intermediate, old disk stars and bulge stars; see
+    (young, intermediate, old disk stars, bulge stars and halo stars; see
     `tuning.STELLAR_POPULATION_*`), so a sector can draw each
     system's age from the mix where it sits.
 
     The components always sum to `relative_density`, so no sector's total
-    changes. The bulge term is the "bulge" population, and the thick disk
-    and the halo floor are "old". The thin disk is shared among the three
+    changes. The bulge term is the "bulge" population, the halo term the
+    "halo" population (GEN.234) and the thick disk is "old". "cluster" is 0 until the
+    cluster components (GEN.237) add their density. The thin disk is shared among the three
     disk populations in proportion to how many stars each would put here:
     its share of disk star formation (the length of its age range), times
     its own vertical profile (`sech^2(z/2h)/h`, a thinner disk for younger
@@ -258,16 +337,13 @@ def population_densities(position_pc, shape):
     off the plane or in the bulge nearly every star is old.
 
     Returns:
-        dict: `{"young", "intermediate", "old", "bulge"}` -> density, each
+        dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster"}` -> density, each
               `>= 0`, summing to `relative_density(position_pc, shape)`.
     """
     z = position_pc[2]
     bulge, thin, thick, arm_cos = _components(position_pc, shape)
     disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
-    model = shape.k_norm * (bulge + thick) + disk
-    # The halo floor's share (`tuning.MIN_RELATIVE_DENSITY`, GEN.78): old
-    # stars, wherever the model itself falls below it.
-    halo = max(model, tuning.MIN_RELATIVE_DENSITY) - model
+    halo = shape.k_norm * _halo_scalar(math.hypot(position_pc[0], position_pc[1]), z, halo_terms(shape))
 
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
@@ -284,8 +360,10 @@ def population_densities(position_pc, shape):
         weights, total = {name: 0.0 for name in weights}, 1.0
         weights["old"] = 1.0
     densities = {name: max(disk, 0.0) * weight / total for name, weight in weights.items()}
-    densities["old"] += max(shape.k_norm * thick, 0.0) + max(halo, 0.0)
+    densities["old"] += max(shape.k_norm * thick, 0.0)
     densities["bulge"] = shape.k_norm * bulge
+    densities["halo"] = max(halo, 0.0)
+    densities["cluster"] = 0.0
     return densities
 
 
@@ -296,7 +374,7 @@ def population_densities_array(x, y, z, shape):
     the one-point form (a test compares them).
 
     Returns:
-        dict: `{"young", "intermediate", "old", "bulge"}` -> array of densities.
+        dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster"}` -> array of densities.
     """
     terms = model_terms(shape)
     x = np.asarray(x, dtype=float)
@@ -318,8 +396,7 @@ def population_densities_array(x, y, z, shape):
                      + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
         arm_cos = np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
     disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
-    model = shape.k_norm * (bulge + thick) + disk
-    halo = np.maximum(model, tuning.MIN_RELATIVE_DENSITY) - model
+    halo = shape.k_norm * _halo(r_cyl, z, halo_terms(shape))
 
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
@@ -337,8 +414,10 @@ def population_densities_array(x, y, z, shape):
                    for name, weight in weights.items()}
         total = np.where(empty, 1.0, total)
     densities = {name: np.maximum(disk, 0.0) * weight / total for name, weight in weights.items()}
-    densities["old"] = densities["old"] + (np.maximum(shape.k_norm * thick, 0.0) + np.maximum(halo, 0.0))
+    densities["old"] = densities["old"] + np.maximum(shape.k_norm * thick, 0.0)
     densities["bulge"] = shape.k_norm * bulge
+    densities["halo"] = np.maximum(halo, 0.0)
+    densities["cluster"] = np.zeros_like(densities["halo"])
     return densities
 
 
@@ -355,7 +434,8 @@ def component_masses(shape, steps=40):
         steps (int): Grid steps per axis (more is slower and closer).
 
     Returns:
-        dict: `{"bulge", "thin_disk", "thick_disk"}` -> integrated density.
+        dict: `{"bulge", "thin_disk", "thick_disk"}` -> integrated density (the halo's is `halo_mass`,
+            kept apart because the halo's amplitude is solved from these three).
     """
     terms = model_terms(shape)
     # The bulge on a box in its own frame (the integral doesn't care
@@ -387,6 +467,15 @@ def component_masses(shape, steps=40):
     }
 
 
+def halo_mass(shape):
+    """The halo's share of the model's stars (the units of `component_masses`), in closed form: the halo
+    term integrated over all space, `tuning.HALO_SYSTEM_FRACTION` of the visible components' by construction."""
+    terms = halo_terms(shape)
+    return terms["halo_amplitude"] * _halo_unit_integral(
+        terms["halo_inner_slope"], terms["halo_outer_slope"], terms["halo_core_pc"], terms["halo_break_pc"],
+        terms["halo_axis_ratio"])
+
+
 def relative_density(position_pc, shape):
     """
     This galaxy's stellar density at `position_pc`, relative to
@@ -398,12 +487,11 @@ def relative_density(position_pc, shape):
         shape (GalaxyShape): The galaxy's shape parameters.
 
     Returns:
-        float: `>= tuning.MIN_RELATIVE_DENSITY` (the halo floor, GEN.78).
-              `1.0` at the calibration point; `> 1.0` in denser regions
+        float: `1.0` at the calibration point; `> 1.0` in denser regions
               (bulge, spiral arm crests near the core); `< 1.0` in sparser
               ones (outer disk, inter-arm, off-plane).
     """
-    return max(shape.k_norm * _raw_density(position_pc, shape), tuning.MIN_RELATIVE_DENSITY)
+    return shape.k_norm * _raw_density(position_pc, shape)
 
 
 def total_density_array(x, y, z, shape):
@@ -431,8 +519,7 @@ def total_density_array(x, y, z, shape):
                      + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
         arm_cos = np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
     disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
-    model = shape.k_norm * (bulge + thick) + disk
-    halo = np.maximum(model, tuning.MIN_RELATIVE_DENSITY) - model
+    halo = shape.k_norm * _halo(r_cyl, z, halo_terms(shape))
     return (np.maximum(disk, 0.0) + np.maximum(shape.k_norm * thick, 0.0)
             + np.maximum(halo, 0.0) + np.maximum(shape.k_norm * bulge, 0.0))
 

@@ -56,8 +56,18 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
 shape). The model's fixed parts are ratios to the shape's own lengths,
 so the same formulas work for a galaxy of any size.
 
-**Halo floor.** The density never falls below
-`tuning.MIN_RELATIVE_DENSITY` (GEN.78).
+**Stellar halo** (GEN.234). A spheroid with a broken power law, `A * (max(m, core) / break) ** -n`, where
+`m = sqrt(R^2 + (z / q)^2)`: inner slope 2.5, outer slope 4.5, break at 25 kpc (9.6 disk scale lengths), axis ratio
+`q = 0.7`, flat inside 500 pc (`tuning.HALO_*`; sources and the numbers it gives are in
+[intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) sections 2.1 and 4). The radii are ratios to the
+disk scale length, and the amplitude is solved like `k_norm`: the halo holds `tuning.HALO_SYSTEM_FRACTION` (1.25%, the
+Milky Way's 1.5e9 solar masses at 0.4 solar masses a system against its 3.0e11 systems) of the visible components'
+stars (`density.halo_terms`). It replaces the flat floor GEN.78 put under the density (0.1% of the local density
+everywhere, which was half the real halo at the Sun and 200 to 340,000 times too much at 50 to 262 kpc). The halo is
+0.19% of the local density at the Sun and 3e-9 at 262 kpc, and no cell beyond 8.7 kpc from the center expects more than
+about 0.01 systems from it. The alternative normalisation to the local density (Juric et al. 2008, 0.5%, about 2.7 times
+higher) is `tuning.HALO_LOCAL_DENSITY_FRACTION`; `density.halo_local_density_scale` gives the factor. The outline
+(`galaxy/skeleton.py`) reads the disk and bulge only, so the halo adds no cell to it.
 
 ## 2. Default shape (`planetgen plan`)
 
@@ -103,8 +113,10 @@ When a qualifying sector is generated, its own `relative_density` is the
 ## 4. Stellar populations (7.38.0)
 
 `population_densities` splits the density at a point into young,
-intermediate, old disk and bulge populations. The bulge term is the bulge
-population; the thick disk and the halo floor are old. The thin disk is shared by each population's share of star
+intermediate, old disk, bulge, halo and cluster populations. The bulge term is the bulge
+population, the halo term the halo population (10 to 13 Gyr, [Fe/H] about -1.6 inside 25 kpc and -2.2 outside) and the
+thick disk is old. The cluster population (10 to 13 Gyr) is 0 until the cluster components (GEN.237) add their
+density. The thin disk is shared by each population's share of star
 formation, its own scale height (`STELLAR_POPULATION_SCALE_HEIGHT_RATIO`,
 thinner for younger stars: 50, 150 and 300 pc exponential at the default
 shape) and its own arm contrast
@@ -167,7 +179,7 @@ rejected, and what the backfill and a fill of the sparse outer rim cost, are in
   the other candidate for GEN.118): the observed bulge is a bar, boxy
   edge on, so the COBE fit was used. Not modelled: the long thin bar
   beyond the bulge, the nuclear stellar disk inside 200 pc and the
-  stellar halo beyond the floor. With no central cusp the density is
+  stellar halo's inner structure. With no central cusp the density is
   nearly flat through the core (a core sector holds about 880 to 1,060
   systems, far fewer than the real nuclear disk); see
   [fill-order-curves-and-core.md](fill-order-curves-and-core.md), section 4.

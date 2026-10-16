@@ -100,7 +100,7 @@ def test_the_bounds_still_bound_with_a_core_and_a_dense_arm():
             for step in range(24):
                 theta = step * math.pi / 12
                 point = (radius * math.cos(theta), radius * math.sin(theta), z)
-                assert density.relative_density(point, shape) <= bound * (1 + 1e-9) + tuning.MIN_RELATIVE_DENSITY
+                assert density.relative_density(point, shape) <= bound * (1 + 1e-9) + density.halo_density(point, shape)
 
 
 def test_the_populations_still_sum_to_the_density_with_a_core():

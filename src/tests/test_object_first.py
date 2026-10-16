@@ -46,15 +46,17 @@ def _scatter(shape, shell, high_band, seed, **kwargs):
     return list(brightStars.scatter_shell(shape, shell, high_band, EDGE_PC, E_VALUE, THRESHOLD, seed, **kwargs))
 
 
-@pytest.mark.parametrize("shape, shell", [(SHAPE, 0), (SHAPE, 1), (SHAPE, 12), (MILKY_WAY, 0), (MILKY_WAY, 400)])
+@pytest.mark.parametrize("shape, shell", [(SHAPE, 0), (SHAPE, 1), (SHAPE, 12), (MILKY_WAY, 0), (MILKY_WAY, 400),
+                                          (MILKY_WAY, 3000), (MILKY_WAY, 9000)])
 def test_the_majorant_is_never_below_the_true_density(shape, shell):
     """Random points in every band of the shell, for fractions of different populations."""
     rng = random.Random(shell + 7)
     high = spherical.band_range(shell)[1]
-    for fractions in ({"young": 1.0, "intermediate": 1.0, "old": 1.0, "bulge": 1.0},
-                      {"young": 0.9, "intermediate": 0.1, "old": 0.0, "bulge": 0.02},
-                      {"young": 0.0, "intermediate": 0.0, "old": 0.7, "bulge": 0.0},
-                      {"young": 0.01, "intermediate": 0.3, "old": 0.05, "bulge": 0.9}):
+    for fractions in ({"young": 1.0, "intermediate": 1.0, "old": 1.0, "bulge": 1.0, "halo": 1.0, "cluster": 1.0},
+                      {"young": 0.9, "intermediate": 0.1, "old": 0.0, "bulge": 0.02, "halo": 0.0, "cluster": 0.0},
+                      {"young": 0.0, "intermediate": 0.0, "old": 0.7, "bulge": 0.0, "halo": 0.3, "cluster": 0.0},
+                      {"young": 0.01, "intermediate": 0.3, "old": 0.05, "bulge": 0.9, "halo": 0.5, "cluster": 0.2},
+                      {"young": 0.0, "intermediate": 0.0, "old": 0.0, "bulge": 0.0, "halo": 1.0, "cluster": 0.0}):
         majorants = object_first.band_majorants(shape, shell, high, EDGE_PC, fractions)
         assert len(majorants) == 2 * high + 1
         for band in range(-high, high + 1, max(1, high // 20)):

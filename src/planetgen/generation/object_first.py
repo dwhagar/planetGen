@@ -101,7 +101,8 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
     `sum_p density_p * fractions[p]` (the stars of the pass expected per unit of `e`) anywhere in the
     band's cells. Every component falls with the distance from the axis and with `|z|`, so the band's
     smallest cylindrical radius and its nearest `|z|` bound it; the arm term is bounded by `1 + |A|`,
-    the populations' split by `_disk_share_bound`, the halo floor by `MIN_RELATIVE_DENSITY`.
+    the populations' split by `_disk_share_bound`, the halo by its value at the band's nearest point (it falls
+    with the spheroidal radius, which both the nearest radius and the nearest height lower).
 
     Returns:
         numpy.ndarray: One bound per band.
@@ -119,8 +120,10 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
     arm = shape.arm_level * (1.0 + abs(shape.arm_amplitude))
     disk_share = _disk_share_bound(shape, z_near, z_far, fractions)
     k = shape.k_norm
+    halo = density._halo(inner, z_near, density.halo_terms(shape))
     bound = (np.maximum(k * bulge, 0.0) * fractions["bulge"]
-             + (np.maximum(k * thick, 0.0) + tuning.MIN_RELATIVE_DENSITY) * fractions["old"]
+             + np.maximum(k * thick, 0.0) * fractions["old"]
+             + np.maximum(k * halo, 0.0) * fractions["halo"]
              + np.maximum(k * thin, 0.0) * arm * disk_share)
     return bound * (1.0 + 1e-12)
 

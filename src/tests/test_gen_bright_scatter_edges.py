@@ -38,8 +38,8 @@ from tests.test_bright_star_scatter import (
 )
 
 EMPTY_SHELL = 300
-"""A shell of the toy galaxy far outside its disk, where only the halo floor
-is left (`tuning.MIN_RELATIVE_DENSITY`, GEN.78)."""
+"""A shell of the toy galaxy far outside its disk, where only the stellar halo
+is left (GEN.234, which replaced GEN.78's flat floor)."""
 
 HEAVIEST_SHELL = 8
 """The toy outline's shell with the most expected work, so the first task of a plan scatter (a task is a run of
@@ -94,14 +94,14 @@ def test_a_shell_whose_stars_all_fail_to_place_yields_nothing(monkeypatch):
 
 
 def test_a_shell_far_outside_the_disk_keeps_a_small_chance_of_a_bright_star():
-    # GEN.78: no cell is zeroed for being sparse; the halo floor is old stars.
+    # GEN.78: no cell is zeroed for being sparse; out there the stars are the halo's.
     top = spherical.band_range(EMPTY_SHELL)[1]
     densities = []
     for band in range(top - 3, top + 1):
         plane, z = brightStars.band_center_pc(EMPTY_SHELL, band, EDGE_PC)
         densities.append(brightStars._densities_at([(plane, 0.0)], z, SHAPE)[0])
-    assert all(sum(item.values()) == pytest.approx(tuning.MIN_RELATIVE_DENSITY) for item in densities)
-    assert all(item["old"] > 0.99 * tuning.MIN_RELATIVE_DENSITY for item in densities)
+    assert all(item["halo"] > 0.0 for item in densities)
+    assert all(sum(item.values()) == pytest.approx(item["halo"], rel=1e-3) for item in densities)
     fractions = brightStars.band_fractions(THRESHOLD)
     expected = brightStars.shell_expected_stars(SHAPE, EMPTY_SHELL, top, EDGE_PC, E_VALUE, fractions)
     assert expected > 0.0
