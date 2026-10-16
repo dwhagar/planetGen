@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1458] - 2026-10-16
+
+**Headline:** The to-do list files the rename of the PHI-6 "Sealed suit" tier to "Environment suit".
+
+### Changed
+
+- Filed GEN.288 (phase 1): rename the PHI-6 equipment tier "Sealed suit" to "Environment suit" in code, wording tables, schema and tuning comments, docs, the UI and the tests, with no backward-compatibility shim. The tier is stored as a number, so no migration. Boss asked for it on 2026-10-15 at 10:12 PM EDT; linked to goal issue #1676.
+
+TODO items resolved: none / Added: GEN.288
+
 ## [8.0.1457] - 2026-10-16
 
 **Headline:** The to-do list records that the giant-branch spread fix is built together with the horizontal-branch phases.
