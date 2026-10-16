@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1430] - 2026-10-16
+
+**Headline:** GEN.279 carries Boss's tiered mass and luminosity caps, and the sector-profile items leave room for them.
+
+### Changed
+
+- GEN.279 records the cap tiers (about 10% higher caps at the core, about 10% lower in the halo and intergalactic space), to be folded into Core 3's plan note as a sector-profile parameter.
+- GEN.158, GEN.234, GEN.235 and GEN.237 carry a note to leave room for the cap-tier parameter.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1429] - 2026-10-16
 
 **Headline:** GEN.279 is filed: a realistic galactic core built from the density and generation model, with a plan note first (Core 3).
