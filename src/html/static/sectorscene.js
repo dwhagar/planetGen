@@ -33,6 +33,7 @@ const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`)
 const { cssVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
+const { POINT_PX, STAR_POINT_GLSL, pointBrightness } = await import(`./starpoint.js${VERSION_QUERY}`);
 
 // What an object in an uncharted sector says of itself (MAP.162).
 const UNCHARTED_NOTE = "Uncharted: its sector is not charted yet";
@@ -423,7 +424,10 @@ function makeCloudVolume(cloud, volume) {
 //
 // Every star, and every phenomenon planetgen/web/maps/starmap.py sends a `light` for, is
 // drawn the way static/galaxymap3d.js draws its bright stars: a point
-// sprite a fixed number of pixels across (never sized by distance), a core
+// sprite a fixed number of pixels across (never sized by distance once it
+// is grown, and MAP.208: a point of light POINT_PX across, only its brightness
+// telling it from another, until the camera is about a sector away -- the
+// same NEAR_SECTOR_PC the Galaxy Map uses, static/starpoint.js), a core
 // `corePx` across in a soft halo `sizePx` across whose strength is `glow`,
 // the core `bright` opaque and whitened toward its middle (by `whiten`, 1
 // unless the entry says otherwise: an accreting black hole's core keeps
@@ -442,6 +446,16 @@ var POINT_PICK_PX = 8;
 // The highlight ring around a selected point, in pixels across at least.
 var POINT_RING_MIN_PX = 20;
 
+// The core opacity a light has as a far point of light: a star's own,
+// scaled back to the point range by its luminosity share (which its `bright`
+// carries: 0.75 for the faintest star to 1 for the most luminous, as
+// planetgen/web/maps/starmap.py's `_star_light` sets it), never above its own
+// (a rogue planet is dimmer than a faint star at any distance).
+export function lightFarBright(light) {
+  var share = Math.min(1, Math.max(0, (light.bright - 0.75) / 0.25));
+  return Math.min(light.bright, pointBrightness(share));
+}
+
 var POINT_VERTEX_SHADER = [
   "#include <common>",
   "#include <logdepthbuf_pars_vertex>",
@@ -450,8 +464,10 @@ var POINT_VERTEX_SHADER = [
   "attribute float pointCore;",
   "attribute float pointGlow;",
   "attribute float pointBright;",
+  "attribute float pointFarBright;",
   "attribute float pointWhiten;",
   "uniform float pixelRatio;",
+  STAR_POINT_GLSL,
   "varying vec3 vColor;",
   "varying float vCore;",
   "varying float vGlow;",
@@ -459,12 +475,19 @@ var POINT_VERTEX_SHADER = [
   "varying float vWhiten;",
   "void main() {",
   "  vColor = pointColor;",
-  "  vCore = pointCore / pointSize;",
-  "  vGlow = pointGlow;",
-  "  vBright = pointBright;",
   "  vWhiten = pointWhiten;",
-  "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
-  "  gl_PointSize = pointSize * pixelRatio;",
+  "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+  // MAP.208: a point of light POINT_PX across until the camera is about a
+  // sector away, then grown to its size and glow (static/starpoint.js).
+  "  float grow = pointGrow(length(mvPosition.xyz));",
+  "  float pointPx = " + POINT_PX.toFixed(2) + ";",
+  "  float sizePx = pointPx + max(pointSize - pointPx, 0.0) * grow;",
+  "  float corePx = pointPx + max(pointCore - pointPx, 0.0) * grow;",
+  "  vCore = corePx / sizePx;",
+  "  vGlow = pointGlow * grow;",
+  "  vBright = mix(min(pointFarBright, pointBright), pointBright, grow);",
+  "  gl_Position = projectionMatrix * mvPosition;",
+  "  gl_PointSize = sizePx * pixelRatio;",
   "  #include <logdepthbuf_vertex>",
   "}",
 ].join("\n");
@@ -500,6 +523,7 @@ function makePointsOfLight(entries, lightBackground) {
   var cores = new Float32Array(n);
   var glows = new Float32Array(n);
   var brights = new Float32Array(n);
+  var farBrights = new Float32Array(n);
   var whitens = new Float32Array(n);
   var color = new THREE.Color();
   entries.forEach(function (entry, i) {
@@ -512,6 +536,7 @@ function makePointsOfLight(entries, lightBackground) {
     cores[i] = light.corePx;
     glows[i] = light.glow * dim;
     brights[i] = light.bright * dim;
+    farBrights[i] = lightFarBright(light) * dim;
     whitens[i] = light.whiten != null ? light.whiten : 1;
   });
   var geometry = new THREE.BufferGeometry();
@@ -521,6 +546,7 @@ function makePointsOfLight(entries, lightBackground) {
   geometry.setAttribute("pointCore", new THREE.BufferAttribute(cores, 1));
   geometry.setAttribute("pointGlow", new THREE.BufferAttribute(glows, 1));
   geometry.setAttribute("pointBright", new THREE.BufferAttribute(brights, 1));
+  geometry.setAttribute("pointFarBright", new THREE.BufferAttribute(farBrights, 1));
   geometry.setAttribute("pointWhiten", new THREE.BufferAttribute(whitens, 1));
   var material = new THREE.ShaderMaterial({
     uniforms: {
@@ -756,7 +782,7 @@ export function buildSectorScene(data, options) {
     group.add(pointsOfLight);
   }
 
-  var POINT_ATTRIBUTES = ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointWhiten"];
+  var POINT_ATTRIBUTES = ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointFarBright", "pointWhiten"];
 
   // Writes point `i`'s look: its entry's current light, or nothing at all
   // while its kind is hidden.
@@ -773,6 +799,7 @@ export function buildSectorScene(data, options) {
     geometry.getAttribute("pointCore").array[i] = shown ? light.corePx * mark : 0;
     geometry.getAttribute("pointGlow").array[i] = shown ? light.glow * dim * mark : 0;
     geometry.getAttribute("pointBright").array[i] = shown ? Math.min(1, light.bright * dim * mark) : 0;
+    geometry.getAttribute("pointFarBright").array[i] = shown ? Math.min(1, lightFarBright(light) * dim * mark) : 0;
     geometry.getAttribute("pointWhiten").array[i] = light.whiten != null ? light.whiten : 1;
   }
 

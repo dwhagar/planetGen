@@ -42,6 +42,7 @@ from planetgen.db.store import (
 )
 from planetgen.db import countcache
 from planetgen.physics import constants
+from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
@@ -1919,6 +1920,11 @@ _RADIUS_PHENOMENON_TABLES = tuple(
 `_widest_placed_phenomenon_radius_ly` checks just these."""
 
 
+_PHENOMENON_MASS_COLUMNS = {"black_holes": "mass_solar", "neutron_stars": "mass_solar", "quasars": "black_hole_mass_solar"}
+"""dict: The solar-mass column of each `_PHENOMENON_TABLES` table that has one (MAP.208: the maps
+draw these as bright as a star of the mass); other types' rows carry `mass_solar` as `None`."""
+
+
 _PHENOMENON_CLASS_COLUMNS = {
     "nebulae": "nebula_class",
     "supernova_remnants": "remnant_class",
@@ -1970,8 +1976,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
         list[dict]: `id`, `type` (one of `_PHENOMENON_TABLES`' type
             labels), `name`, `descriptor`, `radius_ly` (0 for the
             point-like types), `class` (see `_PHENOMENON_CLASS_COLUMNS`), `gravity_g` (rogue planets only: the
-            surface gravity in g, UX.99), `x`/`y`/`z` (`center_x/y/z_pc`),
-            `galactic_radius_pc`.
+            surface gravity in g, UX.99), `mass_solar` (a black hole, neutron star or quasar's mass, MAP.208;
+            else `None`), `x`/`y`/`z` (`center_x/y/z_pc`), `galactic_radius_pc`.
     """
     where_bbox = ""
     bbox_params = ()
@@ -1998,7 +2004,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             SELECT id, name, {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                    {_PHENOMENON_CLASS_COLUMNS.get(table, "NULL")} AS class_code,
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
-                   {"mass_kg, radius_km" if table == "rogue_planets" else "NULL AS mass_kg, NULL AS radius_km"}
+                   {"mass_kg, radius_km" if table == "rogue_planets" else "NULL AS mass_kg, NULL AS radius_km"},
+                   {_PHENOMENON_MASS_COLUMNS.get(table, "NULL")} AS mass_solar
             FROM {table}
             WHERE center_x_pc IS NOT NULL
             {where_bbox}
@@ -2011,7 +2018,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
                 "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
                 "class": row["class_code"],
                 "x": row["center_x_pc"], "y": row["center_y_pc"], "z": row["center_z_pc"],
-                "galactic_radius_pc": row["galactic_radius_pc"],
+                "galactic_radius_pc": row["galactic_radius_pc"], "mass_solar": row["mass_solar"],
             })
             if table == "rogue_planets":
                 rows[-1]["gravity_g"] = rogue_planet_gravity_g(row["mass_kg"], row["radius_km"])
@@ -2804,7 +2811,7 @@ def phenomena_near_sector(conn, sector_id):
         list[dict]: One entry per candidate phenomenon, nearest first:
             `id`, `type` (one of `_PHENOMENON_TABLES`' type labels),
             `name`, `descriptor`, `class` (letter class or `None`),
-            `radius_ly`, `distance_ly` (sector center to phenomenon
+            `radius_ly`, `mass_solar` (black holes, neutron stars and quasars), `distance_ly` (sector center to phenomenon
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
@@ -2857,6 +2864,7 @@ def phenomena_near_sector(conn, sector_id):
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
             "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
             "class": phenomenon["class"], "gravity_g": phenomenon.get("gravity_g"),
+            "mass_solar": phenomenon.get("mass_solar"),
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
             "octant": octant,
@@ -3828,7 +3836,7 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
         stars = []
     rows = conn.execute(
         """
-        SELECT id, kind, subtype, position_x_mpc, position_y_mpc, position_z_mpc
+        SELECT id, kind, subtype, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc
         FROM phenomenon_scatter
         WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND built_at IS NULL
         ORDER BY id
@@ -3838,7 +3846,7 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
     ).fetchall()
     scattered = [
         {"id": row["id"], "kind": row["kind"], "subtype": row["subtype"],
-         "type": _SCATTER_TYPES.get(row["kind"], row["kind"]),
+         "type": _SCATTER_TYPES.get(row["kind"], row["kind"]), "mass_solar": row["mass_solar"],
          "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
          "z": row["position_z_mpc"] / MPC_PER_PC}
         for row in rows
@@ -4230,13 +4238,13 @@ GALAXY_TILE_MAX_POINTS = 200
 first. A 64 pc tile holds a handful."""
 
 _POINT_PHENOMENON_TABLES = (
-    ("black_holes", "black_hole", "(CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END)"),
-    ("neutron_stars", "neutron_star", "pulsar_type"),
-    ("quasars", "quasar", "(CASE WHEN is_radio_loud THEN 'radio-loud' ELSE 'radio-quiet' END)"),
+    ("black_holes", "black_hole", "(CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END)", "mass_solar"),
+    ("neutron_stars", "neutron_star", "pulsar_type", "mass_solar"),
+    ("quasars", "quasar", "(CASE WHEN is_radio_loud THEN 'radio-loud' ELSE 'radio-quiet' END)", "black_hole_mass_solar"),
 )
-"""tuple: `(table, type_label, descriptor_expr)` for the phenomena the
+"""tuple: `(table, type_label, descriptor_expr, mass_column)` for the phenomena the
 Galaxy Map draws as points (the same labels and descriptors as
-`_PHENOMENON_TABLES`)."""
+`_PHENOMENON_TABLES`; a quasar's mass is its black hole's)."""
 
 
 def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
@@ -4253,31 +4261,34 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
         limit (int): See `GALAXY_TILE_MAX_POINTS`.
 
     Returns:
-        list[dict]: Most luminous first (ties by type, then id): `type`
+        list[dict]: Heaviest first (by `map_luminosity_sol`; ties by type, then id): `type`
             (`"black_hole"`, `"neutron_star"` or `"quasar"`), `id`,
-            `name`, `descriptor`, `luminosity_sol` and `x`/`y`/`z`
-            (parsecs).
+            `name`, `descriptor`, `mass_solar`, `luminosity_sol` (its own light), `map_luminosity_sol` (the
+            luminosity of a star of its mass, `phenomenon_map_luminosity_sol`:
+            what the maps draw it at, MAP.208) and `x`/`y`/`z` (parsecs).
     """
     found = []
-    for table, type_label, descriptor_expr in _POINT_PHENOMENON_TABLES:
+    for table, type_label, descriptor_expr, mass_column in _POINT_PHENOMENON_TABLES:
         rows = conn.execute(
             f"""
-            SELECT id, name, {descriptor_expr} AS descriptor, luminosity_w,
+            SELECT id, name, {descriptor_expr} AS descriptor, {mass_column} AS mass_solar, luminosity_w,
                    center_x_pc, center_y_pc, center_z_pc
             FROM {table} FORCE INDEX (idx_{table}_center)
             WHERE center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? AND center_y_pc < ?
               AND center_z_pc >= ? AND center_z_pc < ?
-            ORDER BY luminosity_w DESC, id
+            ORDER BY {mass_column} DESC, id
             LIMIT ?
             """,
             (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
         ).fetchall()
         found += [{
             "type": type_label, "id": row["id"], "name": row["name"], "descriptor": row["descriptor"],
+            "mass_solar": None if row["mass_solar"] is None else float("%.4g" % row["mass_solar"]),
             "luminosity_sol": float("%.4g" % (row["luminosity_w"] / constants.SOLAR_LUMINOSITY)),
+            "map_luminosity_sol": float("%.4g" % phenomenon_map_luminosity_sol(type_label, row["mass_solar"])),
             "x": round(row["center_x_pc"], 3), "y": round(row["center_y_pc"], 3), "z": round(row["center_z_pc"], 3),
         } for row in rows]
-    found.sort(key=lambda point: (-point["luminosity_sol"], point["type"], point["id"]))
+    found.sort(key=lambda point: (-point["map_luminosity_sol"], point["type"], point["id"]))
     return found[:limit]
 
 
@@ -4358,6 +4369,7 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
         points.append({
             "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)" if row["built_at"] is None else label,
             "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
+            "map_luminosity_sol": float("%.4g" % phenomenon_map_luminosity_sol(map_type, row["mass_solar"])),
             "mass_solar": None if row["mass_solar"] is None else float("%.4g" % row["mass_solar"]),
             "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
             "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),

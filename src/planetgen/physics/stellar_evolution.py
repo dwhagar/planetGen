@@ -161,6 +161,27 @@ def map_luminosity_sol(mass_sol):
     return _piecewise_luminosity_sol(tuning.MAP_MASS_LUMINOSITY_PIECES, mass_sol)
 
 
+def phenomenon_map_luminosity_sol(map_type, mass_sol=None):
+    """
+    The luminosity (Lsun) the maps draw a point phenomenon at (MAP.208): that of
+    the main-sequence star of its mass (`map_luminosity_sol`), not its own
+    physical light, so a 10 Msun black hole is about as bright as a 10 Msun
+    star. A black hole is `BLACK_HOLE_MAP_BRIGHTNESS` of that; an object with no
+    mass takes `MASSLESS_MARKER_MASS_SOL`. The one function the three maps share:
+    the Galaxy Map's tiles and the Sector Map's lights both start from it.
+
+    Args:
+        map_type (str): "black_hole", "neutron_star", "quasar" or anything else.
+        mass_sol (float, optional): The mass, solar masses.
+
+    Returns:
+        float: The luminosity, solar luminosities.
+    """
+    mass = mass_sol if mass_sol and mass_sol > 0 else tuning.MASSLESS_MARKER_MASS_SOL
+    share = tuning.BLACK_HOLE_MAP_BRIGHTNESS if map_type == "black_hole" else 1.0
+    return map_luminosity_sol(mass) * share
+
+
 def main_sequence_radius_sol(mass_sol):
     """R = M^0.8 below 1 Msun, M^0.57 above."""
     exponent = (tuning.MS_RADIUS_EXPONENT_BELOW_1_SOL if mass_sol < 1.0
