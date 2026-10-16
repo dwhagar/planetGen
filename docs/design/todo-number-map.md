@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.115 |
+| UX | UX.116 |
 | MAP | MAP.208 |
 | NAV | NAV.62 |
 | GEN | GEN.280 |
 | PERF | PERF.104 |
 | DB | DB.36 |
 | API | API.28 |
-| ADM | ADM.55 |
+| ADM | ADM.57 |
 | SEC | SEC.33 |
-| TEST | TEST.168 |
+| TEST | TEST.170 |
 | USR | USR.12 |
 | OPS | OPS.53 |
 | DOC | DOC.53 |
@@ -443,6 +443,8 @@ Parents marked "new parent" had no old number of their own.
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
 | ADM.54 | A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional) | none | done, PR #1401 |
+| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | none | open |
+| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -1431,6 +1433,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | open |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass | none | open |
+| UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1695,6 +1698,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | open |
 | TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | open |
+| TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | none | open |
+| TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

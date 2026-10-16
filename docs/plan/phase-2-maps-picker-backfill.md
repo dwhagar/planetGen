@@ -74,6 +74,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | GEN.235, API.27 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
+| UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | GEN.235, GEN.237, GEN.240, NAV.61, API.27, UX.113 | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass | GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
@@ -211,6 +212,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | DB.34, GEN.223 | Spherical region query, stage C. Step 7. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | DB.34, GEN.276 | Spherical region query, stage C. Step 6. Quality. |
+| TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | UX.115 | Quality; queued after UX.115 |
+| TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | ADM.56 | Quality; queued admin chain |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.251 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | GEN.198 | Research. |

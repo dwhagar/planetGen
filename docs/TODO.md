@@ -531,6 +531,30 @@ with `clamp()`.
   Prerequisite: GEN.260.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
+- [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
+  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
+  update on everything once this is done so all the controls work
+  properly, then run the ADM update chain since our admin pages need
+  desperately to be streamlined and fixed, they aren't very usable."
+  Done: after the sphere and generation stages finish, an audit walks
+  every public and map page (Galaxy Map, Sector Map and sector page,
+  System Map and system page, planet, moon and belt pages, phenomena and
+  nebula pages, search, nearby, navigation and courses, bookmarks,
+  account, help, API pages) and, for each control, checks it against the
+  spherical address (shell, band, wedge), 96-bit object IDs (inputs,
+  URLs, copy and paste, display width, bookmarks, search), the new
+  phenomena, scatter rows, satellites, clusters and wanderers beyond the
+  disk, and the region queries (NAV.45, NAV.60, NAV.61); the result is a
+  page-by-page list of controls with working, broken or missing, and
+  every defect is filed as an item or fixed in the same pass when it is
+  a one-line fix. The open map, navigation and interface items of the
+  Interface queue (the MAP, NAV, UX and API items) finish before the
+  audit starts, so it checks the finished pages. Queued, not started:
+  Interface and Quality stay idle until the sphere and generation stages
+  finish (Boss, 12:27 AM EDT) unless Boss says earlier.
+  Prerequisites: GEN.235, GEN.237, GEN.240, NAV.61, API.27, UX.113.
+  Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -5841,6 +5865,40 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18.
 
+- [ ] **ADM.55 Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout**
+  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
+  update on everything once this is done so all the controls work
+  properly, then run the ADM update chain since our admin pages need
+  desperately to be streamlined and fixed, they aren't very usable."
+  Done: walk every admin page and task (the admin start page, stats and
+  its tables, generation and its jobs, sectors and system generator, the
+  queue and its confirmations, facility types, maintenance and the edit
+  actions on object pages) as an administrator would, one real task at a
+  time (add a sector, regenerate, backfill, erase, edit an object, read
+  a job, change a setting); for each record clicks needed, controls that
+  fail or mislead, wording, missing feedback, missing or doubled pages,
+  and the order of the menu; write a design note in docs/design (with
+  its README row in the same PR) that ranks the defects and proposes one
+  admin layout: one shell with one navigation, the same table, form,
+  confirmation and job-log pattern everywhere. Queued after UX.115; the
+  audit starts the ADM chain.
+  Prerequisites: UX.115. Related: ADM.56, ADM.43, ADM.35, UX.102.
+
+- [ ] **ADM.56 Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs**
+  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
+  update on everything once this is done so all the controls work
+  properly, then run the ADM update chain since our admin pages need
+  desperately to be streamlined and fixed, they aren't very usable."
+  Done: build the layout the audit (ADM.55) proposes and fix every
+  defect it ranks above its line, so the admin pages are usable end to
+  end: one shell and navigation, the same table, form, confirmation and
+  job-log pattern on every page, clear feedback and error messages, and
+  nothing left that is doubled or dead. The new admin items of the chain
+  (ADM.43, ADM.44, ADM.13, ADM.35, ADM.32, ADM.36, ADM.52) are built
+  inside this shell.
+  Prerequisites: ADM.55, ADM.50. Related: ADM.43, ADM.44, ADM.13,
+  ADM.35, UX.102, UX.49.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -6430,6 +6488,32 @@ clears each one.
   is made reliable without skipping or loosening it, or the product bug
   it hides is fixed. Owner: Quality (2026-10-15).
   Prerequisites: none. Related: TEST.111, GEN.232.
+
+- [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
+  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
+  update on everything once this is done so all the controls work
+  properly, then run the ADM update chain since our admin pages need
+  desperately to be streamlined and fixed, they aren't very usable."
+  Done: a browser test (Playwright, in the existing browser suite) opens
+  every page of the audit list in UX.115 on a small generated spherical
+  galaxy that has scatter rows, a satellite and a cluster, and presses
+  or fills every control once, failing on a console error, a 4xx or 5xx
+  response or a control that does nothing; it checks 96-bit IDs in
+  inputs and URLs on each page that takes one. Quality runs it after
+  UX.115's fixes. Queued after UX.115.
+  Prerequisites: UX.115. Related: TEST.163, TEST.156, TEST.169.
+
+- [ ] **TEST.169 Admin page browser tests: every admin page and task works end to end after the streamline**
+  Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
+  update on everything once this is done so all the controls work
+  properly, then run the ADM update chain since our admin pages need
+  desperately to be streamlined and fixed, they aren't very usable."
+  Done: a browser test per admin task of the audit (ADM.55): add a
+  sector, regenerate, backfill, erase, edit an object, read a job and
+  its log, change a setting, confirm and cancel a queue action; fails on
+  a console error, a bad response or a control that does nothing. Runs
+  after ADM.56 and again at the end of the chain.
+  Prerequisites: ADM.56. Related: TEST.168, ADM.55.
 
 ## USR: User accounts
 
