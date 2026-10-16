@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1574] - 2026-10-16
+
+**Headline:** The TODO list retires the cell-key test across a cube boundary, which Core 4 built.
+
+### Changed
+- **TEST.166 is done (#1881).** The cell key is now tested across a cube boundary. TEST.192 gains Core 4's deterministic reproduction of the fuzz failure, and the GEN.103 research text now carries Core 4's corrections (the Moe et al. points and the dimensionally inconsistent formula).
+
+TODO items resolved: TEST.166 / Added: none
+
 ## [8.0.1573] - 2026-10-16
 
 **Headline:** The cell key is now tested across a cube boundary on every table that holds a position.
