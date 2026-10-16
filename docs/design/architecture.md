@@ -321,6 +321,7 @@ Helpers every package can use.
 | [`__init__.py`](../../src/planetgen/util/__init__.py) | Shared helpers every planetgen package can use. |
 | [`checks.py`](../../src/planetgen/util/checks.py) | `finite_domain`, the decorator that gives a numeric physics helper one contract: it returns finite numbers or raises `ValueError`. |
 | [`generator_epoch.py`](../../src/planetgen/util/generator_epoch.py) | The generator epoch (OPS.56): the integer a PR bumps when it changes what a seed generates, read from `src/tests/golden/epochs.json`. |
+| [`detmath.py`](../../src/planetgen/util/detmath.py) | Maths that gives the same bits on every Python and machine (GEN.135): `hypot`, `dist`, `fsum` and a BLAS-free `matmul`, in place of `math.hypot`, `math.dist` and `@`. |
 | [`draw.py`](../../src/planetgen/util/draw.py) | Every random draw generation makes goes through here (GEN.56; see docs/design/reproducible-galaxies.md, section 5). |
 | [`format.py`](../../src/planetgen/util/format.py) | The text every number, distance, speed, duration, temperature, pressure and age is shown in, for the generator's wikitext and Markdown and for the web pages. |
 | [`ladders.py`](../../src/planetgen/util/ladders.py) | The data behind every measurement the site shows (UX.23): for each quantity a ladder of units, smallest first, and the rule for which one a value is shown in. |

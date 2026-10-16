@@ -4,6 +4,12 @@
       "epoch": 1,
       "first_release": null,
       "reason": "The first epoch: every release up to and including the one that added this counter (OPS.56)."
+    },
+    {
+      "epoch": 2,
+      "first_release": null,
+      "pending": true,
+      "reason": "Stored distances and radii use planetgen.util.detmath (sqrt of the squares added left to right) in place of math.hypot and math.dist, and the nebula shape's rotation uses detmath.matmul in place of @, so the last bit of many positions differs (GEN.135)."
     }
   ]
 }

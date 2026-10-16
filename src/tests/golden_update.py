@@ -11,8 +11,9 @@ a line `generation-output: changed` in the PR's `changes/` note. This tool does 
 to `src/tests/golden/epochs.json`, with the reason and no release yet (stamping the release names it).
 
 It refuses under CI (a golden file is never to be regenerated there, or a regression would rewrite its own proof),
-when the golden files have not changed since main (nothing to bump for) and for a second bump in the same change (the epoch
-already went up; the new golden changes ride on it).
+when golden files exist and none has changed since main (nothing to bump for) and for a second bump in the same change
+(the epoch already went up; the new golden changes ride on it). Until the golden test (TEST.77) checks in the first
+golden file there is nothing to change, so the bump needs only a reason and goes with the note's line.
 """
 
 import argparse
@@ -46,6 +47,12 @@ def _changed_golden_files(root):
     return [path for path in paths if os.path.basename(path) != "epochs.json"]
 
 
+def _golden_files_exist(root):
+    """Whether any golden file other than `epochs.json` is checked in (none is until the golden test, TEST.77)."""
+    names = _git(root, "ls-files", "--", GOLDEN_DIR).split()
+    return any(os.path.basename(name) != "epochs.json" for name in names)
+
+
 def bump(reason, root=ROOT, environ=None):
     """
     Appends the next epoch.
@@ -61,7 +68,7 @@ def bump(reason, root=ROOT, environ=None):
         raise Refused("refusing under CI: the golden files are changed on a developer's machine, in the PR")
     if not reason or not reason.strip():
         raise Refused('give the reason for the new epoch: --reason "..."')
-    if not _changed_golden_files(root):
+    if not _changed_golden_files(root) and _golden_files_exist(root):
         raise Refused(f"no golden file under {GOLDEN_DIR}/ differs from main, so there is nothing to bump "
                       "the epoch for; regenerate the golden files first")
     path = os.path.join(root, EPOCHS_FILE)

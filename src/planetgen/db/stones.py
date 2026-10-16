@@ -39,6 +39,7 @@ from planetgen.db.store import get_orbit_epoch_unix
 from planetgen.galaxy.spherical import neighbor_addresses, provisional_sector_designation
 from planetgen.galaxy.straight_line import scatter_position_mpc
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 BRIGHT_STAR = "bright-star"
 """str: The kind of a scattered bright star (the scatter table's own kinds are `tuning.NAV_STONE_KINDS`)."""
@@ -185,7 +186,7 @@ def chain_for_jump(conn, start_ly, end_ly, crossed):
     Returns:
         list[tuple]: `[(key, stone)]` in order from the start, `[]` when the jump stays as it is.
     """
-    length_ly = math.dist(start_ly, end_ly)
+    length_ly = detmath.dist(start_ly, end_ly)
     start, end = tuple(ly_to_pc(c) for c in start_ly), tuple(ly_to_pc(c) for c in end_ly)
     width_pc = max(tuning.NAV_STONE_CORRIDOR_MIN_PC, tuning.NAV_STONE_CORRIDOR_FRACTION * ly_to_pc(length_ly))
     found = stones_in_cells(conn, _cells_for(conn, crossed, width_pc))

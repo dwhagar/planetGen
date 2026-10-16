@@ -112,6 +112,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
+from planetgen.util import detmath
 
 SCHEMA_VERSION = alembic_runner.head_version()
 """int: Matches `star_systems.schema_version` and the highest row in the
@@ -4274,7 +4275,7 @@ def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
             continue
         if container["radius_pc"] <= own_radius_pc:
             continue
-        if math.dist(point_pc, container["center"]) > container["radius_pc"]:
+        if detmath.dist(point_pc, container["center"]) > container["radius_pc"]:
             continue
         if best is not None and container["radius_pc"] >= best["radius_pc"]:
             continue
@@ -4570,7 +4571,7 @@ class _SystemGrid:
             best = sorted(
                 (distance, system_id)
                 for system_id, other in self.systems
-                if system_id != exclude and (distance := math.dist(point, other)) <= limit_pc
+                if system_id != exclude and (distance := detmath.dist(point, other)) <= limit_pc
             )
             return best[:count]
         for shell in range(max_shell + 1):
@@ -4584,7 +4585,7 @@ class _SystemGrid:
                         for system_id, other in self.cells.get((cx + dx, cy + dy, cz + dz), ()):
                             if system_id == exclude:
                                 continue
-                            distance = math.dist(point, other)
+                            distance = detmath.dist(point, other)
                             if distance <= limit_pc:
                                 best.append((distance, system_id))
             best.sort()
@@ -4760,7 +4761,7 @@ def _sectors_near(conn, centers, reach_pc):
     points = list(centers.values())
     for row in rows:
         center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
-        if any(math.dist(center, p) <= reach_pc for p in points):
+        if any(detmath.dist(center, p) <= reach_pc for p in points):
             near[row["id"]] = center
     return near
 
@@ -5122,7 +5123,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         point = local_to_galaxy_pc(center, tuple(ly_to_pc(c) for c in offset_ly))
         placement_values = (*point, math.sqrt(sum(c * c for c in point)))
         # GEN.125: on the galaxy's rotation curve at its place.
-        speed_kms, _period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(point[0], point[1])))
+        speed_kms, _period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
         velocity_kms = tuple(v / 1000.0 for v in galactic_velocity_ms(point, speed_kms))
     elif offset_ly is not None:
         raise FacilityError("only a stand-alone facility has a position in space")
@@ -5437,7 +5438,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
         " AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id", (clock.end_unix,)
     ).fetchall():
-        speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(row["center_x_pc"], row["center_y_pc"])))
+        speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(row["center_x_pc"], row["center_y_pc"])))
         epoch, interval, due = _due_interval_s(row, clock, speed_kms, "galactic")
         if due > clock.end_unix or (budget is not None and not budget.take("space_facilities")):
             scheduled.append((epoch, due, row["id"]))
@@ -5543,7 +5544,7 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             (clock.end_unix,)).fetchall()
         for row in rows:
             point = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
-            speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(point[0], point[1])))
+            speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
             stored = None not in (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
             velocity = ((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) if stored
                         else tuple(c / 1000.0 for c in galactic_velocity_ms(point, speed_kms)))
@@ -6501,7 +6502,7 @@ def sectors_reached_by(conn, center_pc, radius_pc):
     ).fetchall()
     return [
         row["id"] for row in rows
-        if math.dist(center_pc, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])) <= reach
+        if detmath.dist(center_pc, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])) <= reach
     ]
 
 
