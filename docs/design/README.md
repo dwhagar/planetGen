@@ -17,6 +17,7 @@ A note's own status line, at its top, is the authority; this page only points at
 |---|---|---|
 | [architecture.md](architecture.md) | Every file and the main flows | reference (the code map is being rewritten, DOC.28) |
 | [design-decisions.md](design-decisions.md) | The choices that shape the project, each with its status | reference |
+| [later-phenomena-scatter-rules.md](later-phenomena-scatter-rules.md) | Which later phenomena are scattered, backfilled or fill-only (goal issue #1677): what each item stores, the magnetar scatter class, what the rule set and the profile gain, the columns for Core 1, and the changes to the TODO items | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
 | [todo-number-map.md](todo-number-map.md) | Old TODO numbers to category IDs, and the next free ID of each category | reference |
 | [library-migration.md](library-migration.md) | Moving to third-party libraries and into packages | built (queue being redone, PERF.86) |
 | [math-and-library-efficiency.md](math-and-library-efficiency.md) | Where the heavy math runs; Python 3.12 and numba | partly built (PERF.88 open) |
