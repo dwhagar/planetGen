@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1550] - 2026-10-16
+
+**Headline:** The settings writer, the backup archive and the one configuration file (ADM.83, ADM.87, ADM.96) are retired after the merge.
+
+### Changed
+
+- ADM.83, ADM.87 and ADM.96 are removed from the TODO and ticked in the progress ledger (merged as #1857); the items that waited on them lose those prerequisites.
+- The settings design note records what was built: the writer module, the roles, the backup library and archive layout, and the retention option.
+
+TODO items resolved: ADM.87, ADM.83, ADM.96 / Added: none
+
 ## [8.0.1549] - 2026-10-16
 
 **Headline:** All program configuration lives in the one `config.json`, which can now be saved from the command line with checks, backups and an audit row, on a new backup archive that the settings page, the control database and the DB repair data will share.
