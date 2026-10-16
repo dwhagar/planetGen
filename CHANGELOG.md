@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1489] - 2026-10-16
+
+**Headline:** The to-do list retires MAP.211, the information page for hypervelocity and scattered objects.
+
+### Changed
+
+- Retired MAP.211 (#1787) and removed it from the goal table; the MAP.211 issue (#1749) closes.
+
+TODO items resolved: MAP.211 / Added: none
+
 ## [8.0.1488] - 2026-10-16
 
 **Headline:** Every uncharted phenomenon, hypervelocity stars included, now has a page you can open, and a generated one takes you to what was made.
