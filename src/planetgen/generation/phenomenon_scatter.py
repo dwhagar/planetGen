@@ -45,7 +45,7 @@ from planetgen.galaxy import density, remnant_distribution
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
-from planetgen.generation import bright_stars
+from planetgen.generation import bright_stars, multistar
 from planetgen.generation.bright_stars import MPC_PER_PC
 from planetgen.generation.phenomena import registry
 from planetgen.physics import stellar_evolution as stellarEvolution
@@ -190,12 +190,39 @@ def mass_range(kind, subtype, min_mass_solar, above):
     return (max(min_mass_solar, low), high) if above else (low, min(min_mass_solar, high))
 
 
+PLACED_KINDS = {
+    ("black-hole", "stellar"): "black-hole", ("black-hole", "intermediate"): "intermediate-mass-black-hole",
+    ("neutron-star", None): "neutron-star", ("planetary-nebula", None): "white-dwarf",
+}
+"""dict: `(kind, subtype)` of a scattered class that carries a member tree -> the `multistar.Placed` kind of its
+placed object (the central star of a planetary nebula is a white dwarf). A supernova remnant, a quasar, a
+hypervelocity star and the nucleus carry none (multi-star-systems.md 4.3)."""
+
+NEUTRON_STAR_RECYCLED_SHARE = tuning.NEUTRON_STAR_PULSAR_CHANCE * tuning.PULSAR_MILLISECOND_CHANCE
+"""float: The share of scattered neutron stars that are recycled millisecond pulsars (pulsing, then recycled)."""
+
+
+def row_density_divisor(kind, subtype):
+    """
+    `1 + p_placed`, the divisor of a class's object rate for the scatter (multi-star-systems.md 6.4): a row is a
+    system keyed by its placed object, and the same-class companions of the placed objects are objects of the class
+    too, so the rows' rate is the object rate over one plus the expected same-class companions per row. 1 for a
+    class with no tree or no same-class companion (the whole of the intermediate-mass black holes).
+    """
+    placed = PLACED_KINDS.get((kind, subtype))
+    if placed is None or kind == "planetary-nebula":      # a white dwarf companion is not a planetary nebula
+        return 1.0
+    return 1.0 + multistar.same_class_companions(placed, NEUTRON_STAR_RECYCLED_SHARE if placed == "neutron-star" else 0.0)
+
+
 def _scattered_rates(min_mass_solar):
     """`(kind, subtype, rate per star above the cut)` for each class with
-    anything above it, in `SCATTER_CLASSES` order."""
+    anything above it, in `SCATTER_CLASSES` order. The rate is of rows, that is of systems keyed by their
+    placed object (`row_density_divisor`)."""
     rates = []
     for kind, subtype in SCATTER_CLASSES:
-        rate = class_rate_per_star(kind, subtype) * share_above(kind, subtype, min_mass_solar)
+        rate = (class_rate_per_star(kind, subtype) * share_above(kind, subtype, min_mass_solar)
+                / row_density_divisor(kind, subtype))
         if rate > 0.0:
             rates.append((kind, subtype, rate))
     return rates
