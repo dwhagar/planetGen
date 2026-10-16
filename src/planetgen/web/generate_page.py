@@ -61,7 +61,7 @@ from planetgen.queue import api_jobs, progress_rate
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
-from planetgen.admin import activity_log
+from planetgen.admin import activity_log, updateguard
 from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
 from planetgen.util import log, stagemark
@@ -1242,6 +1242,10 @@ def generate():
         if wants_json:
             return _no_store(make_response(jsonify({"error": message}), 409))
         return _page(admin, error=message, status=409, form=request.form)
+    except updateguard.UpdateRunning as exc:
+        if wants_json:
+            return _no_store(make_response(jsonify({"error": str(exc)}), 503))
+        return _page(admin, error=str(exc), status=503, form=request.form)
     except OSError as exc:
         log.exception(f"Could not start a {kind} job: {exc}")
         if wants_json:

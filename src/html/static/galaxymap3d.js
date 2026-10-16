@@ -67,12 +67,15 @@ const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
 const {
-  POINT_FADE, STAR_DOT_PX, cloudSizeShare, opacitySum, starShare,
+  POINT_FADE, cloudSizeShare, opacitySum, starShare,
 } = await import(`./starfade.js${VERSION_QUERY}`);
+const {
+  POINT_PX, STAR_POINT_GLSL, phenomenonLuminositySol, pointBrightness,
+} = await import(`./starpoint.js${VERSION_QUERY}`);
 const { fetchCutTiles, tileBoxOf } = await import(`./galaxytilecut.js${VERSION_QUERY}`);
 const { unpackResponse, unpackTile } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
-  PHENOMENON_MAGNITUDE, STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude,
+  STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude,
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
@@ -1491,12 +1494,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // down to the red dwarfs at sector depth. Boss: "no matter how far the
   // user zooms in they should be very small with a big glow", and "rough
   // sizes relative to the size of the star, brightness relative to
-  // luminosity, and color relative to temperature" -- each is a point of
-  // light a fixed number of pixels across at every zoom (never sized by
-  // distance): a core sized by the star's radius (STAR_CORE_PX, a red
-  // dwarf one pixel, a supergiant four or five) in a soft halo whose width
-  // and strength grow with luminosity (STAR_MIN_PX to STAR_MAX_PX), the
-  // core dimmer for a fainter star, all in the star's blackbody color;
+  // luminosity, and color relative to temperature". MAP.208: far from the
+  // camera each is a point of light POINT_PX across whatever its size
+  // (static/starpoint.js), only its brightness telling stars apart; from
+  // about a sector away (NEAR_SECTOR_PC, the same constant the sector scene
+  // uses) it grows smoothly into a core sized by the star's radius
+  // (STAR_CORE_PX, a red dwarf one pixel, a supergiant four or five) in a
+  // soft halo whose width and strength grow with luminosity (STAR_MIN_PX to
+  // STAR_MAX_PX), the core dimmer for a fainter star, all in the star's blackbody color;
   // the faint end is drawn brighter by the Sector Map's own curve (MAP.87,
   // static/starlight.js). Halos blend normally rather than adding up, so a crowded arm zoomed
   // out glows in its stars' colors instead of burning to white; stars are
@@ -1515,21 +1520,18 @@ function initGalaxyMap3d(canvasEl, data) {
   // in); with reduced motion they just appear.
   var STAR_FADE_IN_MS = reducedMotion ? 0 : 300;
 
-  // MAP.80: how a black hole, neutron star or quasar is drawn among the
-  // stars -- its color, then where its halo and core sit on the stars'
-  // luminosity and radius scales (0..1), so each stands out at any
-  // luminosity of its own. The colors are off the blackbody line no star
-  // is drawn off (purple, deep blue, pink). MAP.164: black holes purple and
-  // neutron stars dark blue, drawn at the top of the star scale (and past it
-  // for the biggest, `point.size`) with full core brightness, so the dark
-  // colors still out-shine brighter stars; the scattered ones not yet built
-  // into a sector come with a size share by mass class.
-  var POINT_LOOKS = {
-    black_hole: ["#a43cff", 0.85, 0.8],
-    neutron_star: ["#3200ff", 0.8, 0.7],
-    quasar: ["#ff7fd0", 0.95, 0.9],
+  // MAP.80: the color a black hole, neutron star or quasar is drawn in
+  // among the stars -- off the blackbody line no star is drawn off (purple,
+  // deep blue, pink). MAP.208: everything else about it is a star's: it is a
+  // point of light and its brightness follows its mass, as bright as the
+  // star of that mass (the server sends that luminosity, a black hole a
+  // little dimmer), never brighter than the brightest star drawn.
+  var POINT_COLORS = {
+    black_hole: "#a43cff",
+    neutron_star: "#3200ff",
+    quasar: "#ff7fd0",
   };
-  var DEFAULT_POINT_LOOK = ["#ffffff", 0.5, 0.5];
+  var DEFAULT_POINT_COLOR = "#ffffff";
 
   // MAP.111: with "Charted only" on, a star outside charted (generated)
   // sectors is drawn at this share of its opacity, as the blocks are
@@ -1561,11 +1563,13 @@ function initGalaxyMap3d(canvasEl, data) {
       "uniform float magLimit;",
       "uniform float magOn;",
       STAR_MAGNITUDE_GLSL,
+      STAR_POINT_GLSL,
       "varying float vShown;",
       "attribute float starSize;",
       "attribute float starCore;",
       "attribute float starGlow;",
       "attribute float starBright;",
+      "attribute float starPointBright;",
       "attribute vec3 starColor;",
       "uniform float pixelRatio;",
       "attribute float starClipped;",
@@ -1578,9 +1582,6 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vBright;",
       "void main() {",
       "  vColor = starColor;",
-      "  vBright = starBright;",
-      "  vCore = starCore / starSize;",
-      "  vGlow = starGlow;",
       "  float zoomShown = starTile;",
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0) * mix(1.0, zoomShown, zoomFadeOn);",
       // "Charted only" (MAP.111): a star outside charted space dimmed.
@@ -1590,14 +1591,23 @@ function initGalaxyMap3d(canvasEl, data) {
       // density and cell boxes only, so a star never vanishes in front of
       // the camera or on the line to the focus.
       // MAP.148: opacity and brightness follow the apparent magnitude from the camera.
-      "  float appMag = apparentMagnitude(starAbsMag, length(mvPosition.xyz));",
+      "  float dist = length(mvPosition.xyz);",
+      "  float appMag = apparentMagnitude(starAbsMag, dist);",
       "  vShown *= mix(1.0, magnitudeShare(appMag, magLimit), magOn);",
-      "  vBright *= mix(1.0, fluxGain(appMag, magLimit), magOn);",
       "  gl_Position = projectionMatrix * mvPosition;",
-      // MAP.155: a star arriving with the zoom starts as a 1 px dot and
-      // grows to its size as its zoom share rises (arrivingStarSize's twin).
+      // MAP.208: a point of light POINT_PX across until the camera is about
+      // a sector away, then grown to its size and glow (static/starpoint.js's
+      // pointSizePx and pointCoreShare); MAP.155: a star arriving with the
+      // zoom holds back as a point until its zoom share rises.
       "  float arrive = mix(1.0, zoomShown, zoomFadeOn);",
-      "  gl_PointSize = (" + STAR_DOT_PX.toFixed(1) + " + max(starSize - " + STAR_DOT_PX.toFixed(1) + ", 0.0) * arrive) * pixelRatio;",
+      "  float grow = pointGrow(dist) * arrive;",
+      "  float pointPx = " + POINT_PX.toFixed(2) + ";",
+      "  float sizePx = pointPx + max(starSize - pointPx, 0.0) * grow;",
+      "  float corePx = pointPx + max(starCore - pointPx, 0.0) * grow;",
+      "  gl_PointSize = sizePx * pixelRatio;",
+      "  vCore = corePx / sizePx;",
+      "  vGlow = starGlow * grow;",
+      "  vBright = mix(starPointBright, starBright, grow) * mix(1.0, fluxGain(appMag, magLimit), magOn);",
       // Outside the wedge shown (setWedgeClip): dropped.
       "  if (starClipped > 0.5) {",
       "    gl_PointSize = 0.0;",
@@ -1698,24 +1708,36 @@ function initGalaxyMap3d(canvasEl, data) {
     var absMags = new Float32Array(n);
     var uncharted = new Float32Array(n);
     var tileShares = new Float32Array(n);
+    var pointBrights = new Float32Array(n);
+    // MAP.208: a phenomenon is never drawn brighter than the brightest star here.
+    var brightestSol = 0;
+    stars.forEach(function (star) {
+      if (!star.phenomenon && star.luminosity_sol > brightestSol) {
+        brightestSol = star.luminosity_sol;
+      }
+    });
     stars.forEach(function (star, i) {
       uncharted[i] = star.generated || star.phenomenon || star.charted ? 0 : 1;
-      var look = star.phenomenon ? POINT_LOOKS[star.type] || DEFAULT_POINT_LOOK : null;
-      var t = look ? Math.min(1, look[1] + 0.15 * (star.size || 0)) : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
+      // A phenomenon is drawn as the star of its mass: `map_luminosity_sol` is the
+      // server's (planetgen.physics.stellar_evolution.phenomenon_map_luminosity_sol).
+      var luminosity = star.phenomenon ? phenomenonLuminositySol(star.map_luminosity_sol, brightestSol) : star.luminosity_sol;
+      var t = logShare(luminosity, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
-      var r = look ? Math.min(1, look[2] + 0.2 * (star.size || 0)) : logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
-      absMags[i] = look ? PHENOMENON_MAGNITUDE : absoluteMagnitude(star.luminosity_sol);
+      var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(luminosity, 0.35), STAR_LOG_RADIUS);
+      absMags[i] = absoluteMagnitude(luminosity);
       positions.set([star.x - frame[0], star.y - frame[1], star.z - frame[2]], 3 * i);
-      colors.set(look ? new THREE.Color(look[0]).toArray() : starColor(star.temperature_k), 3 * i);
+      colors.set(star.phenomenon ? new THREE.Color(POINT_COLORS[star.type] || DEFAULT_POINT_COLOR).toArray()
+        : starColor(star.temperature_k), 3 * i);
       cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
       // MAP.87: the faint end drawn brighter (static/starlight.js).
       var halo = boostLight({
         sizePx: THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t),
         glow: THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t),
-      }, look ? 1 : starLightBoost(star.luminosity_sol));
+      }, starLightBoost(luminosity));
       sizes[i] = Math.max(halo.sizePx, 2 * cores[i] + 2);
       glows[i] = halo.glow;
-      brights[i] = look ? STAR_CORE_ALPHA[1] : THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
+      brights[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
+      pointBrights[i] = pointBrightness(t);
     });
     var geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -1724,6 +1746,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starCore", new THREE.BufferAttribute(cores, 1));
     geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 1));
     geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
+    geometry.setAttribute("starPointBright", new THREE.BufferAttribute(pointBrights, 1));
     geometry.setAttribute("starAbsMag", new THREE.BufferAttribute(absMags, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));

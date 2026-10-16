@@ -23,16 +23,14 @@
 //   show whole at the focus distance D. So the law only dims what stands
 //   much farther than the thing looked at, and never thins the same stars
 //   twice with MAP.153's rank birth radius.
-// A black hole, neutron star or quasar has no luminosity to rank; its
-// magnitude is PHENOMENON_MAGNITUDE, bright enough to stay lit.
+// A black hole, neutron star or quasar is ranked like a star of its mass
+// (MAP.208: the server sends that luminosity; static/starpoint.js).
 
 export const SUN_ABSOLUTE_MAGNITUDE = 4.83;
 // The width of the opacity ramp (1.5 magnitudes: the factor 4 the tile floors step by).
 export const RAMP = 1.5;
 export const TARGET_STARS = 20000;
 export const TARGET_STARS_PHONE = 8000;
-// Landmarks (black holes, neutron stars, quasars) are never dimmed away.
-export const PHENOMENON_MAGNITUDE = -40;
 // A star with no luminosity on record is too faint to show.
 export const UNKNOWN_MAGNITUDE = 60;
 // The brightness of a star at the faint end of the ramp, as a share of its own.

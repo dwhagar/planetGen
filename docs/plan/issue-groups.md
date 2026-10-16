@@ -14,7 +14,7 @@ Rules:
 |---|---|---|---|
 | [#1750](https://github.com/dwhagar/planetGen/issues/1750) | open | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | open | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
-| [#1748](https://github.com/dwhagar/planetGen/issues/1748) | open | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
+| [#1748](https://github.com/dwhagar/planetGen/issues/1748) | closed | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
 | [#1758](https://github.com/dwhagar/planetGen/issues/1758) | open | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170) | TEST.170 |
 | [#1726](https://github.com/dwhagar/planetGen/issues/1726) | open | Interface update: every control works on the whole sphere | UX.115, TEST.168 |
 | [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144 |
@@ -23,7 +23,7 @@ Rules:
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18 |
 | [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82 |
 | [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, ADM.55, ADM.56, TEST.169, UX.3 |
-| [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.30, OPS.35, OPS.41, OPS.53, OPS.54 |
+| [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.30, OPS.35 |
 | [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31 |
 | [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.20, PERF.41, PERF.47, PERF.48, PERF.75 |
 | [#1684](https://github.com/dwhagar/planetGen/issues/1684) | open | API keys, call log and compatibility data | API.4, API.6, API.15 |
@@ -34,12 +34,12 @@ Rules:
 | [#1679](https://github.com/dwhagar/planetGen/issues/1679) | open | Saved courses and waypoints (headline of 8.5) | NAV.4, NAV.5, NAV.17, NAV.18, NAV.19, NAV.21, NAV.22, NAV.23, NAV.36, NAV.39, NAV.49, NAV.58, NAV.59 |
 | [#1678](https://github.com/dwhagar/planetGen/issues/1678) | open | Same seed, same data: determinism, fingerprint and generator version | GEN.55, GEN.57, GEN.135, GEN.136, OPS.15, OPS.28, OPS.37, DB.16, TEST.77 |
 | [#1677](https://github.com/dwhagar/planetGen/issues/1677) | open | Later catalogue additions and compact-object details (low priority) | GEN.151, GEN.153, GEN.278, GEN.280, GEN.281, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.154, GEN.189, GEN.244, GEN.245, GEN.246, GEN.254, GEN.255, GEN.256, GEN.257 |
-| [#1676](https://github.com/dwhagar/planetGen/issues/1676) | open | One description layer for habitability, units and every object page | GEN.218, GEN.288, GEN.219, GEN.220, GEN.221, UX.32, UX.105, UX.107, UX.108, UX.109, DOC.45, TEST.155 |
+| [#1676](https://github.com/dwhagar/planetGen/issues/1676) | open | One description layer for habitability, units and every object page | GEN.218, GEN.219, GEN.220, GEN.221, UX.32, UX.105, UX.107, UX.108, UX.109, DOC.45, TEST.155 |
 | [#1675](https://github.com/dwhagar/planetGen/issues/1675) | open | Planet classes refactored around the habitability index | GEN.27, GEN.28, GEN.29, GEN.33, GEN.90, GEN.91, GEN.92, GEN.145, GEN.146 |
 | [#1674](https://github.com/dwhagar/planetGen/issues/1674) | open | Fill planning: order, directives, density and sector weeding | GEN.9, GEN.40, GEN.42, GEN.101, GEN.102, GEN.103, GEN.134, GEN.144, GEN.179, GEN.180, GEN.181, PERF.35, PERF.36 |
 | [#1673](https://github.com/dwhagar/planetGen/issues/1673) | open | Neighbour galaxies, satellites, wanderers and intergalactic frame | GEN.157, GEN.238, GEN.239, GEN.248, MAP.145, MAP.207, NAV.57 |
 | [#1672](https://github.com/dwhagar/planetGen/issues/1672) | open | Nebulae on the Galaxy Map and in generation | MAP.171, MAP.172, MAP.173, MAP.174, MAP.176, MAP.177, MAP.178, MAP.179, MAP.180, MAP.181, MAP.183, GEN.93, GEN.95, GEN.99, GEN.202, TEST.135, GEN.295 |
-| [#1671](https://github.com/dwhagar/planetGen/issues/1671) | open | Fly-through Galaxy Map and scale hand-offs | MAP.59, MAP.75, MAP.119, MAP.120, MAP.121, MAP.122, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, MAP.146, MAP.147, MAP.152, MAP.156, MAP.160, MAP.195, MAP.208, MAP.209, MAP.210 |
+| [#1671](https://github.com/dwhagar/planetGen/issues/1671) | open | Fly-through Galaxy Map and scale hand-offs | MAP.59, MAP.75, MAP.119, MAP.120, MAP.121, MAP.122, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, MAP.146, MAP.147, MAP.152, MAP.156, MAP.160, MAP.195, MAP.209, MAP.210 |
 | [#1670](https://github.com/dwhagar/planetGen/issues/1670) | open | Gravity field and the gravity map | GEN.115, GEN.198, GEN.199, MAP.167, MAP.168, MAP.169, MAP.170, API.24, UX.94, PERF.72, TEST.131 |
 | [#1669](https://github.com/dwhagar/planetGen/issues/1669) | open | Orbital update: solver, thresholds, collisions and the nightly ceiling | GEN.105, GEN.109, GEN.110, GEN.111, GEN.112, GEN.139, GEN.140, GEN.141, GEN.142, GEN.143, GEN.197, ADM.36, TEST.129, TEST.130, GEN.289, GEN.290, GEN.291, GEN.292, GEN.293, GEN.294 |
 | [#1668](https://github.com/dwhagar/planetGen/issues/1668) | open | Nearby-object queries by cell key (stage C) | GEN.276, NAV.45, NAV.60, NAV.61, TEST.165, TEST.166, DOC.51 |

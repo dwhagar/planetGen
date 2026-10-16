@@ -92,14 +92,6 @@ test("a cloud sprite fades in between 1 and 4 px of radius", () => {
   }
 });
 
-test("an arriving star is a 1 px dot that grows to its size", () => {
-  assert.equal(S.arrivingStarSize(9, 0), 1);
-  assert.equal(S.arrivingStarSize(9, 1), 9);
-  assert.equal(S.arrivingStarSize(9, 0.5), 5);
-  assert.equal(S.arrivingStarSize(0.5, 0), 1);
-  assert.equal(S.arrivingStarSize(9, 7), 9);
-});
-
 // --- A synthetic galaxy corner, listed the server's way -------------------
 
 function mulberry32(seed) {

@@ -128,7 +128,7 @@ The six PHI-6 domains are a table, not a paragraph:
 | Radiation | Yellow (0.45) | The radiation dose is a mean of 742 mSv a year, inside the Yellow band (up to 1 Sv a year). |
 | Suitability | Red (0.20) | There is no atmosphere (0.0 kPa), no food or water. Shelter is potentially available. |
 
-with the overall line above it ("PHI-6 habitability is 0.00, and a visitor needs a sealed suit.") and the equipment label.
+with the overall line above it ("PHI-6 habitability is 0.00, and a visitor needs an environment suit.") and the equipment label.
 These rows are Boss's text (GEN.216, 2026-10-15 03:46Z). The colour is a chip, using the symbols of UX.101; the colour is
 never the only signal (the word is in the cell). Markdown and wikitext render the same rows as lines of bold text, as
 GEN.216's examples do, because a table is not needed there. One module builds the rows from `physics/habitability` and

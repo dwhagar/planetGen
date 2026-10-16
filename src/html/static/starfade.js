@@ -99,15 +99,6 @@ export function cloudSizeShare(radiusPx) {
   return smoothstep((radiusPx - CLOUD_RAMP_PX[0]) / (CLOUD_RAMP_PX[1] - CLOUD_RAMP_PX[0]));
 }
 
-// MAP.155: a star that is arriving (its zoom and magnitude shares `arrive`,
-// 0..1) is a dot of STAR_DOT_PX that grows to `sizePx` as it arrives.
-export const STAR_DOT_PX = 1;
-
-export function arrivingStarSize(sizePx, arrive) {
-  const t = Math.min(1, Math.max(0, arrive));
-  return STAR_DOT_PX + (Math.max(sizePx, STAR_DOT_PX) - STAR_DOT_PX) * t;
-}
-
 // The sum of `starShare` over `fades` for a camera at `camera`.
 export function opacitySum(fades, camera, rootEdge, finestLevel) {
   let total = 0;

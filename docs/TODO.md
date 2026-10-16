@@ -118,7 +118,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, OPS.41, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.235, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.262, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.151, GEN.93, GEN.112, GEN.154, GEN.153, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, GEN.159, GEN.158, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
@@ -570,26 +570,6 @@ with `clamp()`.
   slider runs from 50 (default 500; Boss, 2026-10-15 10:06 PM EDT, was
   100). Owner Core 3 (Boss, 1:09 AM EDT).
   Prerequisites: GEN.281, GEN.283. Related: GEN.234, ADM.43, UX.49.
-
-- [ ] **UX.117 The Apply filters button on the phenomena list disappears while the list loads (bug)**
-  Boss (2026-10-15 9:54 PM EDT, on his own server): "In the phenomena
-  list the 'Apply Filter' button disappears for some reason during the
-  load process." Lead: `.datatable-enhanced .datatable-apply` is set to
-  `display: none` in src/html/static/style.css and datatable.js adds the
-  `datatable-enhanced` class when it takes over the table (line 490), so
-  the button is hidden as soon as the script starts and a slow load, a
-  failed fetch or a table that never finishes leaves the filter form
-  with no way to submit. Reproduce first on a large phenomena list
-  (throttled network or a slow query), find the root cause, and fix it
-  so the button stays until the live filtering is actually working (show
-  it again if the load fails or stalls) and appears for every datatable
-  page, not only phenomena. Add a browser test that holds the first data
-  request open and asserts the filter form can still be applied. Done:
-  during and after the load, and after a failed load, the phenomena list
-  always offers a working way to apply its filters. Owner: Core 3, next
-  after its running item, ahead of its #1677 chain (Boss, 2026-10-15
-  9:54 PM EDT, via the coordinator).
-  Prerequisites: none. Related: UX.110, PERF.75.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1394,50 +1374,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.237, GEN.238.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **MAP.208 Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass**
-  Boss (2026-10-15 9:33 PM EDT): the stars are too big; they should be
-  more like points of light until the view gets down near the sector
-  level. Today each star is a sprite whose size grows with brightness
-  (STAR_MIN_PX to STAR_MAX_PX in src/html/static/galaxymap3d.js, a 1 px
-  dot growing to full size as its zoom share rises, MAP.155) and the
-  sector scene sizes each light by its own sizePx in
-  src/html/static/sectorscene.js, so a star reads as a disc well before
-  the view is close to it. Change: a star is a 1 to 2 px point whose
-  size does not grow as the camera approaches, brightness alone carrying
-  the difference between stars (apparent magnitude, MAP.148). Only near
-  sector level does a star grow into a larger disc with its glow, and
-  the size ramps up smoothly over the last zoom steps, never snapping.
-  Phenomena (Boss, 2026-10-15 9:33 and 9:34 PM EDT): every phenomenon
-  (black holes, neutron stars, quasars, nebula and other markers) draws
-  as a point of light the same way, and its map brightness follows its
-  mass compared with a star of similar mass, not its own physical
-  luminosity: a 10 solar mass black hole draws about as bright as a 10
-  solar mass star. Black holes then render a little dimmer than that
-  (a named factor, default 0.8 of the star's brightness) and keep their
-  purple, neutron stars their dark blue (POINT_LOOKS in
-  galaxymap3d.js). Today the phenomena use fixed looks (size shares
-  0.8 to 0.95 and PHENOMENON_MAGNITUDE of -40 in starmagnitude.js), so
-  they sit far brighter and larger than any star; that goes. A
-  phenomenon with no mass (nebulae and similar markers) takes the
-  default of a one solar mass star, and no phenomenon draws brighter
-  than the brightest star on the map. The brightness comes from one
-  mass-to-star-brightness function shared by the three maps.
-  The near-sector threshold is one named constant shared by the Galaxy
-  Map and the sector scene, so the hand-off between the two scenes shows
-  no size jump (MAP.203 matched them once already). The system map draws
-  the primary and companions at their drawn size and keeps its own
-  scale, but its background stars (src/html/static/systemview3d.js)
-  become points of light as well. Tests: a shader-string or constants
-  test for the point size at far, mid and near zoom, the hand-off
-  check between the two scenes, and one for the mass rule (a black hole
-  dimmer than a star of the same mass, a massless marker equal to a
-  one solar mass star). Done: flying in from the whole-galaxy
-  view, stars stay pinpoints until about one sector away, then grow;
-  flying back out they shrink to points again. Owner: Core 2, next after
-  GEN.269 (Boss, 2026-10-15 9:33 PM EDT: whichever Core lane frees
-  first). No migration.
-  Prerequisites: none. Related: MAP.148, MAP.155, MAP.203, MAP.207.
-
 - [ ] **MAP.209 Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug)**
   Boss (2026-10-15 9:42 PM EDT, on his own server): "there's some kind
   of bug transitioning to sector view from galactic view, for a moment
@@ -1458,6 +1394,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   details. Owner: Core 2, next after its running item, with MAP.208 (the
   same map and scene code, so one lane avoids conflicts; Boss,
   2026-10-15 9:42 PM EDT, via the coordinator).
+  Status (Core 2, 2026-10-16, 2:21 AM EDT): not reproduced. On a
+  generated-database site in headless Chromium with reduced motion off
+  (so the camera flight plays; every older map browser test ran with
+  reduced motion), opening a charted sector by address, by clicking its
+  cell and by a wheel run from the whole galaxy each gave one document
+  (no reload), one URL, the panel filled with the sector's details, a
+  star click selecting it, and no page or console errors; requests
+  peaked at 3 a second, so the page limit is not the cause. Tests only
+  merged (#1776, src/tests/test_web_browser_sector_open.py); the item
+  stays open. Reading the code ruled out a polling reload (the stamp is
+  used only on tile fetch) and openSectorPage runs only on a pinned
+  sector page. Needed from Boss: browser and device, whether he used the
+  wheel, a click or a link, the sector name, any red text in the browser
+  console (F12) when it happens, and whether it still happens on the
+  rebuilt database (his ran code from before migration 0093 and
+  MAP.208).
   Prerequisites: none. Related: MAP.210, MAP.66, MAP.208, TEST.163.
 
 - [ ] **MAP.210 Nothing on the map can be selected, even in sector view (bug)**
@@ -1475,6 +1427,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a click on a star selects it, the details panel shows its facts, and
   the browser test catches a regression. Owner: Core 2, with MAP.209
   (Boss, 2026-10-15 9:42 PM EDT, via the coordinator).
+  Status (Core 2, 2026-10-16, 2:21 AM EDT): not reproduced, see
+  MAP.209's status note (same sector-open tests, #1776, found one
+  document, a filled panel and working star selection); the item stays
+  open and waits on Boss's answers listed there.
   Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163.
 
 - [ ] **MAP.211 Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug)**
@@ -4729,35 +4685,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   #1677.
   Prerequisites: none. Related: GEN.286, GEN.283.
 
-- [ ] **GEN.288 Rename the PHI-6 equipment tier "Sealed suit" to "Environment suit" everywhere**
-  Boss (2026-10-15 10:12 PM EDT, phase 1): change the name in PHI-6 from
-  "Sealed Suit" to "Environment Suit". The tier is stored as the number
-  `equipment_tier` 3 (no stored name, so no migration) and named in
-  code: EQUIPMENT_NAMES and the lower-case keys in
-  physics/habitability_world.py ("sealed suit", shown as "Sealed suit"),
-  the returned key in physics/habitability.py, the wording tables in
-  physics/protection.py (some lines already say "an environment suit",
-  the others "a sealed suit", "a sealed suit with its own air", "an
-  actively cooled sealed suit"), physics/habitability_explain.py,
-  physics/protection_limits.py descriptions,
-  web/lib/habitability_ref.py, the equipment comments in db/schema.sql
-  and tuning.py, and the docs (design/habitability-index.md,
-  design/system-description.md, html-interface.md, database-schema.md,
-  the research note), plus the tests that assert the old text
-  (test_habitability, test_protection, test_habitability_world). Done:
-  no "sealed suit" or "Sealed suit" left for the equipment tier anywhere
-  in code, data text, docs or the UI (a grep is the check, ice-sealed
-  ocean and similar unrelated phrases stay), the tier reads "Environment
-  suit" on the sector, system and planet pages and the levels page, one
-  wording for the suit text (an "environment suit" with active heating,
-  active cooling or its own air as the existing qualifiers), and the
-  tests assert the new name. No backward-compatibility shim for the old
-  name. Owner: Core 3, third in its queue after UX.117 and MAP.211,
-  ahead of the #1677 chain; GEN.218 and GEN.221 (unassigned wording
-  items) can take the same module afterwards (Boss, 2026-10-15 10:12 PM
-  EDT, via the coordinator).
-  Prerequisites: none. Related: GEN.218, GEN.219, GEN.221, GEN.89.
-
 - [ ] **GEN.289 Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
   GEN.109): today a planet or moon is a distance, a period and a phase
@@ -7162,77 +7089,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
-
-- [ ] **OPS.41 Put the site in an "updating" state while update.sh runs long database migrations**
-  Reported by Foundations lane 1 (PR #1161, 2026-10-10): the v77 and v78
-  migrations hold the site for a long time while Apache keeps serving,
-  so pages hang or time out during an update. Done: update.sh marks the
-  site as updating before it migrates and clears the mark afterwards,
-  Apache serves a short 'updating, back in a moment' page that reloads
-  itself (not the 504 page), a migration that fails clears the mark with
-  a clear message, and the Admin pages show the state.   Boss (2026-10-16, 12:01 AM EDT, after his migration stalled on a table
-  lock held by running jobs): "let's switch the site into maintenance
-  mode while it's updating". The flag and the Apache page already exist
-  (OPS.51's maintenance flag in the state folder, UX.112's page):
-  update.sh and `planetgen.cli.migrate` turn maintenance on with cause
-  'update' before anything changes and turn it off only when the update
-  has finished, and a run that fails leaves it on with a loud message
-  naming the step and how to turn it off (`python -m
-  planetgen.cli.maintenance off`), never off by itself while the
-  database may be half migrated. The shared helper lives where `migrate`
-  and update.sh can both call it, so a manual `migrate` is guarded too.
-  update.sh never edits his Redis config or Apache vhost, and no
-  compatibility shim is kept for the old behaviour. Owner: Core 3
-  (2026-10-16), with OPS.53 and OPS.54 in the same sequence.
-  Prerequisites: none. Related: OPS.29, OPS.30, OPS.35, OPS.53, OPS.54, PERF.64.
-
-- [ ] **OPS.53 Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends**
-  Boss (2026-10-16, 12:01 AM EDT): "if tasks are running it won't
-  proceed unless you agree to cancel them, and then the only thing
-  running should be the update." Before update.sh (and a manual
-  `planetgen.cli.migrate`) changes anything it lists every running or
-  queued piece of work: RQ jobs (generation runs, warm_map and the cache
-  warm-ups of PERF.104, backfills), the orbital update, and a daily
-  maintenance run (OPS.16). With none, it goes on. With any, it prints
-  each one (kind, id, started, what it holds) and stops unless the
-  operator agrees to cancel them: asked on the terminal, and with no
-  terminal (the maintenance timer, cron) it refuses with a non-zero exit
-  and a message naming the jobs, unless a named flag says to cancel.
-  Agreeing cancels the queued jobs, stops the running ones through the
-  run's own cancel path so each leaves a clean state (a run marked
-  cancelled by the update, not failed), and waits until none is left
-  before the first migration step. From the moment the guard passes
-  until the update ends nothing new can start: the queue accepts no job,
-  the workers take none, the timers' jobs exit at once with the
-  temporary-failure code (OPS.54) and the admin pages that start work
-  say the site is being updated. The only thing running is the update.
-  Done: tests with a fake running job (refuse, cancel, no terminal,
-  queued job, a job that does not stop in time reports and aborts before
-  any change), and a test that a job offered during the update is not
-  started. Default taken: no terminal means refuse unless
-  `--cancel-running`. update.sh never edits his Redis config or vhost;
-  no compatibility shim.
-  Prerequisites: none. Related: OPS.16, OPS.41, OPS.51, OPS.54,
-  PERF.104, PERF.86.
-
-- [ ] **OPS.54 The orbital update refuses to run while an update is running, with tests**
-  Boss (2026-10-16, 12:01 AM EDT): "orbital update should also have a
-  test that if the update is running it won't run either." The orbital
-  update (`planetgen.cli.orbits`, the nightly timer and any RQ job that
-  calls `orbit_clock`) checks whether an update is running (the update's
-  maintenance state with cause 'update', or its lock, OPS.41) before it
-  moves anything; if one is, it moves nothing, leaves every epoch and
-  next_update_due as they were, prints why and exits with the
-  temporary-failure code 75 the maintenance script already uses, so the
-  next timer firing simply tries again. An update that starts while an
-  orbital update is running is OPS.53's case (listed and cancelled or
-  refused). Done: a test that sets the update state and runs the orbital
-  update (exit 75, no row changed, no clock moved), a test that clears
-  it and the same run moves the objects, and a test for the RQ entry
-  point; the orbital step is atomic against a mid-run cancel (a
-  cancelled run leaves a coherent clock, as GEN.232's cap does). No
-  compatibility shim.
-  Prerequisite: OPS.41. Related: OPS.16, OPS.53, GEN.105, GEN.223.
 
 ## DOC: Documentation
 

@@ -2,6 +2,108 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1485] - 2026-10-16
+
+**Headline:** The to-do list retires the five items Core 3 finished: the filter button fix, the Environment suit rename and the update guard.
+
+### Changed
+
+- Retired UX.117 (#1778), GEN.288 (#1779), OPS.41 (#1780), OPS.53 (#1781) and OPS.54 (#1782) and removed them from the goal tables; the UX.117 issue (#1748) closes.
+
+TODO items resolved: UX.117, GEN.288, OPS.41, OPS.53, OPS.54 / Added: none
+
+## [8.0.1484] - 2026-10-16
+
+**Headline:** The orbital update does nothing while an update is running, and a cancel never leaves positions half moved.
+
+### Changed
+- **The orbital update refuses to run during an update.** `python -m planetgen.cli.orbits` (the nightly timer, a Generate job's step, a queued run) checks whether an update is running, or has left the site closed after failing, before it touches the database. If so it moves nothing, leaves every epoch, due time and the clock as they were, says why and exits with status 75 so the next timer firing simply tries again.
+- **A cancel finishes the update of the positions first.** Once the first stage has begun, a stop request (the update's cancel, Ctrl+C) lets the run finish moving, refiling, refreshing containment, nearest systems and sector paths and recording the clock, then exits, so stored positions are never left half moved. A cancel before anything moved stops at once, and a second Ctrl+C stops it regardless.
+
+TODO items resolved: OPS.54 / Added: none
+
+## [8.0.1483] - 2026-10-16
+
+**Headline:** Before an update changes anything it lists the running and queued work and stops unless you agree to cancel it, and nothing new can start while it runs.
+
+### Changed
+- **`update.sh` lists the work that runs first.** A Generate job, a `planetgen` run from the command line, jobs on the shared queues, an orbital update and a Galaxy Map warm-up are printed with their kind, id, start time and what they hold. On a terminal the update asks before cancelling them; with no terminal (a timer, cron) it refuses with a non-zero exit and changes nothing unless you pass `--cancel-running`. A migration run by hand (`python -m planetgen.cli.migrate`) does the same when it has something to migrate.
+- **Cancelling goes through each job's own cancel path and the update waits for it.** Queued jobs are removed, running ones are stopped so they end as cancelled, not failed, and the update starts only when none is left. A job that does not stop within 10 minutes is reported and the update stops before it has changed anything.
+- **Nothing new can start while the update runs.** The Generate page and the API refuse to queue work and say that the site is being updated, a command-line run that would open a job tree is refused, and the queue's workers exit with status 75. The Galaxy Map warm-up and the orbital update register themselves so a later update can see them.
+
+TODO items resolved: OPS.53 / Added: none
+
+## [8.0.1482] - 2026-10-16
+
+**Headline:** The site is closed for visitors (maintenance mode) while an update runs, and opened again when it has finished.
+
+### Changed
+- **`update.sh` closes the site before it changes anything.** It turns maintenance mode on (cause "update") and takes a lock, so visitors see the "being updated" page instead of pages that hang while a migration holds the database. A good update opens the site again at its end. If you had closed the site yourself, it stays closed afterwards, and a sector-grid conversion keeps it closed until the new Galaxy Map is built, as before.
+- **A failed update leaves the site closed and says why.** The message names the step that failed and the command that opens the site again (`python -m planetgen.cli.maintenance off`), because the database may be half migrated. The lock is released so `./update.sh` can simply be run again.
+- **A migration run by hand is guarded the same way.** `python -m planetgen.cli.migrate` closes the site while it has something to migrate and opens it when done; with nothing to migrate it changes nothing.
+
+TODO items resolved: OPS.41 / Added: none
+
+## [8.0.1481] - 2026-10-16
+
+**Headline:** The PHI-6 equipment tier once called "Sealed suit" is now called "Environment suit" everywhere.
+
+### Changed
+- **The third equipment tier is named "Environment suit".** The name is used by the habitability description ("a visitor needs an environment suit"), the equipment label and chip on the planet pages, the habitability reference page, the wording tables, the limit descriptions, and the schema, tuning and design-note comments. The stored value (tier 3) is unchanged, so nothing in the database moves; the old name is gone with no alias.
+
+TODO items resolved: GEN.288 / Added: none
+
+## [8.0.1480] - 2026-10-16
+
+**Headline:** The Apply filters button no longer disappears from filtered tables, and it works whether or not the table has loaded.
+
+### Changed
+- **Apply filters stays on every filtered table.** Once the table had fetched its first rows the button was hidden, so a table whose load was slow or had failed gave no way to apply the filters you had ticked. The button now stays visible on the phenomena, sector contents and API keys tables.
+- **It submits to the server until the table is live.** While the first rows are loading, or if that load fails, the button sends the filters to the server and shows the filtered page as it always did. Once the table is live it applies the filters in place, and if the last fetch failed it asks for the rows again.
+
+TODO items resolved: UX.117 / Added: none
+
+## [8.0.1479] - 2026-10-16
+
+**Headline:** The to-do list records that the sector-open bugs MAP.209 and MAP.210 did not reproduce and what is needed from Boss.
+
+### Changed
+
+- Added Core 2's status to MAP.209 and MAP.210: opening a sector by address, click and wheel with the camera flight playing gave one document, a filled panel and working star selection in headless Chromium (tests merged in #1776). Both stay open and wait on Boss's browser, device, console output and whether it still happens on the rebuilt database.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1478] - 2026-10-16
+
+**Headline:** Browser tests now guard the move from the Galaxy Map into a sector and picking its stars.
+
+### Changed
+- New browser tests (`src/tests/test_web_browser_sector_open.py`) open a charted sector from the Galaxy Map on the real generated database with the camera flight playing (the other map browser tests run with reduced motion, where a flight takes no time). They check the move is one continuous view (the same page document, one address `?sector=...&open=1`, the panel beside the map never empty and ending on the sector's details), and that a click on a star's projected position in the opened sector selects it and fills the panel with a link to its system.
+- No code changed: Boss's report of 2026-10-15 9:42 PM EDT (a flash into a different view, an empty panel, nothing selectable) did not reproduce on this data, with or without the flight, by address, by click or by wheel; the open question is recorded on MAP.209 and MAP.210.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1477] - 2026-10-16
+
+**Headline:** The to-do list retires MAP.208, built by the points-of-light map change.
+
+### Changed
+
+- Retired MAP.208 (stars and phenomena draw as points of light until near sector level, phenomena as bright as a star of similar mass), done by #1774, and removed it from the goal table.
+
+TODO items resolved: MAP.208 / Added: none
+
+## [8.0.1476] - 2026-10-16
+
+**Headline:** Stars and black holes, neutron stars and quasars are points of light on the maps until you fly near a sector.
+
+### Changed
+- On the Galaxy Map and in an opened sector, a star is now a point of light about 1.5 pixels wide that does not grow as the camera approaches; its brightness tells stars apart. About one sector away (16 parsecs, one named constant shared by both scenes) it grows smoothly into its core and glow over the last two zoom steps, and shrinks back to a point flying out, so the hand-off from the Galaxy Map into a sector shows no jump in size.
+- A black hole, neutron star or quasar is drawn the same way and as bright as a star of its mass: a 10 solar mass black hole looks about as bright as a 10 solar mass star, a black hole a little dimmer (0.8 of it) and keeping its purple, a neutron star keeping its dark blue. One with no mass on record is drawn as a one solar mass star, and none is drawn brighter than the brightest star on the map. The Galaxy Map's tiles and the sector scene both take their brightness from `phenomenon_map_luminosity_sol`, and the tiles now carry each point's `mass_solar` and `map_luminosity_sol`.
+- The system map is unchanged: it has no background stars of its own and draws its bodies at their drawn size.
+
+TODO items resolved: MAP.208 / Added: none
+
 ## [8.0.1475] - 2026-10-16
 
 **Headline:** The execution plan moves the sector profile and member-tree items from Core 2 to Core 1.

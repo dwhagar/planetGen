@@ -40,6 +40,7 @@ sector_id=...)`; every scene entry carries the result as `href`.
 import colorsys
 import math
 
+from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.web.lib.fmt import format_distance_ly, format_luminosity_sol, format_number
 
 try:
@@ -819,7 +820,7 @@ def _star_light(luminosity_w, radius_km, temperature_k):
 _BLACK_HOLE_LIGHT = {"color": "#a43cff", "corePx": 3.8, "sizePx": 23.0, "glow": 0.54, "bright": 1.0, "whiten": 0.0}
 """dict: A quiescent black hole in the Sector Map (MAP.185) and a scattered one
 before its sector is made (MAP.164): a lit purple point, the colour the Galaxy
-Map's black holes are (`galaxymap3d.js` `POINT_LOOKS`). Its old dark sphere
+Map's black holes are (`galaxymap3d.js` `POINT_COLORS`). Its old dark sphere
 (`#4b2f66` rim on black) disappeared against the dark scene."""
 
 _PHENOMENON_LIGHTS = {
@@ -836,6 +837,23 @@ _PHENOMENON_LIGHTS = {
 # them to be dim barely noticeable". The Menu's per-kind Mark makes it bigger
 # (MAP.184 took the rogue-only button, its ring and its bigger light away).
 _ROGUE_LIGHT = {"color": "#a993f0", "corePx": 1.5, "sizePx": 3.5, "glow": 0.0, "bright": 0.2, "whiten": 0.0}
+
+
+def _mass_light(base, map_type, mass_solar, brightest_sol=None):
+    """
+    `base` (a phenomenon's fixed recipe: its color and whitening) with the size, glow and
+    brightness of the point of light of a star of the object's mass (MAP.208:
+    `phenomenon_map_luminosity_sol`, a black hole a little dimmer), so a 10 solar mass
+    black hole is about as bright as a 10 solar mass star. It never out-shines
+    the scene's brightest star, `brightest_sol` (when it has one).
+    """
+    luminosity_sol = phenomenon_map_luminosity_sol(map_type, mass_solar)
+    if brightest_sol:
+        luminosity_sol = min(luminosity_sol, brightest_sol)
+    star = _star_light(luminosity_sol * SOLAR_LUMINOSITY, None, None)
+    light = dict(base)
+    light.update({key: star[key] for key in ("corePx", "sizePx", "glow", "bright")})
+    return light
 
 
 def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
@@ -933,7 +951,7 @@ def nebula_look(descriptor):
     return color, core_alpha / 255, edge_alpha / 255
 
 
-def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
+def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol=None):
     """
     Builds one phenomenon's plain-dict scene entry. A nebula gets its own
     per-instance `coreColor`/`edgeColor` (two gradient stops, `#rrggbbaa`)
@@ -953,6 +971,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
                            entry `neighbor`).
         x_px, y_px, z_px (float): Already-normalized scene-space position.
         radius_px (float): This cloud's drawn radius (`_phenomenon_cloud_radius_px`).
+        brightest_sol (float, optional): The scene's brightest star, solar luminosities: a point
+            phenomenon is never drawn brighter (MAP.208).
 
     Returns:
         dict: The cloud's scene entry.
@@ -1022,8 +1042,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
 
     light = _PHENOMENON_LIGHTS.get(data["kind"])
     if light is not None:
-        # Drawn as a point of light rather than a sphere (MAP.15).
-        data["light"] = dict(light)
+        # Drawn as a point of light rather than a sphere (MAP.15), as bright as a star of its mass (MAP.208).
+        data["light"] = _mass_light(light, phenomenon_type, phenomenon.get("mass_solar"), brightest_sol)
     elif data["kind"] == "roguePlanet":
         data["light"] = dict(_ROGUE_LIGHT)
     return data
@@ -1105,6 +1125,7 @@ def map_scene_data(
             stars_data.append(companion)
 
     clouds_data = []
+    brightest_sol = max((star["luminositySol"] for star in stars_data), default=None)
     for phenomenon in (phenomena or []) if ly_to_milliparsecs is not None else ():
         # Already galaxy-frame (see this function's own `phenomena`
         # docstring) -- no `_rotate_to_galaxy_frame` step, unlike a
@@ -1122,7 +1143,7 @@ def map_scene_data(
         z_px = nz * _SCENE_HALF_PX
         radius_px = _phenomenon_cloud_radius_px(phenomenon["radius_ly"], half_edge)
         if radius_px:
-            clouds_data.append(_cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px))
+            clouds_data.append(_cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol))
             # The cloud's own edge, not just its center -- a large nebula
             # can dwarf the scene (see `_MAX_CLOUD_RADIUS_PX`), and its
             # center alone would understate how far out it actually reaches.
@@ -1245,6 +1266,9 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         x_px, y_px, z_px = _uncharted_position_px((star["x"], star["y"], star["z"]), center_pc, half_edge_pc)
         stars.append(_uncharted_star_entry(
             star, x_px, y_px, z_px, f'{star["star_type"]} star ({UNCHARTED_LABEL.lower()})'))
+    brightest_sol = max([star["luminositySol"] for star in stars]
+                        + [_HYPERVELOCITY_STAR["luminosity_sol"]] * any(
+                            row["type"] == "hypervelocity_star" for row in contents["scattered"]), default=None)
     for row in contents["scattered"]:
         x_px, y_px, z_px = _uncharted_position_px((row["x"], row["y"], row["z"]), center_pc, half_edge_pc)
         if row["type"] == "hypervelocity_star":
@@ -1259,14 +1283,15 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
             "descriptor": "planetary" if row["type"] == "nebula" else (row["subtype"] or ""),
             "radius_ly": radius_ly, "distance_ly": milliparsecs_to_ly(distance_pc * 1000.0),
         }
+        phenomenon["mass_solar"] = row.get("mass_solar")
         cloud = _cloud_data(lambda *args, **kwargs: None, phenomenon, x_px, y_px, z_px,
-                            _phenomenon_cloud_radius_px(radius_ly, half_edge_pc * 1000.0))
+                            _phenomenon_cloud_radius_px(radius_ly, half_edge_pc * 1000.0), brightest_sol)
         cloud.pop("href", None)
         cloud.pop("nebulaId", None)        # a scatter row has no mesh to fetch
         cloud["uncharted"] = True
         light = _UNCHARTED_LIGHTS.get(row["type"])
         if light is not None:
-            cloud["light"] = dict(light)
+            cloud["light"] = _mass_light(light, row["type"], row.get("mass_solar"), brightest_sol)
         clouds.append(cloud)
     return {
         "sceneHalfPx": _SCENE_HALF_PX, "defaultZoom": 1.0, "lyPerPxAtZoom1": None, "outline": None, "compass": None,

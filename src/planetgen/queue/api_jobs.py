@@ -26,6 +26,7 @@ import time
 
 import rq
 
+from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, workers
 from planetgen.util import draw
 
@@ -131,8 +132,12 @@ def submit(function, *args):
         str: The job's id, for `status`.
 
     Raises:
-        NoQueue: No Redis server answers at `redis.url`.
+        NoQueue: No Redis server answers at `redis.url`, or an update is running (OPS.53).
     """
+    try:
+        updateguard.refuse_while_updating("This job")      # OPS.53: the queue takes nothing during an update
+    except updateguard.UpdateRunning as exc:
+        raise NoQueue(str(exc)) from exc
     url = redisqueue.redis_url()
     connection = _connection(url)
     try:

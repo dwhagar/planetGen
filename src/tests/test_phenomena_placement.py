@@ -630,6 +630,31 @@ def test_phenomena_near_sector_finds_a_black_hole_placed_at_that_sector(mysql_co
     assert match["distance_ly"] >= 0
 
 
+def test_a_placed_black_hole_carries_its_mass_and_a_tile_draws_it_as_a_star_of_that_mass(mysql_config):
+    """MAP.208: the sector scene and the Galaxy Map's tiles are given the mass, and the tile the luminosity of
+    a star of it (a black hole a little dimmer), not the hole's own light."""
+    from planetgen import tuning
+    from planetgen.physics import stellar_evolution
+
+    sector_id = _place_sector(mysql_config, "Mass Bright Sector", (40.0, 0.0, 0.0))
+    bh = BlackHole(SystemConfig())
+    bh_id = store.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
+    conn = store.get_connection(mysql_config)
+    try:
+        match = next(m for m in query.phenomena_near_sector(conn, sector_id)
+                     if m["id"] == bh_id and m["type"] == "black_hole")
+        points = query.galaxy_point_phenomena_in_box(conn, (30.0, -10.0, -10.0), (50.0, 10.0, 10.0))
+    finally:
+        conn.close()
+    mass = match["mass_solar"]
+    assert mass == pytest.approx(bh.mass_solar, rel=1e-6)
+    point = next(p for p in points if p["type"] == "black_hole" and p["id"] == bh_id)
+    assert point["mass_solar"] == pytest.approx(mass, rel=1e-3)
+    assert point["map_luminosity_sol"] == pytest.approx(
+        stellar_evolution.map_luminosity_sol(mass) * tuning.BLACK_HOLE_MAP_BRIGHTNESS, rel=1e-3)
+    assert point["luminosity_sol"] < point["map_luminosity_sol"], "its own light stays its own"
+
+
 # ---------------------------------------------------------------------------
 # supernova_remnant support in list_phenomena/count_phenomena/
 # phenomenon_detail (html/phenomena.py's listing, html/phenomenon.py's

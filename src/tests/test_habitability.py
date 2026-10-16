@@ -20,21 +20,21 @@ EARTH = World(101.3, 15, {"N2": 0.78, "O2": 0.21, "CO2": 0.0004}, ph=8.1, relati
 EXAMPLES = {
     "Earth": (EARTH, ("Blue",) * 6, 1.0, 0.969, 0.968, 1.0, "ideal"),
     "Dense CO2": (World(300, 40, {"CO2": 0.95, "N2": 0.05}, ph=6.5, relative_humidity=0.8, energy_flux_w_m2=40),
-                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6905, 0.969, 0.0, 0.479, "sealed suit"),
+                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6905, 0.969, 0.0, 0.479, "environment suit"),
     "Hycean": (World(2000, 60, {"H2": 0.9, "He": 0.1}, ph=7, relative_humidity=0.99, energy_flux_w_m2=20,
                      life_stage="microbial"),
-               ("Yellow", "Yellow", "Green", "Blue", "Blue", "Yellow"), 0.7265, 0.969, 0.0, 0.022, "sealed suit"),
+               ("Yellow", "Yellow", "Green", "Blue", "Blue", "Yellow"), 0.7265, 0.969, 0.0, 0.022, "environment suit"),
     "Photochemical CO": (World(100, 10, {"N2": 0.9, "CO2": 0.05, "CO": 0.05}, ph=7.5),
-                         ("Blue", "Blue", "Red", "Blue", "Blue", "Red"), 0.7368, 0.969, 0.0, 1.0, "sealed suit"),
+                         ("Blue", "Blue", "Red", "Blue", "Blue", "Red"), 0.7368, 0.969, 0.0, 1.0, "environment suit"),
     "Ice-sealed ocean": (World(1e-6, -170, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, surface_dose_sv_yr=0.05,
                                habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05,
                                life_stage="microbial", life_on_surface=False),
-                         ("Red", "Red", "Red", "Blue", "Green", "Red"), 0.0, 0.533, 0.0, 0.468, "sealed suit"),
+                         ("Red", "Red", "Red", "Blue", "Green", "Red"), 0.0, 0.533, 0.0, 0.468, "environment suit"),
     "Mars-analog brine": (World(0.6, -60, {"CO2": 0.95, "N2": 0.03}, gravity_ms2=3.71, water_activity=0.5,
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, 0.458, "sealed suit"),
+                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, 0.458, "environment suit"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapour", inventories={"C": 0.5, "N": 0.5, "H": 0.05},
                          life_stage="macroscopic"),
@@ -156,7 +156,7 @@ def test_radiation_and_temperature_cap_the_overall_colour_at_their_own():
 def test_pressure_red_is_red_and_yellow_is_yellow_unless_a_full_suit_is_needed_anyway():
     assert _overall(Pressure="Red")[1] == "Red"
     assert _overall(Pressure="Yellow")[1] == "Yellow"
-    # Air in Red already needs a sealed suit, so the pressure adds nothing: Air Red alone gives Yellow.
+    # Air in Red already needs an environment suit, so the pressure adds nothing: Air Red alone gives Yellow.
     assert _overall(Air="Red")[1] == "Yellow"
     assert _overall(Pressure="Red", Air="Red")[1] == "Yellow"
     assert _overall(Pressure="Yellow", Air="Red")[1] == "Yellow"

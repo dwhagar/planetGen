@@ -184,6 +184,30 @@ choose your own username and password, and the other admin pages stay
 locked until you do. If the password is lost, see
 [`api.md`](../api.md#resetting-the-admin-login).
 
+## Updating a running site
+
+`sudo ./update.sh` takes the **update guard** (`planetgen.cli.update_guard`, `planetgen/admin/updateguard.py`)
+before it changes anything, so the only thing that runs is the update:
+
+1. **It lists the running and queued work** (a Generate job, a `planetgen` run from the command line, jobs on the
+   shared queues, an orbital update, a Galaxy Map warm-up from an earlier update) and **stops, having changed and
+   cancelled nothing, unless you agree to cancel it.** On a terminal it asks (y/N). With no terminal (the
+   maintenance timer, cron) it refuses with exit status 1 and names the work; add `--cancel-running` to cancel it:
+   `sudo ./update.sh --cancel-running`. Each piece is stopped through its own cancel path and the update waits (up
+   to 10 minutes) until none is left; one that does not stop is reported and the update stops before any change.
+2. **It closes the site**: maintenance mode on with the cause "update" and a lock, `update.lock`, in the state
+   folder (`/var/lib/planetGen/state`). Visitors get the "being updated" page; admins can still sign in.
+3. **Nothing new starts** until the update ends: the Generate page and the API refuse to queue work ("the site is
+   being updated"), the queue's workers exit with status 75, and the orbital update exits with 75 without moving
+   anything (its timer simply tries again at its next firing).
+4. **A good update opens the site again** at its end (a closing an admin made earlier stays; the conversion to the
+   spherical sector grid keeps the site closed until the new Galaxy Map is built). **A failed update leaves the
+   site closed**, says which step failed and how to open it, because the database may be half migrated:
+   `python3 -m planetgen.cli.maintenance off`. The lock is released, so `./update.sh` can be run again.
+
+`python3 -m planetgen.cli.migrate` run by hand does the same when it has something to migrate (`--cancel-running`
+works there too). `update.sh` never edits your Redis configuration or your Apache site.
+
 ## After deploying
 
 Run the [server checklist](../server-checklist.md). It has the commands
