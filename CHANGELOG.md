@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1472] - 2026-10-16
+
+**Headline:** The to-do list retires PERF.103, built by the orbital update row ceiling.
+
+### Changed
+
+- Retired PERF.103 (a per-night cost ceiling on the orbital update), done by #1769, and removed it from the goal tables.
+
+TODO items resolved: PERF.103 / Added: none
+
 ## [8.0.1471] - 2026-10-16
 
 **Headline:** The orbital update has a ceiling on a night's work and warns with the backlog it leaves.
