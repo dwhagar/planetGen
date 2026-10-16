@@ -114,6 +114,7 @@ def _map_system(row):
                 "temperature_k": star["temperature_k"],
                 "radius_km": star["radius_km"],
                 "luminosity_w": star["luminosity_w"],
+                "metallicity_fe_h": star.get("metallicity_fe_h"),
                 "temp_display": f'{int(star["temperature_k"])} K',
             }
             for star in row["stars"]

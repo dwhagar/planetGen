@@ -1291,6 +1291,7 @@ anything.
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. |
 | `log_lx_lbol`, `l_xuv_w`, `xuv_saturated`, `flare_n33_per_yr`, `flare_alpha`, `xuv_fluence_j` | DOUBLE (`xuv_saturated` BOOLEAN) | nullable | Added in v72 (GEN.86). Stellar activity: log10 of the coronal X-ray share of the luminosity (saturated at 7.4e-4 for G, K and M stars, decaying after a mass-dependent saturation age; NULL for a white dwarf or compact remnant), the X-ray plus EUV luminosity in W (a hot photosphere's output above 13.6 eV included; a neutron star's thermal or spin-down X-rays; a black hole's disk), whether the corona is still saturated, flares above 1e33 erg a year and their energy slope, and the XUV given off over the star's age, J. See `planetgen/physics/activity.py` and docs/design/activity-magnetism-radiation-hydrosphere.md section 2. NULL on a row generated before v72. |
 | `lethal_event_rate_per_gyr` | DOUBLE | nullable | Added in v75 (GEN.87). Supernovae within 8 pc per Gyr here: 1.5 at the Sun's 8 kpc, rising as exp((8 kpc - R) / 1.45 kpc) to at most 250 times that at the centre. NULL for a star with no galaxy placement and on a row generated before v75. |
+| `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic centre; a binary's secondary shares its primary's. NULL on a row generated before v95. |
 
 ### `planets`
 
@@ -1811,6 +1812,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `seed` | BIGINT UNSIGNED | NOT NULL | Seed for the system built around it later. |
 | `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE SET NULL`, nullable | Set when its sector is filled. |
 | `created_at` | TIMESTAMP | NOT NULL | |
+| `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex, drawn at scatter time from its population and position on a stream of its own seed; the fill that builds its system keeps it. NULL on older rows and on a cluster star until GEN.159. |
 | `off_plane` | TINYINT | virtual | Added in v57 (GEN.117): 1 when `|position_z_mpc|` is 250 pc or more. Computed; nothing writes it. |
 
 Indexes: the address (`shell_index`, `band_index`, `wedge_index`),
@@ -2094,6 +2096,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v95 (GEN.158): the stored [Fe/H]
+
+Migration 0095 adds `metallicity_fe_h` (DOUBLE, nullable) to `stars` and to `bright_stars`: the star's metallicity in dex against the Sun, drawn from its population and its distance from the galactic centre (`planetgen/physics/metallicity.py`). A scattered star's value is drawn at scatter time, on a stream of its own seed, and the fill that builds its system keeps it; a binary's secondary shares its primary's. It is NULL on rows made before v95 and on a cluster star until the cluster table (GEN.159) gives it its cluster's value; a star built from a NULL draws its own as before. The columns go on the end of each table, so MySQL adds them without copying the rows. The version is detected from `bright_stars.metallicity_fe_h`. The sector page's map shows it in a star's info panel.
 
 ### v94 (GEN.234): the halo and cluster populations
 
