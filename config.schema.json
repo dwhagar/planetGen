@@ -453,6 +453,26 @@
       "title": "Redis",
       "type": "object"
     },
+    "SettingsFile": {
+      "properties": {
+        "backups_kept": {
+          "default": 20,
+          "description": "How many backup archives are kept. One is made just before every settings save, restore or import replaces the file, and by Back up now; the oldest is deleted once there are more than this, but never the newest archive that holds every part.",
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Backups Kept",
+          "type": "integer",
+          "x-category": "backups",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "backups"
+        }
+      },
+      "title": "SettingsFile",
+      "type": "object"
+    },
     "TileCache": {
       "properties": {
         "dir": {
@@ -737,6 +757,12 @@
       "x-min_role": "admin",
       "x-restart": true,
       "x-secret": true
+    },
+    "settings": {
+      "$ref": "#/$defs/SettingsFile",
+      "default": {
+        "backups_kept": 20
+      }
     },
     "site_name": {
       "default": "planetGen",
