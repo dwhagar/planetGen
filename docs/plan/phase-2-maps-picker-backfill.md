@@ -79,7 +79,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
-| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.262, GEN.264, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
+| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | GEN.276, NAV.60 | Spherical region query, stage C. Step 8. Quality. |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | GEN.251, GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 9. Quality. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console |  |  |
@@ -161,7 +161,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) |  | Phenomena catalogue, Boss 2026-10-15. Question for Boss. Core. |
 | GEN.258 | Protostars embedded in giant molecular clouds | GEN.241, GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 8, later. Core. |
 | GEN.257 | A Fermi-bubble overlay on the Galaxy Map |  | Phenomena catalogue, Boss 2026-10-15. Step 7d, later. Interface. |
-| GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | GEN.243, GEN.153 | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
+| GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | GEN.243 | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 7b, later. Core and Interface. |
 | GEN.254 | Superbubble field beside the nebula field (the Local Bubble cavity) |  | Phenomena catalogue, Boss 2026-10-15. Step 7a, later. Core. |
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
@@ -185,9 +185,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
 | PERF.104 | Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates |  |  |
-| GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
-| GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | GEN.262 | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
-| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 3. Core. |
+| GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
+| GEN.263 | Promote every bound compact pair to the scatter, whatever its mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
 | GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns |  | Boss 2026-10-15 11:12 PM EDT. |
 | GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | GEN.115 |  |
@@ -205,7 +204,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.115, GEN.109 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.236, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
-| TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.262, GEN.264 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
+| TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.264 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit |  | Spherical region query, stage C. Step 7. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | GEN.276 | Spherical region query, stage C. Step 6. Quality. |
@@ -233,7 +232,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated |  |  |
-| GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) |  | Research follow-up to GEN.10 (built). |
 | GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
 
 ### Asteroid fields
@@ -247,7 +245,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.154 | Show the Einstein radius on compact-object pages |  | Research: Tier 1 of GEN.113. |
-| GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction |  | Research: Tier 1 of GEN.113. |
 | GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 |  | Core 3; step 1 of the galactic core note; needs a Core 1 migration revision |
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | GEN.280, GEN.276 | Core 3; step 2 of the galactic core note; shares one Core 1 migration with GEN.283 |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.237, GEN.244 | Core 3; step 3 of the galactic core note |
@@ -256,7 +253,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.280 | Core 3; step 5 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) |  | Core 3; folded into GEN.286 unless Core 3 says otherwise |
-| GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250, GEN.153 | Owner Core 3; Core 3 note default stands. |
+| GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250 | Owner Core 3; Core 3 note default stands. |
 
 ### Maps
 

@@ -74,14 +74,46 @@ def test_uv_follows_the_star_and_the_ozone_layer():
 
 
 def test_supernova_hazard_rises_toward_the_galactic_centre():
-    sun = activity.lethal_event_rate_per_gyr(8000 * constants.PARSEC_M / constants.LY_TO_M)
+    def ly(pc):
+        return pc * constants.PARSEC_M / constants.LY_TO_M
+
+    sun = activity.supernova_rate_per_gyr(ly(8000))
     assert sun == pytest.approx(1.5, rel=0.01)
-    assert activity.lethal_event_rate_per_gyr(0.0) == pytest.approx(1.5 * 250, rel=0.01)
+    assert activity.supernova_rate_per_gyr(0.0) == pytest.approx(1.5 * 250, rel=0.01)
     assert activity.lethal_event_rate_per_gyr(None) is None
-    outer = activity.lethal_event_rate_per_gyr(12000 * constants.PARSEC_M / constants.LY_TO_M)
-    assert outer < sun
+    assert activity.supernova_rate_per_gyr(ly(12000)) < sun
 
 
+def test_gamma_ray_bursts_and_the_nucleus_add_to_the_lethal_rate():
+    def ly(pc):
+        return pc * constants.PARSEC_M / constants.LY_TO_M
+
+    at_sun, outer, inner = ly(8000), ly(12000), ly(2000)
+    assert activity.grb_rate_per_gyr(at_sun) == pytest.approx(activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR)
+    assert activity.grb_rate_per_gyr(outer) < activity.grb_rate_per_gyr(at_sun)
+    assert activity.grb_rate_per_gyr(inner) == pytest.approx(activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR)
+    assert activity.agn_rate_per_gyr(inner) == activity.AGN_EPISODES_PER_GYR
+    assert activity.agn_rate_per_gyr(ly(activity.AGN_LETHAL_RADIUS_PC + 1)) == 0.0
+    assert activity.agn_rate_per_gyr(at_sun) == 0.0
+    assert activity.lethal_event_rate_per_gyr(at_sun) == pytest.approx(
+        activity.supernova_rate_per_gyr(at_sun) + activity.grb_rate_per_gyr(at_sun))
+    assert activity.lethal_event_rate_per_gyr(inner) == pytest.approx(
+        activity.supernova_rate_per_gyr(inner) + activity.grb_rate_per_gyr(inner) + activity.agn_rate_per_gyr(inner))
+
+
+def test_bursts_and_the_nucleus_push_the_ozone_flag_out_to_larger_radii():
+    """The galactic rate alone decides the flag where no flares do: it now
+    exceeds `LETHAL_EVENT_LIMIT_PER_GYR` farther from the centre."""
+    def flag_radius_pc(rate):
+        radius = 100
+        while radius < 20000 and rate(radius * constants.PARSEC_M / constants.LY_TO_M) > rad.LETHAL_EVENT_LIMIT_PER_GYR:
+            radius += 50
+        return radius
+
+    assert flag_radius_pc(activity.lethal_event_rate_per_gyr) > flag_radius_pc(activity.supernova_rate_per_gyr)
+    sun_ly = 8000 * constants.PARSEC_M / constants.LY_TO_M
+    assert activity.lethal_event_rate_per_gyr(sun_ly) < rad.LETHAL_EVENT_LIMIT_PER_GYR
+    assert activity.lethal_event_rate_per_gyr(sun_ly / 4) > rad.LETHAL_EVENT_LIMIT_PER_GYR
 def _bodies(system):
     for planet in system.planets:
         if planet.body_type == "a":

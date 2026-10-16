@@ -710,9 +710,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | done, PR #1457 |
 | GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K | none | done, PR #1760 |
 | GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | none | done, PR #1442 |
-| GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) | none | open |
+| GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) | none | done, PR #1795 |
 | GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) | none | done, PR #1239 |
-| GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | open |
+| GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | done, PR #1792 |
 | GEN.154 | Show the Einstein radius on compact-object pages | none | open |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | dropped (not built; decision note, PR #1716) |
 | GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) | none | done, PR #1310 |
@@ -821,7 +821,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) | none | open |
 | GEN.260 | Scatter member columns and tables: a scatter row is a system with a barycentre, a total mass and a stored tree of members | none | done, PR #1757 |
 | GEN.261 | The member-tree generator: stars, brown dwarfs, remnants and protostars in stable hierarchies up to twelve members | none | done, PR #1705 |
-| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | open |
+| GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | done, PR #1793 |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | none | open |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | none | open |
 | GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | none | done, PR #1766 |
