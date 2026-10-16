@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1487] - 2026-10-16
+
+**Headline:** The to-do list retires the sector profile (GEN.235) and files a new flaky-test bug.
+
+### Changed
+
+- Retired GEN.235 (#1784) and added build notes on GEN.236, GEN.237, GEN.283, API.27, UX.113 and DOC.48; filed TEST.171 (a resume test that failed once under load) and added a sighting to TEST.163.
+
+TODO items resolved: GEN.235 / Added: TEST.171
+
 ## [8.0.1486] - 2026-10-16
 
 **Headline:** Any sector in the grid's reach can be asked for and is generated from a profile of its place, in the disk or out in the halo.
