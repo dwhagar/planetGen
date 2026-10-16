@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.118 |
 | MAP | MAP.212 |
 | NAV | NAV.62 |
-| GEN | GEN.299 |
+| GEN | GEN.301 |
 | PERF | PERF.105 |
 | DB | DB.36 |
 | API | API.28 |
@@ -858,6 +858,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars | none | open |
 | GEN.297 | Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters | none | open |
 | GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in | none | open |
+| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | none | open |
+| GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
