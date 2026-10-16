@@ -555,8 +555,7 @@ the pooled one, read at the star's own [Fe/H]. (2) The metallicity effect applie
 generator is checked that it behaves as expected: TEST.196 compares the generated close-companion share, by primary-mass
 bin and [Fe/H] bin, to the published ranges and flags any bin outside them. (3) Wide pairs have no metallicity
 dependence. (4) The encounter limit is a sharp cut at a_1/2, the smaller of the two limits above. (5) The fixed
-10,000 AU wide-pair cap is replaced by the derived limit. Still open at 6:15 PM EDT: whether the metallicity
-effect fades above about 2 solar masses.
+10,000 AU wide-pair cap is replaced by the derived limit. The last card, whether the metallicity effect fades above about 2 solar masses, was answered "all masses": there is no fade, and the check is the safeguard.
 
 ## 7. Compact-object primaries
 
