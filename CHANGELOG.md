@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1452] - 2026-10-16
+
+**Headline:** The to-do list records that the generator side of GEN.269 (interaction states in the star model) has merged.
+
+### Changed
+
+- Added a progress note to GEN.269 (Core 2, PR #1745): the Roche classifier, the interaction state on every pair, the member flags, the merger-product age and the new star kinds are in; storing the interaction on the scatter and orbit tables waits on GEN.260 and migration 0093.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1451] - 2026-10-16
 
 **Headline:** Every pair in a multi-star system now carries an interaction state worked out from Roche-lobe geometry.
