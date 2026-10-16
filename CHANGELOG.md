@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1423] - 2026-10-16
+
+**Headline:** OPS.31 is retired and Quality's remaining queue is marked unassigned while Quality is idle.
+
+### Changed
+
+- OPS.31 (#1715) leaves the open list.
+- The execution plan lists Quality's remaining items as unassigned until Boss assigns them.
+
+TODO items resolved: OPS.31 / Added: none
+
 ## [8.0.1422] - 2026-10-16
 
 **Headline:** The galactic-centre design note now records that no nuclear-cluster object is built.
