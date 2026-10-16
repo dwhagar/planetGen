@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1511] - 2026-10-16
+
+**Headline:** The to-do list retires the globular cluster table (GEN.159) and files the Milky Way catalogue import (GEN.297).
+
+### Changed
+
+- Retired GEN.159 (#1810), cleared it as a prerequisite and filed GEN.297 (load Boss's Harris file into the cluster table).
+
+TODO items resolved: GEN.159 / Added: GEN.297
+
 ## [8.0.1510] - 2026-10-16
 
 **Headline:** The to-do list files a new flaky-test bug for the sector page accessibility test (TEST.174).
