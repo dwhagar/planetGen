@@ -290,6 +290,38 @@ def build_progress(items: dict, ledger: dict[str, str], baseline: int, versions:
             "done": done, "total": total, "pct": round(100 * done / total, 1) if total else 0.0}
 
 
+def build_blockers(items: dict, phases: list[dict], top: int = 5) -> dict:
+    """Boss (2026-10-16): the top blockers overall and for each phase: the open items that hold up the most others.
+
+    An item's weight is the number of open items that wait on it directly or through a chain; ties break on the
+    direct count, then the ID."""
+    open_ids = {i for i, it in items.items() if it["status"] == "open"}
+    waiting: dict[str, set] = {}
+
+    def below(i: str, stack: tuple = ()) -> set:
+        if i in waiting:
+            return waiting[i]
+        out: set = set()
+        for u in items[i]["unblocks"]:
+            if u in open_ids and u not in stack:
+                out.add(u)
+                out |= below(u, stack + (i,))
+        if not stack:
+            waiting[i] = out
+        return out
+
+    rows = {i: {"id": i, "blocks": len(below(i)),
+                "direct": sum(1 for u in items[i]["unblocks"] if u in open_ids)} for i in open_ids}
+
+    def best(ids) -> list[dict]:
+        ranked = sorted((rows[i] for i in ids if rows[i]["blocks"]), key=lambda r: (-r["blocks"], -r["direct"], id_key(r["id"])))
+        return ranked[:top]
+
+    return {"overall": best(open_ids),
+            "phases": [{"key": p["key"], "label": p["label"], "theme": p["theme"],
+                        "rows": best(i for i in open_ids if items[i]["phase"] == p["key"])} for p in phases]}
+
+
 def check_order(items: dict) -> list[dict]:
     """Boss (2026-10-16): a blocker sits in the same thread (earlier) or in an earlier phase, never later."""
     order = {}
@@ -457,7 +489,7 @@ def build_data(root: Path) -> dict:
     return {
         "plan": {"items": plan_items, "phases": phases, "versions": versions, "decisions": decisions, "generated": summary,
                  "headlines": headlines, "issues": {str(k): v for k, v in issues.items()},
-                 "progress": progress},
+                 "progress": progress, "blockers": build_blockers(items, phases)},
         "roadmap": roadmap,
         "reference": {"items": items, "phases": [{"key": p["key"], "label": p["label"], "theme": p["theme"], "version": p["version"]} for p in phases],
                       "categories": CATEGORIES, "summary": summary, "headlines": headlines,

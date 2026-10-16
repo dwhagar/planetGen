@@ -27,8 +27,8 @@ The reservation, staging and download pieces and the recipe format.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena |  | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
-| API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | API.18 | The far end; framework and capability, not a full Milky Way. |
+| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | API.28 | Narrowed: the schema and runner are API.28, built in 8.6; this is the route, the job and the 400 and 422 errors. |
+| API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | API.18, GEN.302 | The far end; framework and capability, not a full Milky Way. |
 
 ## Phase 2: Remote generation
 
@@ -40,7 +40,7 @@ Generation without a database, uploads, verification and the incomplete uploads 
 |---|---|---|---|
 | API.13 | Generation without a database | API.12 | Local generation with all workers. |
 | API.14 | Upload routes, compressed, in batches | API.7, API.11 |  |
-| API.8 | Verify uploaded data before it is finalized | API.11, API.14 |  |
+| API.8 | Verify uploaded data before it is finalized | API.11, API.14, ADM.82 | Narrowed: the checks and the finalize are ADM.82, built in 8.6 |
 | ADM.13 | Incomplete uploads page | API.10, API.8 |  |
 | API.3 | Remote generate: generate on a local machine, upload through the API | API.10, API.11, API.12, API.13, API.14, API.8, ADM.13 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
 | API.17 | Remote generation reproduces what the server would make | API.12, API.13, GEN.57 |  |

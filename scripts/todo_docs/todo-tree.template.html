@@ -74,6 +74,17 @@ details[open]>summary .twist{transform:rotate(90deg)}
 .node.hit>details>summary,.node.hit>.leaf{background:var(--accent-soft)}
 .node.flash>details>summary,.node.flash>.leaf{outline:2px solid var(--accent)}
 .empty{color:var(--muted);padding:12px 0}
+.blockers{margin:18px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.blockers h2{font-size:1.1rem;margin:0}
+.blockers .sub{color:var(--muted);font-size:.9rem;margin:.3rem 0 .6rem;max-width:90ch}
+.blockers ol{margin:.4rem 0 0;padding:0;list-style:none;display:grid;gap:4px}
+.blockers li{display:grid;grid-template-columns:5.4rem minmax(0,1fr) auto;gap:10px;align-items:baseline;font-size:.92rem}
+.blockers li .n{font:600 .8rem var(--f-mono);color:var(--muted);white-space:nowrap}
+.blockers a.id{text-decoration:none}
+.blockers details{margin-top:12px}
+.blockers summary{cursor:pointer;font-weight:600}
+.blockers h3{font:600 .74rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 2px}
+@media (max-width:520px){.blockers li{grid-template-columns:5rem minmax(0,1fr)}.blockers li .n{grid-column:2}}
 @media (max-width:520px){.tree ul{margin-left:6px;padding-left:8px}}
 @media (prefers-reduced-motion:reduce){.twist{transition:none}}
 </style>
@@ -82,10 +93,16 @@ details[open]>summary .twist{transform:rotate(90deg)}
 <header>
   <div class="eyebrow">planetGen · open work</div>
   <h1>TODO Tree</h1>
-  <p class="lede">Every open item sits under the prerequisite that finishes last, so a branch reads from "can start now" down through what each step unblocks. Items with several prerequisites list the others under their title; click one to jump to it.</p>
+  <p class="lede">Every open item sits under the prerequisite that finishes last, so a branch reads from "can start" down through what each step unblocks. Items with several prerequisites list the others under their title; click one to jump to it.</p>
   <div class="meta" id="meta"></div>
-  <div class="meta"><a href="https://claude.ai/artifact/UFM7fnjRrv9TRhJNhvnbF2">Version plan</a><a href="https://claude.ai/artifact/RndQ2NzUi9ptWe9B3ECF1a">Every ID explained</a></div>
+  <div class="meta"><a href="version-plan.html">Version plan</a><a href="todo-reference.html">Every ID explained</a></div>
 </header>
+<section class="blockers" id="blockers" aria-labelledby="bl-h">
+  <h2 id="bl-h">Top 5 blockers</h2>
+  <p class="sub">The open items that hold up the most other items, counting everything that waits on them directly or through a chain. Overall first, then each phase.</p>
+  <div id="bl-overall"></div>
+  <details class="bl-phases"><summary>Top 5 for each phase</summary><div id="bl-phases"></div></details>
+</section>
 <div class="bar">
   <input type="search" id="q" placeholder="Search IDs, titles and notes" aria-label="Search">
   <span id="phasechips" role="group" aria-label="Version" style="display:flex;flex-wrap:wrap;gap:6px"></span>
@@ -231,5 +248,14 @@ const nb=ids.filter(i=>items[i].bug).length, ready=roots.length;
 document.getElementById('meta').innerHTML=
   '<span><b>'+ids.length+'</b> open items</span><span><b>'+nb+'</b> bugs</span><span><b>'+ready+'</b> with nothing to wait for</span><span>'+D.generated+'</span>';
 render();
+// top blockers
+(function(){
+  const B=D.blockers; if(!B) return;
+  const list=rows=>'<ol>'+rows.map(r=>'<li><a class="id" href="#n-'+r.id+'" data-jump="'+r.id+'">'+r.id+'</a><span class="title">'+esc(items[r.id]?items[r.id].title:'')+'</span><span class="n">holds up '+r.blocks+(r.blocks===1?' item':' items')+(r.direct!==r.blocks?' ('+r.direct+' direct)':'')+'</span></li>').join('')+'</ol>';
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  document.getElementById('bl-overall').innerHTML=list(B.overall);
+  document.getElementById('bl-phases').innerHTML=B.phases.map(p=>'<h3>'+esc(p.label)+': '+esc(p.theme)+'</h3>'+(p.rows.length?list(p.rows):'<p class="sub">Nothing in this phase holds up another item.</p>')).join('');
+  document.getElementById('blockers').addEventListener('click',e=>{const a=e.target.closest('[data-jump]');if(a){e.preventDefault();jump(a.dataset.jump)}});
+})();
 </script>
 </html>
