@@ -43,10 +43,10 @@ def _qualifying_bands(shape, shell, threshold):
     return [b for b in range(0, spherical.band_range(shell)[1] + 1) if _band_qualifies(shape, EDGE_PC, shell, b, threshold)]
 
 
-def test_the_default_galaxy_reaches_shell_3764_with_the_core_first(milky_way):
+def test_the_default_galaxy_reaches_shell_3762_with_the_core_first(milky_way):
     extents, outer, confirmed = milky_way
-    assert outer == 3764 and confirmed
-    assert [shell for shell, _high in extents] == list(range(3765))
+    assert outer == 3762 and confirmed
+    assert [shell for shell, _high in extents] == list(range(3763))
     assert extents[0] == (0, 0)
     assert extents[1:4] == [(1, 1), (2, 3), (3, 4)]      # shells 1 to 3 are the table: whole shells in the bulge
 
@@ -65,7 +65,7 @@ def test_the_outline_narrows_with_distance_and_is_a_run_about_the_plane(milky_wa
     extents, _outer, _confirmed = milky_way
     highs = dict(extents)
     assert highs[3000] < highs[2000] < highs[1500]
-    assert highs[3764] <= 3
+    assert highs[3762] <= 5
 
 
 def test_the_default_galaxy_holds_about_the_study_s_cell_count(milky_way):
@@ -75,10 +75,10 @@ def test_the_default_galaxy_holds_about_the_study_s_cell_count(milky_way):
     extents, _outer, _confirmed = milky_way
     shells = shell_candidate_sector_count(extents)
     assert 0.99 * 23_930_000_000 < shells < 1.02 * 23_930_000_000
-    assert shells == 24_204_797_995
+    assert shells == 24_182_967_799
 
 
-@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 927, 928, 960, 1000, 1020, 1021, 1500, 2500, 3500, 3764])
+@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 927, 928, 960, 1000, 1020, 1021, 1500, 2500, 3500, 3762])
 def test_the_outline_is_tight_and_no_qualifying_band_lies_outside(milky_way, shell):
     extents, _outer, _confirmed = milky_way
     high = dict(extents)[shell]

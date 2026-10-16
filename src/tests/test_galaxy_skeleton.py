@@ -12,7 +12,7 @@ import math
 
 import pytest
 
-from planetgen.galaxy.density import build_galaxy_shape, relative_density
+from planetgen.galaxy.density import build_galaxy_shape, halo_density, relative_density
 from planetgen.galaxy.skeleton import bound_relative_density_at, expected_system_count_at_density_1
 
 SHAPE = build_galaxy_shape(
@@ -62,5 +62,7 @@ def test_bound_is_never_below_the_exact_density():
             bound = bound_relative_density_at(SHAPE, r, z)
             for k in range(0, 360, 15):
                 theta = math.radians(k)
-                exact = relative_density((r * math.cos(theta), r * math.sin(theta), z), SHAPE)
+                point = (r * math.cos(theta), r * math.sin(theta), z)
+                # The stellar halo (GEN.234) is left out of the bound on purpose, so it can't widen the outline.
+                exact = relative_density(point, SHAPE) - halo_density(point, SHAPE)
                 assert exact <= bound * (1 + 1e-12)

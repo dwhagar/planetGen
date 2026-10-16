@@ -216,7 +216,7 @@ PLAN_ERRORS = [
     (["--pitch-angle-deg", "0"], "--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude."),
     (["--pitch-angle-deg", "-90.001"], "--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude."),
     (["--calibration-radius-pc", "0"], "--calibration-radius-pc must be a positive number."),
-    (["--calibration-radius-pc", "1e7"], "these galaxy shape parameters can't be normalized ("),
+    (["--calibration-radius-pc", "1e80"], "these galaxy shape parameters can't be normalized ("),
     (["--no-bright-stars", "--bright-stars-only"], "--no-bright-stars and --bright-stars-only can't be combined."),
     (["--bright-stars-only", "--bright-stars-down-to", "10"],
      "--bright-stars-down-to can't be combined with --no-bright-stars or --bright-stars-only."),
