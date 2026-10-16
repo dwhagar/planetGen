@@ -6555,7 +6555,7 @@ clears each one.
   /nav?from=system:0008000000-0000001-000&to=system:0008000000-4000000-000;
   fails on origin/main 0a2cb30e with no other change, so it is no longer
   a load flake. The heading is only drawn when the page has a direct
-  course (`{% if direct %}` in templates/nav.html line 127), so the
+  course (the `if direct` block in templates/nav.html line 127), so the
   route page is probably not finding both ends or a direct course for
   those addresses. Likely area: Interface (nav page). The earlier
   under-load sightings may have had this same cause.
@@ -6986,24 +6986,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a clear message, and the Admin pages show the state. Owner:
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
-
-- [ ] **OPS.51 The maintenance-mode flag file cannot be written by the web user on the server, so maintenance mode fails with a PermissionError (bug)**
-  Reported by Interface through the coordinator (2026-10-15, 7:58 PM
-  EDT): on Boss's server the web user cannot write the maintenance-mode
-  flag file under /var/lib/planetGen (PermissionError). Fix in flight at
-  Interface: the flag lives in /var/lib/planetGen/state, which update.sh
-  creates with the right owner, and a failure to write it is a loud
-  error instead of a silent one. Done: maintenance mode turns on and off
-  from the admin page on a fresh and an existing install, update.sh sets
-  up the state directory, and an unwritable directory says so. Owner:
-  Interface (2026-10-15). Priority bug.
-  Root cause (Interface, 2026-10-15/16, Boss's live server error): the
-  flag file sat in the root-owned install root, so the web user could
-  not write it. That also made the warm_map auto-off fail silently, so
-  the Galaxy Map was never switched back on after a warm. The fix puts
-  the flag in /var/lib/planetGen/state and makes every failure to read
-  or write it loud.
-  Prerequisites: none. Related: OPS.41, UX.112.
 
 ## DOC: Documentation
 
