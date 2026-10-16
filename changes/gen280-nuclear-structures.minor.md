@@ -8,4 +8,7 @@
 ### Changed
 - **`galaxy_shape.core_amplitude` and `--core-density` are gone** (migration 0099, schema v99): the column is renamed `nuclear_amplitude`, set to 0 for a galaxy planned before it, so its density is unchanged. `bright_stars.population` becomes `VARCHAR(16)`.
 
+### Fixed
+- **Filling a dense cell no longer takes quadratic time.** Each pre-placed star was checked for overlap against every earlier system of its cell one at a time in Python, which is hours for a cell of 40,000; it is one NumPy pass now (the sector's existing neighbour arrays).
+
 TODO items resolved: GEN.280. Added: none.
