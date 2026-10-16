@@ -971,7 +971,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | none | open |
 | GEN.333 | Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill | none | open |
 | GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking | none | open |
-| GEN.335 | One definition of the stored point columns, and a test that lists every object table | none | open |
+| GEN.335 | One definition of the stored point columns, and a test that lists every object table | none | done, PR #1883 |
 | GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | none | open |
 | GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | none | open |
 | GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | none | open |
@@ -1977,7 +1977,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | open |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | open |
 | TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database | none | open |
-| TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | open |
+| TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | done, PR #1883 |
 | TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) | none | open |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) | none | open |
 | TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) | none | open |
