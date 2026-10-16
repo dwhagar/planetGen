@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1548] - 2026-10-16
+
+**Headline:** The galactic core density terms (GEN.280) are retired after the merge.
+
+### Changed
+
+- GEN.280 is removed from the TODO and ticked in the progress ledger (merged as #1855); the items that waited on it lose that prerequisite.
+- GEN.364 notes that Core 3 builds the adaptive cap next with migration 0100.
+
+TODO items resolved: GEN.280 / Added: none
+
 ## [8.0.1547] - 2026-10-16
 
 **Headline:** The galactic centre holds the observed nuclear star cluster and nuclear stellar disc, in place of ADM.49's Gaussian core.
