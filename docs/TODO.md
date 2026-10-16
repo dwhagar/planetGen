@@ -6968,6 +6968,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The item also keeps a list of the pieces that cannot be looked up,
   each with what is needed and why, and hands it to Boss as research
   requests (the TODO thread puts them to him).
+  Finding (read-only thread, 2026-10-16, 7:21 PM EDT, from Boss's 7:24
+  PM EDT question "should the super massive black hole at the center of
+  the galaxy always be at exactly 0,0,0?"; repo facts checked on main):
+  the nucleus is pinned to (0,0,0) in three places: `store.GALACTIC_CENTER_PLACEMENT`
+  / `insert_quasar` (snaps any placement to the origin),
+  `phenomenon_scatter.nucleus_row` (position (0,0,0) in cell (0,0,0)) and
+  `run_sector.add_galactic_nucleus` (position (-dist,0,0) in the sector
+  frame); hypervelocity stars start from the origin too. Decided (Boss,
+  2026-10-16, 7:27 PM EDT, card "Exactly 0,0,0"): the central black hole
+  stays exactly on the origin, with no seeded offset or drift; the read-only
+  thread's offset proposal is not built. The hole's mass is still drawn,
+  not derived: `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR` (1e6, 1e8)
+  log-uniform (`tuning.py`), quasar 1e8 to 1e10 log-uniform, both
+  independent of the bulge mass or the galaxy shape (real holes track
+  bulge mass and dispersion, M-sigma, Haring and Rix; figures from memory,
+  to be checked here), and the sphere-of-influence dispersion is a
+  constant 100 km/s (`BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS`,
+  course-avoidance.md). Work for this item's central black hole row:
+  derive the hole mass and the dispersion from the galaxy's bulge mass or
+  dispersion by an M-bulge or M-sigma relation with its scatter as a
+  seeded draw, instead of the independent log-uniform range; the active
+  and quiescent split stays a draw. Kind: design gap, not a bug.
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7700,7 +7722,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Also needs GEN.179 (the stored directives it reads) and ADM.50 (the
   galaxy's internal record), both moved into this thread before it
   (2026-10-16 review).
-  Prerequisites: GEN.57, DB.47, GEN.179, ADM.50.
+  Prerequisites: GEN.57, DB.47, GEN.179.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
 - [ ] **DB.18 Migration helpers for slow DDL: online indexes, instant columns and batched updates**
@@ -8909,54 +8931,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   it goes idle).
   Prerequisites: ADM.43.
 
-- [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
-  Boss (2026-10-10 21:14Z): 'remove the galaxy seed JSON files
-  entirely.' Boss (21:17Z): 'I only want to store the current galaxy
-  things that I need to store, I don't care about past galaxies, so it
-  can go in a JSON but we don't need to expose it to the user at all
-  unless it's admin but even then, there's no real reason for someone to
-  have that file since we're removing importing/exporting settings.'
-  What exists: `planetgen plan` writes `<32-hex seed>-<22-hex version
-  key>-<YYYYMMDD>-<HHMMSS>Z.json` into `galaxy-settings` in the jobs
-  directory (`PLANETGEN_SETTINGS_DIR`), one dated file per plan, old ones
-  kept as backups, holding the plan options, seed, version key, naming
-  key, the requirements.lock hash and both word lists. What reads or
-  writes it: planetgen/galaxy/settings_file.py (write, list_files,
-  current_file, build); generation/run_plan.py (`_write_settings_file`,
-  called at the end of the plan); galaxy/version_check.py (compares the
-  running code with the file's settings and warns); api/admin.py (`GET
-  /api/admin/galaxy-settings[/<name>]`); web/lib/apiclient.py and
-  web/admin_pages.py (the download); web/templates/admin_stats.html (the
-  'Galaxy settings' panel); tests test_settings_file.py,
-  test_sector_versions.py, test_web_admin.py and test_settings.py;
-  docs/design/reproducible-galaxies.md section 7 ('As built (ADM.18)').
-  Done: (1) the whole outward surface is gone, with no shim, wrapper or
-  compatibility stub (Boss, 2026-10-07): the two API routes and their
-  clients, the download, the Admin panel and its text, the dated files,
-  the backups and the history, and the plan step that wrote them; there
-  is no import or export of settings anywhere (no item plans one; ADM.42
-  to ADM.44's configuration file `config.json` is a different thing and
-  stays).
-  (2) Only what the current galaxy needs is kept, as one internal record
-  that nobody can see or download (a row in the database's control
-  tables, or a file under the data directory that the site never serves;
-  decide in the PR and say which): the seed, which already lives in
-  `galaxy_shape`, the naming key, which already lives in `galaxy_naming`,
-  and the generator epoch and `fp_spec` when OPS.28 and OPS.37 land; the
-  requirements.lock hash and the word lists existed only in the file, so
-  keep them in that record only if OPS.28 still needs them, else drop
-  them. A new plan overwrites the record; nothing older is kept. (3)
-  The version check keeps comparing sector versions and compares the
-  running code with that record. (4) The tests and the design section
-  are deleted or rewritten, README and docs text that mention the files
-  are updated, update.sh removes any old `galaxy-settings` directory
-  once, and the changelog entry says the files are gone.
-  Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
-  DOC.14, GEN.135.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
   (Boss, 2026-10-13 02:27Z): "We need a star system editor that the user
@@ -9594,7 +9568,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are documented, the admin start page uses them, every item of the ADM
   chain can be built on them, and a browser test opens the converted
   page in both themes with no console error.
-  Prerequisites: ADM.55, ADM.50. Related: ADM.56.
+  Prerequisites: ADM.55. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
   Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -11487,7 +11461,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
-  Prerequisites: OPS.57, ADM.50. Related: OPS.28.
+  Prerequisites: OPS.57. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. Sending
