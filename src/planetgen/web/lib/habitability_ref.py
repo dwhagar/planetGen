@@ -17,7 +17,7 @@ EQUIPMENT_MEANINGS = (
     "A breathing mask: oxygen is low or the pressure is a little off, but a mask makes the air safe.",
     "A mask with a scrubber: a gas such as carbon dioxide, carbon monoxide, hydrogen sulfide or sulfur dioxide "
     "is above its long-term limit and has to be filtered out.",
-    "A sealed suit: the pressure is too low for a mask to work, or the temperature or the air's chemistry "
+    "An environment suit: the pressure is too low for a mask to work, or the temperature or the air's chemistry "
     "is outside what a person can stand.",
     "Full life support with radiation hardening: the radiation dose is beyond what any suit can shield, "
     "so a visitor needs a hardened habitat.",
@@ -81,7 +81,7 @@ SCORE_RULE = (
 
 EQUIPMENT_RULE = (
     "The equipment level comes from the worst of pressure, temperature, air and radiation: radiation in the Red band needs full life support; "
-    "pressure below Green, or any domain in the Red band, needs a sealed suit; a gas above its long-term limit "
+    "pressure below Green, or any domain in the Red band, needs an environment suit; a gas above its long-term limit "
     "needs a mask with a scrubber; low oxygen or a pressure below Blue needs a mask; anything else is ideal."
 )
 

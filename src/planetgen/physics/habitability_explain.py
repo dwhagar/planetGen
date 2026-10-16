@@ -26,7 +26,7 @@ KIT_TEXT = {
     "ideal": "no equipment (conditions are ideal)",
     "breathing mask": "a breathing mask",
     "mask with scrubber": "a mask with a scrubber",
-    "sealed suit": "a sealed suit",
+    "environment suit": "an environment suit",
     "full life support with radiation hardening": "full life support with radiation hardening",
 }
 """dict: The equipment levels (`habitability.equipment`) as a visitor's needs in a sentence."""

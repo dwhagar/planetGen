@@ -615,7 +615,7 @@ def phi4(world, limits=HUMAN):
 
 def equipment(world, limits=HUMAN):
     """The kit a human visitor needs: "ideal", "breathing mask", "mask
-    with scrubber", "sealed suit" (a pressure suit, or a sealed suit
+    with scrubber", "environment suit" (a pressure suit, or a suit
     against a Red temperature or air) or "full life support with
     radiation hardening", from the worst of Pressure, Temperature, Air and
     Radiation and what made it so. (Water chemistry and Suitability are
@@ -626,7 +626,7 @@ def equipment(world, limits=HUMAN):
     if scores["Radiation"] < 0.4:
         return "full life support with radiation hardening"
     if scores["Pressure"] < 0.75 or min(scores.values()) < 0.4:
-        return "sealed suit"
+        return "environment suit"
     if min(gases[g] for g in ("CO2", "CO", "H2S", "SO2")) < 1.0:
         return "mask with scrubber"
     if gases["O2"] < 1.0 or scores["Pressure"] < 1.0:

@@ -72,8 +72,8 @@ def test_the_pressure_gear_follows_the_ladder(pressure, gear):
 
 
 @pytest.mark.parametrize("temperature,gear", [
-    (15.0, None), (-10.0, "warm clothing"), (-30.0, "an insulated suit"), (-80.0, "a sealed suit with active heating"),
-    (40.0, "cooling garments"), (80.0, "an actively cooled sealed suit"),
+    (15.0, None), (-10.0, "warm clothing"), (-30.0, "an insulated suit"), (-80.0, "an environment suit with active heating"),
+    (40.0, "cooling garments"), (80.0, "an actively cooled environment suit"),
     (200.0, "a heat-shielded suit with a liquid cooling garment")])
 def test_the_temperature_gear_follows_the_ladder(temperature, gear):
     assert protection.temperature_need(_world(temperature_c=temperature, relative_humidity=0.3))[1] == gear
@@ -89,7 +89,7 @@ def test_the_air_gear_is_a_mask_a_scrubber_or_a_sealed_suit_with_its_own_air():
     assert protection.air_need(_world())[1] is None
     assert protection.air_need(_world(pressure_kpa=30.0, gases={"O2": 0.2}))[1] == "a breathing mask with supplied oxygen"
     assert protection.air_need(_world(gases={"O2": 0.21, "CO2": 0.03}))[1] == "a mask with a scrubber"
-    assert protection.air_need(_world(gases={"O2": 0.21, "CO2": 0.6}))[1] == "a sealed suit with its own air"
+    assert protection.air_need(_world(gases={"O2": 0.21, "CO2": 0.6}))[1] == "an environment suit with its own air"
 
 
 def test_radiation_needs_a_shelter_not_a_suit():
@@ -128,7 +128,7 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
                    water_source=None, surface_dose_sv_yr=0.742)
     text = protection.paragraph(world, _bold)
     for line in (
-            "**PHI-6 habitability** is 0.00, and a visitor needs a sealed suit.",
+            "**PHI-6 habitability** is 0.00, and a visitor needs an environment suit.",
             "**Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure suit is needed.",
             "**Temperature: Red** (0.00). The air temperature is -227 C, so an environment suit is needed.",
             "**Air: Red** (0.00). There is no atmosphere (0.0 kPa).",
@@ -158,14 +158,14 @@ def test_the_suitability_line_names_what_is_and_is_not_readily_available():
 def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_says_a_sealed_suit():
     text = protection.paragraph(_world(temperature_c=-80.0), _bold)
     assert "The air temperature is -80 C, so an environment suit is needed." in text
-    assert "and a visitor needs a sealed suit." in text
+    assert "and a visitor needs an environment suit." in text
 
 
 def test_the_gear_of_a_hot_high_pressure_world_names_each_suit():
     text = protection.paragraph(_world(pressure_kpa=2_000.0, temperature_c=80.0), _bold)
     assert "The air pressure is 2,000 kPa, so a hyperbaric suit is needed." in text
     assert "The air temperature is 80 C, so an environment suit is needed." in text
-    assert "and a visitor needs a sealed suit." in text
+    assert "and a visitor needs an environment suit." in text
 
 
 def test_a_planet_of_a_compact_host_says_its_dose_is_rated_lethal():

@@ -3368,7 +3368,7 @@ defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
 
 SPECIES_EQUIPMENT_MIN_TECH = (0.0, 2.0, 2.5, 3.0, 4.0)
 """tuple: The least tech level (0 to 7) a species needs to make the kit of each equipment tier
-(`habitability_world.EQUIPMENT_NAMES`: ideal, breathing mask, mask with scrubber, sealed suit, full life
+(`habitability_world.EQUIPMENT_NAMES`: ideal, breathing mask, mask with scrubber, environment suit, full life
 support with radiation hardening), for the "could live there with equipment" list. A planetGen default."""
 
 ORBIT_UPDATE_ROW_CEILING = 10_000_000

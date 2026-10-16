@@ -51,7 +51,7 @@ def test_the_air_decides_the_kit():
     thin = hw.compute(_earth(atmospheric_pressure_pa=30000.0, p_o2_kpa=6.0, p_n2_kpa=23.5))
     assert thin["equipment_tier"] == 1  # a mask: enough pressure, too little oxygen
     vacuum = hw.compute(_earth(atmospheric_pressure_pa=0.0, **{f"p_{g}_kpa": 0.0 for g in ("o2", "n2", "ar", "co2", "h2o")}))
-    assert vacuum["equipment_tier"] >= 3  # a sealed suit at best
+    assert vacuum["equipment_tier"] >= 3  # an environment suit at best
     assert vacuum["tier_pressure"] == 3
 
 
