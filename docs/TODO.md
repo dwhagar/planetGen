@@ -55,10 +55,10 @@ that default.
   on its own line under the item:
   `Design: [docs/design/x.md](design/x.md), section N`. Design documents
   don't list item IDs.
-- The phase plans in [plan/](plan/) are the other place that lists
-  item IDs: each phase file has a table of its items (see "Plan:
-  phases" below). File a new item into one phase's table in the same
-  PR, and delete its row when it ships.
+- The version files in [plan/](plan/) are the other place that lists
+  item IDs: each version file has a table of its items per thread and
+  phase (see "Plan: versions" below). File a new item into one thread's
+  table of one phase in the same PR, and delete its row when it ships.
 - Code tags cite the ID: `TODO(MAP.16): what to do here`. Grep
   `"TODO(MAP."` for an area, or `"TODO(MAP.16)"` for one item.
 - `changes/` notes, PR titles and commit messages cite the ID, for
@@ -97,59 +97,79 @@ density skeleton, and the Flask API (`src/html/api/`) with server-rendered
 pages served by the same app (`src/html/web/`): Galaxy, Sector and System
 maps, search, NAV, admin auth and wiki publishing.
 
-## Plan: phases
+## Plan: versions
 
 Boss (2026-10-01 23:53Z) asked for the open work to be planned in
-phases, one plan file per phase with everything that phase needs, and
-this file as the master and index. On 2026-10-02 the phases were
-rebuilt from the dependency report, and on 2026-10-07 rebuilt again
-from Boss's lists of 2026-10-03 and 2026-10-07. Phase 0 (every bug and
-the groundwork) was finished on 2026-10-09 and its plan file deleted;
-the open bugs now sit in phase 1. Every open item below is in exactly one phase, and every
-item's prerequisites are in its own phase or an earlier one. Each phase
-file gives the goal, the build threads with their order and
-prerequisites, and the open questions;
+phases, with this file as the master and index. Phase 0 (every bug and
+the groundwork) was finished on 2026-10-09 and is now version 8.0. Boss
+(2026-10-16, 1:07 PM EDT) rebuilt the tiers as a version map: one version
+per release, one plan file per version, starting at 8.1, which is the old
+Phase 1 we were building. A version has one or more phases (Boss, 1:09 PM
+EDT: one version can have several phases when there is too much, with a
+logical breakdown), each with a theme and its build threads. Every open
+item below is in exactly one thread of one phase of one version, and a
+blocker is done in the phase before: in an earlier position of its own
+thread, in an earlier phase of its version or in an earlier version; the
+threads of one phase are independent work trees that lanes can build side
+by side. Each version file gives the goal, the phases with their themes,
+the threads with their order and prerequisites, and any open questions;
 [plan/notes.md](plan/notes.md) keeps the research notes, the files
-several items share and the judgment calls. The whole-sphere work (GEN.233 onwards, the phenomena
-catalogue and the fill) has its own plan,
-[plan/intergalactic-space-plan.md](plan/intergalactic-space-plan.md). This file keeps each
-item's full text. A new item goes into a phase's table in the same PR
-that files it.
-When an item ships, its row leaves the phase file and is copied into
+several items share and the judgment calls, and
+[plan/release-roadmap.md](plan/release-roadmap.md) holds each version's
+headline, what it needs and the ideas not yet filed. The whole-sphere work
+(GEN.233 onwards, the phenomena catalogue and the fill) has its own plan,
+[plan/intergalactic-space-plan.md](plan/intergalactic-space-plan.md). This
+file keeps each item's full text. A new item goes into a version file's
+table in the same PR that files it.
+When an item ships, its row leaves the version file and is copied into
 [plan/progress-ledger.md](plan/progress-ledger.md) in the same PR: the
-progress bar on every tier of the tier plan counts finished items from
-that ledger (Boss, 2026-10-16), and the build fails if a retired item has
-no row there.
+progress bar on every version of the version plan counts finished items
+from that ledger (Boss, 2026-10-16), and the build fails if a retired
+item has no row there.
 
-| Phase | Plan | Goal | Items |
-|---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75, PERF.105, UX.118 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, API.19, GEN.299, GEN.300 |
-| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
+| Version | Plan | Headline |
+|---|---|---|
+| 8.1 | [version-8-1-zoom-and-scatters.md](plan/version-8-1-zoom-and-scatters.md) | Infinite zoom and the new generate scatters |
+| 8.2 | [version-8-2-accounts-and-invitations.md](plan/version-8-2-accounts-and-invitations.md) | User accounts with email invitations |
+| 8.3 | [version-8-3-moving-galaxy.md](plan/version-8-3-moving-galaxy.md) | The moving galaxy |
+| 8.4 | [version-8-4-new-worlds.md](plan/version-8-4-new-worlds.md) | New worlds |
+| 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
+| 8.6 | [version-8-6-edit-everything.md](plan/version-8-6-edit-everything.md) | Edit everything |
+| 8.7 | [version-8-7-console-and-help.md](plan/version-8-7-console-and-help.md) | The pilot's console and built-in help |
+| 8.8 | [version-8-8-deep-sky.md](plan/version-8-8-deep-sky.md) | The deep sky |
+| 8.9 | [version-8-9-generate-anywhere.md](plan/version-8-9-generate-anywhere.md) | Generate anywhere |
+| 9.0 | [version-9-0-view-from-a-planet.md](plan/version-9-0-view-from-a-planet.md) | The view from a planet |
+| 9.1 | [version-9-1-gravity-map.md](plan/version-9-1-gravity-map.md) | The gravity map |
+| 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
+| 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
+| later | [version-later-future-features.md](plan/version-later-future-features.md) | Future features (not scheduled) |
 
-Phases overlap: a phase's later threads can start while the next
-phase's first ones run, as long as the order inside each phase holds.
+Version 8.0 is the finished Phase 0 and has no file. Version "later" holds
+possible future features that belong to no version yet (multiple
+galaxies).
 
 Version: the next revision is 8.1 (Boss, 2026-10-09 18:12Z: no 8.1 until
-Phase 1 is complete). Boss (23:07Z) put the fly-through Galaxy Map
-(MAP.146 and MAP.147 to MAP.155) into phase 1 as the main feature that
-earns the 8.1 bump. Phase 1 is complete only when those are done too;
-until then every release stays on 8.0 (`REVISION_HOLD` in
-`scripts/bump_version.py`), and the TODO thread flips the hold when Boss
-declares phase 1 complete.
+Phase 1 is complete; Phase 1 is now version 8.1). Boss (23:07Z) put the
+fly-through Galaxy Map (MAP.146 and MAP.147 to MAP.155) into it as the
+main feature that earns the 8.1 bump, and on 2026-10-16 (1:07 PM EDT) added
+the new generate scatters, accurate galactic generation and scattering
+including the halo (GEN.301), as the second 8.1 headline. 8.1 is complete
+only when all its phases are done; until then every release stays on 8.0
+(`REVISION_HOLD` in `scripts/bump_version.py`), and the TODO thread flips
+the hold when Boss declares it complete.
 
-Seminal features (Boss, 2026-10-10 20:58Z): 8.0 the orbital update
-system, 8.1 infinite zoom (the fly-through Galaxy Map), 9.0 the
-gravitational map (MAP.167: foundations in phase 2, roll-out in phase
-3). Phase 2, when finished, is 8.5, and Boss (21:05Z) chose its
-headline: courses that bend around gravity wells, with waypoints,
-editable and saved courses (NAV.59). A headline feature carries a
-`Headline: VERSION (name).` line in its item; `scripts/build_todo_docs.py`
-reads it and shows, in every plan page, each headline with all the open
-items it needs in build order. Every release in CHANGELOG.md opens with a
-**Headline:** line (Boss, 2026-10-10); the TODO thread adds one to each
-newly stamped release.
+Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
+(MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
+sign-up by an email invitation only an admin can send (USR.1), 8.3 the
+orbital update system (GEN.105), 8.5 courses that bend around gravity wells
+(NAV.59), 8.6 edit everything (ADM.57), 9.1 the gravity map (MAP.167). 9.0
+has no chosen headline yet (the view from a planet is proposed) and there
+is no 10.0 headline; multiple galaxies is a possible future feature. A
+headline feature carries a `Headline: VERSION (name).` line in its item;
+`scripts/build_todo_docs.py` reads it and shows, in every plan page, each
+headline with all the open items it needs in build order. Every release in
+CHANGELOG.md opens with a **Headline:** line (Boss, 2026-10-10); the TODO
+thread adds one to each newly stamped release.
 
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
@@ -1079,7 +1099,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   umbrella carries the rule for all layers: gradient step and zone size
   come from those thresholds, and the legend names the scale in use. See
   docs/design/gravity-map.md.
-  Headline: 9.0 (the gravity map).
+  Headline: 9.1 (the gravity map).
   Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
   GEN.105, NAV.6.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
@@ -2486,7 +2506,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
-  Headline: 8.0 (the orbital update system).
+  Headline: 8.3 (the orbital update system).
   Prerequisites: GEN.115, GEN.109, GEN.110, GEN.289, GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
   Research (2026-10-09, orbital-solvers-and-integrators.md): the Full
@@ -4758,6 +4778,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class itself.
   Prerequisites: GEN.299, UX.107. Related: GEN.294, UX.108.
 
+- [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
+  Boss (2026-10-16, 1:07 PM EDT): "I also want the new generate scatters
+  as a headline of 8.1 as well as infinite zoom. Accurate galactic
+  generation and scattering including the halo." Umbrella and the second
+  headline of 8.1 (the first is the fly-through Galaxy Map, MAP.146).
+  Done when the three scatters fill the whole sphere out to the 262 kpc
+  reach from one rule set and a per-sector profile (GEN.240), with the
+  satellites, clusters and wanderers placed as components (GEN.237,
+  GEN.238, GEN.244), every nebula built with real stars (GEN.241 to
+  GEN.243), a realistic galactic core with real density and a per-cell
+  cap (GEN.280 to GEN.285), the halo luminosity floor tier (GEN.283) and
+  its sliders (UX.116), the stellar evolution fixes that keep the bright
+  giants honest (GEN.286, GEN.287, GEN.259), and the audits that show
+  every kind of object is represented at its expected frequency
+  (TEST.159, TEST.160).
+  Headline: 8.1 (the new generate scatters: accurate galactic generation
+  and scattering, including the halo).
+  Prerequisites: GEN.237, GEN.238, GEN.240, GEN.241, GEN.242, GEN.243,
+  GEN.244, GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.285,
+  GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -5910,6 +5952,24 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.55, ADM.50. Related: ADM.43, ADM.44, ADM.13,
   ADM.35, UX.102, UX.49.
 
+- [ ] **ADM.57 Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan**
+  Boss (2026-10-16, 1:07 PM EDT): "I want the 'edit everything' to be a
+  headline feature for 8.6, and by that I mean that the admin has
+  complete control they can edit and change anything how they want. They
+  can move stars in a sector, change orbits in a system, change
+  densities for a sector or region, regenerate any star they want to any
+  specification they want. The world will adjust to what the admin
+  wants. That means if I want to change an A to an M planet the system
+  will figure out how to rearrange the star system to make that happen
+  but it will get approval for the new generation plan first. In regen
+  screens the admin should also be able to select aspects they want to
+  keep and what they want regenerated." Umbrella of 8.6, broken into
+  items in the 8.6 phase file; it is done when its items are.
+  Headline: 8.6 (edit everything: the admin can change anything and the
+  world adjusts, after approving a plan).
+  Prerequisites: ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120,
+  POP.13.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -6605,6 +6665,8 @@ clears each one.
   `src/planetgen/admin/auth.py` and `src/planetgen/admin/throttle.py`
   with `api/loginguard.py`.
 
+  Headline: 8.2 (user accounts, with sign-up by an email invitation that
+  only an admin can send).
   - [ ] **USR.2 Accounts with roles: user, admin and Owner**
     Boss: "Admin can
     then make a user admin or take away admin rights on everything but the
@@ -7257,7 +7319,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2026-10-15 7:01 PM EDT): "Add a TODO item in DOCS to build an
   index with links to pages with descriptions of what each page contains
   under docs to link the HTML together." Today the HTML pages under
-  docs/ (the execution plan, the tier plan, the TODO tree, the TODO
+  docs/ (the execution plan, the version plan, the TODO tree, the TODO
   reference, the architecture page, and any page added later) do not
   link to each other except by hand. Build `docs/index.html`: one entry
   per HTML page with its title, a one-or-two sentence description of
