@@ -207,24 +207,23 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it |  | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
-| MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins |  | Fly-through report item 5. |
-| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | MAP.152 | Found in the 2026-10-16 check of MAP.146. |
+| MAP.225 | The wheel zooms toward the point under the cursor, with clearance |  | Found in the 2026-10-16 check of MAP.146. |
 | MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | MAP.225 | Found in the 2026-10-16 check of MAP.146. |
 | MAP.227 | The camera names its container: the header and the breadcrumb come from its position | MAP.226 | Found in the 2026-10-16 check of MAP.146. |
 | MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | MAP.225 | Found in the 2026-10-16 check of MAP.146. |
-| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.152, MAP.225, MAP.226, MAP.227, MAP.228 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
-| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.225, MAP.226, MAP.227, MAP.228 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
+| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") |  | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent |  |  |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | MAP.172 | Foundations lane 2. |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | MAP.172, MAP.173, GEN.202 | Foundations lane 1. |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
-| MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.152 |  |
+| MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |
 | MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | MAP.189 |  |
 | MAP.214 | Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space |  | Split from MAP.191. |
 | MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) |  |  |
 | MAP.210 | Nothing on the map can be selected, even in sector view (bug) |  |  |
-| MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | MAP.152 | Map labels, Boss 2:30 PM EDT. |
+| MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom |  | Map labels, Boss 2:30 PM EDT. |
 | MAP.230 | Names of stars, systems and sectors on the Galaxy Map | MAP.229 | Map labels, Boss 2:30 PM EDT. |
 | MAP.231 | The Sector Map and the System Map use the label engine | MAP.229 | Map labels, Boss 2:30 PM EDT. |
 
