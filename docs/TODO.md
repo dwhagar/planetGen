@@ -119,7 +119,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, OPS.41, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.235, GEN.234, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.266, GEN.265, PERF.103, GEN.264, GEN.263, GEN.262, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.151, GEN.93, GEN.112, GEN.154, GEN.153, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.235, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.266, GEN.265, PERF.103, GEN.264, GEN.263, GEN.262, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.151, GEN.93, GEN.112, GEN.154, GEN.153, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, GEN.159, GEN.158, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
@@ -3238,8 +3238,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is merged: every star gets an [Fe/H] from its population and galactic
   position, metal-poor stars' disks hold fewer solids (disk solids x
   10^[Fe/H]), the giant factor is written. Still open: the stored column
-  Star.metallicity_fe_h (migration revision 0094, Core 2's, after Core
-  1's 0093 lands) and the display on the sector page. Core 3 can use the
+  Star.metallicity_fe_h (migration revision 0095, Core 2's, after Core 1's 0093 and 0094 landed) and the display on the sector page. Core 3 can use the
   model now (GEN.283, GEN.286).
   Prerequisites: none.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
@@ -3587,38 +3586,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   true until the mode is built.
   Prerequisite: PERF.99. Related: GEN.101, MAP.120.
 
-- [ ] **GEN.234 A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations**
-  Step 3 of the whole-sphere train. `MIN_RELATIVE_DENSITY` (0.1% of the
-  local density everywhere) is half the real halo at the Sun and 200 to
-  340,000 times too high at 50 to 262 kpc. Add a halo term to
-  `_raw_density`: a broken power law on a spheroid (baseline mass 1.5e9
-  solar masses = 3% of the visible mass, inner slope 2.5, outer slope
-  4.5, break 25 kpc = 9.6 disk scale lengths, axis ratio 0.7, flat
-  inside 0.5 kpc), amplitude solved like `k_norm`, radii as ratios to
-  the shape's scale length. Add the populations the profile will mix:
-  `halo` (age 10 to 13 Gyr, [Fe/H] about -1.6 inside 25 kpc falling to
-  -2.2, dispersion 120 km/s, no rotation), `cluster` and one class per
-  satellite, each an age window with its own pre-placed share
-  (`bright_star_fraction`, `massive_star_fraction`), and put them in
-  `fractions` and the shell majorants (`band_majorants`) in place of the
-  floor's share. Delete the floor, with no setting. Done: the floor is
-  gone, the halo term integrates to its mass, no cell beyond 8.7 kpc
-  from the core expects a full system and the outline does not move, the
-  density mirror in `galaxyprisms.js` accepts the new population keys,
-  and the floor tests are rewritten. The local-density alternative
-  (about 2.7 times higher) is kept as a documented constant. Owner: Core
-  (2026-10-15).
-  Scatter-threshold note (Boss, 2026-10-16, 12:51 AM EDT, GEN.279): the
-  density plan matches real observations of galactic density and star
-  counts as closely as we can; the tiers apply only to the minimum mass
-  and minimum luminosity the scatter sweeps use (about 10% higher at the
-  core, about 10% lower in the halo and intergalactic space), so the
-  sector profile leaves room for a per-sector scatter-threshold tier. It
-  does not change the density model or any star's caps; Core 3's note
-  for GEN.279 fixes the exact form.
-  Prerequisite: GEN.233. Related: GEN.78, GEN.134.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.235 One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved**
   Step 2 of the whole-sphere train. Boss's rule: the program has the
   same rules everywhere, and each sector carries parameters that tune
@@ -3654,7 +3621,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector profile leaves room for a per-sector scatter-threshold tier. It
   does not change the density model or any star's caps; Core 3's note
   for GEN.279 fixes the exact form.
-  Prerequisite: GEN.234. Related: GEN.76, GEN.81, GEN.42.
+  Prerequisites: none. Related: GEN.76, GEN.81, GEN.42, GEN.234.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.236 Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity**
@@ -3714,6 +3681,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector profile leaves room for a per-sector scatter-threshold tier. It
   does not change the density model or any star's caps; Core 3's note
   for GEN.279 fixes the exact form.
+  Note from Core 1 (2026-10-16, GEN.234 merged, #1763): populations are
+  now young, intermediate, old, bulge, halo and cluster, and cluster is
+  0 until this item; satellite classes (one class per satellite) were
+  NOT added as populations and arrive with this component table;
+  migration 0094 widened the bright_stars.population CHECK; this item's
+  revision is 0096.
   Prerequisites: GEN.235, GEN.159, GEN.160. Related: GEN.9, GEN.161,
   GEN.164.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
@@ -3820,7 +3793,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   address columns and gain the point columns and cell key (DB.35); the
   scatter pass keeps its bands and order and the key is computed from
   whatever position it writes.
-  Prerequisites: GEN.234, GEN.235, GEN.237. Related: GEN.238,
+  Prerequisites: GEN.235, GEN.237. Related: GEN.238,
   GEN.223.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -4091,7 +4064,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars and the component table lists the stream. Later: not part of the
   whole-sphere train and nothing in it waits on this; plan after it.
   Owner: Core, later (2026-10-15).
-  Prerequisites: GEN.237, GEN.234. Related: GEN.239.
+  Prerequisite: GEN.237. Related: GEN.239.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.249 Be stars, carbon stars and Mira variables as star attributes (later)**
@@ -4655,9 +4628,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the published numbers named in the note. The new GalaxyShape
   fields need a migration: Core 1 owns the revision and Core 3 asks it
   first.
-  Migration revision: Core 1 named 0096 for GEN.280, GEN.281 and GEN.283
-  together (0093 and 0095 are Core 1's, 0094 is Core 2's); Core 3 asks
-  again once 0095 merges.
+  Migration revision: Core 1 named 0097 for GEN.280, GEN.281 and GEN.283 together (0093 and 0094 are Core 1's and merged, 0095 is Core 2's, 0096 is Core 1's for GEN.237); Core 3 asks again once 0096 merges.
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4679,9 +4650,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy_shape columns (cell_star_ceiling, fill_luminosity_cap_sol)
   share one Core 1 migration revision with GEN.283; option planetgen
   plan --cell-star-ceiling and --fill-luminosity-cap.
-  Migration revision: Core 1 named 0096 for GEN.280, GEN.281 and GEN.283
-  together (0093 and 0095 are Core 1's, 0094 is Core 2's); Core 3 asks
-  again once 0095 merges.
+  Migration revision: Core 1 named 0097 for GEN.280, GEN.281 and GEN.283 together (0093 and 0094 are Core 1's and merged, 0095 is Core 2's, 0096 is Core 1's for GEN.237); Core 3 asks again once 0096 merges.
   Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234, GEN.283.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4728,11 +4697,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` from 100 to 50 so
   `star_population._check_threshold` accepts it (Core 3's finding;
   GEN.149, now built, changed the same white-dwarf constants), and the plan option `--halo-min-luminosity` accepts 50.
-  Migration revision: Core 1 named 0096 for GEN.280, GEN.281 and GEN.283
-  together (0093 and 0095 are Core 1's, 0094 is Core 2's). Core 1's
-  revision 0095 adds a scatter-threshold tier column to the profile and
-  component tables; GEN.283 reuses it instead of a second tier column if
-  it fits (Core 3 checks when 0095 is visible).
+  Migration revision: Core 1 named 0097 for GEN.280, GEN.281 and GEN.283 together (0093 and 0094 are Core 1's and merged, 0095 is Core 2's, 0096 is Core 1's for GEN.237). Core 1's 0096 adds the scatter-threshold tier column to the profile and component tables; GEN.283 reuses it instead of a second tier column if it fits (Core 3 checks when 0096 is visible).
   Prerequisites: GEN.235, GEN.158. Related: GEN.234, GEN.237, GEN.281.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4881,8 +4846,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   orbital elements shown on the pages are derived from the vector, and
   the circular phase columns are replaced, not kept beside them (no
   compatibility layer). GEN.294 gives every other object kind the same
-  object and shares one migration with this item: Core 1 places it, next
-  free 0097. Design:
+  object and shares one migration with this item: Core 1 places it, next free 0098. Design:
   /mnt/project-files/research/orbital-encounters/capture-and-ejection-design.md.
   Prerequisite: GEN.115. Related: GEN.105, GEN.109, GEN.110, GEN.223,
   GEN.294.
@@ -5065,7 +5029,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass or the vector, so a new object kind cannot ship without them. The
   planet and moon dynamical state (parent, bound state, the replaced
   circular phase) belongs to GEN.289, which builds on this object; both
-  go in the one migration, revision 0097 or the next free one, placed by
+  go in the one migration, revision 0098 or the next free one, placed by
   Core 1 (it owns every revision). Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
@@ -7277,7 +7241,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   point; the orbital step is atomic against a mid-run cancel (a
   cancelled run leaves a coherent clock, as GEN.232's cap does). No
   compatibility shim.
-  Prerequisites: OPS.41. Related: OPS.16, OPS.53, GEN.105, GEN.223.
+  Prerequisite: OPS.41. Related: OPS.16, OPS.53, GEN.105, GEN.223.
 
 ## DOC: Documentation
 
@@ -7589,7 +7553,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   reach versus the outline, the profile, the components, the kind
   factors, the nebula contents, the Wolf-Rayet state and class X, and
   the 96-bit layout as built. Owner: Quality, after the code.
-  Prerequisites: GEN.234, GEN.235, GEN.237, GEN.241, GEN.243.
+  Prerequisites: GEN.235, GEN.237, GEN.241, GEN.243.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **DOC.49 Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue**

@@ -793,7 +793,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | open |
 | GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | done, PR #1660 |
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | none | done, PR #1757 |
-| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | open |
+| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | done, PR #1763 |
 | GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | none | open |
 | GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | none | open |
 | GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | none | open |
