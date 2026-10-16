@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1510] - 2026-10-16
+
+**Headline:** The to-do list files a new flaky-test bug for the sector page accessibility test (TEST.174).
+
+### Changed
+
+- Filed TEST.174 (the sector page accessibility test failed once under load and passes alone).
+
+TODO items resolved: none / Added: TEST.174
+
 ## [8.0.1509] - 2026-10-16
 
 **Headline:** A galaxy can now hold globular clusters as stored King-model components, with a generator that draws the Milky Way's 157.
