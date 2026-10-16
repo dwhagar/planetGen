@@ -630,6 +630,46 @@ METALLICITY_RANGE_FE_H = (-3.5, 0.6)
 # capped at 1 (Fischer and Valenti 2005 form, recalled).
 GIANT_PLANET_METALLICITY_EXPONENT = 2.0
 
+# Globular clusters (GEN.159, docs/design/globular-clusters.md). A cluster is stored as a density component, not as
+# stars: its profile is a King (1966) model of one of ten concentrations `KING_W0_RANGE` (inclusive), solved once
+# (`physics/king.py`) on `KING_TABLE_POINTS` log-spaced radii and scaled by length. A cluster's systems number its
+# mass over `CLUSTER_MEAN_SYSTEM_MASS_SOL` (a Kroupa mean of 0.30 plus remnants and binaries, recalled, good to about
+# a factor 1.5). The tidal radius a cluster may not exceed is the Jacobi radius in an isothermal halo of circular
+# speed `CLUSTER_HALO_CIRCULAR_KMS`.
+KING_W0_RANGE = (3, 12)
+KING_TABLE_POINTS = 2000
+CLUSTER_MEAN_SYSTEM_MASS_SOL = 0.4
+CLUSTER_HALO_CIRCULAR_KMS = 220.0
+
+# A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/globular-clusters.md section 8):
+# the Milky Way's count; masses lognormal about `CLUSTER_MASS_PEAK_SOL` with `CLUSTER_MASS_SIGMA_DEX`, truncated to
+# `CLUSTER_MASS_RANGE_SOL`; half-mass radii lognormal about `CLUSTER_HALF_MASS_RADIUS_PC` (width in dex, growing with
+# distance from the centre as `(R / 8 kpc) ** CLUSTER_RADIUS_GROWTH`, limited to `CLUSTER_HALF_MASS_RADIUS_RANGE_PC`);
+# a fraction `CLUSTER_CORE_COLLAPSED_FRACTION` is core-collapsed (W0 at the top of the range) and the rest draw their
+# concentration c from a normal about `CLUSTER_CONCENTRATION_MEAN` (all recalled from Harris 1996 and Baumgardt and
+# Hilker 2018, good to the shape of the distribution). [Fe/H] has two groups, `(fraction, mean, sigma)`: the
+# metal-poor halo clusters and the metal-rich ones of the bulge and disk (the two peaks near -1.5 and -0.5), the
+# metal-rich group sitting on flattened orbits about the centre (median `CLUSTER_BULGE_MEDIAN_PC`, rotating at
+# `CLUSTER_HALO_CIRCULAR_KMS`) and the halo group on a density falling as r**-3.5 between `CLUSTER_HALO_RADIUS_RANGE_PC`.
+CLUSTER_COUNT_MILKY_WAY = 157
+CLUSTER_MASS_PEAK_SOL = 2.0e5
+CLUSTER_MASS_SIGMA_DEX = 0.5
+CLUSTER_MASS_RANGE_SOL = (1.0e4, 3.0e6)
+CLUSTER_HALF_MASS_RADIUS_PC = 5.0
+CLUSTER_HALF_MASS_RADIUS_SIGMA_DEX = 0.3
+CLUSTER_HALF_MASS_RADIUS_RANGE_PC = (1.5, 40.0)
+CLUSTER_RADIUS_GROWTH = 0.3
+CLUSTER_CORE_COLLAPSED_FRACTION = 0.2
+CLUSTER_CONCENTRATION_MEAN = 1.45
+CLUSTER_CONCENTRATION_SIGMA = 0.4
+CLUSTER_AGE_RANGE_GY = (10.0, 13.0)
+CLUSTER_FE_H_GROUPS = ((0.65, -1.55, 0.3), (0.35, -0.55, 0.25))
+CLUSTER_BULGE_MEDIAN_PC = 3000.0
+CLUSTER_BULGE_FLATTENING = 0.5
+CLUSTER_HALO_RADIUS_RANGE_PC = (1000.0, 120000.0)
+CLUSTER_HALO_DISPERSION_KMS = 110.0
+CLUSTER_BULGE_DISPERSION_KMS = 60.0
+
 # The galaxy density model's fixed Milky Way structure
 # (`galaxy.density`, GEN.118, GEN.119): everything that isn't a
 # `GalaxyShape` field, as ratios to those fields so it scales with the

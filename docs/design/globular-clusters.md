@@ -3,7 +3,7 @@
 Boss's research of 2026-10-09 (18:45Z, "Procedural Generation and Dynamical Modeling of Globular Clusters in Galactic-Scale Architectures"), digested against how the generator works today, with the numbers checked by calculation. It answers Boss's question of 18:32Z, "What do we need to know in order to model globular clusters in generation?", and settles the decision he was asked: store a cluster as a density component, not as hand-placed stars.
 
 Informs: GEN.9 and VIEW.2 (other galaxies), GEN.100 and GEN.130 (the captured-giant pulsar planet, left out until clusters exist), GEN.134 (the metallicity gradient, item 4), GEN.84 and GEN.133 (stellar populations), GEN.42 and PERF.34 (sampling and cost)
-Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation. No cluster model exists in the repository today.
+Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation. Slice 1 and the synthetic generator of slice 4 are built (GEN.159, schema v97): the `galaxy_components` table, the King tables (`planetgen/physics/king.py`) and `planetgen/generation/clusters.py`, which draws the Milky Way's 157 from the galaxy seed until Boss supplies a catalogue. The sector gate, the fill and the planets (slices 2 and 3) are not built.
 
 Evidence tags: [B] a claim from Boss's research text, its cited paper not opened by this digest (the research environment cannot reach arXiv or journal sites); [C] computed here, re-runnable with `/mnt/project-files/research/scripts/globular/calc.py` (numpy only, seeded); [S] read from the repository; [R] recalled and unconfirmed.
 

@@ -1286,6 +1286,9 @@
 --
 -- v96 (GEN.153): `neutron_stars.pulsar_type` also takes 'magnetar' (its CHECK, `neutron_stars_chk_1`, is
 --   replaced; the quadrant CHECK stays `neutron_stars_chk_2`).
+-- v97 (GEN.159): `galaxy_components`, the discrete stellar components of a galaxy (globular clusters now, satellites
+--   and streams later) as density profiles with a position, velocity, mass, age and [Fe/H], and a `cell_key` like the
+--   other tables with a point in the galaxy frame.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -3855,6 +3858,53 @@ CREATE TABLE IF NOT EXISTS population_state (
     id                     TINYINT UNSIGNED PRIMARY KEY,
     scanned_planet_id      BIGINT UNSIGNED NOT NULL DEFAULT 0,
     CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- galaxy_components (v97, GEN.159): the discrete stellar components of a galaxy beyond the disk, one row each, of every
+-- kind in one table: the globular clusters, and later the satellites and streams (GEN.237). A component is a density
+-- (a profile of its mass about a centre), not a list of stars; its stars come from the profile when a sector is
+-- generated. `profile` 'king' carries the King (1966) concentration `king_w0` (3 to 12) and the `tidal_radius_pc` (`Component` checks that, not the table);
+-- `planetgen/physics/king.py` turns a row into a density. `source` is 'catalogue' for a real object and 'generated' for
+-- one drawn from the galaxy seed (`planetgen/generation/clusters.py`); nothing writes rows until GEN.160 plans them.
+CREATE TABLE IF NOT EXISTS galaxy_components (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    kind                 VARCHAR(12) NOT NULL,
+    name                 VARCHAR(255) NOT NULL,
+    -- The catalogue's own name for the object ("NGC 104"), so a later import of a real catalogue can match its rows.
+    catalogue_id         VARCHAR(40),
+    source               VARCHAR(12) NOT NULL,
+    -- A cluster inside a satellite, or a satellite of a larger galaxy; NULL for a component of the galaxy itself.
+    parent_component_id  BIGINT UNSIGNED,
+    -- The component's centre in the galaxy frame (parsecs) and its velocity there, at `epoch_unix`.
+    center_x_pc          DOUBLE NOT NULL,
+    center_y_pc          DOUBLE NOT NULL,
+    center_z_pc          DOUBLE NOT NULL,
+    cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(center_x_pc) < 262144 AND ABS(center_y_pc) < 262144 AND ABS(center_z_pc) < 262144, ((((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_x_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_y_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((CAST(FLOOR(((center_z_pc) + 262144) / 0.25) AS UNSIGNED)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
+    KEY idx_galaxy_components_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
+    velocity_x_kms       DOUBLE NOT NULL,
+    velocity_y_kms       DOUBLE NOT NULL,
+    velocity_z_kms       DOUBLE NOT NULL,
+    epoch_unix           DOUBLE NOT NULL,
+    mass_solar           DOUBLE NOT NULL,
+    half_mass_radius_pc  DOUBLE NOT NULL,
+    profile              VARCHAR(12) NOT NULL,
+    king_w0              DOUBLE,
+    tidal_radius_pc      DOUBLE,
+    age_gy               DOUBLE NOT NULL,
+    metallicity_fe_h     DOUBLE NOT NULL,
+    core_collapsed       TINYINT(1) NOT NULL DEFAULT 0,
+    seed                 BIGINT UNSIGNED NOT NULL,
+    created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_galaxy_components_name (kind, name),
+    KEY idx_galaxy_components_parent (parent_component_id),
+    CONSTRAINT fk_galaxy_components_parent
+        FOREIGN KEY (parent_component_id) REFERENCES galaxy_components(id) ON DELETE SET NULL,
+    CONSTRAINT chk_galaxy_components_kind CHECK (kind IN ('cluster', 'satellite', 'stream')),
+    CONSTRAINT chk_galaxy_components_source CHECK (source IN ('catalogue', 'generated')),
+    CONSTRAINT chk_galaxy_components_profile CHECK (profile IN ('king', 'exponential', 'plummer')),
+    CONSTRAINT chk_galaxy_components_core_collapsed CHECK (core_collapsed IN (0, 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
