@@ -75,6 +75,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | GEN.235, API.27 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | GEN.235, GEN.237, GEN.240, NAV.61, API.27, UX.113 | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
+| UX.116 | Sliders for every scatter and fill floor, ceiling and core lever, each labeled with a number box showing its value, in the Generate page's existing layout and segments | GEN.281, GEN.283 | Core 3; sliders for the scatter floors and ceilings |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass | GEN.260 | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.233, GEN.234, GEN.235, GEN.237, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
