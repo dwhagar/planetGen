@@ -4722,6 +4722,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the published numbers named in the note. The new GalaxyShape
   fields need a migration: Core 1 owns the revision and Core 3 asks it
   first.
+  Migration revision: Core 1 named 0096 for GEN.280, GEN.281 and GEN.283
+  together (0093 and 0095 are Core 1's, 0094 is Core 2's); Core 3 asks
+  again once 0095 merges.
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4743,6 +4746,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy_shape columns (cell_star_ceiling, fill_luminosity_cap_sol)
   share one Core 1 migration revision with GEN.283; option planetgen
   plan --cell-star-ceiling and --fill-luminosity-cap.
+  Migration revision: Core 1 named 0096 for GEN.280, GEN.281 and GEN.283
+  together (0093 and 0095 are Core 1's, 0094 is Core 2's); Core 3 asks
+  again once 0095 merges.
   Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234, GEN.283.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4783,6 +4789,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.281; options planetgen plan --core-min-luminosity,
   --core-mass-limit and --halo-min-luminosity. A halo floor of 500 gives
   about 3.8 million rows (0.6 GB).
+  Migration revision: Core 1 named 0096 for GEN.280, GEN.281 and GEN.283
+  together (0093 and 0095 are Core 1's, 0094 is Core 2's). Core 1's
+  revision 0095 adds a scatter-threshold tier column to the profile and
+  component tables; GEN.283 reuses it instead of a second tier column if
+  it fits (Core 3 checks when 0095 is visible).
   Prerequisites: GEN.235, GEN.158. Related: GEN.234, GEN.237, GEN.281.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4828,6 +4839,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.158, GEN.283, GEN.234, GEN.237,
   GEN.159, GEN.160, GEN.236.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
+
+- [ ] **GEN.287 The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug)**
+  Finding from Core 3 (2026-10-16, 1:14 AM EDT, kind: model accuracy,
+  written in its galactic core note
+  docs/design/realistic-galactic-core.md, no fix planned there): the
+  giant-branch stars of the stellar evolution model are spread evenly in
+  log luminosity, which probably overstates the bright giants by about a
+  factor of two compared with real halo counts. Boss wants densities and
+  star counts to match real observations. Done: the giant-branch
+  luminosity distribution follows the time spent at each luminosity (the
+  real luminosity function) and the halo giant counts are checked
+  against published halo counts; folded into GEN.286's plan note and
+  build unless Core 3 says otherwise. Owner Core 3, goal issue #1677.
+  Prerequisites: none. Related: GEN.286, GEN.283.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
