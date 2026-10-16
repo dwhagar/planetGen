@@ -156,7 +156,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations |  | Lane 1 report 2026-10-10. |
 | OPS.51 | The maintenance-mode flag file cannot be written by the web user on the server, so maintenance mode fails with a PermissionError (bug) |  | Priority bug in flight. Interface. |
-| OPS.52 | Everything under the planetGen install is owned by www-data:www-data, and the example Apache2 config restricts directories | OPS.51 | Owner Quality; after OPS.51. |
 
 ### Admin control
 

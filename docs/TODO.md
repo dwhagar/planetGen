@@ -6706,22 +6706,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   or write it loud.
   Prerequisites: none. Related: OPS.41, UX.112.
 
-- [ ] **OPS.52 Everything under the planetGen install is owned by www-data:www-data, and the example Apache2 config restricts directories**
-  Boss (2026-10-16, 12:00 AM EDT): make everything under planetgen owned
-  by www-data:www-data, and add directory restrictions for security to
-  the example apache2 config. Boss added: install.sh must also do the
-  initial setup correctly. Done: install.sh (fresh install) and
-  update.sh (shared code in deploy-common.sh) create and keep the whole
-  install tree and /var/lib/planetGen/state owned by www-data:www-data
-  from the start; a test shows a fresh install and an updated one end
-  with the same ownership; the example Apache2 config denies everything
-  except the WSGI app and the static assets, allows no directory listing
-  and no .htaccess overrides; update.sh never edits the live vhost or
-  Redis config (it warns, as before). Owner: Quality, starting after
-  Interface's maintenance-state-folder PR (OPS.51) merges, since both
-  touch update.sh.
-  Prerequisites: OPS.51. Related: OPS.41, OPS.35.
-
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
