@@ -4989,7 +4989,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until it lands, from interim population defaults (halo -1.6 and -2.2,
   disc and bulge -0.1). Boss (2026-10-15 10:06 PM EDT): the
   horizontal-branch stars are to be fully part of the generation of a
-  sector in the proper proportions; "go ahead and build the fix into
+  sector, the fill as well as the scatter, in the proper proportions,
+  with the giant-branch spread of GEN.287 built in the same pipeline;
+  "go ahead and build the fix into
   your pipe". Acceptance test (Core 3's figures): sampled old, halo and
   bulge populations put about 0.8 to 1.2% of their stars on the
   horizontal branch, the colour shares follow [Fe/H] (-2.2, -1.5, -0.1),
@@ -5010,8 +5012,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star counts to match real observations. Done: the giant-branch
   luminosity distribution follows the time spent at each luminosity (the
   real luminosity function) and the halo giant counts are checked
-  against published halo counts; folded into GEN.286's plan note and
-  build unless Core 3 says otherwise. Owner Core 3, goal issue #1677.
+  against published halo counts; built together with GEN.286 in the same
+  pipeline, not queued separately (Boss, 2026-10-15 10:06 PM EDT: "go
+  ahead and build the fix into your pipe"). Owner Core 3, goal issue
+  #1677.
   Prerequisites: none. Related: GEN.286, GEN.283.
 
 ## PERF: Speed, caching, bulk generation and parallel work
