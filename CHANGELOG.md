@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1506] - 2026-10-16
+
+**Headline:** The to-do list retires the magnetar scatter class (GEN.278).
+
+### Changed
+
+- Retired GEN.278 (#1805) and removed it from the later-catalogue goal table.
+
+TODO items resolved: GEN.278 / Added: none
+
 ## [8.0.1505] - 2026-10-16
 
 **Headline:** Magnetars are placed across the galaxy before any sector is filled, on the young stars.
