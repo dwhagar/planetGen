@@ -85,8 +85,8 @@ def bound_relative_density_at(shape, r_cyl, z):
     angle. Directly comparable to a qualification threshold.
     """
     bound = shape.k_norm * _bound_raw_density_at(shape, r_cyl, z)
-    if shape.clusters is not None:
-        bound += shape.clusters.bound(r_cyl, z)     # the globular clusters (GEN.160), each at its nearest to the ring
+    if shape.components is not None:
+        bound += shape.components.bound(r_cyl, z)     # the clusters and satellites (GEN.160, GEN.237), each at its nearest to the ring
     return bound
 
 
@@ -109,14 +109,14 @@ def _band_qualifies(shape, edge_pc, shell, band, threshold_rho):
 def _highest_qualifying_band(shape, edge_pc, shell, threshold_rho):
     """
     The highest `|band|` of shell `shell` with a cell that can qualify: the run of bands from the equator that the disk
-    and bulge qualify (`_highest_disk_band`), taken up to the highest band a globular cluster reaches in the shell when
-    that is higher (GEN.160): a cluster off the plane is no part of the run, so its bands are added by hand.
+    and bulge qualify (`_highest_disk_band`), taken up to the highest band a globular cluster or satellite reaches in the shell when
+    that is higher (GEN.160, GEN.237): a component off the plane is no part of the run, so its bands are added by hand.
     """
     high = _highest_disk_band(shape, edge_pc, shell, threshold_rho)
-    if shape.clusters is None:
+    if shape.components is None:
         return high
     top = spherical.band_range(shell)[1]
-    return min(top, max(high, shape.clusters.high_band(shell, spherical.band_at, edge_pc)))
+    return min(top, max(high, shape.components.high_band(shell, spherical.band_at, edge_pc)))
 
 
 def _highest_disk_band(shape, edge_pc, shell, threshold_rho):

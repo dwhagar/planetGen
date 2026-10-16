@@ -15,11 +15,11 @@ dropped.
 
 A profile holds:
 
-* `region`: the term of the density that dominates (`bulge`, `disk`, `halo` or `cluster`), a label for pages and
+* `region`: the term of the density that dominates (`bulge`, `disk`, `halo`, `cluster` or `satellite`), a label for pages and
   not a rule;
 * `density` and `expected_systems`: today's `relative_density` and the expected systems per cell, `E x density`,
   which is the mean of the sector's Poisson draw;
-* `mix`: the density by population (`young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`), summing to `density`;
+* `mix`: the density by population (`young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `satellite`), summing to `density`;
 * `populations`: for each, its age window, [Fe/H] distribution, velocity dispersion and what its net motion follows;
 * `gas`: the cold-gas fraction against the solar circle and the ambient medium with its density, and the superbubble
   (GEN.254) the place lies in, if any;
@@ -42,7 +42,7 @@ from planetgen.galaxy import nebula_field, spherical, superbubble_field
 from planetgen.physics import metallicity
 from planetgen.physics.units import pc_to_ly
 
-POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster")
+POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite")
 """tuple: The populations of a profile's mix, in the order `galaxy.density.population_densities` has them."""
 
 _DISK = ("young", "intermediate", "old")
@@ -59,7 +59,8 @@ class PopulationProfile:
         share (float): `density` over the cell's total (0 when the cell holds none).
         age_gy (tuple): `(youngest, oldest)` age of its stars, Gyr.
         fe_h (tuple): `((weight, mean, sigma), ...)`, the [Fe/H] distribution of its stars at this place, dex
-            (one peak, two for a cluster).
+            (one peak; two for a disk or halo place that two components reach, one per component for a cluster or
+            satellite place).
         dispersion_kms (float): Velocity dispersion, km/s.
         rotation (str): What its net motion follows: `disk`, `bar`, `orbit` or `none`.
     """
@@ -112,7 +113,7 @@ class SectorProfile:
         edge_pc (float): The sector edge the profile was made at.
         volume_pc3 (float): The cell's volume.
         shape (GalaxyShape): The galaxy's shape (the fill's molecular cloud field reads its gas from it).
-        region (str): `bulge`, `disk`, `halo` or `cluster`.
+        region (str): `bulge`, `disk`, `halo`, `cluster` or `satellite`.
         density (float): `relative_density` here, never negative.
         expected_systems (float): The mean of the cell's Poisson draw, `E x density` (`E` the systems a cell
             holds at density 1).
@@ -147,20 +148,25 @@ class SectorProfile:
 def _region(mix):
     """The label of the term that dominates `mix`: the disk's three populations count together."""
     terms = {"disk": sum(mix[name] for name in _DISK), "bulge": mix["bulge"], "halo": mix["halo"],
-             "cluster": mix["cluster"]}
+             "cluster": mix["cluster"], "satellite": mix["satellite"]}
     best = max(terms.values())
     if best <= 0.0:
         return "halo"
-    for name in ("cluster", "bulge", "disk", "halo"):    # a tie goes to the more specific place
+    for name in ("cluster", "satellite", "bulge", "disk", "halo"):    # a tie goes to the more specific place
         if terms[name] >= best:
             return name
     return "halo"
 
 
-def _fe_h(name, distance_ly):
-    """`((weight, mean, sigma), ...)` of a population's [Fe/H] `distance_ly` from the centre."""
-    if name == "cluster":
-        return tuning.METALLICITY_CLUSTER_PEAKS
+def _fe_h(name, distance_ly, shape=None, position_pc=None):
+    """`((weight, mean, sigma), ...)` of a population's [Fe/H] `distance_ly` from the centre. A cluster or satellite
+    place takes the [Fe/H] of the components that reach it (`ComponentField.fe_h_peaks`) and, where it has none, the
+    generic peaks of `tuning`."""
+    if name in ("cluster", "satellite"):
+        found = () if shape is None or shape.components is None else shape.components.fe_h_peaks(position_pc, name)
+        if found:
+            return found
+        return tuning.METALLICITY_CLUSTER_PEAKS if name == "cluster" else tuning.METALLICITY_SATELLITE_PEAKS
     mean, sigma = metallicity.mean_fe_h(name, distance_ly)
     return ((1.0, mean, sigma),)
 
@@ -287,7 +293,7 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
     populations = {
         name: PopulationProfile(
             name=name, density=mix[name], share=mix[name] / total if total > 0.0 else 0.0, age_gy=tuple(ages[name]),
-            fe_h=_fe_h(name, distance_ly), dispersion_kms=tuning.STELLAR_POPULATION_DISPERSION_KMS[name],
+            fe_h=_fe_h(name, distance_ly, shape, position_pc), dispersion_kms=tuning.STELLAR_POPULATION_DISPERSION_KMS[name],
             rotation=tuning.STELLAR_POPULATION_ROTATION[name])
         for name in POPULATIONS}
     bubble = None if galaxy_seed is None else superbubble_field.containing(galaxy_seed, shape, position_pc)

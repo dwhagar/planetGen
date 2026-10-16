@@ -43,8 +43,8 @@ def mean_fe_h(population, galactic_center_dist_ly):
     """The mean and scatter `(mean, sigma)` of [Fe/H] for a population at this distance from the centre."""
     if population == "halo":
         return halo_mean_fe_h(galactic_center_dist_ly), tuning.METALLICITY_HALO["sigma"]
-    if population == "cluster":
-        raise ValueError("a cluster carries its own [Fe/H]; pass it instead of sampling one")
+    if population in ("cluster", "satellite"):
+        raise ValueError(f"a {population} carries its own [Fe/H]; pass its peaks instead of sampling one")
     try:
         row = tuning.METALLICITY_BY_POPULATION[population]
     except KeyError:
@@ -54,11 +54,21 @@ def mean_fe_h(population, galactic_center_dist_ly):
     return row["offset"] + gradient, row["sigma"]
 
 
-def sample_fe_h(population, galactic_center_dist_ly, rng=draw):
+def sample_fe_h(population, galactic_center_dist_ly, rng=draw, peaks=None):
     """A star's [Fe/H] (dex): normal about the population's mean at this distance, clamped to
-    `METALLICITY_RANGE_FE_H`. `population` None means the whole disc (`intermediate`)."""
-    mean, sigma = mean_fe_h("intermediate" if population is None else population, galactic_center_dist_ly)
+    `METALLICITY_RANGE_FE_H`. `population` None means the whole disc (`intermediate`). `peaks`, `((weight, mean,
+    sigma), ...)` as the sector profile holds a place's distribution (GEN.237), replaces the population's own: a cluster
+    or satellite star has no mean at a distance from the centre, only that of the component it belongs to; one peak is
+    picked by weight, then the normal about it drawn."""
     low, high = tuning.METALLICITY_RANGE_FE_H
+    if peaks:
+        pick = rng.random() * sum(weight for weight, _mean, _sigma in peaks)
+        for weight, mean, sigma in peaks:
+            if pick < weight:
+                break
+            pick -= weight
+        return min(max(rng.gauss(mean, sigma), low), high)
+    mean, sigma = mean_fe_h("intermediate" if population is None else population, galactic_center_dist_ly)
     return min(max(rng.gauss(mean, sigma), low), high)
 
 

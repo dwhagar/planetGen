@@ -39,7 +39,7 @@ until its owner has landed; the item that adds the function lists its own
 number in `test_system_type_rates._LANDED_OWNERS`, and the test then fails for
 a name the module lacks. The module exists since the member-tree generator."""
 
-POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster")
+POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite")
 """tuple: The stellar populations of the sector profile's `mix` a type may be
 restricted to; `ANY` means all of them."""
 
