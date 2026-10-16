@@ -1374,6 +1374,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.237, GEN.238.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
+- [ ] **MAP.208 Stars on the Galaxy Map, sector map and system map draw as points of light until the view is near sector level**
+  Boss (2026-10-15 9:33 PM EDT): the stars are too big; they should be
+  more like points of light until the view gets down near the sector
+  level. Today each star is a sprite whose size grows with brightness
+  (STAR_MIN_PX to STAR_MAX_PX in src/html/static/galaxymap3d.js, a 1 px
+  dot growing to full size as its zoom share rises, MAP.155) and the
+  sector scene sizes each light by its own sizePx in
+  src/html/static/sectorscene.js, so a star reads as a disc well before
+  the view is close to it. Change: a star is a 1 to 2 px point whose
+  size does not grow as the camera approaches, brightness alone carrying
+  the difference between stars (apparent magnitude, MAP.148). Only near
+  sector level does a star grow into a larger disc with its glow, and
+  the size ramps up smoothly over the last zoom steps, never snapping.
+  The near-sector threshold is one named constant shared by the Galaxy
+  Map and the sector scene, so the hand-off between the two scenes shows
+  no size jump (MAP.203 matched them once already). The system map draws
+  the primary and companions at their drawn size and keeps its own
+  scale, but its background stars (src/html/static/systemview3d.js)
+  become points of light as well. Tests: a shader-string or constants
+  test for the point size at far, mid and near zoom, and the hand-off
+  check between the two scenes. Done: flying in from the whole-galaxy
+  view, stars stay pinpoints until about one sector away, then grow;
+  flying back out they shrink to points again. Owner: Core 2, next after
+  GEN.269 (Boss, 2026-10-15 9:33 PM EDT: whichever Core lane frees
+  first). No migration.
+  Prerequisites: none. Related: MAP.148, MAP.155, MAP.203, MAP.207.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
