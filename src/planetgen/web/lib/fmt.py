@@ -84,6 +84,16 @@ format_distance_ly = dash_unless_finite(_format.format_distance_ly, "&ndash;")
 format_distance_pc = dash_unless_finite(_format.format_distance_pc, "&ndash;")
 
 
+def format_members(member_count, system_mass_solar):
+    """
+    What a scatter row with company shows in a table or a map label (UX.114): "3 members, 2.4 solar masses". A
+    single object (no members stored) is an en dash.
+    """
+    if not member_count:
+        return "\u2013"
+    return f"{member_count} member{'' if member_count == 1 else 's'}, {format_mass_solar(system_mass_solar)}"
+
+
 _LADDERS_BY_QUANTITY = {ladder.quantity: ladder for ladder in _ladders.LADDERS}
 
 

@@ -162,7 +162,14 @@ connectivity to that specific schema rather than the default one.
   own data (`star_type`, `population`, `mass_solar`, `radius_solar`,
   `temperature_k`, `luminosity_sol`, `age_gy`, `galactic_radius_pc`).
   Brightest first unless `sort`/`order` say otherwise; a bad `sort` or
-  `order` is a 400.
+  `order` is a 400. Each item also has `member_count` (0 for a single star) and
+  `system_mass_solar` (the mass the point carries, `null` for a single star): the stored
+  members of a star that has company (UX.114).
+- `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
+  `system_id` (the system built around it, `null` while it is uncharted) and, for a star with company that is not
+  built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`) and `nodes` (`node_no`,
+  `parent_node_no`, `kind` of `close`, `wide`, `compact` or `group`, `mass_solar`, `separation_au`,
+  `period_years`, `eccentricity`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -472,9 +479,11 @@ connectivity to that specific schema rather than the default one.
   (`[shell, band, wedge]`), `x`/`y`/`z` and `distance_from_core_pc` (parsecs), `mass_solar`,
   and for a row with a velocity `speed_kms`, `direction` and `flight_years`; a built row has
   `target` (`{"kind", "id", "name"}` of the object it became, `kind` `system` for a
-  hypervelocity star) or `null` when none matches. 404 for an id that is no row
-  (`queryDb.scattered_phenomenon_detail`). The rows of `GET /api/phenomena` that are
-  scattered carry `scatter_id`.
+  hypervelocity star) or `null` when none matches. It also has `member_count` and `system_mass_solar`
+  (UX.114) and, for an unbuilt row with members, `members` and `nodes` as in `GET /api/uncharted-systems/<id>`.
+  404 for an id that is no row (`queryDb.scattered_phenomenon_detail`). The rows of `GET /api/phenomena` that are
+  scattered carry `scatter_id`, `member_count` and `system_mass_solar`. The `bright_stars` of
+  `GET /api/galaxy/bright-stars` and the `stars` and `scattered` of `GET /api/galaxy/uncharted` carry the same two.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/

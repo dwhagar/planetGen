@@ -79,6 +79,7 @@ ID_PATHS = {
     "api.galaxy_bright_stars_in_cell": {},
     "api.nebula_surroundings_route": {},
     "api.uncharted_systems": {},
+    "api.uncharted_system": {},
     "api.galaxy_phenomena": {"items[].id": "phenomenon"},
     "api.galaxy_made": {"items[].id": "sector"},
     "api.galaxy_locate_route": {"matches[].id": "by-kind"},
