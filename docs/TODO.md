@@ -5015,6 +5015,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.74, GEN.109, GEN.223, GEN.289,
   GEN.290.
 
+- [ ] **GEN.295 Nebulae as point groups whose shape follows the orbital update (design and research)**
+  Boss asked (2026-10-16, 1:01 AM EDT, project chat): "should nebulae be
+  a group of points that then as orbits update the nebula changes
+  shape?" Answer given to him: yes in principle, it follows from GEN.294
+  (every object one SpatialPosition3D with point mass and movement
+  vector). Design and research only, nothing built, no lane. Today a
+  nebula is one point (centre, one scalar galactic_orbital_speed_kms,
+  epoch_unix, radius_ly as a bounding sphere) plus a shape fixed when it
+  was made: 4 to 8 metaballs in nebula_shape_balls (centre and radius,
+  no mass, no velocity) and the ellipsoid, warp, noise and isovalue
+  columns (GEN.75, galaxy/nebula_shape.py); it moves rigidly and never
+  changes shape. Done: a design note
+  (docs/design/nebulae-as-point-groups.md, with its
+  docs/design/README.md row) that answers: (1) the points: each a
+  SpatialPosition3D with mass and vector (cloud parcels), how many per
+  nebula by class (the 4 to 8 balls today, or tens for fidelity), and
+  the storage cost per count (seven doubles and a key is about 80 bytes
+  a point, so 8 points over the 163,000 field clouds of classes M and N
+  is about 100 MB [C], to be checked against
+  nebula-density-vs-reality.md); whether the small P and Q clouds stay
+  single points; (2) how the shape and bounds are derived at each
+  update: the metaball field summed from the points' masses and radii,
+  the isovalue, the bounding radius_ly and the containment tests
+  (inside_nebula_id, the stars placed inside by GEN.241, the map's soft
+  sprites MAP.176/MAP.178) recomputed, and when a stored shape is
+  rebuilt rather than carried; (3) what point-mass gravity cannot
+  capture and what stands in for it: gas pressure and turbulence,
+  magnetic fields, radiation pressure and photoionisation, shocks, star
+  formation consuming the gas, stellar feedback, and the expansion of
+  supernova remnants and planetary nebulae (analytic radius against age
+  rather than gravity); (4) the timescale: a giant molecular cloud of 30
+  pc crossing at about 3 km/s takes about 10 Myr [C], galactic shear
+  (Oort A about 15 km/s/kpc) shapes a cloud over a few tens of Myr [C],
+  so shape change is invisible at one day a step and shows only on long
+  steps (GEN.292) such as 1 Myr, about three hours at 100 years a
+  second; (5) a recommendation, including whether the points orbit under
+  GEN.109's influence rule or only the galaxy's potential (GEN.115) and
+  a cap per nebula so the nightly cost stays bounded (PERF.103). Source:
+  Boss's question and the coordinator's answer. Phase 3, after GEN.294,
+  GEN.109 and GEN.292.
+  Prerequisites: GEN.294, GEN.109, GEN.292. Related: GEN.75, GEN.115,
+  GEN.241, GEN.289, GEN.293, MAP.176, MAP.178.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
