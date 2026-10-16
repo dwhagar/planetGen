@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1420] - 2026-10-16
+
+**Headline:** OPS.52 (web-user ownership and the Apache directory restrictions) is retired.
+
+### Changed
+
+- OPS.52 (#1711, #1713) leaves the open list.
+
+TODO items resolved: OPS.52 / Added: none
+
 ## [8.0.1419] - 2026-10-16
 
 **Headline:** An update.sh that was already running when it pulled the web-user ownership change says to run it again instead of only refusing.
