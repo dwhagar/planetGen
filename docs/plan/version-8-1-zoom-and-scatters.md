@@ -47,6 +47,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | DB.29 | PERF.86 step 6 |
 | PERF.105 | Slow page requests queue a job that builds the answer into Redis, with a status route (the mechanism) |  | Boss 2026-10-16, 12:21 PM EDT; Core 2, after MAP.152 and MAP.146. |
 | UX.118 | Slow pages show a progress bar while their data loads: the search page and the phenomena list pages | PERF.105 | Boss 2026-10-16; Core 2, after PERF.105. |
+| OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) |  | Finding from a lane. |
 
 ### Reproducible galaxies
 
@@ -177,6 +178,12 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) |  |  |
 | TEST.173 | test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug) |  |  |
 | TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) |  |  |
+| TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server |  | Test-infrastructure finding. |
+| TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log |  | Test-infrastructure finding. |
+| UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) |  | Finding from a lane. |
+| TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) |  | Test-infrastructure finding. |
+| TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. |
+| TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database |  | Test-infrastructure finding. |
 
 ### Nebula data foundations
 
@@ -317,6 +324,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | GEN.327, GEN.328 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 17. Core. |
 | GEN.244 | Young open clusters and OB associations as components (later) | GEN.237, GEN.241, GEN.321 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in |  |  |
+| GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) |  | Finding from Core 3. |
 
 ### Globular clusters
 
@@ -356,6 +364,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) |  | Core 3; folded into GEN.286 unless Core 3 says otherwise |
 | UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | DB.54 | Core 3; sliders for the scatter and fill limits |
+| GEN.364 | Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling | GEN.280 | Core 3; Boss 1:46 PM EDT decision. |
 
 ### Interface update
 
@@ -391,6 +400,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | GEN.329, GEN.163, GEN.325 | Split from GEN.274. |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | GEN.329, GEN.330 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
 | GEN.297 | Load Boss's Harris file into galaxy_components: the catalogue rows replace the synthetic clusters, and the generator stays as the fallback | GEN.237 | The file arrived (Boss, 3:04 PM EDT); Core 3, cluster line. |
+| GEN.366 | Check the `MILKY_WAY_SATELLITES` table against McConnachie 2012: 11 rows were written from memory | GEN.237 | Finding from Core 3. |
 
 ## Phase 6: The headline closes
 

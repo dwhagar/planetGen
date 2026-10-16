@@ -864,6 +864,17 @@ with `clamp()`.
   attached.
   Prerequisites: UX.131. Related: UX.43.
 
+- [ ] **UX.133 `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug)**
+  Found by a lane (2026-10-16), filed by the TODO thread. On a galaxy
+  that has had no population pass, `/polities` and `/species` return 404
+  instead of a page. Done: both routes answer 200 with an empty list and
+  a line that says the population pass has not run; the 404 stays for a
+  polity or species id that does not exist. A test covers both routes on
+  a galaxy with no pass. Fails on main: yes. Frequency: always on a
+  galaxy before the first population pass. Reproducer: start a fresh
+  galaxy and request both URLs.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -4120,6 +4131,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Minor, Leo I) live in `galaxy_components` and are listed in no second
   table; one verification pass against McConnachie (2012) covers this
   table and the file of GEN.157.
+  Note (2026-10-16, from Core 3): galaxies planned before this item need
+  `planetgen plan` run again to get the new component rows.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.238 Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population**
@@ -5095,6 +5108,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fields need a migration: Core 1 owns the revision and Core 3 asks it
   first.
   Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone (galaxy_shape.cell_star_ceiling and fill_luminosity_cap_sol); this item's GalaxyShape fields take revision 0099 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 is this item's, 0100 is Core 3's cell_star_ceiling change).
+  Decided (Boss, 2026-10-16, 1:46 PM EDT): the per-cell cap is 5,000 and
+  adaptive, filed as GEN.364; above the cap the cell's luminosity floor
+  rises until what is resolved fits, brightest first, with no step at
+  the ceiling.
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5734,6 +5751,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cell, and the entry in docs/config.md.
   Stored in the user's `config.json` like every option (one
   configuration file, ADM.96).
+  The cap it wires is the adaptive one of GEN.364 (Boss, 2026-10-16,
+  1:46 PM EDT); the option sets that cap and nothing else. It waits on
+  ADM.84 for the settings page and needs no new migration.
   Prerequisites: GEN.280, ADM.84. Related: GEN.281, GEN.283, ADM.43.
 
 - [ ] **GEN.304 The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests**
@@ -6707,6 +6727,54 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the Python solver for a few bodies.
   Prerequisites: GEN.362. Related: GEN.112, GEN.139.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
+
+- [ ] **GEN.364 Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling**
+  Decided by Boss (2026-10-16, 1:46 PM EDT, in the GEN.280 thread),
+  recorded by the TODO thread. The per-cell cap is 5,000 systems and it
+  is adaptive: a cell makes min(expected, cap) systems; above the cap
+  the luminosity floor of that cell rises until what is resolved fits
+  the cap, taking the brightest stars first, and the unresolved count
+  and mass come from the address as GEN.281 does. There is no step at
+  the ceiling: a cell just above the cap loses only its faintest stars.
+  Owner Core 3, built with GEN.280, goal issue #1677. Done: the fill
+  reads the cap from one named setting, raises the per-cell floor to
+  fit, never stores more than the cap, and a math check shows the stored
+  plus unresolved count and mass equal the expected totals on cells
+  below, at and above the cap. GEN.303 wires the cap to
+  `generation.cell_cap` and ADM.84.
+  Prerequisites: GEN.280. Related: GEN.281, GEN.280, GEN.303, GEN.283.
+
+- [ ] **GEN.365 Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug)**
+  Found by a lane (2026-10-16), filed by the TODO thread. The radius
+  stored for a hot white dwarf or the central star of a planetary nebula
+  does not match the radius that L and T give (L = 4 pi R^2 sigma T^4).
+  It was carried over from GEN.149. Done: the generator derives the
+  radius from L and T for these stars or the luminosity from the radius,
+  whichever is the model input, and a test checks the relation within 1%
+  on a sample. Fails on main: yes. Frequency: every such star.
+  Reproducer: draw 100 hot white dwarfs and compare R with the radius
+  from L and T.
+  Prerequisites: none. Related: GEN.149.
+
+- [ ] **GEN.366 Check the `MILKY_WAY_SATELLITES` table against McConnachie 2012: 11 rows were written from memory**
+  Found by a lane (2026-10-16), filed by the TODO thread. The table of
+  Milky Way satellites (11 rows) was written from memory of McConnachie
+  (2012) and is unverified. Done: every row (position, distance,
+  luminosity, size) is checked against the published table, corrected
+  where it differs, with the source named in a comment and a test that
+  pins the checked values. Prerequisite is GEN.237, which created the
+  table.
+  Prerequisites: GEN.237.
+
+- [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
+  Found by a lane (2026-10-16), filed by the TODO thread. The Large and
+  Small Magellanic Cloud components make stars but their gas is not in
+  `kind_factors` or `nebula_field`, so the Clouds have no nebulae. Done:
+  the Clouds get a gas model (H I and H II mass and the nebula kind mix)
+  in the nebula field, with the numbers from the literature named, and a
+  test that a Cloud sector holds nebulae at the stated rate. Later item;
+  candidate for the deep-sky version.
+  Prerequisites: GEN.237. Related: GEN.237, GEN.282.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -8476,6 +8544,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   settings chain edits only that copy, never the example, and updates
   never overwrite it (ADM.96). Secrets in it can be replaced but never
   read back, and diffs, audit rows, logs and exports show "(changed)".
+  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
+  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
+  it goes idle).
   Prerequisites: ADM.83, ADM.84, ADM.85, ADM.87.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
@@ -8502,6 +8573,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   after it (Boss, 2026-10-16, 1:43 PM EDT).
   Its options are stored in the user's `config.json`, the one
   configuration file (ADM.96).
+  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
+  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
+  it goes idle).
   Prerequisites: ADM.43.
 
 - [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
@@ -9061,6 +9135,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and the log show only "(changed)". Done:
   the writer and the CLI with tests for every error kind, the atomic
   write, the backup archive and the restart list.
+  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
+  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
+  it goes idle).
   Prerequisites: ADM.87, ADM.96. Related: ADM.43, ADM.42.
 
 - [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
@@ -9085,6 +9162,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   admin layout of the day; ADM.56 moves it into the one admin shell.
   Done: the page, the diff and confirm step, the banner and a browser
   test that edits, saves and restores one option of each type.
+  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
+  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
+  it goes idle).
   Prerequisites: ADM.83. Related: ADM.43, ADM.56.
 
 - [ ] **ADM.85 Settings backups, restore, import and export on the settings page**
@@ -9116,6 +9196,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   list, back up now, download, whole and one-part restore, export and
   import with a browser test and a test that an import with one bad
   value changes nothing.
+  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
+  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
+  it goes idle).
   Prerequisites: ADM.84, ADM.87. Related: ADM.43.
 
 - [ ] **ADM.86 Owner-tier settings: Owner-only options behind a recent-password prompt**
@@ -9172,6 +9255,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `--part`) and tests for the manifest, a corrupted archive refused, an
   unknown part kept, retention that keeps the newest full archive, and
   restoring one part leaving the others alone.
+  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
+  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
+  it goes idle).
   Prerequisites: ADM.96. Related: ADM.43, ADM.83, ADM.85, ADM.88, DB.40.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
@@ -9363,6 +9449,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the web a restore puts back only options an admin may change, only the
   command line restores the whole file; secrets can be replaced but
   never read back.
+  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
+  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
+  it goes idle).
 
 ## SEC: Security
 
@@ -10318,6 +10407,67 @@ clears each one.
   Prerequisites: none. Related: TEST.159, TEST.160, TEST.161, TEST.162,
   TEST.164.
 
+- [ ] **TEST.187 Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server**
+  Found by a lane (2026-10-16), filed by the TODO thread. When a browser
+  test fails, the pytest report ends with hundreds of lines of werkzeug
+  request log ("GET /static/... 200"), and the assertion text sits above
+  them. Done: the test server fixture sets the `werkzeug` logger to
+  WARNING, a failing browser test report shows the assertion and the
+  page console first, and one test proves the request log stays out of
+  the captured output. Fails on main: yes (every failure). Frequency:
+  every browser test failure. Reproducer: make any web.* browser test
+  fail and read the report.
+  Prerequisites: none.
+
+- [ ] **TEST.188 The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log**
+  Found by a lane (2026-10-16), filed by the TODO thread. The nebula
+  mesh tests emit a NumPy deprecation warning from the skimage
+  marching-cubes path (`.shape` assignment on an array). Done: the call
+  uses the supported form (`reshape`), the test run has no deprecation
+  warning from this path, and the filterwarnings list holds no entry for
+  it. Fails on main: no failure, a warning on every nebula mesh test.
+  Frequency: every run. Reproducer: `python -W error::DeprecationWarning
+  -m pytest -q src/tests -k nebula_shape`.
+  Prerequisites: none.
+
+- [ ] **TEST.189 A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug)**
+  Found by a lane (2026-10-16), filed by the TODO thread. A test that
+  runs the `migrate` command leaves
+  `/var/lib/planetGen/state/maintenance.json` set, so later tests (and
+  the web server on a developer machine) answer with the maintenance
+  page. Done: the fixture that runs migrations restores the maintenance
+  file to its earlier state on exit, whether the test passes or fails,
+  and a test asserts the file is unchanged after a migration test. Fails
+  on main: yes, when that test runs. Frequency: every run of the test.
+  Reproducer: run the migrate test, then `cat
+  /var/lib/planetGen/state/maintenance.json`.
+  Prerequisites: none.
+
+- [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
+  Found by a lane (2026-10-16), filed by the TODO thread. When a
+  session-scoped fixture (for example the browser-test server) fails to
+  start, each test that needs it waits its whole 900 s timeout before
+  failing, so one fixture failure costs hours of the run. Done: a
+  fixture that fails marks its dependents as errors at once (pytest does
+  that already for a raised error, so the cause is in how the fixture
+  waits; find it and fix it), and a test shows a dead fixture ends the
+  run in seconds. Fails on main: yes. Frequency: whenever a session
+  fixture fails. Reproducer: make the server fixture raise after its
+  start and time the run.
+  Prerequisites: none. Related: TEST.167.
+
+- [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
+  Found by a lane (2026-10-16), filed by the TODO thread. The `plan`
+  tests write galaxy settings files into the real jobs directory on the
+  machine and log "No naming key drawn ... Unknown database", so a
+  developer machine collects stray files and the naming path runs
+  against no database. Done: the plan tests use a temporary jobs
+  directory and the test database, the log line is gone, and a test
+  asserts the real directory is untouched. Fails on main: no failure, a
+  side effect on every run. Frequency: every run. Reproducer: run the
+  plan tests and list the jobs directory.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -11067,6 +11217,18 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
   Prerequisites: OPS.56, OPS.57, ADM.50. Related: OPS.28.
+
+- [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
+  Found by a lane (2026-10-16), filed by the TODO thread. Sending
+  SIGTERM to the `generate galaxy --shell 0` command leaves its busy
+  `worker --burst` child running and the parent a zombie, so a stopped
+  run still holds Redis jobs and the database. Done: the command handles
+  SIGTERM, forwards it to the worker child, waits for it and exits with
+  the signal status; a test starts a run, sends SIGTERM and shows no
+  process is left. Fails on main: yes. Frequency: every SIGTERM during a
+  run. Reproducer: start the command, `kill -TERM` it, then `ps` for the
+  child.
+  Prerequisites: none.
 
 ## DOC: Documentation
 
