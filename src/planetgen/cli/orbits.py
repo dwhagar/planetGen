@@ -265,7 +265,7 @@ def main():
     cancel = _Cancel()
     try:
         with updateguard.running("orbits", "Orbital update"), cancel:
-            _run(conn, cancel)
+            _run(conn, cancel, args.row_ceiling)
         if cancel.requested:
             print("The cancel request came during the run: the update finished first, so nothing is half moved.")
     except KeyboardInterrupt:
@@ -279,7 +279,7 @@ def main():
         conn.close()
 
 
-def _run(conn, cancel):
+def _run(conn, cancel, row_ceiling):
     """One orbital update on `conn`; from the first stage on it does not stop for a cancel (`_Cancel`)."""
     elapsed_years = get_orbit_update_elapsed_years(conn)
     if elapsed_years is None:
@@ -293,7 +293,7 @@ def _run(conn, cancel):
     else:
         print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing what is due.")
     clock = orbit_clock(conn)
-    budget = RowBudget(args.row_ceiling)
+    budget = RowBudget(row_ceiling)
     budget.plan(conn, clock)
     cancel.moving = True
 

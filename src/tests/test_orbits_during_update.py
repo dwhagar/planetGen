@@ -122,10 +122,10 @@ def test_a_cancel_during_the_run_finishes_the_update_so_nothing_is_half_moved(ga
     real = orbits.advance_comet_orbits
     seen = {}
 
-    def cancelled_here(conn, clock):
+    def cancelled_here(conn, clock, **kwargs):
         seen["registered"] = [item["kind"] for item in updateguard.MarkerSource().items()]
         os.kill(os.getpid(), signal.SIGTERM)        # what the update's cancel sends, between two stages
-        return real(conn, clock)
+        return real(conn, clock, **kwargs)
 
     monkeypatch.setattr(orbits, "advance_comet_orbits", cancelled_here)
     capsys.readouterr()
