@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1521] - 2026-10-16
+
+**Headline:** The to-do list files a Quantity class (GEN.299, Phase 3), so every version of a measured value is always available with all conversions and the shared ladders, and a sweep item (GEN.300) to move the call sites onto it.
+
+### Changed
+
+- Filed GEN.299 and GEN.300 in a new Units thread of Phase 3 and in goal issue #1676, on Boss's request.
+
+TODO items resolved: none / Added: GEN.299, GEN.300
+
 ## [8.0.1520] - 2026-10-16
 
 **Headline:** The to-do list assigns the fly-through map's first two items, MAP.152 and MAP.146, to Core 2 on Boss's order, right after PERF.104.
