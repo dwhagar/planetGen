@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1534] - 2026-10-16
+
+**Headline:** A nightly full backup from the daily maintenance run is planned for 9.0, with its own schedule and retention settings.
+
+### Added
+
+- OPS.55: a backup step in the daily maintenance run that takes every part into one archive; options `settings.nightly_backup`, `settings.nightly_backup_hour` (default 4) and `settings.nightly_backups_kept` (default 7).
+
+### Changed
+
+- ADM.87 records each archive's kind (manual, settings-save, nightly) and prunes nightly archives by their own count.
+
+TODO items resolved: none / Added: OPS.55
+
 ## [8.0.1533] - 2026-10-16
 
 **Headline:** The backup archive (settings now, control database and parity data for 9.0) and the restore and repair chain are planned, with the settings page staying in 8.1.
