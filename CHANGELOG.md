@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1437] - 2026-10-16
+
+**Headline:** The halo luminosity floor has a lowest value of 100 solar luminosities.
+
+### Changed
+
+- GEN.283 and UX.116 record Boss's lowest halo floor (100 solar luminosities, default 500) as the setting's minimum and the slider's minimum.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1436] - 2026-10-16
 
 **Headline:** The scatter and fill levers get a halo floor, a cell star ceiling, a fill luminosity cap and core levers, with sliders (UX.116).
