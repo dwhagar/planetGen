@@ -109,7 +109,6 @@ NEVER_READ = {
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
-    ("galaxy_shape", "bright_star_mass_limit_sol"): "read by a fill only after a star scatter ran",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
