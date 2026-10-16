@@ -5148,7 +5148,7 @@ def galaxy_changes(conn, since=None):
             `GET /api/galaxy/stamp`), or `None`.
 
     Returns:
-        dict: `stamp` (`galaxy_content_stamp` now), `state` (the token to
+        dict: `stamp` (`galaxy_content_stamp` at the call), `state` (the token to
             pass as `since` next time), `full` (every tile may have
             changed), `tiles` (sorted keys of the changed tiles; empty
             when `full`), and `stages` (sorted keys of the drill-down
@@ -5157,7 +5157,10 @@ def galaxy_changes(conn, since=None):
             changed at once (a generation run, a backfill), not because
             something was deleted, so a cache may keep its tiles a while
             longer instead of refetching all of them under that load
-            (PERF.34).
+            (PERF.34). Unless `full`, also `sector_ids` (the row ids of the
+            sectors edited, added or given a system since `since`, for the
+            page cache's tags, PERF.104) and `grew` (a sector or a system
+            was added).
     """
     state = galaxy_content_state(conn)
     result = {
@@ -5200,6 +5203,21 @@ def galaxy_changes(conn, since=None):
 
     keys = set()
     stages = set()
+    # The page cache tags every sector, placed or not (PERF.104).
+    result["sector_ids"] = sorted(row["id"] for row in conn.execute(
+        """
+        SELECT id FROM sectors
+        WHERE id > ? OR modified_at > ? OR id IN (SELECT sector_id FROM star_systems WHERE id > ?)
+        LIMIT ?
+        """,
+        (previous["sector_max_id"], _timestamp_literal(previous["sector_modified"]),
+         previous["system_max_id"], GALAXY_CHANGES_MAX_SECTORS + 1)).fetchall())
+    if len(result["sector_ids"]) > GALAXY_CHANGES_MAX_SECTORS:
+        result["full"] = result["busy"] = True
+        result["sector_ids"] = []
+        return result
+    result["grew"] = (previous["sector_max_id"] != state["sector_max_id"]
+                      or previous["system_max_id"] != state["system_max_id"])
     for r in rows:
         keys.update(tile_keys_containing((r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])))
         if sector_address(r) is not None:

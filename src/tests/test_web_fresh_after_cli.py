@@ -213,12 +213,13 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
 
     # The API itself caches nothing: fresh at once.
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids
-    # The web caches still trust their last stamp check...
-    assert _placed_count(site.html("/galaxy")) == 1
+    # The run recorded what it changed (PERF.104), so the page cache shows the new sectors at once...
+    assert _placed_count(site.html("/galaxy")) == 3
+    # ...but the tile cache still trusts its last stamp check...
     stale = tile_payload(site.get(tiles_url))
     assert stale["cached"] == 1 and stale["stamp"] == warm["stamp"]
 
-    # ...until it falls due, and then show the new sectors.
+    # ...until it falls due, and then shows them too.
     site.let_stamp_checks_fall_due()
     page = site.html("/galaxy")
     assert _placed_count(page) == 3
@@ -237,7 +238,7 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
 def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     """The sector page's map draws its neighbors from `/sector/<id>/scene`
     (MAP.68), cached like a page, so a sector the CLI generated shows
-    once the stamp is checked again."""
+    as soon as the run has recorded its change (PERF.104)."""
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
@@ -252,8 +253,6 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     _generate(mysql_config, "galaxy", "--shell", "1", "--limit", "2", "--num-systems", "1")
     others = [row for row in _sectors(mysql_config) if row["id"] != first["id"]]
     assert len(others) == 2
-    assert linked() == set(), "still the cached answer"
-    site.let_stamp_checks_fall_due()
     assert linked() == {pid("sector", row["id"], mysql_config) for row in others}
 
 
@@ -273,8 +272,8 @@ def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config
     new_systems = {row["name"] for row in _rows(mysql_config, "SELECT name FROM star_systems")} - old_systems
     assert "Lonely Shell Star" in new_systems and len(new_systems) == 3
 
-    assert site.html("/sectors") == sectors_before
-    assert site.html("/systems") == systems_before
+    assert site.html("/sectors") != sectors_before
+    assert site.html("/systems") != systems_before
     site.let_stamp_checks_fall_due()
     sectors_after = site.html("/sectors")
     systems_after = site.html("/systems")
