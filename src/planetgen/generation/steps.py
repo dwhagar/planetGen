@@ -102,7 +102,6 @@ STEP_KINDS = {
     "stages": "Stages",
     "containment": "Containment refresh",
     "nearest": "Nearest-systems refresh",
-    "warm-map": "Galaxy Map warm-up",
     "dedupe-sectors": "Sector name pass",
     "dedupe-systems": "System name pass",
     "db-check": "Database check: validating star systems",

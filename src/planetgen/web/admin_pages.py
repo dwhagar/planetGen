@@ -856,7 +856,6 @@ GENERATION_UNITS = {
     "phenomena-write": ("layer", "object"),
     "backfill": ("run", "sector"),
     "migrate": ("run", "migration"),
-    "warm-map": ("run", "tile"),
 }
 """dict: What a task and a unit are for each recorded kind (the stats count
 a sector's systems, a scatter layer's stars, a step's own units); kinds not

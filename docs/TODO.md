@@ -123,8 +123,8 @@ no row there.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75, PERF.105, UX.118 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, API.19, GEN.299, GEN.300 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
@@ -579,6 +579,24 @@ with `clamp()`.
   slider runs from 50 (default 500; Boss, 2026-10-15 10:06 PM EDT, was
   100). Owner Core 3 (Boss, 1:09 AM EDT).
   Prerequisite: GEN.283. Related: GEN.234, ADM.43, UX.49.
+
+- [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
+  Boss (2026-10-16, 12:21 PM EDT): "have a progress bar in the search
+  page so the user knows it is loading, that is one of the main issues".
+  Owner Core 2, after PERF.105. When a page's data is being built by a
+  queued job (PERF.105), the page shows a loading state with a progress
+  bar (done of total, percentage and ETA from the status route, in the
+  ladder units and the wording of the description layer), keeps working
+  controls, can be cancelled, and swaps in the finished list without a
+  full reload; the search page and the phenomena list pages (black
+  holes, neutron stars and the rest of the kinds) are the first users,
+  and every other slow list takes it by marking its route slow. The bar
+  is accessible (role progressbar, a live text status, reduced-motion
+  respected) and works at phone width. A failed job shows its error and
+  a retry. Done: the progress bar component, the search page and the
+  phenomena list pages on it, and browser tests for the loading,
+  finished, cancelled and failed states in light and dark.
+  Prerequisites: PERF.105. Related: PERF.104, UX.117, UX.3.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3364,33 +3382,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   true until the mode is built.
   Prerequisite: PERF.99. Related: GEN.101, MAP.120.
 
-- [ ] **GEN.236 Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity**
-  Part of step 2 and step 4 of the whole-sphere train. Rates stay per
-  star; the profile supplies a factor for each kind: neutron stars and
-  black holes (bound) 1 for every population (the disk's kick thickening
-  applies to disk populations only), planetary nebulae and brown dwarfs
-  1, supernova remnants the gas fraction (0 in the halo and in
-  clusters), molecular clouds and emission and reflection nebulae the
-  gas fraction times the young share, rogue planets and comets the
-  planet occurrence at the cell's [Fe/H] (until the metallicity value
-  exists, 1: the one known wrong thing is that halo systems carry full
-  planet sets). The 9,000 L_sun bright-star floor finds no halo star and
-  stays; the runaway flag is relative to the neighbours, not the disk.
-  Done: each factor is in the generator with a test, and no halo or
-  cluster system carries more planets than its metallicity allows.
-  Owner: Core (2026-10-15). The Type Ia share and the hosted-nebula
-  rules are GEN.241.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): galaxy/profile.py now holds the pure SectorProfile (expected
-  systems, mix, per-population age, [Fe/H], dispersion and rotation,
-  gas, NFW dark matter); this item adds kind_factors to it.
-  Built-on note (Core 2, 2026-10-16, 4:58 AM EDT, GEN.158 merged as
-  #1789): the stored column Star.metallicity_fe_h now exists on stars
-  and bright_stars (migration 0095), so the planet cull by metallicity
-  can read it; the prerequisite GEN.158 is met.
-  Prerequisite: GEN.158. Related: GEN.134, GEN.162.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.237 Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters**
   Step 5 of the whole-sphere train. GEN.159 (the cluster table and King
   tables) and GEN.160 (the cluster density term, with its spatial index
@@ -3443,6 +3434,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   #1784): this item adds the components table to SectorProfile (a field
   in galaxy/profile.py); the profile exists and the reach is the only
   refusal.
+  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
+  #1824, no migration): SectorProfile.kind_factors carries one factor
+  per rare kind (supernova remnant = gas fraction; molecular cloud =
+  cold gas times the young share against the solar circle's; hosted
+  nebulae = cold gas alone; rogue planet and comet = planet occurrence
+  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
+  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
+  scatters apply them; metal-poor stars cap their object count at
+  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.238 Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population**
@@ -3462,6 +3462,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outline, and the counts per radius match the law. Owner: Core
   (2026-10-15), after GEN.232 (a fast body's path integration runs for
   minutes until it is capped).
+  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
+  #1824, no migration): SectorProfile.kind_factors carries one factor
+  per rare kind (supernova remnant = gas fraction; molecular cloud =
+  cold gas times the young share against the solar circle's; hosted
+  nebulae = cold gas alone; rogue planet and comet = planet occurrence
+  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
+  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
+  scatters apply them; metal-poor stars cap their object count at
+  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
   Prerequisite: GEN.235. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -3549,6 +3558,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whatever position it writes.
   Prerequisite: GEN.237. Related: GEN.238,
   GEN.223.
+  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
+  #1824, no migration): SectorProfile.kind_factors carries one factor
+  per rare kind (supernova remnant = gas fraction; molecular cloud =
+  cold gas times the young share against the solar circle's; hosted
+  nebulae = cold gas alone; rogue planet and comet = planet occurrence
+  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
+  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
+  scatters apply them; metal-poor stars cap their object count at
+  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
@@ -3617,7 +3635,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multi-star-systems.md sections 13 to 16): the young
   non-hierarchical groups and trapezia of section 13.1 are built by
   GEN.273 on this item's cores.
-  Prerequisites: GEN.236, GEN.242. Related: MAP.172,
+  Prerequisite: GEN.242. Related: MAP.172,
   GEN.150, GEN.202, GEN.99.
   Built-on note (Core 1, 2026-10-16, 8:41 AM EDT, GEN.251 merged as
   #1815): the stage F required stars (the stars a nebula needs as real
@@ -5096,58 +5114,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the line count is recorded in the PR.
   Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.104 Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates**
-  Boss (2026-10-15 9:54 PM EDT): "I think we need to start caching the
-  lists after an update, we should have a warmup site script that can
-  run and build caches for the galactic view, system, sector, phenomena
-  lists, indexes for search queries, all of that. Then we'll rebuild
-  just what is needed on demand when something changes but always keep
-  an up to date cached copy." Today `planetgen.cli.warm_map` (MAP.134,
-  `web/warmup.py`) warms only the Galaxy Map's opening tiles into
-  `web/lib/tilecache.py`, update.sh starts it in the background
-  (warm_galaxy_map), and the in-memory `web/lib/pagecache.py` and
-  `countcache` (PERF.69) start empty after every release or restart.
-  Build: one warm-up script that extends warm_map and builds the caches
-  of the Galaxy Map (tiles and stage), the sector views, the system
-  views, the phenomena lists (and the other paged lists, PERF.75), the
-  counts, and the indexes for the search queries (a search index kept up
-  to date, not built per query). Run it after update.sh as the web user
-  (www-data, OPS.52 rules), log loudly (one line per cache family with
-  counts and seconds, a non-zero exit and a clear message on any
-  failure, no silent fallbacks), and stay inside the maintenance flag
-  (OPS.51, state folder /var/lib/planetGen/state: the site is in
-  maintenance while the warm-up that a release needs runs, and it leaves
-  it when the warm-up ends). After that, a change rebuilds only what it
-  invalidates, on demand: explicit invalidation per kind of data change
-  (generation of a sector, the nightly orbital update and moved objects,
-  an admin edit, a backfill), each naming the cache keys it drops.
-  Design question for the lane: key every cached copy by a data version
-  (the galaxy's content stamp, `GET /api/galaxy/changes`, plus a
-  per-family counter) so a stale copy is never served as current, and
-  when the data changed a request waits for the rebuilt copy or reads
-  the database, never the old copy as current (the version key decides).
-  Redis and RQ rules: one instance (PERF.86), AOF everysec, noeviction;
-  a cache that lives in Redis must tolerate a cold start. Visible on the
-  site (Boss, 2026-10-15 9:57 PM EDT): each kind of warm-up (Galaxy Map,
-  sectors, systems, phenomena lists, search indexes, and any other
-  family) is its own RQ job, shown on the admin runs page with its
-  status and its log, so Boss can see it and read its logs; RQ is the
-  only place a run lives (PERF.86), so this uses the existing admin
-  queue view. The command-line script enqueues those jobs by default, so
-  a warm-up started by hand is just as visible, and a command-line
-  option (for example --no-rq) runs them inline instead. Plan first with
-  a short design note (cache families, key, invalidation table, warm-up
-  order, run time on the benchmark galaxy) before building, and record
-  the open choices as defaults. Done: after update.sh the first visit to
-  the Galaxy Map, any sector, any system, any phenomena or system list
-  and a search all answer from cache; changing one sector's data
-  rebuilds only the caches that read it; a test proves a stale copy is
-  never served as current after each kind of change. Owner: Core 2, next
-  after MAP.209 and MAP.210 (same cache and map code; Core 1 hands out
-  any migration revision it needs). New design note goes in
-  docs/design/README.md in the same PR.
-  Prerequisites: none. Related: MAP.134, PERF.2, PERF.69, PERF.75,
-  PERF.86, OPS.51, OPS.52.
+- [ ] **PERF.105 Slow page requests queue a job that builds the answer into Redis, with a status route (the mechanism)**
+  Boss (2026-10-16, 12:21 PM EDT, project chat): "when a page requests
+  something that's going to take a while (say listing all the black
+  holes in the phenomena page) it should add a task to get that
+  information to redis, have a progress bar in the search page so the
+  user knows it is loading, that is one of the main issues, give it to
+  Core 2's chain". Owner Core 2, in its queue right after MAP.152 and
+  before MAP.146 (coordinator's default, 12:22 PM EDT). The mechanism. A
+  page route that expects a slow answer (a full list of one phenomenon
+  kind, a wide search, a large count) checks the tagged Redis page cache
+  that PERF.104 built; on a miss it does not build the answer inside the
+  request: it queues one RQ job that builds the answer, writes it to the
+  same cache under the same tags (so later edits invalidate it the way
+  PERF.104 already does), and returns at once with a job id. The job
+  reports progress as counters and events in Redis (PERF.86, Option A:
+  Redis is the only place a run lives), shows on /admin/queue beside the
+  PERF.104 "Cache warm-up" jobs, and can be cancelled. A status route
+  (JSON, polled by the page) returns state, the done and total counts
+  and the ETA, and the finished answer's cache key. A route is marked
+  slow by a cost rule in one place, not by a timer inside each page
+  (default: the request is slow when its query would read more than a
+  stated row budget, set in tuning, or when the cache miss took longer
+  than a stated number of seconds the last time); two visitors asking
+  the same thing share one job. If Redis is down the page falls back to
+  building the answer in the request, as it does today, and says so.
+  Done: the mechanism, the cost rule, the status route, the job on the
+  queue page, and tests (a slow request queues exactly one job, a repeat
+  request attaches to it, an edit invalidates the stored answer, Redis
+  down falls back).
+  Prerequisites: none. Related: PERF.86, PERF.99, PERF.104, PERF.75,
+  UX.3.
 
 ## DB: Database and schema
 
@@ -6340,7 +6337,7 @@ clears each one.
   concentrations. Done: each test above exists and runs in the normal
   suite. Owner: Quality (all TEST items are Quality's), written beside
   each build step.
-  Prerequisites: GEN.236, GEN.241, GEN.243. Related:
+  Prerequisites: GEN.241, GEN.243. Related:
   TEST.156.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 

@@ -2,6 +2,61 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1526] - 2026-10-16
+
+**Headline:** The to-do list files the slow-page job and progress bar (PERF.105 and UX.118, Phase 1, Core 2), so a page that needs a long query queues it into Redis and shows how far it has got.
+
+### Changed
+
+- Filed PERF.105 and UX.118 in the Foundations thread of Phase 1 and in new goal issue #1828, and put both in Core 2's queue after MAP.152.
+
+TODO items resolved: none / Added: PERF.105, UX.118
+
+## [8.0.1525] - 2026-10-16
+
+**Headline:** The to-do list retires the site cache warm-up (PERF.104) and closes its goal issue.
+
+### Changed
+
+- Retired PERF.104 (#1826), added a ledger row, and closed goal issue #1750; the cache warm-up design note is docs/design/cache-warm-up.md.
+
+TODO items resolved: PERF.104 / Added: none
+
+## [8.0.1524] - 2026-10-16
+
+**Headline:** After an update the site's caches are built ahead of the first visit, and a change rebuilds only the pages that read it.
+
+### Changed
+- The page cache is now shared through Redis and every answer is stored with the data it read (`db/dataversion.py`, `web/lib/pagetags.py`). A copy is served only while that data is unchanged, so a stale page is never served as current, by any web worker. An API write, the command line (generation, the population pass, the orbital update, a plan) and the galaxy's content stamp each bump only the tags they touch: renaming one sector rebuilds its page, its neighbours', its systems' and the lists, not every page. Without Redis the page cache stores nothing.
+- `python -m planetgen.cli.warm_map` builds the Galaxy Map's opening view, the lists, every sector, system and phenomenon page (up to `page_cache.warm_max_objects` of each, nearest the galaxy centre first) and the search. Each of its six families is a job of its own on the admin runs page, with a result line; the script prints one line per family, waits for a running update, and exits non-zero naming the family that failed. `--only`, `--cap`, `--no-rq` and `--timeout` are new.
+- New settings `page_cache.shared_seconds` (how long Redis keeps an answer) and `page_cache.warm_max_objects`.
+- `GET /api/galaxy/changes` also lists the sectors that changed (`sectors`) and whether anything was added (`grew`).
+
+## [8.0.1523] - 2026-10-16
+
+**Headline:** The to-do list retires the kind factors in the sector profile and the planet cull by metallicity (GEN.236).
+
+### Changed
+
+- Retired GEN.236 (#1824), cleared it as a prerequisite, added a ledger row and a build note on GEN.237, GEN.238 and GEN.240 (the profile now carries kind factors; no migration).
+
+TODO items resolved: GEN.236 / Added: none
+
+## [8.0.1522] - 2026-10-16
+
+**Headline:** A metal-poor star's disk makes far fewer planets, and the sector profile scales each rare kind by the place it is in.
+
+### Added
+- **Kind factors in the sector profile (GEN.236).** `SectorProfile.kind_factors` holds, per kind, the factor by which the place scales the kind's rate per star: neutron stars, black holes, planetary nebulae and brown dwarfs 1 everywhere; supernova remnants the gas fraction (0 in the halo and in clusters, and not zeroed in a superbubble); molecular clouds the cold gas fraction times the young share against the solar circle's; the nebulae grown around hot stars the cold gas fraction; rogue planets and comets the planet occurrence at the place's [Fe/H]. A sector fill multiplies each rolled kind's mean by its factor, and the phenomenon scatter weights supernova remnants by the gas (`nebula_field.gas_factor_array`).
+- **The planet cull by metallicity.** Planet occurrence is unchanged at and above [Fe/H] -0.5 and falls ten-fold per dex below it (`tuning.PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR`); gas giants fall faster (the giant-planet form of `giant_planet_factor`). A halo G dwarf now carries about 1.6 planets and 0.05 gas giants on average, where it carried 8.5 and 1.7, and no halo or cluster star holds more objects than its metallicity allows (`tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS`).
+
+### Changed
+- **A close binary's merged star now carries its primary's [Fe/H]**, which the planet cull and the disk's solids read (it had none, so a close pair counted as solar).
+- **Fewer supernova remnants where there is little gas.** The scatter's remnants followed the stars; they now also follow the molecular gas, so the halo and the thick disk away from the plane hold almost none.
+- **A seeded galaxy fills differently from before** in the places the factors reach (remnants, clouds, nebulae, rogue planets, comets, the planets of metal-poor stars).
+
+TODO items resolved: GEN.236. Added: none.
+
 ## [8.0.1521] - 2026-10-16
 
 **Headline:** The to-do list files a Quantity class (GEN.299, Phase 3), so every version of a measured value is always available with all conversions and the shared ladders, and a sweep item (GEN.300) to move the call sites onto it.

@@ -42,6 +42,8 @@ KIND_LABELS = {
     "sector": "Sector",
     "system": "System",
     "phenomenon": "Phenomenon",
+    "warm": "Cache warm-up",
+    "warm-line": "Warm-up result",
 }
 
 STATUS_LABELS = {

@@ -55,6 +55,7 @@ from planetgen.generation import run_galaxy
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
+from planetgen.db import dataversion
 from planetgen.generation import run_sector
 from planetgen.generation import run_system
 from planetgen.util import draw
@@ -1522,6 +1523,21 @@ _COMMAND_HANDLERS = {
 }
 
 
+DATA_CHANGES = {"plan": ("everything",), "population": ("population",)}
+"""dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
+generation; any other writing command is `generated`."""
+
+
+def _note_data_changed(args, database):
+    """Tells the page cache what this run changed (PERF.104), so the pages read it at once instead of at the next
+    check of the galaxy's content stamp. A run that stopped part-way changed what it had written."""
+    kinds = list(DATA_CHANGES.get(args.command, ("generated",)))
+    if getattr(args, "population", False) and "population" not in kinds:
+        kinds.append("population")
+    for kind in kinds:
+        dataversion.record(database, kind)
+
+
 def main():
     """
     The main entry point for the unified generation CLI. Parses and
@@ -1602,6 +1618,7 @@ def main():
         if history is not None:
             _finish_history(args, history, status)
         if logged:
+            _note_data_changed(args, database)
             activity_log.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
                               **{key: run_common.RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
