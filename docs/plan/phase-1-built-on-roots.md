@@ -121,14 +121,12 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.220 | "Habitable" means the index | GEN.218 |  |
 | TEST.155 | Wording and index agree: property test | GEN.218 |  |
 | GEN.221 | Short plain prose for the fixed text |  |  |
-| GEN.288 | Rename the PHI-6 equipment tier "Sealed suit" to "Environment suit" everywhere |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | PERF.99 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
 | UX.107 | Units in the description go through the ladders |  |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |
 | UX.110 | The phenomena count on the overview page is wrong (bug) |  |  |
-| UX.117 | The Apply filters button on the phenomena list disappears while the list loads (bug) |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, GEN.218, GEN.219 |  |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md |  |  |
@@ -154,9 +152,6 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
-| OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations |  | Lane 1 report 2026-10-10. |
-| OPS.53 | Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends |  | Boss 2026-10-16 12:01 AM EDT. Core 3. |
-| OPS.54 | The orbital update refuses to run while an update is running, with tests | OPS.41 | Boss 2026-10-16 12:01 AM EDT. Core 3. |
 
 ### Admin control
 
