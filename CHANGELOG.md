@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1525] - 2026-10-16
+
+**Headline:** The to-do list retires the site cache warm-up (PERF.104) and closes its goal issue.
+
+### Changed
+
+- Retired PERF.104 (#1826), added a ledger row, and closed goal issue #1750; the cache warm-up design note is docs/design/cache-warm-up.md.
+
+TODO items resolved: PERF.104 / Added: none
+
 ## [8.0.1524] - 2026-10-16
 
 **Headline:** After an update the site's caches are built ahead of the first visit, and a change rebuilds only the pages that read it.
