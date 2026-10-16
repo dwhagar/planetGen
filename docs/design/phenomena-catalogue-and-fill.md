@@ -35,7 +35,7 @@ Evidence tags: **[S]** seen in this repository or in a search-result summary (th
 | 1 | every pre-placed bright or massive star gets a full system, built from the row's own seed, at its stored point | `_add_preplaced_systems`, `run_sector.py:515` | yes: companion, planets, moons |
 | 2 | every scattered phenomenon row becomes its object: black hole, neutron star, supernova remnant, planetary nebula (with its own new central white dwarf system), hypervelocity star (an ordinary young system), the galactic nucleus | `add_scattered_phenomena`, `run_sector.py:402`; `_build_scattered`, `:433` | only the planetary-nebula white dwarf and the hypervelocity star are systems; black holes and neutron stars are bare |
 | 3 | the sector's other systems, `--density` many, ages from the cell's population mix, below the bright-star threshold | `generate_sector`, `run_sector.py:531` onward | yes |
-| 4 | the per-star Poisson rolls for kinds that are not scattered: rogue planets, brown dwarfs, comets, asteroid fields (rate 0), and in a stand-alone sector all of them | `generate_sector_phenomena`, `run_sector.py:146`, over `SECTOR_PHENOMENON_KINDS` (`:50`) | a rogue planet keeps a moon with probability 0.2 (`ROGUE_PLANET_MOON_CHANCE`) |
+| 4 | the per-star Poisson rolls for kinds that are not scattered: rogue planets, brown dwarfs, comets, asteroid fields (rate 0), and in a stand-alone sector all of them | `generate_sector_phenomena`, `run_sector.py:146`, over `SECTOR_PHENOMENON_KINDS` (`:50`) | a rogue planet keeps a moon with probability 0.2 (`SYSTEM_PASS_ODDS`) |
 | 5 | molecular clouds come from the seeded `nebula_field`, not from a roll | `generate_sector_phenomena` | none |
 | 6 | emission and reflection nebulae grow around the sector's own hot stars | `add_star_hosted_nebulae`, `run_sector.py:262` | none |
 | 7 | neutron stars and black holes below the scatter's mass cut, rolled in the sector | `add_below_cut_remnants`, `:463` | none |
@@ -71,6 +71,13 @@ Rules inside the stages:
 - **Order of the system pass inside C.** Stars first (they already are systems), then compact remnants, then the rest, so that a remnant's companion is placed with the Hill spheres of the pre-placed stars in view, as `add_scattered_phenomena` already does by placing scattered objects before the sector's own systems (`run_sector.py:402`).
 - **No room.** A system that does not fit drops its outermost body first, then its companion; the object itself always stays (the same rule `generate_sector` uses for a full cube).
 - **The same seed gives the same system** whatever order sectors are filled, because the roll uses `draw.bound(row.seed)` with a stage-tagged suffix, the way `_add_preplaced_systems` does.
+
+### As built (GEN.251)
+
+- **Streams.** `generation/fill_stages.py` names the stages (`pre-placed`, `scattered`, `system-pass`, `systems`, `per-star-kinds`, `nebulae`, `below-cut`, `flags`) and draws one 64-bit base from the sector's stream when `generate_sector` begins; a stage binds `draw.Stream(f"{base}:{stage}")`, and a stage that holds several independent parts binds one stream per part (`per-star-kinds:<kind>`, `nebulae:<kind or hosted>`, `flags:nucleus`, `flags:fast-stars`, `systems:fallback`, `system-pass:below-cut`). A piece called by hand on a sector no fill began on keeps the stream it has. The same galaxy seed gives a sector different contents than it did on one stream; redrawn sectors under a directive differ from each other because each attempt draws its own base.
+- **Stage I.** `sector.stage_counts` holds the objects each stage made by `(stage, kind)`: star systems in A and D, scattered rows by kind in B, kinds in E to G, the fast-star count in H, and in C the objects rolled (`key`), those that became systems (`key:system`) and those whose planet model put no planet in them (`key:empty`). The representation audit (section 7, item 4) reads them; `fill_stages.describe` prints them.
+- **The system pass.** `generation/system_pass.py` rolls the objects of B and G (compact remnants first) on `draw.Stream(f"{seed}:system-pass")`; `seed` is the scatter row's seed, or for a below-cut remnant `f"{below_cut.seed}:{n}"`, `n` its place in the stage's draws, counted whether or not it found room. The odds are `tuning.SYSTEM_PASS_ODDS` by object key (`neutron-star:millisecond` 0.7% planets; `rogue-planet` 20% moons, rolled when the planet is made). A hit builds `StarSystem(compact_remnant=...)` on the same stream and replaces the bare object with it at its point; the system's galactic Hill sphere is its primary's, the one the object was placed with, and the planet model keeps every body inside its orbit ceiling, so every system fits and the drop-the-outermost-body rule never fires. A hit whose planet model puts no planet in the system keeps the bare object. The pulsar type used is that of the object as built from the row's seed; GEN.264 reconciles it with the stored members. Companions, belts, disks and the other models are not rolled here: companions are drawn at scatter time (GEN.262) and built from the stored members at fill (GEN.264); a planetary nebula's circumbinary disk and a pulsar's planet count (the planet model gives a recycled pulsar as many as ten) belong to GEN.130.
+- **Not built here.** The cloud field's required stars (stage F, GEN.241) and the companion draw for objects made at fill (stages D and G, GEN.264).
 
 ## 4. The catalogue
 
@@ -208,7 +215,7 @@ A kind may have a system if its row in sections 4.1 to 4.4 gives a probability. 
 | Millisecond pulsar | 0.78 | white dwarf or ablated companion; planets 0.007 | multi-star 7.3; exotic 2.1 |
 | Stellar black hole | 0.20 | Sun-like or giant companion at 1 to 20 AU; wide tertiary only for direct-collapse holes | multi-star 7.3; exotic 2.3 |
 | Magnetar, intermediate-mass hole, supermassive hole, quasar | 0 | none | |
-| Rogue planet | moon 0.2 | one captured moon | `ROGUE_PLANET_MOON_CHANCE` |
+| Rogue planet | moon 0.2 | one captured moon | `SYSTEM_PASS_ODDS` |
 | Rogue brown dwarf | 0 | none | |
 | Comet, asteroid field | 0 | none | |
 | Nebula | 0 for planets | its required stars (section 4.4) | rule 2 |

@@ -263,7 +263,7 @@ class RoguePlanet(LazySaladName):
 
         self.planet_class = choose_rogue_planet_class(self.planet_type, self.radius_km, self.mass_kg, mass_bin)
 
-        self.has_moons = draw.random() < tuning.ROGUE_PLANET_MOON_CHANCE
+        self.has_moons = draw.random() < tuning.SYSTEM_PASS_ODDS["rogue-planet"]["moons"]
         self._apply_surface_conditions(rogue_surface_conditions(
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons))
 

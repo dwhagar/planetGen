@@ -61,7 +61,8 @@ SYSTEM_MODELS = {
     "none": "No system: the object stands alone.",
     "star-system": "An ordinary star system: companion, planets, belts and moons by the star model.",
     "central-star": "Its own new hot white dwarf system, made with the object.",
-    "rogue-moon": "One captured moon with probability ROGUE_PLANET_MOON_CHANCE.",
+    "rogue-moon": "One captured moon with the chance of SYSTEM_PASS_ODDS['rogue-planet'].",
+    "remnant-planets": "Planets around a compact remnant at the odds of SYSTEM_PASS_ODDS, rolled by the fill's system pass.",
 }
 """dict: Every system model a row may name, with what it builds."""
 
@@ -117,7 +118,7 @@ KINDS = (
          True, _P + "build_black_hole", "none", (), 2, "black-hole", None, "black-hole",
          "About 1e8 in the Galaxy; tuning.PHENOMENON_DENSITY_PC3."),
     Kind("neutron-star", "compact-remnant", "built", "neutron-star", "stellar density", "scatter", "band-density",
-         True, _P + "build_neutron_star", "none", (), 3, None, None, "neutron-star",
+         True, _P + "build_neutron_star", "remnant-planets", (), 3, None, None, "neutron-star",
          "About 1e9 in the Galaxy; tuning.PHENOMENON_DENSITY_PC3."),
     Kind("black-hole-core", "compact-remnant", "built", None, "none", "component", None, False,
          None, "none", (), 10, None, None, None,
