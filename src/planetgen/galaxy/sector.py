@@ -181,6 +181,7 @@ gets baked into the saved config so it doesn't change out from under a
 saved sector.
 """
 
+import collections
 import json
 import math
 
@@ -819,6 +820,11 @@ class SpaceSector:
         self.cloud_field = None
         """tuple or None: The `(galaxy_seed, shape, center_pc, reach_pc)` the clouds came from; with it the store works
         out each cloud's object ID from the seed alone (GEN.176)."""
+        self.stage_base = None
+        """int or None: What the fill's stage streams are seeded from (`generation.fill_stages`), drawn once when the
+        fill begins; `None` for a sector that was not filled by `generate_sector`."""
+        self.stage_counts = collections.Counter()
+        """Counter: Objects made, by `(stage, kind)` (`generation.fill_stages.count`; GEN.251)."""
 
     def __len__(self):
         return len(self.entries)
@@ -1029,6 +1035,25 @@ class SpaceSector:
         entry = self.add_system(star_system, position=position, system_config=system_config)
         entry.preplaced = True
         return entry
+
+    def replace_phenomenon_with_system(self, entry, star_system, system_config=None):
+        """
+        Turns a phenomenon the sector holds (a black hole or neutron star) into the primary of a system, at the same
+        point (the fill's system pass, GEN.251): `entry` leaves `phenomena` and a system entry takes its place at the
+        end of `entries`, marked `preplaced`. The system's galactic Hill sphere is its primary's, which is the sphere
+        the object was placed with, so the placement check needs no repeat.
+
+        Raises:
+            ValueError: If `entry` is not one of the sector's phenomena.
+        """
+        index = next((i for i, held in enumerate(self.phenomena) if held is entry), None)
+        if index is None:
+            raise ValueError(f"Sector {self.name!r} holds no such phenomenon entry")
+        del self.phenomena[index]
+        self._neighbor_cache = _NeighborArrays()
+        new_entry = self.add_system(star_system, position=entry.position, system_config=system_config)
+        new_entry.preplaced = True
+        return new_entry
 
     def add_home_system(self, star_system, system_config=None,
                         jitter_ly=program_constants.DEFAULT_HOME_JITTER_LY):

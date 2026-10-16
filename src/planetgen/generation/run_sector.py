@@ -20,6 +20,8 @@ from collections import Counter
 from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
+from planetgen.generation import fill_stages
+from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import nebula_field
 from planetgen.galaxy.system_position import random_unit_vector
@@ -192,30 +194,40 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
         if kind == "molecular-cloud" and cloud_field is not None:
             sector.field_nebulae = nebula_field.clouds_reaching(*cloud_field)
             sector.cloud_field = cloud_field
+            fill_stages.count(sector, fill_stages.NEBULAE, kind, len(sector.field_nebulae))
             continue
         if scattered and kind in phenomenon_scatter.SCATTERED_KINDS:
             continue
-        count = _sample_poisson_count(program_constants.phenomenon_rate_per_star(kind) * star_count)
-        for _ in range(count):
-            phenomenon_config = SystemConfig()
-            phenomenon_config.MARKDOWN = args.markdown
-            phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
-            if kind == "planetary-nebula":
-                entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
-                if entry is not None:
-                    new_entries.append(entry)
-                continue
-            try:
-                new_entries.append(sector.add_phenomenon(phenomenon, phenomenon_type))
-            except ValueError:
-                # Only a massive type (black-hole/neutron-star) can raise
-                # here (see SpaceSector._random_position) -- no room left
-                # to place it without violating another massive object's
-                # Hill sphere. Skip just this one draw rather than this
-                # phenomenon type, or the whole sector.
-                continue
+        # Each kind draws from a stream of its own (stage E), so adding a kind moves no other kind's draws.
+        stage = fill_stages.NEBULAE if kind == "molecular-cloud" else fill_stages.PER_STAR_KINDS
+        with fill_stages.stage(sector, stage, kind):
+            count = _sample_poisson_count(program_constants.phenomenon_rate_per_star(kind) * star_count)
+            for _ in range(count):
+                phenomenon_config = SystemConfig()
+                phenomenon_config.MARKDOWN = args.markdown
+                phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
+                if kind == "planetary-nebula":
+                    entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
+                    if entry is not None:
+                        new_entries.append(entry)
+                        fill_stages.count(sector, stage, kind)
+                        fill_stages.count(sector, stage, "star-system")
+                    continue
+                try:
+                    new_entries.append(sector.add_phenomenon(phenomenon, phenomenon_type))
+                    fill_stages.count(sector, stage, kind)
+                except ValueError:
+                    # Only a massive type (black-hole/neutron-star) can raise
+                    # here (see SpaceSector._random_position) -- no room left
+                    # to place it without violating another massive object's
+                    # Hill sphere. Skip just this one draw rather than this
+                    # phenomenon type, or the whole sector.
+                    continue
 
-    new_entries.extend(add_star_hosted_nebulae(sector, args))
+    with fill_stages.stage(sector, fill_stages.NEBULAE, "hosted"):
+        hosted = add_star_hosted_nebulae(sector, args)
+    fill_stages.count(sector, fill_stages.NEBULAE, "nebula", len(hosted))
+    new_entries.extend(hosted)
     return new_entries
 
 
@@ -374,11 +386,14 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     nucleus_config = SystemConfig()
     nucleus_config.MARKDOWN = args.markdown
     position = (-galactic_center_dist_ly, 0.0, 0.0)
-    if draw.random() < program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
-        return sector.add_phenomenon(Quasar(nucleus_config), "quasar", position=position)
-    log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
-    black_hole = BlackHole(nucleus_config, mass_class="supermassive")
-    return sector.add_phenomenon(black_hole, "black-hole", position=position)
+    with fill_stages.stage(sector, fill_stages.FLAGS, "nucleus"):
+        if draw.random() < program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
+            fill_stages.count(sector, fill_stages.FLAGS, "quasar")
+            return sector.add_phenomenon(Quasar(nucleus_config), "quasar", position=position)
+        log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
+        black_hole = BlackHole(nucleus_config, mass_class="supermassive")
+        fill_stages.count(sector, fill_stages.FLAGS, "black-hole")
+        return sector.add_phenomenon(black_hole, "black-hole", position=position)
 
 
 def _seeded_build(seed, build):
@@ -415,6 +430,8 @@ def add_scattered_phenomena(sector, args, fill):
         if entry is None:
             continue
         entry.scatter_id = row["id"]
+        entry.system_seed = row["seed"]
+        fill_stages.count(sector, fill_stages.SCATTERED, row["kind"])
         if hasattr(entry, "phenomenon_type"):
             new_entries.append(entry)
     return new_entries
@@ -468,6 +485,7 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
                                                     below_cut.expected_stars, below_cut.min_mass_solar,
                                                     below_cut.seed)
     entries = []
+    made = 0
     with draw.bound(rng):
         for kind, subtype, mass_range, count in draws:
             for _ in range(count):
@@ -479,10 +497,15 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
                 else:
                     remnant = NeutronStar(config, galactic_center_dist_ly=galactic_center_dist_ly,
                                           mass_range=mass_range)
+                made += 1
                 try:
-                    entries.append(sector.add_phenomenon(remnant, kind))
+                    entry = sector.add_phenomenon(remnant, kind)
                 except ValueError:
                     continue  # no room clear of the Hill spheres already placed
+                # The remnant's system roll (stage C) is its own: its place in the draw names it.
+                entry.system_seed = f"{below_cut.seed}:{made}"
+                entries.append(entry)
+                fill_stages.count(sector, fill_stages.BELOW_CUT, kind)
     return entries
 
 
@@ -517,6 +540,7 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
         entry = sector.add_preplaced_system(system, brightStars.local_position_ly(row, fill.center_pc),
                                             system_config=cfg)
         entry.bright_star_id = row["id"]
+        fill_stages.count(sector, fill_stages.PRE_PLACED, "star-system")
 
 
 def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None):
@@ -589,60 +613,73 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     """
     sector_name = args.sector_name or generate_sector_name()
     sector = SpaceSector(name=sector_name, cell=cell)
+    fill_stages.begin(sector)       # every stage below draws from its own stream (GEN.251)
     scattered = fill is not None and fill.phenomena_scattered
     if fill is not None:
-        _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly)
+        with fill_stages.stage(sector, fill_stages.PRE_PLACED):
+            _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly)
+    scattered_entries = []
     if scattered:
-        add_scattered_phenomena(sector, args, fill)
+        with fill_stages.stage(sector, fill_stages.SCATTERED):
+            scattered_entries = add_scattered_phenomena(sector, args, fill)
+    with fill_stages.stage(sector, fill_stages.SYSTEM_PASS):
+        system_pass.run(sector, args, scattered_entries, galactic_center_dist_ly)
 
-    # `--density` resolves to a concrete system count per sector (this
-    # sector's own volume, sampled fresh each call) rather than once at
-    # parse time -- this is what lets each sector under `--num-sectors`/
-    # the `galaxy` subcommand vary independently instead of sharing one
-    # fixed count. A copy avoids mutating the caller's shared `args`
-    # namespace, since this function runs once per sector.
-    density_driven = args.density is not None
-    if density_driven:
-        args = copy.copy(args)
-        # An astronomical --density (1e308) can overflow the mean to inf;
-        # any count that large just fills the sector (see "Capacity").
-        mean = min(sector.expected_system_count() * args.density, sys.float_info.max)
-        if fill is not None:
-            mean *= 1.0 - fill.bright_share()
-        args.num_systems = _sample_poisson_count(mean)
+    with fill_stages.stage(sector, fill_stages.SYSTEMS):
+        # `--density` resolves to a concrete system count per sector (this
+        # sector's own volume, sampled fresh each call) rather than once at
+        # parse time -- this is what lets each sector under `--num-sectors`/
+        # the `galaxy` subcommand vary independently instead of sharing one
+        # fixed count. A copy avoids mutating the caller's shared `args`
+        # namespace, since this function runs once per sector.
+        density_driven = args.density is not None
+        if density_driven:
+            args = copy.copy(args)
+            # An astronomical --density (1e308) can overflow the mean to inf;
+            # any count that large just fills the sector (see "Capacity").
+            mean = min(sector.expected_system_count() * args.density, sys.float_info.max)
+            if fill is not None:
+                mean *= 1.0 - fill.bright_share()
+            args.num_systems = _sample_poisson_count(mean)
 
-    total = args.num_systems
-    for i, cfg in enumerate(iter_sector_configs(args)):
-        if fill is not None:
-            fill.apply(cfg)
-        with log.timed_phase(f"generate system {i + 1}/{total}"):
-            system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
+        total = args.num_systems
+        for i, cfg in enumerate(iter_sector_configs(args)):
+            if fill is not None:
+                fill.apply(cfg)
+            with log.timed_phase(f"generate system {i + 1}/{total}"):
+                system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
 
-        try:
-            with log.timed_phase(f"place system {i + 1}/{total}"):
-                sector.add_system(system, system_config=cfg)
-        except ValueError:
-            # No room left for another system's Hill sphere in this
-            # sector's cube -- see this function's own "Capacity"
-            # docstring note. Every following config would almost
-            # certainly fail the same way (this sector only gets fuller
-            # from here), so stop generating and placing altogether
-            # rather than pay for `total - i - 1` more full
-            # StarSystem generations just to discard them too.
-            log.normal(
-                f"Sector '{sector_name}': ran out of room after placing {len(sector.entries)} of "
-                f"{total} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
-                f"that clears every already-placed system's Hill sphere. Returning the sector as-is "
-                f"rather than the full requested count."
-            )
-            break
+            try:
+                with log.timed_phase(f"place system {i + 1}/{total}"):
+                    sector.add_system(system, system_config=cfg)
+                fill_stages.count(sector, fill_stages.SYSTEMS, "star-system")
+            except ValueError:
+                # No room left for another system's Hill sphere in this
+                # sector's cube -- see this function's own "Capacity"
+                # docstring note. Every following config would almost
+                # certainly fail the same way (this sector only gets fuller
+                # from here), so stop generating and placing altogether
+                # rather than pay for `total - i - 1` more full
+                # StarSystem generations just to discard them too.
+                log.normal(
+                    f"Sector '{sector_name}': ran out of room after placing {len(sector.entries)} of "
+                    f"{total} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
+                    f"that clears every already-placed system's Hill sphere. Returning the sector as-is "
+                    f"rather than the full requested count."
+                )
+                break
 
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
                                   cloud_field=cloud_field, scattered=scattered)
         if scattered and fill.below_cut is not None:
-            add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)
-        flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly, scattered=scattered)
+            with fill_stages.stage(sector, fill_stages.BELOW_CUT):
+                below_cut_entries = add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)
+            with fill_stages.stage(sector, fill_stages.SYSTEM_PASS, "below-cut"):
+                system_pass.run(sector, args, below_cut_entries, galactic_center_dist_ly)
+        with fill_stages.stage(sector, fill_stages.FLAGS, "fast-stars"):
+            flagged = flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly, scattered=scattered)
+        fill_stages.count(sector, fill_stages.FLAGS, "fast-star", flagged)
 
     if density_driven and not sector.entries and not sector.phenomena:
         # Guaranteed non-empty: a sector's own Poisson draws
@@ -654,12 +691,17 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
         # empty. Only applies when the count came from --density (an
         # explicit --num-systems, including 0, is a deliberate request
         # this never overrides).
-        fallback_config = run_system.build_system_config(args)
-        if fill is not None:
-            fill.apply(fallback_config)
-        fallback_system = StarSystem(system_config=fallback_config, galactic_center_dist_ly=galactic_center_dist_ly)
-        sector.add_system(fallback_system, system_config=fallback_config)
+        with fill_stages.stage(sector, fill_stages.SYSTEMS, "fallback"):
+            fallback_config = run_system.build_system_config(args)
+            if fill is not None:
+                fill.apply(fallback_config)
+            fallback_system = StarSystem(system_config=fallback_config,
+                                         galactic_center_dist_ly=galactic_center_dist_ly)
+            sector.add_system(fallback_system, system_config=fallback_config)
+        fill_stages.count(sector, fill_stages.SYSTEMS, "star-system")
 
+    for line in fill_stages.describe(sector):
+        log.debug(f"Sector {sector_name!r} fill, {line}")
     return sector_name, sector
 
 

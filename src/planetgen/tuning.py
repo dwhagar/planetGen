@@ -2477,10 +2477,21 @@ ROGUE_ACTIVE_HEAT_FLUX_W_M2 = 0.04
 """float: A rocky rogue whose heat flow reaches this is still geologically
 active (`has_internal_heat`): Earth flows 0.087 W/m^2, Mars about 0.02
 (a default between them). A giant always is."""
-ROGUE_PLANET_MOON_CHANCE = 0.2
-"""float: Chance a generated rogue planet kept a captured companion moon.
-(Whether it keeps internal heat is no longer a roll: `rogueSurface`
-computes it.)"""
+SYSTEM_PASS_ODDS = {
+    "neutron-star:millisecond": {"planets": 0.007},
+    "rogue-planet": {"moons": 0.2},
+}
+"""dict: The odds of what hangs on an object beyond its stars (GEN.251; docs/design/phenomena-catalogue-and-fill.md
+section 5), by object key: the kind, and for a neutron star `neutron-star:` and its pulsar type, for a black hole
+`black-hole:` and its mass class. Each value maps what the object may hold (`planets`, `moons`, `belts`, `disk`) to the
+chance it holds it. `generation.system_pass` rolls the entries of a scattered or below-cut remnant at fill, on its own
+seed; the rogue planet's moon is rolled when the planet is made. A key that is absent has nothing: white dwarfs and
+stars take their planets from the star model, magnetars, intermediate-mass and supermassive holes, brown dwarfs,
+comets and asteroid fields hold none. A millisecond pulsar's planets are the 0.7% of PSR B1257+12-like systems
+(Wolszczan & Frail 1992; Wolszczan 2012). The stellar companions of compact objects are not here: they are drawn at
+scatter time from `multistar.MEMBER_STATE_BY_PLACED` (white dwarf 30%, young neutron star 2%, millisecond pulsar 78%,
+stellar black hole 1.25%, planetary-nebula central star 20%). A rogue planet's moon is the chance a generated rogue
+planet kept a captured companion. (Whether it keeps internal heat is no longer a roll: `rogueSurface` computes it.)"""
 
 # Interstellar object hyperbolic excess speed range, in km/s -- both
 # confirmed interstellar visitors, 1I/'Oumuamua and 2I/Borisov, were
