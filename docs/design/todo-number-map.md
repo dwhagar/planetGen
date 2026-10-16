@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.118 |
 | MAP | MAP.212 |
 | NAV | NAV.62 |
-| GEN | GEN.298 |
+| GEN | GEN.299 |
 | PERF | PERF.105 |
 | DB | DB.36 |
 | API | API.28 |
@@ -810,10 +810,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.248 | Tidal streams as placed components of the halo (later) | none | open |
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | none | open |
 | GEN.250 | A phenomena registry: one table for every kind of object, with a completeness test | none | done, PR #1700 |
-| GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | none | open |
+| GEN.251 | Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one | none | done, PR #1815 |
 | GEN.252 | Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert | none | open |
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets | none | open |
-| GEN.254 | Superbubble field beside the nebula field (the Local Bubble cavity) | none | open |
+| GEN.254 | Superbubble field beside the nebula field (the Local Bubble cavity) | none | done, PR #1814 |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | none | open |
 | GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | none | open |
 | GEN.257 | A Fermi-bubble overlay on the Galaxy Map | none | open |
@@ -857,6 +857,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.295 | Nebulae as point groups whose shape follows the orbital update (design and research) | none | open |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars | none | open |
 | GEN.297 | Milky Way globular cluster catalogue import: load Boss's Harris file into galaxy_components, replacing the generated stand-in clusters | none | open |
+| GEN.298 | Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
