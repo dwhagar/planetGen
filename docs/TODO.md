@@ -656,7 +656,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: GEN.237, GEN.240, NAV.61, API.27, UX.113, NAV.45.
+  Prerequisites: GEN.240, NAV.61, API.27, UX.113, NAV.45.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.116 Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page**
@@ -1620,7 +1620,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the disk finds the Magellanic Clouds where the data puts them, and
   nothing is drawn for the empty halo cells. Owner: Interface. Nebulae hosted by pre-placed stars show through the nebula
   items (MAP.172 to MAP.181) from their scatter rows (GEN.241).
-  Prerequisites: GEN.237, GEN.238, MAP.217.
+  Prerequisites: GEN.238, MAP.217.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **MAP.209 Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug)**
@@ -3739,7 +3739,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
-  Prerequisites: GEN.237, GEN.324.
+  Prerequisites: GEN.324.
 
 - [ ] **GEN.162 Planet cull and blue stragglers in clusters**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -4062,78 +4062,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Interface for the buttons': a server and command change and a browser
   change owned by two lanes.
   Prerequisites: GEN.310, UX.127. Related: GEN.101, MAP.120.
-
-- [ ] **GEN.237 Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters**
-  Step 5 of the whole-sphere train. GEN.159 (the cluster table and King
-  tables) and GEN.160 (the cluster density term, with its spatial index
-  and the "cluster" population) are built to one table that holds every
-  kind of component: cluster, satellite (stream later), with position
-  and velocity at an epoch, mass, scale radius, profile (King with W0
-  for clusters, exponential for the Clouds and Sagittarius, Plummer for
-  dwarfs), age, [Fe/H] and a core-collapse flag. This item adds the
-  satellite rows and profiles and the density term in the profile and in
-  the shell bounds. The Milky Way default ships about 157 clusters (the
-  Harris catalogue), the LMC (49.6 kpc, 6.2e9 systems), the SMC (62.4
-  kpc, 1.3e9), Sagittarius (about 24 kpc, 2.5e8), Fornax (143 kpc) and
-  the best-known dwarfs, placed with the embedding of the
-  multiple-galaxies note. Verify positions, sizes and masses against
-  McConnachie (2012) or the current Gaia census before any row ships.
-  Decided (Boss, 2026-10-16, 2:51 PM EDT, decision card: synthetic generator first): the
-  repository has no catalogue file and this environment cannot reach the
-  Harris catalogue's host; supply the public table (about 157 rows) or
-  allow that host for a one-time ingestion script; until then GEN.164
-  builds first and the real catalogue slots in when it arrives. A galaxy
-  of another shape gets seeded fictional satellites later (GEN.9,
-  GEN.164). Done: components add to the profile's `lambda` and `mix`, a
-  cluster core cell is a queued job with an ETA, and the Clouds' and
-  Sagittarius's star counts match their masses. Owner: Core
-  (2026-10-15).
-  Decided (Boss, 2026-10-15 5:27 PM EDT): early alpha, so the current
-  database schema is not a constraint. Redesign tables, columns and
-  layouts as the work needs, with one migration or a fresh galaxy;
-  nothing is kept for the sake of production data. The component table
-  is designed for what it holds, not squeezed into existing tables.
-  Scatter-threshold note (Boss, 2026-10-16, 12:51 AM EDT, GEN.279): the
-  density plan matches real observations of galactic density and star
-  counts as closely as we can; the tiers apply only to the minimum mass
-  and minimum luminosity the scatter sweeps use (about 10% higher at the
-  core, about 10% lower in the halo and intergalactic space), so the
-  sector profile leaves room for a per-sector scatter-threshold tier. It
-  does not change the density model or any star's caps; Core 3's note
-  for GEN.279 fixes the exact form.
-  Note from Core 1 (2026-10-16, GEN.234 merged, #1763): populations are
-  now young, intermediate, old, bulge, halo and cluster, and cluster is
-  0 until this item; satellite classes (one class per satellite) were
-  NOT added as populations and arrive with this component table;
-  migration 0094 widened the bright_stars.population CHECK. Revision
-  (Core 1, 2026-10-16, 5:03 AM EDT): this item takes the next free
-  number after 0098 (0099 or later); it reuses the component table GEN.159 builds
-  (Core 2 adds parent_component_id and catalogue_id to it) and adds no
-  table of its own. Revision update (Core 1, 2026-10-16, 2:44 PM EDT):
-  this item needs no migration at all; 0099 is GEN.280's GalaxyShape
-  fields and 0100 is Core 3's cell_star_ceiling change.
-  Related: GEN.9, GEN.161, GEN.164.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): this item adds the components table to SectorProfile (a field
-  in galaxy/profile.py); the profile exists and the reach is the only
-  refusal.
-  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
-  #1824, no migration): SectorProfile.kind_factors carries one factor
-  per rare kind (supernova remnant = gas fraction; molecular cloud =
-  cold gas times the young share against the solar circle's; hosted
-  nebulae = cold gas alone; rogue planet and comet = planet occurrence
-  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
-  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
-  scatters apply them; metal-poor stars cap their object count at
-  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
-  Added to Done (2026-10-16 review): the Milky Way's own satellites
-  (LMC, SMC, Sagittarius dSph, Fornax, Sculptor, Carina, Draco, Ursa
-  Minor, Leo I) live in `galaxy_components` and are listed in no second
-  table; one verification pass against McConnachie (2012) covers this
-  table and the file of GEN.157.
-  Note (2026-10-16, from Core 3): galaxies planned before this item need
-  `planetgen plan` run again to get the new component rows.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.238 Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population**
   Part of step 6 of the whole-sphere train. Hypervelocity stars keep
@@ -4507,7 +4435,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.237, GEN.241, GEN.321. Related: GEN.158.
+  Prerequisites: GEN.241, GEN.321. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.245 Debris disks around A and F stars (later)**
@@ -5126,7 +5054,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   where the profile puts them.
   Owns the Central Molecular Zone and the nuclear disc's young share
   (2026-10-16 review); GEN.134 does not build them.
-  Prerequisites: GEN.237, GEN.244. Related: GEN.280, GEN.246.
+  Prerequisites: GEN.244. Related: GEN.280, GEN.246.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.283 Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else**
@@ -5613,6 +5541,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dispersion or ellipticity) fall back to the generator. Licence: free
   to use if the original source is named; cite 'Harris 1996 (2010
   edition)' in the design note and the file header.
+  GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the component table
+  exists, so this item can load the file as soon as GEN.324 is in.
   Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
@@ -5714,7 +5644,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.237, GEN.238, GEN.240, GEN.241, GEN.242, GEN.243,
+  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243,
   GEN.244, GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.285,
   GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
@@ -6073,7 +6003,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.320, GEN.237. Related: GEN.241.
+  Prerequisites: GEN.320. Related: GEN.241.
 
 - [ ] **GEN.322 Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach**
   Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6123,7 +6053,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.237, GEN.322. Related: GEN.240.
+  Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6762,8 +6692,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (2012) and is unverified. Done: every row (position, distance,
   luminosity, size) is checked against the published table, corrected
   where it differs, with the source named in a comment and a test that
-  pins the checked values. Prerequisite is GEN.237, which created the
-  table.
+  pins the checked values. GEN.237 (merged as #1851, 2026-10-16, 3:15 PM
+  EDT) created the table; Core 1 reports that the Large and Small
+  Magellanic Cloud, Sagittarius and eight dwarf galaxies (sizes, masses
+  and distances) were recalled from memory and could not be checked.
+  A galaxy planned before #1851 has no satellites until `planetgen plan`
+  runs again on it.
   Prerequisites: GEN.237.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
@@ -9984,7 +9918,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.237, GEN.240, GEN.280, GEN.282, GEN.283, GEN.321,
+  Prerequisites: GEN.240, GEN.280, GEN.282, GEN.283, GEN.321,
   TEST.186.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
@@ -10390,7 +10324,7 @@ clears each one.
   region holds its members inside its radius; the pre-placed share of
   every population; no double count of a cluster star between the passes
   and the fill. Done: each test exists and runs in the normal suite.
-  Prerequisites: GEN.237, GEN.240, GEN.321, TEST.186. Related: TEST.159.
+  Prerequisites: GEN.240, GEN.321, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.186 Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -11485,7 +11419,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   #1784): section 5.9 of docs/design/intergalactic-and-halo-contents.md
   now has a "Built" paragraph and docs/cli.md is updated; this item
   carries the rest.
-  Prerequisites: GEN.237, GEN.241, GEN.243.
+  Prerequisites: GEN.241, GEN.243.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **DOC.49 Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue**

@@ -700,3 +700,4 @@ Baseline: PR #1817.
 | DOC.4 | 8.1 | Docs |
 | GEN.112 | 8.4 | Asteroid fields |
 | GEN.9 | later | Multiple galaxies |
+| GEN.237 | 8.1 | Components and wanderers |
