@@ -22,7 +22,7 @@ release is stamped.
 | API | API.28 |
 | ADM | ADM.57 |
 | SEC | SEC.33 |
-| TEST | TEST.172 |
+| TEST | TEST.173 |
 | USR | USR.12 |
 | OPS | OPS.55 |
 | DOC | DOC.54 |
@@ -713,7 +713,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) | none | done, PR #1795 |
 | GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) | none | done, PR #1239 |
 | GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | done, PR #1792 |
-| GEN.154 | Show the Einstein radius on compact-object pages | none | open |
+| GEN.154 | Show the Einstein radius on compact-object pages | none | done, PR #1799 |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | dropped (not built; decision note, PR #1716) |
 | GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) | none | done, PR #1310 |
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies | none | open |
@@ -748,7 +748,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | done, PR #1088 |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | done, PR #1059 |
 | GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | done, PR #1007 |
-| GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) | none | open |
+| GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) | none | done, PR #1800 |
 | GEN.190 | The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug) | none | done, PR #1008 |
 | GEN.191 | New galaxy ignores the mass limit slider: the plan step does not store the limit, so the scatter uses the default whatever the form says (bug) | none | done, PR #1008 |
 | GEN.192 | Phenomena scatter log is thin and the Phenomena table page needs checking after a run (bug) | none | done, PR #1013 |
@@ -1720,7 +1720,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | open |
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | none | open |
-| TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) | none | open |
+| TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) | none | done, PR #1801 |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | open |
@@ -1729,6 +1729,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | none | open |
 | TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) | none | open |
 | TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) | none | open |
+| TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
