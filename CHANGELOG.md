@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1427] - 2026-10-16
+
+**Headline:** A design note says which of the later phenomena are scattered, backfilled, fill-only or derived.
+
+### Changed
+- New design note `docs/design/later-phenomena-scatter-rules.md` (GEN.277): for every item of goal issue #1677, whether it is a scatter row, a component, a state of scattered stars, a fill-only attribute or a derived value, with the observed-rate reasoning, what a row stores, the effect on the sector profile and the backfill, the registry rows and the columns Core 1 would fold into a migration. Magnetars as scatter rows is the one call left to Boss.
+
+TODO items resolved: GEN.277, GEN.113 / Added: the magnetar scatter class (see the note, section 8)
+
 ## [8.0.1426] - 2026-10-16
 
 **Headline:** GEN.277 is filed: a design note on which later phenomena are scattered, backfilled or stay sector-fill-only.
