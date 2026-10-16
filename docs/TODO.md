@@ -4805,23 +4805,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.223, GEN.280. Related: GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.286 Horizontal-branch phase in the stellar evolution model: red clump, blue horizontal branch and RR Lyrae, extreme horizontal branch, by age and metallicity**
+- [ ] **GEN.286 Horizontal-branch and AGB phases in the stellar evolution model**
   Boss (2026-10-16, 1:12 AM EDT): "why not build the model of
   horizontal-branch stars into the mix?" The stellar evolution model
   (src/planetgen/physics/stellar_evolution.py) has no horizontal-branch
-  phase, which Core 3 found makes the halo scatter counts low. Done: a
-  short plan note first (docs/design, with its README row in the same
-  PR) saying how the phase enters the model; then the phase itself: red
-  clump stars for metal-rich populations, the blue horizontal branch
-  with the RR Lyrae strip, and the extreme horizontal branch for the
-  oldest and most metal-poor, chosen from age and metallicity, with the
-  luminosities, temperatures, masses and lifetimes the model needs; its
-  effect on the halo, bulge and globular-cluster scatter counts and on
-  placed_star_fraction is measured against GEN.283's floors, and the
-  star page shows the phase. Owner Core 3 (Boss, 1:12 AM EDT). Goal
-  issue #1677.
-  Prerequisites: GEN.158. Related: GEN.283, GEN.234, GEN.237, GEN.159,
-  GEN.160, GEN.236.
+  phase, which makes the halo scatter counts low. Plan: section 5.3 of
+  docs/design/realistic-galactic-core.md (merged, #1735). Done:
+  evolve_star gains core helium-burning phases (red clump or red
+  horizontal branch, RR Lyrae, blue horizontal branch, extreme
+  horizontal branch: 10 to 60 solar luminosities, 4,600 to 35,000 K, 0.1
+  Gyr) and AGB phases (100 to 2,500 solar luminosities, 0.02 Gyr) for
+  stars under 2.2 solar masses between the giant phase and the white
+  dwarf; the colour is drawn from [Fe/H] and age; star_population's
+  _bright_windows, _bright_table and mass-band tables mirror the new
+  phases; Yerkes III with the type text, no column, no migration.
+  Measured: halo scatter rows at 100, 500 and 1000 floors are 12
+  million, 3.8 million and 310,000 now; the horizontal branch adds none,
+  the AGB adds 2.6%, 4% and 28%. [Fe/H] comes from GEN.158 (Core 2) or,
+  until it lands, from interim population defaults (halo -1.6 and -2.2,
+  disc and bulge -0.1). Owner Core 3 (Boss, 1:12 AM EDT). Goal issue
+  #1677.
+  Prerequisites: none. Related: GEN.158, GEN.283, GEN.234, GEN.237,
+  GEN.159, GEN.160, GEN.236.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
