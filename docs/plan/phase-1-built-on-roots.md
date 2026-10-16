@@ -128,6 +128,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |
 | UX.110 | The phenomena count on the overview page is wrong (bug) |  |  |
+| UX.117 | The Apply filters button on the phenomena list disappears while the list loads (bug) |  |  |
 | GEN.223 | The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug) |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, GEN.218, GEN.219 |  |
