@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1555] - 2026-10-16
+
+**Headline:** There is no Milky Way option: the Harris file and the real satellite list only guide and check the generators.
+
+### Changed
+
+- GEN.297 now calibrates the cluster generator against the Harris file and places no real cluster; GEN.369 and GEN.366 drop the optional preset; GEN.368 and the halo and cluster design notes say the same (Boss, 4:11 PM EDT).
+- The suggested "named generation presets" idea in the roadmap no longer lists a Milky Way preset.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1554] - 2026-10-16
 
 **Headline:** The double-click flight on the Galaxy Map (MAP.226) is retired after the merge, and the satellite derivation chain is recorded.
