@@ -199,6 +199,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | GEN.230, GEN.223 | Whole-sphere build train, Boss 2026-10-15. Step 1. Core. |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115 |  |
+| GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.289, GEN.290 |  |
+| GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.109 |  |
+| GEN.289 | Planets and moons stored as a position and velocity relative to their star, so perturbations have somewhere to land | GEN.109 |  |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
 | ADM.36 | Change an object's trajectory vector | GEN.109 |  |
@@ -207,6 +210,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.197 | Object IDs on ejection, merger and split events | GEN.143 |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
+| GEN.293 | Long-step rules for hypervelocity stars that leave the sector grid and for parabolic comets |  |  |
+| GEN.292 | Run the orbital update for a stated span in one go from the command line (elapsed years) |  |  |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.115, GEN.109 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.233, GEN.235, GEN.236, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |

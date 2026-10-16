@@ -5047,6 +5047,124 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT, via the coordinator).
   Prerequisites: none. Related: GEN.218, GEN.219, GEN.221, GEN.89.
 
+- [ ] **GEN.289 Planets and moons stored as a position and velocity relative to their star, so perturbations have somewhere to land**
+  Finding (orbital-encounters research, 2026-10-15, kind: gap in
+  GEN.109): today a planet or moon is a distance, a period and a phase
+  on a circle (physics and db/store.py advance_orbital_phases:
+  orbital_phase_deg = MOD(phase + turn, 360), position and velocity
+  recomputed from the phase), so no pull from another body can change
+  its orbit. GEN.109 does not say that planets and moons must first
+  become state vectors (position and velocity relative to the host star,
+  at an epoch) advanced by a real propagator (kepler.universal_step for
+  the quiet case, a sub-stepped integrator while a perturber is inside
+  the system) before its influence set can apply. Done: a design
+  decision and build plan stating this as GEN.109's first step, the
+  stored form of the vectors (one column per component, no JSON), how a
+  circular orbit is the special case, and how the quiet systems stay as
+  cheap as the phase advance is now. Source: Boss's question of
+  2026-10-15 at 10:53 PM EDT (if the orbital motion ran 100 years of
+  movement in 1 second, what would the program account for when a black
+  hole or neutron star got close to a planetary system, and would
+  planets be ejected?) and its answer,
+  /mnt/project-files/research/orbital-encounters/answer.md. Boss has not
+  asked for this to be built; no owner, no queue change.
+  Prerequisites: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
+  GEN.223.
+
+- [ ] **GEN.290 An encounter search that cannot miss a pass at large steps (100 years per second)**
+  Finding (orbital-encounters research, 2026-10-15, kind: gap in
+  GEN.109): GEN.109 describes forces from nearby bodies but no search
+  for close passes that stays safe when one step covers many years. A
+  pass at speed v and distance b needs a slice well under b / v (a
+  star-on-star pass at 40 km/s and 1,000 AU takes about 120 years), so a
+  century in one step steps straight over it. Done: a design for
+  stepping each object in slices short enough that a pass is never
+  missed, or an analytic closest-approach test between the paths of
+  nearby bodies over the whole step (a body with a mass at or above the
+  host's, such as a black hole or a neutron star, first), so that a
+  system is switched to the sub-stepped integrator only while a
+  perturber is inside its Hill sphere or its planets' orbits and every
+  other system keeps the cheap clockwork; the cost estimate on the
+  benchmark galaxy; and a test with a seeded black hole passing a seeded
+  system at a large step. Source: Boss's question of 2026-10-15 at 10:53
+  PM EDT (if the orbital motion ran 100 years of movement in 1 second,
+  what would the program account for when a black hole or neutron star
+  got close to a planetary system, and would planets be ejected?) and
+  its answer, /mnt/project-files/research/orbital-encounters/answer.md.
+  Boss has not asked for this to be built; no owner, no queue change.
+  Prerequisites: GEN.109. Related: GEN.105, GEN.109, GEN.110, GEN.115,
+  GEN.223.
+
+- [ ] **GEN.291 A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log**
+  Finding (orbital-encounters research, 2026-10-15, kind: missing
+  behaviour): nothing in the update decides whether a planet stays
+  bound; rogue planets come only from generation, never from the update.
+  The design table in docs/design/orbital-updates.md (an object flung
+  out is kept and flagged, never deleted) is marked to come. Done: after
+  every encounter the planets' specific energy and eccentricity relative
+  to their star are recomputed (state_vectors.elements_from_state
+  handles hyperbolas); a planet at or above zero energy, or past the
+  system's Hill radius, is flagged unbound and becomes a rogue planet
+  row (kept, never deleted), a captured body gets an orbit around its
+  new host, and every ejection, capture, collision and warning goes to
+  the admin activity log with the event time. Collisions use GEN.110.
+  Tests: a black hole passing a seeded system ejects the outer planets
+  first, and the totals before and after match the rule. Source: Boss's
+  question of 2026-10-15 at 10:53 PM EDT (if the orbital motion ran 100
+  years of movement in 1 second, what would the program account for when
+  a black hole or neutron star got close to a planetary system, and
+  would planets be ejected?) and its answer,
+  /mnt/project-files/research/orbital-encounters/answer.md. Boss has not
+  asked for this to be built; no owner, no queue change.
+  Prerequisites: GEN.289, GEN.290. Related: GEN.105, GEN.109, GEN.110,
+  GEN.115, GEN.223, GEN.289, GEN.290.
+
+- [ ] **GEN.292 Run the orbital update for a stated span in one go from the command line (elapsed years)**
+  Finding (orbital-encounters research, 2026-10-15, kind: gap in
+  GEN.105): GEN.105 records Boss's wish (2026-10-07) for an option that
+  advances the galaxy by a stated extra span in one go, with the default
+  one day of real time for one day of orbit. orbit_clock(conn,
+  elapsed_years=...) in db/store.py already steps by a chosen number of
+  years, but only tests call it, so the command line (planetgen.cli)
+  still only runs to wall-clock time. Done: a documented option on the
+  orbital update command (for example --advance-years or --advance-days)
+  that runs one update over that span, shows the span in the progress
+  and the activity log, refuses a span over the one billion year
+  interval cap unless told otherwise, and says in the output which
+  behaviours do not hold at that span until GEN.290 lands (clockwork
+  phases stay correct at any span; nothing perturbs). Test: a
+  one-century step equals the same century run as many short steps for
+  the clockwork objects. Source: Boss's question of 2026-10-15 at 10:53
+  PM EDT (if the orbital motion ran 100 years of movement in 1 second,
+  what would the program account for when a black hole or neutron star
+  got close to a planetary system, and would planets be ejected?) and
+  its answer, /mnt/project-files/research/orbital-encounters/answer.md.
+  Boss has not asked for this to be built; no owner, no queue change.
+  Prerequisites: none. Related: GEN.105, GEN.223, GEN.290.
+
+- [ ] **GEN.293 Long-step rules for hypervelocity stars that leave the sector grid and for parabolic comets**
+  Finding (orbital-encounters research, 2026-10-15, kind: undefined
+  behaviour at long steps): hypervelocity stars fly in a straight line
+  with no galactic pull (db/store.py, galaxy/straight_line.py), so a
+  long enough step puts one outside every sector; what index.sector_at
+  does for a position that has left the galaxy was not traced. A
+  parabolic comet's anomaly grows without wrapping
+  (advance_comet_orbits), so a long step puts it very far from its star
+  and nothing ends the pass or marks the comet gone. Done: the rule for
+  each case written and tested: a star past the outer limit of the
+  sector grid is kept and flagged (never deleted) and found by the
+  intergalactic frame (GEN.223, GEN.238) instead of failing a sector
+  lookup, and a parabolic comet beyond a stated distance from its host
+  is marked as having left the system and stops being advanced. Tests at
+  a step of 100 years and of 1,000,000 years. Source: Boss's question of
+  2026-10-15 at 10:53 PM EDT (if the orbital motion ran 100 years of
+  movement in 1 second, what would the program account for when a black
+  hole or neutron star got close to a planetary system, and would
+  planets be ejected?) and its answer,
+  /mnt/project-files/research/orbital-encounters/answer.md. Boss has not
+  asked for this to be built; no owner, no queue change.
+  Prerequisites: none. Related: GEN.105, GEN.223, GEN.232, GEN.238.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
