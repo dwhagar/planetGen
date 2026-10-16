@@ -2201,7 +2201,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     chain of wraps, 40 tiny spheres on a long line, an overlapping pair,
     a scene shifted by 2e4 pc (same answer). Say "short detour", not
     "shortest".
-    Prerequisites: NAV.55, NAV.56.
+    Waits on NAV.62: the study of how the gravity of the stars a cell
+    leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
+    Prerequisites: NAV.55, NAV.56, NAV.62.
 
   - [ ] **NAV.27 Moving bodies inside a system**
     Inside a system the planets move. Done: the in-system planner uses
@@ -2447,6 +2449,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merges: NAV.60 (Core 2). Core 4 takes it when it unblocks.
   Prerequisite: NAV.60. Related: NAV.12, NAV.44, NAV.45.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
+
+- [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
+  Boss (2026-10-16, 5:01 PM EDT, on the cell cap of GEN.364): "in the
+  core there are just too many stars to make all of them, no matter how
+  scientifically accurate it would be. I would like to figure out how we
+  can account for the gravity of items left out, but let's put that as a
+  TODO for the courses that bend around gravity wells phase." A cell
+  that expects more systems than its cap resolves the brightest and
+  leaves the rest unmade; GEN.281 already derives the unresolved count
+  and mass of a cell from its address (`galaxy/resolution.py`), from the
+  same density model as every other cell. Done: a written study (a
+  section in docs/design/realistic-galactic-core.md) that says how the
+  pull of that unresolved mass is added: as a smooth field summed per
+  cell from the derived unresolved mass and the cell centre, how it
+  joins the galactic potential of GEN.285 and the keep-out spheres of
+  NAV.54, whether a course that bends around wells (NAV.26) and the
+  orbital update need it at every zoom or only inside the dense core,
+  its cost per query, and a recommendation with the work it needs as new
+  items. No fixed table: the mass comes from the density model and the
+  address, never from a stored list. No build in this item. Owner: not
+  assigned; the courses lane of 8.5.
+  Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
+  NAV.26, NAV.6.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 ## GEN: Generation and physics
 
