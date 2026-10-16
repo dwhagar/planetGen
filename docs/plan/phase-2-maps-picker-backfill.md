@@ -154,7 +154,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential |  | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
 | GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | GEN.241 | Whole-sphere build train, Boss 2026-10-15. Step 13. Core. |
 | GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars |  | Whole-sphere build train, Boss 2026-10-15. Step 11. Core. |
-| GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.236, GEN.242 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
+| GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.242 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
 | API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed |  | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | GEN.237 | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
@@ -174,7 +174,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.244 | Young open clusters and OB associations as components (later) | GEN.237, GEN.241 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population |  | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters |  | Whole-sphere build train, Boss 2026-10-15. Step 5. Core. |
-| GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity |  | Whole-sphere build train, Boss 2026-10-15. Steps 2 and 4. Core. |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
@@ -202,7 +201,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110, GEN.289, GEN.290, GEN.291 | Parent of the orbital update work. |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.115, GEN.109 | Gravity map foundation (Boss 2026-10-10). |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
-| TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.236, GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
+| TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.264 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit |  | Spherical region query, stage C. Step 7. Quality. |
