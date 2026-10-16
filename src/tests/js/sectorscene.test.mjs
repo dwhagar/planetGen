@@ -139,3 +139,42 @@ test("a charted star's info panel lists its metallicity when one is stored (GEN.
   // An older row has none: the field is there with no value, which the panel leaves out.
   assert.ok(!fields({ ...star, metallicity: null }).find((field) => field[0] === "Metallicity [Fe/H]")[1]);
 });
+
+test("setFade scales every material from the value it was built with, and 0 hides the scene (MAP.152)", () => {
+  const { sector } = build();
+  const materials = [];
+  sector.group.traverse((o) => { if (o.material) materials.push(o.material); });
+  const strength = (m) => ({
+    fade: m.uniforms && m.uniforms.fade ? m.uniforms.fade.value : undefined,
+    maxAlpha: m.uniforms && m.uniforms.maxAlpha ? m.uniforms.maxAlpha.value : undefined,
+    glowStrength: m.uniforms && m.uniforms.glowStrength ? m.uniforms.glowStrength.value : undefined,
+    opacity: m.uniforms ? undefined : m.opacity,
+  });
+  const before = materials.map(strength);
+  assert.ok(materials.some((m) => m.uniforms && m.uniforms.fade), "the points of light have a fade");
+  assert.equal(sector.fade(), 1);
+  sector.setFade(0.5);
+  assert.equal(sector.fade(), 0.5);
+  assert.equal(sector.group.visible, true);
+  materials.forEach((m, i) => {
+    const now = strength(m);
+    for (const name of Object.keys(now)) {
+      if (now[name] === undefined) continue;
+      assert.ok(Math.abs(now[name] - before[i][name] * 0.5) < 1e-9, `${name} halved`);
+    }
+  });
+  sector.setFade(0.5);
+  materials.forEach((m, i) => {
+    const now = strength(m);
+    for (const name of Object.keys(now)) {
+      if (now[name] !== undefined) assert.ok(Math.abs(now[name] - before[i][name] * 0.5) < 1e-9, `${name} still half, not a quarter`);
+    }
+  });
+  sector.setFade(0);
+  assert.equal(sector.group.visible, false, "not drawn at all");
+  sector.setFade(1);
+  assert.equal(sector.group.visible, true);
+  materials.forEach((m, i) => assert.deepEqual(strength(m), before[i], "back as built"));
+  sector.setFade(7);
+  assert.equal(sector.fade(), 1, "held to 0..1");
+});

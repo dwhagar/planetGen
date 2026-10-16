@@ -26,7 +26,8 @@
 // - viewport (optional): the map's viewport element, where the
 //   screen-reader list of the open sector's entries goes;
 // - opened() / closed() (optional): called when a sector's scene is added
-//   to or removed from the map;
+//   to or removed from the map as the sector opened in place (not for a scene
+//   up only for the camera coming near it, MAP.152: `ambient`, below);
 // - openSystem(entry) (optional): opens a star's system in place (MAP.125);
 //   the star's panel offers it when given;
 // - kindsChanged() (optional): called when a kind of object is shown or
@@ -54,6 +55,10 @@ export function cubeCorners(center, halfEdge) {
 
 export const DEFAULT_HIDDEN_KINDS = ["roguePlanet"];
 
+// MAP.152: how much of an ambient scene must show before its stars can be hovered or picked
+// (nearfield.js's rule for what is drawn plainly enough to be clicked).
+export const PICKABLE_SHARE = 0.35;
+
 export function createSectorStage(host) {
   const selectionRing = createRing(host.scene, host.camera, host.canvasEl, host.accentColor, { depthTest: false, renderOrder: 5 });
   const hoverRing = createRing(host.scene, host.camera, host.canvasEl, host.accentColor, { depthTest: false, renderOrder: 5, opacity: 0.45 });
@@ -68,6 +73,12 @@ export function createSectorStage(host) {
   const hiddenClasses = new Set();
   let minLuminosity = 0;
 
+  // Whether a sector is open in place (what the panels and keys read); a scene up only for the
+  // camera coming near it (MAP.152) is not.
+  function live() {
+    return !!open && !open.ambient;
+  }
+
   function ringAround(ring, entry) {
     ring.at(entry.x, entry.y, entry.z, open.sector.ringSize(entry));
     return entry.light ? entry : null;
@@ -75,6 +86,8 @@ export function createSectorStage(host) {
 
   function layerFor(layer, state) {
     return Object.assign({}, layer, {
+      // A scene fading in is not picked until enough of it shows.
+      enabled: function () { return state.fade >= PICKABLE_SHARE && (!layer.enabled || layer.enabled()); },
       tooltip: tooltipText,
       hover: function (entry) {
         if (!entry) {
@@ -124,8 +137,9 @@ export function createSectorStage(host) {
     selectionRing.hide();
     hoverRing.hide();
     host.hideCell(null);
+    const wasAmbient = open.ambient;
     open = null;
-    if (host.closed) host.closed();
+    if (host.closed && !wasAmbient) host.closed();
   }
 
   // A selection of something hidden shows its kind again first.
@@ -239,8 +253,24 @@ export function createSectorStage(host) {
   // `at` ({ring, layer, slot}) opens the cell nothing was generated in
   // instead (MAP.162, `id` is then null): it opens only when the scatters
   // left something in it, and carries an "Uncharted" badge in its frame.
-  function openSector(id, bounds, at) {
+  //
+  // `ambient` (MAP.152) loads the scene for the camera coming near it, without the sector
+  // being opened: it starts at no strength (`setFade` brings it in), its tile stars stay until
+  // it is whole, and neither `opened` nor `closed` is called. Opening the sector that is up
+  // this way takes it over as it is (no second fetch).
+  function openSector(id, bounds, at, ambient) {
     const mine = ++token;
+    if (open && open.ambient && id != null && open.id === id && !at) {
+      const same = { center: open.center, halfEdge: open.halfEdge, fitPoints: cubeCorners(open.center, open.halfEdge) };
+      if (ambient) return Promise.resolve(same);
+      open.ambient = false;
+      open.list = entryList(open.sector.entries);
+      open.listed = open.list ? open.list.listed : null;
+      showListed();
+      setFade(1);
+      if (host.opened) host.opened();
+      return Promise.resolve(same);
+    }
     const fetched = at ? host.fetchUnchartedScene(at) : host.fetchScene(id);
     return fetched.then(function (data) {
       if (mine !== token || !data || !data.centerPc || !(data.halfEdgePc > 0)) return null;
@@ -255,7 +285,7 @@ export function createSectorStage(host) {
       data.outline = null;
       data.compass = null;
       const half = data.sceneHalfPx || 160;
-      const state = { id: id, data: data, selected: null, hovered: null, uncharted: !!data.uncharted };
+      const state = { id: id, data: data, selected: null, hovered: null, uncharted: !!data.uncharted, ambient: !!ambient, bounds: bounds || null, fade: 1, cellHidden: false };
       state.center = data.centerPc;
       state.halfEdge = data.halfEdgePc;
       state.sector = buildSectorScene(data, {
@@ -270,15 +300,38 @@ export function createSectorStage(host) {
       hiddenClasses.forEach(function (c) { state.sector.setStarClassHidden(c, true); });
       if (minLuminosity > 0) state.sector.setMinLuminosity(minLuminosity);
       state.layers = state.sector.layers.map(function (layer) { return host.picker.addLayer(layerFor(layer, state)); });
-      state.list = entryList(state.sector.entries);
+      state.list = ambient ? null : entryList(state.sector.entries);
       state.listed = state.list ? state.list.listed : null;
       open = state;
-      if (state.uncharted) state.badge = unchartedBadge(data);
+      if (state.uncharted && !ambient) state.badge = unchartedBadge(data);
       showListed();
-      host.hideCell(bounds || null);
-      if (host.opened) host.opened();
+      if (ambient) {
+        setFade(0);
+      } else {
+        host.hideCell(bounds || null);
+        state.cellHidden = true;
+        if (host.opened) host.opened();
+      }
       return { center: state.center, halfEdge: state.halfEdge, fitPoints: cubeCorners(state.center, state.halfEdge) };
     });
+  }
+
+  // MAP.152: how much of the open sector's scene shows (0 to 1). The galaxy's own tile stars in
+  // its cell stay while it is coming in and go once it is whole (they are the same stars), so
+  // there is never a gap, only for a moment the same star drawn twice.
+  function setFade(share) {
+    if (!open) return;
+    open.fade = Math.min(1, Math.max(0, share));
+    open.sector.setFade(open.fade);
+    const whole = open.fade >= 0.999;
+    if (whole !== open.cellHidden) {
+      host.hideCell(whole ? open.bounds : null);
+      open.cellHidden = whole;
+    }
+    if (open.fade < PICKABLE_SHARE) {
+      // What was hovered or selected goes when it can no longer be picked.
+      if (open.hovered) { hoverRing.hide(); open.hovered = open.hoveredEntry = null; }
+    }
   }
 
   // The "Uncharted" mark on the open sector's frame (the map's viewport),
@@ -310,22 +363,28 @@ export function createSectorStage(host) {
     open: openSector,
     close: close,
     update: update,
-    isOpen: function () { return !!open; },
+    // True while a sector is open in place (not one up only for the camera coming near it).
+    isOpen: function () { return !!open && !open.ambient; },
+    // MAP.152: the sector whose scene is up for the camera coming near it, and how much of it shows.
+    ambientId: function () { return open && open.ambient ? open.id : null; },
+    isAmbient: function () { return !!open && open.ambient; },
+    setFade: setFade,
+    fade: function () { return open ? open.fade : 0; },
     sectorId: function () { return open ? open.id : null; },
     // Whether the open sector is one nothing was generated in (MAP.162), and
     // what the scatters left in it: {stars, objects, designation}.
-    isUncharted: function () { return !!(open && open.uncharted); },
+    isUncharted: function () { return !!(live() && open.uncharted); },
     unchartedSummary: function () {
-      return open && open.uncharted
+      return live() && open.uncharted
         ? { stars: open.data.stars.length, objects: open.data.clouds.length, designation: open.data.designation }
         : null;
     },
     select: selectEntry,
     deselect: deselect,
     // The open sector's entry with this key ("rogue_planet:12"), or null.
-    entryByKey: function (key) { return open ? open.sector.entryByKey.get(key) || null : null; },
+    entryByKey: function (key) { return live() ? open.sector.entryByKey.get(key) || null : null; },
     // The kinds of object in the open sector, [{kind, label, count}] (MAP.79).
-    kinds: function () { return open ? open.sector.kinds() : []; },
+    kinds: function () { return live() ? open.sector.kinds() : []; },
     setKindHidden: setKindHidden,
     kindHidden: function (kind) { return hiddenKinds.has(kind); },
     hiddenKinds: function () { return Array.from(hiddenKinds); },
@@ -346,8 +405,8 @@ export function createSectorStage(host) {
     setStarClassHidden: setStarClassHidden,
     starClassHidden: function (c) { return hiddenClasses.has(c); },
     hiddenClasses: function () { return Array.from(hiddenClasses); },
-    starClasses: function () { return open ? open.sector.starClasses() : []; },
-    luminosityRange: function () { return open ? open.sector.luminosityRange() : null; },
+    starClasses: function () { return live() ? open.sector.starClasses() : []; },
+    luminosityRange: function () { return live() ? open.sector.luminosityRange() : null; },
     // The classes named by a URL's `stars` (unknown names ignored), before any sector opens.
     setHiddenClasses: function (classes) {
       let changed = false;
@@ -372,8 +431,8 @@ export function createSectorStage(host) {
       });
       if (changed && host.kindsChanged) host.kindsChanged();
     },
-    entries: function () { return open ? open.sector.entries : []; },
+    entries: function () { return live() ? open.sector.entries : []; },
     // The entry picked in the open sector, if any.
-    selectedEntry: function () { return open ? open.selectedEntry : null; },
+    selectedEntry: function () { return live() ? open.selectedEntry : null; },
   };
 }
