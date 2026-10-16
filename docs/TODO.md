@@ -8731,7 +8731,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
   2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
   it goes idle).
-  Prerequisites: ADM.84, ADM.85.
+  Prerequisites: ADM.85.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
   Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
@@ -9292,33 +9292,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
-  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
-  somewhere, that needs to get bumped up because we're starting to
-  desperately need that." Part of the configuration page of ADM.43
-  (GitHub issue
-  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. An Admin page generated from the ADM.42 model:
-  sections, then every option with its help text, default, current value
-  and where the value comes from (default, `config.json` or an
-  environment variable);
-  editable options as controls by type; read-only options
-  (`jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix`,
-  `admin_cookie_insecure`, `redis.url`, `api_base_url`, the database
-  settings) shown with the reason they are command line only. Save shows
-  a
-  before-and-after diff of the changed options, confirms, saves through
-  ADM.83 and shows per-field errors; a pending-restart banner on every
-  admin page comes from a snapshot taken at startup. Options marked for
-  the Owner tier are shown and disabled until ADM.86. It is built in the
-  admin layout of the day; ADM.56 moves it into the one admin shell.
-  Done: the page, the diff and confirm step, the banner and a browser
-  test that edits, saves and restores one option of each type.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.83. Related: ADM.43, ADM.56.
-
 - [ ] **ADM.85 Settings backups, restore, import and export on the settings page**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
   somewhere, that needs to get bumped up because we're starting to
@@ -9366,7 +9339,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner account that USR.2 creates, so it belongs to 8.2 and not to the
   umbrella ADM.43. Done: the prompt, the tier check in the writer, and
   tests that an admin and a stale-password Owner are both refused.
-  Prerequisites: ADM.84, USR.26. Related: ADM.43, USR.3.
+  Prerequisites: USR.26. Related: ADM.43, USR.3.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -10580,6 +10553,10 @@ clears each one.
   the bound itself, and the subtraction's rounding error (about 1e-28)
   is larger than the 1e-9 tolerance on 2.7e-20 (2.7e-29). Suggested fix:
   a tolerance relative to the model, such as `bound*(1+1e-9) + 1e-12*model`.
+  Core 1 hit it too (2026-10-16, 5:49 PM EDT, in the GEN.335 gate:
+  2.4e-9 over the bound) and will push a test-only fix in its next PR,
+  adding a few ulps of the model, `4e-16*model`, to the tolerance; that
+  PR resolves this item.
   Prerequisites: none.
 
 - [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
@@ -10599,6 +10576,21 @@ clears each one.
   in 3 gates. Reproducer: none; the same file passed alone (7 of 7)
   right after. Related to TEST.190 (a failing session fixture makes
   dependents wait their full timeout).
+  Prerequisites: none.
+
+- [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
+  Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
+  TODO thread.
+  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
+  failed once in the browser phase of a full `scripts/test.py changed`
+  run (load 8.7, 2 browser workers) and passed when rerun alone (call
+  122.9 s on gw1). Done: the cause is found (a wait that is too short
+  under load, or a real race in the system map drill), the test waits on
+  the condition it needs and not a fixed time, and it passes under the
+  same load with 2 browser workers, with no quarantine. Fails on main:
+  unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
+  full browser phase; try the file with two browser workers and a busy
+  machine.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -10712,7 +10704,7 @@ clears each one.
     and builds the mail module and the "send test email" action; the
     form is the generated settings page (ADM.84 and ADM.86), not a
     second form.
-    Prerequisites: ADM.86, USR.26, ADM.84.
+    Prerequisites: ADM.86, USR.26.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
