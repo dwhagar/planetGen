@@ -4575,6 +4575,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   comes out of the 7-star column. (3) test_system_type_rates requires a
   generator only once its owner is in _LANDED_OWNERS (261 now); each
   later owner adds its number.
+  Progress (Core 2, PR #1745): the generator side merged on 2026-10-15:
+  physics/roche.py, the interaction classifier on every pair, the member
+  flags, a rejuvenated merger-product age and the new kinds
+  stripped-helium, thorne-zytkow and wolf-rayet with labels. Still open:
+  storing interaction on scatter_nodes and orbit_nodes, which waits on
+  GEN.260 (migration 0093); exotic-star draws and rate alignment stay
+  with GEN.270.
   Prerequisite: GEN.260. Related: GEN.268, GEN.243, GEN.242,
   GEN.270, GEN.271, GEN.272.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
