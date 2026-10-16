@@ -316,6 +316,9 @@ class FixtureApi:
     def get_galaxy_shape(self, db):
         return self.shape
 
+    def get_superbubbles(self, db):
+        return []
+
     def get_polities(self, db, limit=None, offset=None):
         return {"items": [], "total": 0, "limit": limit, "offset": offset}
 
@@ -412,7 +415,7 @@ class FixtureApi:
         return cell
 
 
-_APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me", "get_galaxy_locate",
+_APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_nebula_shape", "get_system_scene", "get_uncharted_sector")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage", "get_galaxy_window")
