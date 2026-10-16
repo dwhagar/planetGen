@@ -1296,12 +1296,13 @@
 -- v101 (DB.55): the point of every kind of object in one additive revision (`planetgen/db/point_columns.py`, GEN.294).
 --   A movement vector (`velocity_x/y/z_kms`, galactic axes, backfilled from the old scalar speed as the tangent of the
 --   galaxy's rotation) on black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae,
---   remnants, stars, belts and quasars; `mass_kg` on interstellar comets, asteroid fields, nebulae, remnants, belts,
---   comets and facilities (a stated zero where the mass is not known); `epoch_unix` and `next_update_due` on stars,
---   belts and quasars, `epoch_unix` on `scatter_members`; a system-frame `position_x/y/z_km` on stars and belts;
---   `sectors.max_mass_kg` and `max_mass_id`; `asteroid_fields.formed_at` and `origin_event_id`; and
---   `parent_type`, `parent_id` and `dynamical_state` on planets and moons (GEN.289). All nullable except the
---   planet and moon state, which default to a bound body of its star (planet) or planet (moon).
+--   remnants, belts and quasars; `mass_kg` on interstellar comets, asteroid fields, nebulae, remnants, belts, comets and
+--   facilities (a comet nucleus at 67P's density, a cloud's bounding sphere at its density, else a stated zero);
+--   `epoch_unix` and `next_update_due` on belts and quasars, `epoch_unix` on `scatter_members`; a system-frame
+--   `position_x/y/z_km` on belts; `sectors.max_mass_kg` and `max_mass_id`; `asteroid_fields.formed_at` and
+--   `origin_event_id`; and `parent_type`, `parent_id` and `dynamical_state` on planets and moons (GEN.289). All
+--   nullable except the planet and moon state, which default to a bound body of its star (planet) or planet (moon).
+--   A star has no columns of its own: it moves with its system.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
