@@ -719,7 +719,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies | none | open |
 | GEN.158 | Add a metallicity value to stars | none | done, PR #1789 |
 | GEN.159 | Globular clusters: cluster table, King tables and the Milky Way catalogue | none | done, PR #1810 |
-| GEN.160 | Cluster density in the sector gate, with a "cluster" population | none | open |
+| GEN.160 | Cluster density in the sector gate, with a "cluster" population | none | done, PR #1817 |
 | GEN.161 | Bright-first fill for cluster sectors | none | open |
 | GEN.162 | Planet cull and blue stragglers in clusters | none | open |
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | none | open |
