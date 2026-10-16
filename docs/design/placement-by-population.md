@@ -3,7 +3,7 @@
 Boss (2026-10-07 11:47Z) asked for the tiered structure of where stars of different types sit in the galaxy, and for the
 kinds of phenomena with similar restrictions, added to the density and type draws. This note is the review of
 2026-10-16 turned into a table: which placement rules the code already has, and which three population-dependent rules
-for the type draws are still missing, each with a way to calculate it and what it needs from Boss.
+for the type draws are still missing, each with a way to calculate it and, for two of them, the constants Boss supplied on 2026-10-16.
 
 Nothing here is a fixed catalogue. Every number a rule uses comes from the sector profile (`galaxy/profile.py`), which is
 a function of the galaxy shape, the cell's address and the galaxy seed. A rule below either reads a profile field or
@@ -59,14 +59,31 @@ they sit in `tuning.py` with a source.
 
 ### 3.1 Close pairs rise as metallicity falls
 
-Observed: the fraction of solar-type stars with a companion inside about 10 AU rises steeply toward low [Fe/H]
-(Moe, Badenes and Kratter 2019 [R], with the Raghavan 2010 solar-neighbourhood value as the high-metallicity end [R]).
-Rule: the chance that a drawn pair is a close one (an axis under 10 AU) is a function of the star's [Fe/H], which the
-cell already draws per population (`PopulationProfile.fe_h`, peak and scatter). The thick disk, bulge and halo carry
-low peaks, so they get more close pairs without any place being named.
+Moe, Kratter and Badenes (2019, ApJ 875, 61) put the intrinsic fraction of solar-type stars with a companion inside 10 AU
+at **53% +-12% at [Fe/H] -3.0, 40% +-6% at -1.0, 24% +-4% at -0.2 and 10% +-3% at +0.5** (the values in the paper's abstract, as
+the search summary quoted them) [R]. Boss's research (2026-10-16) gave the same trend and the same source, with a rounder
+"50 to 60% at -1.0 or lower, 10 to 15% at +0.3 or higher"; the paper's own point at -1.0 is 40%, so this note uses the
+paper's four points, not the round figures.
 
-How: a monotone interpolation through the observed points, so the rule reads the star's own [Fe/H] and no population
-name. **Needs from Boss:** the observed close-binary fraction against [Fe/H] (one table of 4 to 6 points).
+Rule: the chance that a drawn pair is a close one (an axis under 10 AU) scales with the star's [Fe/H], which the cell
+already draws per population (`PopulationProfile.fe_h`, peak and scatter). The existing multiplicity tables
+(`BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, `STAR_COUNT_PROBABILITIES`) keep their mass dependence; the metallicity
+enters as a factor `F(fe_h) / F(0)`, where `F` is a straight line between the four points above (in [Fe/H]), held flat
+past the ends. `F(0)` is about 20%, so a star at -1.0 gets about twice the close pairs of a solar one and a star at +0.5 about
+half. The thick disk, bulge and halo carry low peaks, so they get more close pairs without any place being named.
+
+What the sources say about the limits of the rule, and what could not be confirmed:
+
+- Scope: the points are for solar-type primaries (about 0.6 to 1.2 solar masses). Applying the factor to every mass is a
+  design choice, not an observation; Moe et al. argue the OB-star close fraction does not change with metallicity, so the factor
+  should fade toward 1 for primaries above about 2 solar masses. [R]
+- Wide pairs: Boss's text says the dependence vanishes beyond about 200 AU (El-Badry and Rix 2019, Gaia DR2). A later
+  Gaia paper found a strong, non-monotonic wide-binary dependence on metallicity (arXiv 2010.02920, Hwang et al. 2021)
+  [R, found by search, not read]. The rule therefore changes the close fraction only and leaves the wide fraction as it is
+  until Boss decides which to follow.
+- Mazzola et al. (2020, arXiv 2007.09059) find the close fraction tracks alpha abundance more closely than iron; the
+  generator has no alpha abundance, so [Fe/H] is the proxy [R].
+- Citation fixes: the El-Badry and Rix paper is dated 2019 in the search results, not 2018 as in the pasted list.
 
 ### 3.2 Massive multiples sit in young regions
 
@@ -81,10 +98,15 @@ uses. That makes the knob 1 where a cell looks like the solar circle, above 1 in
 The five-or-more columns are the ones that scale, which is how the knob works today. 
 ### 3.3 Wide pairs survive less where it is dense
 
-Wide pairs are pulled apart by the Galactic tide and by passing stars. The first limit is a calculation: a pair of total
-mass M in a medium of mass density rho has a tidal (Jacobi) radius of about (M / (3 rho))^(1/3). The cell gives rho:
-its systems per cubic parsec times `tuning.MEAN_SYSTEM_MASS_SOLAR`, plus the gas and dark matter the profile holds
-(`gas.mass_solar / volume_pc3`, `dark_matter.density_solar_pc3`) [C].
+Two limits cut the widest axis a pair can keep. Both are functions of the cell's density, and the second also of the stars' age.
+
+**The tidal limit.** A pair of total mass M in a medium of mass density rho has a tidal (Jacobi) radius of about
+(M / (3 rho))^(1/3). The cell gives rho: its systems per cubic parsec times `tuning.MEAN_SYSTEM_MASS_SOLAR`, plus the gas and dark
+matter the profile holds (`gas.mass_solar / volume_pc3`, `dark_matter.density_solar_pc3`). For the solar neighbourhood
+(a total dynamical density of about 0.1 solar masses per pc^3 [R]) and a 2 solar mass pair this gives 1.9 pc, which agrees
+with the 1.7 pc Jiang and Tremaine (2010, MNRAS 401, 977; arXiv 0907.2952) quote from the Oort constants for a pair of solar-mass
+stars and with Boss's 1.5 to 2 pc [R]. The Oort form (M / (2 A (A - B)))^(1/3) needs the galaxy's rotation, which a
+cell does not carry, so the local-density form is the one the code can use.
 
 | Place (today's default shape, stars only) | rho (solar masses per pc^3) | Tidal radius for a 2 solar mass pair | Against the 10,000 AU cap |
 |---|---|---|---|
@@ -96,15 +118,31 @@ its systems per cubic parsec times `tuning.MEAN_SYSTEM_MASS_SOLAR`, plus the gas
 | a globular cluster core [R] | 10^3 to 10^5 | 0.09 to 0.009 pc, 19,000 to 1,900 AU | cap shrinks the axis |
 
 (The density is the model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR`, 0.4; it leaves out
-the gas and dark matter, which would shorten the radii a little. The radii follow from the formula. The
-cluster row is an observed range, to be replaced by the cluster's own stored density when the component carries one.)
+the gas and dark matter, which would shorten the radii a little. The cluster row is an observed range, to be replaced by the
+cluster's own stored density when the component carries one.)
 
-So the existing 50 to 10,000 AU range (`WIDE_BINARY_SEPARATION_*`) is right almost everywhere and the rule only has to
-cut it in dense cores. Rule: the widest axis a wide pair may have is the smaller of the 10,000 AU cap and the tidal
-radius of the cell's density, with no floor above the 50 AU lower edge. The second limit, disruption by passing stars,
-scales with the local stellar density times the velocity dispersion the profile already holds; its constant is the
-one thing to look up. **Needs from Boss:** the encounter disruption limit (a hard-soft boundary form, with the
-constant) from the binary-survival literature; the tidal term can go in without it.
+**The encounter limit.** Passing stars and clouds unbind soft pairs (Heggie 1975; Bahcall, Hut and Tremaine 1985; Jiang
+and Tremaine 2010). Boss's text gives about 2 x 10^4 to 5 x 10^4 AU for the solar neighbourhood over 10 Gyr, and Jiang and Tremaine's
+50% survival over 10 Gyr falls near 30,000 AU (a secondary source's reading [R]); Gaia catalogues truncate near the same
+scale, well inside the Jacobi radius.
+
+The formula in Boss's pasted text could not be used as written. As typed, a_disrupt = (G M_tot^2 / (8 pi G^2 n M_*^2 ln(Lambda) T))^(1/2)
+does not come out as a length (its units are mass times time), and it holds no velocity dispersion, which the diffusive
+limit needs. The source papers could not be opened from this environment (arxiv.org is not reachable), so the constant of the
+exact expression is unconfirmed. What the physics fixes is the scaling: the disruption time of a pair of semi-major axis a is
+t = C M_tot sigma / (G rho <M_p> a ln Lambda), with sigma the velocity dispersion of the field, rho its density, <M_p> the
+mean perturber mass and C a number near 10 [R, my reconstruction]. Solved for a at the stars' age T it is dimensionally a length:
+
+    a_disrupt = a_ref * (M_tot / M_ref) * (sigma / sigma_ref) * (rho_ref / rho) * (T_ref / T)
+
+with `a_ref` the 10 Gyr limit in the reference place. The code takes `rho` and `sigma` from the cell's profile (the density of
+section 3.3 and the dispersion of its populations, `tuning.STELLAR_POPULATION_DISPERSION_KMS`) and `T` from the star's age,
+so a young star in a dense cell keeps its wide pair and an old one does not, and nothing is written in by place.
+`a_ref`, `rho_ref` and `sigma_ref` are one calibration: about 3 x 10^4 AU at 0.08 solar masses per pc^3 and 30 km/s (Boss's
+research; Jiang and Tremaine), stored in `tuning.py` with this source named. Once the constants C and ln Lambda of the
+impulse integral are confirmed, `a_ref` is computed instead of stored, and `rho_ref` goes away.
+
+The widest axis a wide pair may have is the smallest of the 10,000 AU cap, the tidal radius and `a_disrupt`.
 
 ## 4. How the rules reach the draw
 
@@ -117,8 +155,13 @@ a function of the cell, so the same seed gives the same stars wherever a run lan
 
 ## 5. What closes GEN.103
 
-- 3.2 and the tidal term of 3.3 need no new science and can be built first.
-- 3.1 waits for the [Fe/H] table, and the encounter term of 3.3 for its constant (both asked of Boss).
+- 3.1 and 3.3 have their constants (section 3.1's four points; section 3.3's one calibration, with the open question of the
+  exact impulse constant). 3.2 needs only a design cap on the prevalence.
+- Boss's pasted references are unverified here. Confirmed by search summaries: Moe, Kratter and Badenes 2019 and its four
+  points; Jiang and Tremaine 2010 (arXiv 0907.2952), the 1.7 pc Jacobi radius and the survival near 30,000 AU; El-Badry and Rix 2019
+  (the paper is 2019, not 2018). Not confirmed: Badenes et al. 2018's title and numbers, Bahcall, Hut and Tremaine 1985, Heggie 1975,
+  El-Badry, Rix and Heintz 2021's quoted truncation, Kratter and Lodato 2016, Bate 2018, and Stegmann et al. 2024 (its title as
+  pasted, "Close encounters of wide binaries induced by the Galactic tide", was not seen).
 - GEN.269 and GEN.270 to GEN.275 are the multi-star items that own the code (Core 3), so this note is their input: the
   build goes there, and GEN.103 closes when they have taken the three rules in, or the rules are written as items of
   their own.
