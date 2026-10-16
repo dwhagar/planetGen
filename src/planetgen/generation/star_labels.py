@@ -10,6 +10,14 @@ GIANT_YERKES = ("III", "II")
 SUPERGIANT_YERKES = ("IB", "IAB", "IA", "IA+", "0")
 
 
+MEMBER_KIND_LABELS = {
+    "stripped-helium": ("stripped helium star", "stripped helium stars"),
+    "thorne-zytkow": ("Thorne-Zytkow object", "Thorne-Zytkow objects"),
+    "wolf-rayet": ("Wolf-Rayet star", "Wolf-Rayet stars"),
+}
+"""dict: The member kinds of the multi-star catalogue that have no Yerkes class of their own, named the same way."""
+
+
 def star_label(star_type, yerkes_class):
     """
     `(label, plural)` for one star in a summary (UX.34): white dwarfs, black
@@ -18,8 +26,11 @@ def star_label(star_type, yerkes_class):
 
     Args:
         star_type (str): The spectral type ("G2", "K5"), or `None`.
-        yerkes_class (str): The luminosity class ("V", "III", "D"), or `None`.
+        yerkes_class (str): The luminosity class ("V", "III", "D"), or `None`; a key of
+            `MEMBER_KIND_LABELS` names that kind.
     """
+    if yerkes_class in MEMBER_KIND_LABELS:
+        return MEMBER_KIND_LABELS[yerkes_class]
     if yerkes_class in ("D", "VII"):
         return "white dwarf", "white dwarfs"
     if yerkes_class == "BH":
