@@ -337,7 +337,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315, TEST.186 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329, TEST.186 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
-| TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | GEN.103, TEST.186 | Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | GEN.276 | Spherical region query, stage C. Step 6. Quality. |
 
 ## Phase 5: New scatters: core, halo, interface update and docs
@@ -407,4 +406,5 @@ The last audits and the headline: they test the component pass, the core and the
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | GEN.240, GEN.321, TEST.186 | Split from TEST.159. |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.240, GEN.282, GEN.283, GEN.321, TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160 |  |
+| TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | GEN.103, TEST.186 | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160, TEST.196 |  |
