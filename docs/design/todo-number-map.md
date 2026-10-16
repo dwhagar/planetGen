@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.134 |
-| MAP | MAP.234 |
+| MAP | MAP.236 |
 | NAV | NAV.63 |
 | GEN | GEN.374 |
 | PERF | PERF.111 |
@@ -1243,6 +1243,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.231 | The Sector Map and the System Map use the label engine | none | open |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | none | open |
 | MAP.233 | Names for nebulae on the Galaxy Map | none | open |
+| MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |
+| MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

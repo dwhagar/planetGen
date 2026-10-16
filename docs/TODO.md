@@ -2013,6 +2013,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zoom.
   Prerequisites: MAP.229, MAP.176. Related: MAP.176, MAP.180.
 
+- [ ] **MAP.234 Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws**
+  Boss (2026-10-16, 7:16 PM EDT, timeline): "ON the galaxy map, I just
+  realized there is no key, but what are the greenish colored spheroid
+  shapes? They seem to be 2 intersecting elipses to define a space. What
+  are those?" Found by the read-only "galaxy map shapes" thread: they
+  are superbubbles (GEN.254, merged #1814), each drawn as three faint
+  great circles (`static/galaxymap3d.js`, "Superbubbles (GEN.254)",
+  colour 0x6fb3d8, opacity 0.14, always on, never picked, no hover, no
+  legend entry). The help dialog (`GALAXY_MAP_HELP` in
+  `src/planetgen/web/maps/galaxymap3d.py`, "Reading the map") covers
+  only density blocks and stars; it does not mention superbubbles,
+  nebula clouds, supernova remnants, territory balls, course lines or
+  the made-sector rings. The only on-map legends today are the Color by
+  gradient bar (MAP.131) and the course key (NAV.20). Done: a Key
+  section in the help dialog and a small on-map key (collapsible) naming
+  every drawn thing with its colour and shape: density blocks, stars,
+  nebula clouds, remnants, superbubbles, territories, the course line
+  and the made-sector rings; each entry appears only when that thing is
+  drawn at the current view; a browser test that every kind drawn on the
+  map has a key entry (so a new layer cannot be added without one). Not
+  covered elsewhere: DOC.7 is the help page (it lists "nebula and
+  territory overlays" but not superbubbles) and MAP.217 gives a legend
+  per toggled layer, but superbubbles are not a toggled layer today. The
+  superbubble toggle, hover name and radius are MAP.235. Owner: Core 2
+  (the Galaxy Map and its help dialog).
+  Prerequisites: none. Related: MAP.131, NAV.20, MAP.217, DOC.7,
+  GEN.254.
+
+- [ ] **MAP.235 Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row**
+  Split from MAP.234 (2026-10-16, 7:21 PM EDT). Superbubbles (GEN.254)
+  are drawn always on as faint great circles with no toggle, no picking
+  and no hover. Done: they are a layer on the MAP.217 registry (menu
+  entry, URL key, legend row from the registry), on by default, off on
+  request; hovering one names it and gives its radius and centre; it is
+  a picker layer so a click selects it. Needs the registry (MAP.217).
+  The key text itself is MAP.234. Owner: Core 2.
+  Prerequisites: MAP.217. Related: MAP.234, MAP.217, GEN.254.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3064,9 +3102,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10+-3% (all within 1 sigma); an O star at [Fe/H] -0.7 goes 0.45 to 0.58
   (+29%) against the "no change within about 30%" read for O and early-B
   stars in the Large Cloud and stays under Sana's 0.69+-0.09 (plain
-  scaling gives 0.77). Core 4 builds the odds form unless Boss prefers
-  plain scaling, and needs Boss's word before the GEN.103 gate starts
-  (about 8:25 PM EDT; the coordinator puts it on a card).
+  scaling gives 0.77). Boss chose the odds form on a card (2026-10-16, 7:19 PM EDT): Decided,
+  the metallicity factor applies to the odds p/(1-p) of a close
+  companion, for every mass. Core 4 builds it.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
