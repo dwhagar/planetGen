@@ -686,6 +686,42 @@ HALO_LOCAL_DENSITY_FRACTION = 5.0e-3
 local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not used by the generator;
 `halo_local_density_scale` is the factor that would switch to it."""
 
+# The sector profile (GEN.235, docs/design/intergalactic-and-halo-contents.md 5.3): what a place sets for the
+# rules that never change by place. A first model, not a fit, in the design note's order. Velocity dispersions
+# are the middle of the note's ranges (old disc 40 to 60 km/s, bulge 100 to 140, a cluster 1 to 15 inside and its
+# orbit outside); `rotation` says what the population's net motion follows. [Recalled, to verify.]
+STELLAR_POPULATION_DISPERSION_KMS = {
+    "young": 15.0, "intermediate": 25.0, "old": 50.0, "bulge": 120.0, "halo": 120.0, "cluster": 8.0,
+}
+STELLAR_POPULATION_ROTATION = {
+    "young": "disk", "intermediate": "disk", "old": "disk", "bulge": "bar", "halo": "none", "cluster": "orbit",
+}
+# A cluster carries its own [Fe/H] (`physics.metallicity`); until the component table (GEN.237) gives each one
+# its own, the profile of a cluster cell shows the two peaks of the Milky Way's clusters (-1.5 and -0.5,
+# docs/design/globular-clusters.md), as `(share, mean, sigma)`; the shares are recalled (about two thirds are the
+# metal-poor ones).
+METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
+
+# Gas and dark matter in a cell (docs/design/intergalactic-and-halo-contents.md 2.4 and 2.6). The ambient medium
+# is whichever of three is densest: the disc's interstellar medium (about 1 H per cm3 at the plane near the Sun
+# [recalled], scaled by the cold-gas fraction), the hot halo (1e-4 per cm3 at 50 kpc falling as r^-1.5 [recalled]),
+# and the intergalactic medium (the cosmic mean 1.9e-7 H per cm3, the Local Group 25 times that). Radii scale
+# with the galaxy's disk scale length like the stellar halo's. 0.0326 solar masses per pc3 per H per cm3 is
+# hydrogen plus helium (the note's 1.9e-7 H per cm3 is 6.2e-9 solar masses per pc3).
+DISK_ISM_DENSITY_CM3 = 1.0
+HOT_HALO_DENSITY_CM3 = 1.0e-4
+HOT_HALO_REFERENCE_PC = 50000.0
+HOT_HALO_SLOPE = 1.5
+HOT_HALO_CORE_PC = 1000.0
+COSMIC_MEAN_DENSITY_CM3 = 1.9e-7
+LOCAL_GROUP_GAS_OVERDENSITY = 25.0
+GAS_SOLAR_MASS_PER_PC3_PER_CM3 = 0.0326
+# The NFW dark-matter halo of docs/design/galactic-potential.md (M_h = 5.4e11 solar masses, r_h = 16 kpc): 0.0091
+# solar masses per pc3 at the Sun. Both scale with the disk scale length (a flat rotation curve: mass over radius
+# is constant).
+DARK_MATTER_SCALE_MASS_SOLAR = 5.4e11
+DARK_MATTER_SCALE_RADIUS_PC = 16000.0
+
 # Pre-placed bright stars (star_population.sample_bright_stars): the
 # mass grid, in log-spaced cells over the IMF's range, on which the chance
 # of a star being at least the threshold's brightness is tabulated.

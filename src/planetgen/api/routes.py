@@ -99,6 +99,7 @@ from planetgen.galaxy import objectref as object_ref, version_check
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
+from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
@@ -1567,8 +1568,9 @@ def _sector_generation_context(conn, sector_id, system_config):
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
-        brightStars.FillContext(center, skeleton.shape, min_luminosity_sol=level,
-                                star_mass_limit_sol=mass_limit).apply(system_config)
+        profile = profile_at(center, skeleton.shape, skeleton.edge_pc, skeleton.expected_system_count_at_density_1,
+                             address=address)
+        brightStars.FillContext(profile, min_luminosity_sol=level, star_mass_limit_sol=mass_limit).apply(system_config)
     return pc_to_ly(placement["galactic_radius_pc"])
 
 

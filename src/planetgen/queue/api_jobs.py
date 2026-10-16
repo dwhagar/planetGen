@@ -248,7 +248,7 @@ def regenerate_sector(sector_id, config):
 
     Returns:
         dict: `deleted` (the row counts), `sector_id` and `sector_name` of
-            the new sector (`None` when the cell is outside the outline).
+            the new sector (`None` only when the cell is beyond the grid's reach).
     """
     from planetgen.db import edits as editStore, sector_paths, store
     from planetgen.generation import run_galaxy

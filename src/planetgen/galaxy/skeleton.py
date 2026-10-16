@@ -186,15 +186,17 @@ def shell_candidate_sector_count(extents):
 
 class GalaxyBounds:
     """
-    The galaxy's stored outline on spherical shells, for checking an address
-    *before* anything is generated there: every `planetgen galaxy` path and
-    visit-time generation go through `qualifies`.
+    The galaxy's stored extents on spherical shells.
 
-    The grid has two extents. The **reach** (`reach_shell_index`) is how far
-    out a cell has an address and defined contents: `contains` answers for
-    it. The **outline** is where the disk and bulge are dense enough to
-    expect a system in a cell: `qualifies` answers for it, and every
-    generation path that decides whether a cell holds anything asks that.
+    The grid has two. The **reach** (`reach_shell_index`) is how far out a
+    cell has an address and defined contents: `contains` answers for it, and
+    it is the only refusal a generation path has (GEN.235): a cell that is
+    asked for is generated from its sector profile (`galaxy.profile`) and
+    saved, however sparse. The **outline** is where the disk and bulge are
+    dense enough to expect a system in a cell: `qualifies` answers for it,
+    and the paths that pick cells nobody named (the random start, a
+    neighbourhood around a cell inside the outline, the maps' planned
+    slots, a span that names no range) stay inside it.
 
     Attributes:
         edge_pc (float): The sector edge the outline was built at.
@@ -248,8 +250,16 @@ class GalaxyBounds:
         high = self.high_band.get(shell)
         return high is not None and abs(band) <= high
 
+    def describe_beyond_reach(self, shell, band):
+        """A one-line reason `contains` said no, for error messages: the only refusal a generation path has (GEN.235)."""
+        if not 0 <= shell <= self.reach_shell_index:
+            return f"shell {shell} is beyond the grid's reach (shells run from 0 to {self.reach_shell_index})"
+        lowest, highest = spherical.band_range(shell)
+        return f"band {band} is outside shell {shell} (it holds bands {lowest} to {highest})"
+
     def describe_miss(self, shell, band):
-        """A one-line reason `qualifies` said no, for error messages."""
+        """A one-line reason `qualifies` said no, for pages and logs (the cell lies outside the outline, so its
+        contents come from the halo and not from the disk)."""
         high = self.high_band.get(shell)
         if high is None:
             return f"shell {shell} is outside the galaxy (shells run from 0 to {self.outer_shell_index})"
