@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1474] - 2026-10-16
+
+**Headline:** The to-do list retires GEN.266, built by the compact-binary orbit rules tests.
+
+### Changed
+
+- Retired GEN.266 (compact-binary orbit rules), done by #1771 with 13 tests pinning the laws GEN.261 already built, and removed it from the goal table.
+
+TODO items resolved: GEN.266 / Added: none
+
 ## [8.0.1473] - 2026-10-16
 
 **Headline:** The orbit laws of a black hole or neutron star with a star, and of tight compact pairs, are pinned by tests.
