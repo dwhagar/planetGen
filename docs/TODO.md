@@ -6257,7 +6257,7 @@ clears each one.
   Prerequisites: GEN.262, GEN.264. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
-- [ ] **TEST.163 test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count is 0 (bug)**
+- [ ] **TEST.163 test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug)**
   Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
   coordinator). `test_nav_ends_picked_from_bookmarks_on_every_page`
   failed once under load with the `#course-heading` count at 0 (the page
@@ -6273,6 +6273,18 @@ clears each one.
   Third sighting (Quality, 2026-10-15, 7:13 PM EDT `changed` run):
   #course-heading count 0 once under load (load 9.2), passed alone in
   1.3 s.
+  NOW FAILS EVERY TIME (Quality, 2026-10-16 12:10 AM EDT,
+  `scripts/test.py changed`, then alone: `python3 -m pytest
+  src/tests/test_web_browser_maps.py -q -k
+  test_nav_ends_picked_from_bookmarks`, 11 s, 3 of 3): `assert 0 == 1`
+  on `#course-heading` at
+  /nav?from=system:0008000000-0000001-000&to=system:0008000000-4000000-000;
+  fails on origin/main 0a2cb30e with no other change, so it is no longer
+  a load flake. The heading is only drawn when the page has a direct
+  course (`{% if direct %}` in templates/nav.html line 127), so the
+  route page is probably not finding both ends or a direct course for
+  those addresses. Likely area: Interface (nav page). The earlier
+  under-load sightings may have had this same cause.
   Prerequisites: none.
 
 - [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
