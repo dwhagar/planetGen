@@ -713,3 +713,5 @@ Baseline: PR #1817.
 | GEN.102 | 8.1 | Components and wanderers |
 | DB.59 | 8.1 | Nebula data foundations |
 | TEST.166 | 8.1 | Whole-sphere audits |
+| TEST.192 | 8.1 | Bugs and flaky tests |
+| GEN.335 | 8.3 | Positions as one object |
