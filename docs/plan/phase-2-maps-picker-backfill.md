@@ -186,7 +186,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 7. Core. |
-| GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 6. Core. |
 | PERF.103 | A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night |  | Orbital update, Boss 2026-10-15 6:26 PM EDT. Small. Core. |
 | PERF.104 | Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates |  |  |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.262, GEN.251 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |

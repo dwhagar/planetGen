@@ -824,7 +824,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.262 | Companions in the scatter passes: the mass, luminosity and phenomenon passes draw members, with a rate correction so pairs are not double counted | none | open |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass | none | open |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | none | open |
-| GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | none | open |
+| GEN.265 | Nightly motion of a system: the barycentre moves with the system mass, members are computed from their stored phase on read | none | done, PR #1766 |
 | GEN.266 | Compact-binary orbit rules: a black hole or neutron star with a star, tight compact pairs and tertiaries | none | open |
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | none | open |
 | GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | none | done, PR #1702 |
