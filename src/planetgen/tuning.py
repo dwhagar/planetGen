@@ -830,6 +830,13 @@ FILL_LUMINOSITY_CAP_SOL = 100.0
 """float: The default fill luminosity cap, solar luminosities: the dimmest star a cell above the ceiling resolves.
 The lowest a cap can be is the brightest white dwarf (`WD_LUMINOSITY_RANGE_SOL`), the dimmest threshold the star
 model takes."""
+CORE_TIER_FACTOR = 1.10
+"""float: How much higher than the baseline the core's scatter limits default (docs/design/realistic-galactic-core.md
+5.1, Boss): the core luminosity floor and mass limit follow the galaxy's baseline times this until they are set."""
+HALO_MIN_LUMINOSITY_SOL = 500.0
+"""float: The default halo luminosity floor, solar luminosities (GEN.283, Boss 1:09 AM EDT 2026-10-16)."""
+HALO_MIN_LUMINOSITY_RANGE_SOL = (50.0, 4.0e6)
+"""tuple: The lowest and highest halo luminosity floor `plan` accepts (Boss, 10:06 PM EDT 2026-10-15: lowest 50)."""
 MEAN_SYSTEM_MASS_SOLAR = 0.4
 """float: The mass of an average system, remnants and companions included (docs/design/globular-clusters.md; recalled,
 within a factor of 1.5): what the mass of the unresolved part of a cell is worked out from."""

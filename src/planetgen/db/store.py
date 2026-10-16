@@ -1519,6 +1519,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (101, _column_marker("galaxy_shape", "core_min_luminosity_sol")),
     (100, _check_marker("chk_galaxy_shape_cell_star_ceiling", "cell_star_ceiling")),
     (99, _column_marker("galaxy_shape", "nuclear_amplitude")),
     (98, _column_marker("galaxy_shape", "fill_luminosity_cap_sol")),
@@ -7170,8 +7171,10 @@ def get_sector_id_at(conn, shell_index, band_index, wedge_index):
 GalaxySkeletonInfo = namedtuple(
     "GalaxySkeletonInfo",
     ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1", "galaxy_seed",
-     "reach_shell_index", "cell_star_ceiling", "fill_luminosity_cap_sol"],
-    defaults=(None, 65535, tuning.CELL_STAR_CEILING, tuning.FILL_LUMINOSITY_CAP_SOL),
+     "reach_shell_index", "cell_star_ceiling", "fill_luminosity_cap_sol", "core_min_luminosity_sol",
+     "core_mass_limit_sol", "halo_min_luminosity_sol"],
+    defaults=(None, 65535, tuning.CELL_STAR_CEILING, tuning.FILL_LUMINOSITY_CAP_SOL, None, None,
+              tuning.HALO_MIN_LUMINOSITY_SOL),
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
@@ -7179,12 +7182,15 @@ note). `shape` is a `galaxy.density.GalaxyShape`; the other fields are
 `galaxy_shape`'s own remaining columns, `galaxy_seed` (v51, GEN.39) the
 16-byte seed or `None` for a galaxy planned before it, `reach_shell_index`
 (v93, GEN.233) the outermost shell the grid has addresses for, `cell_star_ceiling` and `fill_luminosity_cap_sol` (v98,
-GEN.281) the systems a cell may expect before it is filled only down to the cap, and that cap in solar luminosities."""
+GEN.281) the systems a cell may expect before it is filled only down to the cap, and that cap in solar luminosities,
+`core_min_luminosity_sol` and `core_mass_limit_sol` (v101, DB.54) the core's scatter limits (`None`: follow the
+baseline times `tuning.CORE_TIER_FACTOR`, see `galaxy.scatter_limits`) and `halo_min_luminosity_sol` the halo's."""
 
 
 def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                        expected_system_count_at_density_1, config=None, galaxy_seed=None,
-                       reach_shell_index=65535, cell_star_ceiling=None, fill_luminosity_cap_sol=None):
+                       reach_shell_index=65535, cell_star_ceiling=None, fill_luminosity_cap_sol=None,
+                       core_min_luminosity_sol=None, core_mass_limit_sol=None, halo_min_luminosity_sol=None):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
     one galaxy, so this always overwrites whatever was there before rather
@@ -7204,6 +7210,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
             fill luminosity cap (GEN.281); `None` is `tuning.CELL_STAR_CEILING`.
         fill_luminosity_cap_sol (float, optional): That cap, solar luminosities; `None` is
             `tuning.FILL_LUMINOSITY_CAP_SOL`.
+        core_min_luminosity_sol (float, optional): The core's luminosity floor (DB.54); `None` follows the baseline.
+        core_mass_limit_sol (float, optional): The core's mass limit (DB.54); `None` follows the baseline.
+        halo_min_luminosity_sol (float, optional): The halo's luminosity floor (DB.54); `None` is
+            `tuning.HALO_MIN_LUMINOSITY_SOL`.
         expected_system_count_at_density_1 (float): See
             `galaxy.skeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -7227,6 +7237,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                 cell_star_ceiling = tuning.CELL_STAR_CEILING
             if fill_luminosity_cap_sol is None:
                 fill_luminosity_cap_sol = tuning.FILL_LUMINOSITY_CAP_SOL
+            if halo_min_luminosity_sol is None:
+                halo_min_luminosity_sol = tuning.HALO_MIN_LUMINOSITY_SOL
             conn.execute(
                 """
                 INSERT INTO galaxy_shape (
@@ -7235,8 +7247,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     pitch_angle_rad, arm_amplitude, arm_level, nuclear_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index,
-                    cell_star_ceiling, fill_luminosity_cap_sol
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
+                    halo_min_luminosity_sol
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -7256,6 +7269,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     reach_shell_index = ?,
                     cell_star_ceiling = ?,
                     fill_luminosity_cap_sol = ?,
+                    core_min_luminosity_sol = ?,
+                    core_mass_limit_sol = ?,
+                    halo_min_luminosity_sol = ?,
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
                     galaxy_seed = ?
@@ -7267,8 +7283,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
-                    cell_star_ceiling, fill_luminosity_cap_sol,
-                    reach_shell_index, cell_star_ceiling, fill_luminosity_cap_sol, bytes(galaxy_seed),
+                    cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol, core_mass_limit_sol,
+                    halo_min_luminosity_sol,
+                    reach_shell_index, cell_star_ceiling, fill_luminosity_cap_sol, core_min_luminosity_sol,
+                    core_mass_limit_sol, halo_min_luminosity_sol, bytes(galaxy_seed),
                 ),
             )
             if stored_seed != bytes(galaxy_seed):
@@ -7428,6 +7446,9 @@ def get_galaxy_shape(conn):
         reach_shell_index=row.get("reach_shell_index", 65535),
         cell_star_ceiling=row.get("cell_star_ceiling", tuning.CELL_STAR_CEILING),
         fill_luminosity_cap_sol=row.get("fill_luminosity_cap_sol", tuning.FILL_LUMINOSITY_CAP_SOL),
+        core_min_luminosity_sol=row.get("core_min_luminosity_sol"),
+        core_mass_limit_sol=row.get("core_mass_limit_sol"),
+        halo_min_luminosity_sol=row.get("halo_min_luminosity_sol", tuning.HALO_MIN_LUMINOSITY_SOL),
     )
 
 
