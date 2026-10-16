@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1560] - 2026-10-16
+
+**Headline:** A cell makes at most 5,000 systems, so the galactic core and bulge fill in about a minute and a half instead of up to 17 minutes.
+
+### Changed
+- **The default cell star ceiling is 5,000 systems, from 50,000 (GEN.281).** A system takes about 20 ms to generate, so a cell of 50,000 took 14 to 17 minutes. A galaxy planned earlier at the old default is moved to 5,000 by the migration; `planetgen plan --cell-star-ceiling` still sets it, and it stays one galaxy setting for the admin configuration to edit.
+- **A cell the cap still fills past the ceiling raises its cap.** The nuclear cluster's cell expects 15 million systems, and the 100 solar luminosity cap would still make 40,700 of them. A cell now takes the lowest cap, on a ladder of steps of a quarter, whose stars fit the ceiling; the fill, the sector page and the API read the same cap from the address. A cell the cap already fits keeps it.
+
+TODO items resolved: GEN.364. Added: none.
+
 ## [8.0.1559] - 2026-10-16
 
 **Headline:** The TODO list now shows which multi-star and cluster items moved from Core 3 to Core 4.
