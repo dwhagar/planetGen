@@ -2,6 +2,53 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1546] - 2026-10-16
+
+**Headline:** The next two migration revisions are recorded: 0102 for DB.59 and 0103 for DB.54.
+
+### Changed
+
+- DB.59 and DB.54 name the revision numbers Core 1 handed out at 3:16 PM EDT, after 0099 (GEN.280), 0100 (cell_star_ceiling) and 0101 (DB.55).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1545] - 2026-10-16
+
+**Headline:** Satellite and cluster components (GEN.237) are retired after the merge.
+
+### Changed
+
+- GEN.237 is removed from the TODO and ticked in the progress ledger (merged as #1851); the items that waited on it lose that prerequisite.
+- GEN.366 records that the satellite table was recalled from memory, and that a galaxy planned before #1851 needs `planetgen plan` run again; GEN.297 notes that the component table now exists.
+
+TODO items resolved: GEN.237 / Added: none
+
+## [8.0.1544] - 2026-10-16
+
+**Headline:** The late lane findings and Boss's adaptive cell cap are filed as items.
+
+### Added
+
+- Eleven items: TEST.187 to TEST.191 (browser-test log, skimage deprecation, maintenance mode left on, fixture timeouts, plan tests writing real files), UX.133 (empty `/polities` and `/species` pages), OPS.59 (SIGTERM for `generate galaxy --shell 0`), GEN.364 (the adaptive per-cell cap Boss decided at 1:46 PM EDT), GEN.365 (white dwarf radius), GEN.366 (verify the satellite table) and GEN.367 (Magellanic gas). Each is in its version thread and in a goal issue.
+- Owner notes on the settings chain (ADM.96, 87, 83, 84, 85, 43, 44) and decision notes on GEN.280, GEN.303 and GEN.237.
+
+TODO items resolved: none / Added: TEST.187, TEST.188, UX.133, TEST.189, TEST.190, OPS.59, TEST.191, GEN.364, GEN.365, GEN.366, GEN.367
+
+## [8.0.1543] - 2026-10-16
+
+**Headline:** The Magellanic Clouds, Sagittarius and eight dwarf galaxies are in the galaxy, at their real places.
+
+### Added
+- **Satellite galaxies (GEN.237).** `planetgen plan` places the Milky Way's eleven satellites (the Large and Small Magellanic Clouds, the Sagittarius dwarf, Fornax, Sculptor, Carina, Draco, Ursa Minor, Sextans, Leo I and Leo II) as `satellite` components, each as an exponential or Plummer profile cut at six half-mass radii, at the direction and distance the sky gives them (the Large Cloud 49.6 kpc away and holding about 6.2e9 systems). The sector gate counts their density, so the outline reaches them and a cell at the centre of the Large Cloud is a satellite place, not empty halo. Their sizes, masses and distances are recalled from McConnachie (2012) and need checking.
+- **A `satellite` stellar population.** The sector profile's mix, region label, ages (0.5 to 13 Gyr), dispersion and rotation now have it, and its [Fe/H] is the one of the satellites that reach the place.
+- **[Fe/H] from the component.** A star in a cluster or satellite draws its [Fe/H] from the peaks of the place (`metallicity.sample_fe_h(peaks=)`, `SystemConfig.FE_H_PEAKS`), which the fill sets; before, filling a cluster's cell raised an error.
+
+### Changed
+- **One field for the clusters and the satellites.** `ClusterField` is `ComponentField` (`galaxy/component_field.py`) and `GalaxyShape.clusters` is `GalaxyShape.components`; every component needs a `tidal_radius_pc`, and `king_w0` only for a King profile.
+- **A seeded galaxy's outline is different from before**, grown by the Clouds, Sagittarius and the dwarfs; plan the galaxy again.
+
+TODO items resolved: GEN.237. Added: none.
+
 ## [8.0.1542] - 2026-10-16
 
 **Headline:** The asteroid render items and the closed core-disc issue are tracked in the issue table.
