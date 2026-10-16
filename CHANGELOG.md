@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1593] - 2026-10-16
+
+**Headline:** Boss's star-glow note is on the list: stars should glow brighter instead of growing bigger, with colour following the star's properties.
+
+### Added
+- MAP.241 (bug): stars on the Galaxy Map and the Sector Map keep a small, near-equal size while luminosity raises the glow and temperature sets the colour (Boss, 2026-10-16, 7:43 PM EDT).
+
+TODO items resolved: none / Added: MAP.241
+
 ## [8.0.1592] - 2026-10-16
 
 **Headline:** The precision audit's follow-up work is on the list: eight items for the tile root, camera-relative buffers, orbit phases, the cell key, two kernels and two tests.
