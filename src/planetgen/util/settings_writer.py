@@ -256,7 +256,7 @@ def _fields():
     return {path: (info, meta) for path, info, meta in settings.iter_fields()}
 
 
-def _allowed(meta, role):
+def allowed(meta, role):
     """Whether `role` may change the option `meta` describes; the second value says why not."""
     rank = _ROLES.get(role, 0)
     if not meta["x-editable"]:
@@ -376,7 +376,7 @@ def plan(changes, role="admin", environ=None):
             result.errors[option] = "is not a setting"
             continue
         _info, meta = known[option]
-        permitted, why = _allowed(meta, role)
+        permitted, why = allowed(meta, role)
         if not permitted:
             result.errors[option] = why
         elif value is RESET:
@@ -501,7 +501,7 @@ def _restore_plan(data, label, role, environ):
     else:
         wanted = copy.deepcopy(current)
         for option, (_info, meta) in known.items():
-            if _allowed(meta, role)[0]:
+            if allowed(meta, role)[0]:
                 found, value = _get(archived, option)
                 if found:
                     _put(wanted, option, value)

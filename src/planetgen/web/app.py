@@ -15,9 +15,10 @@ from flask import Flask, abort, current_app, g, jsonify, make_response, request
 
 from planetgen.db import store
 from planetgen.admin import activity_log
-from planetgen.util import log
+from planetgen.util import log, settings_view
 
 from planetgen.api.admin import bp as admin_bp
+from planetgen.api.settings import bp as settings_bp
 from planetgen.api.auth import bp as auth_bp
 from planetgen.api.common import ApiError, close_control_db
 from planetgen.api.config import Config
@@ -64,11 +65,13 @@ def create_app(config_object=Config):
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(settings_bp)
     app.register_blueprint(population_bp)
     app.register_blueprint(facility_types_bp)
     app.register_blueprint(edits_bp)
     app.register_blueprint(workqueue_bp)
     web.init_app(app, limiter=limiter)
+    settings_view.remember_startup()
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)
     _register_error_handlers(app)
