@@ -204,7 +204,7 @@ def _page_paths(app, ids):
         "phenomenon_id": ids["nebula_id"], "ref": f"system:{ids['system_ids'][0]}", "name": "index", "type_slug": "stars", "code": "G",
         "job_id": "0" * 32, "species_id": 1, "polity_id": 1,
         "nebula_id": ids["nebula_id"], "node_id": "20260101-000000-00000000", "action": "queue-pause",
-        "shell": 0, "band": 0, "wedge": 0,
+        "shell": 0, "band": 0, "wedge": 0, "scatter_id": 1,
     }
     paths = []
     for rule in sorted(app.url_map.iter_rules(), key=lambda r: r.rule):

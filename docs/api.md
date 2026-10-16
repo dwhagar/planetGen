@@ -459,6 +459,14 @@ connectivity to that specific schema rather than the default one.
   parsecs from the nebula's center, the most luminous first (at most 300,
   from a box 2.5 radii each side, at least 30 pc). No stars for a nebula
   never placed. 404 for an unknown nebula.
+- `GET /api/uncharted-phenomena/<scatter id>` — one scattered phenomenon by its
+  `phenomenon_scatter` row (MAP.211): `type`, `kind`, `subtype`, `built`, `address`
+  (`[shell, band, wedge]`), `x`/`y`/`z` and `distance_from_core_pc` (parsecs), `mass_solar`,
+  and for a row with a velocity `speed_kms`, `direction` and `flight_years`; a built row has
+  `target` (`{"kind", "id", "name"}` of the object it became, `kind` `system` for a
+  hypervelocity star) or `null` when none matches. 404 for an id that is no row
+  (`queryDb.scattered_phenomenon_detail`). The rows of `GET /api/phenomena` that are
+  scattered carry `scatter_id`.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/

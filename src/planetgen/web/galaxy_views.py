@@ -85,6 +85,14 @@ def phenomenon_url_template():
     return url.replace("/nebula/", "/{type}/").replace(str(_ID_PLACEHOLDER), "{id}")
 
 
+def uncharted_phenomenon_url_template():
+    """
+    The URL of an uncharted phenomenon's page with `{id}` where the scatter row id goes, for
+    `static/galaxymap3d.js`'s "View phenomenon" link on a scattered point (MAP.211).
+    """
+    return page_url("uncharted_phenomenon", scatter_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
+
+
 def _parse_quadrant(raw):
     quadrant = (raw or "").strip().upper()
     return quadrant if quadrant in QUADRANT_LABELS else None
@@ -203,6 +211,7 @@ def galaxy():
         system_url=system_url_template(),
         nav_url=page_url("nav"),
         uncharted_scene_url=uncharted_scene_url_template(),
+        uncharted_phenomenon_url=uncharted_phenomenon_url_template(),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}
@@ -416,7 +425,8 @@ def galaxy_uncharted_scene(shell, band, wedge):
         return redirect(url_for("web.sector_scene", sector_id=cell["sector_id"]), code=302)
     scene = uncharted_scene_data(
         (shell, band, wedge), cell["designation"], cell["center_pc"], cell["edge_pc"],
-        {"stars": cell["stars"], "scattered": cell["scattered"]}, generate=generate_target(current_admin()))
+        {"stars": cell["stars"], "scattered": cell["scattered"]}, generate=generate_target(current_admin()),
+        link_url=page_url)
     response = jsonify(scene)
     response.headers["Cache-Control"] = "no-store"
     return response

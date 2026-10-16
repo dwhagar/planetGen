@@ -194,6 +194,22 @@ def _add_population(config):
         conn.close()
 
 
+SCATTER_SEED = 424242
+"""int: The seed of the one unbuilt scattered black hole the sample galaxy holds (`_add_scattered_phenomenon`)."""
+
+
+def _add_scattered_phenomenon(config):
+    """One unbuilt scattered black hole, so the uncharted phenomenon page (MAP.211) has a row to show."""
+    conn = store.get_connection(config)
+    try:
+        store.insert_phenomenon_scatter(conn, [(7, 2, 3, "black-hole", "stellar", 30000, 40000, 0,
+                                                None, None, None, SCATTER_SEED, None, None)])
+        store.record_phenomenon_scatter_classes(conn, {("black-hole", "stellar"): 1})
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def _seat_loose_systems(config):
     """Puts the systems `planetgen system` made alone into the fixture's first sector, so the pages' sample system
     has planets and a sector; the batch fill of a shell makes planet-less systems on the switch branch (GEN.227)."""
@@ -238,6 +254,7 @@ def site_db(_mysql_server_available):
             for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
             _add_population(config)
+            _add_scattered_phenomenon(config)
         finally:
             draw.setstate(state)
         yield config
@@ -361,6 +378,11 @@ def sample_params(site_app, sample_job, sample_job_tree):
     sample_system = (with_bodies or systems)[0]   # the pages' sample system has planets for the body-row tests
     phenomena = items("/api/phenomena?limit=100")
     phenomenon = phenomena[0]
+    conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
+    try:
+        scatter_id = conn.execute("SELECT id FROM phenomenon_scatter WHERE seed = ?", (SCATTER_SEED,)).fetchone()["id"]
+    finally:
+        conn.close()
     return {
         "sector_id": sector["id"],
         "system_id": sample_system["id"],
@@ -368,6 +390,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "to_id": systems[-1]["id"],
         "phenomenon_type": phenomenon["type"],
         "phenomenon_id": phenomenon["id"],
+        "scatter_id": scatter_id,  # web.uncharted_phenomenon
         "quadrant": "I",
         "page": 1,
         "job_id": sample_job,
