@@ -218,9 +218,11 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
     position = (spot["x"], spot["y"])
     shares = []
     for _ in range(80):
-        before = _camera(page)["zoom"]
         _wheel(page, position, -60)
-        page.wait_for_timeout(60)
+        # Near enough for a disc to show, the camera is given time (a system is asked for after it has stayed in range,
+        # and the fetch takes longer under load) before it goes on in: the nearest zoom would open the system.
+        near = math.dist(_camera(page)["eye"], point) < 0.05
+        page.wait_for_timeout(900 if near else 60)
         ambient = _system_ambient(page)
         if ambient:
             shares.append(ambient["share"])
