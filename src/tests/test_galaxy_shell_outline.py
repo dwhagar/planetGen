@@ -30,7 +30,7 @@ SMALL = build_galaxy_shape(
     arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
 MILKY_WAY = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0, bulge_amplitude=3.11,
-    arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4, arm_level=1.0, core_amplitude=0.0)
+    arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4, arm_level=1.0, nuclear_amplitude=0.0)
 THRESHOLD = 1.0 / expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
 
 

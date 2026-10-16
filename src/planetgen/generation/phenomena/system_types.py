@@ -39,7 +39,7 @@ until its owner has landed; the item that adds the function lists its own
 number in `test_system_type_rates._LANDED_OWNERS`, and the test then fails for
 a name the module lacks. The module exists since the member-tree generator."""
 
-POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster")
+POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "nuclear_cluster", "nuclear_disc")
 """tuple: The stellar populations of the sector profile's `mix` a type may be
 restricted to; `ANY` means all of them."""
 
@@ -214,7 +214,8 @@ SYSTEM_TYPE_RATES = {
         271, "F", (10, 13),
         note="5.5e-7 per pc^3 (+-3.7); 3.9e-6 per system, 1.2e6 in the Galaxy; period 5 to 65 min."),
     "symbiotic-barium": _t(
-        "13.3", "Nova, symbiotic, Type Ia progenitor", "giants", 5e-6, "I", ("old", "bulge"),
+        "13.3", "Nova, symbiotic, Type Ia progenitor", "giants", 5e-6, "I",
+        ("old", "bulge", "nuclear_cluster", "nuclear_disc"),
         "draw_white_dwarf_binary", 271, "S+F", (10, 11), by_class={"barium and CH (G and K giants)": 0.01},
         note="Symbiotic 276 confirmed, predicted 1.2e3 to 4e5 (low confidence). A Type Ia explosion is an event "
              "and out of scope."),
@@ -233,7 +234,8 @@ SYSTEM_TYPE_RATES = {
         by_class={"be_xray_share": 0.60, "compact_companion": 0.003},
         note="The compact companion is 0.3% of such stars (0.05% to 2%); 40% of them accrete."),
     "low-mass-xray-binary": _t(
-        "13.4", "Low-mass X-ray binary", "neutron stars with a low-mass star", 5e-5, "I", ("bulge", "old"),
+        "13.4", "Low-mass X-ray binary", "neutron stars with a low-mass star", 5e-5, "I",
+        ("bulge", "old", "nuclear_cluster", "nuclear_disc"),
         "draw_accreting_compact", 272, "F", (10, 11, 13), by_class={"black hole": 1e-3, "accreting": 0.01},
         note="Companion of a low-mass star: 5e-5 of neutron stars and 1e-3 of black holes, then an accreting "
              "fraction of 1%."),
@@ -243,7 +245,7 @@ SYSTEM_TYPE_RATES = {
         note="Several dozen; a flag on an `accreting` pair; jets along the spin axis."),
     "millisecond-pulsar-companion": _t(
         "13.4", "Pulsar with a white dwarf (millisecond pulsar)", "millisecond pulsars", 0.78, "S",
-        ("old", "bulge", "cluster"), "draw_accreting_compact", 272, "F", (10, 11),
+        ("old", "bulge", "cluster", "nuclear_cluster", "nuclear_disc"), "draw_accreting_compact", 272, "F", (10, 11),
         by_class={"white-dwarf": 0.80, "black-widow": 0.08, "redback": 0.04, "neutron-star": 0.05, "other": 0.03},
         note="Companion mass gap 0.07 to 0.1 solar masses is empty; spiders carry an ablation flag."),
     "pulsar-massive-companion": _t(

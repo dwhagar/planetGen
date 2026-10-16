@@ -15,11 +15,12 @@ dropped.
 
 A profile holds:
 
-* `region`: the term of the density that dominates (`bulge`, `disk`, `halo` or `cluster`), a label for pages and
+* `region`: the term of the density that dominates (`nuclear`, `bulge`, `disk`, `halo` or `cluster`), a label for pages and
   not a rule;
 * `density` and `expected_systems`: today's `relative_density` and the expected systems per cell, `E x density`,
   which is the mean of the sector's Poisson draw;
-* `mix`: the density by population (`young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`), summing to `density`;
+* `mix`: the density by population (`young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `nuclear_cluster`,
+  `nuclear_disc`), summing to `density`;
 * `populations`: for each, its age window, [Fe/H] distribution, velocity dispersion and what its net motion follows;
 * `gas`: the cold-gas fraction against the solar circle and the ambient medium with its density, and the superbubble
   (GEN.254) the place lies in, if any;
@@ -38,7 +39,7 @@ from planetgen.galaxy import nebula_field, spherical, superbubble_field
 from planetgen.physics import metallicity
 from planetgen.physics.units import pc_to_ly
 
-POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster")
+POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "nuclear_cluster", "nuclear_disc")
 """tuple: The populations of a profile's mix, in the order `galaxy.density.population_densities` has them."""
 
 _DISK = ("young", "intermediate", "old")
@@ -108,7 +109,7 @@ class SectorProfile:
         edge_pc (float): The sector edge the profile was made at.
         volume_pc3 (float): The cell's volume.
         shape (GalaxyShape): The galaxy's shape (the fill's molecular cloud field reads its gas from it).
-        region (str): `bulge`, `disk`, `halo` or `cluster`.
+        region (str): `nuclear`, `bulge`, `disk`, `halo` or `cluster`.
         density (float): `relative_density` here, never negative.
         expected_systems (float): The mean of the cell's Poisson draw, `E x density` (`E` the systems a cell
             holds at density 1).
@@ -140,11 +141,11 @@ class SectorProfile:
 def _region(mix):
     """The label of the term that dominates `mix`: the disk's three populations count together."""
     terms = {"disk": sum(mix[name] for name in _DISK), "bulge": mix["bulge"], "halo": mix["halo"],
-             "cluster": mix["cluster"]}
+             "cluster": mix["cluster"], "nuclear": mix["nuclear_cluster"] + mix["nuclear_disc"]}
     best = max(terms.values())
     if best <= 0.0:
         return "halo"
-    for name in ("cluster", "bulge", "disk", "halo"):    # a tie goes to the more specific place
+    for name in ("nuclear", "cluster", "bulge", "disk", "halo"):    # a tie goes to the more specific place
         if terms[name] >= best:
             return name
     return "halo"

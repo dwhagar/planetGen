@@ -518,11 +518,11 @@ console.log(JSON.stringify({mixed: B.statsColor(mixed, [0, 0, 0], r), young: B.s
     assert out["mixed"][0] - out["young"][0] < out["old"][0] - out["mixed"][0]
 
 
-def test_density_matches_the_python_model_with_a_core_and_a_denser_arm():
+def test_density_matches_the_python_model_with_the_nuclear_structures_and_a_denser_arm():
     from planetgen.galaxy.density import arm_terms, relative_density
     amplitude, level = arm_terms(2.2, 0.3)
     shape = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), amplitude,
-                               arm_level=level, core_amplitude=12.0)
+                               arm_level=level, nuclear_amplitude=3.0)
     points = [(8000.0, 100.0, 50.0), (0.0, 0.0, 0.0), (15.0, -10.0, 3.0), (300.0, -200.0, 10.0), (-12000.0, 4000.0, -600.0)]
     got = _run(f"console.log(JSON.stringify({json.dumps(points)}.map(p => P.relativeDensity(...p, shape))));", shape)
     for point, value in zip(points, got):

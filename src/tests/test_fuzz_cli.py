@@ -528,7 +528,7 @@ def plan_argv(draw):
         # drawn less often than the accepted values.
         "--arm-density", repr(draw(st.sampled_from([1.4, 2.5, 1.4, 2.5, 0.0, -0.1]))),
         "--interarm-density", repr(draw(st.sampled_from([0.6, 0.0, 0.6, 0.0, 9.0]))),
-        "--core-density", repr(draw(st.sampled_from([0.0, 5.0, 0.0, 5.0, -1.0]))),
+        "--nuclear-amplitude", repr(draw(st.sampled_from([0.0, 2.0, 0.0, 2.0, -1.0]))),
         "--max-shell", str(draw(st.sampled_from([1, 5, 200, 1, 5, 200, 0]))),
     ]
     if draw(st.booleans()):
