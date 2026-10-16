@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1519] - 2026-10-16
+
+**Headline:** The to-do list retires the galactic core cell star ceiling and fill luminosity cap (GEN.281), and records that migration 0098 shipped with it alone.
+
+### Changed
+
+- Retired GEN.281 (#1820), rewrote the migration-revision notes on GEN.280 and GEN.283 (0098 is merged; GEN.280's fields take the next free revision) and added a ledger row.
+
+TODO items resolved: GEN.281 / Added: none
+
 ## [8.0.1518] - 2026-10-16
 
 **Headline:** A cell that expects more systems than the cell star ceiling is filled only with the stars at or above the fill luminosity cap, and the sector page and API report what is left unresolved.
