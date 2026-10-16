@@ -123,14 +123,12 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | GEN.221 | Short plain prose for the fixed text |  |  |
 | GEN.288 | Rename the PHI-6 equipment tier "Sealed suit" to "Environment suit" everywhere |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
-| GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) |  |  |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | PERF.99 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
 | UX.107 | Units in the description go through the ladders |  |  |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | UX.104 |  |
 | UX.109 | Remove the old per-class description text | UX.105, UX.108 |  |
 | UX.110 | The phenomena count on the overview page is wrong (bug) |  |  |
 | UX.117 | The Apply filters button on the phenomena list disappears while the list loads (bug) |  |  |
-| GEN.223 | The nightly orbital update moves every object in the galaxy, and each object is stored as a point in space in its own columns (bug) |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | DOC.45 | Reference docs follow the description layer | UX.105, GEN.218, GEN.219 |  |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md |  |  |
@@ -211,6 +209,7 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) |  | Quality run 2026-10-15. Quality. |
+| TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) |  |  |
 | TEST.148 | Investigate resuming a test run where it left off when the build is the same |  |  |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
