@@ -173,7 +173,7 @@ def _fill_context(args, address):
         if resolution.capped:
             # GEN.281: a cell above the ceiling is taken down to the cap and no further.
             galaxy_level, backfill_seed = run_plan._scatter_level_and_seed(conn, skeleton)
-            run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], skeleton.fill_luminosity_cap_sol,
+            run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], resolution.luminosity_cap_sol,
                                         galaxy_level, backfill_seed)
         phenomena = below_cut = None
         settings = store.phenomenon_scatter_settings(conn)

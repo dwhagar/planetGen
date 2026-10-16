@@ -616,6 +616,8 @@ with `clamp()`.
   #1784): call galaxy.profile.sector_profile(address, skeleton) for the
   profile and GalaxyBounds.describe_miss for the "outside the outline"
   line.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 3).
   Prerequisite: API.27. Related: GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -633,6 +635,8 @@ with `clamp()`.
   companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
   catalogue), hierarchical trees only, a row's members deleted when its
   sector builds it, pair rates from the middle of the evidence.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 6).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
@@ -1712,6 +1716,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.311 (Core 3, after DB.53)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.311. Related: GEN.129.
 
 - [ ] **MAP.214 Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space**
@@ -2193,7 +2201,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     chain of wraps, 40 tiny spheres on a long line, an overlapping pair,
     a scene shifted by 2e4 pc (same answer). Say "short detour", not
     "shortest".
-    Prerequisites: NAV.55, NAV.56.
+    Waits on NAV.62: the study of how the gravity of the stars a cell
+    leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
+    Prerequisites: NAV.55, NAV.56, NAV.62.
 
   - [ ] **NAV.27 Moving bodies inside a system**
     Inside a system the planets move. Done: the in-system planner uses
@@ -2286,6 +2296,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cell key through NAV.60 and the radius ladder and early-stop count of
   NAV.61, so it stays fast in the dense core and shows "300+" from the
   capped count.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 7).
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
   Boss (2026-10-07 11:47Z): "Then you can go find another location
@@ -2432,8 +2444,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spherical sector layout is, then we'll skip it and move to the next
   sequence until it's finished research and we can plan it." The
   research is finished and merged (#1659), so stage C is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: NAV.60 (Core 2). Core 4 takes it when it unblocks.
   Prerequisite: NAV.60. Related: NAV.12, NAV.44, NAV.45.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
+
+- [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
+  Boss (2026-10-16, 5:01 PM EDT, on the cell cap of GEN.364): "in the
+  core there are just too many stars to make all of them, no matter how
+  scientifically accurate it would be. I would like to figure out how we
+  can account for the gravity of items left out, but let's put that as a
+  TODO for the courses that bend around gravity wells phase." A cell
+  that expects more systems than its cap resolves the brightest and
+  leaves the rest unmade; GEN.281 already derives the unresolved count
+  and mass of a cell from its address (`galaxy/resolution.py`), from the
+  same density model as every other cell. Done: a written study (a
+  section in docs/design/realistic-galactic-core.md) that says how the
+  pull of that unresolved mass is added: as a smooth field summed per
+  cell from the derived unresolved mass and the cell centre, how it
+  joins the galactic potential of GEN.285 and the keep-out spheres of
+  NAV.54, whether a course that bends around wells (NAV.26) and the
+  orbital update need it at every zoom or only inside the dense core,
+  its cost per query, and a recommendation with the work it needs as new
+  items. No fixed table: the mass comes from the density model and the
+  address, never from a stored list. No build in this item. Owner: not
+  assigned; the courses lane of 8.5.
+  Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
+  NAV.26, NAV.6.
+  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 ## GEN: Generation and physics
 
@@ -2819,7 +2858,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `--check-pr` rule. Needs the deterministic math helpers first. Once
     GEN.42 lands, include one block-first backfill in the golden galaxy.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135, OPS.56.
+    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -2953,33 +2992,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     that drops to 0.6 Msun moves to 1/0.6 = 1.67 AU.
     Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
     chunks and shared work): this item is now the umbrella and is done
-    when its subitems are: DB.59, GEN.357, GEN.358. Three deliverables,
+    when its subitems are: GEN.357, GEN.358 (DB.59 was found already built). Three deliverables,
     and the first two are needed a version earlier than the third:
     GEN.99 (8.1-4) must rebuild planets with the same `apply_cloud` (its
     own research note says so) and draws an age-capped population from
     the nebula's stored `age_myr`, which the design says 'waits on a
     schema column' (nebula-and-asteroid-field-classes.md, Applying the
     rules at generation, and Nebula volume backfill step 3).
-    Prerequisites: DB.59, GEN.357, GEN.358.
+    Prerequisites: GEN.357, GEN.358.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
-  Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
-  that plots to have a 0 or nearly 0 star density) at once, since those
-  sectors have the least in them, we can afford to fill them." Done: a
-  count of such sectors, the time and storage a fill would take, and a
-  recommendation for Boss.
-  Research (2026-10-09, sampling-backfill-and-resume.md): re-scope the
-  "count": there are no zero-density sectors inside the outline (minimum
-  density 0.069). Define "void" as expected systems below 1: 12.4% of
-  sectors (2.97 billion) and 0.77% of systems; the density-below-0.1
-  subset is 2.44% of sectors (5.8e8). Cost (design doc 5.2): about 330
-  days on one worker for density below 0.1, about 5 years for expected
-  systems below 1; the fixed cost per sector is the lever (the timing
-  report's three levers could roughly halve the 40 ms). Recommendation:
-  do not pre-fill; keep lazy fill. Decided (Boss, 2026-10-10 18:44Z,
-  defaults approved; default no):
-  do you still want the sparse rim filled?
 
 - [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
   Boss (2026-10-07 11:47Z): "Research and add tiered structure
@@ -3000,6 +3021,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-kind factors are built (GEN.234, GEN.236); what is left is the
   population-dependent rules for the type draws. Fold into GEN.269 or
   close once GEN.270 to GEN.275 land.
+  Research supplied (Boss, 2026-10-16, 5:55 PM EDT, in the project
+  chat): the two constants Core 4 could not look up, the close-binary
+  fraction against [Fe/H] and the encounter-disruption limit for wide
+  pairs with the Jacobi radius as the outer limit. Sources named by Boss:
+  Badenes 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018,
+  El-Badry, Rix and Heintz 2021, Kratter and Lodato 2016, Bate 2018,
+  Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and Tremaine 2010,
+  Stegmann 2024. The reference list is unverified and Core 4 checks it.
+  Filed as derivation rules of the type draw, not fixed values, in
+  docs/design/multistar-and-compact-systems.md section 6.6: the close
+  share follows the cell's [Fe/H] and the wide-pair limit is computed
+  from the cell's density, dispersion, age and tidal field.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
@@ -3493,6 +3528,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.317, GEN.318.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
@@ -3504,6 +3542,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by radius (peak at 5 kpc, -0.28 dex per kpc beyond, the dip inside 3
   kpc), the B share and the bulge's young tail, without the Central
   Molecular Zone, which GEN.282 owns.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 11; start
+  after Core 3 merges GEN.283 and GEN.333 (tuning.py and the profile)).
   Prerequisites: none. Related: GEN.133 (done).
 
 - [ ] **GEN.135 Deterministic math helpers for every stored float, with a lint and frozen constants**
@@ -3723,6 +3764,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.324.
 
@@ -3754,6 +3798,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
   Prerequisites: GEN.325, GEN.326.
 
@@ -3773,6 +3820,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: GEN.317.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
@@ -3867,7 +3917,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn (galactic for a sector, system for the System Map, planetary for
   a moon neighbourhood), read from the same constants, not a copy. See
   the new section in docs/design/gravity-map.md.
-  Prerequisites: GEN.338, GEN.342, PERF.88. Related: GEN.105, NAV.6,
+  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6,
   TEST.131,
   PERF.72, MAP.167.
   Scope after the review (2026-10-16 review): the tidal tensor and its
@@ -4529,6 +4579,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; ready: no blocker). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: none. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4552,6 +4606,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.318.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4613,6 +4671,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.242, GEN.320. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -4653,6 +4714,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Prerequisites: none. Related: GEN.130.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4691,6 +4755,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -4717,6 +4784,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 9; start
+  after Core 3 merges UX.116 (Generate page)).
   Prerequisite: GEN.261. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4775,6 +4845,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -4808,6 +4881,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisite: GEN.269. Related: GEN.243, GEN.246, GEN.162, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4839,6 +4916,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3) and GEN.253). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.269, GEN.253. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -4868,6 +4949,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
@@ -4904,6 +4989,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
+  lane queue); a line here that named Core 4 was the TODO thread's
+  counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.274 Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova**
@@ -4941,6 +5029,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.329 and GEN.330 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.275 Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets**
@@ -4976,6 +5068,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.331 and GEN.332 (Core 3)). Core 4 asks Core 3
+  before touching stellar evolution constants in tuning.py. A line here
+  that named Core 3 or Core 4 earlier is replaced by this one.
   Prerequisites: GEN.331, GEN.332. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -5076,6 +5172,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and dispersion (from GEN.280) into the one survival function that the
   first child of GEN.162 builds, and add the survival table as a test;
   no second cull.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.325 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: GEN.325. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5957,7 +6056,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.242, DB.59. Related: GEN.241.
+  Prerequisites: GEN.242. Related: GEN.241.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6346,7 +6445,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The force on a body comes from the shared field kernel (PERF.88); this
   item adds the influence-set term, the galactic gradient hook and the
   velocity update (2026-10-16 review).
-  Prerequisites: GEN.341, GEN.338, GEN.340, PERF.88. Related: GEN.109.
+  Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6537,7 +6636,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.99's regenerate in place. Done: a system inside a seeded nebula
   gets the cloud while it is generated, a system outside is
   byte-identical.
-  Prerequisites: DB.59. Related: GEN.95.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report). READY: its blocker DB.59
+  turned out to be built already (the nebula and remnant age columns have
+  existed since v87 and v38; Core 2, 6:05 PM EDT), so Core 4 can take it
+  now.
+  Prerequisites: none. Related: GEN.95, DB.59.
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6552,7 +6656,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vis-viva, unbound above half the mass lost, engulfment overrides).
   Done: a test for each rule and the worked example (1 AU round 1 Msun
   dropping to 0.6 Msun moves to 1.67 AU).
-  Prerequisites: DB.59, GEN.357. Related: GEN.95.
+  Prerequisites: GEN.357. Related: GEN.95.
 
 - [ ] **GEN.359 Sector fill links cluster stars to their cluster and names the cluster at its first fill**
   Split from GEN.209 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6631,24 +6735,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the Python solver for a few bodies.
   Prerequisites: GEN.362. Related: GEN.112, GEN.139.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.364 Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling**
-  Decided by Boss (2026-10-16, 1:46 PM EDT, in the GEN.280 thread),
-  recorded by the TODO thread. The per-cell cap is 5,000 systems and it
-  is adaptive: a cell makes min(expected, cap) systems; above the cap
-  the luminosity floor of that cell rises until what is resolved fits
-  the cap, taking the brightest stars first, and the unresolved count
-  and mass come from the address as GEN.281 does. There is no step at
-  the ceiling: a cell just above the cap loses only its faintest stars.
-  Owner Core 3, built with GEN.280, goal issue #1677. Done: the fill
-  reads the cap from one named setting, raises the per-cell floor to
-  fit, never stores more than the cap, and a math check shows the stored
-  plus unresolved count and mass equal the expected totals on cells
-  below, at and above the cap. GEN.303 wires the cap to
-  `generation.cell_cap` and ADM.84.
-  GEN.280 merged (#1855, 2026-10-16, 3:31 PM EDT). Core 3 builds this
-  next with migration 0100 (the 5,000 cell ceiling default).
-  Prerequisites: GEN.280. Related: GEN.281, GEN.280, GEN.303, GEN.283.
 
 - [ ] **GEN.365 Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. The radius
@@ -7030,7 +7116,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisites: GEN.198, PERF.88. Related: GEN.198, GEN.199, MAP.151
+  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151
   (done, PR #1539).
   Scope after the review (2026-10-16 review): the cost study of the grid
   on top of the kernel (measure the kernel and the aggregate split, pick
@@ -7097,40 +7183,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   when they are; it follows the dead-worker bug PERF.93 (done) and the client
   module PERF.94 (done) in Foundations lane 1. DOC.20 rewrites the notes after
   step 6.
-
-- [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md).
-  `physics/sector_path.integrate_path` takes 1.0 ms a path; numba (mass
-  selection, integration and spline check in one compiled call) takes 34
-  to 46 us, so the save step goes from 34.2 s to 13.4 s on the benchmark
-  fill (the rest is database writes). Saved paths agree to 4e-16
-  relative (34,566 of 34,568 knots bit-identical), so tests that compare
-  saved paths use that tolerance. It also speeds the orbital update,
-  which recomputes these paths. Done: the integrator is a numba kernel,
-  the old Python loop removed (no fallback), the tolerance in the path
-  tests, timings in the benchmark report. Owner: Foundations lane 1,
-  after PERF.80 (merged in #1251).
-  Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
-  location (OPS.42, merged in #1291). Acceptance criterion: the integrator imports as the web
-  user (as OPS.42 does), by keeping it out of the web app's import path or by
-  writable `__pycache__` directories, with a test.
-  Widened (2026-10-16 review): the numba kernel is a public module
-  `planetgen/physics/field_kernel.py` (kept out of the web app's import
-  path): `accelerations(points, masses, softening)` and
-  `potentials(points, masses, softening)` over the `MassTable` of
-  `physics/sector_path.py`, with Plummer softening as an argument and an
-  optional hook for the galaxy's smooth term (GEN.115);
-  `sector_path.integrate_path` calls it instead of its own `_pull`.
-  GEN.109's kernel child and GEN.198's evaluator call it and add only
-  what is theirs. Done: the module and a test that it equals a plain
-  NumPy sum to 1e-12 relative, the sector paths reading it, the old loop
-  removed (no fallback), and the timings in the benchmark report.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Related: PERF.31, GEN.105.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
   Math Research (2026-10-14;
@@ -7941,7 +7993,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   below 50 for the halo floor is refused with the reason, and the
   settings round-trip.
   Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0103, after 0102
-  (DB.59).
+  (DB.59). DB.59 turned out to be built already (Core 2, 6:05 PM EDT: no
+  migration), so 0102 is free: this item takes 0102, after DB.55's 0101,
+  and Core 1 fixes the order if this one merges first.
   Prerequisites: none. Related: GEN.283.
 
 - [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
@@ -8020,22 +8074,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   one Owner), a second Owner insert fails in MySQL, and the schema
   header comments are updated.
   Prerequisites: none. Related: USR.2.
-
-- [ ] **DB.59 Nebula age and ionizing rate, and remnant age, stored**
-  Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Add `age_myr` and `q_total` to
-  `nebulae` and `age_years` to the remnants table (the generator's
-  nebula class already holds age_myr, q_total and hosts, the remnant
-  class has `age_range_years`; nothing stores them). Generation fills
-  them for new rows, old rows stay NULL until regenerated. Core 1 places
-  the revision. Done: a regenerated nebula of each hosted class has an
-  age and a Q consistent with its stars, a remnant has an age.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Migration revision (Core 1, 2026-10-16, 3:16 PM EDT): 0102, after 0099
-  (GEN.280), 0100 (cell_star_ceiling) and 0101 (DB.55).
-  Prerequisites: none. Related: GEN.95.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -8479,6 +8517,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   #1784): call galaxy.profile.sector_profile(address, skeleton) for the
   profile and GalaxyBounds.describe_miss for the "outside the outline"
   line.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 2).
   Prerequisite: GEN.235. Related: UX.113, API.15.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -8671,7 +8711,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
   2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
   it goes idle).
-  Prerequisites: ADM.84, ADM.85.
+  Prerequisites: ADM.85.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
   Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
@@ -9232,33 +9272,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
-  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
-  somewhere, that needs to get bumped up because we're starting to
-  desperately need that." Part of the configuration page of ADM.43
-  (GitHub issue
-  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. An Admin page generated from the ADM.42 model:
-  sections, then every option with its help text, default, current value
-  and where the value comes from (default, `config.json` or an
-  environment variable);
-  editable options as controls by type; read-only options
-  (`jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix`,
-  `admin_cookie_insecure`, `redis.url`, `api_base_url`, the database
-  settings) shown with the reason they are command line only. Save shows
-  a
-  before-and-after diff of the changed options, confirms, saves through
-  ADM.83 and shows per-field errors; a pending-restart banner on every
-  admin page comes from a snapshot taken at startup. Options marked for
-  the Owner tier are shown and disabled until ADM.86. It is built in the
-  admin layout of the day; ADM.56 moves it into the one admin shell.
-  Done: the page, the diff and confirm step, the banner and a browser
-  test that edits, saves and restores one option of each type.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.83. Related: ADM.43, ADM.56.
-
 - [ ] **ADM.85 Settings backups, restore, import and export on the settings page**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
   somewhere, that needs to get bumped up because we're starting to
@@ -9306,7 +9319,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner account that USR.2 creates, so it belongs to 8.2 and not to the
   umbrella ADM.43. Done: the prompt, the tier check in the writer, and
   tests that an admin and a stale-password Owner are both refused.
-  Prerequisites: ADM.84, USR.26. Related: ADM.43, USR.3.
+  Prerequisites: USR.26. Related: ADM.43, USR.3.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -10007,6 +10020,9 @@ clears each one.
   body first. Done: each test exists and runs in the normal suite.
   Owner: Quality (all TEST items are Quality's), written beside the
   build step.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: TEST.186 (Core 3). Core 4 takes it when it unblocks.
   Prerequisites: TEST.186. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -10032,6 +10048,10 @@ clears each one.
   sector builds it, pair rates from the middle of the evidence.
   The multiplicity checks as census checks on the harness (2026-10-16
   review).
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.315 and TEST.186 (Core 3). Core 4 takes it when it
+  unblocks.
   Prerequisites: GEN.315, TEST.186. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
@@ -10058,6 +10078,10 @@ clears each one.
   GEN.329, TEST.186. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.269-272, 275, 327, 329 and TEST.186. Core 4 takes it when
+  it unblocks.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **TEST.165 Re-measure the region query on a real generated galaxy, warm and cold**
@@ -10076,6 +10100,9 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
+  merges: GEN.276 (Core 2). Core 4 takes it when it unblocks.
   Prerequisite: GEN.276. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -10090,6 +10117,8 @@ clears each one.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
+  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
+  PM EDT, 2026-10-16; queue in the lane report, queue position 1).
   Prerequisite: DB.34. Related: DB.35, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -10477,6 +10506,92 @@ clears each one.
   plan tests and list the jobs directory.
   Prerequisites: none.
 
+- [ ] **TEST.192 The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug)**
+  Found by the Settings lane (2026-10-16, 4:57 PM EDT), filed by the
+  TODO thread. Hypothesis finds an example where `model - halo_density`
+  is 1.4882030977187565e-12 minus 1.488203070457534e-12, about 2.7e-20
+  apart, against a bound of 2.7261222351049663e-20, so the assertion
+  `(model - halo_density) <= bound*(1+1e-9)+1e-300` fails by rounding:
+  the two halo terms are about 1e-12 and agree to 8 digits, so the
+  subtraction cannot resolve a bound of 1e-20. Done: the test (or the
+  bound) allows for the rounding of the halo term, scaled by the size of
+  the halo density and not by the bound alone, and the same example
+  passes; no loosening of the real property that the skeleton bound is
+  an upper bound. Fails on main: not run on a clean main; the Settings
+  lane branch does not touch galaxy code, so probably yes. Frequency:
+  found in one `scripts/test.py changed` run, and it should repeat while
+  the example sits in the .hypothesis database. Reproducer:
+  `build_galaxy_shape(disk_scale_length_pc=50.0,
+  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
+  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
+  arm_amplitude=0.0)` with r_cyl=0.0, z=36706.0, theta=0.0, in
+  src/tests/test_fuzz_galaxy_grid.py. Owner: Core 1, in its bug phase
+  (flaky tests last; fix the cause, no quarantine).
+  Core 3 hit the same failure independently (2026-10-16, 4:58 PM EDT):
+  once in about 17,900 tests in a 76 minute run, so Hypothesis finds it
+  only sometimes. Its diagnosis: the model and the halo density cancel to
+  the bound itself, and the subtraction's rounding error (about 1e-28)
+  is larger than the 1e-9 tolerance on 2.7e-20 (2.7e-29). Suggested fix:
+  a tolerance relative to the model, such as `bound*(1+1e-9) + 1e-12*model`.
+  Core 1 hit it too (2026-10-16, 5:49 PM EDT, in the GEN.335 gate:
+  2.4e-9 over the bound) and will push a test-only fix in its next PR,
+  adding a few ulps of the model, `4e-16*model`, to the tolerance; that
+  PR resolves this item.
+  Prerequisites: none.
+
+- [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
+  Found by Core 2 (2026-10-16, 5:04 PM EDT), filed by the TODO thread.
+  In the gate for PERF.88,
+  `src/tests/test_web_browser_sector_reach.py::test_no_scene_is_loaded_while_the_camera_is_far`
+  hung in teardown: the module fixture `site_db`
+  (`src/tests/test_web_a11y.py:275`) ran `DROP DATABASE IF EXISTS` and
+  waited 853 s on a metadata lock, in the gate's first run and again in
+  its retry. A connection left open by something (the same kind of lock
+  as the interstellar_comets one Boss hit on a migration) holds the
+  lock. Done: the fixture closes or kills the connections that hold the
+  database before the drop, or fails at once with the name of the holder
+  instead of waiting; the teardown never waits more than a few seconds;
+  and a test shows a held connection no longer stalls it. Fails on main:
+  not checked, the PERF.88 diff touches no test fixture. Frequency: once
+  in 3 gates. Reproducer: none; the same file passed alone (7 of 7)
+  right after. Related to TEST.190 (a failing session fixture makes
+  dependents wait their full timeout).
+  Core 2 reproduced it twice in a row (2026-10-16, 5:52 PM EDT, the
+  OPS.56 gate and its rerun alone): the holder is an idle connection
+  (state Sleep, database `planetgen_a11y_*`, the same MySQL) that stays
+  open while `DROP DATABASE planetgen_a11y_*` waits 853 s; the PERF.88
+  gate hit the same shape. Reproducer: run `scripts/test.py changed`
+  with the browser tests selected and read `show full processlist` in
+  mysql during the teardown.
+  Prerequisites: none.
+
+- [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
+  Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
+  TODO thread.
+  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
+  failed once in the browser phase of a full `scripts/test.py changed`
+  run (load 8.7, 2 browser workers) and passed when rerun alone (call
+  122.9 s on gw1). Done: the cause is found (a wait that is too short
+  under load, or a real race in the system map drill), the test waits on
+  the condition it needs and not a fixed time, and it passes under the
+  same load with 2 browser workers, with no quarantine. Fails on main:
+  unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
+  full browser phase; try the file with two browser workers and a busy
+  machine.
+  Prerequisites: none.
+
+- [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
+  Found by Core 2 (2026-10-16, 5:52 PM EDT), filed by the TODO thread.
+  `src/tests/test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel`:
+  `page.request.get` of `/sector/<id>/galaxy` timed out at 30 s in the
+  full gate run with 2 browser workers, and the test passed alone. Done:
+  the cause is found (a slow first request that builds the whole galaxy
+  scene under load, or a real stall in the route), and the test either
+  waits on the condition it needs or the route is made fast enough, with
+  no quarantine. Fails on main: unknown. Frequency: once so far.
+  Reproducer: none beyond the full browser phase with 2 workers.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -10588,7 +10703,7 @@ clears each one.
     and builds the mail module and the "send test email" action; the
     form is the generated settings page (ADM.84 and ADM.86), not a
     second form.
-    Prerequisites: ADM.86, USR.26, ADM.84.
+    Prerequisites: ADM.86, USR.26.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -11086,7 +11201,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nothing), the battery digest (needs GEN.135 and the encoder), and the
   history row plus the galaxy record (a control-database migration and
   the update script).
-  Prerequisites: OPS.56, OPS.57, OPS.58.
+  Prerequisites: OPS.57, OPS.58.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
@@ -11172,27 +11287,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: OPS.16, ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
 
-- [ ] **OPS.56 The generator epoch counter and the PR rule that enforces it**
-  Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). An integer `generator_epoch`, bumped
-  only by a PR that changes generated output, kept in
-  `src/tests/golden/epochs.json` (epoch, first release of that epoch)
-  with an accessor `generator_epoch()`. `scripts/bump_version.py
-  --check-pr` enforces all or none: a change under `src/tests/golden/`,
-  the epoch bumped, and a `generation-output: changed` line in the
-  `changes/` note. A `golden_update` tool (`python -m
-  tests.golden_update --reason "..."`) bumps the epoch, records the
-  reason and refuses under `CI` and on an empty diff. Why: GEN.135,
-  DB.31, GEN.57 and every later generation change must be able to say
-  'epoch bumped' and have the guard check it. Done: the file, the
-  accessor, the rule and the tool, with a test for each failure (golden
-  changed without a bump; bump without golden change; note line missing)
-  and a sentence in docs/contributing.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Prerequisites: none. Related: OPS.28.
-
 - [ ] **OPS.57 generator_battery_digest(): a database-free digest over 6 to 8 canned cases**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A pure function in the package, no
@@ -11207,7 +11301,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   function and a test that it is stable across two runs and two hash
   seeds, and that changing one canned draw changes exactly one case's
   digest.
-  Prerequisites: GEN.135, GEN.304, OPS.56. Related: OPS.28.
+  Prerequisites: GEN.135, GEN.304. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -11225,7 +11319,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
-  Prerequisites: OPS.56, OPS.57, ADM.50. Related: OPS.28.
+  Prerequisites: OPS.57, ADM.50. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. Sending

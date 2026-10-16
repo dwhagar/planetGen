@@ -823,7 +823,7 @@ METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
 # unresolved, its count and mass computed from the address and never stored. Both are galaxy settings (`planetgen
 # plan --cell-star-ceiling` and `--fill-luminosity-cap`, stored on `galaxy_shape`). Ordinary space never reaches the
 # ceiling (a cell of the Milky Way's bar holds about a thousand systems).
-CELL_STAR_CEILING = 50_000.0
+CELL_STAR_CEILING = 5_000.0
 """float: The default cell star ceiling, systems a cell expects before it is filled only down to the cap (14
 minutes of generation, 2.4 GB, at the measured 16.4 ms and 48 KiB a system)."""
 FILL_LUMINOSITY_CAP_SOL = 100.0

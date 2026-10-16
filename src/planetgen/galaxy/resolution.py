@@ -13,8 +13,14 @@ never reaches the ceiling, so it is untouched.
 the same answer from the same address, so the unresolved count and mass are computed and never stored. It is a step and
 not a slope: a cell expecting just under the ceiling is filled whole and one expecting just over it keeps only the
 bright stars.
+
+The ceiling is also the most a cell makes: when the stars at or above the fill luminosity cap would still be more than
+the ceiling (the nuclear cluster's cell expects 15 million systems, 0.27% of them 40,000), the cap rises, along a
+fixed ladder of `CAP_LADDER_STEP` steps so the bright-star tables are shared between cells, to the lowest rung whose
+stars fit.
 """
 
+import math
 from dataclasses import dataclass
 
 from planetgen import tuning
@@ -51,15 +57,31 @@ def expected_in_cell(profile):
     return profile.expected_systems * profile.volume_pc3 / profile.edge_pc ** 3
 
 
+CAP_LADDER_STEP = 1.25
+"""float: The ratio between neighbouring rungs of the ladder a raised fill luminosity cap climbs."""
+CAP_LADDER_TOP_SOL = 1.0e9
+"""float: The highest rung: no star of any population is this bright, so a cell always fits by here."""
+
+
+def _resolved_at(profile, expected, cap_sol, mass_limit_sol):
+    total = sum(profile.mix.values())
+    if total <= 0.0:
+        return 0.0
+    share = sum(density * placed_star_fraction(cap_sol, mass_limit_sol, population)
+                for population, density in profile.mix.items()) / total
+    return expected * min(share, 1.0)
+
+
 def cell_resolution(profile, ceiling_systems, luminosity_cap_sol, mass_limit_sol=None):
     """
-    What a cell resolves under the ceiling and the cap.
+    What a cell resolves under the ceiling and the cap. A cell over the ceiling is filled down to the fill luminosity
+    cap, or to the lowest rung above it (`CAP_LADDER_STEP` apart) that makes no more than the ceiling.
 
     Args:
         profile (galaxy.profile.SectorProfile): The cell's profile.
         ceiling_systems (float): The cell star ceiling.
         luminosity_cap_sol (float): The fill luminosity cap (at least the brightest white dwarf, as every luminosity
-            threshold is).
+            threshold is); the lowest the cell's own cap goes.
         mass_limit_sol (float, optional): The mass the galaxy's star scatter places every star from, `None` when it
             has no mass pass: those stars are resolved too, whatever their luminosity.
 
@@ -69,12 +91,19 @@ def cell_resolution(profile, ceiling_systems, luminosity_cap_sol, mass_limit_sol
     expected = expected_in_cell(profile)
     if expected <= ceiling_systems:
         return CellResolution(False, float(ceiling_systems), float(luminosity_cap_sol), expected, expected, 0.0, 0.0)
-    total = sum(profile.mix.values())
-    share = 0.0
-    if total > 0.0:
-        share = sum(density * placed_star_fraction(luminosity_cap_sol, mass_limit_sol, population)
-                    for population, density in profile.mix.items()) / total
-    resolved = expected * min(share, 1.0)
+    cap = float(luminosity_cap_sol)
+    resolved = _resolved_at(profile, expected, cap, mass_limit_sol)
+    if resolved > ceiling_systems:
+        top = math.ceil(math.log(CAP_LADDER_TOP_SOL / cap, CAP_LADDER_STEP))
+        low, high = 0, max(top, 1)
+        while low < high:
+            middle = (low + high) // 2
+            if _resolved_at(profile, expected, cap * CAP_LADDER_STEP ** middle, mass_limit_sol) <= ceiling_systems:
+                high = middle
+            else:
+                low = middle + 1
+        cap = cap * CAP_LADDER_STEP ** low
+        resolved = _resolved_at(profile, expected, cap, mass_limit_sol)
     unresolved = expected - resolved
-    return CellResolution(True, float(ceiling_systems), float(luminosity_cap_sol), expected, resolved, unresolved,
+    return CellResolution(True, float(ceiling_systems), cap, expected, resolved, unresolved,
                           unresolved * tuning.MEAN_SYSTEM_MASS_SOLAR)

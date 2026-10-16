@@ -15,8 +15,8 @@ MSUN = constants.SOLAR_MASS_TO_KG
 EDGE = 20.0 * PC
 
 
-def _box(half=EDGE / 2.0):
-    return lambda p: all(abs(c) <= half for c in p)
+def _box(half=EDGE / 2.0, center=(0.0, 0.0, 0.0)):
+    return sp.box_cell(tuple(c - half for c in center), tuple(c + half for c in center))
 
 
 def _angle_between(a, b):
@@ -127,16 +127,9 @@ def test_a_body_held_by_a_heavy_mass_costs_one_revolution_not_the_step_limit():
     mass = sp.PointMass((0.0, 0.0, 0.0), 1.0e8 * MSUN)
     edge = 4.0 * PC
     speed = 0.4 * math.sqrt(constants.G * mass.mass_kg / PC)
-    pulls = []
-    original = sp._pull
-    sp._pull = lambda *args: pulls.append(1) or original(*args)
-    try:
-        path = sp.integrate_path((PC, 0.0, 0.0), (0.0, speed, 0.0), [mass], lambda p: math.dist(p, (0, 0, 0)) < 2.5 * PC,
-                                 edge)
-    finally:
-        sp._pull = original
+    path = sp.integrate_path((PC, 0.0, 0.0), (0.0, speed, 0.0), [mass], sp.ball_cell((0.0, 0.0, 0.0), 2.5 * PC), edge)
     assert not path.exited and 2 < len(path.knots) <= sp.DEFAULT_MAX_KNOTS
-    assert len(pulls) < sp.DEFAULT_MAX_STEPS // 2, len(pulls)
+    assert path.steps < sp.DEFAULT_MAX_STEPS // 2, path.steps
 
 
 def test_paths_chain_across_sectors_from_the_exit_state():
@@ -144,7 +137,7 @@ def test_paths_chain_across_sectors_from_the_exit_state():
     entry = first.restart()
     assert entry.t_s == 0.0 and entry.position == first.end.position and entry.velocity == first.end.velocity
     shifted = tuple(c - EDGE for c in entry.position)  # the neighbour cell's own box, centred one edge along x
-    second = sp.integrate_path(entry.position, entry.velocity, [], lambda p: _box()((p[0] - EDGE, p[1], p[2])), EDGE)
+    second = sp.integrate_path(entry.position, entry.velocity, [], _box(center=(EDGE, 0.0, 0.0)), EDGE)
     assert second.exited and shifted[0] == pytest.approx(-EDGE / 2.0, abs=1e-3 * PC)
     assert second.end.position[0] == pytest.approx(1.5 * EDGE, abs=1e-6 * PC)
 
@@ -157,3 +150,57 @@ def test_sector_inside_follows_the_grid_cell():
     assert inside(tuple(c * PC for c in centre_pc))
     far = tuple(c * PC for c in spherical.sector_position_pc(1500, 2, 703, edge_pc))
     assert not inside(far)
+
+
+def test_sector_inside_agrees_with_the_grid_everywhere_including_the_faces():
+    """The compiled cell test is `spherical.sector_address_at`, for the core, a cap and an interior band, with points
+    scattered over the cell and just either side of each face."""
+    import random
+
+    rnd = random.Random(11)
+    edge_pc = 4.0
+    for address in ((0, 0, 0), (1, 1, 0), (1, -1, 0), (2, 0, 1), (5, 2, 7), (40, 3, 11), (1500, 2, 700), (1500, 2, 0)):
+        inside = sp.sector_inside(address, edge_pc)
+        centre = spherical.sector_position_pc(*address, edge_pc)
+        points = [tuple(c + rnd.uniform(-1.5, 1.5) * edge_pc for c in centre) for _ in range(400)]
+        for shell_delta in (-1e-9, 1e-9):   # a hair inside and outside the cell's faces, along its own radius
+            radius = math.sqrt(sum(c * c for c in centre)) or edge_pc
+            points.append(tuple(c * (1 + shell_delta) for c in centre))
+            points.append(tuple(c * (1 + shell_delta) * (radius + edge_pc / 2) / radius for c in centre))
+        for point in points:
+            wanted = spherical.sector_address_at(point, edge_pc) == address
+            assert inside(tuple(c * PC for c in point)) == wanted, (address, point)
+
+
+def test_the_field_kernel_equals_a_plain_numpy_sum():
+    import numpy as np
+
+    from planetgen.physics import field_kernel
+
+    rnd = np.random.default_rng(3)
+    masses = sp.MassTable([sp.PointMass(tuple(rnd.uniform(-5, 5, 3) * PC), 10 ** rnd.uniform(1, 8) * MSUN) for _ in range(40)])
+    points = rnd.uniform(-6, 6, (25, 3)) * PC
+    softening = 0.3 * PC
+    offsets = masses.positions[None, :, :] - points[:, None, :]
+    r2 = (offsets ** 2).sum(axis=2) + softening ** 2
+    expected_a = ((masses.mus[None, :] / r2 ** 1.5)[:, :, None] * offsets).sum(axis=1)
+    expected_phi = -(masses.mus[None, :] / np.sqrt(r2)).sum(axis=1)
+    assert np.allclose(field_kernel.accelerations(points, masses, softening), expected_a, rtol=1e-12, atol=0)
+    assert np.allclose(field_kernel.potentials(points, masses, softening), expected_phi, rtol=1e-12, atol=0)
+    # The galaxy's smooth term (GEN.115) is added on top.
+    bump = field_kernel.accelerations(points, masses, softening, smooth=lambda p: np.full((len(p), 3), 2.0))
+    assert np.allclose(bump - expected_a, 2.0, rtol=1e-9)
+    # A single point is one row.
+    assert field_kernel.accelerations(points[0], masses, softening).shape == (1, 3)
+    with pytest.raises(ValueError):
+        field_kernel.accelerations(np.zeros((3, 2)), masses, softening)
+
+
+def test_the_body_own_mass_does_not_pull_it_and_masses_far_off_the_path_are_left_out():
+    near = sp.PointMass((0.0, 5.0 * PC, 0.0), 1.0e6 * MSUN, ("star_systems", 1))
+    far = sp.PointMass((0.0, 1.0e6 * PC, 0.0), 1.0 * MSUN, ("star_systems", 2))
+    with_own = sp.integrate_path((-9.0 * PC, 0.0, 0.0), (1.0e5, 0.0, 0.0), [near, far], _box(), EDGE)
+    without = sp.integrate_path((-9.0 * PC, 0.0, 0.0), (1.0e5, 0.0, 0.0), [near, far], _box(), EDGE,
+                                exclude_key=("star_systems", 1))
+    assert with_own.end.velocity[1] > 0.0
+    assert without.end.velocity[1] == 0.0 and len(without.knots) == 2
