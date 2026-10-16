@@ -428,7 +428,9 @@ def test_set_permissions_gives_the_whole_checkout_to_the_web_user(tmp_path):
         if rel == "link":
             continue
         assert (owner, group) == (uid, gid), rel
-        assert not mode & (stat.S_IWGRP | stat.S_IRWXO), rel
+        assert not mode & stat.S_IRWXO, rel
+        if rel != "state":  # the group may write the state folder, nothing else
+            assert not mode & stat.S_IWGRP, rel
     modes = {rel: mode for rel, _, _, mode in _snapshot(repo)}
     assert modes["."] == 0o750 and modes["src/html/lib"] == 0o750
     assert modes["src/html/wsgi.py"] == 0o750 and modes["scripts/tool.sh"] == 0o750
@@ -437,7 +439,7 @@ def test_set_permissions_gives_the_whole_checkout_to_the_web_user(tmp_path):
     assert modes[".git/HEAD"] == 0o640
     assert modes["config.json"] == 0o640
     # The state directory is made, and is the web user's from the start.
-    assert (modes["state"], (repo / "state").is_dir()) == (0o750, True)
+    assert (modes["state"], (repo / "state").is_dir()) == (0o770, True)
     # A link is never followed: what it points at is not planetGen's to chown.
     assert os.stat(outside).st_uid == 0
 
@@ -450,7 +452,7 @@ def test_set_permissions_takes_a_state_directory_outside_the_checkout(tmp_path):
     proc = _run_permissions(repo, tmp_path, str(state))
     assert proc.returncode == 0, proc.stderr
     info = os.stat(state)
-    assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o750)
+    assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o770)
     assert not (repo / "state").exists()
 
 
