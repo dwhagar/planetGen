@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1578] - 2026-10-16
+
+**Headline:** The multi-star design note now says the metallicity effect on close binaries applies to every star mass.
+
+### Changed
+- **GEN.103's last card is answered: all masses (Boss, 6:15 PM EDT).** There is no fade of the metallicity effect above about 2 solar masses; TEST.196 checks that the numbers act as expected.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1577] - 2026-10-16
 
 **Headline:** The plan records Boss's decisions for the multi-star type draw and adds a check that the close-binary numbers act as expected.
