@@ -167,12 +167,11 @@ def phenomenon_trees(rows):
 
 
 def default_epoch_unix(conn):
-    """The time to stamp new nodes with: the orbit epoch every stored position holds at, else the database's clock
-    (no orbit update has run, so the first one sets the clock and nothing has moved)."""
+    """The time to stamp new nodes with: the orbit epoch every stored position holds at, else the fixed
+    `tuning.SCATTER_PHASE_ORIGIN_UNIX` (no orbit update has run, so no clock exists yet; a fixed origin keeps two scatters
+    of one seed identical, the database's clock would not)."""
     epoch = store.get_orbit_epoch_unix(conn)
-    if epoch is not None:
-        return float(epoch)
-    return float(conn.execute("SELECT UNIX_TIMESTAMP() AS now").fetchone()["now"])
+    return float(epoch) if epoch is not None else tuning.SCATTER_PHASE_ORIGIN_UNIX
 
 
 def _ids_by_seed(conn, table, above_id, seeds):

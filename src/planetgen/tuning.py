@@ -1940,6 +1940,11 @@ NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K = (5e4, 3e6)
 # (Population I/II), not primordial, remnants.
 COMPACT_REMNANT_AGE_RANGE_GY = (0.001, 10.0)
 
+# The time the node phases of a scatter drawn before any orbit update hold at (GEN.262): 2000-01-01 00:00 UTC. The
+# orbit clock does not exist until the first update, and a fixed origin keeps one galaxy seed's members identical in
+# every run; the nightly update never writes a node, and a member's place at time t advances from its phase here.
+SCATTER_PHASE_ORIGIN_UNIX = 946684800.0
+
 # --- Nebulae and supernova remnants (nebulaData.Nebula,
 # supernovaRemnantData.SupernovaRemnant) ---
 #

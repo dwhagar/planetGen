@@ -352,15 +352,16 @@ def test_a_batch_without_hits_writes_the_rows_and_nothing_else(mysql_config):
         conn.close()
 
 
-def test_the_default_epoch_is_the_orbit_epoch_when_there_is_one(mysql_config):
+def test_the_default_epoch_is_a_fixed_origin_until_an_orbit_update_has_set_the_clock(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
-        before = scatter_companions.default_epoch_unix(conn)
-        assert before > 1.5e9                               # the database clock until an orbit update has run
+        assert store.get_orbit_epoch_unix(conn) is None
+        assert scatter_companions.default_epoch_unix(conn) == tuning.SCATTER_PHASE_ORIGIN_UNIX
         with conn:
             store.orbit_clock(conn, 1.0)
         epoch = store.get_orbit_epoch_unix(conn)
-        assert scatter_companions.default_epoch_unix(conn) == float(epoch if epoch is not None else before)
+        if epoch is not None:
+            assert scatter_companions.default_epoch_unix(conn) == float(epoch)
     finally:
         conn.close()
 
