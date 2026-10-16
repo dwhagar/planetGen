@@ -2602,6 +2602,10 @@ doesn't depend on whether the comet is bound to a star.
 # separate, wider range reflects that real difference rather than reusing
 # the interstellar range as-is.
 BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
+COMET_NUCLEUS_DENSITY_KG_M3 = 533.0
+"""float: Bulk density of a comet nucleus, kg/m^3 -- 67P/Churyumov-Gerasimenko, measured by Rosetta (Paetzold et al.
+2016, 533 +/- 6), the one nucleus whose mass and volume are both known. A nucleus's mass is this times its sphere's
+volume (`physics/bulk_mass.comet_nucleus_mass_kg`)."""
 
 # Perihelion distance range, in AU, for a star-bound comet -- wide enough
 # to cover both a sungrazer-like close pass and an outer-system comet that
