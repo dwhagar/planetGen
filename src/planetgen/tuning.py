@@ -562,7 +562,7 @@ WD_IFMR_INTERCEPT_SOL = 0.394
 WD_MASS_RANGE_SOL = (0.5, 1.35)
 WD_COOLING_L0_SOL = 1.0e-3
 WD_COOLING_EXPONENT = -1.4
-WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 100.0)
+WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 50.0)
 WD_MIN_COOLING_AGE_GY = 1.0e-4
 
 # `+large_star` draws from the same model with the IMF truncated below

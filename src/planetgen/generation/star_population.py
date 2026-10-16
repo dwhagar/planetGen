@@ -39,7 +39,7 @@ share of the measure, an age inside that phase's bright window and a
 luminosity from the part of the phase's range above the threshold.
 
 White dwarfs are never pre-placed (`WD_LUMINOSITY_RANGE_SOL` tops out at
-100 Lsun), so the threshold must be at least that range's top, and a
+50 Lsun), so the threshold must be at least that range's top, and a
 sector's dim draw keeps every white dwarf whatever the cap.
 
 Mass bands (GEN.187)

@@ -156,6 +156,14 @@ def test_the_luminosity_pass_draws_each_band_down_to_its_tiers_floor():
     assert min(_watts(row) for row in mixed[BASELINE]) / constants.SOLAR_LUMINOSITY >= FLOOR * (1 - 1e-9)
 
 
+def test_a_halo_floor_of_fifty_draws_down_to_fifty():
+    limits = ScatterLimits.of(_skeleton(halo_floor=50.0), FLOOR, MASS)
+    mixed = _drawn(MIXED_SHELL, scatter_limits.luminosity_pass(limits))
+    lowest = min(_watts(row) for row in mixed[HALO]) / constants.SOLAR_LUMINOSITY
+    assert 50.0 * (1 - 1e-9) <= lowest < 500.0
+    assert tuning.WD_LUMINOSITY_RANGE_SOL[1] <= 50.0
+
+
 def test_the_mass_pass_draws_each_band_from_its_tiers_mass_limit():
     limits = ScatterLimits.of(_skeleton(), FLOOR, MASS)
     tiered = scatter_limits.mass_pass(limits, 100.0)
