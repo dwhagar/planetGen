@@ -52,7 +52,7 @@ Field metadata goes in `json_schema_extra` under `x-` keys, declared through one
 | `x-env` | environment variable that overrides it; field shown disabled |
 | `x-widget` | optional override (`textarea`, `color`, `file`) |
 
-**The permissions problem.** `docs/config.md` sets `config.json` to `root:<apache group>`, mode 640: the web process reads it but cannot write it, and an atomic replace also needs write access to the directory. ADM.43 cannot save as written. Two files, one model:
+**The permissions problem.** `docs/config.md` set `config.json` to `root:<apache group>`, mode 640 (the checkout has belonged to the web user since 2026-10-16, which removes this obstacle): the web process read it but could not write it, and an atomic replace also needs write access to the directory. ADM.43 cannot save as written. Two files, one model:
 
 | File | Owner and mode | Holds |
 |---|---|---|

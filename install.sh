@@ -48,9 +48,10 @@
 #      missing. On macOS, installs and starts the gunicorn launchd daemon
 #      (examples/macos/org.planetgen.gunicorn.plist) instead. Steps 3 and
 #      5 come from scripts/deploy-common.sh, which update.sh shares.
-#   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
-#      the deployed `src/html/`/`db/` directories for Apache's worker
-#      user/group, and config.json to root:<apache group>, mode 640.
+#   6. Runs `examples/apache/set-permissions.sh`: the whole checkout and its
+#      state directory (/var/lib/planetGen/state, made if missing) are
+#      owned by Apache's worker user and group (www-data:www-data), with
+#      the same modes update.sh sets. The virtual environment stays root's.
 #   7. Runs `examples/apache/create-cache-dir.sh` to create the Galaxy Map's
 #      on-disk tile cache (`tile_cache.dir` in config.json, default
 #      /var/cache/planetgen/tiles) owned by Apache's worker user.
@@ -92,7 +93,6 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HTML_DIR="$SCRIPT_DIR/src/html"
-DB_DIR="$SCRIPT_DIR/db"
 NLTK_DATA_DIR="${PLANETGEN_NLTK_DATA_DIR:-/usr/local/share/nltk_data}"
 
 if [[ $EUID -ne 0 ]]; then
@@ -163,9 +163,9 @@ else
 fi
 
 echo
-echo "== 6/8: Setting directory ownership/permissions for Apache =="
-# Also sets config.json (DB password, secret_key) to root:<apache group>, 640.
-PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
+echo "== 6/8: Setting ownership/permissions: the checkout belongs to Apache's user =="
+# Includes config.json (DB password, secret_key): the web user's, mode 640.
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
 echo
 echo "== 7/8: Creating the Galaxy Map tile cache directory =="

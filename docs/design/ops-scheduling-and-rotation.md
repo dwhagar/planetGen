@@ -206,10 +206,10 @@ and `systemctl` on the path.
 Run as the web user on Linux and macOS, not root: the web app writes the
 settings JSON and Generate job state, root-run maintenance would leave
 root-owned files the web user cannot rotate, and a root-created lock file
-locks the web user out (section 3). The code tree stays root-owned
-(`set-permissions.sh`), so a web-user process cannot change code that root
-later runs. `config.json` is `root:<apache group>` mode 640, readable by the
-web user, and `detect_apache_group` in `examples/apache/apache-identity.sh`
+locks the web user out (section 3). The checkout belongs to the web user
+(`set-permissions.sh`, 2026-10-16: the web app writes its state under it), and the
+virtual environment, which root runs, stays root-owned. `config.json` is
+`<apache user>:<apache group>` mode 640, and `detect_apache_group` in `examples/apache/apache-identity.sh`
 finds the account. The monthly orbit timer runs as root with
 `/etc/planetgen/maintenance.env`; that is what is retired.
 

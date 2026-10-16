@@ -52,15 +52,15 @@ them.
 
 It also has to be unreadable by other local users. `install.sh` and
 `update.sh` (through `examples/apache/set-permissions.sh`) set it to
-`root:<apache group>`, mode `640`, whenever it exists: root can edit it,
-the web app (running as that group's user, `www-data` for Apache and the
-gunicorn unit alike) can read it, nobody else can. The macOS
+`<apache user>:<apache group>`, mode `640`, whenever it exists (the whole
+checkout belongs to that account): the web app (`www-data` for Apache and
+the gunicorn unit alike) can read it, root can too, nobody else can. The macOS
 guide sets the same rule by hand. A login user who runs the
 generator or the maintenance scripts from a shell without `sudo` needs to
 be in Apache's group (`sudo usermod -aG www-data <user>`, then log in
 again) to read it. After creating or copying a new `config.json`, re-run
 `sudo examples/apache/set-permissions.sh` (or `sudo ./update.sh`), or set
-it by hand: `sudo chown root:www-data config.json && sudo chmod 640 config.json`.
+it by hand: `sudo chown www-data:www-data config.json && sudo chmod 640 config.json`.
 
 ## Precedence
 

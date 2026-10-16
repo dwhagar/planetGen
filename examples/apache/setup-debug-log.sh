@@ -76,7 +76,7 @@ fi
 # works before the package's own dependencies are installed. This runs as
 # root, so -I keeps the current directory, user site-packages and PYTHON*
 # variables off sys.path (logpaths.py itself lives outside src/html, in
-# the root-owned part of the checkout).
+# the checkout).
 # (Through a temp file: bash 3.2, macOS's, can't parse a heredoc inside
 # a process substitution.)
 SETTINGS="$(mktemp)"

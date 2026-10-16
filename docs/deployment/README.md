@@ -64,14 +64,21 @@ addresses that keep guessing admin passwords.
   `update.sh` create both (`examples/apache/create-cache-dir.sh`), and
   move jobs left in the old default, `/var/lib/planetgen/jobs`, into the
   new one (a running job stays until it finishes).
-- **A read-only code tree.** `src/html` belongs to root with the web
-  group (directories 750, files 640, `*.py` 750), so the app can read
-  its code but never change it. `config.json` is root with the web
-  group, mode 640: it holds the database password and `secret_key`. The
-  debug log, when `debug` is on, belongs to the app's account, mode 0660.
-  On Linux `install.sh` and `update.sh` set all of this
-  (`set-permissions.sh`, `setup-debug-log.sh`); the macOS
-  guide gives the manual equivalent.
+- **The checkout belongs to the web user.** Everything under the
+  checkout (`/var/lib/planetGen`), including `config.json` and the
+  `state/` directory the app writes its maintenance flag to, is owned by
+  the account the app runs as (`www-data:www-data` on Debian and Ubuntu):
+  directories 750, files 640, and scripts and `*.py` files 750. Nobody
+  else can read it. A fresh `install.sh` and an `update.sh` end with the
+  same ownership because both run `set-permissions.sh` on the whole
+  checkout. The virtual environment (`/usr/local/planetgen/venv`) and the
+  NLTK corpus stay root's, since `install.sh` and `update.sh` run their
+  Python as root. The web server is kept out of the checkout by the
+  directory rules in the example Apache site: nothing is served from disk
+  but `static/`, and nothing runs but the WSGI app. The debug log, when
+  `debug` is on, belongs to the app's account, mode 0660. On Linux
+  `install.sh` and `update.sh` set all of this (`set-permissions.sh`,
+  `setup-debug-log.sh`); the macOS guide gives the manual equivalent.
 - **Redis settings.** Redis holds the work queue, rate limits and
   login lockouts, and out of the box keeps nothing on disk between
   saves, so a crash loses all of it. [`examples/redis/planetgen.conf`](../../examples/redis/planetgen.conf)

@@ -402,6 +402,27 @@ warm_galaxy_map() {
     echo "Building the Galaxy Map's opening view in the background (log: $WARM_MAP_LOG)."
 }
 
+# Tells the admin when an update changed an example config they copied
+# into place. These are the admin's own files (the Apache site, the Redis
+# server config): update.sh and install.sh never edit them, they only
+# say that the example moved so the two can be compared.
+# Args: the commit before the pull, the commit after it.
+note_changed_example_configs() {
+    local before="$1" after="$2"
+    [[ "$before" == "$after" ]] && return 0
+    if ! git diff --quiet "$before" "$after" -- examples/apache/planetgen.conf.example; then
+        echo "note: examples/apache/planetgen.conf.example changed in this update."
+        echo "  Your Apache site is yours and was not touched. To see what is new:"
+        echo "    diff /etc/apache2/sites-available/planetgen.conf $SCRIPT_DIR/examples/apache/planetgen.conf.example"
+        echo "  Copy over what you want, then: sudo apache2ctl configtest && sudo systemctl reload apache2"
+    fi
+    if ! git diff --quiet "$before" "$after" -- examples/redis/planetgen.conf; then
+        echo "note: examples/redis/planetgen.conf changed in this update."
+        echo "  Your Redis configuration was not touched. Compare it with $SCRIPT_DIR/examples/redis/planetgen.conf."
+    fi
+    return 0
+}
+
 # Imports the web app and the generator package with the interpreter the
 # site runs under, as Apache's own user when that user exists, so a
 # library that's installed but unreadable to www-data (or the checkout's

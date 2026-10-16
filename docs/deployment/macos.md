@@ -103,14 +103,14 @@ installs the monthly orbit update (and update.sh, unless
 
 6. **Permissions.** The same rules `set-permissions.sh`,
    `create-cache-dir.sh` and `setup-debug-log.sh` apply on Linux: the code
-   tree belongs to root and is only readable by the web group, and the
-   runtime directories belong to the web user.
+   checkout (and its `state/` directory) belongs to the web user, with
+   nobody else allowed in; the virtual environment stays root's.
 
-       sudo chown -R root:_www /var/lib/planetGen/src/html
-       sudo find /var/lib/planetGen/src/html -type d -exec chmod 750 {} +
-       sudo find /var/lib/planetGen/src/html -type f -exec chmod 640 {} +
-       sudo find /var/lib/planetGen/src/html -type f -name '*.py' -exec chmod 750 {} +
-       sudo chown root:_www /var/lib/planetGen/config.json && sudo chmod 640 /var/lib/planetGen/config.json
+       sudo install -d -o _www -g _www -m 750 /var/lib/planetGen/state
+       sudo chown -R -h _www:_www /var/lib/planetGen
+       sudo find /var/lib/planetGen -type d -exec chmod 750 {} +
+       sudo find /var/lib/planetGen -type f ! -perm -u+x -exec chmod 640 {} +
+       sudo find /var/lib/planetGen -type f \( -name '*.py' -o -name '*.sh' \) -exec chmod 750 {} +
        sudo install -d -o _www -g _www -m 750 /var/cache/planetgen/tiles /var/lib/planetGen/jobs
        sudo touch /var/log/planetgen.log && sudo chown _www:_www /var/log/planetgen.log && sudo chmod 660 /var/log/planetgen.log
        sudo chown _www:_www /usr/local/planetgen/log
