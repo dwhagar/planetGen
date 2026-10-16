@@ -88,6 +88,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | API.18 | The far end; framework and capability, not a full Milky Way. |
 
+### Units
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | GEN.294, GEN.135 | Boss 2026-10-16, 11:35 AM EDT; like SpatialPosition3D. |
+| GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | GEN.299, UX.107 | The call-site sweep. |
+
 ## Open questions for Boss
 
 - NAV.6: Courses that steer clear of gravity wells, see its entry in TODO.md.

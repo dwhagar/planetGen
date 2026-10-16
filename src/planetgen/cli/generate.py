@@ -48,6 +48,7 @@ from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy.density import arm_terms, build_galaxy_shape
 from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL, DEFAULT_REACH_SHELL
 from planetgen.generation.star import STAR_TYPE_PATTERN
+from planetgen.generation import star_population
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation import run_common
 from planetgen.generation import run_galaxy
@@ -947,6 +948,17 @@ def add_plan_arguments(parser):
                                    "placed and add only those from L_SUN up to the level already scattered. "
                                    "Sectors already filled are left out (their own systems already reach "
                                    "that bright). Does nothing when L_SUN is not below the current level.")
+    resolution_group = parser.add_argument_group("how deep a dense cell is filled (planetgen.galaxy.resolution)")
+    resolution_group.add_argument('--cell-star-ceiling', type=finite_float, default=None, metavar='SYSTEMS',
+                                  help="A cell that expects more systems than this is filled only with the stars at "
+                                       "or above --fill-luminosity-cap; the rest is unresolved, its count and mass "
+                                       "shown on the sector page. Stored with the galaxy by a full plan. Default: "
+                                       f"{program_constants.CELL_STAR_CEILING:,.0f}.")
+    resolution_group.add_argument('--fill-luminosity-cap', type=finite_float, default=None, metavar='L_SUN',
+                                  help="The dimmest star (solar luminosities) a cell above --cell-star-ceiling "
+                                       "resolves, at least the brightest white dwarf "
+                                       f"({program_constants.WD_LUMINOSITY_RANGE_SOL[1]:g}). Stored with the galaxy "
+                                       f"by a full plan. Default: {program_constants.FILL_LUMINOSITY_CAP_SOL:g}.")
     phenomena_group = parser.add_argument_group("phenomenon scatter (planetgen.generation.phenomenon_scatter)")
     presets = ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS)
     phenomena_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
@@ -1007,6 +1019,13 @@ def validate_plan_args(args, parser):
         parser.error("--core-density and --bulge-amplitude must be 0 or more.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
+    if args.cell_star_ceiling is not None and args.cell_star_ceiling < 1:
+        parser.error("--cell-star-ceiling must be at least 1 system.")
+    if args.fill_luminosity_cap is not None:
+        try:
+            star_population.check_threshold(args.fill_luminosity_cap)
+        except ValueError as exc:
+            parser.error(f"--fill-luminosity-cap: {exc}")
     if args.max_shell < 1:
         parser.error("--max-shell must be a positive integer.")
     for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):

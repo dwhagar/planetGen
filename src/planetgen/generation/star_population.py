@@ -187,7 +187,7 @@ def _mass_grid(extra_edges=()):
     return grid
 
 
-def _check_threshold(min_luminosity_sol):
+def check_threshold(min_luminosity_sol):
     if not (isinstance(min_luminosity_sol, (int, float)) and math.isfinite(min_luminosity_sol)):
         raise ValueError(f"luminosity threshold must be a finite number, got {min_luminosity_sol!r}")
     if min_luminosity_sol < tuning.WD_LUMINOSITY_RANGE_SOL[1]:
@@ -224,7 +224,7 @@ def _bright_table(min_luminosity_sol, population, mass_range=None):
     still the share of ALL living stars, so a mass pass and a luminosity
     pass below it add up to the share that one threshold gives.
     """
-    _check_threshold(min_luminosity_sol)
+    check_threshold(min_luminosity_sol)
     window = population_age_range_gy(population)
     cells, cumulative = [], []
     running = bright = living = 0.0
@@ -322,7 +322,7 @@ thin almost every star overshoots it)."""
 
 
 MASS_PASS_MIN_LUMINOSITY_SOL = tuning.WD_LUMINOSITY_RANGE_SOL[1]
-"""float: The luminosity floor of the mass pass: the lowest `_check_threshold`
+"""float: The luminosity floor of the mass pass: the lowest `check_threshold`
 allows (the brightest white dwarf). A star born with 8 solar masses or more
 is brighter than that through all of its life, so the floor cuts none of
 them."""

@@ -385,13 +385,13 @@ def test_evolved_mass_sampler_accepts_only_masses_that_have_evolved():
 @pytest.mark.parametrize("threshold", [math.nan, math.inf, "10", None])
 def test_bright_threshold_must_be_finite(threshold):
     with pytest.raises(ValueError, match="luminosity threshold must be a finite number"):
-        star_population._check_threshold(threshold)
+        star_population.check_threshold(threshold)
 
 
 def test_bright_threshold_must_clear_the_brightest_white_dwarf():
     too_low = PC.WD_LUMINOSITY_RANGE_SOL[1] / 2
     with pytest.raises(ValueError, match="must be at least the brightest white dwarf"):
-        star_population._check_threshold(too_low)
+        star_population.check_threshold(too_low)
 
 
 def test_bright_band_must_not_be_empty():

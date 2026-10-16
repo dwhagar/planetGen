@@ -2,6 +2,59 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1521] - 2026-10-16
+
+**Headline:** The to-do list files a Quantity class (GEN.299, Phase 3), so every version of a measured value is always available with all conversions and the shared ladders, and a sweep item (GEN.300) to move the call sites onto it.
+
+### Changed
+
+- Filed GEN.299 and GEN.300 in a new Units thread of Phase 3 and in goal issue #1676, on Boss's request.
+
+TODO items resolved: none / Added: GEN.299, GEN.300
+
+## [8.0.1520] - 2026-10-16
+
+**Headline:** The to-do list assigns the fly-through map's first two items, MAP.152 and MAP.146, to Core 2 on Boss's order, right after PERF.104.
+
+### Changed
+
+- Added the owner line on MAP.152 and MAP.146 and moved both into Core 2's queue in the execution plan; Core 2's later items slide by about 6 to 8 hours.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1519] - 2026-10-16
+
+**Headline:** The to-do list retires the galactic core cell star ceiling and fill luminosity cap (GEN.281), and records that migration 0098 shipped with it alone.
+
+### Changed
+
+- Retired GEN.281 (#1820), rewrote the migration-revision notes on GEN.280 and GEN.283 (0098 is merged; GEN.280's fields take the next free revision) and added a ledger row.
+
+TODO items resolved: GEN.281 / Added: none
+
+## [8.0.1518] - 2026-10-16
+
+**Headline:** A cell that expects more systems than the cell star ceiling is filled only with the stars at or above the fill luminosity cap, and the sector page and API report what is left unresolved.
+
+### Added
+- **The cell star ceiling and the fill luminosity cap (GEN.281).** Two settings of the galaxy, stored in `galaxy_shape` (migration 0098, schema v98) and set with `planetgen plan --cell-star-ceiling` (default 50,000 systems) and `--fill-luminosity-cap` (default 100 solar luminosities). A cell expecting more systems than the ceiling is filled only with the stars at or above the cap; ordinary space never reaches the ceiling and is filled as before.
+- **Unresolved systems.** `planetgen/galaxy/resolution.py` is the one rule the fill, the API and the sector page read. A capped sector's page and `/api/sector` say how many systems and how much mass are left unresolved, worked out from the address and never stored.
+
+### Changed
+- **A capped cell's stats record what it resolves.** `sector_stats.expected_systems` is the resolved count, so the actual-to-expected ratio stays meaningful, and `level_before_fill_sol` holds the cap's level.
+
+TODO items resolved: GEN.281. Added: none.
+
+## [8.0.1517] - 2026-10-16
+
+**Headline:** The tier plan shows a progress bar for every tier: items finished out of items in the tier, with the percentage, rebuilt on every retire.
+
+### Changed
+
+- `scripts/build_todo_docs.py` reads a new `docs/plan/progress-ledger.md` (the phase of each finished item, read back from the git history of the phase files) and the tier plan page shows finished, open and percentage per tier at the top and in each phase heading. The build fails when a retired item has no ledger row.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1516] - 2026-10-16
 
 **Headline:** The to-do list retires the cluster density term in the sector gate (GEN.160), with the globular clusters now drawn and stored by the plan step.

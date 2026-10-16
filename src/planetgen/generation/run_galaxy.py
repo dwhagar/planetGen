@@ -25,7 +25,7 @@ import pymysql
 
 from planetgen.db import sector_paths, store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import seed as galaxySeed, version_check
+from planetgen.galaxy import resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
 from planetgen.queue import redisqueue
 from planetgen import tuning as program_constants
@@ -168,25 +168,35 @@ def _fill_context(args, address):
         if skeleton is None:
             return None
         profile = sector_profile(address, skeleton)
+        resolution = galaxyResolution.cell_resolution(
+            profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol, store.bright_star_mass_limit(conn))
+        if resolution.capped:
+            # GEN.281: a cell above the ceiling is taken down to the cap and no further.
+            galaxy_level, backfill_seed = run_plan._scatter_level_and_seed(conn, skeleton)
+            run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], skeleton.fill_luminosity_cap_sol,
+                                        galaxy_level, backfill_seed)
         phenomena = below_cut = None
         settings = store.phenomenon_scatter_settings(conn)
         if settings is not None:
             phenomena = store.phenomena_for_sector(conn, *address)
             seed, min_mass_solar = settings
-            if min_mass_solar is not None:
+            if min_mass_solar is not None and not resolution.capped:
                 # GEN.168: what the scatter left below its cut, at the
-                # density it used (the plan's, not this sector's own roll).
+                # density it used (the plan's, not this sector's own roll). A capped cell makes no remnant of its
+                # own: they are dark, below the cap, and part of what it leaves unresolved.
                 expected = profile.expected_systems
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         if level is None and mass_limit is None:
-            return brightStars.FillContext(profile, phenomenon_rows=phenomena, below_cut=below_cut)
+            return brightStars.FillContext(profile, phenomenon_rows=phenomena, below_cut=below_cut,
+                                           resolution=resolution)
         rows = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
     return brightStars.FillContext(profile, rows, min_luminosity_sol=level,
-                                   phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit)
+                                   phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
+                                   resolution=resolution)
 
 
 def backfill_step_targets(addresses, bounds, step_masses=None):

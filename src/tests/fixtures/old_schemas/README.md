@@ -49,3 +49,4 @@ Commit each file came from:
 - v94: a91a7156 (GEN.234 halo populations, before GEN.158 metallicity_fe_h)
 - v95: 74ff7e3 (GEN.158 metallicity_fe_h, before GEN.153 magnetar pulsar type)
 - v96: 5583b91d (GEN.153 magnetar pulsar type, before GEN.159 galaxy_components)
+- v97: fd18454 (GEN.159 galaxy_components, before GEN.281 cell star ceiling and fill luminosity cap)

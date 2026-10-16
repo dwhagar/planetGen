@@ -38,6 +38,8 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN fill_luminosity_cap_sol")  # v98
+        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN cell_star_ceiling")  # v98
         conn.execute("DROP TABLE galaxy_components")  # v97
         conn.execute("ALTER TABLE neutron_stars DROP CHECK neutron_stars_chk_1")  # v96
         conn.execute("ALTER TABLE bright_stars DROP COLUMN metallicity_fe_h")  # v95
