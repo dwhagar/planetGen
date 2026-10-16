@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1412] - 2026-10-16
+
+**Headline:** GEN.261 (the member-tree generator) is retired, OPS.51 is filed, and Core 2's findings are on GEN.242 and GEN.269.
+
+### Changed
+
+- GEN.261 (#1705) leaves the open list.
+- OPS.51 filed: the maintenance-mode flag file cannot be written by the web user on the server (bug, Interface).
+- GEN.242 and GEN.269 carry Core 2's findings (the pre-main-sequence time law, the outer-companion mass draw, the defaults taken).
+
+TODO items resolved: GEN.261 / Added: OPS.51
+
 ## [8.0.1411] - 2026-10-15
 
 **Headline:** A star, black hole or neutron star can now be given a stable tree of companions: stars, brown dwarfs, white dwarfs, neutron stars and black holes in hierarchies of up to twelve members.
