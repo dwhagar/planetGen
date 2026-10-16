@@ -712,3 +712,4 @@ Baseline: PR #1817.
 | OPS.56 | 8.1 | Reproducible galaxies |
 | GEN.102 | 8.1 | Components and wanderers |
 | DB.59 | 8.1 | Nebula data foundations |
+| TEST.166 | 8.1 | Whole-sphere audits |

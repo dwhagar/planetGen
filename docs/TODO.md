@@ -10106,22 +10106,6 @@ clears each one.
   Prerequisite: GEN.276. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
-- [ ] **TEST.166 The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit**
-  Step 7 (design note section 9 item 7). The nightly-update test moves
-  objects across a 0.25 pc cube boundary and asserts the key follows; a
-  position written and read back gives the same point columns and the
-  same key; an object pushed outside the box gets `NULL` and comes back
-  when moved in. Done: the tests exist and run in the suite. Owner:
-  Quality (2026-10-15). Boss (2026-10-15 5:32 PM EDT): "if it's not
-  ready in time before the spherical sector layout is, then we'll skip
-  it and move to the next sequence until it's finished research and we
-  can plan it." The research is finished and merged (#1659), so stage C
-  is live.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 1).
-  Prerequisite: DB.34. Related: DB.35, TEST.165.
-  Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
-
 - [ ] **TEST.167 test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug)**
   Reported by Interface (2026-10-15, 5:43 PM EDT gate run, relayed by
   the coordinator): `tests/test_generate*`
@@ -10537,6 +10521,11 @@ clears each one.
   2.4e-9 over the bound) and will push a test-only fix in its next PR,
   adding a few ulps of the model, `4e-16*model`, to the tolerance; that
   PR resolves this item.
+  Core 4 reproduced it on main (6:02 PM EDT, no database needed): the
+  same example replays to the same failure every time (model minus halo
+  2.726122241710625e-20 against a bound of 2.7261222351049663e-20, 2.4e-9
+  relative against the 1e-9 tolerance), so it is deterministic once
+  Hypothesis has found it.
   Prerequisites: none.
 
 - [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
