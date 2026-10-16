@@ -131,16 +131,17 @@ class SupernovaRemnant(LazySaladName):
 
         # Core-collapse remnants keep a neutron star (most) or black hole,
         # offset from the center by its birth kick (compact_offset_ly
-        # below); thermonuclear (Type Ia, class W) remnants have none.
-        self.compact_remnant = None
+        # below); thermonuclear (Type Ia, class W) remnants have none. The
+        # core is built once the remnant's age is known: it is as old.
+        kind = None
         if not is_type_ia and draw.random() < tuning.SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE:
             if draw.random() < tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE:
-                self.compact_remnant = BlackHole(system_config, name=f"{self.name} Core")
+                kind = "black_hole"
                 log.choice("Core-collapse compact remnant", "black hole",
                            f"roll passed SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE "
                            f"({tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE})")
             else:
-                self.compact_remnant = NeutronStar(system_config, name=f"{self.name} Core")
+                kind = "neutron_star"
                 log.choice("Core-collapse compact remnant", "neutron star",
                            f"roll failed SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE "
                            f"({tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE})")
@@ -148,11 +149,6 @@ class SupernovaRemnant(LazySaladName):
             log.debug("Core-collapse compact remnant: none visible/detectable "
                        "(roll failed SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE)")
 
-        kind = None
-        if isinstance(self.compact_remnant, BlackHole):
-            kind = "black_hole"
-        elif isinstance(self.compact_remnant, NeutronStar):
-            kind = "neutron_star"
         self.remnant_class = choose_weighted_class(
             remnant_classes_for(self.progenitor_type, kind), "Supernova remnant class")
         class_data = tuning.NEBULA_CLASSES[self.remnant_class]
@@ -162,6 +158,12 @@ class SupernovaRemnant(LazySaladName):
             tuning.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
             * (self.age_years ** tuning.SEDOV_TAYLOR_TIME_EXPONENT)
         )
+        self.compact_remnant = None
+        if kind == "black_hole":
+            self.compact_remnant = BlackHole(system_config, name=f"{self.name} Core")
+        elif kind == "neutron_star":
+            self.compact_remnant = NeutronStar(system_config, name=f"{self.name} Core",
+                                               age_gy=self.age_years / 1e9)
         (self.dominant_species, self.density_cm3, self.temperature_k,
          self.extinction_av) = draw_class_contents(self.remnant_class)
         self.compact_offset_ly = self._draw_kick_offset_ly(kind)
