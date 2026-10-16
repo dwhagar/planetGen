@@ -155,6 +155,8 @@ Owned by the dedicated thread "Spherical Sector Coordinates" for the first six i
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations |  | Lane 1 report 2026-10-10. |
+| OPS.53 | Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends |  | Boss 2026-10-16 12:01 AM EDT. Core 3. |
+| OPS.54 | The orbital update refuses to run while an update is running, with tests | OPS.41 | Boss 2026-10-16 12:01 AM EDT. Core 3. |
 
 ### Admin control
 

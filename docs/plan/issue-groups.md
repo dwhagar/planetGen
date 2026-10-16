@@ -23,7 +23,7 @@ Rules:
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18 |
 | [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82 |
 | [#1688](https://github.com/dwhagar/planetGen/issues/1688) | open | Admin tools: editing, configuration and incomplete uploads | ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, ADM.55, ADM.56, TEST.169, UX.3 |
-| [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.30, OPS.35, OPS.41 |
+| [#1687](https://github.com/dwhagar/planetGen/issues/1687) | open | Install, update and daily maintenance | OPS.16, OPS.17, OPS.29, OPS.30, OPS.35, OPS.41, OPS.53, OPS.54 |
 | [#1686](https://github.com/dwhagar/planetGen/issues/1686) | open | Database repair and migration helpers | DB.9, DB.17, DB.18, DB.31 |
 | [#1685](https://github.com/dwhagar/planetGen/issues/1685) | open | Performance guards, caches and benchmarks | PERF.20, PERF.41, PERF.47, PERF.48, PERF.75 |
 | [#1684](https://github.com/dwhagar/planetGen/issues/1684) | open | API keys, call log and compatibility data | API.4, API.6, API.15 |
@@ -45,7 +45,7 @@ Rules:
 | [#1668](https://github.com/dwhagar/planetGen/issues/1668) | open | Nearby-object queries by cell key (stage C) | GEN.276, NAV.45, NAV.60, NAV.61, TEST.165, TEST.166, DOC.51 |
 | [#1667](https://github.com/dwhagar/planetGen/issues/1667) | open | Multi-star systems and the scatter member tree (stage M) | GEN.261, GEN.262, GEN.263, GEN.264, GEN.265, GEN.266, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, GEN.130, TEST.162, TEST.164, DOC.50, UX.114 |
 | [#1666](https://github.com/dwhagar/planetGen/issues/1666) | open | Phenomena registry, fill stages and the remaining star types | GEN.250, GEN.251, GEN.252, GEN.253, GEN.247, GEN.249, GEN.258, GEN.259, DOC.49 |
-| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.234, GEN.235, GEN.236, GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
+| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.235, GEN.236, GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
 | [#1657](https://github.com/dwhagar/planetGen/issues/1657) | closed | GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for min | GEN.232 |
 | [#1656](https://github.com/dwhagar/planetGen/issues/1656) | open | TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel r | TEST.111 |
 | [#1655](https://github.com/dwhagar/planetGen/issues/1655) | open | TEST.138 test_open_map_menus_hold_no_overlap fails under load: [web.galaxy-1280] once, [web.sector-6 | TEST.138 |

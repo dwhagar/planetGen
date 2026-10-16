@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.171 |
 | USR | USR.12 |
-| OPS | OPS.53 |
+| OPS | OPS.55 |
 | DOC | DOC.54 |
 | VIEW | VIEW.11 |
 | POP | POP.15 |
@@ -793,7 +793,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | open |
 | GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | done, PR #1660 |
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | none | done, PR #1757 |
-| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | open |
+| GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | done, PR #1763 |
 | GEN.235 | One rule set for every cell: a sector profile computed from the address, and any asked sector in the reach is generated from it and saved | none | open |
 | GEN.236 | Kind factors in the profile: the rate per star of each rare kind times a factor from the cell, and the planet cull by metallicity | none | open |
 | GEN.237 | Satellite and cluster components: one table for the Magellanic Clouds, Sagittarius, dwarf galaxies and globular clusters | none | open |
@@ -1178,6 +1178,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.50 | Keep the pymysql login workaround and make it compatible with the upstream fix | none | done, PR #1425 |
 | OPS.51 | The maintenance-mode flag file cannot be written by the web user on the server, so maintenance mode fails with a PermissionError (bug) | none | done, PR #1741 |
 | OPS.52 | Everything under the planetGen install is owned by www-data:www-data, and the example Apache2 config restricts directories | none | done, PR #1711 |
+| OPS.53 | Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends | none | open |
+| OPS.54 | The orbital update refuses to run while an update is running, with tests | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
