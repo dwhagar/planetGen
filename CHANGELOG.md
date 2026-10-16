@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1553] - 2026-10-16
+
+**Headline:** The drawn satellites must be calculated or derived from real science, not copied.
+
+### Changed
+
+- GEN.369, GEN.371 and GEN.368 carry Boss's 4:04 PM EDT refinement: exact real distances are not needed; count, distances and sizes are calculated or derived from published relations, drawn only where the science gives a distribution.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1552] - 2026-10-16
 
 **Headline:** Boss's request to draw satellites from the seed and plan every appearance rate is filed as items.
