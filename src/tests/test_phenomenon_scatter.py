@@ -63,6 +63,8 @@ def test_scattered_objects_sit_in_their_own_cell_inside_the_outline():
         assert row["velocity_x_kms"] is None
         if row["kind"] == "black-hole":
             assert row["subtype"] in ("stellar", "intermediate")
+        elif row["kind"] == "neutron-star":
+            assert row["subtype"] in (None, scatter.MAGNETAR_SUBTYPE)
         else:
             assert row["subtype"] is None
         assert 0 <= row["seed"] < 2 ** 63

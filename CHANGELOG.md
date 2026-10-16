@@ -2,6 +2,56 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1506] - 2026-10-16
+
+**Headline:** The to-do list retires the magnetar scatter class (GEN.278).
+
+### Changed
+
+- Retired GEN.278 (#1805) and removed it from the later-catalogue goal table.
+
+TODO items resolved: GEN.278 / Added: none
+
+## [8.0.1505] - 2026-10-16
+
+**Headline:** Magnetars are placed across the galaxy before any sector is filled, on the young stars.
+
+### Changed
+- **A magnetar was only a chance at the building of a young neutron star, so none could be seen before its sector was filled.** About a hundred now exist as scatter rows of a new class, `magnetar` (a neutron star with that subtype), placed on the young population and its spiral arms, never in the halo or a cluster, whatever the scatter's mass cut. The Galaxy Map shows them as "Magnetar (uncharted)", and filling the sector builds a magnetar of the row's mass. The count rests on 1 magnetar per 10 million neutron stars (Olausen and Kaspi 2014); a Milky Way-sized galaxy holds about 150.
+- A free-standing neutron star is no longer young enough to be a magnetar (the age range now starts at a magnetar's active life, 10,000 years). The cores of young supernova remnants keep the 10% chance.
+- `registry.SCATTER_CLASS_GATES` gives a scatter class its own gate (`young stars`), and `density.population_densities_array` takes one height per band.
+
+TODO items resolved: GEN.278 / Added: none
+
+## [8.0.1504] - 2026-10-16
+
+**Headline:** The to-do list records the corrected migration order: 0097 globular-cluster component table, 0098 galactic core, 0099 onward Core 1.
+
+### Changed
+
+- Updated GEN.159, GEN.237, GEN.280, GEN.281, GEN.283, GEN.289 and GEN.294 and the execution plan with the order Core 3 reported (0097 is GEN.159's table, 0098 the galactic-core migration).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1503] - 2026-10-16
+
+**Headline:** The to-do list retires the failing navigation test fix (TEST.163), the Einstein radius (GEN.154) and the GRB and AGN ozone loss (GEN.189), and files a new flaky-test bug.
+
+### Changed
+
+- Retired TEST.163 (#1801), GEN.154 (#1799) and GEN.189 (#1800); the TEST.163 issue (#1654) closes; filed TEST.172 (a Galaxy Map click test that failed once).
+
+TODO items resolved: TEST.163, GEN.154, GEN.189 / Added: TEST.172
+
+## [8.0.1502] - 2026-10-16
+
+**Headline:** The nav bar test no longer hangs on a sample galaxy whose loose systems had no place.
+
+### Changed
+- **`test_nav_ends_picked_from_bookmarks_on_every_page` timed out about half the time.** The sample galaxy's loose systems were seated in a sector but given no position, and a course needs both its ends positioned, so choosing the second end never settled and the wait on the page's destination list ran out at 120 s. `_seat_loose_systems` now also places them along the sector's x axis. The test itself is unchanged.
+
+TODO items resolved: TEST.163 / Added: none
+
 ## [8.0.1501] - 2026-10-16
 
 **Headline:** Gamma-ray bursts and the galactic nucleus now count toward a planet's ozone-loss flag.

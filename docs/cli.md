@@ -195,7 +195,15 @@ S, slab SLAB) and is refused: the Galaxy Map's blocks are now keyed
 `m.shell.band.wedge` (`docs/design/spherical-block-ladder.md`), and the
 command does not take those yet. Fill a shell, a band or a span instead.
 `--center-sector ID --radius-pc R` generates every not-yet-generated sector
-within R parsecs of an already placed sector's own center.
+within R parsecs of an already placed sector's own center, the sector at the
+center first and the rest outward (GEN.101): the sectors are laid on a lattice
+of one sector edge around the center, cut into blocks of four sectors a side,
+and the blocks come nearest first, in Hilbert order among blocks the same
+distance away and inside a block, so the same neighbourhood always fills in the
+same order. A ball cannot always be walked step by step between neighbouring
+sectors, so the run says how many of its steps are not (a step of more than two
+and a half sector edges), with their mean and longest length: about 97% of
+them are between neighbours in a 50 pc ball.
 `--course FROM TO` (NAV.48) generates the uncharted sectors that block the NAV
 course between two objects (a system's object ID, or `<kind>:<ID>` for a body
 or phenomenon): the cells of the route's hops through unknown space, inside the

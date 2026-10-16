@@ -118,8 +118,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, GEN.154, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, GEN.159, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
@@ -3098,15 +3098,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.91.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
-- [ ] **GEN.154 Show the Einstein radius on compact-object pages**
-  Tier 1 of GEN.113: show the Einstein radius on the pages of compact
-  objects.
-  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
-  replaces any earlier owner named above). Core 1 still owns every
-  migration revision: ask it before adding a table or column.
-  Prerequisites: none.
-  Design: [docs/design/anomalies.md](design/anomalies.md)
-
 - [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
   One Alembic revision, no change to existing tables, and the data file
   checked against McConnachie 2012 (VizieR J/AJ/144/4) and NED. Hold
@@ -3139,8 +3130,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   #1789): a cluster star keeps a NULL [Fe/H] until this item gives each
   cluster its own value.
   Migration note (Core 1, 2026-10-16, 5:03 AM EDT): this item's
-  component table is migration 0098 (0096 is Core 3's GEN.153 magnetar
-  CHECK, 0097 Core 3's galactic-core migration). Core 1 asked Core 2 to
+  component table is migration 0097 (0096 is Core 3's GEN.153 magnetar
+  CHECK, merged; 0098 is Core 3's galactic-core migration; corrected by
+  Core 3, 2026-10-16, 6:34 AM EDT). Core 1 asked Core 2 to
   give the table parent_component_id and catalogue_id so GEN.237
   (satellites and clusters) reuses it and adds no table.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
@@ -3254,22 +3246,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (judged from the compound-Poisson tables) is refused with the reason,
   in the Generate page and the CLI.
   Prerequisites: none. Related: GEN.96, GEN.180.
-
-- [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
-  Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
-  activity-magnetism-radiation-hydrosphere.md: GEN.87 stores
-  `ozone_loss_flag` but does not model gamma-ray bursts or AGN/quasar
-  ozone loss. Add a gamma-ray burst event rate with a fluence of 30 to
-  100 kJ/m2 or more within about 2 kpc of a planet as an ozone-loss
-  event, and an AGN/quasar term (no source found yet, so research
-  first). Done: both causes feed `ozone_loss_flag` with documented
-  rates, the design note records the sources, and a test checks that a
-  planet near a burst-prone region gets the flag more often. Low
-  priority.
-  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
-  replaces any earlier owner named above). Core 1 still owns every
-  migration revision: ask it before adding a table or column.
-  Prerequisites: none. Related: GEN.87, GEN.89.
 
 - [ ] **GEN.197 Object IDs on ejection, merger and split events**
   Source: docs/design/object-id-options.md section 0 (Boss decided
@@ -3539,7 +3515,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NOT added as populations and arrive with this component table;
   migration 0094 widened the bright_stars.population CHECK. Revision
   (Core 1, 2026-10-16, 5:03 AM EDT): this item takes the next free
-  number after 0098; it reuses the component table GEN.159 builds
+  number after 0098 (0099 or later); it reuses the component table GEN.159 builds
   (Core 2 adds parent_component_id and catalogue_id to it) and adds no
   table of its own.
   Prerequisites: GEN.159, GEN.160. Related: GEN.9, GEN.161,
@@ -4398,22 +4374,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.233.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
-- [ ] **GEN.278 Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars**
-  From Core 3's scatter note (GEN.277, PR #1721,
-  docs/design/later-phenomena-scatter-rules.md, sections 3 and 8). Done:
-  ("neutron-star", "magnetar") is appended to SCATTER_CLASSES; a
-  registry gate "young stars" (GEN.250) limits it to young populations;
-  the free neutron-star draw's age floor is raised to 1e4 yr
-  (COMPACT_REMNANT_AGE_RANGE_GY lower bound 1e-5 Gy) so only young
-  remnant cores and scatter rows are magnetars; the build forces the
-  magnetar branch from the row's subtype; a test counts about 100
-  magnetar rows over a full scatter and none in the halo or the
-  clusters. Default stands without Boss's word (magnetars are scatter
-  rows; the alternative is fill only). No migration: the row uses the
-  existing columns of phenomenon_scatter. Owner: Core 3, after GEN.250
-  (GEN.235 and GEN.153 are built).
-  Prerequisite: GEN.250. Related: GEN.256, GEN.277.
-
 - [ ] **GEN.280 Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49**
   Build step of the realistic galactic core plan
   (docs/design/realistic-galactic-core.md, section 9; Boss's item,
@@ -4425,7 +4385,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the published numbers named in the note. The new GalaxyShape
   fields need a migration: Core 1 owns the revision and Core 3 asks it
   first.
-  Migration revision (Core 1, 2026-10-16, 5:03 AM EDT): 0097 for GEN.280, GEN.281 and GEN.283 together (0093, 0094 and 0095 are merged, 0096 is Core 3's GEN.153 magnetar CHECK, 0098 is Core 2's GEN.159 component table).
+  Migration revision (corrected by Core 3, 2026-10-16, 6:34 AM EDT): 0098 for GEN.280, GEN.281 and GEN.283 together (0093 to 0096 are merged, 0097 is Core 2's GEN.159 component table).
   Prerequisite: GEN.235. Related: ADM.49, GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4447,7 +4407,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy_shape columns (cell_star_ceiling, fill_luminosity_cap_sol)
   share one Core 1 migration revision with GEN.283; option planetgen
   plan --cell-star-ceiling and --fill-luminosity-cap.
-  Migration revision (Core 1, 2026-10-16, 5:03 AM EDT): 0097 for GEN.280, GEN.281 and GEN.283 together (0093, 0094 and 0095 are merged, 0096 is Core 3's GEN.153 magnetar CHECK, 0098 is Core 2's GEN.159 component table).
+  Migration revision (corrected by Core 3, 2026-10-16, 6:34 AM EDT): 0098 for GEN.280, GEN.281 and GEN.283 together (0093 to 0096 are merged, 0097 is Core 2's GEN.159 component table).
   Prerequisites: GEN.280, GEN.276. Related: GEN.235, GEN.234, GEN.283.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -4494,7 +4454,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` from 100 to 50 so
   `star_population._check_threshold` accepts it (Core 3's finding;
   GEN.149, now built, changed the same white-dwarf constants), and the plan option `--halo-min-luminosity` accepts 50.
-  Migration revision (Core 1, 2026-10-16, 5:03 AM EDT): 0097 for GEN.280, GEN.281 and GEN.283 together (0093, 0094 and 0095 are merged, 0096 is Core 3's GEN.153 magnetar CHECK, 0098 is Core 2's GEN.159 component table). The scatter-limit tier itself is a field on SectorProfile with a tuning constant, no column.
+  Migration revision (corrected by Core 3, 2026-10-16, 6:34 AM EDT): 0098 for GEN.280, GEN.281 and GEN.283 together (0093 to 0096 are merged, 0097 is Core 2's GEN.159 component table). The scatter-limit tier itself is a field on SectorProfile with a tuning constant, no column.
   Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
   #1784): the scatter-limit tier is a field plus a tuning constant on
   SectorProfile in galaxy/profile.py, no columns.
@@ -4617,7 +4577,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   orbital elements shown on the pages are derived from the vector, and
   the circular phase columns are replaced, not kept beside them (no
   compatibility layer). GEN.294 gives every other object kind the same
-  object and shares one migration with this item: Core 1 places it, next free 0099 (0098 is GEN.159's). Design:
+  object and shares one migration with this item: Core 1 places it, next free 0099 or later (0097 is GEN.159's, 0098 is the galactic core's). Design:
   /mnt/project-files/research/orbital-encounters/capture-and-ejection-design.md.
   Prerequisite: GEN.115. Related: GEN.105, GEN.109, GEN.110, GEN.223,
   GEN.294.
@@ -4800,7 +4760,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass or the vector, so a new object kind cannot ship without them. The
   planet and moon dynamical state (parent, bound state, the replaced
   circular phase) belongs to GEN.289, which builds on this object; both
-  go in the one migration, the next free revision after 0098 (GEN.159's), placed by
+  go in the one migration, the next free revision, 0099 or later, placed by
   Core 1 (it owns every revision). Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
@@ -6529,58 +6489,6 @@ clears each one.
   Prerequisite: GEN.264. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
-- [ ] **TEST.163 test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug)**
-  Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
-  coordinator). `test_nav_ends_picked_from_bookmarks_on_every_page`
-  failed once under load with the `#course-heading` count at 0 (the page
-  had not finished rendering the course); it did not fail when re-run
-  alone. Not checked on main. Same load-timeout family as TEST.126 and
-  TEST.138. Done: the cause is found (a load timeout in the page wait,
-  or the heading really missing at that moment) and the test is made
-  reliable without loosening it. Owner: Quality (all TEST items are
-  Quality's), with TEST.126 and TEST.138.
-  Seen again (Core 1, 2026-10-15): failed once in the browser group
-  under load (2 workers, load 12.7, parallel with other suites), passed
-  alone in 1.77 s; not seen on main by Core.
-  Third sighting (Quality, 2026-10-15, 7:13 PM EDT `changed` run):
-  #course-heading count 0 once under load (load 9.2), passed alone in
-  1.3 s.
-  NOW FAILS EVERY TIME (Quality, 2026-10-16 12:10 AM EDT,
-  `scripts/test.py changed`, then alone: `python3 -m pytest
-  src/tests/test_web_browser_maps.py -q -k
-  test_nav_ends_picked_from_bookmarks`, 11 s, 3 of 3): `assert 0 == 1`
-  on `#course-heading` at
-  /nav?from=system:0008000000-0000001-000&to=system:0008000000-4000000-000;
-  fails on origin/main 0a2cb30e with no other change, so it is no longer
-  a load flake. The heading is only drawn when the page has a direct
-  course (the `if direct` block in templates/nav.html line 127), so the
-  route page is probably not finding both ends or a direct course for
-  those addresses. Likely area: Interface (nav page). The earlier
-  under-load sightings may have had this same cause.
-  Sighting (Core 2, 2026-10-16, 9:17 PM EDT): failed once in the full
-  changed run at load 10.3 and passed alone immediately after, on a tree
-  after Core 2's GEN.158 slice; this is the load behaviour again, not
-  the every-time failure of 12:10 AM EDT, so main may have changed in
-  between: Quality or whoever owns TEST.163 re-checks alone on current
-  main before chasing the nav page.
-  Sighting (Core 1, 2026-10-16, 3:17 AM EDT): fails on main too
-  (86c64db1), 1 of 3 runs failed there and 2 of 3 on the GEN.235 tree;
-  Locator.select_option timed out at 120000 ms waiting for
-  [data-bookmarks-nav-group] form[data-pick=to] select (passes in about
-  35 s when it passes). Core 3 (2026-10-16, reported before 3:12 AM EDT) saw it fail on
-  a detached origin/main checkout (145 s). So it is neither purely load
-  nor every time: a wait on the "to" picker that sometimes never
-  completes.
-  Sighting (Core 1, 2026-10-16, 5:26 AM EDT): failed again in the
-  GEN.262 gate, and fails alone: a 123 s timeout in select_option on the
-  bookmarks nav group; also red on main in every gate so far (kind
-  browser, timeout).
-  Owner (coordinator decision, 2026-10-16, 5:27 AM EDT): Core 3,
-  replacing the Quality owner above; Core 3 fixes it while one of its
-  gates runs, since it is red on main in every gate. When it merges it
-  leaves the known-reds list.
-  Prerequisites: none.
-
 - [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
   Step 20 (design note section 15, tests 10 to 14). Over a seeded fill
   of at least 1e6 systems per region class, each type's count lies
@@ -6702,6 +6610,23 @@ clears each one.
   seed (or builds a guaranteed scatter case) without loosening what it
   proves, and the same gate shows it green. Owner: unassigned.
   Prerequisites: none. Related: TEST.170, TEST.111.
+
+- [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
+  Finding from Core 3 (2026-10-16, 6:31 AM EDT, kind: browser test,
+  intermittent, fails on main: not checked, how often: once in a
+  12-minute run of the sample-galaxy tests, 469 passed, and 3 of 3
+  passes alone):
+  src/tests/test_web_browser_maps.py::test_galaxy_map_forward_to_current_jumps_to_the_newest_view
+  clicked the Galaxy Map block "Block 15·0·30, longitude 111.3°-115.1°,
+  14578-15550 pc from the core, 0 sectors charted" and nothing happened;
+  the hover picked a rim block with no sectors charted. Possibly related
+  to MAP.210 (nothing selectable on the Galaxy Map), which was not
+  reproduced. Reproducer: run the sample-galaxy browser tests in a loop.
+  Done: the cause is found (the test picks a block that cannot be
+  entered, or the click really does nothing on an empty rim block) and
+  the test or the page is fixed without loosening what the test proves.
+  Owner: unassigned.
+  Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 ## USR: User accounts
 

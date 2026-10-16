@@ -490,13 +490,15 @@ class NeutronStar(CompactRemnant):
         return min(1.0, chance * pulsar_radial_factor(radius_pc))
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
-                 galactic_orbital_phase_deg=None, mass_range=None, mass_solar=None, age_gy=None):
+                 galactic_orbital_phase_deg=None, mass_range=None, mass_solar=None, age_gy=None, magnetar=False):
         """`mass_range` (`(low, high)` solar masses, optional) truncates the
         mass draw to that part of `NEUTRON_STAR_MASS_RANGE_SOLAR` (the
         scatter's mass cut, GEN.166). `mass_solar` is a mass the phenomenon
         scatter already drew (MAP.165): no mass is drawn then. `age_gy` is
         the age when it is known (the core of a supernova remnant is as old
-        as the remnant); drawn when omitted."""
+        as the remnant); drawn when omitted. `magnetar` makes it one (a
+        scatter row of the magnetar class, GEN.278), with an age within a
+        magnetar's active life unless `age_gy` is given."""
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
@@ -505,16 +507,18 @@ class NeutronStar(CompactRemnant):
         self.radius = draw.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
-        if age_gy is None:
+        if age_gy is None and magnetar:
+            self.age, self.lifespan = draw.uniform(*tuning.MAGNETAR_AGE_RANGE_GY), float('inf')
+        elif age_gy is None:
             self.age, self.lifespan = self._generate_remnant_age_and_lifespan()
         else:
             self.age, self.lifespan = age_gy, float('inf')
 
-        # A star younger than a magnetar's active life may have been born one;
-        # failing that it pulses by the age-dependent chance, and an old one
+        # A star younger than a magnetar's active life may have been born one (a
+        # scattered magnetar is one by its row); failing that it pulses by the age-dependent chance, and an old one
         # only as a recycled millisecond pulsar.
-        is_magnetar = (self.age * 1e9 < tuning.MAGNETAR_ACTIVE_LIFETIME_YR
-                       and draw.random() < tuning.MAGNETAR_BIRTH_FRACTION)
+        is_magnetar = magnetar or (self.age * 1e9 < tuning.MAGNETAR_ACTIVE_LIFETIME_YR
+                                   and draw.random() < tuning.MAGNETAR_BIRTH_FRACTION)
         is_young_pulsar = not is_magnetar and draw.random() < self._pulsar_chance()
         is_recycled = (not is_magnetar and not is_young_pulsar
                        and draw.random() < tuning.PULSAR_RECYCLED_CHANCE * tuning.PULSAR_RATE_SCALE)

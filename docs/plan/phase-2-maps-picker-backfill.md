@@ -244,7 +244,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.154 | Show the Einstein radius on compact-object pages |  | Research: Tier 1 of GEN.113. |
 | GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 |  | Core 3; step 1 of the galactic core note; needs a Core 1 migration revision |
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | GEN.280, GEN.276 | Core 3; step 2 of the galactic core note; shares one Core 1 migration with GEN.283 |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.237, GEN.244 | Core 3; step 3 of the galactic core note |
@@ -253,7 +252,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.280 | Core 3; step 5 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) |  | Core 3; folded into GEN.286 unless Core 3 says otherwise |
-| GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250 | Owner Core 3; Core 3 note default stands. |
 
 ### Maps
 
@@ -273,7 +271,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.192 | See the objects whose positions changed in the last orbital update |  |  |
 | MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them |  |  |
 | MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | MAP.189 |  |
-| GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) |  | Foundations lane 2 report 06:20Z. |
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | DOC.6 | Boss 23:53Z; Phase 2. |
 | DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | DOC.6 | Boss 23:53Z; Phase 2. |
 | DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | DOC.6 | Boss 23:53Z; Phase 2. |
