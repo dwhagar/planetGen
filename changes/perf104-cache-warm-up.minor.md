@@ -1,7 +1,0 @@
-**Headline:** After an update the site's caches are built ahead of the first visit, and a change rebuilds only the pages that read it.
-
-### Changed
-- The page cache is now shared through Redis and every answer is stored with the data it read (`db/dataversion.py`, `web/lib/pagetags.py`). A copy is served only while that data is unchanged, so a stale page is never served as current, by any web worker. An API write, the command line (generation, the population pass, the orbital update, a plan) and the galaxy's content stamp each bump only the tags they touch: renaming one sector rebuilds its page, its neighbours', its systems' and the lists, not every page. Without Redis the page cache stores nothing.
-- `python -m planetgen.cli.warm_map` builds the Galaxy Map's opening view, the lists, every sector, system and phenomenon page (up to `page_cache.warm_max_objects` of each, nearest the galaxy centre first) and the search. Each of its six families is a job of its own on the admin runs page, with a result line; the script prints one line per family, waits for a running update, and exits non-zero naming the family that failed. `--only`, `--cap`, `--no-rq` and `--timeout` are new.
-- New settings `page_cache.shared_seconds` (how long Redis keeps an answer) and `page_cache.warm_max_objects`.
-- `GET /api/galaxy/changes` also lists the sectors that changed (`sectors`) and whether anything was added (`grew`).
