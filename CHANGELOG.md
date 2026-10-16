@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1413] - 2026-10-16
+
+**Headline:** The execution plan lists OPS.51 under the Interface lane.
+
+### Changed
+
+- The execution plan page places OPS.51 (the maintenance-mode flag file bug) in the Interface lane list.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1412] - 2026-10-16
 
 **Headline:** GEN.261 (the member-tree generator) is retired, OPS.51 is filed, and Core 2's findings are on GEN.242 and GEN.269.
