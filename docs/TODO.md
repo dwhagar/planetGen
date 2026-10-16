@@ -5524,6 +5524,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   edition)' in the design note and the file header.
   GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the component table
   exists, so this item can load the file as soon as GEN.324 is in.
+  Boss (2026-10-16, 4:00 PM EDT) said identical copies of the Milky Way
+  make no sense in a random galaxy, and the same logic applies to these
+  157 real clusters. Open question for Boss, put on a decision card:
+  keep the Harris rows as the default for every galaxy, or
+  as an optional Milky Way preset with the seeded generator as the
+  default. This item builds the loader either way; the card decides
+  which galaxies use it.
   Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
@@ -6669,7 +6676,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from L and T.
   Prerequisites: none. Related: GEN.149.
 
-- [ ] **GEN.366 Check the `MILKY_WAY_SATELLITES` table against McConnachie 2012: 11 rows were written from memory**
+- [ ] **GEN.366 Check the real Milky Way satellite rows against McConnachie 2012: they matter only for the optional preset**
   Found by a lane (2026-10-16), filed by the TODO thread. The table of
   Milky Way satellites (11 rows) was written from memory of McConnachie
   (2012) and is unverified. Done: every row (position, distance,
@@ -6681,7 +6688,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and distances) were recalled from memory and could not be checked.
   A galaxy planned before #1851 has no satellites until `planetgen plan`
   runs again on it.
-  Prerequisites: GEN.237.
+  Folded into GEN.369 (Boss, 2026-10-16, 4:01 PM EDT, "Draw them"): the
+  real rows are kept only as an optional Milky Way preset, so this check
+  matters only for that preset and waits on GEN.369.
+  Prerequisites: GEN.369.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
   Found by a lane (2026-10-16), filed by the TODO thread. The Large and
@@ -6692,6 +6702,104 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test that a Cloud sector holds nebulae at the stated rate. Later item;
   candidate for the deep-sky version.
   Prerequisites: GEN.237. Related: GEN.237, GEN.282.
+
+- [ ] **GEN.368 Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed**
+  Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
+  them" on the decision card at 4:01 PM EDT): asked whether the
+  satellites are placed as in the Milky Way, said this is a random
+  procedural galaxy so identical things make no sense, and wants the
+  probabilities of things appearing worked out and planned. Done: one
+  design section (in docs/design/intergalactic-and-halo-contents.md, a
+  new part beside 5.5) that lists every place the generator copies the
+  Milky Way as fixed content and replaces each with a stated draw: the
+  satellite population (count follows the halo mass, distances a halo
+  distribution, masses a satellite mass function), the globular cluster
+  count and law, the galaxy shape (disk scale length and height, bulge
+  share, arm count, halo mass), the central black hole mass and the
+  nuclear cluster from their mass relations, the home position, and the
+  rotation curve and enclosed mass. Each row gives its law, its
+  parameters, the sources named, and what the Milky Way preset keeps.
+  Boss reads and approves the table before any build. The fixed places
+  found on 2026-10-16 (TODO thread survey): MILKY_WAY_SATELLITES (11
+  copied rows, generation/satellites.py); the Harris clusters of GEN.297
+  and CLUSTER_COUNT_MILKY_WAY = 157 (tuning.py); every shape default of
+  `generate` (scale length 2,600 pc, height 300 pc, bulge 3.11, COBE bar
+  1,580 pc); the central black hole (Sgr A*, 4.3e6) and nuclear cluster
+  (GEN.280); GALAXY_SUN_RADIUS_PC = 8,200 and
+  GALACTIC_CENTER_DISTANCE_LY = 25,800; MILKY_WAY_MASS (1.15e12) as the
+  central mass of every Hill sphere (binary.py, star.py, keepout.py);
+  the rotation curve (220 km/s, 3,000 pc; physics/constants.py). Owner:
+  Core 1 (it built GEN.237 and knows the table), after the global top 5
+  blockers unless Boss moves it up.
+  Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age follow stated laws, and the real Milky Way list stays only as an optional preset**
+  Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
+  them" on the decision card at 4:01 PM EDT): asked whether the
+  satellites are placed as in the Milky Way, said this is a random
+  procedural galaxy so identical things make no sense, and wants the
+  probabilities of things appearing worked out and planned. Decision:
+  the 11 copied Milky Way satellites of GEN.237 (`MILKY_WAY_SATELLITES`,
+  generation/satellites.py) are replaced by a drawn population from the
+  galaxy seed: the count follows the halo mass, distances a halo
+  distribution, masses a satellite mass function, size, profile
+  (exponential for gas-rich, Plummer for dwarfs), [Fe/H] and age follow
+  mass relations. Supersedes the "Real Milky Way satellites at their
+  real places" open default in
+  docs/design/intergalactic-and-halo-contents.md section 8, item 2.
+  Done: `place_satellites` draws the population from
+  `unit_seed(galaxy_seed, ...)` through the laws GEN.368 sets, the real
+  rows move to a named Milky Way preset that is off by default, a test
+  shows two seeds give different populations and one seed gives the same
+  one, and the count scales with the halo mass. Owner: Core 1 (the code
+  owner), after the global top 5 blockers unless Boss moves it up; the
+  component pass GEN.324 places stars for whatever component rows exist,
+  so it does not wait on this.
+  Prerequisites: GEN.368, GEN.371. Related: GEN.237, GEN.366, GEN.324,
+  GEN.297.
+  Waits on GEN.371, the feasibility study of generating satellites
+  through the scatter (Boss, 2026-10-16, 4:02 PM EDT); if the study
+  finds it feasible, the drawn satellites are made by the scatter in the
+  cells they occupy.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
+  Found by the TODO thread (2026-10-16, survey for Boss's 4:00 PM EDT
+  request): `MILKY_WAY_MASS` (1.15e12 solar masses) is the central mass
+  of every Hill sphere (`generation/binary.py`, `generation/star.py`,
+  `galaxy/keepout.py`) and `GALACTIC_CENTER_DISTANCE_LY` (25,800) is the
+  default distance when none is given, so a galaxy of another size or
+  mass gets Milky Way tides, and a point-mass central mass overstates
+  the enclosed mass inside the disk (the orbit function already avoids
+  that, `galaxy/galactic_orbit.py`). Done: the central mass is the
+  galaxy's mass enclosed within the star's radius from the density
+  model, the default distance is removed in favour of the position the
+  caller has, and a test shows a galaxy twice the size changes the Hill
+  radius. Fails on main: no failure, a fixed assumption. Related:
+  GEN.368, GEN.285.
+  Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
+
+- [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
+  Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
+  feasibility study. I would like to generate them in the scatter if
+  possible, even if we just generate the region that they are in." Done:
+  a written study (a section beside 5.5 of
+  docs/design/intergalactic-and-halo-contents.md) that answers whether a
+  drawn satellite can be made by the same scatters as the rest of the
+  sphere, so its stars, gas and clusters come from the one rule set and
+  a profile, and what it costs when only the cells the satellite
+  occupies are generated. It covers the profile a satellite cell needs
+  (its density law, [Fe/H], age and star-formation history), how the
+  cell key and the 96-bit ID address a satellite's cells, how many cells
+  and systems a dwarf, the Clouds and a Sagittarius-sized stream make at
+  the default cell size, the run time per satellite by the measured cost
+  per cell, how the component pass GEN.324 and the cluster chain feed
+  it, and a recommendation with the work it needs as new items. No build
+  in this item. Owner: Core 1, with GEN.368, after the global top 5
+  blockers unless Boss moves it up.
+  Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
+  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
