@@ -161,7 +161,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) |  | Phenomena catalogue, Boss 2026-10-15. Question for Boss. Core. |
 | GEN.258 | Protostars embedded in giant molecular clouds | GEN.241, GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 8, later. Core. |
 | GEN.257 | A Fermi-bubble overlay on the Galaxy Map |  | Phenomena catalogue, Boss 2026-10-15. Step 7d, later. Interface. |
-| GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | GEN.243, GEN.153 | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
+| GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | GEN.243 | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 7b, later. Core and Interface. |
 | GEN.254 | Superbubble field beside the nebula field (the Local Bubble cavity) |  | Phenomena catalogue, Boss 2026-10-15. Step 7a, later. Core. |
 | GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.130 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
@@ -232,7 +232,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated |  |  |
-| GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) |  | Research follow-up to GEN.10 (built). |
 | GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
 
 ### Asteroid fields
@@ -246,7 +245,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.154 | Show the Einstein radius on compact-object pages |  | Research: Tier 1 of GEN.113. |
-| GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction |  | Research: Tier 1 of GEN.113. |
 | GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 |  | Core 3; step 1 of the galactic core note; needs a Core 1 migration revision |
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | GEN.280, GEN.276 | Core 3; step 2 of the galactic core note; shares one Core 1 migration with GEN.283 |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.237, GEN.244 | Core 3; step 3 of the galactic core note |
@@ -255,7 +253,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.280 | Core 3; step 5 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) |  | Core 3; folded into GEN.286 unless Core 3 says otherwise |
-| GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250, GEN.153 | Owner Core 3; Core 3 note default stands. |
+| GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | GEN.250 | Owner Core 3; Core 3 note default stands. |
 
 ### Maps
 

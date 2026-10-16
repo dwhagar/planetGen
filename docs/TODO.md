@@ -119,7 +119,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.163, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.151, GEN.93, GEN.112, GEN.154, GEN.153, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, GEN.154, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, GEN.189, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, GEN.159, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
@@ -3098,40 +3098,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.91.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
-- [ ] **GEN.151 Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up)**
-  Replace `SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY = 0.35` (an ambient
-  density of about 220 cm^-3, while the remnant classes list 0.1 to 100)
-  with `1.03 ly (E51/n)^0.2 (t/yr)^0.4`, capped where the snowplow phase
-  begins.
-  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
-  replaces any earlier owner named above). Core 1 still owns every
-  migration revision: ask it before adding a table or column.
-  Scatter note (Core 3, 2026-10-16,
-  docs/design/later-phenomena-scatter-rules.md (section 8)): the scatter
-  row's `subtype` is the remnant class letter; the build's ambient
-  density is the profile's inside a superbubble.
-  Prerequisites: none.
-  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.153 Magnetar subtype of neutron star, and an age-dependent pulsar fraction**
-  `NEUTRON_STAR_PULSAR_CHANCE` is 0.7 against about 1e-4 to 1e-3 real.
-  Done: a magnetar subtype and a pulsar fraction that follows age, with
-  a `PHENOMENON_RATE_SCALE`-style override. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default physical): keep 70% as a gameplay
-  choice?
-  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
-  replaces any earlier owner named above). Core 1 still owns every
-  migration revision: ask it before adding a table or column.
-  Scatter note (Core 3, 2026-10-16,
-  docs/design/later-phenomena-scatter-rules.md (section 8)): built as
-  written (magnetar by age, pulsar fraction by age); the scatter class
-  is the separate item GEN.278.
-  Migration note (Core 1, 2026-10-16, 5:03 AM EDT): the small magnetar
-  CHECK is migration 0096 (Core 3 pushes it); Core 3's galactic-core
-  migration is 0097, GEN.159's component table 0098.
-  Prerequisites: none.
-  Design: [docs/design/anomalies.md](design/anomalies.md)
-
 - [ ] **GEN.154 Show the Einstein radius on compact-object pages**
   Tier 1 of GEN.113: show the Einstein radius on the pages of compact
   objects.
@@ -4109,7 +4075,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): reads
   scatter rows through the stage C region query; it needs the magnetar
   rows (GEN.278) to see the 10 pc flag before the fill.
-  Prerequisites: GEN.243, GEN.153. Related: GEN.113.
+  Prerequisite: GEN.243. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.257 A Fermi-bubble overlay on the Galaxy Map**
@@ -4444,9 +4410,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   magnetar rows over a full scatter and none in the halo or the
   clusters. Default stands without Boss's word (magnetars are scatter
   rows; the alternative is fill only). No migration: the row uses the
-  existing columns of phenomenon_scatter. Owner: Core 3, after GEN.250,
-  GEN.235 and GEN.153.
-  Prerequisites: GEN.250, GEN.153. Related: GEN.256, GEN.277.
+  existing columns of phenomenon_scatter. Owner: Core 3, after GEN.250
+  (GEN.235 and GEN.153 are built).
+  Prerequisite: GEN.250. Related: GEN.256, GEN.277.
 
 - [ ] **GEN.280 Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49**
   Build step of the realistic galactic core plan
