@@ -86,9 +86,11 @@ def test_a_component_checks_its_own_fields():
     base = dict(kind="cluster", name="X", source="generated", center_pc=(0, 0, 0), velocity_kms=(0, 0, 0), epoch_unix=0.0,
                 mass_solar=1e5, half_mass_radius_pc=5.0, age_gy=11.0, metallicity_fe_h=-1.5, seed=1)
     components.Component(profile="king", king_w0=7, tidal_radius_pc=40.0, **base)
-    components.Component(profile="plummer", **base)
+    components.Component(profile="plummer", tidal_radius_pc=40.0, **base)
     with pytest.raises(ValueError):
         components.Component(profile="king", **base)
+    with pytest.raises(ValueError):
+        components.Component(profile="plummer", **base)
     with pytest.raises(ValueError):
         components.Component(profile="plummer", king_w0=7, tidal_radius_pc=40.0, **base)
     with pytest.raises(ValueError):
@@ -96,4 +98,4 @@ def test_a_component_checks_its_own_fields():
     with pytest.raises(ValueError):
         components.Component(profile="king", king_w0=7, tidal_radius_pc=40.0, **{**base, "source": "guess"})
     with pytest.raises(ValueError):
-        components.Component(profile="nfw", **base)
+        components.Component(profile="nfw", tidal_radius_pc=40.0, **base)

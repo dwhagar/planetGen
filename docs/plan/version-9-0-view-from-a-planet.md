@@ -21,7 +21,7 @@ The sky data and the research items that settle it.
 | VIEW.4 | Constellation names in the name generator |  | Constellation names from the codec under the naming key, not sliced word lists. Floats: no blockers, can run any time. |
 | VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates |  | Research: needed before real sky coordinates. |
 | VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) |  | Research. |
-| VIEW.10 | Declare `pillow` in `setup.py` if it is used, and add a HYG calibration test |  | Research. |
+| DB.64 | Table for stored constellations (migration only) |  | Split from VIEW.3. Core 1 owns migrations. |
 
 ## Phase 2: Sky rendering
 
@@ -32,10 +32,18 @@ The view itself, the star map and the PNG.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | VIEW.1 | View from a planet |  | Research session with Boss. |
-| VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | VIEW.1 |  |
-| VIEW.3 | Render the view as a PNG, with constellations | VIEW.2, VIEW.4 |  |
 | VIEW.7 | Sky tiers and the backfill cost measurement | VIEW.1 | Research: the sky is about 8% to 10% complete today. |
 | VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | VIEW.1 | Research. |
+| VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | VIEW.1, VIEW.9 | Split from VIEW.2. |
+| VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | VIEW.11, VIEW.7 | Research. |
+| VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | VIEW.11, VIEW.7 | Split from VIEW.2. |
+| VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | VIEW.11, VIEW.8 | Split from VIEW.2. |
+| VIEW.14 | Orientation and horizon: the planet's own sky, time of day and twilight | VIEW.12, VIEW.13, VIEW.6 | Split from VIEW.2. |
+| VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | VIEW.11, VIEW.12, VIEW.13, VIEW.14 |  |
+| VIEW.15 | Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API | VIEW.11, VIEW.12, VIEW.13 | Split from VIEW.3. |
+| VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | DB.64, VIEW.4, VIEW.12 | Split from VIEW.3. |
+| VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | VIEW.15, VIEW.16 | Split from VIEW.3. |
+| VIEW.3 | Render the view as a PNG, with constellations | VIEW.15, DB.64, VIEW.16, VIEW.17 |  |
 
 ## Phase 3: Backup parts and restore
 
@@ -52,7 +60,7 @@ Target 9.0 (Boss, 2:00 PM EDT): the control database and parity parts of the bac
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | ADM.87, DB.9 | Boss 1:59 PM EDT; Core 1 owns DB.9. |
+| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | ADM.87, DB.46 | Boss 1:59 PM EDT; Core 1 owns DB.9. |
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | DB.40, DB.8 | Boss 2:00 PM EDT; Core 1. |
 
 ## Phase 4: Repair from backups, the repair page and proof
@@ -65,6 +73,7 @@ The repair of the galaxy from an archive, the one page for check, repair and res
 |---|---|---|---|
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | DB.41, DB.9, DB.17 | Boss 2:00 PM EDT. |
 | ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | DB.42, ADM.89, DB.41 | Boss 2:00 PM EDT. |
-| TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | ADM.89, DB.42, ADM.90 | Boss 2:00 PM EDT. |
+| OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | OPS.16, ADM.87, ADM.88, DB.40 | Boss 2:06 PM EDT. |
+| TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | ADM.89, DB.42, ADM.90, OPS.55 | Boss 2:00 PM EDT. |
 | DOC.56 | Backups, restore and repair: the deployment guide and the help page | TEST.180 | Boss 2:00 PM EDT. |
-| ADM.91 | Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180, DOC.56 | Umbrella of the backups and repair chain; done when its items are. |
+| ADM.91 | Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180, DOC.56, OPS.55 | Umbrella of the backups and repair chain; done when its items are. |

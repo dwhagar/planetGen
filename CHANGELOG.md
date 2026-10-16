@@ -2,6 +2,200 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1548] - 2026-10-16
+
+**Headline:** The galactic core density terms (GEN.280) are retired after the merge.
+
+### Changed
+
+- GEN.280 is removed from the TODO and ticked in the progress ledger (merged as #1855); the items that waited on it lose that prerequisite.
+- GEN.364 notes that Core 3 builds the adaptive cap next with migration 0100.
+
+TODO items resolved: GEN.280 / Added: none
+
+## [8.0.1547] - 2026-10-16
+
+**Headline:** The galactic centre holds the observed nuclear star cluster and nuclear stellar disc, in place of ADM.49's Gaussian core.
+
+### Added
+- **The nuclear star cluster and the nuclear stellar disc (GEN.280).** Two more terms of the density model, scaled to the galaxy's bulge: a Hernquist cluster of 2.5e7 solar masses (half-light radius 3.8 pc) with its cusp held flat inside the radius where its density equals the core ball's mean, so the cell at the centre holds the cluster's mass inside 2 pc (about 1.5e7 systems), and an exponential disc 90 pc long and 35 pc high of 1.5e9 solar masses. They are the `nuclear_cluster` and `nuclear_disc` populations of a sector's profile (and `bright_stars.population`), count in the outline's bound, the bright-star scatter's bound and the Galaxy Map's prisms, and give a profile the region `nuclear`. A cell this dense is the case the cell star ceiling (GEN.281) is for.
+- **`planetgen plan --nuclear-amplitude`** (default 1; the Generate page's "Nuclear structures") scales both terms, 0 being none.
+- **Five math checks** compare the default galaxy's cluster mass, half-light radius, density at 1 parsec, the disc's mass inside 200 parsecs and its height with the published figures.
+
+### Changed
+- **`galaxy_shape.core_amplitude` and `--core-density` are gone** (migration 0099, schema v99): the column is renamed `nuclear_amplitude`, set to 0 for a galaxy planned before it, so its density is unchanged. `bright_stars.population` becomes `VARCHAR(16)`.
+
+### Fixed
+- **Filling a dense cell no longer takes quadratic time.** Each pre-placed star was checked for overlap against every earlier system of its cell one at a time in Python, which is hours for a cell of 40,000; it is one NumPy pass now (the sector's existing neighbour arrays).
+
+TODO items resolved: GEN.280. Added: none.
+
+## [8.0.1546] - 2026-10-16
+
+**Headline:** The next two migration revisions are recorded: 0102 for DB.59 and 0103 for DB.54.
+
+### Changed
+
+- DB.59 and DB.54 name the revision numbers Core 1 handed out at 3:16 PM EDT, after 0099 (GEN.280), 0100 (cell_star_ceiling) and 0101 (DB.55).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1545] - 2026-10-16
+
+**Headline:** Satellite and cluster components (GEN.237) are retired after the merge.
+
+### Changed
+
+- GEN.237 is removed from the TODO and ticked in the progress ledger (merged as #1851); the items that waited on it lose that prerequisite.
+- GEN.366 records that the satellite table was recalled from memory, and that a galaxy planned before #1851 needs `planetgen plan` run again; GEN.297 notes that the component table now exists.
+
+TODO items resolved: GEN.237 / Added: none
+
+## [8.0.1544] - 2026-10-16
+
+**Headline:** The late lane findings and Boss's adaptive cell cap are filed as items.
+
+### Added
+
+- Eleven items: TEST.187 to TEST.191 (browser-test log, skimage deprecation, maintenance mode left on, fixture timeouts, plan tests writing real files), UX.133 (empty `/polities` and `/species` pages), OPS.59 (SIGTERM for `generate galaxy --shell 0`), GEN.364 (the adaptive per-cell cap Boss decided at 1:46 PM EDT), GEN.365 (white dwarf radius), GEN.366 (verify the satellite table) and GEN.367 (Magellanic gas). Each is in its version thread and in a goal issue.
+- Owner notes on the settings chain (ADM.96, 87, 83, 84, 85, 43, 44) and decision notes on GEN.280, GEN.303 and GEN.237.
+
+TODO items resolved: none / Added: TEST.187, TEST.188, UX.133, TEST.189, TEST.190, OPS.59, TEST.191, GEN.364, GEN.365, GEN.366, GEN.367
+
+## [8.0.1543] - 2026-10-16
+
+**Headline:** The Magellanic Clouds, Sagittarius and eight dwarf galaxies are in the galaxy, at their real places.
+
+### Added
+- **Satellite galaxies (GEN.237).** `planetgen plan` places the Milky Way's eleven satellites (the Large and Small Magellanic Clouds, the Sagittarius dwarf, Fornax, Sculptor, Carina, Draco, Ursa Minor, Sextans, Leo I and Leo II) as `satellite` components, each as an exponential or Plummer profile cut at six half-mass radii, at the direction and distance the sky gives them (the Large Cloud 49.6 kpc away and holding about 6.2e9 systems). The sector gate counts their density, so the outline reaches them and a cell at the centre of the Large Cloud is a satellite place, not empty halo. Their sizes, masses and distances are recalled from McConnachie (2012) and need checking.
+- **A `satellite` stellar population.** The sector profile's mix, region label, ages (0.5 to 13 Gyr), dispersion and rotation now have it, and its [Fe/H] is the one of the satellites that reach the place.
+- **[Fe/H] from the component.** A star in a cluster or satellite draws its [Fe/H] from the peaks of the place (`metallicity.sample_fe_h(peaks=)`, `SystemConfig.FE_H_PEAKS`), which the fill sets; before, filling a cluster's cell raised an error.
+
+### Changed
+- **One field for the clusters and the satellites.** `ClusterField` is `ComponentField` (`galaxy/component_field.py`) and `GalaxyShape.clusters` is `GalaxyShape.components`; every component needs a `tidal_radius_pc`, and `king_w0` only for a King profile.
+- **A seeded galaxy's outline is different from before**, grown by the Clouds, Sagittarius and the dwarfs; plan the galaxy again.
+
+TODO items resolved: GEN.237. Added: none.
+
+## [8.0.1542] - 2026-10-16
+
+**Headline:** The asteroid render items and the closed core-disc issue are tracked in the issue table.
+
+### Changed
+
+- GEN.360 to GEN.363 sit in the issue of GEN.112, and the goal issue for GEN.210 (#1222) is marked closed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1541] - 2026-10-16
+
+**Headline:** The new lane orders are in the plan, ten items are closed on Boss's approval, and the asteroid render plan is filed as four items.
+
+### Added
+
+- GEN.360 to GEN.363: the four render steps of the approved asteroid plan (uid seed and shared generator, the field page 3D view, instanced rocks with levels of detail, belt motion on the GPU).
+
+### Changed
+
+- GEN.297 now loads Boss's Harris file (received 3:04 PM EDT, kept in the project's data folder): the file has no mass or age, so the item says how those come from M_V and a stated rule; it moved to 8.1 phase 5 in the cluster line with Core 3.
+- API.7, GEN.9, MAP.147, DOC.4 and GEN.112 are closed as done; GEN.210, GEN.24, PERF.29, PERF.30 and MAP.59 are dropped as superseded (MAP.75 stays open on its own).
+- Owners follow Boss's lane orders: Core 1 the global top chain, DB.53 and the bugs; Core 2 the 8.1 phase 1 top 5, MAP.217, the infinite zoom tree, the labels and the region query; Core 3 the new generate scatters line and the multi-star train.
+- Decided on the cards: GEN.259 is cut to hundreds, PERF.36 keeps both caps, MAP.122 follows the MAP.146 subitems, GEN.229 counts first, and the old Core queue runs after the new top 5 work.
+
+TODO items resolved: API.7, GEN.9, MAP.147, DOC.4, GEN.112 (done); GEN.210, GEN.24, PERF.29, PERF.30, MAP.59 (dropped) / Added: GEN.360, GEN.361, GEN.362, GEN.363
+
+## [8.0.1540] - 2026-10-16
+
+**Headline:** The top blockers on the tree page now count a chain once, GEN.99 is dropped, and the migration numbers and lane owners are corrected.
+
+### Changed
+
+- The top 5 blockers (overall and per phase) list one entry per chain, with the members of its chain named under it, so an umbrella and its pieces no longer fill the list.
+- GEN.335 to GEN.337, DB.55 and GEN.294 are Core 1's. Migration 0099 is GEN.280's fields, 0100 is Core 3's cell_star_ceiling change, DB.55 takes 0101, and GEN.237 needs no migration.
+- GEN.297 is the item that updates the globular clusters from Boss's Harris file once supplied, after the synthetic generator that ships first (Boss's decision).
+- GEN.99 is dropped (Boss chose Retire): the required nebula stars are made with the nebula.
+
+TODO items resolved: GEN.99 (dropped, none built) / Added: none
+
+## [8.0.1539] - 2026-10-16
+
+**Headline:** Every open TODO item is now in a GitHub goal issue, and five new goal issues cover edit everything (8.6), roles (10.0), backups, the single configuration file and map labels.
+
+### Added
+
+- Goal issues #1842 (edit everything, 8.6), #1843 (roles and permissions, 10.0), #1844 (backups), #1845 (one configuration file and the settings page) and #1846 (map labels).
+
+### Changed
+
+- The issue table in `docs/plan/issue-groups.md` now lists the split children and the new foundation items under the issues of their parents, so no open item is left without a goal issue.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1538] - 2026-10-16
+
+**Headline:** MAP.152, the scale hand-offs, is retired as built.
+
+### Changed
+
+- MAP.152 is closed in the TODO and the progress ledger (merged in #1832 and #1838); MAP.146 no longer waits on it.
+
+TODO items resolved: MAP.152 / Added: none
+
+## [8.0.1537] - 2026-10-16
+
+**Headline:** The fly-through camera pieces that MAP.146 still lacked, map labels and the single configuration file are now planned.
+
+### Added
+
+- MAP.225 to MAP.228: the wheel zooming toward the cursor, the double-click flight, the container named from the camera position and the camera in the address, each a subitem of MAP.146 in 8.1 phase 2.
+- MAP.229 to MAP.233: a map label engine (priority, no overlaps, show and hide by zoom), names for stars, systems and sectors, the Sector and System Maps on the same engine, names for the big features (8.8) and for nebulae (8.8).
+- ADM.96: one configuration file, the user's own `config.json`, with no `settings.json` overlay; the example is never written and updates never overwrite the user's copy.
+
+### Changed
+
+- ADM.43, ADM.44, ADM.83 to ADM.85, ADM.87, USR.3, GEN.303 and the settings design note now say one file: secrets can be replaced but never read back, archive downloads are Owner-only, a web restore puts back only admin-changeable options, and the writer is `planetgen.util.settings_writer`.
+
+TODO items resolved: none / Added: MAP.225, MAP.226, MAP.227, MAP.228, MAP.229, MAP.230, MAP.231, MAP.232, MAP.233, ADM.96
+
+## [8.0.1536] - 2026-10-16
+
+**Headline:** Every open item was reviewed for smaller chunks and shared foundations, so the version plan now builds shared work once and in the right phase.
+
+### Added
+
+- 138 new TODO items, all in the plan only: 50 splits of oversized items into children (a pure library, the code that applies it, a Core 1 migration, a page), among them GEN.129, GEN.294, GEN.115, GEN.109, GEN.110, GEN.28, GEN.95, USR.2, ADM.56, MAP.119, DOC.6, API.11 and VIEW.2, and five new shared foundations: GEN.334 (pair closest-approach library), USR.28 (account tokens), UX.129 (saved-list store), MAP.217 (map layer registry) and TEST.186 (census audit harness).
+- A new 8.1 phase 6 (the headline closes), an 8.8 phase 2 (zoom windows), and new threads for the galactic gravity potential, the admin shell, the help framework and the star-system storage.
+
+### Changed
+
+- Umbrella items are done when their children are; dependents now name the specific child they need.
+- Items moved so blockers sit in the same thread earlier, an earlier phase or an earlier version (GEN.144, GEN.212, GEN.139, GEN.140, GEN.197, GEN.253, ADM.32, ADM.36, ADM.52, POP.13, NAV.54, NAV.55 and others); overlapping items were narrowed (GEN.142, GEN.247, GEN.249, TEST.169, ADM.71, ADM.72 and others).
+- PERF.88 widened into the shared field kernel; TEST.168 into the shared browser-test harness; DB.56 and GEN.197 into one orbital event record.
+
+TODO items resolved: none / Added: 138 items (see docs/design/todo-number-map.md)
+
+## [8.0.1535] - 2026-10-16
+
+**Headline:** On the Galaxy Map a star's system fades in as the camera comes up to it, and opens from that scene with one more wheel tick.
+
+### Changed
+- In an opened sector, a star's system (its planets, moons and orbits) is fetched once its disc would be about 20 pixels across, fades in to 40 pixels, and is dropped below 10 pixels. It is not opened by that: the address and the panel stay the sector's, and one more wheel tick at the nearest zoom opens the system from the scene already up, with no second fetch.
+- In an opened sector the camera can now come right up to a star near the middle of the view (to where its disc is 60 pixels across), instead of stopping at an eighth of the sector's fit. Move the middle onto the star first (Shift-click or right-click on it).
+
+## [8.0.1534] - 2026-10-16
+
+**Headline:** A nightly full backup from the daily maintenance run is planned for 9.0, with its own schedule and retention settings.
+
+### Added
+
+- OPS.55: a backup step in the daily maintenance run that takes every part into one archive; options `settings.nightly_backup`, `settings.nightly_backup_hour` (default 4) and `settings.nightly_backups_kept` (default 7).
+
+### Changed
+
+- ADM.87 records each archive's kind (manual, settings-save, nightly) and prunes nightly archives by their own count.
+
+TODO items resolved: none / Added: OPS.55
+
 ## [8.0.1533] - 2026-10-16
 
 **Headline:** The backup archive (settings now, control database and parity data for 9.0) and the restore and repair chain are planned, with the settings page staying in 8.1.

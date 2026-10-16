@@ -20,7 +20,8 @@ SOURCES = ("catalogue", "generated")
 """tuple: Where a row came from: a real catalogue's entry, or a draw from the galaxy seed."""
 
 PROFILES = ("king", "exponential", "plummer")
-"""tuple: The density profiles a row may name (only `king` has a table yet, `physics/king.py`)."""
+"""tuple: The density profiles a row may name: a cluster's `king` (`physics/king.py`), a satellite's `exponential` or
+`plummer` (`physics/component_profiles.py`)."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -41,8 +42,9 @@ class Component:
         age_gy (float): The stars' age in Gyr.
         metallicity_fe_h (float): The stars' [Fe/H] in dex against the Sun.
         seed (int): The seed its stars are drawn from.
-        king_w0 (int or None): The King central potential, 3 to 12, for the `king` profile.
-        tidal_radius_pc (float or None): The King tidal radius, for the `king` profile.
+        king_w0 (int or None): The King central potential, 3 to 12, for the `king` profile and no other.
+        tidal_radius_pc (float): The radius the profile is cut at: the King model's own, or the cut of an exponential or
+            Plummer profile (`component_profiles.cut_radius_pc`).
         core_collapsed (bool): Whether the core has collapsed.
         catalogue_id (str or None): The catalogue's own name for it, for matching a later import.
         parent_component_id (int or None): The row of the component it lies in.
@@ -61,8 +63,8 @@ class Component:
     age_gy: float
     metallicity_fe_h: float
     seed: int
-    king_w0: int = None
     tidal_radius_pc: float = None
+    king_w0: int = None
     core_collapsed: bool = False
     catalogue_id: str = None
     parent_component_id: int = None
@@ -75,8 +77,10 @@ class Component:
             raise ValueError(f"unknown component source {self.source!r}")
         if self.profile not in PROFILES:
             raise ValueError(f"unknown component profile {self.profile!r}")
-        if (self.profile == "king") != (self.king_w0 is not None and self.tidal_radius_pc is not None):
-            raise ValueError("a king profile needs king_w0 and tidal_radius_pc, and no other profile has them")
+        if (self.profile == "king") != (self.king_w0 is not None):
+            raise ValueError("a king profile needs king_w0, and no other profile has one")
+        if self.tidal_radius_pc is None or self.tidal_radius_pc <= 0.0:
+            raise ValueError("a component needs a positive tidal_radius_pc: the radius its profile is cut at")
 
     @property
     def expected_systems(self):

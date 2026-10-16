@@ -6,7 +6,7 @@ Boss (2026-10-16, 1:59 PM to 2:00 PM EDT): "let's add backups of the control DB 
 
 ## 1. The archive
 
-Every backup is one `backups/<UTC timestamp>.tar.bz2` taken at one moment (stdlib `tarfile`, mode 0600, web user). It holds `manifest.json` (format 1, time, who, version key, and per part its name, directory, sizes and SHA-256) and one directory per part: `settings/` (the `settings.json` overlay), `control/` (a `mysqldump` of the control schema without sessions) and `parity/` (the parity file cut at its last complete record). The layout is fixed in ADM.87 for all three, so the later parts add providers and not a format. Retention is the option `settings.backups_kept` (default 20, 1 to 200) and counts archives; the newest archive that holds every registered part is never pruned. A save on the settings page writes a small archive with the settings part alone; "Back up now" and the command write every registered part.
+Every backup is one `backups/<UTC timestamp>.tar.bz2` taken at one moment (stdlib `tarfile`, mode 0600, web user). It holds `manifest.json` (format 1, time, who, version key, and per part its name, directory, sizes and SHA-256) and one directory per part: `settings/` (the user's `config.json`, secrets included), `control/` (a `mysqldump` of the control schema without sessions) and `parity/` (the parity file cut at its last complete record). The layout is fixed in ADM.87 for all three, so the later parts add providers and not a format. Retention is the option `settings.backups_kept` (default 20, 1 to 200) and counts the manual and settings-save archives, while nightly archives (OPS.55) are counted by `settings.nightly_backups_kept` (default 7, 1 to 60), so one never pushes out the other; the newest archive that holds every registered part is never pruned. A save on the settings page writes a small archive with the settings part alone; "Back up now" and the command write every registered part.
 
 What it does not hold: the galaxy database. It is too large, can be regenerated from its seed (DB.17) and is repaired from parity (DB.9).
 
@@ -19,6 +19,7 @@ What it does not hold: the galaxy database. It is too large, can be regenerated 
 | Parity file back | DB.40, DB.41 | copy under the writer's lock; restore, then the DB.8 check recomputes stale records |
 | Galaxy repaired | DB.42 | `repair-db --from-archive` uses the archive's parity part when the live file is missing or damaged; what parity cannot repair goes to the seed regeneration of DB.17 |
 | One place for it | ADM.90 | the check, the damaged list, repair and part restores as queue jobs |
+| Nightly | OPS.55 | a `backup` step in the daily maintenance run takes every part; schedule `settings.nightly_backup_hour`, own retention `settings.nightly_backups_kept` (default 7) |
 | Proof | TEST.180, DOC.56 | end-to-end scenario; the deployment guide and help page |
 
 ## 3. Decisions and their reasons

@@ -20,19 +20,19 @@ import time
 from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.generation import clusters
+from planetgen.generation import clusters, satellites
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.galaxy import cluster_field as clusterField, nebula_field as nebulaField, seed as galaxySeed, settings_file
+from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed, settings_file
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.galaxy.density import arm_terms, build_galaxy_shape, relative_density
+from planetgen.galaxy.density import arm_terms, build_galaxy_shape, model_terms, relative_density
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.skeleton import (
@@ -252,7 +252,7 @@ def build_skeleton(args):
         pitch_angle_rad=math.radians(args.pitch_angle_deg),
         arm_amplitude=arm_amplitude,
         arm_level=arm_level,
-        core_amplitude=args.core_density,
+        nuclear_amplitude=args.nuclear_amplitude,
         calibration_radius_pc=args.calibration_radius_pc,
     )
 
@@ -283,18 +283,24 @@ def build_skeleton(args):
             raise SystemExit(1)
         # A new outline invalidates every pre-placed bright star (schema v43).
         store.clear_bright_stars(conn)
-        # The globular clusters (GEN.159, GEN.160) come from the galaxy seed and go in the outline's bound, so the seed
-        # is settled first and the clusters drawn before the outline is walked.
+        # The globular clusters (GEN.159, GEN.160) come from the galaxy seed and the satellites (GEN.237) from the
+        # catalogue, and both go in the outline's bound, so the seed is settled first and the components are placed
+        # before the outline is walked.
         galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
+        scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
         found = clusters.generate_clusters(
-            galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX,
-            scale=shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC)
+            galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
+        dwarfs = satellites.place_satellites(
+            galaxy_seed, program_constants.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc,
+            model_terms(shape)["solar_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
         store.replace_galaxy_components(conn, found, kind="cluster")
+        store.replace_galaxy_components(conn, dwarfs, kind="satellite")
         conn.commit()
-        shape = shape._replace(clusters=clusterField.ClusterField(found, edge_pc, e_value))
+        shape = shape._replace(components=componentField.ComponentField(found + dwarfs, edge_pc, e_value))
     finally:
         conn.close()
-    log.normal(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems.")
+    log.normal(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems "
+               f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
 
     t0 = time.perf_counter()
     extents, outer_shell_index, edge_confirmed = build_shell_extents(

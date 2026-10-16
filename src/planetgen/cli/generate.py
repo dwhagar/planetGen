@@ -904,10 +904,10 @@ def add_plan_arguments(parser):
     shape_group.add_argument('--interarm-density', type=finite_float, default=0.6,
                              help="The thin disk's density midway between arms, in the same units, 0 or more. "
                                   "Default: 0.6.")
-    shape_group.add_argument('--core-density', type=finite_float, default=0.0,
-                             help="Extra density at the very centre of the galaxy, on top of the bulge "
-                                  "(a Gaussian a tenth of the bulge scale radius wide), in the same units as "
-                                  "--bulge-amplitude. Default: 0 (no core).")
+    shape_group.add_argument('--nuclear-amplitude', type=finite_float, default=1.0,
+                             help="How much of the observed nuclear star cluster (2.5e7 solar masses within a few "
+                                  "parsecs) and nuclear stellar disc (1.5e9, 90 pc long) the galactic centre holds, "
+                                  "scaled to the bulge: 1 is the observed pair, 0 is none. Default: 1.")
     shape_group.add_argument('--calibration-radius-pc', type=finite_float, default=None,
                              help="In-plane radius the relative_density=1.0 calibration point sits at. "
                                   "Defaults to build_galaxy_shape's own default (3.15x disk scale length, the Sun's radius).")
@@ -1016,8 +1016,8 @@ def validate_plan_args(args, parser):
         arm_amplitude, arm_level = arm_terms(args.arm_density, args.interarm_density)
     except ValueError as exc:
         parser.error(f"--arm-density and --interarm-density: {exc}.")
-    if args.core_density < 0 or args.bulge_amplitude < 0:
-        parser.error("--core-density and --bulge-amplitude must be 0 or more.")
+    if args.nuclear_amplitude < 0 or args.bulge_amplitude < 0:
+        parser.error("--nuclear-amplitude and --bulge-amplitude must be 0 or more.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
     if args.cell_star_ceiling is not None and args.cell_star_ceiling < 1:
@@ -1050,7 +1050,7 @@ def validate_plan_args(args, parser):
             pitch_angle_rad=math.radians(args.pitch_angle_deg),
             arm_amplitude=arm_amplitude,
             arm_level=arm_level,
-            core_amplitude=args.core_density,
+            nuclear_amplitude=args.nuclear_amplitude,
             calibration_radius_pc=args.calibration_radius_pc,
         )
     except (ArithmeticError, ValueError) as exc:

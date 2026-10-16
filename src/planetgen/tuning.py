@@ -601,10 +601,14 @@ WD_PROGENITOR_ENGULFMENT_AU = 1.5
 # ~150 pc (A to F dwarfs, Bovy 2017). The bulge is old
 # (8-12 Gy), and so is the thick disk, whose stars count as "old"
 # (`galaxy.density.population_densities`). The halo and the globular clusters are older still, 10 to 13 Gy
-# (GEN.234; a cluster's density comes with the component table, GEN.237, and is 0 until then).
+# (GEN.234). A satellite galaxy's stars (GEN.237) run from 0.5 Gy to the age of the Universe: the Clouds still form
+# stars and the dwarf spheroidals do not, so this is the window of the lot, not of one. The nuclear
+# populations (GEN.280) are windows with the mean ages of the observed mixes (the cluster 80% 5 to 12 Gyr and 20%
+# 0.1 to 5, a mean of 7.3 Gyr; the disc 70% 8 to 12 and 30% 0 to 8, a mean of 8.2) [recalled, to verify].
 STELLAR_POPULATION_AGE_RANGES_GY = {
     "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
-    "halo": (10.0, 13.0), "cluster": (10.0, 13.0),
+    "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (0.5, 13.0),
+    "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
@@ -622,6 +626,9 @@ METALLICITY_BY_POPULATION = {
     "intermediate": {"offset": 0.0, "sigma": 0.15, "gradient": True},
     "old": {"offset": -0.2, "sigma": 0.25, "gradient": True},
     "bulge": {"offset": -0.05, "sigma": 0.40, "gradient": False},
+    # The nuclear cluster and disc are metal rich, +0.1 to +0.3 [recalled, GEN.280], and the cluster's spread is broad.
+    "nuclear_cluster": {"offset": 0.20, "sigma": 0.40, "gradient": False},
+    "nuclear_disc": {"offset": 0.20, "sigma": 0.30, "gradient": False},
 }
 METALLICITY_HALO = {"inner": -1.6, "outer": -2.2, "break_kpc": 25.0, "sigma": 0.5}
 METALLICITY_RANGE_FE_H = (-3.5, 0.6)
@@ -656,6 +663,13 @@ number, not from the ceiling: `ceil(16 x factor)` objects at most, which is 2 at
 # speed `CLUSTER_HALO_CIRCULAR_KMS`.
 KING_W0_RANGE = (3, 12)
 KING_TABLE_POINTS = 2000
+# Satellite galaxies (GEN.237, docs/design/intergalactic-and-halo-contents.md 5.5) are stored the same way: the Clouds
+# and Sagittarius as an exponential profile (density falling as exp(-r / a)), the dwarf spheroidals as a Plummer sphere
+# (density as (1 + (r / a)^2)^-2.5), each cut off at a tidal radius that is `SATELLITE_TIDAL_OVER_HALF_MASS` times
+# its half-mass radius (an exponential at 16 scale lengths holds all but 1e-5 of its mass, a Plummer sphere at
+# 7.8 scale lengths 98%; the density is normalised so the cut profile holds the whole mass). The rows are real
+# objects, but their sizes are recalled from McConnachie (2012) and not checked (the sources were out of reach).
+SATELLITE_TIDAL_OVER_HALF_MASS = 6.0
 CLUSTER_MEAN_SYSTEM_MASS_SOL = 0.4
 CLUSTER_HALO_CIRCULAR_KMS = 220.0
 
@@ -688,7 +702,7 @@ CLUSTER_HALO_RADIUS_RANGE_PC = (1000.0, 120000.0)
 CLUSTER_HALO_DISPERSION_KMS = 110.0
 CLUSTER_BULGE_DISPERSION_KMS = 60.0
 
-# A cluster's density in the sector gate (`galaxy/cluster_field.py`, GEN.160): the density a cell gets is the cluster's
+# A cluster's density in the sector gate (`galaxy/component_field.py`, GEN.160): the density a cell gets is the cluster's
 # systems inside the cell over the systems a cell holds at density 1, so the cube is integrated: on
 # `CLUSTER_CELL_SUBSAMPLES` points a side within `CLUSTER_NEAR_EDGES` cell edges of a cluster's centre (where its core
 # varies faster than a cell) and at the centre alone beyond. The skeleton's bound grows a cluster by
@@ -722,10 +736,29 @@ THICK_DISK_LOCAL_DENSITY_RATIO = 0.04
 BULGE_AXIS_RATIO_Y = 620.0 / 1580.0
 BULGE_AXIS_RATIO_Z = 430.0 / 1580.0
 
-CORE_RADIUS_FRACTION = 0.1
-"""float: The galactic core's Gaussian scale radius as a fraction of the
-bulge scale radius (ADM.49). The core is the extra density at the very
-centre, on top of the bulge (`core_amplitude`; 0, the default, is none)."""
+# The nuclear star cluster and the nuclear stellar disc (GEN.280, docs/design/realistic-galactic-core.md 3), the
+# two structures at the real centre, are density terms of the model. Both are ratios to the galaxy's own bulge, so
+# a toy galaxy gets a proportionate centre, and `GalaxyShape.nuclear_amplitude` (1 is the observed centre, 0 is
+# none) scales the pair together. Calibrated on the default Milky Way-scale model, whose bulge holds 3.9e10 solar
+# masses at 0.4 solar masses a system (the real bulge's 1.5e10 is in the model's units 2.6 times that, as every
+# component's is; the totals are tuned to star counts, not to mass): 2.5e7 for the cluster, 1.5e9 for the disc.
+NUCLEAR_CLUSTER_BULGE_RATIO = 6.4e-4
+"""float: The nuclear star cluster's mass over the bulge's, in the model's own units (2.5e7 solar masses against the
+default model's 3.9e10; Schodel et al. 2014 give 2.0 to 2.5e7, recalled, to verify)."""
+NUCLEAR_CLUSTER_SCALE_RATIO = 2.07 / 1580.0
+"""float: The cluster's Hernquist scale radius over the bulge scale radius (2.07 pc against 1,580 pc: a half-mass
+radius of 5 pc, a projected half-light radius of 3.8 to 4.2 pc, against the observed 4.2)."""
+NUCLEAR_DISC_CLUSTER_MASS_RATIO = 61.0
+"""float: The nuclear disc's total mass over the cluster's (1.5e9 against 2.5e7). 65% of an exponential disc of
+scale length 90 pc lies inside 200 pc, which makes the 1.0e9 inside 200 pc the observations give (recalled)."""
+NUCLEAR_DISC_LENGTH_RATIO = 90.0 / 1580.0
+NUCLEAR_DISC_HEIGHT_RATIO = 35.0 / 1580.0
+"""float: The nuclear disc's exponential scale length and `sech^2` scale height over the bulge scale radius (90 and
+35 pc; the observed height is 30 to 45 pc, recalled)."""
+NUCLEAR_RESOLUTION_PC = 2.0
+"""float: The radius of the grid's core ball (shell 0, half the 4 pc shell depth). The cluster's cusp is held below
+the radius at which its density equals the ball's mean, so the ball's cell holds exactly the cluster's mass inside
+2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`)."""
 # The bar's long axis leads the Sun-center line by 27 degrees in the
 # direction of rotation (its near end at positive galactic longitude;
 # Wegg & Gerhard 2013, BHG16: 28-33 for the long bar).
@@ -766,15 +799,24 @@ local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not u
 # orbit outside); `rotation` says what the population's net motion follows. [Recalled, to verify.]
 STELLAR_POPULATION_DISPERSION_KMS = {
     "young": 15.0, "intermediate": 25.0, "old": 50.0, "bulge": 120.0, "halo": 120.0, "cluster": 8.0,
+    "satellite": 25.0,       # the dwarfs' and Clouds' own 20 to 30 km/s (design note 5.3)
+    "nuclear_cluster": 150.0, "nuclear_disc": 80.0,
 }
 STELLAR_POPULATION_ROTATION = {
     "young": "disk", "intermediate": "disk", "old": "disk", "bulge": "bar", "halo": "none", "cluster": "orbit",
+    "satellite": "orbit", "nuclear_cluster": "none", "nuclear_disc": "disk",
 }
 # A cluster carries its own [Fe/H] (`physics.metallicity`); until the component table (GEN.237) gives each one
 # its own, the profile of a cluster cell shows the two peaks of the Milky Way's clusters (-1.5 and -0.5,
 # docs/design/globular-clusters.md), as `(share, mean, sigma)`; the shares are recalled (about two thirds are the
 # metal-poor ones).
 METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
+# Where a cell holds components (GEN.237) the peaks of its `cluster` and `satellite` populations are the components'
+# own [Fe/H], each with this scatter (dex), weighted by the systems each puts in the cell; the peaks below stand in
+# for a place no component reaches (a sample drawn without a profile). A satellite's stand-in is the Clouds'
+# and dwarfs' middle (LMC about -0.4, SMC about -0.9, the dwarf spheroidals -1.0 to -2.1, recalled).
+COMPONENT_FE_H_SIGMA = {"cluster": 0.15, "satellite": 0.3}
+METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
 
 # How deep one dense cell is filled (GEN.281, docs/design/realistic-galactic-core.md 4.2). A cell that expects more
 # systems than the cell star ceiling fills only the stars at or above the fill luminosity cap; the rest is
