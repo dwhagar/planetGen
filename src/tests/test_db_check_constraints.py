@@ -25,6 +25,7 @@ CHECK_VIOLATED = (3819, 4025)
 _IN_LIST = re.compile(r"^`?(\w+)`?\s+in\s*\(", re.IGNORECASE)
 _NULL_OR_IN = re.compile(r"^`?(\w+)`?\s+is\s+null\s*\)?\s+or\s+\(?`?\1`?\s+in\s*\(", re.IGNORECASE)
 _BETWEEN = re.compile(r"^`?(\w+)`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGNORECASE)
+_AT_LEAST = re.compile(r"^`?(\w+)`?\s*>=\s*(-?\d+)")
 _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
@@ -75,6 +76,9 @@ def _breaking_value(conn, table, clause, row):
     match = _BETWEEN.match(clause)
     if match:
         return match[1], int(match[3]) + 1
+    match = _AT_LEAST.match(clause)
+    if match:
+        return match[1], int(match[2]) - 1
     match = _EQUALS_ONE.match(clause)
     if match:
         return match[1], 2
