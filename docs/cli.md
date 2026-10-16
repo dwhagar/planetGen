@@ -436,7 +436,8 @@ real Milky Way's value as its default: `--disk-scale-length-pc` (2600) and
 `--disk-scale-height-pc` (300) for the thin disk, `--bulge-scale-radius-pc`
 (1580) and `--bulge-amplitude` (3.11) for the bar bulge, `--arm-count` (2),
 `--pitch-angle-deg` (15), `--arm-density` (1.4) and `--interarm-density`
-(0.6) for the spiral arms, `--core-density` (0, no extra core) and
+(0.6) for the spiral arms, `--nuclear-amplitude` (1: the observed nuclear star
+cluster and nuclear stellar disc at the centre, scaled to the bulge; 0 is none) and
 `--calibration-radius-pc` (the Sun's radius, 3.15 times the disk scale length)
 for where relative density 1.0 sits. `--max-shell` caps how far out the
 shells are walked (100,000 by default) and `--seed <32 hex digits>` sets the

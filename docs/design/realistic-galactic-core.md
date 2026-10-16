@@ -38,6 +38,8 @@ The cell volumes are those of the spherical grid: shell 0 is a ball of 2 pc radi
 
 ## 3. The density terms
 
+**Built (GEN.280, schema v99):** the nuclear cluster and disc are `_nuclear_cluster` and `_nuclear_disc` in `galaxy/density.py`, the `nuclear_cluster` and `nuclear_disc` populations of the profile, and `galaxy_shape.nuclear_amplitude` (`planetgen plan --nuclear-amplitude`) scales both; ADM.49's Gaussian core is removed. Departures from the text below, each so the numbers match the published ones in the default model: the cluster's mass is 6.4e-4 of the bulge's (the model's bulge holds 3.9e10 solar masses at 0.4 a system, not 1.5e10, so 1.7e-3 would put 6.5e7 in the cluster); the disc's total is 61 times the cluster's (1.5e9, 1.0e9 inside 200 pc); the cluster's cusp is held flat inside the radius where its density equals the core ball's mean (about 1.2 pc), so the ball's one cell holds exactly the mass inside 2 pc; and the age windows are single ranges with the observed mixes' means (cluster 3 to 12 Gyr, disc 4 to 12). `mathcheck` compares the mass, half-light radius, density at 1 pc, disc mass inside 200 pc and disc height with the published values. The gas term (3.4) and the young share of the disc are not part of this item.
+
 All three are closed form, are ratios to the galaxy shape's own lengths and masses (so a toy galaxy gets a proportionate centre), and are stored as shape fields next to the bulge's. `population_densities` returns them as populations, so the skeleton bound, the Galaxy Map prisms and the profile read one source.
 
 ### 3.0 What the density must match
@@ -298,7 +300,7 @@ Order within my chain: after the free #1677 items, unless a step is wanted soone
 
 | Step | What | Depends on |
 |---|---|---|
-| 1 | Density terms: nuclear cluster, nuclear disc in `density.py`, `GalaxyShape` fields (migration), `population_densities` rows, ADM.49's Gaussian core removed, skeleton bound, prisms | GEN.235 profile |
+| 1 | Density terms: nuclear cluster, nuclear disc in `density.py`, `GalaxyShape` fields (migration), `population_densities` rows, ADM.49's Gaussian core removed, skeleton bound, prisms (**built, GEN.280, schema v99**) | GEN.235 profile |
 | 2 | Ceiling and fill cap (4.2): the two settings (columns with the tier settings, one Core 1 migration), the cap applied to a cell above the ceiling, `bright_level_sol` use, unresolved count and mass on the sector page and in region-query results | step 1, stage C (GEN.276), 3b for the settings |
 | 3 | Gas and young terms: the central molecular zone in `gas`, nebula rate, the nuclear disc's young share; young-cluster components for the central parsec, Arches and Quintuplet through GEN.244 | GEN.237, GEN.244 |
 | 3b | Tiered limits (5.1) and the sliders (5.2): `tier` in the profile, the five settings (columns on `galaxy_shape`: Core 1 migration, `planetgen plan` options, Generate page sliders), the band's limits in the passes, the backfill and the fill, `placed_star_fraction` with the cell's cuts | GEN.235 profile; Core 2 (GEN.158) for the metallicity argument |
