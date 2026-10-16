@@ -22,3 +22,18 @@ To change the schema:
    tested against the schema it starts from.
 
 There are no downgrades.
+
+## Slow changes on a big table
+
+A revision that touches a table with millions of rows uses `planetgen/db/migrations/helpers.py` (DB.18)
+instead of `op.add_column`, `op.create_index`, `op.alter_column` or `op.batch_alter_table` (never on the big
+tables: it copies the table). The helpers name the `ALGORITHM` (and `LOCK=NONE`), so the server refuses when it
+cannot do the change online instead of copying silently, and each one does nothing when its work is already
+there, so a stopped revision can be run again:
+
+- `add_column_instant`, `drop_column_instant`: a change of the table's definition only.
+- `add_index_online`, `drop_index_online`: `ALGORITHM=INPLACE, LOCK=NONE`; minutes on 10^8 rows, no progress.
+- `batched_update`: pages of the primary key, a commit per page, progress on the migration's bar.
+- `exists_table`, `exists_column`, `exists_index`, `index_columns`, `column_type`: the checks.
+- `lock_wait_timeout` (a block), `require_no_long_transactions` (refuses to start an index build behind a
+  transaction open for a minute or more) and a retry of a statement that timed out waiting for a lock.
