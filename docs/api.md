@@ -839,6 +839,19 @@ forced credential change. They back the admin stats page
   `{"document": {...}, "expect_hash", "check_only"}` checks an export like an
   edit (the settings plan's answer; `request` holds the changes) and, unless
   `check_only`, saves it as `config.import`.
+- `GET /api/admin/images` — the site's icons and link-preview picture
+  (ADM.44): `{"images": [{"kind", "title", "help", "formats", "setting",
+  "name", "url", "mime", "width", "height"}], "built_in_preview",
+  "max_bytes"}`; `name` and `url` are `null` for the built-in one (or no
+  icon). `POST /api/admin/images/<kind>` `{"data": "<base64>"}` (kind is
+  `favicon_svg`, `favicon_png`, `apple_touch_icon` or `default_image`)
+  checks the picture (format, size, square where an icon must be, a
+  sandboxed SVG; 422 with the reason when it can't be used), stores it as
+  `<16 hex digits of its SHA-256>.<png|ico|jpg|svg>` (served at
+  `/site-assets/<name>`) and saves the setting that names it through the
+  settings writer, so it is backed up and audited as `config.update`.
+  `DELETE /api/admin/images/<kind>` resets the setting and removes the
+  file when no other setting names it. At most 1 MiB a picture.
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site

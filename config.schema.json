@@ -1,5 +1,59 @@
 {
   "$defs": {
+    "Icons": {
+      "properties": {
+        "apple_touch_icon": {
+          "default": "",
+          "description": "The 180 by 180 PNG iPhones and iPads use for a home-screen bookmark. Set it by uploading on the Images page.",
+          "title": "Apple Touch Icon",
+          "type": "string",
+          "x-category": "icons",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "favicon_png": {
+          "default": "",
+          "description": "A PNG or ICO icon for browsers that do not take an SVG; empty offers none. Set it by uploading on the Images page.",
+          "title": "Favicon Png",
+          "type": "string",
+          "x-category": "icons",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "favicon_svg": {
+          "default": "",
+          "description": "The site icon as an uploaded SVG; empty uses the built-in one. Set it by uploading on the Images page.",
+          "title": "Favicon Svg",
+          "type": "string",
+          "x-category": "icons",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "manifest_enabled": {
+          "default": false,
+          "description": "Serve /site.webmanifest, which names the site, its icon and its theme colour for browsers that can install it.",
+          "title": "Manifest Enabled",
+          "type": "boolean",
+          "x-category": "icons",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        }
+      },
+      "title": "Icons",
+      "type": "object"
+    },
     "Jobs": {
       "properties": {
         "dir": {
@@ -11,6 +65,7 @@
           "x-editable": false,
           "x-env": "PLANETGEN_JOBS_DIR",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         },
@@ -23,6 +78,7 @@
           "x-category": "jobs",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         },
@@ -35,6 +91,7 @@
           "x-editable": false,
           "x-env": "PLANETGEN_PYTHON",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         }
@@ -53,6 +110,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_MEDIAWIKI_BASE_URL",
           "x-min_role": "owner",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         },
@@ -65,6 +123,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_MEDIAWIKI_PASSWORD",
           "x-min_role": "owner",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": true
         },
@@ -77,6 +136,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_MEDIAWIKI_USERNAME",
           "x-min_role": "owner",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         }
@@ -96,6 +156,7 @@
           "x-env": "PLANETGEN_MYSQL_DATABASE",
           "x-env-empty": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -108,6 +169,7 @@
           "x-editable": false,
           "x-env": "PLANETGEN_MYSQL_DATABASE_PREFIX",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -121,6 +183,7 @@
           "x-env": "PLANETGEN_MYSQL_HOST",
           "x-env-empty": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -134,6 +197,7 @@
           "x-env": "PLANETGEN_MYSQL_PASSWORD",
           "x-env-empty": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": true
         },
@@ -149,6 +213,7 @@
           "x-env": "PLANETGEN_MYSQL_PORT",
           "x-env-empty": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -161,6 +226,7 @@
           "x-category": "database",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-unit": "seconds"
@@ -175,11 +241,134 @@
           "x-env": "PLANETGEN_MYSQL_USER",
           "x-env-empty": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         }
       },
       "title": "MySQL",
+      "type": "object"
+    },
+    "OpenGraph": {
+      "properties": {
+        "card_cache_dir": {
+          "default": "",
+          "description": "Where drawn preview pictures are cached; empty means the state folder.",
+          "title": "Card Cache Dir",
+          "type": "string",
+          "x-category": "og",
+          "x-editable": false,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "card_cache_mb": {
+          "default": 100,
+          "description": "How much disk the drawn preview pictures may use.",
+          "minimum": 0,
+          "title": "Card Cache Mb",
+          "type": "number",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "MB"
+        },
+        "default_image": {
+          "default": "",
+          "description": "The picture link previews show (a PNG or JPEG about 1200 by 630); empty uses the built-in one. Set it by uploading on the Images page.",
+          "title": "Default Image",
+          "type": "string",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "enabled": {
+          "default": true,
+          "description": "Add Open Graph and Twitter tags to the public pages, so a link shows a title, a description and a picture when shared.",
+          "title": "Enabled",
+          "type": "boolean",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "generated_cards": {
+          "default": false,
+          "description": "Draw a preview picture per system and sector instead of one for the whole site. Off until a card drawer is installed (VIEW.3); every page then uses the default picture.",
+          "title": "Generated Cards",
+          "type": "boolean",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "image_alt": {
+          "default": "",
+          "description": "A description of the default preview picture for people who cannot see it.",
+          "maxLength": 200,
+          "title": "Image Alt",
+          "type": "string",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "site_name": {
+          "default": "",
+          "description": "The site name in link previews; empty uses the site name.",
+          "maxLength": 100,
+          "title": "Site Name",
+          "type": "string",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "twitter_card": {
+          "default": "summary_large_image",
+          "description": "How X (Twitter) draws a preview: a large picture or a small one.",
+          "enum": [
+            "summary",
+            "summary_large_image"
+          ],
+          "title": "Twitter Card",
+          "type": "string",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "twitter_site": {
+          "default": "",
+          "description": "The site's X (Twitter) account, as @name; empty names none.",
+          "title": "Twitter Site",
+          "type": "string",
+          "x-category": "og",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        }
+      },
+      "title": "OpenGraph",
       "type": "object"
     },
     "PageCache": {
@@ -193,6 +382,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_PAGE_CACHE",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -205,6 +395,7 @@
           "x-category": "cache",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
           "x-unit": "seconds"
@@ -218,6 +409,7 @@
           "x-category": "cache",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -230,6 +422,7 @@
           "x-category": "cache",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
           "x-unit": "MB"
@@ -243,6 +436,7 @@
           "x-category": "cache",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
           "x-unit": "seconds"
@@ -256,6 +450,7 @@
           "x-category": "cache",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
           "x-unit": "seconds"
@@ -269,6 +464,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_COUNT_CACHE",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         },
@@ -281,6 +477,7 @@
           "x-category": "cache",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-unit": "objects"
@@ -301,6 +498,7 @@
           "x-editable": false,
           "x-env": "PLANETGEN_PROXY_FIX_X_FOR",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -314,6 +512,7 @@
           "x-editable": false,
           "x-env": "PLANETGEN_PROXY_FIX_X_HOST",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -327,6 +526,7 @@
           "x-editable": false,
           "x-env": "PLANETGEN_PROXY_FIX_X_PROTO",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         }
@@ -345,6 +545,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_RATELIMIT_DEFAULT",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -367,6 +568,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_RATELIMIT_STORAGE_URI",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         }
@@ -384,6 +586,7 @@
           "x-category": "rate limits",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -395,6 +598,7 @@
           "x-category": "rate limits",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -406,6 +610,7 @@
           "x-category": "rate limits",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -417,6 +622,7 @@
           "x-category": "rate limits",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         },
@@ -428,6 +634,7 @@
           "x-category": "rate limits",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         }
@@ -446,11 +653,210 @@
           "x-editable": false,
           "x-env": "PLANETGEN_REDIS_URL",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": true,
           "x-secret": false
         }
       },
       "title": "Redis",
+      "type": "object"
+    },
+    "Seo": {
+      "properties": {
+        "block_ai_crawlers": {
+          "default": false,
+          "description": "Disallow the crawlers that collect text to train AI models (GPTBot, ClaudeBot, CCBot, Google-Extended, Applebot-Extended) in robots.txt.",
+          "title": "Block Ai Crawlers",
+          "type": "boolean",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "description": {
+          "default": "",
+          "description": "The description search engines show for pages that give none of their own (about 155 characters are shown); empty uses the tagline.",
+          "maxLength": 300,
+          "title": "Description",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "detail_pages": {
+          "default": "noindex",
+          "description": "Whether the generated system, sector and phenomenon pages may be indexed when indexing is top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by default; a small galaxy can switch this to index.",
+          "enum": [
+            "noindex",
+            "index"
+          ],
+          "title": "Detail Pages",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "humans_txt": {
+          "default": "",
+          "description": "The text of /humans.txt; empty serves none.",
+          "maxLength": 16384,
+          "title": "Humans Txt",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": true,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "indexing": {
+          "default": "top_pages",
+          "description": "Whether search engines may index the site: off (robots.txt disallows everything and every page says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the system, sector and phenomenon pages).",
+          "enum": [
+            "off",
+            "top_pages",
+            "all"
+          ],
+          "title": "Indexing",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "json_ld": {
+          "default": true,
+          "description": "Add a WebSite block (schema.org) to the home page.",
+          "title": "Json Ld",
+          "type": "boolean",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "keywords": {
+          "default": [],
+          "description": "Keywords for the keywords meta tag. Google has ignored it since 2009; some smaller engines still read it.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Keywords",
+          "type": "array",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "privacy_note": {
+          "default": "",
+          "description": "A short note shown on the account page about what the site keeps.",
+          "maxLength": 4096,
+          "title": "Privacy Note",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": true,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "robots_extra": {
+          "default": "",
+          "description": "Lines added to the end of the generated robots.txt.",
+          "maxLength": 65536,
+          "title": "Robots Extra",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": true,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "robots_override": {
+          "default": "",
+          "description": "Replaces the generated robots.txt entirely when not empty. A mistake here can hide the whole site from search engines.",
+          "maxLength": 512000,
+          "title": "Robots Override",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": true,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "security_txt": {
+          "default": "",
+          "description": "The text of /.well-known/security.txt (RFC 9116 needs a Contact and an Expires line); empty serves none.",
+          "maxLength": 16384,
+          "title": "Security Txt",
+          "type": "string",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": true,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "sitemap_cache_hours": {
+          "default": 24,
+          "description": "How long a built sitemap is reused.",
+          "maximum": 168,
+          "minimum": 1,
+          "title": "Sitemap Cache Hours",
+          "type": "integer",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "hours"
+        },
+        "sitemap_enabled": {
+          "default": true,
+          "description": "Serve /sitemap.xml and list it in robots.txt.",
+          "title": "Sitemap Enabled",
+          "type": "boolean",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "sitemap_max_urls": {
+          "default": 50000,
+          "description": "Most addresses in one sitemap file (the limit is 50,000).",
+          "maximum": 50000,
+          "minimum": 1,
+          "title": "Sitemap Max Urls",
+          "type": "integer",
+          "x-category": "seo",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "addresses"
+        }
+      },
+      "title": "Seo",
       "type": "object"
     },
     "SettingsFile": {
@@ -465,12 +871,44 @@
           "x-category": "backups",
           "x-editable": true,
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-unit": "backups"
         }
       },
       "title": "SettingsFile",
+      "type": "object"
+    },
+    "Site": {
+      "properties": {
+        "language": {
+          "default": "en",
+          "description": "The pages' language as a code (en, de, en-GB): the `lang` of every page and the Open Graph locale.",
+          "title": "Language",
+          "type": "string",
+          "x-category": "site",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "tagline": {
+          "default": "",
+          "description": "A short line shown under the home page's heading and used as the description of pages that give none of their own.",
+          "maxLength": 120,
+          "title": "Tagline",
+          "type": "string",
+          "x-category": "site",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        }
+      },
+      "title": "Site",
       "type": "object"
     },
     "TileCache": {
@@ -484,6 +922,7 @@
           "x-editable": false,
           "x-env": "PLANETGEN_TILE_CACHE_DIR",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         },
@@ -497,12 +936,69 @@
           "x-editable": true,
           "x-env": "PLANETGEN_TILE_CACHE_MAX_MB",
           "x-min_role": "admin",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-unit": "MB"
         }
       },
       "title": "TileCache",
+      "type": "object"
+    },
+    "Web": {
+      "properties": {
+        "assets_dir": {
+          "default": "",
+          "description": "Where uploaded icons and images are kept; empty means the assets folder in the state folder.",
+          "title": "Assets Dir",
+          "type": "string",
+          "x-category": "web",
+          "x-editable": false,
+          "x-env": "PLANETGEN_ASSETS_DIR",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "theme_color_dark": {
+          "default": "#14151e",
+          "description": "The same for the dark theme.",
+          "title": "Theme Color Dark",
+          "type": "string",
+          "x-category": "web",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "theme_color_light": {
+          "default": "#f6f7fb",
+          "description": "The browser's toolbar colour on phones for the light theme, as #rrggbb.",
+          "title": "Theme Color Light",
+          "type": "string",
+          "x-category": "web",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "title_template": {
+          "default": "{title} - {site_name}",
+          "description": "How a page's title is written in the browser tab and in search results; {title} is the page's own title and {site_name} the site name.",
+          "maxLength": 120,
+          "title": "Title Template",
+          "type": "string",
+          "x-category": "web",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        }
+      },
+      "title": "Web",
       "type": "object"
     },
     "Wiki": {
@@ -537,6 +1033,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_WIKIJS_API_TOKEN",
           "x-min_role": "owner",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": true
         },
@@ -549,6 +1046,7 @@
           "x-editable": true,
           "x-env": "PLANETGEN_WIKIJS_BASE_URL",
           "x-min_role": "owner",
+          "x-multiline": false,
           "x-restart": false,
           "x-secret": false
         }
@@ -568,6 +1066,7 @@
       "x-editable": false,
       "x-env": "PLANETGEN_ADMIN_COOKIE_INSECURE",
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
     },
@@ -580,17 +1079,19 @@
       "x-editable": false,
       "x-env": "PLANETGEN_API_BASE_URL",
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
     },
     "base_url": {
       "default": "http://localhost/",
-      "description": "The base URL this deployment is served from. Not yet read by any page; reserved for absolute links that a request alone can't give.",
+      "description": "The address this site is reached at, as an absolute http or https address with a trailing slash. Canonical links, link previews, the sitemap and emailed links are built from it, never from the request's Host header.",
       "title": "Base Url",
       "type": "string",
       "x-category": "site",
       "x-editable": true,
       "x-min_role": "owner",
+      "x-multiline": false,
       "x-restart": false,
       "x-secret": false
     },
@@ -603,6 +1104,7 @@
       "x-category": "file",
       "x-editable": false,
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": false,
       "x-secret": false
     },
@@ -615,6 +1117,7 @@
       "x-editable": false,
       "x-env": "PLANETGEN_CONTROL_DATABASE",
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
     },
@@ -627,8 +1130,18 @@
       "x-editable": false,
       "x-env": "PLANETGEN_DEBUG",
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
+    },
+    "icons": {
+      "$ref": "#/$defs/Icons",
+      "default": {
+        "apple_touch_icon": "",
+        "favicon_png": "",
+        "favicon_svg": "",
+        "manifest_enabled": false
+      }
     },
     "jobs": {
       "$ref": "#/$defs/Jobs",
@@ -647,6 +1160,7 @@
       "x-editable": false,
       "x-env": "PLANETGEN_LOG_DIR",
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
     },
@@ -659,6 +1173,7 @@
       "x-editable": false,
       "x-env": "PLANETGEN_LOG_FILE",
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
     },
@@ -675,6 +1190,7 @@
       "x-category": "logging",
       "x-editable": false,
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
     },
@@ -690,6 +1206,7 @@
       "x-editable": true,
       "x-env": "PLANETGEN_LOGIN_ALLOWLIST",
       "x-min_role": "owner",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": false
     },
@@ -703,6 +1220,20 @@
         "port": 3306,
         "statement_timeout_seconds": 10.0,
         "user": "planetgen"
+      }
+    },
+    "og": {
+      "$ref": "#/$defs/OpenGraph",
+      "default": {
+        "card_cache_dir": "",
+        "card_cache_mb": 100.0,
+        "default_image": "",
+        "enabled": true,
+        "generated_cards": false,
+        "image_alt": "",
+        "site_name": "",
+        "twitter_card": "summary_large_image",
+        "twitter_site": ""
       }
     },
     "page_cache": {
@@ -755,13 +1286,40 @@
       "x-editable": false,
       "x-env": "PLANETGEN_SECRET_KEY",
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": true,
       "x-secret": true
+    },
+    "seo": {
+      "$ref": "#/$defs/Seo",
+      "default": {
+        "block_ai_crawlers": false,
+        "description": "",
+        "detail_pages": "noindex",
+        "humans_txt": "",
+        "indexing": "top_pages",
+        "json_ld": true,
+        "keywords": [],
+        "privacy_note": "",
+        "robots_extra": "",
+        "robots_override": "",
+        "security_txt": "",
+        "sitemap_cache_hours": 24,
+        "sitemap_enabled": true,
+        "sitemap_max_urls": 50000
+      }
     },
     "settings": {
       "$ref": "#/$defs/SettingsFile",
       "default": {
         "backups_kept": 20
+      }
+    },
+    "site": {
+      "$ref": "#/$defs/Site",
+      "default": {
+        "language": "en",
+        "tagline": ""
       }
     },
     "site_name": {
@@ -773,6 +1331,7 @@
       "x-category": "site",
       "x-editable": true,
       "x-min_role": "admin",
+      "x-multiline": false,
       "x-restart": false,
       "x-secret": false
     },
@@ -781,6 +1340,15 @@
       "default": {
         "dir": "",
         "max_mb": 200.0
+      }
+    },
+    "web": {
+      "$ref": "#/$defs/Web",
+      "default": {
+        "assets_dir": "",
+        "theme_color_dark": "#14151e",
+        "theme_color_light": "#f6f7fb",
+        "title_template": "{title} - {site_name}"
       }
     },
     "wiki": {

@@ -4369,3 +4369,20 @@ p.hint a {
   text-align: left;
   vertical-align: top;
 }
+
+.settings-image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border, #8884);
+  border-radius: 4px;
+  background: var(--surface, transparent);
+}
+
+.pre-line {
+  white-space: pre-line;
+}
+
+.tagline {
+  margin: 0 0 1rem;
+  color: var(--text-muted, inherit);
+}

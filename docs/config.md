@@ -182,6 +182,62 @@ may not set are errors; a file from a newer release is refused), shows the revie
 diff, and saves it as `config.import` with a backup first. It sets the options the
 file names and leaves every other option as it is; one bad value changes nothing.
 
+### Web, link previews and search engines
+
+The `site`, `web`, `icons`, `seo` and `og` sections (ADM.44) set what the pages tell
+browsers, search engines and chat programs. All of them apply to the next page view
+with no restart; the settings page shows them under Site, Web pages, Icons, Search
+engines and Link previews. They are all read at request time by `planetgen.web.seo`.
+
+- **The address.** Canonical links, `og:url`, `og:image`, the sitemap and the robots.txt
+  `Sitemap:` line are built from `base_url` (the Owner changes it), never from the
+  request's Host header. While it is still `http://localhost/` none of those absolute
+  addresses is written and `/sitemap.xml` is a 404.
+- **The title and tab.** `web.title_template` (`{title} - {site_name}`), `site.language`
+  (the `lang` of every page and the Open Graph locale), `site.tagline` (under the home
+  page heading, and the description of pages that give none), the theme colours.
+- **What may be indexed.** `seo.indexing` is `off` (robots.txt disallows `/`, every page
+  says `noindex`), `top_pages` (the home page, the class, species, polity and galaxy
+  pages and the lists) or `all` (also the system, sector and phenomenon pages);
+  `seo.detail_pages = index` does the same for the generated pages alone. Millions of
+  generated pages look like scaled content to a search engine, so they stay out by
+  default. The data and tool routes (search, navigation, the Galaxy Map's tiles, the
+  `/scene` and `/table` data) answer `X-Robots-Tag: noindex` and are disallowed in
+  robots.txt; the admin, login and account pages say `noindex,nofollow`. A page that has
+  a query (`?page=2`, a filter) is not indexed but its links are followed, and its
+  canonical link drops tracking and sort parameters. A page the code has not classified
+  is treated as a tool route, and a test fails until it is classified on purpose
+  (`planetgen.web.seo`).
+- **robots.txt.** Generated from the routes: every tool and private route is disallowed
+  with `*` wildcards, `block_ai_crawlers` adds the AI crawlers, `robots_extra` is
+  appended and `robots_override` replaces the whole file. A line that is not a
+  directive is refused where it is typed; an override that disallows `/` while
+  `indexing` is not `off` is allowed but warned about, since it hides the site.
+- **Sitemaps.** `/sitemap.xml` is an index of `/sitemap-pages.xml` and, when the
+  generated pages may be indexed, `/sitemap-systems-<n>.xml` and
+  `/sitemap-sectors-<n>.xml` of at most `seo.sitemap_max_urls` addresses each, built
+  from the database 500 at a time and kept for `seo.sitemap_cache_hours`. Phenomena are
+  not listed. The number of files comes from a count that may be an estimate, so the
+  last may be empty.
+- **Other files.** `/.well-known/security.txt` and `/humans.txt` serve the text in
+  `seo.security_txt` and `seo.humans_txt` (404 while empty); `/site.webmanifest` is served
+  while `icons.manifest_enabled`; `seo.privacy_note` is shown on the account page.
+- **Link previews.** `og.enabled` adds Open Graph and Twitter tags to the public pages
+  (never the admin, login or account ones). The picture is `og.default_image`, else the
+  built-in 1200 by 630 one. `og.generated_cards` is for a per-system and per-sector card:
+  with it on, `/og/<system|sector>/<id>.png` draws the card with a renderer installed
+  by `planetgen.web.seo_pages.register_card_renderer` (the drawer is VIEW.3; with none,
+  every page uses the default picture), caches it in `og.card_cache_dir` (the state
+  folder's `og-cards` by default) up to `og.card_cache_mb`, and falls back to the default
+  picture when it can't draw.
+- **Icons and pictures.** The icon options hold the name of an uploaded file, not a
+  path: upload on the Images page (`/admin/settings/images`, linked from the settings
+  page). A picture is checked on upload (PNG, JPEG, ICO or a sandboxed SVG; size and
+  squareness where they matter; at most 1 MiB), stored as `<16 hex digits of its
+  SHA-256>.<ext>` in `web.assets_dir` (the state folder's `assets` by default) and served
+  at `/site-assets/<name>` for a year (its name is its content). Uploading and removing
+  save the setting through the same writer, so they are backed up and audited.
+
 ## Options
 
 The table is generated from the settings model (`src/planetgen/util/settings.py`, ADM.42); change an option there and run `python3 -m planetgen.cli.config docs`. Next to each option: its type, default, whether a change applies at once or after a restart, who may change it from the web ("command line only" means on the server only) and the environment variable that overrides it.
@@ -192,13 +248,46 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 |---|---|---|---|---|---|---|
 | `config_version` | whole number | 1 | at once | command line only | none | The settings file format version; a file without one is version 1. |
 | `site_name` | text | planetGen | at once | any admin | none | Display name for this deployment, shown in the header, the home page heading, every page title and the footer. |
-| `base_url` | text | http://localhost/ | at once | the Owner | none | The base URL this deployment is served from. Not yet read by any page; reserved for absolute links that a request alone can't give. |
+| `base_url` | text | http://localhost/ | at once | the Owner | none | The address this site is reached at, as an absolute http or https address with a trailing slash. Canonical links, link previews, the sitemap and emailed links are built from it, never from the request's Host header. |
 | `api_base_url` | text | http://127.0.0.1/api | after a restart | command line only | `PLANETGEN_API_BASE_URL` | Base URL of the Flask API's /api mount point, used by web/lib/apiclient.py only outside the Flask app. |
 | `debug` | true or false | false | after a restart | command line only | `PLANETGEN_DEBUG` | Write a verbose debug log to log_file: every decision the generator makes, every random roll, every SQL statement and request. The log grows fast. |
 | `log_file` | text | /var/log/planetgen.log | after a restart | command line only | `PLANETGEN_LOG_FILE` | Where the debug log goes. |
 | `log_dir` | text | empty | after a restart | command line only | `PLANETGEN_LOG_DIR` | The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS. |
 | `log_rotation` | "auto" or "system" or "app" | auto | after a restart | command line only | none | How the activity log is rotated: system (logrotate or newsyslog), app (the program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else app). |
 | `settings.backups_kept` | whole number (backups) | 20 | at once | any admin | none | How many backup archives are kept. One is made just before every settings save, restore or import replaces the file, and by Back up now; the oldest is deleted once there are more than this, but never the newest archive that holds every part. |
+| `site.tagline` | text | empty | at once | any admin | none | A short line shown under the home page's heading and used as the description of pages that give none of their own. |
+| `site.language` | text | en | at once | any admin | none | The pages' language as a code (en, de, en-GB): the `lang` of every page and the Open Graph locale. |
+| `web.title_template` | text | {title} - {site_name} | at once | any admin | none | How a page's title is written in the browser tab and in search results; {title} is the page's own title and {site_name} the site name. |
+| `web.theme_color_light` | text | #f6f7fb | at once | any admin | none | The browser's toolbar colour on phones for the light theme, as #rrggbb. |
+| `web.theme_color_dark` | text | #14151e | at once | any admin | none | The same for the dark theme. |
+| `web.assets_dir` | text | empty | at once | command line only | `PLANETGEN_ASSETS_DIR` | Where uploaded icons and images are kept; empty means the assets folder in the state folder. |
+| `icons.favicon_svg` | text | empty | at once | any admin | none | The site icon as an uploaded SVG; empty uses the built-in one. Set it by uploading on the Images page. |
+| `icons.favicon_png` | text | empty | at once | any admin | none | A PNG or ICO icon for browsers that do not take an SVG; empty offers none. Set it by uploading on the Images page. |
+| `icons.apple_touch_icon` | text | empty | at once | any admin | none | The 180 by 180 PNG iPhones and iPads use for a home-screen bookmark. Set it by uploading on the Images page. |
+| `icons.manifest_enabled` | true or false | false | at once | any admin | none | Serve /site.webmanifest, which names the site, its icon and its theme colour for browsers that can install it. |
+| `seo.indexing` | "off" or "top_pages" or "all" | top_pages | at once | any admin | none | Whether search engines may index the site: off (robots.txt disallows everything and every page says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the system, sector and phenomenon pages). |
+| `seo.detail_pages` | "noindex" or "index" | noindex | at once | any admin | none | Whether the generated system, sector and phenomenon pages may be indexed when indexing is top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by default; a small galaxy can switch this to index. |
+| `seo.description` | text | empty | at once | any admin | none | The description search engines show for pages that give none of their own (about 155 characters are shown); empty uses the tagline. |
+| `seo.keywords` | list of text | empty list | at once | any admin | none | Keywords for the keywords meta tag. Google has ignored it since 2009; some smaller engines still read it. |
+| `seo.json_ld` | true or false | true | at once | any admin | none | Add a WebSite block (schema.org) to the home page. |
+| `seo.robots_extra` | text | empty | at once | any admin | none | Lines added to the end of the generated robots.txt. |
+| `seo.robots_override` | text | empty | at once | any admin | none | Replaces the generated robots.txt entirely when not empty. A mistake here can hide the whole site from search engines. |
+| `seo.block_ai_crawlers` | true or false | false | at once | any admin | none | Disallow the crawlers that collect text to train AI models (GPTBot, ClaudeBot, CCBot, Google-Extended, Applebot-Extended) in robots.txt. |
+| `seo.sitemap_enabled` | true or false | true | at once | any admin | none | Serve /sitemap.xml and list it in robots.txt. |
+| `seo.sitemap_max_urls` | whole number (addresses) | 50000 | at once | any admin | none | Most addresses in one sitemap file (the limit is 50,000). |
+| `seo.sitemap_cache_hours` | whole number (hours) | 24 | at once | any admin | none | How long a built sitemap is reused. |
+| `seo.security_txt` | text | empty | at once | any admin | none | The text of /.well-known/security.txt (RFC 9116 needs a Contact and an Expires line); empty serves none. |
+| `seo.humans_txt` | text | empty | at once | any admin | none | The text of /humans.txt; empty serves none. |
+| `seo.privacy_note` | text | empty | at once | any admin | none | A short note shown on the account page about what the site keeps. |
+| `og.enabled` | true or false | true | at once | any admin | none | Add Open Graph and Twitter tags to the public pages, so a link shows a title, a description and a picture when shared. |
+| `og.site_name` | text | empty | at once | any admin | none | The site name in link previews; empty uses the site name. |
+| `og.image_alt` | text | empty | at once | any admin | none | A description of the default preview picture for people who cannot see it. |
+| `og.default_image` | text | empty | at once | any admin | none | The picture link previews show (a PNG or JPEG about 1200 by 630); empty uses the built-in one. Set it by uploading on the Images page. |
+| `og.twitter_card` | "summary" or "summary_large_image" | summary_large_image | at once | any admin | none | How X (Twitter) draws a preview: a large picture or a small one. |
+| `og.twitter_site` | text | empty | at once | any admin | none | The site's X (Twitter) account, as @name; empty names none. |
+| `og.generated_cards` | true or false | false | at once | any admin | none | Draw a preview picture per system and sector instead of one for the whole site. Off until a card drawer is installed (VIEW.3); every page then uses the default picture. |
+| `og.card_cache_mb` | number (MB) | 100 | at once | any admin | none | How much disk the drawn preview pictures may use. |
+| `og.card_cache_dir` | text | empty | at once | command line only | none | Where drawn preview pictures are cached; empty means the state folder. |
 | `mysql.host` | text | 127.0.0.1 | after a restart | command line only | `PLANETGEN_MYSQL_HOST` | The MySQL or MariaDB server's host name or address. |
 | `mysql.port` | whole number | 3306 | after a restart | command line only | `PLANETGEN_MYSQL_PORT` | The server's port. |
 | `mysql.user` | text | planetgen | after a restart | command line only | `PLANETGEN_MYSQL_USER` | The account every entry point connects with; give it whatever grants the most demanding caller needs. |
