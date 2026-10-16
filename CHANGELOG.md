@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1422] - 2026-10-16
+
+**Headline:** The galactic-centre design note now records that no nuclear-cluster object is built.
+
+### Changed
+- The Sgr A* sector keeps its black-hole nucleus and the ordinary fill; the note says why and what to do if the real centre is ever wanted (GEN.155 closed with the approved default).
+
+TODO items resolved: GEN.155 / Added: none
+
 ## [8.0.1421] - 2026-10-16
 
 **Headline:** Every example plist, XML and systemd unit file in the repository is checked by a test, so a malformed one cannot ship unnoticed.
