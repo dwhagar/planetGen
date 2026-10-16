@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1523] - 2026-10-16
+
+**Headline:** The to-do list retires the kind factors in the sector profile and the planet cull by metallicity (GEN.236).
+
+### Changed
+
+- Retired GEN.236 (#1824), cleared it as a prerequisite, added a ledger row and a build note on GEN.237, GEN.238 and GEN.240 (the profile now carries kind factors; no migration).
+
+TODO items resolved: GEN.236 / Added: none
+
 ## [8.0.1522] - 2026-10-16
 
 **Headline:** A metal-poor star's disk makes far fewer planets, and the sector profile scales each rare kind by the place it is in.
