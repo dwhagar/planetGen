@@ -14,13 +14,13 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.133 |
-| MAP | MAP.225 |
+| MAP | MAP.234 |
 | NAV | NAV.62 |
 | GEN | GEN.360 |
 | PERF | PERF.111 |
 | DB | DB.65 |
 | API | API.31 |
-| ADM | ADM.96 |
+| ADM | ADM.97 |
 | SEC | SEC.33 |
 | TEST | TEST.187 |
 | USR | USR.31 |
@@ -471,7 +471,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.80 | Regenerate a sector or a region keeping chosen aspects: locked objects, positions, names | none | open |
 | ADM.81 | Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue | none | open |
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons | none | open |
-| ADM.83 | Settings writer: validate, write and back up the settings overlay, with an audit row per change | none | open |
+| ADM.83 | Settings writer: validate, write and back up the user's config.json, with an audit row per change | none | open |
 | ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | open |
 | ADM.85 | Settings backups, restore, import and export on the settings page | none | open |
 | ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | open |
@@ -484,6 +484,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | none | open |
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | none | open |
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
+| ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -1219,6 +1220,15 @@ Parents marked "new parent" had no old number of their own.
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | open |
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | open |
+| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | open |
+| MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | open |
+| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | open |
+| MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | open |
+| MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | open |
+| MAP.230 | Names of stars, systems and sectors on the Galaxy Map | none | open |
+| MAP.231 | The Sector Map and the System Map use the label engine | none | open |
+| MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | none | open |
+| MAP.233 | Names for nebulae on the Galaxy Map | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

@@ -47,19 +47,12 @@ Field metadata goes in `json_schema_extra` under `x-` keys, declared through one
 | `x-restart` | change applies only after a restart |
 | `x-secret` | never sent to the browser or logged; redacted in export and audit |
 | `x-category` | form section |
-| `x-editable` | `false`: file-only, shown read-only |
+| `x-editable` | `false`: command line only, shown read-only |
 | `x-min_role` | `admin` or `owner`: who may save it |
 | `x-env` | environment variable that overrides it; field shown disabled |
 | `x-widget` | optional override (`textarea`, `color`, `file`) |
 
-**The permissions problem.** `docs/config.md` set `config.json` to `root:<apache group>`, mode 640 (the checkout has belonged to the web user since 2026-10-16, which removes this obstacle): the web process read it but could not write it, and an atomic replace also needs write access to the directory. ADM.43 cannot save as written. Two files, one model:
-
-| File | Owner and mode | Holds |
-|---|---|---|
-| `config.json` | root, group read, 640 | database, control database, `secret_key`, the host-level tier |
-| `settings.json` | web user, 0600, in `/var/lib/planetGen` or the platform equivalent (next to `jobs.dir`) | everything the page may change |
-
-Load order, lowest to highest: model default, `config.json`, `settings.json`, `PLANETGEN_*` environment, explicit argument. A key in the wrong file (a database key in `settings.json`) is an error. Making `config.json` web-writable instead would give any web-process compromise the database password. The installers and `set-permissions.sh` must create the settings folder for the web user, as `examples/apache/create-cache-dir.sh` does for the cache and jobs folders.
+**One file (Boss, 2026-10-16, 2:25 and 2:26 PM EDT).** All program configuration lives in one file, the user's own `config.json`: the user copies the shipped `config.json.example` to `config.json` once and edits it (the deployment instructions, unchanged), and nothing else is a settings file. An earlier draft of this note kept a second file, `settings.json`, because the web process could not write a root-owned `config.json`; that obstacle is gone, because `set-permissions.sh` makes the web user own `config.json` (mode 640) and the checkout belongs to that account since 2026-10-16. The load order, lowest to highest, is: model default, `config.json`, `PLANETGEN_*` environment, explicit argument. The settings page and the command line write only that copy, atomically (a temporary file in the same folder, fsync, rename, owner and mode kept), never the example; `update.sh` and the installers never overwrite or recreate it. ADM.96 removes the overlay layer that ADM.42 built.
 
 **Three tiers.** Some options are code execution or request-forgery paths if an admin account is stolen: `jobs.python` is the interpreter the web app launches, so editing it from the browser is remote code execution as the web user.
 
@@ -67,7 +60,7 @@ Load order, lowest to highest: model default, `config.json`, `settings.json`, `P
 |---|---|---|
 | admin | site text, SEO, Open Graph, icons, `limits`, `ratelimit` numbers, tile cache, `jobs.keep`, page cache | any admin |
 | Owner | SMTP, `base_url`, wiki URLs and credentials | the Owner, after re-entering the password |
-| read-only | `mysql.*`, `control_database`, `jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix.*`, `admin_cookie_insecure`, `redis.url`, `api_base_url` | nobody; the page shows the value and "edit config.json on the server" |
+| read-only | `mysql.*`, `control_database`, `jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix.*`, `admin_cookie_insecure`, `redis.url`, `api_base_url` | nobody; the page shows the value and "change it on the command line" |
 
 This enforces "everything except the database" by file permission, not only by hiding fields.
 
@@ -102,7 +95,7 @@ The code already splits this way by accident (from the `load_config` call sites,
 
 ### A5. Secrets
 
-Secrets in scope: SMTP password, wiki token and password, `secret_key`, MySQL password. SMTP and wiki secrets go in `settings.json`; `secret_key` and the MySQL password stay in `config.json`. An environment variable is a supported override (`x-env`), not storage (mod_wsgi does not pass Apache `SetEnv` into `os.environ`). Encrypting in the control database is not worth it: the key would sit on the same host where the web user reads it, so it only protects a leaked dump, and a file outside the database is already absent from dumps. Secrets are never returned to the browser (the form shows "set" and takes a replacement), never written to the audit or debug log (record `changed`), and redacted in export and in `config check`.
+Secrets in scope: SMTP password, wiki token and password, `secret_key`, MySQL password. Every secret is stored in the same `config.json`. An environment variable is a supported override (`x-env`), not storage (mod_wsgi does not pass Apache `SetEnv` into `os.environ`). Encrypting in the control database is not worth it: the key would sit on the same host where the web user reads it, so it only protects a leaked dump, and a file outside the database is already absent from dumps. Secrets are never returned to the browser (the form shows "set" and takes a replacement), never written to the audit or debug log, and shown in a diff, an audit row, an export and `config check` only as "(changed)" or "set". An archive of the file (ADM.87) holds the secrets, so it is an owner-only file that only the Owner may download.
 
 ### A6. Saving, backup, rollback, versioning, audit, import and export
 
@@ -110,7 +103,7 @@ Save pipeline [C: 20 saves in 0.6 s with fsyncs, mode 0640 kept, backups pruned]
 
 1. Parse the form to a nested dict, merge it onto the current web-layer values, validate the whole model; if invalid, re-render and change nothing.
 2. Show a diff (secrets as `changed`); require confirmation for restart-flagged and Owner-tier fields.
-3. Copy the current file to `settings.json.bak-<UTC stamp>` and keep the newest 10.
+3. Take a settings backup archive of the current `config.json` through ADM.87 (retention `settings.backups_kept`).
 4. Write a temp file in the same directory, copy mode and owner, `fsync`, `os.replace` (atomic on POSIX), `fsync` the directory.
 5. Write audit rows and bump the cache.
 
@@ -273,7 +266,7 @@ Boss's expiry list is a fixed enum in the model. Defaults for the open questions
 - Send from an RQ job with a small retry, so a slow server holds no thread and timing does not reveal whether an account exists.
 - Settings: `smtp.host`, `port` (587), `security`, `username`, `password` (secret), `from_address`, `from_name`, `timeout` (10). "Send test email" goes to the signed-in admin's address and shows the SMTP error text, never the password.
 - **Owner only, with recent re-authentication, for SMTP, `base_url` and the From address.** The reset link is built from `base_url` and sent through this server; whoever sets either can read the Owner's reset email and take over the Owner account. This is the one place where admin power must not equal Owner power.
-- The password lives in `settings.json` (A5). Deliverability (SPF, DKIM, DMARC) is the SMTP provider's job and the docs say so.
+- The password lives in `config.json` (A5), replaceable but never read back. Deliverability (SPF, DKIM, DMARC) is the SMTP provider's job and the docs say so.
 
 ### B10. Password setting, reset and Owner flows (USR.5, USR.6)
 
