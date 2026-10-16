@@ -907,7 +907,7 @@ def _bright_row(position_pc, luminosity_sol, edge_pc):
 
     shell, band, wedge = sector_address_at(position_pc, edge_pc)
     return (shell, band, wedge, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
-            15000.0, luminosity_sol * SOLAR_LUMINOSITY_W, 0.05, 0.1, 8.0, None, 1)
+            15000.0, luminosity_sol * SOLAR_LUMINOSITY_W, 0.05, 0.1, 8.0, None, 1, None)
 
 
 @pytest.mark.parametrize("outline, ranges_per_ring", [(False, False), (True, False), (True, True)])
@@ -1370,8 +1370,8 @@ def test_galaxy_bright_stars_in_one_cell(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [row + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42),
-                                           row + (600 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)])
+            _db.insert_bright_stars(conn, [row + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None),
+                                           row + (600 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)])
     finally:
         conn.close()
     items = client.get("/api/galaxy/bright-stars?shell=3&band=0&wedge=1").get_json()["items"]
@@ -1687,7 +1687,7 @@ def test_galaxy_changes_is_busy_when_a_run_changes_too_much_at_once(client, mysq
     conn = _db.get_connection(mysql_config)
     try:
         _db.insert_bright_stars(conn, [(1, 0, 0, 1.0, 2.0, 3.0, "old", "G2", "V", 2e30, 7e5, 5772.0, 4e26,
-                                        4.0, 10.0, 1.0, 9.0, 123)])
+                                        4.0, 10.0, 1.0, 9.0, 123, None)])
         conn.commit()
     finally:
         conn.close()
@@ -2667,7 +2667,7 @@ def test_galaxy_uncharted_sector_lists_what_the_scatters_left_in_a_cell(client, 
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [star + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)])
+            _db.insert_bright_stars(conn, [star + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)])
             for kind, subtype, built in (("black-hole", "stellar", False), ("planetary-nebula", None, False),
                                          ("neutron-star", None, True)):
                 conn.execute("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
@@ -2693,7 +2693,7 @@ def _scatter_stars(mysql_config, luminosities=(800, 600, 900)):
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [base + (lum * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42 + n)
+            _db.insert_bright_stars(conn, [base + (lum * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42 + n, None)
                                            for n, lum in enumerate(luminosities)])
         return [row["id"] for row in conn.execute("SELECT id FROM bright_stars ORDER BY id").fetchall()]
     finally:

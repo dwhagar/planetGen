@@ -283,8 +283,10 @@ class StarSystem:
             primary_initial_mass_sol = self.primary_star.initial_mass_sol
             if primary_initial_mass_sol is None:
                 primary_initial_mass_sol = self.primary_star.mass / constants.SOLAR_MASS_TO_KG
+            # GEN.158: born from the same gas, the pair shares one [Fe/H].
             star_kwargs = {"initial_mass_sol": primary_initial_mass_sol * mass_ratio,
-                           "age_gy": self.primary_star.age}
+                           "age_gy": self.primary_star.age,
+                           "metallicity_fe_h": getattr(self.primary_star, "metallicity_fe_h", None)}
             with log.timed_phase("secondary star generation"):
                 # Named properly by assign_names below, once the pair's star words exist.
                 self.secondary_star = Star(self.system_config, name=self.primary_star.name,

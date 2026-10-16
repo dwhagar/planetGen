@@ -129,3 +129,13 @@ test("an object left in an uncharted sector says so and has no page, bookmark or
     assert.ok(spec.fields.some((field) => field[0] === "Status" && /Uncharted/.test(field[1])));
   });
 });
+
+test("a charted star's info panel lists its metallicity when one is stored (GEN.158)", () => {
+  const nav = { active: () => false, actionsFor: () => [] };
+  const star = { name: "Sol", starType: "G2V", temp: "5772 K", metallicity: "−0.40 dex", quadrant: "I", location: "here",
+    endpoint: "system:x", href: "/system/x" };
+  const fields = (entry) => SS.infoSpec(entry, {}, nav).fields;
+  assert.deepEqual(fields(star).find((field) => field[0] === "Metallicity [Fe/H]"), ["Metallicity [Fe/H]", "−0.40 dex"]);
+  // An older row has none: the field is there with no value, which the panel leaves out.
+  assert.ok(!fields({ ...star, metallicity: null }).find((field) => field[0] === "Metallicity [Fe/H]")[1]);
+});

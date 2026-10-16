@@ -856,6 +856,13 @@ def _mass_light(base, map_type, mass_solar, brightest_sol=None):
     return light
 
 
+def _fe_h_text(fe_h):
+    """A star's [Fe/H] for the info panel, e.g. "-0.12 dex" (a true minus sign), or `None` when there is none."""
+    if fe_h is None:
+        return None
+    return f"{fe_h:+.2f} dex".replace("-", "\u2212")
+
+
 def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
     """
     Builds one star's plain-dict scene entry -- `sectorscene.js` draws it as
@@ -878,6 +885,8 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
         # The star's luminosity in suns, for the map's luminosity floor (MAP.123).
         "luminositySol": (star["luminosity_w"] or 0) / SOLAR_LUMINOSITY,
         "temp": star["temp_display"],
+        # The star's [Fe/H] as the info panel shows it (GEN.158), or None for a star saved before it was stored.
+        "metallicity": _fe_h_text(star.get("metallicity_fe_h")),
         "quadrant": system["quadrant"],
         "location": system["location"],
         # `sectorscene.js`'s info panel links here with a plain `<a href>`.

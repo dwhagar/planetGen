@@ -1514,6 +1514,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (95, _column_marker("bright_stars", "metallicity_fe_h")),
     (94, _check_marker("chk_bright_stars_population", "halo")),
     (93, _column_marker("galaxy_shape", "reach_shell_index")),
     (92, _column_marker("galaxy_block_stats", "shell_index")),
@@ -2743,9 +2744,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
             rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg,
             log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j,
-            lethal_event_rate_per_gyr
+            lethal_event_rate_per_gyr, metallicity_fe_h
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?, ?)
+                  ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2766,6 +2767,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             getattr(star, "rotation_period_hours", None),
             *spin.spin_values(star),
             *(getattr(star, name, None) for name in activity.STAR_ACTIVITY_FIELDS),
+            getattr(star, "metallicity_fe_h", None),
         ),
     )
     return cur.lastrowid
@@ -5673,7 +5675,7 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
 BRIGHT_STAR_COLUMNS = (
     "shell_index", "band_index", "wedge_index", "position_x_mpc", "position_y_mpc", "position_z_mpc",
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
-    "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed",
+    "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
 )
 """tuple: The `bright_stars` columns a scatter writes, in the order
 `insert_bright_stars` expects each row's values."""
