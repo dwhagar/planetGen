@@ -5151,6 +5151,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Quality (2026-10-15, #1697): the test_db_check column-name case fix
   (upper-case information_schema names) is merged; the RESTRICT drift
   itself is still open.
+  Seen again (Quality, 2026-10-15): the six DB.33 tests failed again in
+  the `changed` run, same cause (fails on main).
   Prerequisites: none.
 
 - [ ] **DB.34 Cell key and covering index on every table that holds a position, in the shared 0093 migration**
@@ -6226,6 +6228,9 @@ clears each one.
   Seen again (Core 1, 2026-10-15): failed once in the browser group
   under load (2 workers, load 12.7, parallel with other suites), passed
   alone in 1.77 s; not seen on main by Core.
+  Third sighting (Quality, 2026-10-15, 7:13 PM EDT `changed` run):
+  #course-heading count 0 once under load (load 9.2), passed alone in
+  1.3 s.
   Prerequisites: none.
 
 - [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
@@ -6639,7 +6644,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   from the admin page on a fresh and an existing install, update.sh sets
   up the state directory, and an unwritable directory says so. Owner:
   Interface (2026-10-15). Priority bug.
+  Root cause (Interface, 2026-10-15/16, Boss's live server error): the
+  flag file sat in the root-owned install root, so the web user could
+  not write it. That also made the warm_map auto-off fail silently, so
+  the Galaxy Map was never switched back on after a warm. The fix puts
+  the flag in /var/lib/planetGen/state and makes every failure to read
+  or write it loud.
   Prerequisites: none. Related: OPS.41, UX.112.
+
+- [ ] **OPS.52 Everything under the planetGen install is owned by www-data:www-data, and the example Apache2 config restricts directories**
+  Boss (2026-10-16, 12:00 AM EDT): make everything under planetgen owned
+  by www-data:www-data, and add directory restrictions for security to
+  the example apache2 config. Boss added: install.sh must also do the
+  initial setup correctly. Done: install.sh (fresh install) and
+  update.sh (shared code in deploy-common.sh) create and keep the whole
+  install tree and /var/lib/planetGen/state owned by www-data:www-data
+  from the start; a test shows a fresh install and an updated one end
+  with the same ownership; the example Apache2 config denies everything
+  except the WSGI app and the static assets, allows no directory listing
+  and no .htaccess overrides; update.sh never edits the live vhost or
+  Redis config (it warns, as before). Owner: Quality, starting after
+  Interface's maintenance-state-folder PR (OPS.51) merges, since both
+  touch update.sh.
+  Prerequisites: OPS.51. Related: OPS.41, OPS.35.
 
 ## DOC: Documentation
 
