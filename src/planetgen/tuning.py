@@ -3364,3 +3364,9 @@ SPECIES_EQUIPMENT_MIN_TECH = (0.0, 2.0, 2.5, 3.0, 4.0)
 """tuple: The least tech level (0 to 7) a species needs to make the kit of each equipment tier
 (`habitability_world.EQUIPMENT_NAMES`: ideal, breathing mask, mask with scrubber, sealed suit, full life
 support with radiation hardening), for the "could live there with equipment" list. A planetGen default."""
+
+ORBIT_UPDATE_ROW_CEILING = 10_000_000
+"""int: The most rows one orbital-update run moves (PERF.103), counted across every table it moves. When more rows
+are due, the run moves this many (the oldest due of each table first, a share of it per table by how many are due),
+warns with the backlog and leaves the rest due for the next night. 0 moves everything that is due, however many.
+`planetgen.cli.orbits --row-ceiling` sets it for one run. A planetGen default."""

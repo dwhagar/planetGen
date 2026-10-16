@@ -190,6 +190,8 @@ from one nebula straight into another counts as leaving one and entering
 the other. Hill-radius warnings and collisions come with GEN.109 and
 GEN.110.
 
+**A ceiling on a night's work (PERF.103).** A run moves at most `tuning.ORBIT_UPDATE_ROW_CEILING` rows (10,000,000; `--row-ceiling N` for one run, 0 for no ceiling), counted across every table it moves. It first counts what is due in each table (`store.RowBudget.plan`); when that is no more than the ceiling the run is as before. When it is more, each table gets a limit: a floor so a small table is never starved (a quarter of the ceiling shared out equally), and the rest in proportion to what is left due in each table, so the limits add up to at most the ceiling. A table moves its oldest-due rows up to its limit; the rest keep their epoch and stay due, and are first in line the next night because every step orders by `next_update_due`. A deferred row that had no epoch yet gets one first, so no time is lost. The run ends with a warning on stderr and in the log naming the backlog and the tables it sits in, and `--row-ceiling` can be raised if it keeps growing; nothing is skipped silently.
+
 **Point-mass tables**: each sector stores a small table of its masses
 (id, position, mass, velocity; about 128 bytes a row), rebuilt when a
 sector is generated, when something moves in or out, and when something
