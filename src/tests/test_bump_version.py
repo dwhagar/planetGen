@@ -8,6 +8,8 @@ lives, so nothing here touches the real checkout's files.
 """
 
 import importlib.util
+import io
+import json
 import os
 import shutil
 import subprocess
@@ -331,3 +333,114 @@ def test_merge_bodies_keeps_the_newest_headline():
     assert merged == "**Headline:** New one.\n\n### Added\n- New.\n- Old."
     assert bump_version.merge_bodies("### Added\n- New.\n", "\n**Headline:** Old one.\n### Added\n- Old.\n") \
         .startswith("**Headline:** Old one.\n\n### Added")
+
+
+# -- the generator epoch (OPS.56) ----------------------------------------------------------------
+
+GENERATION_NOTE = FIXED_NOTE.rstrip("\n") + "\ngeneration-output: changed\n"
+
+
+def _epochs(root, count, pending=False):
+    os.makedirs(os.path.join(root, bump_version.GOLDEN_DIR), exist_ok=True)
+    entries = [{"epoch": n, "first_release": None, "reason": "r"} for n in range(1, count + 1)]
+    if pending:
+        entries[-1]["pending"] = True
+    with open(os.path.join(root, bump_version.EPOCHS_FILE), "w") as f:
+        json.dump({"epochs": entries}, f, indent=2)
+
+
+def _golden(root, text):
+    with open(os.path.join(root, bump_version.GOLDEN_DIR, "sector.txt"), "w") as f:
+        f.write(text)
+
+
+def _epoch_repo(tmp_path):
+    root = _make_repo(str(tmp_path))
+    _epochs(root, 1)
+    _golden(root, "one")
+    _init_git(root)
+    _git(root, "checkout", "-q", "-b", "feature")
+    return root
+
+
+def _commit(root, note=None):
+    if note:
+        _note(root, "feature.patch.md", note)
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "change")
+
+
+@needs_git
+def test_check_pr_passes_golden_epoch_and_note_line_together(tmp_path):
+    root = _epoch_repo(tmp_path)
+    _golden(root, "two")
+    _epochs(root, 2, pending=True)
+    _commit(root, GENERATION_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+@needs_git
+def test_check_pr_passes_a_pr_that_touches_none_of_them(tmp_path):
+    root = _epoch_repo(tmp_path)
+    _commit(root, FIXED_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+@needs_git
+@pytest.mark.parametrize("golden, epoch, line, missing", [
+    (True, False, False, "epoch bumped"),
+    (True, True, False, "generation-output: changed"),
+    (True, False, True, "epoch bumped"),
+    (False, True, True, "golden files changed"),
+    (False, True, False, "golden files changed"),
+    (False, False, True, "golden files changed"),
+])
+def test_check_pr_rejects_a_partial_epoch_change(tmp_path, golden, epoch, line, missing):
+    root = _epoch_repo(tmp_path)
+    if golden:
+        _golden(root, "two")
+    if epoch:
+        _epochs(root, 2, pending=True)
+    _commit(root, GENERATION_NOTE if line else FIXED_NOTE)
+    problems = bump_version.check_pr(root, "main")
+    assert len(problems) == 1 and "go together" in problems[0] and missing in problems[0], problems
+
+
+@needs_git
+def test_check_pr_rejects_a_jump_of_two_epochs(tmp_path):
+    root = _epoch_repo(tmp_path)
+    _golden(root, "two")
+    _epochs(root, 3, pending=True)
+    _commit(root, GENERATION_NOTE)
+    assert any("by one at most" in p for p in bump_version.check_pr(root, "main"))
+
+
+@needs_git
+def test_the_pr_that_adds_the_counter_is_not_held_to_the_rule(tmp_path):
+    root = _make_repo(str(tmp_path))
+    _init_git(root)
+    _git(root, "checkout", "-q", "-b", "feature")
+    _epochs(root, 1)
+    _golden(root, "one")
+    _commit(root, FIXED_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+def test_stamping_a_generation_note_names_the_release_of_the_pending_epoch(tmp_path):
+    root = _make_repo(str(tmp_path), version="1.2.3")
+    _epochs(root, 2, pending=True)
+    _note(root, "a-fix.patch.md", FIXED_NOTE)
+    _note(root, "b-change.patch.md", GENERATION_NOTE)
+    bump_version.stamp(root, date="2026-02-02", out=io.StringIO())
+    epochs = json.load(open(os.path.join(root, bump_version.EPOCHS_FILE)))["epochs"]
+    assert epochs[1]["first_release"] == "1.4.5" and "pending" not in epochs[1]   # the second note's release
+    assert epochs[0]["first_release"] is None
+
+
+def test_the_real_epoch_file_is_well_formed_and_the_accessor_reads_it():
+    from planetgen.util import generator_epoch
+
+    assert generator_epoch.generator_epoch() == len(generator_epoch.epoch_history()) >= 1
+    assert generator_epoch.first_release(1) is None
+    with pytest.raises(ValueError):
+        generator_epoch.first_release(0)

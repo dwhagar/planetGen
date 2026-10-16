@@ -1,0 +1,9 @@
+{
+  "epochs": [
+    {
+      "epoch": 1,
+      "first_release": null,
+      "reason": "The first epoch: every release up to and including the one that added this counter (OPS.56)."
+    }
+  ]
+}

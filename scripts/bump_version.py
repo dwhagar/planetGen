@@ -48,6 +48,14 @@ for each category added up"):
   `docs/design/todo-number-map.md` only allocates TODO IDs, and `--check-pr`
   still insists that `docs/TODO.md` stays below it.
 
+The generator epoch (OPS.56)
+============================
+`src/tests/golden/epochs.json` holds the generator epoch: an integer that goes up by one in a PR that changes what
+the generator produces, and only then. `--check-pr` enforces all or none of: a change to the golden files (everything
+under `src/tests/golden/` except `epochs.json`), the epoch bumped by exactly one, and a line `generation-output:
+changed` in the PR's note. The bump itself is made by `python -m tests.golden_update --reason "..."`, which leaves
+the new entry pending; stamping the release fills in its `first_release` (see `apply_release`).
+
 Deliberately standard-library only, so it runs anywhere without installing
 the package first.
 """
@@ -55,6 +63,7 @@ the package first.
 from __future__ import annotations
 
 import argparse
+import json
 import datetime
 import os
 import re
@@ -69,6 +78,9 @@ CHANGELOG_FILE = "CHANGELOG.md"
 CHANGES_DIR = "changes"
 TODO_FILE = os.path.join("docs", "TODO.md")
 TODO_MAP_FILE = os.path.join("docs", "design", "todo-number-map.md")
+GOLDEN_DIR = os.path.join("src", "tests", "golden")
+EPOCHS_FILE = os.path.join(GOLDEN_DIR, "epochs.json")
+GENERATION_OUTPUT_RE = re.compile(r"^generation-output: changed[ \t]*$", re.M)
 
 BUMP_LEVELS = ("patch", "minor", "major")
 
@@ -328,8 +340,29 @@ def merge_bodies(new, old):
     return "\n\n".join(([top] if top else []) + parts)
 
 
+def fill_pending_epoch(root, version):
+    """Names `version` as the first release of an epoch that a change bumped and no release has named yet
+    (`pending`); returns whether `epochs.json` changed."""
+    path = os.path.join(root, EPOCHS_FILE)
+    if not os.path.exists(path):
+        return False
+    data = json.loads(_read(root, EPOCHS_FILE))
+    changed = False
+    for entry in data.get("epochs", []):
+        if entry.get("pending"):
+            entry["first_release"] = version
+            del entry["pending"]
+            changed = True
+    if changed:
+        _write(root, EPOCHS_FILE, json.dumps(data, indent=2) + "\n")
+    return changed
+
+
 def apply_release(root, version, date, body):
-    """Writes one release into all three places at once."""
+    """Writes one release into all three places at once (and names the release in `epochs.json` when the note
+    carries a `generation-output: changed` line)."""
+    if GENERATION_OUTPUT_RE.search(body):
+        fill_pending_epoch(root, version)
     text = _read(root, VERSION_FILE)
     _write(root, VERSION_FILE, VERSION_RE.sub(lambda m: f"__version__ = {m.group(1)}{version}{m.group(1)}", text, count=1))
 
@@ -384,7 +417,8 @@ def stamp(root, date=None, dry_run=False, commit=False, out=sys.stdout):
         apply_release(root, version, date, fragment.body)
         os.remove(os.path.join(root, CHANGES_DIR, fragment.filename))
         if commit:
-            _git(root, "add", "-A", "--", VERSION_FILE, README_FILE, CHANGELOG_FILE,
+            epochs = [EPOCHS_FILE] if os.path.exists(os.path.join(root, EPOCHS_FILE)) else []
+            _git(root, "add", "-A", "--", VERSION_FILE, README_FILE, CHANGELOG_FILE, *epochs,
                  f"{CHANGES_DIR}/{fragment.filename}")
             slug = FRAGMENT_RE.match(fragment.filename).group("slug")
             _git(root, "commit", "-q", "-m", f"Release {version} ({slug})")
@@ -392,6 +426,52 @@ def stamp(root, date=None, dry_run=False, commit=False, out=sys.stdout):
 
 
 # -- PR guard ----------------------------------------------------------------
+
+def _epochs_at(root, ref):
+    """The list of epoch entries `epochs.json` holds at `ref`, or None when the file is not there."""
+    try:
+        text = _git(root, "show", f"{ref}:{EPOCHS_FILE.replace(os.sep, '/')}")
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return json.loads(text).get("epochs", [])
+
+
+def check_generator_epoch(root, base, merge_base, added_notes):
+    """
+    The epoch rule (OPS.56): the golden files changed, the epoch was bumped by exactly one and the PR's note says
+    `generation-output: changed` either all happen or none does.
+
+    Returns:
+        list[str]: problems found (empty means the PR is fine or there is no epoch file yet).
+    """
+    after = _epochs_at(root, "HEAD")
+    before = _epochs_at(root, merge_base)
+    if after is None:
+        return []
+    numbers = [entry.get("epoch") for entry in after]
+    if numbers != list(range(1, len(numbers) + 1)):
+        return [f"{EPOCHS_FILE} must list the epochs 1, 2, 3, ... in order, got {numbers}"]
+    if before is None:
+        return []   # the PR that adds the counter
+    bumped_by = len(after) - len(before)
+    golden = _git(root, "diff", "--name-only", merge_base, "HEAD", "--", GOLDEN_DIR.replace(os.sep, "/")).split()
+    golden = [path for path in golden if os.path.basename(path) != "epochs.json"]
+    said = any(GENERATION_OUTPUT_RE.search(_git(root, "show", f"HEAD:{path}")) for path in added_notes)
+    if bumped_by not in (0, 1):
+        return [f"{EPOCHS_FILE} went from epoch {len(before)} to {len(after)}; a PR bumps the epoch by one at most"]
+    changed = {"golden files changed": bool(golden), "epoch bumped": bumped_by == 1,
+               "note says 'generation-output: changed'": said}
+    if len(set(changed.values())) == 1:
+        return []
+    done = [what for what, yes in changed.items() if yes]
+    missing = [what for what, yes in changed.items() if not yes]
+    return [
+        "Golden files, the generator epoch and the note's 'generation-output: changed' line go together or not at "
+        f"all: this PR has {', '.join(done) or 'none of them'} but not {', '.join(missing)}. Change the golden files "
+        'with `python -m tests.golden_update --reason "..."` (it bumps the epoch) and add the line to the note; '
+        "a PR that changes no generated output touches none of them."
+    ]
+
 
 def _versions_at(root, ref):
     def show(path):
@@ -442,6 +522,7 @@ def check_pr(root, base, allow_no_fragment=False):
                     "it to '<short-name>.minor.md' or '.patch.md'; only Boss can approve a "
                     "major release."
                 )
+    problems.extend(check_generator_epoch(root, base, merge_base, added_notes))
     if not added_notes and not allow_no_fragment:
         problems.append(
             f"This PR adds no release note under {CHANGES_DIR}/. Add one "
