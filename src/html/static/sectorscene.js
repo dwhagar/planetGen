@@ -502,6 +502,7 @@ var POINT_FRAGMENT_SHADER = [
   "#include <common>",
   "#include <logdepthbuf_pars_fragment>",
   "uniform float lightBackground;",
+  "uniform float fade;",
   "varying vec3 vColor;",
   "varying float vCore;",
   "varying float vGlow;",
@@ -515,7 +516,7 @@ var POINT_FRAGMENT_SHADER = [
   "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
   "  vec3 lit = mix(vColor, vec3(1.0), 0.6 * vBright * vWhiten);",
   "  vec3 coreColor = mix(lit, vColor * 0.55, lightBackground);",
-  "  gl_FragColor = vec4(mix(vColor, coreColor, core), clamp(core * vBright + halo, 0.0, 1.0));",
+  "  gl_FragColor = vec4(mix(vColor, coreColor, core), clamp(core * vBright + halo, 0.0, 1.0) * fade);",
   "}",
 ].join("\n");
 
@@ -558,6 +559,7 @@ function makePointsOfLight(entries, lightBackground) {
     uniforms: {
       pixelRatio: { value: 1 },
       lightBackground: { value: lightBackground ? 1 : 0 },
+      fade: { value: 1 },
     },
     vertexShader: POINT_VERTEX_SHADER,
     fragmentShader: POINT_FRAGMENT_SHADER,
@@ -736,6 +738,7 @@ export function buildSectorScene(data, options) {
       mesh.visible = sphere.visible;
       group.remove(sphere);
       group.add(mesh);
+      if (faded !== 1) setFade(faded);
       volumeObjects[volumeObjects.indexOf(sphere)] = mesh;
       entryByObject.delete(sphere);
       entryByObject.set(mesh, cloud);
@@ -1023,6 +1026,36 @@ export function buildSectorScene(data, options) {
     return hi > 0 ? [lo, hi] : null;
   }
 
+  // MAP.152: draws the whole scene at `share` (0 to 1) of its strength, for a sector fading
+  // in as the camera comes up to it: every material's own strength (a point's alpha, a cloud's
+  // peak alpha, a glow's strength, a plain material's opacity) is scaled, from the value it was
+  // built with. At 0 the group is not drawn at all.
+  var faded = 1;
+  function setFade(share) {
+    faded = Math.min(1, Math.max(0, share));
+    group.visible = faded > 0;
+    group.traverse(function (object) {
+      var material = object.material;
+      if (!material) return;
+      var base = material.userData.fadeBase || (material.userData.fadeBase = {});
+      if (material.isShaderMaterial) {
+        ["fade", "maxAlpha", "glowStrength"].forEach(function (name) {
+          var uniform = material.uniforms[name];
+          if (!uniform) return;
+          if (base[name] === undefined) base[name] = uniform.value;
+          uniform.value = base[name] * faded;
+        });
+        return;
+      }
+      if (base.opacity === undefined) {
+        base.opacity = material.opacity;
+        base.transparent = material.transparent;
+      }
+      material.opacity = base.opacity * faded;
+      material.transparent = base.transparent || faded < 1;
+    });
+  }
+
   function dispose() {
     disposed = true;
     group.traverse(function (object) {
@@ -1055,6 +1088,8 @@ export function buildSectorScene(data, options) {
     minLuminosity: function () { return minLuminosity; },
     // Whether an entry is left off the map by a hidden kind, class or the floor.
     hides: hides,
+    setFade: setFade,
+    fade: function () { return faded; },
     nebulaMeshCount: function () { return nebulaMeshes; },
     dispose: dispose,
   };

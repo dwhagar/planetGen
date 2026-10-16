@@ -26,7 +26,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import life as planetLife, prevalence, validation
-from planetgen.physics import constants, insolation, magnetism
+from planetgen.physics import constants, insolation, magnetism, metallicity
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -1691,6 +1691,13 @@ class StarSystem:
             return self.system_config.NUM_ORBITS
 
         max_objects = self._estimate_max_objects_from_disk_physics(star)
+        fe_h = getattr(star, "metallicity_fe_h", None)
+        occurrence = 1.0 if fe_h is None else metallicity.planet_occurrence_factor(fe_h)
+        if occurrence < 1.0:
+            # GEN.236: a metal-poor star's disk makes fewer planets than the disk's stars do. The ceiling above is far
+            # over what fits, so the cap is a share of the objects a metal-rich system holds in practice; at and above
+            # `metallicity.floor_fe_h()` nothing changes.
+            max_objects = min(max_objects, math.ceil(tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS * occurrence - 1e-9))
 
         min_objects = 1 if self.system_config.PLANETS is True else 0
         max_objects = max(max_objects, min_objects)

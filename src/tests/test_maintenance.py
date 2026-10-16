@@ -215,25 +215,16 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
     monkeypatch.setattr(maintenance.tempfile, "mkstemp", _denied)
 
-    class _Bar:
-        def __enter__(self):
-            return self
+    class _App:
+        def app_context(self):
+            import contextlib
+            return contextlib.nullcontext()
 
-        def __exit__(self, *exc):
-            return False
-
-        def update(self, **kwargs):
-            pass
-
-    from planetgen.web.app import create_app
-
-    monkeypatch.setattr(warm_map, "create_app", lambda: create_app(_Config))
-    monkeypatch.setattr(warm_map, "_stats", lambda: None)
-    monkeypatch.setattr(warm_map.steps, "Step", lambda *a, **k: _Bar())
+    monkeypatch.setattr(warm_map.warmup, "build_app", lambda config=None: _App())
     monkeypatch.setattr(warm_map, "db_name", lambda: "x")
-    monkeypatch.setattr(warm_map, "warm_opening_view", lambda name: {"tiles": 1, "cached": 0, "seconds": 0.1})
+    monkeypatch.setattr(warm_map.warmup, "run_family_job", lambda db, family, cap=None, config=None: {"line": f"{family}: ok"})
     with pytest.raises(SystemExit) as exit_info:
-        warm_map.main()
+        warm_map.main(["--no-rq"])
     assert exit_info.value.code == 1
     err = capsys.readouterr().err
     assert "still in maintenance mode" in err and "update.sh" in err

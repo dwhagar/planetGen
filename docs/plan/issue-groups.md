@@ -1,6 +1,6 @@
 # Issue groups
 
-Boss (2026-10-15): issues are groups of TODO items, the goals we are working toward. Each row is one GitHub issue and the items it covers. `scripts/build_todo_docs.py` reads this table and links every item to its issues in the tier plan, the TODO tree and the TODO reference; `docs/plan/execution-plan.html` links them too.
+Boss (2026-10-15): issues are groups of TODO items, the goals we are working toward. Each row is one GitHub issue and the items it covers. `scripts/build_todo_docs.py` reads this table and links every item to its issues in the version plan, the TODO tree and the TODO reference; `docs/plan/execution-plan.html` links them too.
 
 Rules:
 
@@ -12,7 +12,8 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#1750](https://github.com/dwhagar/planetGen/issues/1750) | open | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
+| [#1828](https://github.com/dwhagar/planetGen/issues/1828) | open | Slow pages queue their data in Redis and show a progress bar | PERF.105, UX.118 |
+| [#1750](https://github.com/dwhagar/planetGen/issues/1750) | closed | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | closed | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
 | [#1748](https://github.com/dwhagar/planetGen/issues/1748) | closed | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
 | [#1785](https://github.com/dwhagar/planetGen/issues/1785) | open | test_gen_resume forced-scatter test failed once under gate load with no scattered system (TEST.171) | TEST.171 |
@@ -37,8 +38,8 @@ Rules:
 | [#1680](https://github.com/dwhagar/planetGen/issues/1680) | open | Courses that steer around gravity wells and keep-out spheres | NAV.6, NAV.25, NAV.26, NAV.27, NAV.28, NAV.51, NAV.54, NAV.55, NAV.56 |
 | [#1679](https://github.com/dwhagar/planetGen/issues/1679) | open | Saved courses and waypoints (headline of 8.5) | NAV.4, NAV.5, NAV.17, NAV.18, NAV.19, NAV.21, NAV.22, NAV.23, NAV.36, NAV.39, NAV.49, NAV.58, NAV.59 |
 | [#1678](https://github.com/dwhagar/planetGen/issues/1678) | open | Same seed, same data: determinism, fingerprint and generator version | GEN.55, GEN.57, GEN.135, GEN.136, OPS.15, OPS.28, OPS.37, DB.16, TEST.77 |
-| [#1677](https://github.com/dwhagar/planetGen/issues/1677) | open | Later catalogue additions and compact-object details (low priority) | GEN.280, GEN.281, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.244, GEN.245, GEN.246, GEN.298, GEN.255, GEN.256, GEN.257 |
-| [#1676](https://github.com/dwhagar/planetGen/issues/1676) | open | One description layer for habitability, units and every object page | GEN.218, GEN.219, GEN.220, GEN.221, UX.32, UX.105, UX.107, UX.108, UX.109, DOC.45, TEST.155 |
+| [#1677](https://github.com/dwhagar/planetGen/issues/1677) | open | Later catalogue additions and compact-object details (low priority) | GEN.280, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.244, GEN.245, GEN.246, GEN.298, GEN.255, GEN.256, GEN.257 |
+| [#1676](https://github.com/dwhagar/planetGen/issues/1676) | open | One description layer for habitability, units and every object page | GEN.218, GEN.219, GEN.220, GEN.221, UX.32, UX.105, UX.107, UX.108, UX.109, DOC.45, TEST.155, GEN.299, GEN.300 |
 | [#1675](https://github.com/dwhagar/planetGen/issues/1675) | open | Planet classes refactored around the habitability index | GEN.27, GEN.28, GEN.29, GEN.33, GEN.90, GEN.91, GEN.92, GEN.145, GEN.146 |
 | [#1674](https://github.com/dwhagar/planetGen/issues/1674) | open | Fill planning: order, directives, density and sector weeding | GEN.9, GEN.40, GEN.42, GEN.102, GEN.103, GEN.134, GEN.144, GEN.179, GEN.180, GEN.181, PERF.35, PERF.36 |
 | [#1673](https://github.com/dwhagar/planetGen/issues/1673) | open | Neighbour galaxies, satellites, wanderers and intergalactic frame | GEN.157, GEN.238, GEN.239, GEN.248, MAP.145, MAP.207, NAV.57 |
@@ -49,7 +50,7 @@ Rules:
 | [#1668](https://github.com/dwhagar/planetGen/issues/1668) | open | Nearby-object queries by cell key (stage C) | GEN.276, NAV.45, NAV.60, NAV.61, TEST.165, TEST.166, DOC.51 |
 | [#1667](https://github.com/dwhagar/planetGen/issues/1667) | open | Multi-star systems and the scatter member tree (stage M) | GEN.261, GEN.263, GEN.264, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, GEN.130, TEST.162, TEST.164, DOC.50, UX.114 |
 | [#1666](https://github.com/dwhagar/planetGen/issues/1666) | open | Phenomena registry, fill stages and the remaining star types | GEN.250, GEN.252, GEN.253, GEN.247, GEN.249, GEN.258, GEN.259, DOC.49 |
-| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.236, GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
+| [#1665](https://github.com/dwhagar/planetGen/issues/1665) | open | Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set | GEN.240, GEN.231, API.26, API.27, UX.113, DOC.47, DOC.48, TEST.156, TEST.158, TEST.159, TEST.160, TEST.161 |
 | [#1657](https://github.com/dwhagar/planetGen/issues/1657) | closed | GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for min | GEN.232 |
 | [#1656](https://github.com/dwhagar/planetGen/issues/1656) | open | TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel r | TEST.111 |
 | [#1655](https://github.com/dwhagar/planetGen/issues/1655) | open | TEST.138 test_open_map_menus_hold_no_overlap fails under load: [web.galaxy-1280] once, [web.sector-6 | TEST.138 |

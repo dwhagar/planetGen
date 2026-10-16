@@ -131,6 +131,8 @@ class BinaryStarProxy(Star):
 
         self.age = max(self._primary.age, self._secondary.age)
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
+        # Both formed in one cloud: the pair's disk is the primary's (the planet cull and the solids read it).
+        self.metallicity_fe_h = self._primary.metallicity_fe_h
 
         self.stars = [self._primary, self._secondary]
 

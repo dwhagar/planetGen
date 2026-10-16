@@ -56,9 +56,11 @@
 # (restarts it when step 6 just enabled a module) and says so; if Apache
 # isn't running it prints the command instead (OPS.8).
 #
-# After the steps it starts building the Galaxy Map's opening view into the
-# tile cache in the background (`planetgen.cli.warm_map`, MAP.134), so the
-# first visit after the update is fast; the update does not wait for it.
+# After the steps it starts building the site's caches in the background
+# (`planetgen.cli.warm_map`, MAP.134 and PERF.104): the Galaxy Map's opening
+# view, the lists, the sector, system and phenomenon pages and the search, so
+# the first visit after the update is fast. Each part is a job on the admin runs
+# page, and the log has a line for each; the update does not wait for it.
 #
 # Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo

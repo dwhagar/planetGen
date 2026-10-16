@@ -603,7 +603,7 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | Command | What it is for |
 |---|---|
 | `python3 -m planetgen.cli.orbits` | Moves every object that is due along its orbit. |
-| `python3 -m planetgen.cli.warm_map` | Builds the Galaxy Map's opening view ahead of time. |
+| `python3 -m planetgen.cli.warm_map` | Builds the site's caches ahead of the first visit: the Galaxy Map's opening view, the lists, the sector, system and phenomenon pages and the search. |
 | `python3 -m planetgen.cli.worker` | Runs one queue worker. |
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
@@ -622,11 +622,13 @@ python3 -m planetgen.cli.orbits
 
 ### warm_map
 
-Builds the tile cache for the Galaxy Map's opening view so the first visitor after a release does not wait for it. `update.sh` runs it in the background after every update; run it by hand after clearing the tile cache. It prints how many tiles it built, how many were already cached and how long it took, and exits 1 (with a warning) if the view could not be built, which only means the first visit builds it.
+Builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104; design in [cache-warm-up.md](design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache. It has six families, each a job of its own on the Redis queue and so a row on the admin runs page (`/admin/queue`, kind "Cache warm-up") with its state and a result line: `galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `lists` (the first page of every list and its counts), `sectors`, `systems` and `phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `search`. The script waits for a running update to finish, queues the jobs, and prints one line per family: how many it warmed, how many answers it built, how many were already cached and how many the cap left out. It exits 1 and names the family if any failed, could not be queued (no Redis, an update running) or ran past `--timeout`; there is no silent skip. When every family succeeds it ends the sector-switch maintenance (UX.112).
 
 ```bash
-python3 -m planetgen.cli.warm_map
+python3 -m planetgen.cli.warm_map [--only FAMILY ...] [--cap N] [--no-rq] [--timeout SECONDS]
 ```
+
+`--only` warms just those families (repeatable), `--cap` overrides `page_cache.warm_max_objects`, `--no-rq` runs the families in the script one after the other instead of queueing them, and `--timeout` is how long to wait for the queued jobs (default 30 minutes).
 
 ### worker
 

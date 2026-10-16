@@ -2,6 +2,159 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1531] - 2026-10-16
+
+**Headline:** Edit everything (8.6) is planned as 35 items in 5 phases with a design note, and the TODO tree lists the top 5 blockers overall and for each phase.
+
+### Changed
+
+- API.8, API.18 and API.19 are narrowed: the unit finalizer (ADM.82) and the recipe schema (API.28) are built once in 8.6 and used by 8.9.
+- The plan pages link each other by relative links instead of artifact links.
+- `docs/plan/release-roadmap.md`: 8.6 and 8.9 updated, Boss's answers recorded.
+
+### Added
+
+- The breakdown of ADM.57 (edit everything): DB.36 to DB.38, ADM.58 to ADM.82, API.28, GEN.302, MAP.212, TEST.175 to TEST.177 and DOC.54, the design note `docs/design/edit-everything.md`, and the version file `docs/plan/version-8-6-edit-everything.md` in five phases.
+- The TODO tree page lists the top 5 blockers overall and for each phase: the open items that hold up the most other items.
+
+TODO items resolved: none / Added: DB.36, DB.37, DB.38, ADM.58 to ADM.82, API.28, GEN.302, MAP.212, TEST.175, TEST.176, TEST.177, DOC.54
+
+## [8.0.1530] - 2026-10-16
+
+**Headline:** The tiers are now a version map: one version per release from 8.1 to 9.3, each with phases and threads, a progress bar per version, and the new headlines Boss named (8.1 the new generate scatters, 8.6 edit everything).
+
+### Changed
+
+- `docs/plan/phase-*.md` became `docs/plan/version-*.md` (one file per version, with `## Phase N: theme` sections and a table per thread). A blocker is in the same thread (earlier), an earlier phase or an earlier version; the build reports any item that breaks this.
+- `scripts/build_todo_docs.py` builds `docs/plan/version-plan.html` (was the tier plan), with one progress bar per version, and the progress ledger now records the version of each finished item instead of the old phase. The reference, tree and roadmap pages show versions and phases.
+- `docs/plan/release-roadmap.md` is the version map: 8.1 infinite zoom and the new generate scatters, 8.2 accounts, 8.3 the orbital update, 8.4 new worlds, 8.5 courses, 8.6 edit everything, 8.7 console and help, 8.8 the deep sky, 8.9 generate anywhere, 9.0 the view from a planet (proposed), 9.1 the gravity map, 9.2 politics and territories, 9.3 ships and stations; multiple galaxies is a possible future feature and there is no 10.0 headline.
+- Tests cover the version files, the progress per version and the order rule.
+
+### Added
+
+- GEN.301, the headline of 8.1 (the new generate scatters, accurate galactic generation and scattering including the halo), and ADM.57, the headline of 8.6 (edit everything). The breakdown of ADM.57 is filed in the next change.
+
+TODO items resolved: none / Added: GEN.301, ADM.57
+
+## [8.0.1529] - 2026-10-16
+
+**Headline:** On the Galaxy Map a sector's own stars and phenomena fade in as the camera comes up to it, with no click and no change of view.
+
+### Changed
+- In a window of sectors, a charted sector's scene (every star, nebula and body of it) is fetched once the camera has stayed within 1.5 sector edges of its centre for a quarter of a second, fades in as the camera comes nearer, is whole at 1 edge, and is dropped past 3 edges. The sector's block fades out as its scene comes in. Opening the sector (a click, or one more wheel tick) takes the scene over as it is: no second fetch.
+- A window of sectors lets the camera come to half a sector edge from the sector at its middle (it stopped about 1.4 edges out, short of where the scene is whole). One more wheel tick at that distance opens the sector where the camera is, without a flight, and the next goes on in toward a star.
+- A star of the scene that is up can be hovered, picked and opened ("Open system here") once about a third of it shows.
+
+## [8.0.1528] - 2026-10-16
+
+**Headline:** The plan set has a release roadmap from v8.0 to v10.0, proposed for Boss: a headline, the open items, what each release needs and a list of ideas not yet filed.
+
+### Added
+
+- `docs/plan/release-roadmap.html`, built by `scripts/build_todo_docs.py` from `docs/plan/release-roadmap.md` and `docs/TODO.md`. It groups every open item into 8.0, 8.1 (infinite zoom), 8.2 (accounts and email invitations), 8.3 to 8.8, 9.0 to 9.3 and 10.0, with open, ready and finished counts per release, the headline changes it proposes and a "Suggested, not filed" list for each release.
+- Tests that every item is placed once, that no item sits in an earlier release than something it needs, and that every release has a headline.
+
+### Changed
+
+- This is a proposal: no `Headline:` line in `docs/TODO.md` moves, no `.major.md` note is added and no suggestion is filed as an item until Boss approves.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1527] - 2026-10-16
+
+**Headline:** The to-do list puts Core 2's queue in Boss's order: MAP.152, then MAP.146, then the slow-page job and progress bar (PERF.105 and UX.118).
+
+### Changed
+
+- Corrected the owner line on PERF.105, the phase 1 notes, goal issue #1828 and the execution plan: MAP.146 comes before PERF.105 and UX.118.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1526] - 2026-10-16
+
+**Headline:** The to-do list files the slow-page job and progress bar (PERF.105 and UX.118, Phase 1, Core 2), so a page that needs a long query queues it into Redis and shows how far it has got.
+
+### Changed
+
+- Filed PERF.105 and UX.118 in the Foundations thread of Phase 1 and in new goal issue #1828, and put both in Core 2's queue after MAP.152.
+
+TODO items resolved: none / Added: PERF.105, UX.118
+
+## [8.0.1525] - 2026-10-16
+
+**Headline:** The to-do list retires the site cache warm-up (PERF.104) and closes its goal issue.
+
+### Changed
+
+- Retired PERF.104 (#1826), added a ledger row, and closed goal issue #1750; the cache warm-up design note is docs/design/cache-warm-up.md.
+
+TODO items resolved: PERF.104 / Added: none
+
+## [8.0.1524] - 2026-10-16
+
+**Headline:** After an update the site's caches are built ahead of the first visit, and a change rebuilds only the pages that read it.
+
+### Changed
+- The page cache is now shared through Redis and every answer is stored with the data it read (`db/dataversion.py`, `web/lib/pagetags.py`). A copy is served only while that data is unchanged, so a stale page is never served as current, by any web worker. An API write, the command line (generation, the population pass, the orbital update, a plan) and the galaxy's content stamp each bump only the tags they touch: renaming one sector rebuilds its page, its neighbours', its systems' and the lists, not every page. Without Redis the page cache stores nothing.
+- `python -m planetgen.cli.warm_map` builds the Galaxy Map's opening view, the lists, every sector, system and phenomenon page (up to `page_cache.warm_max_objects` of each, nearest the galaxy centre first) and the search. Each of its six families is a job of its own on the admin runs page, with a result line; the script prints one line per family, waits for a running update, and exits non-zero naming the family that failed. `--only`, `--cap`, `--no-rq` and `--timeout` are new.
+- New settings `page_cache.shared_seconds` (how long Redis keeps an answer) and `page_cache.warm_max_objects`.
+- `GET /api/galaxy/changes` also lists the sectors that changed (`sectors`) and whether anything was added (`grew`).
+
+## [8.0.1523] - 2026-10-16
+
+**Headline:** The to-do list retires the kind factors in the sector profile and the planet cull by metallicity (GEN.236).
+
+### Changed
+
+- Retired GEN.236 (#1824), cleared it as a prerequisite, added a ledger row and a build note on GEN.237, GEN.238 and GEN.240 (the profile now carries kind factors; no migration).
+
+TODO items resolved: GEN.236 / Added: none
+
+## [8.0.1522] - 2026-10-16
+
+**Headline:** A metal-poor star's disk makes far fewer planets, and the sector profile scales each rare kind by the place it is in.
+
+### Added
+- **Kind factors in the sector profile (GEN.236).** `SectorProfile.kind_factors` holds, per kind, the factor by which the place scales the kind's rate per star: neutron stars, black holes, planetary nebulae and brown dwarfs 1 everywhere; supernova remnants the gas fraction (0 in the halo and in clusters, and not zeroed in a superbubble); molecular clouds the cold gas fraction times the young share against the solar circle's; the nebulae grown around hot stars the cold gas fraction; rogue planets and comets the planet occurrence at the place's [Fe/H]. A sector fill multiplies each rolled kind's mean by its factor, and the phenomenon scatter weights supernova remnants by the gas (`nebula_field.gas_factor_array`).
+- **The planet cull by metallicity.** Planet occurrence is unchanged at and above [Fe/H] -0.5 and falls ten-fold per dex below it (`tuning.PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR`); gas giants fall faster (the giant-planet form of `giant_planet_factor`). A halo G dwarf now carries about 1.6 planets and 0.05 gas giants on average, where it carried 8.5 and 1.7, and no halo or cluster star holds more objects than its metallicity allows (`tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS`).
+
+### Changed
+- **A close binary's merged star now carries its primary's [Fe/H]**, which the planet cull and the disk's solids read (it had none, so a close pair counted as solar).
+- **Fewer supernova remnants where there is little gas.** The scatter's remnants followed the stars; they now also follow the molecular gas, so the halo and the thick disk away from the plane hold almost none.
+- **A seeded galaxy fills differently from before** in the places the factors reach (remnants, clouds, nebulae, rogue planets, comets, the planets of metal-poor stars).
+
+TODO items resolved: GEN.236. Added: none.
+
+## [8.0.1521] - 2026-10-16
+
+**Headline:** The to-do list files a Quantity class (GEN.299, Phase 3), so every version of a measured value is always available with all conversions and the shared ladders, and a sweep item (GEN.300) to move the call sites onto it.
+
+### Changed
+
+- Filed GEN.299 and GEN.300 in a new Units thread of Phase 3 and in goal issue #1676, on Boss's request.
+
+TODO items resolved: none / Added: GEN.299, GEN.300
+
+## [8.0.1520] - 2026-10-16
+
+**Headline:** The to-do list assigns the fly-through map's first two items, MAP.152 and MAP.146, to Core 2 on Boss's order, right after PERF.104.
+
+### Changed
+
+- Added the owner line on MAP.152 and MAP.146 and moved both into Core 2's queue in the execution plan; Core 2's later items slide by about 6 to 8 hours.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1519] - 2026-10-16
+
+**Headline:** The to-do list retires the galactic core cell star ceiling and fill luminosity cap (GEN.281), and records that migration 0098 shipped with it alone.
+
+### Changed
+
+- Retired GEN.281 (#1820), rewrote the migration-revision notes on GEN.280 and GEN.283 (0098 is merged; GEN.280's fields take the next free revision) and added a ledger row.
+
+TODO items resolved: GEN.281 / Added: none
+
 ## [8.0.1518] - 2026-10-16
 
 **Headline:** A cell that expects more systems than the cell star ceiling is filled only with the stars at or above the fill luminosity cap, and the sector page and API report what is left unresolved.
