@@ -26,7 +26,7 @@ def test_a_system_at_the_galactic_center_still_has_a_hill_sphere():
 @pytest.mark.db
 def test_core_ball_batch_fill_makes_planets(mysql_config):
     target = mysql_argv(mysql_config)
-    run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
+    run_cli("plan", ["--quiet", "--no-bright-stars", "--nuclear-amplitude", "0"] + target)
     with forced_system_config(PLANETS=True):
         run_cli("galaxy", ["--shell", "0", "--band", "0", "--num-systems", "3", "--yes", "--quiet"] + target)
     from planetgen.db import store

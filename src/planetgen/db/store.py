@@ -1519,6 +1519,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (99, _column_marker("galaxy_shape", "nuclear_amplitude")),
     (98, _column_marker("galaxy_shape", "fill_luminosity_cap_sol")),
     (97, _table_marker("galaxy_components")),
     (96, _check_marker("neutron_stars_chk_1", "magnetar")),
@@ -7230,7 +7231,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                 INSERT INTO galaxy_shape (
                     id, disk_scale_length_pc, disk_scale_height_pc,
                     bulge_scale_radius_pc, bulge_amplitude, arm_count,
-                    pitch_angle_rad, arm_amplitude, arm_level, core_amplitude, spiral_reference_radius_pc,
+                    pitch_angle_rad, arm_amplitude, arm_level, nuclear_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, galaxy_seed, reach_shell_index,
                     cell_star_ceiling, fill_luminosity_cap_sol
@@ -7244,7 +7245,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     pitch_angle_rad = VALUES(pitch_angle_rad),
                     arm_amplitude = VALUES(arm_amplitude),
                     arm_level = VALUES(arm_level),
-                    core_amplitude = VALUES(core_amplitude),
+                    nuclear_amplitude = VALUES(nuclear_amplitude),
                     spiral_reference_radius_pc = VALUES(spiral_reference_radius_pc),
                     spiral_reference_angle_rad = VALUES(spiral_reference_angle_rad),
                     k_norm = VALUES(k_norm),
@@ -7261,7 +7262,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
                     shape.bulge_scale_radius_pc, shape.bulge_amplitude, shape.arm_count,
-                    shape.pitch_angle_rad, shape.arm_amplitude, shape.arm_level, shape.core_amplitude,
+                    shape.pitch_angle_rad, shape.arm_amplitude, shape.arm_level, shape.nuclear_amplitude,
                     shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index, bytes(galaxy_seed), reach_shell_index,
@@ -7413,7 +7414,7 @@ def get_galaxy_shape(conn):
         pitch_angle_rad=row["pitch_angle_rad"],
         arm_amplitude=row["arm_amplitude"],
         arm_level=row["arm_level"],
-        core_amplitude=row["core_amplitude"],
+        nuclear_amplitude=row["nuclear_amplitude"],
         spiral_reference_radius_pc=row["spiral_reference_radius_pc"],
         spiral_reference_angle_rad=row["spiral_reference_angle_rad"],
         k_norm=row["k_norm"],

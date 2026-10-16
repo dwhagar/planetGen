@@ -2,6 +2,126 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1557] - 2026-10-16
+
+**Headline:** The new Core 4 lane has its queue: owner lines set on the 33 unassigned scatter-chain items.
+
+### Changed
+
+- Boss approved Core 4 at 4:31 PM EDT. The 33 unassigned items of the 8.1 accurate scatters chain name Core 4 as owner: 11 are ready in queue order, 22 are held until a named blocker on Core 1, Core 2 or Core 3 merges.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1556] - 2026-10-16
+
+**Headline:** The plan now states the rule of no fixed content: everything is seeded, derived or calculated.
+
+### Changed
+
+- The intergalactic space plan records Boss's 4:14 PM EDT rule as a decision: no copied catalogue, preset or hand-placed object; seeds where the science gives a distribution, derivation or calculation everywhere else; real data is reference only; missing research goes to Boss.
+- GEN.368 widens its survey from the Milky Way to all fixed content and keeps the list of research requests; GEN.369, GEN.371 and GEN.297 carry the same words.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1555] - 2026-10-16
+
+**Headline:** There is no Milky Way option: the Harris file and the real satellite list only guide and check the generators.
+
+### Changed
+
+- GEN.297 now calibrates the cluster generator against the Harris file and places no real cluster; GEN.369 and GEN.366 drop the optional preset; GEN.368 and the halo and cluster design notes say the same (Boss, 4:11 PM EDT).
+- The suggested "named generation presets" idea in the roadmap no longer lists a Milky Way preset.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1554] - 2026-10-16
+
+**Headline:** The double-click flight on the Galaxy Map (MAP.226) is retired after the merge, and the satellite derivation chain is recorded.
+
+### Changed
+
+- MAP.226 is removed from the TODO and ticked in the progress ledger (merged as #1859); the empty-space half-way double click it did not build moves to the MAP.225 note.
+- GEN.368, GEN.369 and GEN.371 record the derivation chain for drawn satellites (halo mass to subhalo count, placement, stellar mass, size, metallicity, age), each link to name its source.
+
+TODO items resolved: MAP.226 / Added: none
+
+## [8.0.1553] - 2026-10-16
+
+**Headline:** The drawn satellites must be calculated or derived from real science, not copied.
+
+### Changed
+
+- GEN.369, GEN.371 and GEN.368 carry Boss's 4:04 PM EDT refinement: exact real distances are not needed; count, distances and sizes are calculated or derived from published relations, drawn only where the science gives a distribution.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1552] - 2026-10-16
+
+**Headline:** Boss's request to draw satellites from the seed and plan every appearance rate is filed as items.
+
+### Added
+
+- GEN.368 plans the appearance rates of everything the Milky Way supplies as fixed content, with the places found in the survey listed in the item; GEN.369 draws the satellites from the galaxy seed and keeps the real list as an optional preset; GEN.371 is the feasibility study of generating satellites through the scatter in only the region they occupy; GEN.370 records that Hill spheres use the Milky Way's mass for every galaxy.
+- GEN.366 (verify the real satellite rows) now matters only for the preset and waits on GEN.369. The satellites decision in the halo design note is marked superseded.
+
+TODO items resolved: none / Added: GEN.368, GEN.369, GEN.370, GEN.371
+
+## [8.0.1551] - 2026-10-16
+
+**Headline:** On the Galaxy Map a double click on a star, cloud or body flies the camera to it.
+
+### Changed
+- A double click on a star, phenomenon or body in an opened sector flies the camera to look at it, near enough to see its system (a star), or filling most of the view (a cloud or body), as near as the zoom allows. A selected object's panel has a "Go to" button that does the same, and so does Enter when no choice is lit. A double click on a block or on empty space does what two clicks did.
+
+## [8.0.1550] - 2026-10-16
+
+**Headline:** The settings writer, the backup archive and the one configuration file (ADM.83, ADM.87, ADM.96) are retired after the merge.
+
+### Changed
+
+- ADM.83, ADM.87 and ADM.96 are removed from the TODO and ticked in the progress ledger (merged as #1857); the items that waited on them lose those prerequisites.
+- The settings design note records what was built: the writer module, the roles, the backup library and archive layout, and the retention option.
+
+TODO items resolved: ADM.87, ADM.83, ADM.96 / Added: none
+
+## [8.0.1549] - 2026-10-16
+
+**Headline:** All program configuration lives in the one `config.json`, which can now be saved from the command line with checks, backups and an audit row, on a new backup archive that the settings page, the control database and the DB repair data will share.
+
+### Changed
+- `config.json` is the one file for all program configuration (the planned second file, `settings.json`, is dropped). It stays your own copy of `config.json.example`: nothing writes to the example, `update.sh` never overwrites your copy, and a missing copy is reported, never created. A leftover `settings.json` from the dropped design is ignored, and `config check` names it as unused.
+- `python3 -m planetgen.cli.config` gains `set`, `unset`, `get` and `restore` (ADM.83). Every value is checked against the settings model first, each problem named at its option, and one bad value saves nothing. The command line may change every option (the database and secrets included; `OPTION=-` reads a value from standard input); the Admin page will not. Keys the model does not know and the order of the keys are kept.
+- A save writes `config.json` atomically (temporary file, `fsync`, rename) under a lock, takes a settings-only backup archive first, writes one audit row per changed option (a secret is written `(changed)`, never the text) and lists the changes that need a restart.
+- New backup archive (ADM.87, `planetgen.backup`, `python3 -m planetgen.cli.backup take|list|verify|restore|parts`): every backup is one `.tar.bz2` in `backups` in the state folder (mode 0600) with a `manifest.json` (time, who, why, SHA-256 of every file) and one folder per part. A copy of `config.json` is the first part; a restore verifies the archive, backs up what it replaces, restores the whole archive or named parts, and skips and reports a part this build does not know. A restore from the web puts back only the options an admin may change. New option `settings.backups_kept` (default 20, 1 to 200) counts archives and never deletes the newest one holding every part. `set-permissions.sh` keeps the `backups` folder 700.
+
+## [8.0.1548] - 2026-10-16
+
+**Headline:** The galactic core density terms (GEN.280) are retired after the merge.
+
+### Changed
+
+- GEN.280 is removed from the TODO and ticked in the progress ledger (merged as #1855); the items that waited on it lose that prerequisite.
+- GEN.364 notes that Core 3 builds the adaptive cap next with migration 0100.
+
+TODO items resolved: GEN.280 / Added: none
+
+## [8.0.1547] - 2026-10-16
+
+**Headline:** The galactic centre holds the observed nuclear star cluster and nuclear stellar disc, in place of ADM.49's Gaussian core.
+
+### Added
+- **The nuclear star cluster and the nuclear stellar disc (GEN.280).** Two more terms of the density model, scaled to the galaxy's bulge: a Hernquist cluster of 2.5e7 solar masses (half-light radius 3.8 pc) with its cusp held flat inside the radius where its density equals the core ball's mean, so the cell at the centre holds the cluster's mass inside 2 pc (about 1.5e7 systems), and an exponential disc 90 pc long and 35 pc high of 1.5e9 solar masses. They are the `nuclear_cluster` and `nuclear_disc` populations of a sector's profile (and `bright_stars.population`), count in the outline's bound, the bright-star scatter's bound and the Galaxy Map's prisms, and give a profile the region `nuclear`. A cell this dense is the case the cell star ceiling (GEN.281) is for.
+- **`planetgen plan --nuclear-amplitude`** (default 1; the Generate page's "Nuclear structures") scales both terms, 0 being none.
+- **Five math checks** compare the default galaxy's cluster mass, half-light radius, density at 1 parsec, the disc's mass inside 200 parsecs and its height with the published figures.
+
+### Changed
+- **`galaxy_shape.core_amplitude` and `--core-density` are gone** (migration 0099, schema v99): the column is renamed `nuclear_amplitude`, set to 0 for a galaxy planned before it, so its density is unchanged. `bright_stars.population` becomes `VARCHAR(16)`.
+
+### Fixed
+- **Filling a dense cell no longer takes quadratic time.** Each pre-placed star was checked for overlap against every earlier system of its cell one at a time in Python, which is hours for a cell of 40,000; it is one NumPy pass now (the sector's existing neighbour arrays).
+
+TODO items resolved: GEN.280. Added: none.
+
 ## [8.0.1546] - 2026-10-16
 
 **Headline:** The next two migration revisions are recorded: 0102 for DB.59 and 0103 for DB.54.

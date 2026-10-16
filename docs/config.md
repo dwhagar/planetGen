@@ -64,19 +64,21 @@ it by hand: `sudo chown www-data:www-data config.json && sudo chmod 640 config.j
 
 ## Precedence
 
-Every setting below has up to five sources, checked in this order:
+Every setting below has up to four sources, checked in this order:
 
 1. An explicit function/CLI argument (e.g. `planetgen sector --mysql-password ...`,
    or a test building its own `MySQLConfig(...)` directly) -- always wins.
 2. The matching `PLANETGEN_*` environment variable, if set and not empty
    (a MySQL option set to an empty value counts).
-3. `settings.json`, the web-owned overlay the configuration page (ADM.43)
-   will write: `/var/lib/planetGen/settings.json` (`PLANETGEN_SETTINGS_FILE`
-   moves it). It may hold only
-   the options the table below marks as editable from the web; a database
-   setting, `jobs.python`, a secret key or an unknown name in it is an error.
-4. `config.json`.
-5. The built-in default (matching `config.json.example`'s values).
+3. `config.json`, the one file that holds all program configuration. It is your own
+   copy of `config.json.example`: the example is only a template that documents every
+   option and its default, and nothing ever writes to it or overwrites your copy
+   (`update.sh` leaves `config.json` alone, and an option added in a later release has
+   its default in the code, so an older copy keeps working). The Admin settings page
+   (ADM.43) and `python3 -m planetgen.cli.config set` edit `config.json` itself; see
+   [Saving settings](#saving-settings). If the file does not exist they say so and
+   create nothing.
+4. The built-in default (matching `config.json.example`'s values).
 
 Environment variables are still checked *before* `config.json` rather than
 being replaced by it, so a single shared `config.json` can still be
@@ -87,31 +89,86 @@ one templated systemd unit overriding just the database name per timer
 instance while everything else comes from the shared credentials file (or
 now, `config.json`).
 
+## Saving settings
+
+The writer (`planetgen.util.settings_writer`) is the only thing that writes
+`config.json`; the command line uses it today and the Admin settings page will
+use it too. The file must belong to the web server's user (`update.sh` and
+`set-permissions.sh` see to that) so the page can replace it.
+
+- **Who may change what.** The web (an admin) changes the options the table marks
+  "any admin"; the Owner (from 8.2) the "the Owner" ones; only the command line,
+  run on the server, changes "command line only" options: the database, the
+  secrets that open the host (`secret_key`), `jobs.python`, the log paths. A secret
+  can be replaced but never read back: pages, diffs, audit rows and logs show
+  `(set)`, `(empty)` or `(changed)`.
+- **Checked first.** An option that doesn't exist, that the caller's role may not
+  change, or whose value doesn't fit its type or range is refused, each at its own
+  option name, and nothing at all is saved. What is stored is the value the model
+  parsed (`"30"` is stored as `30`). An option left equal to its default is not
+  stored.
+- **Everything else stays.** The file is edited as parsed JSON: keys the model
+  doesn't know and the order of the keys are kept; only the changed options move.
+- **Written atomically.** A temporary file in the same folder, `fsync`, the old
+  file's mode, a rename, then `fsync` of the folder: a reader sees the old file or
+  the new one, never half of one. A lock file next to it keeps two saves (two
+  admins, or the page and the command line) from interleaving.
+- **Backed up.** Just before a save, restore or import replaces the file, a
+  settings-only backup archive is taken ([backups](#backups) below): the old file,
+  who is making the change and when. The newest `settings.backups_kept`
+  (default 20, 1 to 200) archives are kept. A restore from the web puts back only
+  the options an admin may change; the command line puts the whole file back.
+- **Audited.** One `admin_audit_log` row per changed option (`config.update`,
+  `config.restore`; target `config:<option>`; detail `{"old":..,"new":..}`) and
+  one `DB` line in the activity log. A secret's values are written `(changed)`.
+- **Restart.** The result lists the changed options marked "after a restart".
+
+## Backups
+
+`planetgen.backup` (ADM.87) takes every backup as one `backups/<UTC time>.tar.bz2` in
+the state folder (`/var/lib/planetGen/state`, `PLANETGEN_STATE_DIR` moves it), mode
+0600, owned by the web user (`set-permissions.sh` keeps the folder 700). It holds
+`manifest.json` (format 1, time, who, why, the version and, per part, its folder,
+sizes and SHA-256) and one folder per part: `settings/` (a copy of `config.json`,
+secrets included, which is why the archive is private and its download is for the
+Owner) now, and `control/` (the control database) and `parity/` (the DB repair
+parity data) when those parts arrive in 9.0. A save on the settings page takes an
+archive of the settings part alone; `python3 -m planetgen.cli.backup take` takes
+every part.
+
+Retention is the option `settings.backups_kept`: the newest archives are kept, the
+rest deleted, but never the newest archive that holds every part. A restore verifies
+the archive first, backs up what it is about to replace in a safety archive, then
+restores the whole archive or only the parts named; a part this build has no
+provider for is skipped and reported, and the archive keeps it. The galaxy database is
+not in an archive: it is regenerated from its seed or repaired from parity.
+
 ## Options
 
-The table is generated from the settings model (`src/planetgen/util/settings.py`, ADM.42); change an option there and run `python3 -m planetgen.cli.config docs`. Next to each option: its type, default, whether a change applies at once or after a restart, who may edit it from the web (later, with the configuration page) and the environment variable that overrides it.
+The table is generated from the settings model (`src/planetgen/util/settings.py`, ADM.42); change an option there and run `python3 -m planetgen.cli.config docs`. Next to each option: its type, default, whether a change applies at once or after a restart, who may change it from the web ("command line only" means on the server only) and the environment variable that overrides it.
 
 <!-- BEGIN GENERATED OPTIONS (python -m planetgen.cli.config docs) -->
 
 | Option | Type | Default | Applies | Edited | Environment | What it does |
 |---|---|---|---|---|---|---|
-| `config_version` | whole number | 1 | at once | config.json only | none | The settings file format version; a file without one is version 1. |
+| `config_version` | whole number | 1 | at once | command line only | none | The settings file format version; a file without one is version 1. |
 | `site_name` | text | planetGen | at once | any admin | none | Display name for this deployment, shown in the header, the home page heading, every page title and the footer. |
 | `base_url` | text | http://localhost/ | at once | the Owner | none | The base URL this deployment is served from. Not yet read by any page; reserved for absolute links that a request alone can't give. |
-| `api_base_url` | text | http://127.0.0.1/api | after a restart | config.json only | `PLANETGEN_API_BASE_URL` | Base URL of the Flask API's /api mount point, used by web/lib/apiclient.py only outside the Flask app. |
-| `debug` | true or false | false | after a restart | config.json only | `PLANETGEN_DEBUG` | Write a verbose debug log to log_file: every decision the generator makes, every random roll, every SQL statement and request. The log grows fast. |
-| `log_file` | text | /var/log/planetgen.log | after a restart | config.json only | `PLANETGEN_LOG_FILE` | Where the debug log goes. |
-| `log_dir` | text | empty | after a restart | config.json only | `PLANETGEN_LOG_DIR` | The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS. |
-| `log_rotation` | "auto" or "system" or "app" | auto | after a restart | config.json only | none | How the activity log is rotated: system (logrotate or newsyslog), app (the program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else app). |
-| `mysql.host` | text | 127.0.0.1 | after a restart | config.json only | `PLANETGEN_MYSQL_HOST` | The MySQL or MariaDB server's host name or address. |
-| `mysql.port` | whole number | 3306 | after a restart | config.json only | `PLANETGEN_MYSQL_PORT` | The server's port. |
-| `mysql.user` | text | planetgen | after a restart | config.json only | `PLANETGEN_MYSQL_USER` | The account every entry point connects with; give it whatever grants the most demanding caller needs. |
-| `mysql.password` | text | empty | after a restart | config.json only | `PLANETGEN_MYSQL_PASSWORD` | That account's password. **Secret.** |
-| `mysql.database` | text | planetgen | after a restart | config.json only | `PLANETGEN_MYSQL_DATABASE` | The galaxy database the pages show and the generators fill. |
-| `mysql.database_prefix` | text | planetgen | after a restart | config.json only | `PLANETGEN_MYSQL_DATABASE_PREFIX` | The schema-name prefix the database picker lists, for a deployment with several galaxies on one server. |
+| `api_base_url` | text | http://127.0.0.1/api | after a restart | command line only | `PLANETGEN_API_BASE_URL` | Base URL of the Flask API's /api mount point, used by web/lib/apiclient.py only outside the Flask app. |
+| `debug` | true or false | false | after a restart | command line only | `PLANETGEN_DEBUG` | Write a verbose debug log to log_file: every decision the generator makes, every random roll, every SQL statement and request. The log grows fast. |
+| `log_file` | text | /var/log/planetgen.log | after a restart | command line only | `PLANETGEN_LOG_FILE` | Where the debug log goes. |
+| `log_dir` | text | empty | after a restart | command line only | `PLANETGEN_LOG_DIR` | The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS. |
+| `log_rotation` | "auto" or "system" or "app" | auto | after a restart | command line only | none | How the activity log is rotated: system (logrotate or newsyslog), app (the program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else app). |
+| `settings.backups_kept` | whole number (backups) | 20 | at once | any admin | none | How many backup archives are kept. One is made just before every settings save, restore or import replaces the file, and by Back up now; the oldest is deleted once there are more than this, but never the newest archive that holds every part. |
+| `mysql.host` | text | 127.0.0.1 | after a restart | command line only | `PLANETGEN_MYSQL_HOST` | The MySQL or MariaDB server's host name or address. |
+| `mysql.port` | whole number | 3306 | after a restart | command line only | `PLANETGEN_MYSQL_PORT` | The server's port. |
+| `mysql.user` | text | planetgen | after a restart | command line only | `PLANETGEN_MYSQL_USER` | The account every entry point connects with; give it whatever grants the most demanding caller needs. |
+| `mysql.password` | text | empty | after a restart | command line only | `PLANETGEN_MYSQL_PASSWORD` | That account's password. **Secret.** |
+| `mysql.database` | text | planetgen | after a restart | command line only | `PLANETGEN_MYSQL_DATABASE` | The galaxy database the pages show and the generators fill. |
+| `mysql.database_prefix` | text | planetgen | after a restart | command line only | `PLANETGEN_MYSQL_DATABASE_PREFIX` | The schema-name prefix the database picker lists, for a deployment with several galaxies on one server. |
 | `mysql.statement_timeout_seconds` | number (seconds) | 10 | at once | any admin | none | The longest any statement on the web interface's and API's read-only connections may run (0 turns the limit off). A query it stops gives a 504 page, or a QUERY_TIMEOUT error from the API. |
-| `control_database` | text | planetgen_control | after a restart | config.json only | `PLANETGEN_CONTROL_DATABASE` | The MySQL schema holding admin identities, sessions, API keys and the audit log. Never listed or selectable as a galaxy. |
-| `redis.url` | text | redis://127.0.0.1:6379/0 | after a restart | config.json only | `PLANETGEN_REDIS_URL` | The Redis server the work queue, the rate limits and the login lockouts use. |
+| `control_database` | text | planetgen_control | after a restart | command line only | `PLANETGEN_CONTROL_DATABASE` | The MySQL schema holding admin identities, sessions, API keys and the audit log. Never listed or selectable as a galaxy. |
+| `redis.url` | text | redis://127.0.0.1:6379/0 | after a restart | command line only | `PLANETGEN_REDIS_URL` | The Redis server the work queue, the rate limits and the login lockouts use. |
 | `ratelimit.default` | text | 200 per day;50 per hour | after a restart | any admin | `PLANETGEN_RATELIMIT_DEFAULT` | Flask-Limiter's default limit for the API. |
 | `ratelimit.storage_uri` | text | empty | after a restart | any admin | `PLANETGEN_RATELIMIT_STORAGE_URI` | Where limits count; empty means the Redis server in redis.url, memory:// counts per process (right with exactly one worker). |
 | `ratelimit.pages.search` | text | 30 per minute | after a restart | any admin | none | Limit per client address on /search and /galaxy/locate. Empty turns it off. |
@@ -120,12 +177,12 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `ratelimit.pages.health` | text | 60 per minute | after a restart | any admin | none | Limit on /api/health. Empty turns it off. |
 | `ratelimit.pages.other` | text | 300 per minute | after a restart | any admin | none | Limit on every other page, counted together. Empty turns it off. |
 | `login_allowlist` | list of text | empty list | after a restart | the Owner | `PLANETGEN_LOGIN_ALLOWLIST` | Client addresses or networks (CIDR) never locked out after failed logins; loopback never is either. Environment: comma- or space-separated. |
-| `admin_cookie_insecure` | true or false | false | after a restart | config.json only | `PLANETGEN_ADMIN_COOKIE_INSECURE` | Send the admin session cookie over plain HTTP. Only for local development without TLS; a production deployment must never set it. |
-| `secret_key` | text | empty | after a restart | config.json only | `PLANETGEN_SECRET_KEY` | Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once). **Secret.** |
-| `proxy_fix.x_for` | whole number | 0 | after a restart | config.json only | `PLANETGEN_PROXY_FIX_X_FOR` | Reverse proxies to trust for X-Forwarded-For, the client address (0 = off). |
-| `proxy_fix.x_proto` | whole number | 0 | after a restart | config.json only | `PLANETGEN_PROXY_FIX_X_PROTO` | Reverse proxies to trust for X-Forwarded-Proto, the scheme (0 = off). |
-| `proxy_fix.x_host` | whole number | 0 | after a restart | config.json only | `PLANETGEN_PROXY_FIX_X_HOST` | Reverse proxies to trust for X-Forwarded-Host (0 = off). |
-| `tile_cache.dir` | text | empty | at once | config.json only | `PLANETGEN_TILE_CACHE_DIR` | Where the Galaxy Map's tiles are cached on disk; empty means /var/cache/planetgen/tiles. |
+| `admin_cookie_insecure` | true or false | false | after a restart | command line only | `PLANETGEN_ADMIN_COOKIE_INSECURE` | Send the admin session cookie over plain HTTP. Only for local development without TLS; a production deployment must never set it. |
+| `secret_key` | text | empty | after a restart | command line only | `PLANETGEN_SECRET_KEY` | Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once). **Secret.** |
+| `proxy_fix.x_for` | whole number | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_FOR` | Reverse proxies to trust for X-Forwarded-For, the client address (0 = off). |
+| `proxy_fix.x_proto` | whole number | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_PROTO` | Reverse proxies to trust for X-Forwarded-Proto, the scheme (0 = off). |
+| `proxy_fix.x_host` | whole number | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_HOST` | Reverse proxies to trust for X-Forwarded-Host (0 = off). |
+| `tile_cache.dir` | text | empty | at once | command line only | `PLANETGEN_TILE_CACHE_DIR` | Where the Galaxy Map's tiles are cached on disk; empty means /var/cache/planetgen/tiles. |
 | `tile_cache.max_mb` | number (MB) | 200 | at once | any admin | `PLANETGEN_TILE_CACHE_MAX_MB` | Roughly how big the tile cache may grow before its oldest files are pruned (0 turns the disk cache off). |
 | `page_cache.enabled` | true or false | true | after a restart | any admin | `PLANETGEN_PAGE_CACHE` | Keep the API's public answers in memory, per WSGI process. |
 | `page_cache.max_entries` | whole number | 2000 | after a restart | any admin | none | Most answers kept. |
@@ -135,9 +192,9 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `page_cache.shared_seconds` | number (seconds) | 21600 | after a restart | any admin | none | How long an answer is kept in Redis, where every web process and the warm-up share it. Each answer is served only while the data it read has not changed, so this only bounds the memory. |
 | `page_cache.warm_max_objects` | whole number (objects) | 5000 | at once | any admin | none | Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy centre first); the rest are built on their first visit, and the warm-up says how many it left out. |
 | `page_cache.stored_counts` | true or false | true | at once | any admin | `PLANETGEN_COUNT_CACHE` | Table pages show stored totals and filter-menu counts, refreshed in the background, instead of counting whole tables in the request (off: exact counts at any price). |
-| `jobs.dir` | text | empty | at once | config.json only | `PLANETGEN_JOBS_DIR` | Where each background job's command lines, status and output are kept; empty means /var/lib/planetGen/jobs. |
+| `jobs.dir` | text | empty | at once | command line only | `PLANETGEN_JOBS_DIR` | Where each background job's command lines, status and output are kept; empty means /var/lib/planetGen/jobs. |
 | `jobs.keep` | whole number | 20 | at once | any admin | none | How many finished jobs are kept. |
-| `jobs.python` | text | empty | at once | config.json only | `PLANETGEN_PYTHON` | The interpreter that runs planetgen and planetgen.cli.reset for the jobs; empty means the web app's own Python. Editing it from the web would be code execution, so it is file-only. |
+| `jobs.python` | text | empty | at once | command line only | `PLANETGEN_PYTHON` | The interpreter that runs planetgen and planetgen.cli.reset for the jobs; empty means the web app's own Python. Editing it from the web would be code execution, so it is file-only. |
 | `wiki.wikijs.base_url` | text | empty | at once | the Owner | `PLANETGEN_WIKIJS_BASE_URL` | The Wiki.js instance's root URL. Empty means it isn't offered as an upload target. |
 | `wiki.wikijs.api_token` | text | empty | at once | the Owner | `PLANETGEN_WIKIJS_API_TOKEN` | A Wiki.js Personal API Token (Admin, API Access). **Secret.** |
 | `wiki.mediawiki.base_url` | text | empty | at once | the Owner | `PLANETGEN_MEDIAWIKI_BASE_URL` | The MediaWiki API entry point's directory (everything up to, not including, api.php). Empty means it isn't offered as an upload target. |

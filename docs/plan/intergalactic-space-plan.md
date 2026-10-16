@@ -17,6 +17,7 @@ A visitor can ask for a sector anywhere inside the reach (the Magellanic Clouds,
 7. "All types represented" means audited frequency, never forced: accurate probabilities and no forced representation in a sector, except a kind that landed there in a scatter before generation (5:51 PM EDT).
 8. Every nebula gets the stars it needs as real systems; Wolf-Rayet stars and ring nebulae are built (5:23 PM EDT).
 9. Multi-star plan approved (6:08 PM EDT): plan and build every observed and theoretical type of multi-star and star-like-object system into the generator throughout, matching observed probabilities best and theoretical ones where observation is silent. The cap of stars per system is 12, not 7. Compute the best path for three build lanes and one TODO lane (6:02 PM EDT): section 11.
+10. **No fixed content (Boss, 2026-10-16, 4:14 PM EDT).** The aim is a scientifically accurate galaxy, and its sectors, as accurately as the processing allows and as far as the astrophysics is known and can be implemented. Nothing is fixed content: no copied catalogue, preset or hand-placed object. Everything is generated from the random seeds already in use; random numbers are used where the science gives a distribution, and a value is derived or calculated wherever it can be. Real data (the Harris file, the real satellite list) is reference for building and checking the laws, never content. When a piece is missing that cannot be looked up, ask Boss to do the research and list what is needed (GEN.368 keeps that list).
 
 ## 3. The stages, in build order
 

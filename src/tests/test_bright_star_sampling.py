@@ -18,7 +18,7 @@ from planetgen import tuning as prog_c
 from planetgen.physics import stellar_evolution as se
 from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
+from planetgen.galaxy.sector import SpaceSector, distance_between, hill_radius_ly, required_separation_ly
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
@@ -182,6 +182,28 @@ def test_preplaced_systems_keep_their_position_and_clear_later_systems():
 
     reloaded = SpaceSector.from_dict(sector.to_dict())
     assert [e.preplaced for e in reloaded.entries] == [e.preplaced for e in sector.entries]
+
+
+def test_the_overlap_check_finds_exactly_the_neighbours_the_plain_scan_finds():
+    """GEN.280: `overlapping` (NumPy, one pass) is the old per-neighbour scan, which cost O(n) per pre-placed system."""
+    sector = SpaceSector("overlap", edge_ly=40.0)
+    rng = random.Random(4)
+    for _ in range(60):
+        point = tuple(rng.uniform(-19.0, 19.0) for _ in range(3))
+        sector.add_preplaced_system(_system(), point)
+    new = _system()
+    for _ in range(25):
+        point = tuple(rng.uniform(-19.0, 19.0) for _ in range(3))
+        expected = sorted(
+            (position, required_separation_ly(new, neighbor))
+            for neighbor, position in sector._massive_neighbors()
+            if distance_between(point, position) < required_separation_ly(new, neighbor))
+        found = sorted(sector._neighbor_cache.overlapping(sector, point, hill_radius_ly(new)))
+        assert [position for position, _ in found] == [position for position, _ in expected]
+        assert [required for _, required in found] == pytest.approx([required for _, required in expected])
+    # A point inside the first system's own Hill sphere is reported.
+    first = sector.entries[0]
+    assert sector._neighbor_cache.overlapping(sector, first.position, hill_radius_ly(new))
 
 
 def test_preplaced_position_must_be_inside_the_sector():

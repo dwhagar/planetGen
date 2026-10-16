@@ -3957,7 +3957,8 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
     return {"stars": stars, "scattered": scattered}
 
 
-BRIGHT_STAR_POPULATION_WEIGHT = {"young": 1.0, "intermediate": 10.0, "old": 400.0, "bulge": 400.0}
+BRIGHT_STAR_POPULATION_WEIGHT = {"young": 1.0, "intermediate": 10.0, "old": 400.0, "bulge": 400.0,
+                                 "nuclear_cluster": 400.0, "nuclear_disc": 400.0}
 """dict: The map key of a bright star is its luminosity times its population's
 weight (MAP.154). Ranking by luminosity alone puts the young blue stars first
 and leaves no room for the old giants of the bulge and the thick disk, which

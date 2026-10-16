@@ -28,7 +28,7 @@ Suggested:
 - S8.1-f: Touch and keyboard flight controls and a reduced-motion setting.
 - S8.1-g: A census page for the whole sphere: counts of every star type and phenomenon by region, from the representation audit (TEST.160), public and cached.
 - S8.1-h: Galaxy export and import: one file holds a galaxy (seed, settings, stored sectors) to back it up or move it to another server, built on the parity file (DB.9).
-- S8.1-i: Named generation presets on the Generate page (Milky Way, small dwarf, globular-rich) saved as recipes, a step toward API.18.
+- S8.1-i: Named generation presets on the Generate page (small dwarf, globular-rich, large spiral; no Milky Way preset, Boss 4:11 PM EDT) saved as recipes, a step toward API.18.
 
 ## Release 8.2: Accounts and email invitations
 Status: Boss named it; new version
