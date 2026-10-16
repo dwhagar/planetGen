@@ -246,3 +246,59 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
     assert len(seen) == fetched, "opening the system fetched its scene again"
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystem()") is not None
     assert _system_ambient(page) is None
+
+
+def _fly_setup(page, base_url, site_app, sample_params):
+    """The sector opened, and a star of it with a system: the star's point in the map (pc) and where it is on screen."""
+    scene = _Scene(page, base_url, site_app, sample_params)
+    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _ready(page)
+    star, point = _star_point(page, base_url, scene)
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+    assert spot, "the star is not on the map"
+    return point, (spot["x"], spot["y"])
+
+
+def _landed(page, point):
+    """Waits for the flight to end and reads where the camera is."""
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().flying === false", timeout=30000)
+    page.wait_for_timeout(200)
+    return _camera(page)
+
+
+def test_a_double_click_on_a_star_flies_the_camera_to_it(page, base_url, site_app, sample_params):
+    """MAP.146: two clicks on a star take the camera to look at it from where its system's disc is whole, without
+    opening the system (the address is the sector's still)."""
+    point, spot = _fly_setup(page, base_url, site_app, sample_params)
+    before = _camera(page)
+    page.mouse.dblclick(*spot)
+    camera = _landed(page, point)
+    assert math.dist(camera["target"], point) < 1e-6 * max(1.0, before["dist"]), (camera["target"], point)
+    assert camera["dist"] < before["dist"] * 0.5, (before["dist"], camera["dist"])
+    assert "system=" not in page.url
+
+
+def test_the_go_to_button_of_a_selected_star_flies_there_too(page, base_url, site_app, sample_params):
+    """The info panel of a selected star has a Go to button."""
+    point, spot = _fly_setup(page, base_url, site_app, sample_params)
+    before = _camera(page)
+    page.mouse.click(*spot)
+    button = page.get_by_role("button", name="Go to")
+    button.wait_for(state="visible", timeout=15000)
+    button.click()
+    camera = _landed(page, point)
+    assert math.dist(camera["target"], point) < 1e-6 * max(1.0, before["dist"]), (camera["target"], point)
+    assert camera["dist"] < before["dist"] * 0.5
+
+
+def test_enter_with_a_star_selected_flies_to_it(page, base_url, site_app, sample_params):
+    point, spot = _fly_setup(page, base_url, site_app, sample_params)
+    before = _camera(page)
+    page.mouse.click(*spot)
+    page.get_by_role("button", name="Go to").wait_for(state="visible", timeout=15000)
+    page.locator(CANVAS).focus()
+    page.keyboard.press("Enter")
+    camera = _landed(page, point)
+    assert math.dist(camera["target"], point) < 1e-6 * max(1.0, before["dist"]), (camera["target"], point)
+    assert camera["dist"] < before["dist"] * 0.5

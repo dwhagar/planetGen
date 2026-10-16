@@ -145,6 +145,10 @@ export function pointOnFocusPlane(origin, direction, target, forward) {
 //                   where it went down, not with the right button) or
 //                   "click" (the browser's click, skipped after a drag);
 //   onClick(event, pointerType)   a click;
+//   onDoubleClick(event, pointerType)   a second click within `doubleClickMs` (default 350)
+//                   and `doubleClickPx` (default 8) of the first: it is called INSTEAD of
+//                   onClick, the first click having been delivered already;
+//   now()           the clock for that window (default Date.now; tests pass their own);
 //   onPanClick(event)   a pan press (right button or Shift) released where it
 //                   went down, a click that moves nothing;
 //   onHover(event)  the pointer moved with no press down;
@@ -159,6 +163,25 @@ export function createPointerControl(canvasEl, options) {
   let pinch = null;
   // After a drag, the browser's click that follows is not a click.
   let suppressNextClick = false;
+  // The last click delivered, for telling a second one: {t, x, y}.
+  let lastClick = null;
+  const doubleMs = o.doubleClickMs || 350;
+  const doublePx = o.doubleClickPx || 8;
+
+  // Hands a click to onClick, or, when it is the second of a pair, to onDoubleClick.
+  function deliver(event, type) {
+    if (o.onDoubleClick) {
+      const t = o.now ? o.now() : Date.now();
+      if (lastClick && t - lastClick.t <= doubleMs
+          && Math.abs(event.clientX - lastClick.x) + Math.abs(event.clientY - lastClick.y) <= doublePx) {
+        lastClick = null;
+        o.onDoubleClick(event, type);
+        return;
+      }
+      lastClick = { t: t, x: event.clientX, y: event.clientY };
+    }
+    if (o.onClick) o.onClick(event, type);
+  }
 
   function spread() {
     const p = Array.from(touches.values());
@@ -254,7 +277,7 @@ export function createPointerControl(canvasEl, options) {
       return;
     }
     if (wasDrag || event.button === 2) return;
-    if (o.onClick) o.onClick(event, type);
+    deliver(event, type);
   }
 
   function click(event) {
@@ -263,7 +286,7 @@ export function createPointerControl(canvasEl, options) {
       suppressNextClick = false;
       return;
     }
-    if (o.onClick) o.onClick(event, "mouse");
+    deliver(event, "mouse");
   }
 
   function leave(event) {
