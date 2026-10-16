@@ -7494,7 +7494,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   records its size and the sector count it covers. Done: the part
   registered with ADM.87, the lock-held copy under a concurrent save,
   and the size and coverage in the manifest (the restore is DB.41).
-  Prerequisites: ADM.87, DB.46. Related: ADM.85, DB.8, DB.17.
+  Prerequisites: DB.46. Related: ADM.85, DB.8, DB.17.
 
 - [ ] **DB.41 Parity data restore: put a backed-up parity file back and check it against the database**
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
@@ -8468,7 +8468,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
   2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
   it goes idle).
-  Prerequisites: ADM.83, ADM.84, ADM.85, ADM.87.
+  Prerequisites: ADM.84, ADM.85.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
   Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
@@ -9029,38 +9029,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.83 Settings writer: validate, write and back up the user's config.json, with an audit row per change**
-  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
-  somewhere, that needs to get bumped up because we're starting to
-  desperately need that." Part of the configuration page of ADM.43
-  (GitHub issue
-  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. The read side exists (ADM.42: `config.json`, and
-  the `settings.json` overlay that ADM.96 removes, with `x-editable` and
-  `x-min_role` marks); nothing writes it.
-  Build `planetgen.util.settings_writer` beside the reader: it takes a
-  set of
-  option changes, validates each against the ADM.42 model (type, range,
-  enum, read-only options refused), returns per-field errors, and
-  otherwise writes the user's `config.json` atomically (temporary file
-  in the same folder, fsync, rename, owner and mode kept) and never
-  touches `config.json.example` after taking a settings-only backup
-  archive through ADM.87
-  (retention is the option `settings.backups_kept`, default 20, 1 to
-  200). Each changed option gets an activity-log row (who,
-  option, old and new value; passwords and keys are never logged), and
-  the result lists which changes need a restart. `planetgen.cli.config
-  set`, `get` and `restore` use the same writer. No settings folder is
-  needed: `set-permissions.sh` already gives the web user the file. A
-  secret can be replaced but never read back; the diff, the audit row
-  and the log show only "(changed)". Done:
-  the writer and the CLI with tests for every error kind, the atomic
-  write, the backup archive and the restart list.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.87, ADM.96. Related: ADM.43, ADM.42.
-
 - [ ] **ADM.84 Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
   somewhere, that needs to get bumped up because we're starting to
@@ -9120,7 +9088,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
   2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
   it goes idle).
-  Prerequisites: ADM.84, ADM.87. Related: ADM.43.
+  Prerequisites: ADM.84. Related: ADM.43.
 
 - [ ] **ADM.86 Owner-tier settings: Owner-only options behind a recent-password prompt**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
@@ -9136,50 +9104,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   umbrella ADM.43. Done: the prompt, the tier check in the writer, and
   tests that an admin and a stale-password Owner are both refused.
   Prerequisites: ADM.84, USR.26. Related: ADM.43, USR.3.
-
-- [ ] **ADM.87 Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part**
-  Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
-  control DB and backups of the parity data for DB repair." and "All
-  those should be bz2 tarballed together." One backup mechanism for the
-  settings page chain (ADM.43): every backup is one `.tar.bz2` archive
-  taken at one moment, holding parts; retention is the option
-  `settings.backups_kept` (default 20, 1 to 200, Boss) and counts
-  archives; a restore takes the whole archive or one part. Build
-  `planetgen.backup`: a part is a small provider with a name,
-  `dump(directory)` and `restore(directory)`, registered in one table,
-  so the settings (this item) now, and the control database (ADM.88) and
-  the parity data (DB.40) in 9.0 plug in without a new layout. The
-  layout is fixed here for all three: `manifest.json` (format 1, time,
-  who, version key, kind: manual, settings-save or nightly, and per part
-  its name, directory, sizes and SHA-256)
-  and one directory per part (`settings/`, `control/`, `parity/`); a
-  restore of an archive that holds a part this build has no provider for
-  skips it, reports it and never drops it when an archive is copied.
-  `take(parts)` writes `backups/<UTC timestamp>.tar.bz2` (stdlib
-  `tarfile`, mode 0600, owned by the web user), `list()` reads the
-  manifests, `verify(archive)` checks the hashes, `prune()` keeps the
-  newest `settings.backups_kept` archives of the manual and
-  settings-save kinds and the newest `settings.nightly_backups_kept`
-  nightly ones (OPS.55), and never deletes the newest archive that holds
-  every registered part, and `restore(archive,
-  parts=None)` verifies first and restores the whole archive or only the
-  named parts. The settings part is the user's `config.json`, secrets
-  included, so an archive is an owner-only file and never served; a
-  restore never touches `config.json.example`, and on the web only the
-  options an admin may change are put back. A save
-  on the settings page (ADM.83) writes a small archive with the settings
-  part alone; "Back up now" and the command take every part that is
-  registered. The option goes into the ADM.42 model;
-  `set-permissions.sh` and the installers create the backups folder for
-  the web user. Done: the library, the option, the
-  `planetgen.cli.backup` commands (take, list, verify, restore with
-  `--part`) and tests for the manifest, a corrupted archive refused, an
-  unknown part kept, retention that keeps the newest full archive, and
-  restoring one part leaving the others alone.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.96. Related: ADM.43, ADM.83, ADM.85, ADM.88, DB.40.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -9334,45 +9258,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
   Prerequisites: API.10, API.14, API.8. Related: API.3.
-
-- [ ] **ADM.96 One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes**
-  Boss (2026-10-16, 2:25 PM EDT): "I want only a single configuration
-  file no settings.json and config.json, 1 file for all program
-  configuration settings." Boss (2:26 PM EDT): "remember, config.json is
-  just an example until the user first copies it and modifies it, that
-  won't change, that's part of the deployment instructions." Done: the
-  settings model (ADM.42) loads the built-in defaults, then the user's
-  `config.json`, then the `PLANETGEN_*` variables, then an explicit
-  argument; the `settings.json` layer, `PLANETGEN_SETTINGS_FILE`, the
-  `/var/lib/planetGen/settings.json` path and the rule that a key may
-  live in only one of two files are removed with no shim (a stray
-  `settings.json` is ignored and `config check` names it as unused);
-  `docs/config.md`, `docs/cli.md` (`config check` reads one file) and
-  the generated options table say one file. The shipped file is
-  `config.json.example`: the user copies it to `config.json` once (the
-  deployment instructions, unchanged); the program, the settings page
-  and updates never write or replace the example, and `update.sh` and
-  the installers never overwrite or recreate the user's `config.json`.
-  The settings chain edits only that copy. Options the page may not edit
-  are marked "command line only". Secrets (database password,
-  `secret_key`, SMTP password, wiki tokens) stay in the same file, which
-  keeps its owner and mode (web user, 640, set by `set-permissions.sh`);
-  they can be replaced from the page or the command line but are never
-  read back, and every diff, audit row, log line and export shows only
-  "(changed)". Tests: a deployment with only `config.json` loads, the
-  example is never modified by a save, and no secret value appears in a
-  diff, an audit row or an export.
-  Prerequisites: none. Related: ADM.42, ADM.43, ADM.83, ADM.84, ADM.85,
-  ADM.87.
-  Decided (Boss, 2026-10-16, 2:32 PM EDT: "that is all approved", on the
-  Settings lane's plan and the wording changes): the module is
-  `planetgen.util.settings_writer`; archive downloads are Owner-only; on
-  the web a restore puts back only options an admin may change, only the
-  command line restores the whole file; secrets can be replaced but
-  never read back.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
 
 ## SEC: Security
 
@@ -11081,7 +10966,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   off, a failure that leaves archives alone, pruning by kind, and a
   second run started during the first exiting at once; the daily run
   lists the step in its log.
-  Prerequisites: OPS.16, ADM.87, ADM.88, DB.40. Related: OPS.16, ADM.87,
+  Prerequisites: OPS.16, ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
 
 - [ ] **OPS.56 The generator epoch counter and the PR rule that enforces it**

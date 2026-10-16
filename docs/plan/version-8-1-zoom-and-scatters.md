@@ -135,12 +135,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes |  | Boss 2:25 and 2:26 PM EDT: one configuration file. |
-| ADM.87 | Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part | ADM.96 | Boss 1:59 and 2:00 PM EDT: one bz2 tarball per backup; retention settings.backups_kept (default 20). |
-| ADM.83 | Settings writer: validate, write and back up the user's config.json, with an audit row per change | ADM.87, ADM.96 | Boss 1:43 PM EDT: the configuration page moved up from 8.2 (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515)). |
-| ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | ADM.83 |  |
-| ADM.85 | Settings backups, restore, import and export on the settings page | ADM.84, ADM.87 |  |
-| ADM.43 | A full configuration page under Admin | ADM.83, ADM.84, ADM.85, ADM.87 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
+| ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving |  |  |
+| ADM.85 | Settings backups, restore, import and export on the settings page | ADM.84 |  |
+| ADM.43 | A full configuration page under Admin | ADM.84, ADM.85 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). Moved from 8.2 with ADM.43. |
 
 ### Generate page and directives

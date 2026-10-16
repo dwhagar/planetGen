@@ -702,3 +702,6 @@ Baseline: PR #1817.
 | GEN.9 | later | Multiple galaxies |
 | GEN.237 | 8.1 | Components and wanderers |
 | GEN.280 | 8.1 | Galactic core and halo |
+| ADM.96 | 8.1 | Settings page |
+| ADM.87 | 8.1 | Settings page |
+| ADM.83 | 8.1 | Settings page |
