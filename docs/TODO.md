@@ -119,7 +119,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | TEST.156, DB.16, DB.9, DB.17, PERF.29, PERF.30, GEN.181, GEN.180, GEN.179, GEN.24, GEN.99, GEN.102, GEN.103, POP.14, DB.29, DB.30, MAP.119, MAP.122, MAP.146, MAP.147, MAP.152, UX.105, GEN.218, GEN.219, GEN.220, TEST.155, GEN.221, GEN.229, GEN.231, UX.107, UX.108, UX.109, UX.110, DB.31, DOC.45, DOC.47, TEST.135, GEN.202, MAP.174, MAP.173, MAP.172, MAP.171, UX.46, UX.47, UX.49, OPS.35, ADM.32, MAP.120, ADM.35, UX.3, API.15, API.26, API.4, API.7, GEN.57, TEST.77, GEN.136, GEN.135, OPS.29, OPS.28, ADM.50, OPS.37, TEST.111, DB.33, TEST.137, TEST.138, TEST.148, DOC.24, DOC.20, DOC.19, DOC.18, TEST.144, PERF.91, PERF.88, TEST.141, TEST.140, MAP.189, TEST.130, TEST.134, TEST.129, TEST.128, TEST.127, TEST.126, TEST.116, PERF.47, PERF.41, PERF.100, PERF.99, PERF.98, PERF.97, PERF.75 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.254, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.251, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.29, GEN.145, GEN.27, GEN.91, GEN.146, GEN.92, GEN.90, MAP.75, MAP.59, MAP.132, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6, NAV.59, NAV.58, UX.32, UX.113, UX.114, DOC.4, DOC.48, DOC.50, DOC.51, DOC.49, UX.43, UX.82, GEN.42, PERF.35, PERF.18, PERF.48, PERF.36, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.30, OPS.17, NAV.45, NAV.61, NAV.60, GEN.276, UX.48, UX.92, UX.45, GEN.115, GEN.243, GEN.242, GEN.241, API.27, GEN.240, GEN.239, GEN.259, GEN.258, GEN.257, GEN.256, GEN.255, GEN.253, GEN.252, GEN.249, GEN.248, GEN.247, GEN.246, GEN.245, GEN.244, GEN.238, GEN.237, GEN.236, GEN.267, GEN.275, GEN.274, GEN.273, GEN.272, GEN.271, GEN.270, GEN.269, GEN.264, GEN.263, GEN.144, GEN.109, GEN.140, GEN.139, ADM.36, GEN.110, GEN.143, GEN.197, GEN.142, GEN.105, GEN.198, TEST.131, TEST.159, TEST.162, TEST.164, TEST.166, TEST.165, TEST.161, TEST.160, PERF.72, GEN.199, MAP.183, MAP.181, MAP.180, MAP.179, MAP.178, MAP.177, MAP.176, MAP.207, POP.13, GEN.141, GEN.95, GEN.93, GEN.112, MAP.121, MAP.156, MAP.195, UX.102, GEN.212, PERF.86, ADM.52, GEN.210, UX.101, UX.100, MAP.193, MAP.192, MAP.191, MAP.190, DOC.16, DOC.15, DOC.14, DOC.13, DOC.12, DOC.11, DOC.10, DOC.9, DOC.8, DOC.7, DOC.6, MAP.160, API.18, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.18, ADM.43, ADM.44, GEN.134 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | MAP.167, USR.11, MAP.194, GEN.209, API.24, MAP.168, MAP.169, UX.94, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.163, GEN.162, GEN.161, GEN.160, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, MAP.170, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.9, USR.8, USR.1, POP.11, USR.10, SEC.32, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.10, VIEW.9, VIEW.8, VIEW.7, VIEW.6, VIEW.3, GEN.9, GEN.164, MAP.145, NAV.57, GEN.157, GEN.55 |
 
@@ -2903,7 +2903,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   accretion luminosity and the accreting compact pair, is built by
   GEN.272 (X-ray binaries, microquasars, spider pulsars), which reads
   GEN.269's interaction states.
-  Prerequisite: GEN.251.
+  Built-on note (Core 1, 2026-10-16, 8:41 AM EDT, GEN.251 merged as
+  #1815): the planet model gives a recycled pulsar up to about 10
+  planets, and a planetary nebula's circumbinary disk is not modelled;
+  both belong to this item. The system pass (generation/system_pass.py,
+  tuning.SYSTEM_PASS_ODDS) already rolls a millisecond pulsar's planets
+  at 0.7% on its own seed.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
@@ -3622,8 +3627,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multi-star-systems.md sections 13 to 16): the young
   non-hierarchical groups and trapezia of section 13.1 are built by
   GEN.273 on this item's cores.
-  Prerequisites: GEN.236, GEN.242, GEN.251. Related: MAP.172,
+  Prerequisites: GEN.236, GEN.242. Related: MAP.172,
   GEN.150, GEN.202, GEN.99.
+  Built-on note (Core 1, 2026-10-16, 8:41 AM EDT, GEN.251 merged as
+  #1815): the stage F required stars (the stars a nebula needs as real
+  systems) are not built by GEN.251; fill stages have their own random
+  streams (generation/fill_stages.py), so this item adds its stage
+  there.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.242 A pre-main-sequence state for young stars, so protostars can exist as real stars**
@@ -3838,64 +3848,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lands whether the Be part is closed here.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.251 Sector fill stages on their own random streams, and a system pass so every object that can have a system rolls for one**
-  Step 2 of the phenomena train (catalogue sections 3 and 5). Split
-  `generate_sector` into stages A to I, each on its own stream
-  (`seed(sector)` plus the stage name), so adding a kind never moves
-  another stage's draws: A pre-placed stars, B scattered rows become
-  objects, C the new system pass, D the cell's other systems, E per-star
-  kinds, F field and hosted nebulae with their required stars, G
-  below-cut remnants, H flags and the nucleus, I audit counters per kind
-  per stage. The system pass: at fill every object from A and B whose
-  kind has a system model rolls once, on its own seed
-  (`draw.bound(row.seed)` with a stage suffix), and gets the system
-  (companions, planets, belts, moons, disk) with the observed odds in
-  one tuning dict: white dwarf 30%, young neutron star 2%, millisecond
-  pulsar 78% (planets 0.7%), stellar black hole 20%, planetary-nebula
-  central star 20%, ordinary stars as now, a rogue planet's moon 20%,
-  nothing for magnetars, intermediate-mass and supermassive holes, brown
-  dwarfs, comets and asteroid fields. Order inside the pass: stars, then
-  compact remnants, then the rest. A system that does not fit drops its
-  outermost body, then its companion; the object stays. Scatter rows
-  store a point and a seed only: no planet or moon exists before the
-  sector is filled. Cost: about 0.002 extra systems per local sector
-  against 6.3. Done: the same seed gives the same system in any fill
-  order, each kind's share with a system matches the table within
-  Poisson bounds, a scattered black hole or neutron star gets its system
-  only at fill, and no draw of any other stage moves when a kind is
-  added. Owner: Core (2026-10-15). Boss's rules (2026-10-15 5:39 PM
-  EDT): scatters and backscatters carry no systems, planets or moons;
-  nebulae need stars and phenomena, not planets; planets and moons only
-  when a sector is filled with everything; a fill represents every kind
-  and builds the systems phenomena can have at real-world odds.
-  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
-  scatters still carry no planets or moons, but the stellar companions
-  of stars and star-like objects (stars, former stars, protostars,
-  neutron stars, black holes), including neutron star pairs, black hole
-  and neutron star pairs, black hole pairs and stars with neutron star
-  or black hole companions, are generated at scatter time, because such
-  systems matter for gravity; planets and moons still come only at
-  sector fill. Multi-star research is under way (docs to follow; the
-  coordinator relays its items). For this item: the system pass splits
-  in two. The companion roll (the stellar part of every system model)
-  moves to the scatter stage, drawn from the row's own seed so the
-  answer is fixed whenever the sector fills; the fill-time pass builds
-  only the planets, belts, moons and disks around the objects already
-  there. Expect the stage list of the catalogue (section 3) to change
-  accordingly.
-  Reworded (Boss, 2026-10-15 5:51 PM EDT;
-  docs/design/multi-star-systems.md): companions of stars and star-like
-  objects are generated at scatter time, planets, moons and belts at
-  sector fill; a scatter row is a system with a barycentre, a total mass
-  and stored members. Rescoped: the system pass rolls planets, moons,
-  belts and disks only for scattered objects, because their companions
-  come from the stored members (GEN.264); objects made at fill (stage D,
-  G, below-cut remnants) draw both with the same function (GEN.261). The
-  black hole system probability of 0.20 becomes a companion fraction of
-  1.25%.
-  Prerequisite: GEN.235. Related: GEN.130, GEN.241, GEN.240.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
 - [ ] **GEN.252 Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert**
   Step 5 of the phenomena train (catalogue section 8 item 5). An L/T/Y
   state from the `ROGUE_BROWN_DWARF_*` cooling tables, so a brown dwarf
@@ -3908,7 +3860,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows of section 13.5 (close companion under 0.6% inside 3 to 10 AU,
   wide 3.2%, pairs 15% of brown dwarfs, planetary-mass companions) are
   built by GEN.275.
-  Prerequisite: GEN.251. Related: GEN.129.
+  Prerequisites: none. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.253 White-dwarf pollution flag and cool white dwarf presets**
@@ -3924,24 +3876,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pairs, cataclysmic variables, AM CVn, symbiotic and barium stars) are
   built by GEN.271, which extends this item.
   Prerequisite: GEN.130.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
-- [ ] **GEN.254 Superbubble field beside the nebula field (the Local Bubble cavity)**
-  Split from GEN.114 (catalogue section 8 item 7; `anomalies.md` Tier
-  2). A superbubble cavity field of about 12% filling beside
-  `nebula_field`, 100 to 200 pc across like the Local Bubble, hot and
-  thin, that zeroes the molecular clouds inside it. Done: the field
-  exists, is deterministic from the seed, appears on the map and the
-  sector page, and the clouds inside it are gone. Later. Owner: Core,
-  later (2026-10-15).
-  Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
-  replaces any earlier owner named above). Core 1 still owns every
-  migration revision: ask it before adding a table or column.
-  Scatter note (Core 3, 2026-10-16,
-  docs/design/later-phenomena-scatter-rules.md (section 8)): a seeded
-  field read by the profile; remnant sizes and the cloud keep rate see
-  it.
-  Prerequisite: GEN.235. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
@@ -4053,8 +3987,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before the 6:08 PM EDT catalogue), hierarchical trees only, a row's
   members deleted when its sector builds it, pair rates from the middle
   of the evidence.
-  Prerequisite: GEN.251. Related: GEN.251,
+  Prerequisites: none. Related: GEN.251,
   GEN.130.
+  Built-on note (Core 1, 2026-10-16, 8:41 AM EDT, GEN.251 merged as
+  #1815): the companion draw at fill for stages D and G is not built by
+  GEN.251; companion odds stay in multistar.MEMBER_STATE_BY_PLACED
+  (GEN.262), which holds planets and moons only.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -4762,6 +4700,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   'Harris cluster table' stands with its default of the synthetic
   generator).
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
+
+- [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
+  Follow-up from Core 3 (2026-10-16, 8:40 AM EDT, GEN.254 superbubble
+  field merged as #1814, route GET /api/galaxy/superbubbles): the
+  supernova remnant size at build (the density-dependent Sedov-Taylor
+  law of GEN.151) and the remnant factor do not yet read the superbubble
+  a star sits in, so a remnant inside a bubble is sized as if in the
+  ambient gas. Also noted: clouds that fall inside a bubble are lost
+  (the CLI step --redo-nebula-field apply removes stored ones). Done: a
+  remnant inside a bubble uses the bubble's interior density in its size
+  law, with a test over a seeded bubble, and the design note records the
+  rule. Owner: unassigned (Core 3's area).
+  Prerequisites: none. Related: GEN.254, GEN.151, GEN.256.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -6392,7 +6343,7 @@ clears each one.
   representation in a sector, except a kind that landed there in a
   scatter before generation. The open question is closed; the audit
   compares counts to expectation and never forces a kind in.
-  Prerequisite: GEN.251. Related: TEST.159.
+  Prerequisites: none. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **TEST.161 Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table**
@@ -6404,7 +6355,7 @@ clears each one.
   body first. Done: each test exists and runs in the normal suite.
   Owner: Quality (all TEST items are Quality's), written beside the
   build step.
-  Prerequisite: GEN.251. Related: TEST.159.
+  Prerequisites: none. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
@@ -6596,6 +6547,11 @@ clears each one.
   cause is found (a layout or wait timing under load, or a real overflow
   on the sector page) and the test is made robust without loosening what
   it proves. Owner: unassigned. Related: TEST.170, TEST.172.
+  Sighting (Core 3, 2026-10-16, 8:40 AM EDT):
+  test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-phone-light]
+  failed once under load in the changed run: a request to /galaxy/tiles
+  aborted (net::ERR), and it passes alone. Same family, a different
+  parametrisation (phone-light).
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 ## USR: User accounts
@@ -7239,7 +7195,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the four names the catalogue section and the registry row for its
   kinds, and the Wolf-Rayet and compact-remnant rules agree with the
   build. Owner: Quality, after the code.
-  Prerequisites: GEN.251, GEN.130. Related: DOC.48.
+  Prerequisite: GEN.130. Related: DOC.48.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
