@@ -12,6 +12,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
+| [#1828](https://github.com/dwhagar/planetGen/issues/1828) | open | Slow pages queue their data in Redis and show a progress bar | PERF.105, UX.118 |
 | [#1750](https://github.com/dwhagar/planetGen/issues/1750) | closed | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | closed | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
 | [#1748](https://github.com/dwhagar/planetGen/issues/1748) | closed | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
