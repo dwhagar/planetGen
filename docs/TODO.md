@@ -5507,6 +5507,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   named; cite "Harris 1996 (2010 edition)" in the design note and the
   file header. GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the
   component table exists.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
   Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
@@ -6734,6 +6744,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   give you an idea of how to build the procedure to generate a realistic
   galaxy." The Milky Way is a reference for building and checking the
   laws, never selectable content.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
+  This widens the survey from the Milky Way to all fixed content: any
+  catalogue, table of named objects, preset, hand-placed object or
+  hand-set value that stands for content rather than for a physical
+  constant. Each row of the table is replaced by a derived or calculated
+  law, with a seeded draw only where the science gives a distribution.
+  The item also keeps a list of the pieces that cannot be looked up,
+  each with what is needed and why, and hands it to Boss as research
+  requests (the TODO thread puts them to him).
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -6790,6 +6818,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   disk. Each link names its source in the doc and the code. The real
   Milky Way rows serve only as a check that the derived population looks
   plausible.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -6845,6 +6883,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Each link names its source in the doc and the code. The real Milky Way
   rows serve only as a check that the derived population looks
   plausible.
+  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
+  reiterate that the idea is that we generate a scientifically accurate
+  galaxy as best we can. We generate the sectors of that, again as
+  accurately as we can, with what we can actually do processing-wise and
+  what we actually know. Astrophysics-wise that can be implemented I
+  don't want any fixed content. Everything should be procedurally
+  generated based on the random seeds that we already use. Random
+  numbers are used where we can. Things are derived everywhere we can or
+  calculated everywhere we can. If needed you should ask me to do
+  research if there are pieces missing that you can't look up yourself."
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
