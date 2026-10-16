@@ -40,7 +40,7 @@ from planetgen.galaxy.spherical import (
     provisional_sector_designation, sector_address_at, sector_position_pc,
 )
 from planetgen.physics.units import ly_to_pc, pc_to_ly
-from planetgen.generation import object_timing
+from planetgen.generation import fill_order, object_timing
 from planetgen.generation import run_common
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
@@ -843,7 +843,7 @@ def _report_far_neighborhood(args, center, radius_pc, edge_pc, bounds, skeleton)
         run_common._refuse_or_warn(args, f"That is {count:,} sectors, a very large run (--yes goes ahead without asking).")
 
 
-def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=None, skeleton=None):
+def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=None, skeleton=None, ordered=True):
     """
     Every address within `radius_pc` of `center` that the neighbourhood
     takes (`_neighborhood_filter`: inside the galaxy's outline for a centre
@@ -852,6 +852,13 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=No
     the sphere is trimmed to the galaxy before anything is generated.
     A centre outside the outline reports the size of the request first
     (`_report_far_neighborhood`, once per run) when `args` and `skeleton` are given.
+
+    The candidates come in the order the fill generates them (GEN.101,
+    `fill_order.fill_order`): the centre's sector first, then outward in blocks of
+    four sectors a side along a Hilbert curve; a caller that only wants the set
+    passes `ordered=False` and gets the enumeration's order. With `args` given, the
+    steps that are not between neighbours are counted in a line of the log, once
+    per run.
     """
     far = _is_far(center, edge_pc, bounds)
     keep = bounds.contains if far else bounds.qualifies
@@ -873,6 +880,11 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=No
             candidates.append(candidate)
         else:
             outside += 1
+    if ordered:
+        candidates = fill_order.fill_order(candidates, center, edge_pc)
+        if args is not None and not getattr(args, "_order_reported", False):
+            args._order_reported = True
+            _report_fill_order(candidates, edge_pc)
     conn = store.get_connection(config)
     try:
         occupied = store.get_occupied_addresses(conn, {c[0] for c in candidates})
@@ -881,13 +893,23 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=No
     return candidates, occupied, outside
 
 
+def _report_fill_order(candidates, edge_pc):
+    """One line on how well the fill order walks (GEN.101): the sectors, the steps between neighbours and the jumps
+    where the ball cuts the curve, with their mean and longest length in sector edges; nothing for a run of one."""
+    steps, jumps, mean, longest = fill_order.step_statistics(candidates, edge_pc)
+    if not steps:
+        return
+    log.normal(f"Fill order: {len(candidates):,} sector(s), {steps - jumps:,} of {steps:,} steps ({(steps - jumps) / steps:.1%}) "
+               f"between neighbouring sectors; {jumps:,} jump(s) where the ball cuts the curve"
+               + (f", {mean:.1f} sector edges on average and {longest:.1f} at most." if jumps else "."))
+
+
 def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", skip=()):
     """
     The not-yet-generated sectors among `candidates`
     (`_neighborhood_candidates`), as `_submit_batch` items, in
-    the order `candidates` came (shell by shell, not nearest first: sort them
-    by distance before applying any limit, GEN.101); `suffix` may hold
-    `{distance}` (pc).
+    the order `candidates` came (the fill order of GEN.101: the centre first, then
+    outward); `suffix` may hold `{distance}` (pc).
 
     Returns:
         tuple: `(batch, already_existed, skipped)`.
@@ -1138,7 +1160,7 @@ def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
 def _touches_filled_space(args, position_pc, radius_pc, edge_pc, batch_density):
     """Whether any sector within `radius_pc` of `position_pc` is already generated (GEN.186)."""
     candidates, occupied, _outside = _neighborhood_candidates(
-        position_pc, radius_pc, edge_pc, store.mysql_config_from_args(args), batch_density.bounds)
+        position_pc, radius_pc, edge_pc, store.mysql_config_from_args(args), batch_density.bounds, ordered=False)
     return bool(occupied)
 
 
