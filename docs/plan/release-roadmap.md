@@ -143,13 +143,12 @@ Suggested:
 Status: proposed; Boss does not want the gravity map here
 Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
 Today: 9.0 the gravity map (MAP.167)
-Change: Boss (2:00 PM EDT) targeted the backups and repair chain for 9.0 (umbrella ADM.91, 9 items in phases 3 and 4): the control database and parity parts of the backup archive (ADM.88, DB.40), restoring each (ADM.89, DB.41), repairing the galaxy from an archive (DB.42), one repair page (ADM.90), the end-to-end test and the guide (TEST.180, DOC.56). The settings page and the settings backups stay in 8.1. The gravity map moved to 9.1. A 9.0 headline still needs Boss's choice; this page recommends the view from a planet. 9.0 is a `major` note and needs his word.
+Change: Boss (2:00 PM EDT) targeted the backups and repair chain for 9.0 (umbrella ADM.91, 10 items in phases 3 and 4): the control database and parity parts of the backup archive (ADM.88, DB.40), restoring each (ADM.89, DB.41), repairing the galaxy from an archive (DB.42), one repair page (ADM.90), a nightly full backup from the daily maintenance run (OPS.55, Boss 2:06 PM EDT: yes), the end-to-end test and the guide (TEST.180, DOC.56). The settings page and the settings backups stay in 8.1. The gravity map moved to 9.1. A 9.0 headline still needs Boss's choice; this page recommends the view from a planet. 9.0 is a `major` note and needs his word.
 Needs: 8.1 (the camera that reaches a world; the settings page and the archive of ADM.87; the parity file and repair of DB.9; DB.17), 8.3 (so the sky changes with the date) and 8.4 (the worlds). The backups chain needs only 8.1. VIEW.1 and VIEW.2 start with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates.
 Alternative (Politics and territories): Territories that grow and shift on the map, with borders drawn and polities that trade. Placed at 9.2; it could be the 9.0 headline.
 Alternative (Generate anywhere): Remote generation as a platform headline (API.3). Placed at 8.9; it could be the 9.0 headline instead.
 Alternative (Edit everything): Already the 8.6 headline; it could be held back to a major release if Boss prefers.
 Suggested:
-- S9.0-z: A nightly full backup from the daily maintenance run (OPS.16 in 8.3), so the archives of ADM.87 are taken without a click and the retention setting does the pruning.
 - S9.0-a: Sky effects from the surface: atmospheric colour and twilight, moons with phases, rings in the sky and the planets that show to the eye.
 - S9.0-b: A sky-at-a-date slider (needs 8.3): the sky as it was or will be, with eclipse and conjunction predictions.
 - S9.0-c: Sunrise and sunset times and a day-and-night cycle for any world.
