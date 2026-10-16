@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1538] - 2026-10-16
+
+**Headline:** MAP.152, the scale hand-offs, is retired as built.
+
+### Changed
+
+- MAP.152 is closed in the TODO and the progress ledger (merged in #1832 and #1838); MAP.146 no longer waits on it.
+
+TODO items resolved: MAP.152 / Added: none
+
 ## [8.0.1537] - 2026-10-16
 
 **Headline:** The fly-through camera pieces that MAP.146 still lacked, map labels and the single configuration file are now planned.
