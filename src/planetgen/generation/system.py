@@ -1761,7 +1761,7 @@ class StarSystem:
         star_mass_kg = star.mass
         star_factor = star_mass_kg / constants.SOLAR_MASS_TO_KG
         snow_line = snow_line_au(star.luminosity)
-        density_scale = disk_surface_density_scale(star_mass_kg)
+        density_scale = disk_surface_density_scale(star_mass_kg, star.metallicity_fe_h or 0.0)
         outer_edge_au = min(
             tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,
             star.system_perimeter,
