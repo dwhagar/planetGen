@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1497] - 2026-10-16
+
+**Headline:** The to-do list records Core 3 as the owner of the failing navigation test (TEST.163).
+
+### Changed
+
+- TEST.163 now names Core 3 as its owner and sits in Core 3's lane list; the GitHub issue (#1654) carries the same note.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1496] - 2026-10-16
 
 **Headline:** Supernova remnants are sized by the real Sedov-Taylor blast-wave law, so a remnant in thin gas grows larger than one in dense gas.
