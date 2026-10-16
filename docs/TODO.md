@@ -2858,7 +2858,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `--check-pr` rule. Needs the deterministic math helpers first. Once
     GEN.42 lands, include one block-first backfill in the golden galaxy.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135, OPS.56.
+    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -10576,6 +10576,13 @@ clears each one.
   in 3 gates. Reproducer: none; the same file passed alone (7 of 7)
   right after. Related to TEST.190 (a failing session fixture makes
   dependents wait their full timeout).
+  Core 2 reproduced it twice in a row (2026-10-16, 5:52 PM EDT, the
+  OPS.56 gate and its rerun alone): the holder is an idle connection
+  (state Sleep, database `planetgen_a11y_*`, the same MySQL) that stays
+  open while `DROP DATABASE planetgen_a11y_*` waits 853 s; the PERF.88
+  gate hit the same shape. Reproducer: run `scripts/test.py changed`
+  with the browser tests selected and read `show full processlist` in
+  mysql during the teardown.
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -10591,6 +10598,18 @@ clears each one.
   unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
   full browser phase; try the file with two browser workers and a busy
   machine.
+  Prerequisites: none.
+
+- [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
+  Found by Core 2 (2026-10-16, 5:52 PM EDT), filed by the TODO thread.
+  `src/tests/test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel`:
+  `page.request.get` of `/sector/<id>/galaxy` timed out at 30 s in the
+  full gate run with 2 browser workers, and the test passed alone. Done:
+  the cause is found (a slow first request that builds the whole galaxy
+  scene under load, or a real stall in the route), and the test either
+  waits on the condition it needs or the route is made fast enough, with
+  no quarantine. Fails on main: unknown. Frequency: once so far.
+  Reproducer: none beyond the full browser phase with 2 workers.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -11202,7 +11221,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nothing), the battery digest (needs GEN.135 and the encoder), and the
   history row plus the galaxy record (a control-database migration and
   the update script).
-  Prerequisites: OPS.56, OPS.57, OPS.58.
+  Prerequisites: OPS.57, OPS.58.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
@@ -11288,27 +11307,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: OPS.16, ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
 
-- [ ] **OPS.56 The generator epoch counter and the PR rule that enforces it**
-  Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). An integer `generator_epoch`, bumped
-  only by a PR that changes generated output, kept in
-  `src/tests/golden/epochs.json` (epoch, first release of that epoch)
-  with an accessor `generator_epoch()`. `scripts/bump_version.py
-  --check-pr` enforces all or none: a change under `src/tests/golden/`,
-  the epoch bumped, and a `generation-output: changed` line in the
-  `changes/` note. A `golden_update` tool (`python -m
-  tests.golden_update --reason "..."`) bumps the epoch, records the
-  reason and refuses under `CI` and on an empty diff. Why: GEN.135,
-  DB.31, GEN.57 and every later generation change must be able to say
-  'epoch bumped' and have the guard check it. Done: the file, the
-  accessor, the rule and the tool, with a test for each failure (golden
-  changed without a bump; bump without golden change; note line missing)
-  and a sentence in docs/contributing.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Prerequisites: none. Related: OPS.28.
-
 - [ ] **OPS.57 generator_battery_digest(): a database-free digest over 6 to 8 canned cases**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A pure function in the package, no
@@ -11323,7 +11321,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   function and a test that it is stable across two runs and two hash
   seeds, and that changing one canned draw changes exactly one case's
   digest.
-  Prerequisites: GEN.135, GEN.304, OPS.56. Related: OPS.28.
+  Prerequisites: GEN.135, GEN.304. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -11341,7 +11339,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
-  Prerequisites: OPS.56, OPS.57, ADM.50. Related: OPS.28.
+  Prerequisites: OPS.57, ADM.50. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. Sending

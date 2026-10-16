@@ -22,7 +22,7 @@ release is stamped.
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.195 |
+| TEST | TEST.196 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.59 |
@@ -1358,7 +1358,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.53 | Before it changes anything, update.sh lists running and queued work and stops unless the operator agrees to cancel it, then nothing else can start until the update ends | none | done, PR #1781 |
 | OPS.54 | The orbital update refuses to run while an update is running, with tests | none | done, PR #1782 |
 | OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | none | open |
-| OPS.56 | The generator epoch counter and the PR rule that enforces it | none | open |
+| OPS.56 | The generator epoch counter and the PR rule that enforces it | none | done, PR #1877 |
 | OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | open |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | none | open |
 | OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | open |
@@ -1980,6 +1980,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | open |
 | TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) | none | open |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) | none | open |
+| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

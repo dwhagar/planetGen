@@ -55,10 +55,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy |  | Boss 2026-10-10 21:14Z; Foundations lane 1, before OPS.28. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) |  | Parent of the chain. |
-| OPS.56 | The generator epoch counter and the PR rule that enforces it |  | Split from OPS.28. |
-| GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | OPS.56 | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
-| GEN.306 | Population seeds keyed on the object, not on row ids | OPS.56 | Split from GEN.57. |
-| GEN.307 | The object-ID collision number keyed on the lower address | OPS.56 | Split from GEN.57. |
+| GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants |  | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
+| GEN.306 | Population seeds keyed on the object, not on row ids |  | Split from GEN.57. |
+| GEN.307 | The object-ID collision number keyed on the lower address |  | Split from GEN.57. |
 | TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | GEN.306, GEN.307 | Split from GEN.57. |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.306, GEN.307, TEST.181 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
@@ -74,14 +73,14 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table | DB.18 | Split from GEN.136. Core 1 owns migrations. |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | GEN.304, DB.49 | Split from GEN.136. |
 | GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | GEN.304, DB.49, GEN.305 | Research follow-up to GEN.58 (built). |
-| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | GEN.135, GEN.304, OPS.56 | Split from OPS.28. |
-| OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | OPS.56, OPS.57, ADM.50 | Split from OPS.28. |
-| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.56, OPS.57, OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
+| OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | GEN.135, GEN.304 | Split from OPS.28. |
+| OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | OPS.57, ADM.50 | Split from OPS.28. |
+| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | OPS.57, OPS.58 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
 | OPS.15 | Each update says whether it changes generated output |  | Needs the fingerprint, so phase 2. |
-| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.56 | Research follow-up to DB.7 (built). |
+| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns |  | Research follow-up to DB.7 (built). |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
-| OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | OPS.56 | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
-| TEST.77 | A golden-seed regression test | GEN.304, OPS.57, GEN.57, GEN.135, OPS.56 |  |
+| OPS.37 | A Generator version number: one sequential integer, shown in admin and the API |  | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
+| TEST.77 | A golden-seed regression test | GEN.304, OPS.57, GEN.57, GEN.135 |  |
 
 ### Tech levels and species
 
@@ -182,6 +181,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) |  | Test finding from the Settings lane, 4:57 PM EDT. |
 | TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) |  | Test infrastructure finding from Core 2, 5:04 PM EDT. |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. |
+| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) |  | Flaky test finding from Core 2, 5:52 PM EDT. |
 
 ### Nebula data foundations
 
