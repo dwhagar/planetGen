@@ -152,7 +152,7 @@ one per tier, to be tuned with sample worlds. Life is drawn after the score, so
 generation scores again once it is known (`habitability_world.rescore`).
 
 **Equipment**: ideal (called "shirtsleeve" until Boss renamed it, 2026-10-10 08:08Z); breathing mask (low O2 or pressure below Blue);
-mask with scrubber (a gas above its chronic limit); sealed suit (pressure
+mask with scrubber (a gas above its chronic limit); environment suit (pressure
 below Green, or any domain Red); full life support with radiation
 hardening (Radiation Red). The kit is about the air, the cold or heat and the
 radiation; Water Chemistry and Suitability are about drinking and eating and do
@@ -220,11 +220,11 @@ unless given.
 | World | Inputs | P / T / Air / Water / R / Suit | PHI-4 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
 |---|---|---|---|---|---|---|---|
 | Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7, a full biosphere | Blue x6 | 1.00 | 0.97 | 0.97 | 1.00 | ideal |
-| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.69 | 0.97 | 0 | 0.48 | sealed suit |
-| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.73 | 0.97 | 0 | 0.02 | sealed suit |
-| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5, no life | Blue / Blue / Red / Blue / Blue / Red | 0.74 | 0.97 | 0 | 1.00 | sealed suit |
-| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Blue / Green / Red | 0 | 0.53 | 0 | 0.47 | sealed suit |
-| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0.3999 | 0.01 | 0 | 0.46 | sealed suit |
+| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.69 | 0.97 | 0 | 0.48 | environment suit |
+| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.73 | 0.97 | 0 | 0.02 | environment suit |
+| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5, no life | Blue / Blue / Red / Blue / Blue / Red | 0.74 | 0.97 | 0 | 1.00 | environment suit |
+| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Blue / Green / Red | 0 | 0.53 | 0 | 0.47 | environment suit |
+| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0.3999 | 0.01 | 0 | 0.46 | environment suit |
 | Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour, first plants | Blue / Green / Blue / Yellow / Blue / Red | 0.7499 | 0.64 | 0.64 | 0.80 | ideal |
 | Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Green / Red / Red | 0 | 0.40 | 0 | 0.28 | full life support |
 
@@ -479,7 +479,7 @@ the row alone. Every rule below is a planetGen default, not a source's number.
 | Water source for a base | Liquid at a surface ocean, ice for an icy surface or ice lid, vapour for a steam world, hydrated minerals for a dry body with 1e-5 or more water by mass, else vapour in the air, else none. |
 
 **Equipment.** `equipment_tier` is `habitability.equipment` numbered 0 to 4:
-ideal, breathing mask, mask with scrubber, sealed suit, full life
+ideal, breathing mask, mask with scrubber, environment suit, full life
 support with radiation hardening (section 7.3's table is the alternative,
 not built). Each domain stores its score (`phi4_<domain>`) and its colour
 (`tier_<domain>`: 0 Blue to 3 Red); `hab_note` lists the domains short of
@@ -524,7 +524,7 @@ The one new row, a heat-shielded suit past 140 C, comes from the notes alone. Th
 Armstrong limit (6.3 kPa against 6.27) is the same number to the notes' rounding.
 
 `protection.paragraph` writes the description of a rocky body as one paragraph (GEN.216).
-It opens "PHI-6 habitability is 0.00, and a visitor needs a sealed suit." The six
+It opens "PHI-6 habitability is 0.00, and a visitor needs an environment suit." The six
 categories follow, each as "Name: Colour (value)." and one short sentence with the number and
 its consequence ("The air pressure is 0 kPa, so a pressure suit is needed."). Air with no
 atmosphere reads "There is no atmosphere (0.0 kPa)." (GEN.215), Radiation names its band,

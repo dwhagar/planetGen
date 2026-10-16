@@ -46,11 +46,11 @@ LIMIT_ROWS = (
     Limit("inspired_o2_acute_kpa", 160.0, "kPa", "acute CNS oxygen toxicity (1.6 bar)", 160.0, None),
     # --- Temperature ---
     Limit("cold_outer_c", -120.0, "C", "the score reaches 0 here", -120.0, None),
-    Limit("cold_suit_c", -50.0, "C", "colder than this a sealed suit with active heating (Red); down to it an insulated suit (Yellow)", -50.0, -40.0, "lower"),
+    Limit("cold_suit_c", -50.0, "C", "colder than this an environment suit with active heating (Red); down to it an insulated suit (Yellow)", -50.0, -40.0, "lower"),
     Limit("cold_clothing_c", -20.0, "C", "colder than this cold-weather clothing is not enough (Green below Blue)", -20.0, -20.0),
     Limit("comfort_low_c", 0.0, "C", "least temperature with no gear (Blue)", 0.0, None),
     Limit("comfort_high_c", 31.0, "C", "greatest temperature with no gear (Blue)", 31.0, None),
-    Limit("heat_garment_c", 45.0, "C", "hotter than this an actively cooled sealed suit (Yellow); below it cooling garments (Green)", 45.0, 45.0),
+    Limit("heat_garment_c", 45.0, "C", "hotter than this an actively cooled environment suit (Yellow); below it cooling garments (Green)", 45.0, 45.0),
     Limit("heat_max_c", 122.0, "C", "the limit of carbon-based life (Takai et al., 2008): the score's Yellow edge", 122.0, None),
     Limit("heat_shielded_c", 140.0, "C", "hotter than this a mask-only visitor's skin burns at the seal: a heat-shielded suit with a liquid cooling garment", None, 140.0),
     Limit("hot_outer_c", 200.0, "C", "the score reaches 0 here", 200.0, None),

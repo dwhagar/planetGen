@@ -9,7 +9,7 @@ Thermal.Respiratory.Protection.Research.md): modular gear (clothing, masks), int
 systems (counterpressure and chemical-barrier suits) and fully enclosed suits, one ladder
 per stressor, with the limits of `protection_limits` (one table, the more permissive value
 wherever the notes and the built table differ). A suit built for one stressor is not one built
-for another: a heated sealed suit does not cool, a cooled one does not shield from radiation,
+for another: a heated environment suit does not cool, a cooled one does not shield from radiation,
 and solar-storm doses need a shelter, not a suit.
 
 Everything here is a pure function of a `habitability.World`.
@@ -22,7 +22,7 @@ from planetgen.physics.protection_limits import limit
 
 SUIT_RANK = {"none": 0, "mask": 1, "scrubber": 2, "garment": 3, "suit": 4, "hardened": 5}
 """dict: How heavy a class of gear is, lightest first: nothing, a breathing mask, a mask with a
-scrubber, clothing or garments for the weather, a sealed suit, a hardened habitat (no suit helps)."""
+scrubber, clothing or garments for the weather, an environment suit, a hardened habitat (no suit helps)."""
 
 GAS_NAMES = {"CO2": "carbon dioxide", "CO": "carbon monoxide", "H2S": "hydrogen sulfide", "SO2": "sulfur dioxide"}
 
@@ -73,7 +73,7 @@ def temperature_need(world):
     t = world.temperature_c
     why = f"the air temperature is {_celsius(t)}"
     if t < limit("cold_suit_c"):
-        return "suit", "a sealed suit with active heating", why
+        return "suit", "an environment suit with active heating", why
     if t < limit("cold_clothing_c"):
         return "garment", "an insulated suit", why
     if t < limit("comfort_low_c"):
@@ -81,7 +81,7 @@ def temperature_need(world):
     if t > limit("heat_shielded_c"):
         return "suit", "a heat-shielded suit with a liquid cooling garment", why
     if t > limit("heat_garment_c"):
-        return "suit", "an actively cooled sealed suit", why
+        return "suit", "an actively cooled environment suit", why
     bulb = wet_bulb_c(t, world.relative_humidity) if -20.0 <= t <= 50.0 else None
     if t > limit("comfort_high_c") or (bulb is not None and bulb >= limit("wet_bulb_c")):
         if bulb is not None and bulb >= limit("wet_bulb_c"):
@@ -93,20 +93,20 @@ def temperature_need(world):
 def air_need(world):
     """`(rank, gear, why)` for the air: the worst of its oxygen and the gases a filter can take out."""
     if not habitability.has_atmosphere(world):
-        return "suit", "a sealed suit with its own air", f"there is no atmosphere ({world.pressure_kpa:.1f} kPa)"
+        return "suit", "an environment suit with its own air", f"there is no atmosphere ({world.pressure_kpa:.1f} kPa)"
     need = ("none", None, "the oxygen and the other gases are within their long-term limits")
     o2 = inspired_o2_kpa(world)
     if o2 < limit("inspired_o2_min_kpa"):
         reaches = "no oxygen reaches the lungs" if o2 < 0.05 else f"only {_kpa(o2)} of oxygen reaches the lungs"
         need = ("mask", "a breathing mask with supplied oxygen", reaches)
     elif o2 > limit("inspired_o2_chronic_kpa"):
-        need = ("suit", "a sealed suit with its own air", f"{_kpa(o2)} of oxygen reaches the lungs, more than months of breathing allow")
+        need = ("suit", "an environment suit with its own air", f"{_kpa(o2)} of oxygen reaches the lungs, more than months of breathing allow")
     too_much = [(gas, kpa) for gas, kpa, band in gas_inputs(world) if habitability.band_score(kpa, band, log=True) < 1.0]
     if too_much:
         names = " and ".join(GAS_NAMES[gas] for gas, _kpa_value in too_much)
         worst_score = min(habitability.band_score(kpa, band, log=True) for _g, kpa, band in gas_inputs(world))
         if worst_score < 0.4:
-            return "suit", "a sealed suit with its own air", f"{names} is far past what a filter can take out"
+            return "suit", "an environment suit with its own air", f"{names} is far past what a filter can take out"
         if need[0] in ("none", "mask"):
             return "scrubber", "a mask with a scrubber", f"{names} is above its long-term limit"
     return need
@@ -151,15 +151,15 @@ def requirements(world):
 SHORT_GEAR = {
     "a full gas-pressurised suit": "a pressure suit", "a counterpressure or pressurised suit": "a pressure suit",
     "a hyperbaric pressure suit": "a hyperbaric suit", "a rigid armoured pressure suit": "an armoured suit",
-    "a sealed suit with active heating": "an environment suit", "an actively cooled sealed suit": "an environment suit",
+    "an environment suit with active heating": "an environment suit", "an actively cooled environment suit": "an environment suit",
     "a heat-shielded suit with a liquid cooling garment": "an environment suit",
-    "a breathing mask with supplied oxygen": "a breathing mask", "a sealed suit with its own air": "a sealed suit",
+    "a breathing mask with supplied oxygen": "a breathing mask", "an environment suit with its own air": "an environment suit",
     "a shielded shelter for long stays": "a shielded shelter", "a hardened, shielded habitat": "a hardened habitat",
 }
 """dict: The gear in the short words a description uses ("so a pressure suit is needed")."""
 
 OVERALL_GEAR = {"none": "no equipment", "mask": "a breathing mask", "scrubber": "a mask with a scrubber",
-                "suit": "a sealed suit", "hardened": "a hardened habitat"}
+                "suit": "an environment suit", "hardened": "a hardened habitat"}
 """dict: What a visitor needs overall by the heaviest class of gear any stressor asks for (the lighter
 classes name their own gear)."""
 

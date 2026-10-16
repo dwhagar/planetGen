@@ -42,7 +42,7 @@ Each rocky planet's and moon's description also carries the full PHI-6 explanati
 
 Planet and moon rows carry habitability chips (GEN.89, design in
 `docs/design/habitability-index.md`): an equipment label (Ideal, formerly Shirtsleeve;
-Mask, Mask and scrubber, Sealed suit, Full life support), a colour chip
+Mask, Mask and scrubber, Environment suit, Full life support), a colour chip
 that comes from the six PHI-6 domains (pressure, temperature, air, water,
 radiation, suitability; Blue, Green, Yellow, Red) under the gates of GEN.207, and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
