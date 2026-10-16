@@ -708,3 +708,4 @@ Baseline: PR #1817.
 | MAP.226 | 8.1 | Fly-through map |
 | GEN.364 | 8.1 | Galactic core and halo |
 | PERF.88 | 8.1 | Queue, caches and performance |
+| ADM.84 | 8.1 | Settings page |
