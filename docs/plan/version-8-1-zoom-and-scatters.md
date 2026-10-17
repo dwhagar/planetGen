@@ -8,7 +8,7 @@ Version: 8.1
 
 ## Goal
 
-Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star system (MAP.146). The new generate scatters: accurate galactic generation and scattering out to the 262 kpc reach, including the halo, the satellites, the nebula stars and a realistic core (GEN.301). The version also holds the Phase 1 tail: the queue steps, reproducible galaxies, the description layer, tech levels, directives and every open bug and flaky test. The 8.1 stamp waits until all of it is done (REVISION_HOLD in scripts/bump_version.py).
+Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star system (MAP.146). The new generate scatters: accurate galactic generation and scattering out to the 262 kpc reach, including the halo, the satellites, the nebula stars and a realistic core (GEN.301). The version also holds the Phase 1 tail: the queue steps, reproducible galaxies, the description layer, tech levels, directives and every open bug and flaky test. A third strand (Boss, 2026-10-16, 11:58 PM EDT): the building blocks of the 9.0 composition headline, which go down to 8.1 because they change no stored value: the research lanes and designs (phase 1, GEN.431 to GEN.437 with GEN.409, GEN.425 and GEN.426), the data tables (phase 2, GEN.438, GEN.410, GEN.427, GEN.439), the star composition function (phase 3, GEN.440) and its sweep (phase 4, TEST.211); the master note is docs/design/composition-model.md. The 8.1 stamp waits until all of it is done (REVISION_HOLD in scripts/bump_version.py).
 
 ## Phase 1: Foundations and open trees
 
@@ -190,6 +190,21 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | MAP.172 | Nebula cell aggregates in the region pyramid |  | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | MAP.172 | Foundations lane 2. |
 
+### Composition research and design
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs |  | Boss 11:58 PM EDT; a read-only research lane; the draft goes to /mnt/project-files/design-drafts/ and the TODO thread merges it into docs/design. |
+| GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs |  | Boss 11:58 PM EDT; a read-only research lane; the draft goes to /mnt/project-files/design-drafts/ and the TODO thread merges it into docs/design. |
+| GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs |  | Boss 11:58 PM EDT; a read-only research lane; the draft goes to /mnt/project-files/design-drafts/ and the TODO thread merges it into docs/design. |
+| GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs |  | Boss 11:58 PM EDT; a read-only research lane; the draft goes to /mnt/project-files/design-drafts/ and the TODO thread merges it into docs/design. |
+| GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing |  | Boss 11:49 PM EDT; a read-only research thread, any lane. |
+| GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | GEN.431 | Boss 11:24 PM EDT; design note, no code. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | GEN.425, GEN.432 | Boss 11:49 PM EDT; design note, no code. Core 4 proposed. |
+| GEN.435 | The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants | GEN.433 | Boss 11:58 PM EDT; design note, no code. |
+| GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose | GEN.431, GEN.432, GEN.434 | Boss 11:58 PM EDT; design note, no code. |
+| GEN.437 | The composition model: how the element, compound, material and body tables link, and what is stored against derived | GEN.409, GEN.426, GEN.435, GEN.436 | Boss 11:58 PM EDT; design note, no code. |
+
 
 ## Phase 2: Infinite zoom
 
@@ -244,6 +259,15 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.53 | Built-system star storage: the orbit_nodes table, stars.parent_node_id, planets.host_node_id, the catalogue columns and the disk descriptor (one Core 1 revision) |  | Split from GEN.129. Core 1 owns migrations. |
+
+### Composition tables
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies | GEN.437 | Boss 11:58 PM EDT; atomic data and the radioactive isotopes; no abundance pattern. |
+| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | GEN.409, GEN.437, GEN.438 | Boss 11:24 PM EDT; the one table the rest reads. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | GEN.426, GEN.437, GEN.438 | Boss 11:49 PM EDT; the one materials table. Core 4 proposed. |
+| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | GEN.435, GEN.437, GEN.438 | Boss 11:58 PM EDT; a constants-and-functions module, no database access. |
 
 
 ## Phase 3: New scatters: stars, nebulae and the region query
@@ -309,6 +333,12 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 |---|---|---|---|
 | GEN.391 | Superbubbles shape the stars: the design of the bubble field as a density modulation, with its bounds and touch points checked |  | Boss 9:27 PM EDT: step 1 of the superbubble density chain; Core 3 proposed. |
 
+### Star composition
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | GEN.439 | Boss 11:58 PM EDT; a pure function of stored values; no column, no stored change. |
+
 ## Phase 4: New scatters: components, clusters and audits
 
 Satellites, clusters and wanderers as components, the globular cluster chain and the audits that check what the scatters make.
@@ -317,7 +347,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach |  | Split from GEN.240. |
 | GEN.323 | The phenomena pass runs on the object-first sampler | GEN.322 | Split from GEN.240. |
@@ -351,6 +380,12 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315, TEST.186 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329, TEST.186 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | GEN.276 | Spherical region query, stage C. Step 6. Quality. |
+
+### Composition proofs
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism | GEN.440 | Boss 11:58 PM EDT; the proof of the star composition. |
 
 ## Phase 5: New scatters: core, halo, interface update and docs
 
@@ -444,5 +479,5 @@ The last audits and the headline: they test the component pass, the core and the
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | GEN.240, GEN.321, TEST.186 | Split from TEST.159. |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.240, GEN.282, GEN.321, TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
-| TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | GEN.103, TEST.186 | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
+| TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | TEST.186 | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196 |  |
