@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1635] - 2026-10-17
+
+**Headline:** A galaxy's species, civilization ages, technology levels, governments and colors no longer depend on how many workers filled it.
+
+### Changed
+- The population pass keys every draw on the homeworld's unique ID instead of a row id: a species' traits and age (`life:<id>`), its name (`species-name:<id>`), its technology indices (`tech:<id>`), and its polity's government and color (`government:<id>`, `polity-color:<id>`). Row ids come from per-worker id blocks, so the same galaxy used to draw differently at 1 and at 4 workers and in another fill order. Planets are scanned in unique-ID order. A polity color is now a drawn hue, so neighbouring polities no longer step round the color wheel.
+
+generation-output: changed
+
+TODO items resolved: GEN.306 / Added: none
+
 ## [8.0.1634] - 2026-10-17
 
 **Headline:** TEST.208 is filed: `scripts/test.py --resume` should reuse a test's earlier pass across builds when none of its own dependencies changed.
