@@ -2350,7 +2350,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   toward the point under the cursor; a browser test zooms toward empty
   space and checks the camera stops at the clearance and never inside a
   star or wall.
-  Owner: Core 2 (the infinite zoom tree; behind DOC.47, PERF.105 and
+  Owner: Core 2 (the infinite zoom tree; behind PERF.105 and
   UX.118, among the maps).
   Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
 
@@ -5789,6 +5789,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   numbers are used where we can. Things are derived everywhere we can or
   calculated everywhere we can. If needed you should ask me to do
   research if there are pieces missing that you can't look up yourself."
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): cluster
+  half-light radius 2.7 ± 0.35 pc after correction for galactocentric
+  radius, surface brightness and host colour, red about 17 percent
+  smaller than blue (Jordan 2005); invariance holds over a factor of
+  about 350 in host luminosity, not 10^5.
   Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
@@ -7055,6 +7061,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   inference of which paper is meant) and the FIRE age-gradient paper
   (arXiv:1901.05487) are readable by a thread for the occupation width
   (GR15), class B to class A.
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): occupation
+  fraction against halo mass: centre 10^9.33 Msun/h, erf width 0.21 dex
+  (simulation; 0.205 for the model with simulated histories), 0.10 at
+  10^9.0, 0.78 at 10^9.5 (Gemini's 10^8.6 is the paper's limit with no
+  reionization, 8.65; the centre with z_re 2, 4, 6, 8, 10, 12 is 8.68,
+  8.87, 9.14, 9.29, 9.36, 9.38, which with Busha's z_re spread of 6.3 to
+  11.6 gives the per-galaxy cutoff, R12). Low-mass stellar-to-halo slope
+  1.92 (Garrison-Kimmel 2014, Behroozi 2013 Eq 3): log M* 3.61, 4.57,
+  5.53, 6.49, 7.44 at log Mh 8.5 to 10.5; the scatter stays the Fitts to
+  Nadler bracket. Ultra-faint sizes (R13): 15 objects, Plummer r_h 27.7
+  to 234 pc, geometric mean 58 pc, sigma 0.29 dex, r_h rises with
+  brightness (r = -0.88), so the size is not uncorrelated with M_V.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7424,6 +7443,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1904.01260) are readable by a thread, so the thick-disc start (GR6)
   moves from class B to class A; the labelled placeholder stays until
   they are read.
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): thick-disc ages
+  (R6, partly): Pinna 2019b has 12 to 13 Gyr for FCC 153 and FCC 177,
+  FCC 170 peaking near 14 Gyr and stopping about 11 Gyr (three Fornax S0
+  galaxies); Sattler 2024 has mean thick-disc ages mostly below 8 Gyr,
+  about 4 Gyr on average, in eight star-forming discs of 4e9 to 6e10;
+  Comeron 2021 predicts the youngest thick-disc stars at 4 to 6 Gyr
+  below 1e10 and about 10 Gyr at Milky Way mass. Gemini's start
+  independent of host mass is contradicted. The oldest thick-disc age
+  against host mass for low-mass star-forming discs stays open (needs
+  Sattler's star formation history table).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
@@ -7832,6 +7862,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bound, so the bound test applies to the mean relation or carries a
   margin of 0.13 dex. The replacement is a new stand-in version after
   this item merges (Core 1's gate ends about 12:20 PM EDT).
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): R2 tables:
+  Illustris-1 median ex situ fraction 0.026 at M* 1e9, 0.060 at 1e10,
+  0.12 at 4.7e10, 0.19 at 1e11, 0.34 at 2e11, 0.54 at 4.7e11, 0.72 at
+  1e12 (the low end of the simulations); outer-component light fraction
+  of the SDSS stacks, high concentration 0.33 at 10.1, 0.53 at 10.9,
+  0.70 at 11.2, low concentration 0.025, 0.18, 0.24 (log M* 10.0 to 11.4
+  only); the crossover of 0.5 is at log M* 11.61, not 1.5e11. R5:
+  Courteau scatter 0.097 dex about the paper's own line (by class:
+  ellipticals 0.050, S0 to Sab 0.081, Sb to Sbc 0.095, Sc to Scd 0.076,
+  lenticulars 0.133). Thick-to-thin conflicts widened, both kept (Boss's
+  decision 2): height ratio 2.5 (Yoachim) against a median 4.24 (Comeron
+  2018), mass ratio against Vc 0.53 (Vc/100)^-2.3 against 0.87
+  (Vc/100)^-1.09; the Comeron heights and outer lengths against M* are
+  in the check note.
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -7895,6 +7940,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Courteau 2007 scatter of log(Vc/sigma0)) stays at the plan's fill:
   the table is not on VizieR; raw scatter of two source samples is 0.104
   to 0.123 dex.
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): nuclear cluster
+  mass slope 0.48 (Neumayer 2020, zero point 6.51 at M* 1e9), against
+  Georgiev 1.0 to 1.36: both kept (widened, Boss's decision 2); Gemini's
+  0.65 is attributed to Neumayer and is not in the paper.
   Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -7963,6 +8013,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   added now. GR7 (blue against red radius ratio): log-uniform from 1.0
   to the largest printed ratio, 1.5 until the ratios are read; both
   sources stay.
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): halo formation
+  redshift z50 against halo mass (analytic mean, Correa 2015): 1.27,
+  1.15, 1.02, 0.88, 0.74, 0.60, 0.47, 0.35 at log M 8 to 15, slope about
+  -0.14 per dex (Gemini's 1.20 - 0.35 log(M/1e12) is contradicted except
+  at 1e14); a simulation fit (Cooper and Cole 2010) is still open (R10).
+  Cluster system radius against the galaxy's: about 3.5 times (Hudson
+  and Robison 2018, Forbes 2018) against about 6 times (Kartha 2016,
+  twelve galaxies), widened and both kept (Boss's decision 2). The blue
+  to red radius ratio (R7) stays open: the 1.20 ± 0.08 of Gemini is in
+  none of the papers read. Cluster half-light radius (R9): 2.7 ± 0.35 pc
+  after correction, red about 17 percent smaller than blue, invariant to
+  about 10 percent over a factor of about 350 in host luminosity.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -10108,6 +10171,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512)
   is a research-thread read for the age-velocity normalisation (GR4), no
   need for Boss.
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): age-velocity
+  normalisation (Sharma and Hayden 2020 Table 2, verified): sigma_z(10
+  Gyr) 21.1 ± 0.2 km/s, sigma_R(10 Gyr) 39.4 ± 0.3, vertical heating
+  index 0.441 ± 0.007, radial index 0.251 ± 0.006; Gemini's 38.5, 62.0,
+  0.46 and 0.42 are contradicted. The Vc exponent of the vertical
+  normalisation (Gemini gamma 0.50) has no source: Martinsson prints
+  sigma_z,0 = (0.248 ± 0.038) V(2.2 hR), proportional to the rotation
+  speed.
   Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
 
 - [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
@@ -13454,6 +13526,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Corrections: A&A 562, A121 is the ARRAKIS ring atlas, the 2014
   thick-disc paper is A&A 571, A58 (arXiv:1409.0466); the Comeron 2011
   and 2012 tables are not on VizieR (superseded by 2018).
+  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
+  clock reported; docs/design/gemini-batch1-check.md): 51 claims
+  checked: 10 agree, 17 partly, 16 contradicted by a read source, 4
+  unsupported, 4 misattributed (the theory section of the paste was not
+  screened). Answered by a usable table: R2 (digitised Rodriguez-Gomez
+  2016 Fig 3, D'Souza 2014 Figs 13(b) and 16(b), Benitez-Llambay and
+  Frenk 2020 Figs 10 and 11), R5 (Courteau scatter 0.097 dex about the
+  paper's own line, 79 markers digitised from its Fig 2; this supersedes
+  the raw 0.104 to 0.123 of the VizieR note as the centre candidate
+  inside the plan's 0.06 to 0.12 bracket), R12 (the z_re table with
+  Busha's spread of 6.3 to 11.6), R13 (Munoz 2018 ultra-faint sizes: 15
+  objects, 27.7 to 234 pc, geometric mean 58 pc, sigma 0.29 dex, r_h
+  rises with brightness) and parts of R3 (Comeron 2018 fit), R6 (Pinna
+  2019, Sattler 2024, Comeron 2021), R10 (Correa 2015 analytic z50).
+  Still open for Boss's list: R1, R4 beyond the Milky Way, R7, R8, R14,
+  and parts of R6 (the oldest thick-disc ages), R9 (cluster ages), R10
+  (a simulation fit), R11 (the dwarf relation's scatter). Corrections
+  carried on the items: the occupation centre is 10^9.33 Msun/h with
+  width 0.21 dex (Gemini's 10^8.6 is the no-reionization limit); the 1.9
+  stellar-to-halo slope is Garrison-Kimmel 2014 (1.92), not
+  UniverseMachine; halo formation z50 is 1.02 at 1e10 (not 1.9); the
+  age-velocity normalisations are 21.1 and 39.4 km/s (not 38.5 and
+  62.0); the nuclear cluster slope is 0.48 (Neumayer), not 0.65; the
+  cluster half-light radius invariance holds over a factor of about 350
+  in host luminosity, not 10^5. Three conflicts between two verified
+  sources are recorded as widened, both kept (Boss's decision 2, 11:19
+  to 11:23 AM EDT): thick-to-thin height ratio 2.5 (Yoachim and
+  Dalcanton) against a median 4.24 (Comeron 2018); thick-to-thin mass
+  ratio against Vc, 0.53 (Vc/100)^-2.3 against 0.87 (Vc/100)^-1.09;
+  cluster system radius about 3.5 (Hudson and Robison, Forbes) against
+  about 6 (Kartha 2016) times the galaxy's.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17579,6 +17682,12 @@ clears each one.
   whenever the box is loaded, not only inside a gate. Fails on main:
   yes, under load. Frequency: 1 of 1 gate runs, plus the alone rerun.
   Bug Hunt owns it.
+  Sighting (Core 2, 2026-10-17, 11:52 AM EDT as the lane reported,
+  DOC.47's gate `scripts/test.py changed` 11:40 to 11:49 AM EDT, load
+  8.9): failed again with the same symptom, 24 passed and 1 failed;
+  reran alone, FAILED ALONE (154.81 s on gw1, load 8.9), and it fails
+  alone on main too. It has now failed alone four times at load 8.9 to
+  9.6. Fails on main: yes, under load. Bug Hunt owns it.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -18684,7 +18793,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.19, DOC.20, DOC.24, DOC.47, DOC.48, DOC.50, DOC.51,
+  Prerequisites: DOC.19, DOC.20, DOC.24, DOC.48, DOC.50, DOC.51,
   DOC.52, DOC.53. Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
@@ -18768,28 +18877,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 20 of 54). This replaces any earlier owner line on this item.
   Prerequisites: UX.105, GEN.218, GEN.219.
-
-- [ ] **DOC.47 Rebuild docs/design/architecture.html from the new architecture.md**
-  Found by Quality after DOC.27 and DOC.28 (PR #1628) rewrote the code
-  map and flows in docs/architecture.md for the shell grid. The
-  illustrated snapshot `docs/design/architecture.html` is still dated
-  2026-10-07 and the README links it, so it shows the cylinder grid and
-  the old code map. Done: the page is rebuilt from the new
-  architecture.md (same layout, dated the day it is rebuilt), names
-  shells, bands and wedges instead of rings, layers and slots, and the
-  README link and every `architecture.html` reference in the docs still
-  point at it. Owner: Quality (2026-10-15), after the Core and Maps
-  changes settle, so the snapshot is not stale on the day it is made.
-  Not a bug.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 53 of 53). This replaces any earlier owner line on this item.
-  Order (Boss, 2026-10-17, 10:39 AM EDT, card tapped "Apply all three"):
-  Core 2 builds it right after DOC.19, ahead of its maps tail, because
-  Core 5's closing docs pass DOC.18 waits on it. Core 2's answer on
-  whether it has started it is pending.
-  Prerequisites: none. Related: DOC.27, DOC.28 (done, PR #1628).
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
   Step 14 of the whole-sphere train.

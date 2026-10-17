@@ -766,3 +766,4 @@ Baseline: PR #1817.
 | MAP.225 | 8.1 | Fly-through map |
 | MAP.227 | 8.1 | Fly-through map |
 | MAP.228 | 8.1 | Fly-through map |
+| DOC.47 | 8.1 | Docs |

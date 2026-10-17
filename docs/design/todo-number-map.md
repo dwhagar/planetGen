@@ -633,7 +633,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | done, PR #1584 |
 | DOC.45 | Reference docs follow the description layer | none | open |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
-| DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
+| DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | done, PR #2037 |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | merged into DOC.50 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
