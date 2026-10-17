@@ -57,8 +57,7 @@
     },
     {
       "epoch": 12,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1726",
       "reason": "A satellite galaxy's stars are split by a history derived from its stellar mass, size and mean age into young, intermediate and old populations (the Magellanic Clouds now place massive stars), the satellite's old window is 3 to 13 Gy, and the satellite scatter rows change with it (GEN.526)."
     }
   ]
