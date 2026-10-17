@@ -384,16 +384,18 @@ WHITE_DWARF_MAX_AGE_GY = 12.0
 # only present-day temperature, not a lifespan (see
 # get_star_evolutionary_profile in utils.py for the same issue on the
 # planet-life side). Instead, the star's own already-generated mass is run
-# through the standard mass-luminosity-based main-sequence lifetime scaling
-# (the same t = 10 Gy * (M/Msun)^-2.5 relation used to derive the
-# STAR_EVOLUTION table above, anchored to the Sun), then extended by the
-# standard rule-of-thumb that a star spends about 90% of its total lifetime
-# on the main sequence -- so the star must already be at least as old as
-# that main-sequence lifespan (it has to have finished that phase to be
-# observed as an evolved class), and at most its total (MS + post-MS)
-# lifespan.
-SOLAR_MS_LIFESPAN_GY = 10.0
-MS_LIFESPAN_MASS_EXPONENT = -2.5
+# through the main-sequence lifetime of physics/ms_lifetime.py (the fit of
+# Hurley, Pols and Tout 2000 to detailed models, GEN.467; the STAR_EVOLUTION
+# table above was derived from the older t = 10 Gy * (M/Msun)^-2.5 law),
+# then extended by the standard rule-of-thumb that a star spends about 90%
+# of its total lifetime on the main sequence -- so the star must already be
+# at least as old as that main-sequence lifespan (it has to have finished
+# that phase to be observed as an evolved class), and at most its total
+# (MS + post-MS) lifespan.
+# The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
+# the proto-solar Z of the composition scale, Asplund 2021 (stellar-
+# composition.md D1). A solar mass lasts 10.2 Gy at it.
+MS_LIFETIME_REFERENCE_Z = 0.0154
 MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
 # Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
 # mass-derived model above -- not just from its mass-sampling rejection
@@ -416,8 +418,8 @@ SUBDWARF_MIN_AGE_GY = 1.0
 SUBDWARF_MAX_AGE_GY = 13.5
 SUBDWARF_REMAINING_PHASE_MIN_GY = 0.05
 SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
-# A sub-solar-mass progenitor (roughly under ~0.88 Msun, per the
-# SOLAR_MS_LIFESPAN_GY/MS_LIFESPAN_MASS_EXPONENT formula above) already has
+# A sub-solar-mass progenitor (roughly under ~0.93 Msun, per the
+# ms_lifetime.py lifetime above) already has
 # a main-sequence lifespan longer than the universe itself -- it couldn't
 # possibly have evolved off the main sequence yet, so it must never be
 # accepted as an evolved-class star's progenitor mass in the first place
@@ -426,7 +428,7 @@ SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
 # SECTOR_MAX_PLACEMENT_ATTEMPTS caps SpaceSector's own reject-and-resample
 # loop: most classes' allowed mass range sits entirely clear of the cutoff
 # (so the very first draw is accepted) and only the class III (Giant) low
-# end (0.8-~0.88 Msun, out of an 0.8-8 Msun range) ever needs a resample,
+# end (0.8-~0.93 Msun, out of an 0.8-8 Msun range) ever needs a resample,
 # so 100 attempts leaves effectively zero chance of exhausting this for any
 # class it's actually applied to.
 EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
@@ -488,7 +490,7 @@ IMF_SLOPES = (1.3, 2.3)
 STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 
 # Post-main-sequence phases, as multiples of the main-sequence lifetime
-# (SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT above): subgiant up
+# (physics/ms_lifetime.py, above): subgiant up
 # to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
 # phases take roughly 10-20% of the main-sequence time. A star lighter than
 # HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch

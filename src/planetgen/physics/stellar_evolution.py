@@ -27,7 +27,7 @@ section.
 
 import math
 
-from planetgen.physics import constants, metallicity
+from planetgen.physics import constants, metallicity, ms_lifetime
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -49,8 +49,9 @@ HORIZONTAL_BRANCH_COLOURS = ("blue", "rr-lyrae", "red", "extreme")
 
 
 def main_sequence_lifetime_gy(mass_sol):
-    """t_MS = 10 Gy * M^-2.5, the same law the rest of the generator uses."""
-    return tuning.SOLAR_MS_LIFESPAN_GY * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT
+    """The main-sequence lifetime, Gy, from `ms_lifetime` (Hurley, Pols and Tout 2000, GEN.467), the one the rest of
+    the generator uses."""
+    return ms_lifetime.lifetime_gy(mass_sol)
 
 
 def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=draw):

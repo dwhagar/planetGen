@@ -65,7 +65,7 @@ EXPECTED_SHARES = [
     ("white dwarf", 4.0, 7.0),
     ("subgiant", 0.15, 0.6),
     ("giant", 0.12, 0.5),
-    ("pre-main-sequence", 0.02, 0.2),
+    ("pre-main-sequence", 2.0, 6.0),  # GEN.529: a red dwarf is still contracting for 0.1 to 0.7 Gy
 ]
 
 

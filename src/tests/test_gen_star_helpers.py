@@ -260,7 +260,7 @@ def test_main_sequence_luminosity_is_increasing_and_positive():
 def test_main_sequence_lifetime_falls_with_mass():
     lifetimes = [stellar_evolution.main_sequence_lifetime_gy(m) for m in MASSES]
     assert lifetimes == sorted(lifetimes, reverse=True)
-    assert stellar_evolution.main_sequence_lifetime_gy(1.0) == PC.SOLAR_MS_LIFESPAN_GY
+    assert stellar_evolution.main_sequence_lifetime_gy(1.0) == pytest.approx(10.0, rel=0.05)  # GEN.467: 10.2 Gy
 
 
 def test_effective_temperature_is_solar_for_the_sun_and_monotonic():

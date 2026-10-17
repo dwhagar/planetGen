@@ -50,7 +50,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import constants, pre_main_sequence, roche, stability
+from planetgen.physics import constants, ms_lifetime, pre_main_sequence, roche, stability
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -423,7 +423,7 @@ def _youngest_progenitor_sol(age_yr):
     """The lightest star whose giant phases have ended by this age (a star lighter than
     `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch)."""
     def mass(fraction):
-        return (tuning.SOLAR_MS_LIFESPAN_GY * fraction * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+        return ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9 / fraction)
     light = mass(evolution.remnant_age_fraction(0.0))
     if light < tuning.HELIUM_FLASH_MASS_SOL:
         return light
@@ -453,7 +453,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
 def _alive_star_mass(low, high, age_yr, rng):
     """An IMF mass in `[low, high]` that is still on the main sequence at this age (the heaviest such mass
     caps the range)."""
-    cap = (tuning.SOLAR_MS_LIFESPAN_GY * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9)
     high = max(min(high, cap), low * 1.0001)
     return evolution.sample_imf_mass_sol(low, high, rng)
 
