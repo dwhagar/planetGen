@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1624] - 2026-10-17
+
+**Headline:** The goal issues are consolidated into fewer chains and the old single-item issues are closed into them.
+
+### Changed
+- `docs/plan/issue-groups.md`: the single-test failure issues, the old feature requests and the small follow-up issues move into the goal issue that covers their topic (test failures, the Galaxy Map, descriptions, edit everything, the Redis queue, performance, install and update, phenomena, multi-star systems, docs); the issues that are done or duplicated are marked closed.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1623] - 2026-10-17
 
 **Headline:** The GEN.368 note now says the arxiv.org access for the verifying thread is in place.
