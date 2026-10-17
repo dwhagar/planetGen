@@ -71,7 +71,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, scatter_limits as scatterLimits, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scatter_limits as scatterLimits, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
@@ -7591,6 +7591,9 @@ def get_galaxy_shape(conn):
         k_norm=row["k_norm"],
     )
     shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]))
+    seed = None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"])
+    chain = massChain.draw_mass_chain(seed)
+    shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
