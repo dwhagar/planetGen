@@ -12,7 +12,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#1914](https://github.com/dwhagar/planetGen/issues/1914) | open | Galaxy types: one family per known galaxy type, drawn from the seed (9.4) | DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.388, GEN.389, GEN.390, MAP.242, TEST.204, UX.134 |
+| [#1914](https://github.com/dwhagar/planetGen/issues/1914) | open | Galaxy types: one family per known galaxy type, drawn from the seed (9.4) | DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.388, GEN.389, GEN.390, MAP.242, TEST.204, UX.134, UX.135 |
 | [#1846](https://github.com/dwhagar/planetGen/issues/1846) | open | Map labels: names for stars, systems, sectors, big features and nebulae | MAP.229, MAP.230, MAP.231, MAP.232, MAP.233 |
 | [#1845](https://github.com/dwhagar/planetGen/issues/1845) | open | One configuration file and the settings page (8.1) | ADM.43, ADM.44, ADM.50, ADM.83, ADM.84, ADM.85, ADM.86, ADM.87, ADM.96, GEN.303 |
 | [#1844](https://github.com/dwhagar/planetGen/issues/1844) | open | Backups: the archive, parity data, control database and repair from an archive | ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.40, DB.41, DB.42, DOC.56, OPS.55, TEST.180 |
