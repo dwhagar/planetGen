@@ -7,6 +7,7 @@
 ### Changed
 - The young and intermediate populations carry the factor in `population_densities` and its array form, so sector profiles, the bright-star scatter and the nebula scatter follow it. No cell's total density changes. The sector profile of an inner cell shows fewer young stars (on an arm crest at 0.25 kpc: young 2% to under 1%, intermediate 15% to 4%) and the bar's core holds 9% to 11% of its stars under 5 Gyr.
 - The object-first band bound widens the young and intermediate weights by the factor's true range over each band's radii (`recent_factor_range`).
+- The magnetar rate's young share of all stars in a Milky Way-sized galaxy is 0.44% (was 0.48%): the bulge now holds fewer young stars, and `test_gen_magnetar_scatter` caught the old figure. A full scatter holds about 9% more magnetars per young star.
 - `scripts/star_type_by_radius.py` runs again (it called the retired `--arm-amplitude`).
 - `docs/design/star-types-by-galactic-radius.md` records the derivation, the sources and the result. Proposal 2 (local B stars at 0.04%) is not met and the note says why.
 
