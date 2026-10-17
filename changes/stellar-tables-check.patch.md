@@ -5,4 +5,6 @@
 - **Horizontal branch.** Luminosity 35 to 50 solar luminosities (it was 40 to 60), so the branch is never in a scatter (floors are 50 and up); temperature ranges red 4,600 to 6,100 K, RR Lyrae 6,100 to 7,500 K; the [Fe/H] -1.5 colour row is 55% blue, 25% RR Lyrae, 13% red, 7% extreme.
 - A galaxy scattered before this has the old giant counts: `planetgen plan --redo-scatters mass luminosity` draws them again.
 
-TODO items resolved: none. Added: none.
+generation-output: changed
+
+TODO items resolved: GEN.407. Added: none.
