@@ -4457,7 +4457,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multi-star-systems.md sections 13 to 16): the young
   non-hierarchical groups and trapezia of section 13.1 are built by
   GEN.273 on this item's cores.
-  Prerequisites: GEN.320, GEN.321. Related: MAP.172, GEN.150,
+  Prerequisites: GEN.321. Related: MAP.172, GEN.150,
   GEN.202, GEN.99. Built-on note (Core 1, 2026-10-16, 8:41 AM EDT,
   GEN.251 merged as #1815): the stage F required stars (the stars a
   nebula needs as real systems) are not built by GEN.251; fill stages
@@ -4539,7 +4539,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.320. Related: GEN.113, MAP.132, MAP.176.
+  Prerequisites: none. Related: GEN.113, MAP.132, MAP.176.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.244 Young open clusters and OB associations as components (later)**
@@ -4773,7 +4773,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report); held until its blocker
   merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
-  Prerequisites: GEN.320. Related: GEN.242.
+  Prerequisites: none. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.259 Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug)**
@@ -6026,30 +6026,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: DB.53, GEN.314. Related: GEN.130.
 
-- [ ] **GEN.320 build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q)**
-  Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function,
-  build_nebula_with_contents, that every path creating a hosted nebula
-  without a host calls: emission C gets its O or early-B star at the
-  centre, G the early-B star, F the B3 to A9 star, planetary nebulae
-  keep their white dwarf and gain the close companion (20%), supernova
-  remnants keep their neutron star or black hole at 60% of core-collapse
-  remnants, Bok globules P one protostar in 30%, star-forming cores Q
-  one to four protostars (Poisson mean 2, at least 1) clumped near the
-  centre; M and N none. A nebula that cannot get its stars is not made.
-  Added as stage F in generation/fill_stages.py on its own stream; the
-  hosted roll for a pre-placed star is decided from the star's own seed
-  (folds MAP.182). Done: every hosted nebula of these classes holds its
-  stars inside its radius, a planetary nebula always has its white
-  dwarf, and a pre-placed star's nebula shows from its scatter row.
-  Needs the stored nebula age and ionizing rate (child a of GEN.95),
-  which the member draw reads for the age cap (2026-10-16 review).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: none. Related: GEN.241.
-
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Classes D and E get the seed star
@@ -6068,7 +6044,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.320. Related: GEN.241.
+  Prerequisites: none. Related: GEN.241.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6898,30 +6874,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.373 Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise**
-  Split from GEN.103 (Core 4, 2026-10-16, 7:16 PM EDT; the coordinator
-  asked it be an item of its own at 7:17 PM EDT).
-  docs/design/placement-by-population.md section 3.2: high-mass stars
-  are far more often in multiples, and the most massive sit in clusters
-  and associations. The mass dependence is already in
-  `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` and
-  `STAR_COUNT_PROBABILITIES`; the place dependence is not. Done:
-  `prevalence` of `draw_member_tree` is the cell's young share (the
-  profile's `populations["young"].share`) over the solar circle's
-  reference share (`profile._reference_young_share(shape)`), so it is 1
-  where a cell looks like the solar circle, above 1 in arms and
-  associations and 0 in the halo; the five-or-more columns scale with
-  it. The cap on the rise is the one open constant (a design default,
-  not a value from a source): under Boss's no-fixed-content rule it is
-  derived, not typed in; the odds form Core 4 recommended for GEN.103
-  (the factor applied to the odds, so nothing passes 1) is the model.
-  Boss decides the cap on a card. Test: the massive-multiple census bins
-  of TEST.164, and the metallicity check of TEST.196. Owner: Core 4,
-  with the multi-star items (GEN.269 to GEN.275).
-  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.164,
-  TEST.196.
-  Design: [docs/design/placement-by-population.md](design/placement-by-population.md)
 
 - [ ] **GEN.374 Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree**
   From the GEN.372 precision audit (Core 1,
@@ -9556,7 +9508,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rescatter that follows the other scatter changes; GEN.301 waits for
   it. The tables live in generation/multistar.py and tuning.py, not in
   Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  ask Core 3 before touching its files. Core 4 takes GEN.447,
   GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
   tables.
   Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
@@ -9580,7 +9532,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rescatter that follows the other scatter changes; GEN.301 waits for
   it. The tables live in generation/multistar.py and tuning.py, not in
   Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  ask Core 3 before touching its files. Core 4 takes GEN.447,
   GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
   tables.
   Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.196.
@@ -9606,7 +9558,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rescatter that follows the other scatter changes; GEN.301 waits for
   it. The tables live in generation/multistar.py and tuning.py, not in
   Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  ask Core 3 before touching its files. Core 4 takes GEN.447,
   GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
   tables.
   Prerequisites: none. Related: GEN.103, GEN.269, TEST.196.
@@ -15846,7 +15798,7 @@ clears each one.
   it gates GEN.301 (directly or through the census harness TEST.186). A
   test lane must be started or the item given to a running lane before
   the headline can close.
-  Prerequisites: GEN.320, GEN.243, TEST.186. Related: TEST.159.
+  Prerequisites: GEN.243, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
   Split from TEST.159 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -16001,8 +15953,8 @@ clears each one.
   massive-star flatness bins fail with plain scaling of the metallicity
   factor; with the odds form Core 4 recommends in GEN.103 they are
   expected to pass at the edge. The test lands only with a green run (no
-  skip, no quarantine). The 3.2 prevalence cap is GEN.373 and does not
-  gate this test.
+  skip, no quarantine). The 3.2 prevalence cap (GEN.373) was dropped by Boss
+  (2026-10-17, 10:07 AM EDT) and does not gate this test.
   Prerequisites: TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
 

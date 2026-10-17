@@ -760,3 +760,4 @@ Baseline: PR #1817.
 | MAP.217 | 8.3 | Movement on the maps |
 | GEN.242 | 8.1 | Nebula and young stars |
 | GEN.400 | 8.1 | Galaxy laws build |
+| GEN.320 | 8.1 | Nebula and young stars |

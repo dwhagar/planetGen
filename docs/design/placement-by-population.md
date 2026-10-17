@@ -11,7 +11,7 @@ names the physical law that turns profile fields into the number. Where a law ne
 note says so, marks it for Boss's research, and the code reads it from `tuning.py` with its source named.
 
 Informs: GEN.103, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.275.
-Status: 3.1 and 3.3 built (GEN.103); 3.2 left; check TEST.196 queued. Design, 2026-10-16. Evidence tags: [S] read from the repository, [R] recalled and unconfirmed, [C] computed here.
+Status: 3.1 and 3.3 built (GEN.103); 3.2 dropped by Boss (2026-10-17, 10:07 AM EDT, GEN.373); check TEST.196 queued. Design, 2026-10-16. Evidence tags: [S] read from the repository, [R] recalled and unconfirmed, [C] computed here.
 
 ## 1. What decides where a thing goes
 
@@ -219,8 +219,8 @@ the same record to carry the young-share prevalence.
 
 ## 5. What closes GEN.103
 
-- 3.1 and 3.3 are built to Boss's five answers (section 7). 3.2 needs a design cap on the prevalence and belongs with the multi-star
-  items (GEN.269 and GEN.270 to GEN.275, Core 3), which can read `PlaceTerms` once they need it.
+- 3.1 and 3.3 are built to Boss's five answers (section 7). 3.2 needed a design cap on the prevalence; Boss dropped it (GEN.373, 2026-10-17, 10:07 AM EDT, his card answer as Core 4 reported it), so
+  `prevalence` stays as built and the multi-star items (GEN.269 and GEN.270 to GEN.275, Core 3) can read `PlaceTerms` once they need it.
 - TEST.196 (3.1b) follows, in the census harness (TEST.186, Core 3's).
 
 ## 6. Check of the pasted reference list (2026-10-16, 6:15 PM EDT)
