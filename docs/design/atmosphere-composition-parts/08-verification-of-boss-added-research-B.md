@@ -40,7 +40,7 @@ Tomasko et al. 1999, JGR 104, 8987: "Properties of dust in the Martian atmospher
 
 ### 2.1 "Equivalent-sphere Mie underpredicts forward scattering by up to 40 percent". Verdict: UNSUPPORTED
 
-Searched Tomasko 2008 team slides, Seignovert 2017, Bailey 2011 (arXiv:1102.2554), Horst 2017 (arXiv:1702.08611), Gao and Stam 2017 (arXiv:1702.07771), snippets of West and Smith 1991 and Lavvas 2010. No "40 percent" anywhere. Established: DISR data need fractal aggregates, 4000 monomers of 0.04 um radius (Horst 2017, READ) or N = 3000 of r = 0.05 um (Tomasko team slides, READ); the slides compare equal-volume sphere radius 0.72 um with equal-projected-area radius 2.03 um. Gao and Stam (Pluto, READ): aggregates give "a too small backscatter lobe by factor about 3" (different body and quantity). Treat the 40 percent as invented.
+Searched Tomasko 2008 team slides, Seignovert 2017, Bailey 2011 (arXiv:1102.2554), Horst 2017 (arXiv:1702.08611), Cheng et al. 2017 (arXiv:1702.07771, earlier mis-attributed here to Gao and Stam; corrected in part 10C section 0), snippets of West and Smith 1991 and Lavvas 2010. No "40 percent" anywhere. Established: DISR data need fractal aggregates, 4000 monomers of 0.04 um radius (Horst 2017, READ) or N = 3000 of r = 0.05 um (Tomasko team slides, READ); the slides compare equal-volume sphere radius 0.72 um with equal-projected-area radius 2.03 um. Cheng et al. (Pluto, READ): aggregates give "a too small backscatter lobe by factor about 3" (different body and quantity). Treat the 40 percent as invented.
 
 ### 2.2 Absolute extinction law. Verdict: CONFIRMED (earlier exponents correct)
 

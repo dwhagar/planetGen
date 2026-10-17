@@ -6316,6 +6316,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
   redoes rows only; satellites and clusters (`galaxy_components`) are
   drawn only by a full `plan`. DOC.62 puts the line in docs/cli.md.
+  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
+  5, bumped at its merge once the earlier epoch is stamped; GEN.322,
+  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
+  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
   Prerequisites: GEN.237. Related: GEN.240.
 
 - [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
@@ -6344,6 +6348,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shells above and below the disk). Boss accepted it (card "Accept",
   2026-10-17, 12:52 AM EDT, as the coordinator relayed), so the Done
   figure here and in GEN.240's text is now 9.1 million.
+  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
+  6, bumped at its merge once the earlier epoch is stamped; GEN.322,
+  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
+  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
@@ -6375,6 +6383,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration takes the next free number when it merges, and its author
   tells the owners of the migrations still waiting (Core 3 for GEN.324,
   Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
+  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
+  7, bumped at its merge once the earlier epoch is stamped; GEN.322,
+  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
+  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -8195,7 +8207,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names are unsupported (two copies of the Lisse 2021 table agree); the
   real error is model error below about 50 K, so the table uses the
   composite: Wagner liquid above the triple point, Fray and Schmitt
-  above about 50 K, and the Grundy 2024 and Blakley 2025 laboratory fits
+  above about 50 K, and the Grundy 2024 and Blakley 2024 laboratory fits
   below (Fray and Schmitt is 1.4 to 2.3 times high for alpha-N2 at 25 to
   33 K, 6 times for alpha-CO at 31 K and 1.9 times for CH4 at 30 K); the
   original Fray and Schmitt table with its validity limits stays on
@@ -8233,8 +8245,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): cold curves are lab fits
   only inside their windows (N2 23 to 31 K, CO 26 to 35, CH4 31 to 43
-  from Grundy 2024; beta-O2 29 to 37 and NH3 88 to 105 from Blakley
-  2025), blended into Fray and Schmitt where the ratio reaches 1; the
+  from Grundy 2024; beta-O2 29 to 37 and NH3 88 to 105 from Blakley 2024), blended into Fray and Schmitt where the ratio reaches 1; the
   earlier factor 4 at 24 K for O2 is dropped (extrapolation); never
   scale p_vap by a sticking coefficient; no Rayleigh coefficient from
   the note is adopted (its CO2, O2, CH4 dispersion formulas are wrong,
@@ -10126,7 +10137,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
   by the TODO thread. The cold curves are the composite of GEN.410
   (Wagner liquid, Fray and Schmitt above about 50 K, Grundy 2024 and
-  Blakley 2025 laboratory fits below); the sign inversions of Boss's
+  Blakley 2024 laboratory fits below); the sign inversions of Boss's
   note are unsupported.
   Checked by the Body composition research lane against Boss's second
   note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
@@ -10330,8 +10341,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2.35 (items GEN.495 and GEN.496).
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): NH3 photolysis lifetime
-  about 5.6e3 s by this lane is a quiet-and-active mean; the quiet Sun is about 6.7e3 s (GEN.496 stores the quiet-Sun rate and an activity factor); comet CO2 ratios confirmed, other comet ranges
+  10A to 10D of atmosphere-composition.md): NH3 photolysis lifetime at 1 AU: default 1.5e-4 per s (6.7e3 s), range 1.3e-4 to 1.8e-4 per s (5.6e3 to 7.7e3 s), settled by the two lanes in part 10E (GEN.496 stores the quiet-Sun rate and an activity factor of 1.05 to 1.10); comet CO2 ratios confirmed, other comet ranges
   per finding 27.
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
@@ -10999,13 +11009,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
   by the TODO thread. The cold curves are the composite of GEN.410
   (Wagner liquid, Fray and Schmitt above about 50 K, Grundy 2024 and
-  Blakley 2025 laboratory fits below); the sign inversions of Boss's
+  Blakley 2024 laboratory fits below); the sign inversions of Boss's
   note are unsupported.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the cold-ice vapour
-  pressures below 50 K (Grundy 2024 and Blakley 2025 laboratory fits,
+  pressures below 50 K (Grundy 2024 and Blakley 2024 laboratory fits,
   beta-O2 lower by 1.6), Jager and Span 2012 for CO2, and H2, HD and He
   as non-condensable above their critical temperatures; the
   sign-inversion question agrees with finding 11.
@@ -11026,12 +11036,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10A to 10D of atmosphere-composition.md): the Jager and Span CO2
   equation is valid 80 to 300 K and 0 to 500 MPa; triple points CO 68.16
   K, O2 54.361 K, NH3 195.49 K; lab fit windows as in GEN.410.
-  Blakley 2025 beta-O2 'lower than legacy by an average factor of 1.6'
+  Blakley 2024 beta-O2 'lower than legacy by an average factor of 1.6'
   is a mean over its own 29 to 37 K window (Fray and Schmitt over lab
   2.4 down to 1.3; recomputed 1.7); the factor 4.1 at 24 K is the fitted
   curve extrapolated below the lowest datum, not a measurement, and part
   01 labels its 24 and 26 K ratios as extrapolation (Atmosphere lane,
   part 10A claim 2, about 2:55 AM EDT as the lane reported).
+  Corrections from the Atmosphere and Body lanes (about 3:25 AM EDT as
+  the lane reported): the cold-ice O2 and NH3 paper is Blakley et al.
+  2024 (PSS 244, 105863, arXiv:2403.09917; the NTRS record year 2025 was
+  taken for the paper year); a 2026 Grundy-group preprint adds a x1.19
+  back-condensation correction to the ice vapour pressures (read by the
+  Body lane, not by the Atmosphere lane or the TODO thread: carry as
+  lane-read, partly verified until the preprint is read); solid CO2
+  sublimation is better taken from Span and Wagner eq. 3.12 than from
+  Jager and Span's narrower range.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -11889,7 +11908,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, with the composition chain).
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): reconciled by the Body composition lane (3:00 AM EDT as the lane reported; section 15.1 of body-composition-research.md): not a conflict. 6.7e3 s (6.5e3 computed from Heays 2017 cross sections times the quiet solar field; Biver 2007 gives 6700 s) is the quiet Sun; 5.6e3 s (k = 1.8e-4 per s) is a mean of quiet and active Sun (Huebner 1992 and Huebner and Mukherjee 2015, as quoted by Drozdovskaya 2023); published range 5.4e3 to 7.7e3 s. The table stores the quiet-Sun rate and an activity factor per species, not one number; the NH3 activity factor is unknown until the Huebner and Mukherjee NH3 rates are read (the new research item).
+  10A to 10D of atmosphere-composition.md): reconciled by the Body composition lane (3:00 AM EDT as the lane reported; section 15.1 of body-composition-research.md): not a conflict. 6.7e3 s (1.5e-4 per s; Heays 2017 with the Liang 2007 cross section, reproduced to four digits by the Atmosphere lane; Biver 2007 agrees) is the default and 5.6e3 s (1.8e-4 per s; Huebner 1992 and Huebner and Mukherjee 2015, called quiet Sun by two sources and a quiet and active mean by Drozdovskaya 2023, inputs not reached) the other end of the published range 5.4e3 to 7.7e3 s. Settled by the two lanes (Atmosphere lane about 3:25 AM EDT as the lane reported, part 10E): the table stores the quiet-Sun rate and an NH3 activity factor of 1.05 to 1.10 (NH3 absorbs mainly at 170 to 217 nm, so active over quiet is small; the lane's own recomputation gives quiet 1.28 to 1.54e-4 and active 1.35 to 1.70e-4 per s), and a hard 200 nm cut would be wrong by a factor 2 because 200 to 226 nm supplies half of the rate. The Huebner and Mukherjee tables stay on the research item GEN.501 to replace the bracket.
   The NH3 activity factor is the research item GEN.501.
   Prerequisites: GEN.410. Related: GEN.410, GEN.455, GEN.413, GEN.472,
   GEN.501.
@@ -11993,11 +12012,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane reconciliation of the NH3 photolysis
   lifetime (3:00 AM EDT as the lane reported; section 15.1 of
   docs/design/body-composition-research.md), filed by the TODO thread at
-  the coordinator's relay. The lifetime is 6.7e3 s for the quiet Sun and
-  5.6e3 s as a quiet-and-active mean (published range 5.4e3 to 7.7e3 s),
-  so the generator keeps a quiet-Sun rate and an activity factor
-  (GEN.496). The NH3 activity factor is not known: the lane did not read
-  the Huebner and Mukherjee 2015 NH3 rates. Do: read the quiet-Sun and
+  the coordinator's relay. The lifetime is 6.7e3 s by Heays 2017 (published range 5.4e3 to 7.7e3 s), so the generator keeps a quiet-Sun rate and an activity factor (GEN.496). Update (Atmosphere lane about 3:25 AM EDT as the lane reported, part 10E): the factor is bracketed at 1.05 to 1.10 by the lane's own recomputation, but the Huebner 1992 and Huebner and Mukherjee 2015 NH3 rates were not read, so the bracket stays flagged until they are. Do: read the quiet-Sun and
   active-Sun NH3 photolysis rates in Huebner and Mukherjee 2015 (and
   Huebner 1992), cross-check them against the Heays 2017 cross sections
   times the solar field, and record the activity factor with its source,
