@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1617] - 2026-10-17
+
+**Headline:** ADM.43 and ADM.44 (the configuration page and the web, link preview and SEO settings) leave the TODO list.
+
+### Changed
+- ADM.43 and ADM.44 retired on the Settings lane's merge (#1921). The settings goal keeps ADM.86 (8.2, needs the Owner account) and GEN.303 (8.1 phase 5, Core 3).
+
+TODO items resolved: ADM.43, ADM.44 / Added: none
+
 ## [8.0.1616] - 2026-10-17
 
 **Headline:** The Admin Settings page now controls how the site presents itself to search engines, browsers and link previews: indexing, robots.txt, sitemaps, icons, the preview picture and the site's tagline.
