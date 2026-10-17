@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1596] - 2026-10-17
+
+**Headline:** The browser-test hangs (TEST.193 and TEST.195) have an owner: Core 1, ahead of its bug phase.
+
+### Changed
+- TEST.193 and TEST.195 name Core 1 as owner (Boss, 2026-10-16, 8:23 PM EDT, "Core 1 next"), starting right after its stack and the GEN.372 audit merge.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1595] - 2026-10-17
 
 **Headline:** DB.18 (migration helpers for slow DDL) leaves the TODO list, and the browser-test hangs that hit every full gate this evening are recorded as a repeating failure.
