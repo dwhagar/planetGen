@@ -129,7 +129,9 @@ def test_the_stars_fall_in_the_shells_and_populations_the_density_gives():
 
 def test_stars_in_skipped_sectors_are_thinned_not_moved():
     full = [row for seed in range(40) for row in _scatter(SHAPE, 4, 3, seed)]
-    skip = {(row[0], row[1], row[2]) for row in full[: len(full) // 3]}
+    # A third of the addresses that hold stars (not the addresses of a third of the rows: the first rows can fill
+    # nearly every sector, which left 18 stars to compare and failed on a different draw stream).
+    skip = set(sorted({(row[0], row[1], row[2]) for row in full})[::3])
     thinned = [row for seed in range(40) for row in _scatter(SHAPE, 4, 3, seed, skip_addresses=skip)]
     assert not any((row[0], row[1], row[2]) in skip for row in thinned)
     in_skip = sum(1 for row in full if (row[0], row[1], row[2]) in skip)
