@@ -57,7 +57,8 @@ from planetgen.physics import constants, metallicity
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.galaxy.density import population_densities, population_densities_array
+from planetgen.galaxy import skeleton as galaxySkeleton
+from planetgen.galaxy.density import halo_density, population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
     band_center_pc,
     band_colatitude_bounds,
@@ -886,6 +887,116 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                             if _in_range(row, min_luminosity_sol, max_luminosity_sol):
                                 yield row
                             break
+
+
+BLOCK_WEDGES = 256
+"""int: The wedges of one band a block holds (GEN.308): a block is the cells `chunk * BLOCK_WEDGES` and up of a band, the
+last one short. The grid of blocks is fixed globally, so a region only chooses which blocks it reads."""
+
+BlockCandidate = collections.namedtuple("BlockCandidate", "wedge index u_population")
+"""A star `block_candidates` kept: the cell's wedge, its place in the block's draw (it keys the star's own stream,
+`candidate_stream`) and a uniform that picks its population in proportion to the cell's per-population rates."""
+
+
+def block_key(seed, shell_index, band_index, chunk, k):
+    """The name of the stream a block's band draws its candidates from: the seed, the block and the luminosity band."""
+    return f"{seed}:bf:{shell_index}:{band_index}:{chunk}:{k}"
+
+
+def candidate_stream(seed, shell_index, band_index, chunk, k, index):
+    """The stream the star of candidate `index` of a block draws its parameters and its point from, so it depends on
+    nothing but the seed, the block, the band and its place in the block's draw."""
+    return draw.Stream(f"{block_key(seed, shell_index, band_index, chunk, k)}:{index}")
+
+
+def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, shares):
+    """
+    The most stars one cell of a band can expect in a luminosity band (GEN.308): the cell's volume in edge cubes times
+    `expected_at_density_1` times the highest density any cell of the band can have, each part with the largest share
+    any population of it holds in the luminosity band.
+
+    Every cell centre of a band sits at the same cylindrical radius and height (`band_center_pc`), so the density
+    there bounds every cell: the disk and bulge at each term's maximum over the angle
+    (`galaxy.skeleton._bound_raw_density_at`, nuclear terms included) with the largest share of any population but
+    the halo, plus the halo, which depends on the radius and height alone, with the halo's own share. The clusters
+    and satellites are left out, as `_densities` leaves them out of the scatter.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+        shell_index (int): The band's shell.
+        band_index (int): The band.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        shares (dict): Population to its share of the luminosity band (`bright_band_fraction`).
+    """
+    plane, z = band_center_pc(shell_index, band_index, edge_pc)
+    inner_share = max(share for population, share in shares.items() if population != "halo")
+    stellar = shape.k_norm * galaxySkeleton._bound_raw_density_at(shape, plane, z) * inner_share
+    halo = halo_density((plane, 0.0, z), shape) * shares["halo"]
+    return expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc) * (stellar + halo)
+
+
+def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
+    """
+    The stars a cell expects in a luminosity band, summed over the populations: what `backfill_cells` draws its Poisson
+    count with, `expected_at_density_1 * volume * density * share` at the cell's centre.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+        address (tuple): `(shell, band, wedge)`.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        shares (dict): Population to its share of the luminosity band (`bright_band_fraction`).
+    """
+    shell_index, band_index, wedge = address
+    densities = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
+    volume = volume_ratio(shell_index, band_index, edge_pc)
+    return sum(expected_at_density_1 * volume * densities[population] * shares[population] for population in POPULATIONS)
+
+
+def block_candidates(seed, shell_index, band_index, chunk, k, bound, rate_of):
+    """
+    The stars a luminosity band puts in one block of a band, drawn block first (GEN.308; docs/design/sampling-backfill-and-resume.md
+    section 2): one Poisson count from the block's `bound`, each candidate a uniform cell of the block kept with the
+    chance `rate / bound` of its own cell. Exact thinning of a Poisson process: a cell ends up with a Poisson count of
+    its own mean `rate`, independent of every other cell, so no cell's chance is altered; a block with no
+    candidates costs one stream and one count.
+
+    The draw is keyed by the seed, the block and the band alone (`block_key`), nothing sequential crosses a block, and
+    the block grid is global, so the same stars come out whatever region, order or split of workers reaches the block.
+
+    Args:
+        seed (int): The galaxy's bright-star seed.
+        shell_index (int): The block's shell.
+        band_index (int): The block's band.
+        chunk (int): Which block of the band: wedges `chunk * BLOCK_WEDGES` up.
+        k (int): The luminosity band (`canonical_bands`).
+        bound (float): A mean no cell of the block exceeds (`block_bound`).
+        rate_of (callable): `rate_of(wedge)` -> the stars the cell expects in the band (`cell_band_rate`); only the
+            candidates' cells are asked.
+
+    Returns:
+        list: The kept `BlockCandidate`s, in the order they were drawn.
+
+    Raises:
+        ValueError: A cell asked for expects more than `bound`: the bound is wrong and the draw would not be exact.
+    """
+    first = chunk * BLOCK_WEDGES
+    cells = min(BLOCK_WEDGES, wedge_count(shell_index, band_index) - first)
+    if cells <= 0 or not bound > 0.0:
+        return []
+    rng = draw.Stream(block_key(seed, shell_index, band_index, chunk, k))
+    kept = []
+    for index in range(poisson_count(bound * cells, rng)):
+        wedge = first + min(int(rng.random() * cells), cells - 1)
+        accept = rng.random()
+        u_population = rng.random()
+        rate = rate_of(wedge)
+        if rate > bound * (1.0 + 1e-9):
+            raise ValueError(f"cell {(shell_index, band_index, wedge)} expects {rate:g} stars, above its block's bound {bound:g}")
+        if accept * bound < rate:
+            kept.append(BlockCandidate(wedge, index, u_population))
+    return kept
 
 
 def mass_band_edges(mass_limit_sol, ring_masses=None):

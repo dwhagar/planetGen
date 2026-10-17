@@ -62,7 +62,7 @@ def _candidates(component, mean, rng):
     """`(positions, uniform)` of the candidates of a Poisson `mean`: three rows of whole milliparsecs, and the uniform
     draws left for the caller's own use (a keep test, a mass), one row each."""
     count = poisson_count(mean, rng) if mean > 0.0 else 0
-    uniform = phenomenon_scatter._uniforms(rng, 5 * count).reshape(5, count)
+    uniform = rng.random_array(5 * count).reshape(5, count)
     return positions_mpc(component, uniform[:3]), uniform[3:]
 
 

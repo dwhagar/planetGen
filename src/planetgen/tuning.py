@@ -12,6 +12,16 @@ evolutionary timelines and narrative text, asteroid belt components, and
 flavor text pools. See `physical_constants` for real physical/astronomical
 constants. Nothing in this module has side effects; it is imported wherever
 these values or tables are needed.
+
+Rules for a new constant (`tests/test_fuzz_utils_and_config.py` checks them, so
+a breach shows as a red test): a number is finite; a pair is written
+`(low, high)` and `low <= high`; a `_MIN`/`_MAX`, `_LOW`/`_HIGH` or
+`_INNER`/`_OUTER` pair of names is ordered the same way; and a scalar at the
+top level of the module is positive. A value that can be negative is kept in a
+dict or a list, not as a bare module constant; is named for what it is
+(`EXPONENT`, `ROUND_`, `_OFFSET`, `_DELTA`, `_SLOPE` and `_INTERCEPT` are the
+names the test lets through); or is stored as a positive "fall" (how far
+down, not minus how far) and subtracted where it is used.
 """
 
 from planetgen.generation.phenomena import registry as _phenomena_registry
