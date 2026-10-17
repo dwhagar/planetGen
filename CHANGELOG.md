@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1610] - 2026-10-17
+
+**Headline:** GEN.368 and GEN.276 with NAV.60 go next in their lanes' queues (Boss, "Both next").
+
+### Changed
+- GEN.368 (Core 1: stack, GEN.372 audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371, GEN.366) and GEN.276 with NAV.60 (Core 2: GEN.135 gate, GEN.306, then GEN.276 and NAV.60) record Boss's 9:16 PM EDT decision and an owner line each.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1609] - 2026-10-17
 
 **Headline:** Each galaxy type in 9.4 gets a simple vector outline so the user sees roughly what the model looks like.
