@@ -530,7 +530,10 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
     problems = []
     page.on("console", lambda msg: msg.type == "error" and problems.append(f"console error: {msg.text}"))
     page.on("pageerror", lambda exc: problems.append(f"uncaught exception: {exc}"))
-    page.on("requestfailed", lambda req: problems.append(f"request failed: {req.url} ({req.failure})"))
+    # A request the page cancels itself (the map drops its tile fetch when the view moves on) ends ERR_ABORTED: on a
+    # loaded machine the fetch is still under way when that happens (TEST.174, TEST.197). It is not a failed request.
+    page.on("requestfailed", lambda req: "ERR_ABORTED" in str(req.failure)
+            or problems.append(f"request failed: {req.url} ({req.failure})"))
     page.on("response", lambda resp: resp.status >= 400 and problems.append(
         f"HTTP {resp.status}: {resp.url}"))
     try:
