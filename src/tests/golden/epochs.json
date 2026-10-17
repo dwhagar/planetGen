@@ -7,8 +7,7 @@
     },
     {
       "epoch": 2,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1620",
       "reason": "Stored distances and radii use planetgen.util.detmath (sqrt of the squares added left to right) in place of math.hypot and math.dist, and the nebula shape's rotation uses detmath.matmul in place of @, so the last bit of many positions differs (GEN.135)."
     }
   ]
