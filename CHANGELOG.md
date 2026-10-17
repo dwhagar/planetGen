@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1668] - 2026-10-17
+
+**Headline:** The meaning of a table weight is decided: the odds of picking a possibility.
+
+### Changed
+
+Boss answered at 1:51 AM EDT that the weights of the gated composition rows are the odds of picking a possibility and that the fractions inside the drawn row are normalised separately; both sums are tested. Recorded in `docs/design/composition-model.md` section 4a and on GEN.472 and TEST.214.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1667] - 2026-10-17
 
 **Headline:** Every composition category becomes a gated table of weighted possibilities, filed in the plan.
