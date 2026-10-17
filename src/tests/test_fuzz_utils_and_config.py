@@ -827,7 +827,7 @@ def test_lookup_tables_reference_each_other_consistently():
         assert set(table) == spectral
     assert set(pg.SPECTRAL_PROBABILITIES_NORMAL) <= spectral
     assert set(pg.SPECTRAL_PROBABILITIES_LARGE_STAR) <= spectral
-    assert set(pg.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS) <= spectral
+    assert {key[0] for key in pg.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS} <= spectral
     for scale in ("fast", "normal", "slow"):
         assert pg.EVOLUTIONARY_TIMELINES[scale]["technological_civilization"] > 0
     fast, normal, slow = (pg.EVOLUTIONARY_TIMELINES[s]["technological_civilization"] for s in ("fast", "normal", "slow"))

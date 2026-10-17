@@ -459,13 +459,39 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 #   A, B: 0.55/0.65 -- Duchene & Kraus 2013 describe intermediate-mass
 #               (A/B) multiplicity as ">=50%"; split across the two
 #               letters along the same mass trend, both comfortably at or
-#               above that floor.
+#               above that floor. Moe & Di Stefano 2017 Table 13 puts the
+#               A / late-B bin (2 to 5 solar masses) at 0.59 +/- 0.11, so the
+#               letter's 0.65 stands for late B (9 to 16 and 5 to 9 solar
+#               masses are the two rows below).
+#   B-mid, B-early: 0.76/0.84 -- Table 13's mid-B (5 to 9 solar masses) and
+#               early-B (9 to 16 solar masses) single-star fractions, 0.24
+#               and 0.16 (`MULTIPLICITY_BY_PRIMARY_MASS_BIN`), taken from
+#               the primary's birth mass (GEN.449).
 #   O: 0.90  -- Moe & Di Stefano 2017 (ApJS 230:15) revise O-star
 #               multiplicity up to 94 +/- 14%; kept just under certainty
 #               given that real uncertainty rather than treating O stars
 #               as *always* binary.
+MULTIPLICITY_BY_PRIMARY_MASS_BIN = {
+    "solar": {"masses": (0.8, 1.2), "multiplicity": 0.50, "close": 0.15, "single": 0.60, "binary": 0.30, "multiple": 0.10},
+    "A / late B": {"masses": (2.0, 5.0), "multiplicity": 0.84, "close": 0.37, "single": 0.41, "binary": 0.37, "multiple": 0.22},
+    "mid B": {"masses": (5.0, 9.0), "multiplicity": 1.3, "close": 0.63, "single": 0.24, "binary": 0.36, "multiple": 0.40},
+    "early B": {"masses": (9.0, 16.0), "multiplicity": 1.6, "close": 0.8, "single": 0.16, "binary": 0.32, "multiple": 0.52},
+    "O": {"masses": (16.0, 40.0), "multiplicity": 2.1, "close": 1.0, "single": 0.06, "binary": 0.21, "multiple": 0.73},
+}
+"""dict: Moe and Di Stefano 2017 (ApJS 230, 15), Table 13, multiplicity statistics after correction for selection effects,
+by primary mass bin (solar masses). `multiplicity`: companions per primary with q above 0.1; `close`: companions
+per primary inside log P (days) 3.7; `single`, `binary`, `multiple`: the fractions of primaries with no companion, one,
+and two or more (triples and quadruples). The chance of a companion is 1 - `single`. The rows of
+`generation.multistar.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
+
+B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
+"""tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
+last is late B and keeps the letter's row."""
+
 BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
     'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
+    'B-mid': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["mid B"]["single"], 2),
+    'B-early': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["early B"]["single"], 2),
 }
 
 # --- Star population model (stellarEvolution.py) ---

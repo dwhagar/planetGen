@@ -192,9 +192,16 @@ per-step ratio set so the FG row reproduces Tokovinin's 4% and 1%.
 | G | 0.54500 | 0.33500 | 0.08000 | 0.03202 | 0.00705 | 0.00085 | 0.00008 | 1.62 |
 | F | 0.50000 | 0.34000 | 0.11000 | 0.04003 | 0.00881 | 0.00106 | 0.00011 | 1.72 |
 | A | 0.40000 | 0.40000 | 0.15000 | 0.03741 | 0.01048 | 0.00189 | 0.00023 | 1.87 |
-| B | 0.25000 | 0.40000 | 0.22000 | 0.08962 | 0.03137 | 0.00784 | 0.00118 | 2.28 |
+| B (2.1 to 5 Msun) | 0.25000 | 0.40000 | 0.22000 | 0.08962 | 0.03137 | 0.00784 | 0.00118 | 2.28 |
+| B-mid (5 to 9 Msun) | 0.24000 | 0.36000 | 0.25143 | 0.10241 | 0.03585 | 0.00896 | 0.00135 | 2.37 |
+| B-early (9 to 16 Msun) | 0.16000 | 0.32000 | 0.32686 | 0.13314 | 0.04660 | 0.01165 | 0.00175 | 2.63 |
 | O | 0.10000 | 0.25000 | 0.30000 | 0.21354 | 0.09610 | 0.03363 | 0.00673 | 3.08 |
 | Weighted by `SPECTRAL_PROBABILITIES_NORMAL` | 0.69070 | 0.25604 | 0.03987 | 0.01069 | 0.00238 | 0.00029 | 0.00003 | 1.38 |
+
+The B-mid and B-early rows (GEN.449) take their first two columns from Moe and Di Stefano's Table 13 (single 0.24 and 0.16, binary 0.36 and 0.32,
+triple or more 0.40 and 0.52; `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN`) and split the rest across 3 to 7 stars in the B row's proportions. The chance of a companion
+(1 - single) is 0.76 and 0.84 there against the letter's 0.65. The B row keeps its values for the late-B stars: the bin of 2 to 5 solar masses holds A and late B together at 0.59 +-0.11, and the letter's 0.65 sits inside that.
+The weighted row below still reads the B row for every B star: B is 0.12% of the normal mix, so the two new rows move its figures by under 0.0005.
 
 The N >= 4 total per class is 0.007 (M), 0.025 (K), 0.040 (G), 0.050 (F, A), 0.130
 (B), 0.350 (O), split across N=4..7 by per-step ratios 0.22, 0.12, 0.10 (M to F),
@@ -206,8 +213,9 @@ columns with a prevalence knob (`prevalence.scaled_chance`); to force N, use a
 directive.
 
 Against the code: M, K, G and F match `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`
-within 0.03, but B (0.65) and A (0.55) are low against 0.75 and 0.60 (Moe and Di
-Stefano: B about 0.75 to 0.8, A about 0.6 to 0.65). The mean of 1.38 stars per
+within 0.03, but B (0.65) and A (0.55) were low against 0.75 and 0.60 (Moe and Di
+Stefano: B about 0.75 to 0.8, A about 0.6 to 0.65). Table 13's bins settle it (GEN.449): A and late B
+0.59 +-0.11 (the letters' 0.55 and 0.65 stand), mid B 0.76 and early B 0.84 (now the B-mid and B-early classes, by birth mass). The mean of 1.38 stars per
 system replaces the "about 1.3" in
 [interstellar-object-rates.md](interstellar-object-rates.md); those rates are per
 star and `run_sector.sector_star_count` already sums `len(entry.star_system.stars)`,
