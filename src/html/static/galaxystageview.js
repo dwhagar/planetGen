@@ -813,6 +813,7 @@ export function createStageView(host) {
       focusRadius: entered ? entered.halfEdge : 0, inside: containerCenter(eye),
     });
     refreshWhere();
+    scheduleCameraAddress();
   }
 
   // Animates the camera from `from` to `to` along van Wijk and Nuij's
@@ -989,11 +990,11 @@ export function createStageView(host) {
   }
 
   // A new entry in the browser history (the map's Back and Forward).
-  function pushEntry(query) {
+  function pushEntry(query, nextStage) {
     if (pinned) return;
     mapIndex += 1;
     maxIndex = mapIndex;
-    history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "", location.pathname + query + location.hash);
+    history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: nextStage }, "", location.pathname + query + location.hash);
   }
 
   // Goes to stage `next` (carried on through any choice of one). push:
@@ -1011,9 +1012,9 @@ export function createStageView(host) {
     if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
     const token = ++goToken;
-    const query = withKept(options.query || S.stageQuery(r.stage));
-    if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
-      pushEntry(query);
+    const query = withKept(options.query || cameraQueryFor(r, options.camera || cameraFor(r)));
+    if (options.push !== false && (!S.sameStage(stage, r.stage) || withoutCam(query) !== withoutCam(location.search))) {
+      pushEntry(query, r.stage);
     }
     stage = r.stage;
     resolved = r;
@@ -1049,6 +1050,9 @@ export function createStageView(host) {
     closeAmbient();
     const from = display && view ? viewNow() : null;
     const to = cameraFor(r);
+    // MAP.228: the camera the address asked for, taken up once the stage is in place.
+    const want = pendingCamera;
+    pendingCamera = null;
     const old = display;
     const incoming = buildDisplay(r);
     setWedgeClip(r);
@@ -1056,13 +1060,14 @@ export function createStageView(host) {
     display = incoming;
     if (!from) {
       view = settledView(to);
-      closeOnCharted(r, view);
+      if (want) viewAtCamera(r, want);
+      else closeOnCharted(r, view);
       applyView();
       afterArrival();
       return;
     }
     if (old) leaving.push(old);
-    flyCamera(from, to, function (t) {
+    flyCamera(from, want ? { target: want.target.slice(), dist: want.dist, quat: new THREE.Quaternion().fromArray(want.quat) } : to, function (t) {
       const ms = animation ? animation.duration : 0;
       const fadeStart = ms > 0 ? Math.max(0, 1 - FADE_IN_MS / ms) : 0;
       const f = fadeStart >= 1 ? 1 : Math.max(0, (t - fadeStart) / (1 - fadeStart));
@@ -1071,6 +1076,7 @@ export function createStageView(host) {
     }, function () {
       setDisplayFade(display, 1);
       view = settledView(to);
+      if (want) viewAtCamera(r, want);
       applyView();
       afterArrival();
     });
@@ -1964,14 +1970,10 @@ export function createStageView(host) {
     return sectorQuery(selectedSector, true);
   }
 
-  // The URL of a sector in the stage on screen: ?sector=<designation>, with &open=1 when it is open. A sector
-  // picked in a window that is not the one round it keeps that window (?win=...&sector=...), so a fresh load
-  // of the link shows the same steps; one picked in its own window needs only the designation.
+  // The URL of a sector in the stage on screen: ?sector=<designation>, with &open=1 when it is open. The camera
+  // (?cam=, MAP.228) is added by the address writer once the view is at rest.
   function sectorQuery(sector, open) {
-    const code = "sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) + (open ? "&open=1" : "");
-    const own = S.sectorStage(sector.shell, sector.band, sector.wedge, getOutline());
-    if (stage && stage.win && !(own && S.sameStage(own, stage))) return S.stageQuery(stage) + "&" + code;
-    return "?" + code;
+    return "?sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) + (open ? "&open=1" : "");
   }
 
   function closeSystem() {
@@ -2335,6 +2337,12 @@ export function createStageView(host) {
     });
   }
 
+  // For the browser tests: opens the window of `g` cells round the cell {m, shell, band, wedge}, as the
+  // breadcrumb's crumbs and a click on a block do.
+  canvasEl.galaxyOpenWindow = function (cell, g) {
+    if (view && !animation) go(S.windowStage(cell, g || P.DEFAULT_WINDOW));
+  };
+
   // For the browser tests: moves the view's middle to a point of the map (parsecs).
   canvasEl.galaxyCentreOn = function (x, y, z) {
     if (view && !animation) centreOn([x, y, z]);
@@ -2536,6 +2544,104 @@ export function createStageView(host) {
     els.notice.hidden = !text;
   }
 
+  // --- The camera in the address (MAP.228) -------------------------------------
+
+  // The camera the address asked for, until the stage it names is on screen (flyTo takes it up).
+  let pendingCamera = null;
+  let camTimer = 0;
+  const CAM_URL_DELAY_MS = 350;
+
+  // The view as {target, dist, quat: [x, y, z, w]}, or null.
+  function currentCamera() {
+    return view ? { target: view.target.slice(), dist: view.dist, quat: view.quat.toArray() } : null;
+  }
+
+  // The stage's own camera as the address holds it.
+  function asAddress(camera) {
+    return { target: camera.target.slice(), dist: camera.dist, quat: camera.quat.toArray ? camera.quat.toArray() : camera.quat.slice() };
+  }
+
+  // Whether `camera` is the stage's own: the galaxy's address then is none.
+  function isStageCamera(r, camera) {
+    const own = asAddress(cameraFor(r));
+    const near = function (a, b, scale) { return Math.abs(a - b) <= 1e-6 * scale; };
+    const dot = camera.quat.reduce(function (sum, value, k) { return sum + value * own.quat[k]; }, 0);
+    return near(camera.dist, own.dist, own.dist) && Math.abs(Math.abs(dot) - 1) < 1e-9
+      && camera.target.every(function (value, k) { return near(value, own.target[k], own.dist); });
+  }
+
+  // The query of an address to camera `camera` of stage `r`: "" for the whole galaxy at its own camera.
+  function cameraQueryFor(r, camera) {
+    const wanted = asAddress(camera);
+    if (isWholeGalaxy(r) && isStageCamera(r, wanted)) return "";
+    return "?" + S.cameraQuery(wanted);
+  }
+
+  function withoutCam(query) {
+    const params = new URLSearchParams(query || "");
+    params.delete("cam");
+    const text = params.toString();
+    return text ? "?" + text : "";
+  }
+
+  // The window stage that holds what a camera looks at: the finest level whose window, centred on the cell
+  // holding the camera's middle, is no smaller than the view (the distance is no more than its own fit), else the
+  // coarsest, and the whole galaxy when that is no smaller either. Null when the middle is outside the galaxy.
+  function stageForCamera(camera) {
+    const quat = new THREE.Quaternion().fromArray(camera.quat);
+    const levels = P.DRILL_LEVELS.slice().reverse();
+    const outline = getOutline();
+    let coarsest = null;
+    let coarsestFit = 0;
+    for (let n = 0; n < levels.length; n++) {
+      const cell = P.cellAt(levels[n], camera.target[0], camera.target[1], camera.target[2], edgePc);
+      const candidate = S.windowStage(cell, P.DEFAULT_WINDOW);
+      const r = S.resolveStage(candidate, outline, edgePc);
+      if (r.problem) continue;
+      const extent = S.extentOf(r.view.blocks);
+      const fit = centeredFit(fitPointsOf(r), extent.center, quat).dist;
+      if (fit >= camera.dist) return candidate;
+      coarsest = candidate;
+      coarsestFit = fit;
+    }
+    return coarsest && camera.dist <= MAX_ZOOM * coarsestFit ? coarsest : S.galaxyStage();
+  }
+
+  // Puts the view at `camera` within stage `r` (the view already at the stage's own camera): the middle kept
+  // within the pan's reach and the distance within the zoom's.
+  function viewAtCamera(r, camera) {
+    if (!view || !view.fit) return;
+    const quat = new THREE.Quaternion().fromArray(camera.quat);
+    const full = fitDistance(fitPointsOf(r), view.fit.target, quat);
+    if (!(full > 0)) return;
+    const target = camera.target.slice();
+    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    view.quat = quat;
+    view.target = target;
+    view.zoom = MC.clampDistance(zoomPolicyFor(r), camera.dist / full, 1);
+    view.dist = view.zoom * full;
+  }
+
+  // Writes the view's camera into the address in place (no history entry of its own) once it has been still for
+  // a moment; a stage hop makes its own entry (`go`). An opened sector or system keeps its own address.
+  function scheduleCameraAddress() {
+    if (pinned || !active) return;
+    if (camTimer) clearTimeout(camTimer);
+    camTimer = setTimeout(writeCameraAddress, CAM_URL_DELAY_MS);
+  }
+
+  function writeCameraAddress() {
+    camTimer = 0;
+    if (!active || pinned || !view || animation || entered || enteredSystem || !resolved || !resolved.view) return;
+    const params = new URLSearchParams(location.search);
+    const query = cameraQueryFor(resolved, currentCamera());
+    if (query) params.set("cam", query.slice(5));
+    else params.delete("cam");
+    const text = params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
+    const next = text ? "?" + text : "";
+    if (next !== location.search) history.replaceState(history.state, "", location.pathname + next + location.hash);
+  }
+
   // MAP.227: the stage the camera is in, worked out from where the view's middle is: the breadcrumb is the trail
   // of containers of the cell holding it (galaxy, blocks, sector), so panning to a neighbouring cell changes it and
   // "Sector X" in the header names the sector it is in, with no stored state of its own. An opened sector or
@@ -2583,7 +2689,7 @@ export function createStageView(host) {
       };
     }
     const labels = S.crumbs(cameraStage(), getOutline(), edgePc).map(function (crumb) { return crumb.label; });
-    return { kind: "stage", value: location.pathname + displayQuery(S.stageQuery(stage)), name: labels.join(" › ") };
+    return { kind: "stage", value: location.pathname + displayQuery(resolved ? cameraQueryFor(resolved, currentCamera() || cameraFor(resolved)) : ""), name: labels.join(" › ") };
   }
 
   // The breadcrumb (MAP.93): one line at any width. When the steps don't
@@ -2839,21 +2945,25 @@ export function createStageView(host) {
       return { stage: next, sector: pinned, open: true, problem: null };
     }
     const parsed = S.parseStageQuery(location.search);
-    if (parsed.problem) return { stage: S.galaxyStage(), sector: null, problem: parsed.problem };
+    if (parsed.problem && !parsed.camera && !parsed.sector) return { stage: S.galaxyStage(), sector: null, problem: parsed.problem };
+    // The stage the camera asked for is the one whose window holds what it looks at (MAP.228); a history entry
+    // keeps the stage it was made at, so Back, Forward and a reload return to it exactly.
+    const kept = history.state && history.state.galaxyStage && history.state.stage && history.state.stage.win ? history.state.stage : null;
+    const asked = parsed.camera ? (kept && !S.resolveStage(kept, getOutline(), edgePc).problem ? kept : stageForCamera(parsed.camera)) : null;
     if (parsed.sector) {
       const s = parsed.sector;
-      const next = parsed.stage.win && !S.resolveStage(parsed.stage, getOutline(), edgePc).problem
-        ? parsed.stage : S.sectorStage(s.shell, s.band, s.wedge, getOutline());
+      const next = asked || S.sectorStage(s.shell, s.band, s.wedge, getOutline());
       if (!next) {
         return { stage: S.galaxyStage(), sector: null, problem: "Sector " + S.blockLabel(s) + " is outside the galaxy." };
       }
-      return { stage: next, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
+      return { stage: next, camera: asked ? parsed.camera : null, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
     }
-    let next = parsed.stage;
-    if (useCourse && !next.win && host.courseSectors && host.courseSectors.length) {
+    if (asked) return { stage: asked, camera: parsed.camera, sector: null, problem: null };
+    let next = S.galaxyStage();
+    if (useCourse && host.courseSectors && host.courseSectors.length) {
       next = S.courseStage(host.courseSectors, getOutline(), edgePc);
     }
-    return { stage: next, sector: null, problem: null };
+    return { stage: next, sector: null, problem: parsed.problem };
   }
 
   // Opens the stage the URL asks for (or the galaxy, with a notice).
@@ -2861,7 +2971,7 @@ export function createStageView(host) {
     const state = history.state && history.state.galaxyStage ? history.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
-    if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: state ? state.stage : undefined }, "");
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
@@ -2871,6 +2981,7 @@ export function createStageView(host) {
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
     if (r.problem) r = resolve(S.galaxyStage());
+    pendingCamera = r.problem ? null : asked.camera || null;
     selectedSector = asked.sector;
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
@@ -2889,7 +3000,7 @@ export function createStageView(host) {
     maxIndex = Math.max(maxIndex, mapIndex);
     // Remembered on this entry too, so a reload here still knows how far
     // Forward goes.
-    if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: state.stage }, "");
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
@@ -2906,6 +3017,7 @@ export function createStageView(host) {
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
     pendingObject = pendingSystem ? asked.object : null;
+    pendingCamera = asked.camera || null;
     go(asked.stage, { push: false, keepSector: true });
   }
   window.addEventListener("popstate", onPopState);

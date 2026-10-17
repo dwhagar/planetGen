@@ -380,7 +380,8 @@ test("each step down by keyboard pushes a history entry and a breadcrumb, a wind
   for (let n = 0; n < 12; n++) {
     if (!(await drillOnce(m))) break;
     seen.push(m.view.stage());
-    assert.equal(m.win.location.search, S.stageQuery(m.view.stage()), "the URL names the stage");
+    assert.match(m.win.location.search, /^\?cam=[-\d.e+,]+$/, "the URL holds the camera, not a stage");
+    assert.ok(S.parseCamera(new URLSearchParams(m.win.location.search).get("cam")), "a camera that reads back");
     assert.deepEqual(crumbLabels(m), expectedCrumbs(m));
     assert.equal(m.win.history.length, seen.length + 1);
     assert.equal(button(m, "back").disabled, false);
@@ -395,6 +396,7 @@ test("Back, Forward, Up and Reset buttons move through the stages", async () => 
   wire(m);
   await drillOnce(m);
   const first = m.view.stage();
+  const firstSearch = m.win.location.search;
   await drillOnce(m);
   const second = m.view.stage();
   assert.notDeepEqual(first, second);
@@ -402,7 +404,7 @@ test("Back, Forward, Up and Reset buttons move through the stages", async () => 
   button(m, "back").click();
   await arrive(m);
   assert.deepEqual(m.view.stage(), first);
-  assert.equal(m.win.location.search, S.stageQuery(first));
+  assert.equal(m.win.location.search, firstSearch, "back to the entry's own address");
   assert.equal(button(m, "forward").disabled, false);
 
   button(m, "forward").click();
@@ -506,17 +508,21 @@ test("Up from a window is the window one size up, centred on the block holding i
 test("a stage URL opens that stage; a bad one opens the galaxy and says why", async () => {
   const deep = await start();
   for (let n = 0; n < 6; n++) await drillOnce(deep);
-  const query = S.stageQuery(deep.view.stage());
+  const query = deep.win.location.search;
 
   const m = await start("http://localhost/galaxy" + query);
   assert.deepEqual(m.view.stage(), deep.view.stage());
   // The deep map has a sector selected in its window of sectors too.
   assert.deepEqual(crumbLabels(m), crumbLabels(deep).slice(0, -1));
 
-  const bad = await start("http://localhost/galaxy?win=nonsense");
+  const bad = await start("http://localhost/galaxy?cam=nonsense");
   assert.deepEqual(bad.view.stage(), { win: null });
   assert.equal(bad.els.notice.hidden, false);
-  assert.match(bad.els.notice.textContent, /There is no cell nonsense/);
+  assert.match(bad.els.notice.textContent, /There is no camera nonsense/);
+
+  // The window tokens of before MAP.228 are not read.
+  const old = await start("http://localhost/galaxy?win=81.1.0.1&g=9");
+  assert.deepEqual(old.view.stage(), { win: null });
 });
 
 test("?sector= opens the stage around that sector with it selected", async () => {
@@ -756,7 +762,7 @@ test("clicking a block on the map zooms into a window around its middle", async 
   assert.equal(parent.shell, Number(block[1].replace(/,/g, "")), "centred on the block clicked");
   assert.equal(parent.band, Number(block[2]));
   assert.equal(parent.wedge, Number(block[3].replace(/,/g, "")));
-  assert.match(m.win.location.search, /^\?win=81\.\d+\.\d+\.-?\d+$/, "the URL names the window by its centre");
+  assert.match(m.win.location.search, /^\?cam=[-\d.e+,]+$/, "the URL holds the camera");
 });
 
 test("a block the near field has faded out can't be picked (MAP.149)", async () => {
@@ -851,10 +857,7 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
   assert.deepEqual(m.calls.scenes, [42]);
   assert.equal(S.parseStageQuery(m.win.location.search).open, true, "the URL says the sector is open: " + m.win.location.search);
   assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
-  // The window it was picked in rides the link, so a fresh load shows the same steps.
-  const url = S.parseStageQuery(m.win.location.search);
-  assert.deepEqual(url.stage, m.view.stage());
-  assert.match(m.win.location.search, /^\?win=1\.[^&]+&sector=\w+&open=1$/);
+  assert.match(m.win.location.search, /^\?sector=\w+&open=1$/, "the sector link has no window token");
   assert.equal(m.calls.hidden.length, 1, "the galaxy's own stars leave the cell");
   assert.ok(m.calls.hidden[0].r1 > 0);
   assert.ok(m.view.stage(), "still on the stage that holds it");
