@@ -13890,22 +13890,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the epoch rule applies. Owner: Core 1 (proposed, GEN.401's author).
   The stage rule of GEN.401 (Kelvin cumulative counts read as local
   fractions) stays a listed stand-in (design note 5.13.8 and 5.13.6 item
-  6).
+  6). Scope from Core 1 (12:58 PM EDT, its real clock; it sends the
+  final scope before building, after GEN.527 and before GEN.402): the
+  size-mass scatter in the shape draw becomes the Courteau 0.097 dex
+  (replacing the Shen sigma_ln between 0.47 and 0.34), and the Comeron
+  2018 fit replaces the Kregel q = 7.3 draw where it applies; the Boss
+  papers report (GR4, GR6, GR15) and the VizieR numbers are read for it.
+  Bar presence, axis ratios and angle are GEN.533, which Boss moved into
+  8.1 (card, 12:56 PM EDT): drawn from the seed and rebuilt each time,
+  not stored in a column, so nothing in 8.1 needs DB.66; the DB.66
+  wording in the GEN.401 note and docstring should read 'stored by
+  DB.66', not a dependency.
   Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
 
-- [ ] **GEN.533 The galaxy shape draws bar presence, axes and angle from the seed into the DB.66 columns**
+- [ ] **GEN.533 The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column**
   Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
   the lane reported; merged #2051), filed by the TODO thread. GEN.401
-  did not draw the bar by design: bar presence, the bar's axes and its
-  angle need the columns that DB.66 adds to the shape row (the bar
-  amplitude and axis ratios). Do: after DB.66, the draw decides from the
-  seed whether the galaxy has a bar (the bar fraction by stage from the
-  laws table), its length, axis ratios and angle, and stores them in the
-  DB.66 columns; the density model reads them. Done: the same seed gives
-  the same bar, the bar fraction over many seeds follows the stated
-  trend by stage, every parameter is inside its stated range, and the
-  epoch rule applies. Owner: Core 1 (proposed, GEN.401's author).
-  Prerequisites: DB.66. Related: GEN.401, GEN.378, DB.66.
+  did not draw the bar: bar presence, the bar's axis ratios and its
+  angle stayed the model's constants because storing them needs the
+  DB.66 columns. Decided (Boss, 2026-10-17, 12:56 PM EDT, card "Draw it
+  in 8.1", relayed in words by the coordinator): draw them in 8.1 from
+  the seed, rebuilt each time and not stored in a column, so DB.66 stays
+  in 8.3 and later stores the drawn values (the card named Erwin and
+  Gadotti's statistics; the laws table,
+  docs/design/intergalactic-and-halo-contents.md section 5.13, holds the
+  bar fraction by stage). Do: the draw decides from the seed whether the
+  galaxy has a bar, its length, axis ratios and angle, and the density
+  model reads them; the drawn values replace
+  `tuning.BULGE_AXIS_RATIO_Y/Z` and `BULGE_BAR_ANGLE_DEG`. Done: the
+  same seed gives the same bar, the bar fraction over many seeds follows
+  the stated trend by stage, every parameter is inside its stated range,
+  nothing is added to the stored shape row, and the change rides the
+  pending generator epoch and the wiped rescatter. Owner: Core 1 (Boss's
+  card, 12:56 PM EDT; GEN.401's author), with GEN.532.
+  Prerequisites: none. Related: GEN.401, GEN.532, GEN.378, DB.66.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15104,6 +15122,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   family and the values the model derives for it today, so no stored
   density changes. No reader changes in this item. The early-alpha
   schema is not a constraint.
+  Boss (12:56 PM EDT, card "Draw it in 8.1", relayed in words): the bar
+  is drawn in 8.1 by GEN.533 without a stored column, so nothing in 8.1
+  needs this item; it stays in 8.3 and later stores the drawn values
+  (bar presence, axis ratios and angle) with the other component
+  columns.
   Prerequisites: GEN.378. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -17918,6 +17941,11 @@ clears each one.
   passes alone on rerun. Fails on main: not checked. Frequency: 1 of 1
   gates run under load 11. Reproducer: run the test with the CPU busy,
   or the full changed gate on a loaded machine. Bug Hunt owns it.
+  Clarification of the sighting of Core 1's DB.65 browser phase
+  (reported 12:58 PM EDT, its real clock): the failure text was
+  `AssertionError: [0]; assert 0 == 1.0 +/- 1.0e-06` (the disc opacity
+  read 0, expected 1), not only 'comparison failed'; it passed alone in
+  163.73 s on gw0 at load 10.1.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -18153,6 +18181,12 @@ clears each one.
   of each is found, each test waits on the condition it needs and not a
   fixed time, and both pass under the same load, with no quarantine.
   Owner: Bug Hunt (proposed).
+  Failure text (Core 1, 12:58 PM EDT, its real clock): both tests fail
+  with `AssertionError: nothing to click on the Galaxy Map (None); at
+  ['Galaxy']`, so the click-target search finds nothing while the page
+  is slow under load; the cause is not established. Both passed alone
+  (load 10.4 and 10.7, 15.73 s and 16.36 s on gw1); none relates to Core
+  1's diffs, which touched no map or camera code.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 ## USR: User accounts
