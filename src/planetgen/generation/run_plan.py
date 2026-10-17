@@ -20,6 +20,7 @@ import time
 from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
+from planetgen.generation import component_pass as componentPass
 from planetgen.generation import clusters, satellites
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
@@ -734,6 +735,20 @@ def _log_shell_range(label, shells, types):
                    f"{describe_types(types)}.")
 
 
+COMPONENT_TASK_SHELL = -1
+"""int: The shell the components' task is listed under in a scatter's tasks (it has none of its own)."""
+
+
+def _galaxy_components(mysql_config):
+    """The galaxy's stored clusters and satellites (`component_pass.COMPONENT_KINDS`), none for a galaxy without."""
+    conn = store.get_connection(mysql_config)
+    try:
+        return [component for component in store.get_galaxy_components(conn)
+                if component.kind in componentPass.COMPONENT_KINDS]
+    finally:
+        conn.close()
+
+
 def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
                     max_luminosity_sol=None, mass_range=None, stats_kind="scatter-bright", task_kind="bright-stars",
                     tiered=None):
@@ -805,8 +820,20 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
         weights[far_key] = far_expected + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
         sizes[far_key] = reach_shell - first_far + 1
         names[far_key] = f"{first_far}-{reach_shell}"
+    # GEN.324: the globular clusters and satellite galaxies place their own stars, as one more task.
+    component_key = None
+    components = _galaxy_components(mysql_config)
+    if components:
+        component_key = len(tasks)
+        component_expected = componentPass.expected_stars(components, fractions, tiered)
+        expected[COMPONENT_TASK_SHELL] = component_expected
+        tasks[component_key] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, component_expected)]
+        weights[component_key] = component_expected + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+        sizes[component_key] = 0
+        names[component_key] = "components"
     log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in "
-               f"{sum(sizes.values()):,} shells, {reach_shell:,} shells being the grid's reach.")
+               f"{sum(sizes.values()):,} shells, {reach_shell:,} shells being the grid's reach"
+               + (f", and {len(components):,} components." if components else "."))
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
         bar, finished = None, False
@@ -824,7 +851,12 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                 def task_done(result, seconds, _weight):
                     task_counts = result["counts"]
                     types = collections.Counter({(name, plural): count for name, plural, count in result["types"]})
-                    _log_shell_range(label, chunk, types)
+                    if key == component_key:
+                        if sum(types.values()):
+                            log.normal(f"{label}, components: added {sum(types.values()):,} stars: "
+                                       f"{describe_types(types)}.")
+                    else:
+                        _log_shell_range(label, chunk, types)
                     for population, count in task_counts.items():
                         counts[population] += count
                     systems[0] += result.get("systems", 0)
@@ -833,7 +865,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                     for shell_index, shell_stars in result["shells"]:
                         if shell_stars:
                             drew.add(shell_index)
-                    if key == far_key:
+                    if key in (far_key, component_key):
                         return
                     cells = _cells_in([(shell, high) for shell, high, _weight in chunk])
                     wanted = sum(expected[shell] for shell, _high, _weight in chunk)
@@ -857,14 +889,19 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                     queue.submit_each(task_kind, [
                         (f"shell {names[key]}", {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "key": key,
-                            "shells": [] if key == far_key else [(shell, high) for shell, high, _weight in chunk],
+                            "shells": [] if key in (far_key, component_key) else
+                                      [(shell, high) for shell, high, _weight in chunk],
                             "far": (first_far, reach_shell) if key == far_key else None, "reach": reach_on,
+                            "components": components if key == component_key else None,
                             "expected_by_shell": ({first_far: expected[first_far]} if key == far_key else
+                                                  {COMPONENT_TASK_SHELL: expected[COMPONENT_TASK_SHELL]}
+                                                  if key == component_key else
                                                   {shell: expected[shell] for shell, _high, _weight in chunk}),
                             "edge_pc": skeleton.edge_pc, "expected": e_value,
                             "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
-                            "seed": seed, "skip": set().union(*(skip_by_shell.get(shell, set())
-                                                                for shell, _high, _weight in chunk)),
+                            "seed": seed, "skip": (set(filled) if key == component_key else
+                                                   set().union(*(skip_by_shell.get(shell, set())
+                                                                 for shell, _high, _weight in chunk))),
                             "mass_range": mass_range, "tiered": tiered, "channel": channel,
                         }, weights[key], on_done_for(key))
                         for key, chunk in tasks.items()], _scatter_shells_task)
@@ -1039,6 +1076,14 @@ def _scatter_shells_task(payload):
                 payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
                 max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
                 mass_range=payload.get("mass_range"), tiered=payload.get("tiered"))))
+        if payload.get("components"):
+            # GEN.324: the clusters' and satellites' stars (`component_pass`).
+            fractions, pass_bands = brightStars.pass_of(
+                payload.get("tiered"), payload["min_luminosity_sol"], payload.get("max_luminosity_sol"),
+                payload.get("mass_range"))
+            runs.append((COMPONENT_TASK_SHELL, componentPass.scatter_stars(
+                payload["components"], payload["edge_pc"], payload["seed"], fractions, pass_bands,
+                tiered=payload.get("tiered"), skip_addresses=payload["skip"])))
         for shell_index, rows in runs:
             remaining[0] -= expected_by_shell[shell_index]
             drawn = 0
@@ -1053,7 +1098,7 @@ def _scatter_shells_task(payload):
                     systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
                     conn.commit()
                     batch = []
-            if payload.get("far") and shell_index == payload["far"][0]:
+            if (payload.get("far") and shell_index == payload["far"][0]) or shell_index == COMPONENT_TASK_SHELL:
                 per_shell.extend([shell, stars] for shell, stars in sorted(landed.items()))
             else:
                 per_shell.append([shell_index, drawn])
@@ -1117,18 +1162,23 @@ def _log_phenomena_shells(shells, counts):
 
 
 def _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config, skeleton, e_value, seed,
-                              min_mass_solar, filled, far=None, reach=False):
+                              min_mass_solar, filled, far=None, reach=False, components=None):
     """The shells of the phenomenon scatter through the work queue, a task to a run of consecutive shells, the step
     `bar` credited with each task's expected work as it finishes (UX.83, PERF.51). `far` is `(key, first, last)` of
     the task that draws the faint shells far out together (GEN.323), whose chunk is that one entry; `reach` also draws
-    each shell's part beyond the outline. Returns the rows written with members (GEN.262)."""
+    each shell's part beyond the outline; `components` is `(key, components)` of the task that places the clusters' and
+    satellites' own phenomena (GEN.324). Returns the rows written with members (GEN.262)."""
     shells_done = [0]
     systems = [0]
     far_key = None if far is None else far[0]
-    total_shells = sum(len(chunk) if key != far_key else far[2] - far[1] + 1 for key, chunk in tasks.items())
+    component_key = None if components is None else components[0]
+    total_shells = sum(len(chunk) if key not in (far_key, component_key) else
+                       (far[2] - far[1] + 1 if key == far_key else 0) for key, chunk in tasks.items())
 
     def shells_of(key):
         """A task's shells as the `(shell, high, weight)` rows `_shell_names` reads."""
+        if key == component_key:
+            return []
         return [(shell, -1, 0.0) for shell in range(far[1], far[2] + 1)] if key == far_key else tasks[key]
 
     def done_with(key):
@@ -1136,7 +1186,12 @@ def _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config
             task_counts = result["counts"]
             systems[0] += result.get("systems", 0)
             task_done(task_counts, result["write_seconds"], seconds, weight)
-            _log_phenomena_shells(shells_of(key), task_counts)
+            if key == component_key:
+                if sum(task_counts.values()):
+                    log.normal(f"Phenomena, components: placed {sum(task_counts.values()):,}: " + ", ".join(
+                        f"{count:,} {kind}" for kind, count in sorted(task_counts.items())) + ".")
+            else:
+                _log_phenomena_shells(shells_of(key), task_counts)
             shells_done[0] += len(shells_of(key))
             bar.update(advance=weights[key],
                        description=f"Phenomena ({shells_done[0]:,} of {total_shells:,} shells)")
@@ -1144,13 +1199,15 @@ def _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config
 
     with run_common._work_queue(args, "Phenomena") as queue:
         queue.submit_each("phenomena", [
-            (f"shell {_shell_names(shells_of(key))}", {
+            ("components" if key == component_key else f"shell {_shell_names(shells_of(key))}", {
                 "mysql_config": mysql_config, "shape": skeleton.shape,
                 "shells": [] if key == far_key else [(shell, high) for shell, high, _w in chunk],
                 "far": (far[1], far[2]) if key == far_key else None, "reach": reach,
+                "components": components[1] if key == component_key else None,
                 "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
                 "min_mass_solar": min_mass_solar,
-                "skip": {address for address in filled if address[0] in {row[0] for row in shells_of(key)}},
+                "skip": (set(filled) if key == component_key else
+                         {address for address in filled if address[0] in {row[0] for row in shells_of(key)}}),
             }, weights[key], done_with(key))
             for key, chunk in tasks.items()], _phenomenon_shells_task)
     return systems[0]
@@ -1497,6 +1554,16 @@ def scatter_phenomena(args):
                 skeleton.shape, first_far, reach_shell, skeleton.edge_pc, e_value, min_mass_solar)
             tasks[far[0]] = [(first_far, reach_shell, far_weight)]
             weights[far[0]] = far_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+        # GEN.324: the clusters' and satellites' phenomena, one more task.
+        galaxy_components = _galaxy_components(mysql_config)
+        component_task = None
+        if galaxy_components:
+            component_task = (len(tasks), galaxy_components)
+            component_weight = sum(componentPass.systems_of(component) * sum(
+                rate for _kind, _subtype, rate in componentPass.phenomenon_rates(min_mass_solar))
+                for component in galaxy_components)
+            tasks[component_task[0]] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, component_weight)]
+            weights[component_task[0]] = component_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
         shell_total = len(extents) + len(beyond_shells) + (0 if far is None else reach_shell - first_far + 1)
         log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {shell_total:,} shells "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
@@ -1527,7 +1594,7 @@ def scatter_phenomena(args):
                                 workers=run_common._worker_count(args), percent=True, record=False) as bar:
                     companions = _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config,
                                                            skeleton, e_value, seed, min_mass_solar, filled,
-                                                           far=far, reach=reach_on)
+                                                           far=far, reach=reach_on, components=component_task)
             finally:
                 log.reset_console()
         with run_common._generation_progress() as progress:
@@ -1624,6 +1691,9 @@ def _phenomenon_shells_task(payload):
             first_far, last_far = payload["far"]
             runs.append(phenomenon_reach.scatter_far(
                 shape, first_far, last_far, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass))
+        if payload.get("components"):
+            runs.append(componentPass.scatter_phenomena(
+                payload["components"], edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass))
         for rows in runs:
             for row in rows:
                 label = phenomenon_scatter.class_label(row[3], row[4])
