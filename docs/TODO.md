@@ -1025,7 +1025,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 34 of 53). This replaces any earlier owner line on this item.
-  Prerequisites: MAP.227, MAP.228.
+  MAP.228 merged (#2032): the address holds the camera, so region
+  stepping reads and writes the camera address, not the old window
+  address.
+  Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -1255,8 +1258,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.153, MAP.155, MAP.157, MAP.159, MAP.225,
-  MAP.226, MAP.227, MAP.228. Related:
+  Prerequisites: MAP.153, MAP.155, MAP.157, MAP.159, MAP.226, MAP.245.
+  Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -1276,6 +1279,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
   top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
   then the label items).
+  Built (Core 2, 2026-10-17, 11:33 AM EDT as the lane reported; wheel
+  zoom toward the pointer #2031, MAP.227 and MAP.228 #2032): the wheel
+  zooms toward the point under the cursor; the header and the breadcrumb
+  ("In Sector ...") follow the camera's own cell; the address holds the
+  camera (`?cam=...`); old `?win=` links open the galaxy, no shim. Open:
+  MAP.245 (the column-density ray fallback, the clearance and the
+  half-way double click), which this umbrella now waits on in place of
+  MAP.225.
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
@@ -1974,79 +1985,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after its first sector is filled.
   Prerequisites: GEN.359. Related: GEN.209.
 
-- [ ] **MAP.225 The wheel zooms toward the point under the cursor, with clearance**
-  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
-  items to the TODO?", after Core 2 reported what MAP.146 still lacks
-  once MAP.152 merged): this piece was only in the Done line of MAP.146
-  and in fly-through-view-distance.md section 4.3, with no item of its
-  own. Boss (2026-10-09 22:24Z): "have them based on the center of where
-  the cursor is clicked. So that we always are drilling down exactly
-  where the user wants." Today the wheel zooms about the shared centre
-  and Shift-click chooses it (MAP.199). Done: the wheel changes the
-  distance by `exp(-0.0025 * deltaY)` toward the point under the cursor,
-  which stays fixed on screen; that point is, in order, the picked star,
-  remnant or cell under the cursor, else the first sample along the
-  cursor ray where the integrated column density passes a threshold,
-  else the point at the current focus depth; each step moves by
-  `min(requested, 0.5 * (d_nearest - d_clear))`, so the speed is
-  logarithmic in the distance to the nearest pickable thing and the
-  camera never lands on a star or inside a wall by accident. Shift-click
-  stays as "turn about this point". A browser test zooms toward a chosen
-  star and checks it stays under the cursor.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  From Core 2 (2026-10-16, 4:03 PM EDT, MAP.226 merged as #1859): a
-  double click on empty space or a block stays two clicks; the "half way
-  toward the point under the cursor" double click is not built and
-  belongs here. A second click within 350 ms and 8 px is now a double
-  click, so clicking a selected object again to clear it needs a pause.
-  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported; the stack
-  of MAP.225, MAP.227 and MAP.228 is built and committed, one full gate
-  then three PRs in order): MAP.225's PR resolves only the wheel part
-  (zoom toward the point under the cursor). Not built there: the
-  column-density ray fallback, the clearance from the nearest pickable
-  thing and the half-way double click on empty space. When it merges,
-  the TODO thread splits those three into a new item and retires the
-  wheel part; until then this item stays open whole.
-  Prerequisites: MAP.152. Related: MAP.146, MAP.199, MAP.125.
-
-- [ ] **MAP.227 The camera names its container: the header and the breadcrumb come from its position**
-  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
-  items to the TODO?", after Core 2 reported what MAP.146 still lacks
-  once MAP.152 merged): this piece was only in the Done line of MAP.146
-  and in fly-through-view-distance.md section 4.3, with no item of its
-  own. Done: "I am in sector X" is worked out from the camera position
-  (`geometry.sector_address_at` is closed form) and shown in the header,
-  and the breadcrumb becomes a trail of containers (galaxy, region,
-  block, sector, system) derived from the position, not from stored
-  state; clicking a crumb flies out to that container. A browser test
-  flies into a sector and checks the header and every crumb.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported): the
-  breadcrumb and the "In Sector ..." line follow the camera at the
-  stage's own size; they do not pick finer or coarser levels from the
-  distance.
-  Prerequisites: MAP.226. Related: MAP.146, MAP.139.
-
-- [ ] **MAP.228 The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation**
-  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
-  items to the TODO?", after Core 2 reported what MAP.146 still lacks
-  once MAP.152 merged): this piece was only in the Done line of MAP.146
-  and in fly-through-view-distance.md section 4.3, with no item of its
-  own. Done: the Galaxy Map URL carries the camera (target, distance,
-  orientation) and opening it puts the camera there; bookmarks and the
-  charted-region bookmarks (UX.45, UX.48) store the same value; old
-  block URLs and stage tokens stop working (no backward compatibility,
-  Boss's rule). A browser test copies the address, reloads and checks
-  the camera is where it was.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Prerequisites: MAP.225. Related: MAP.146, UX.45, UX.48, MAP.189.
-
 - [ ] **MAP.229 Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
   our TODO lineup?" Checked the open and finished items, the design
@@ -2371,7 +2309,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed (the map lane that owns the infinite zoom tree and MAP.239),
   after the tree; the Interface lane may take it with UX.115 if that
   lane starts first.
-  Prerequisites: MAP.225, MAP.239. Related: MAP.207,
+  Prerequisites: MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
@@ -2386,6 +2324,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the planet page, in both themes, and the old three-colour gesture
   is gone (no shim).
   Prerequisites: GEN.420. Related: GEN.420.
+
+- [ ] **MAP.245 The wheel zoom's remaining parts: the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click**
+  Split from MAP.225 by the TODO thread (2026-10-17, after Core 2's
+  report of #2031 at 11:33 AM EDT as the lane reported): MAP.225's PR
+  built only the wheel part (zoom toward the point under the cursor, the
+  point staying fixed on screen; retired with #2031). Not built, and
+  kept here: the point under the cursor is, in order, the picked star,
+  remnant or cell, else the first sample along the cursor ray where the
+  integrated column density passes a threshold (the column-density ray
+  fallback), else the point at the current focus depth; each step moves
+  by `min(requested, 0.5 * (d_nearest - d_clear))`, so the speed is
+  logarithmic in the distance to the nearest pickable thing and the
+  camera never lands on a star or inside a wall by accident (the
+  clearance); and the "half way toward the point under the cursor"
+  double click on empty space (from Core 2, 2026-10-16, 4:03 PM EDT,
+  MAP.226 merged as #1859: a double click on empty space or a block
+  stays two clicks until this is built; a second click within 350 ms and
+  8 px is a double click). Boss (2026-10-09 22:24Z): "have them based on
+  the center of where the cursor is clicked. So that we always are
+  drilling down exactly where the user wants." Done: the wheel and the
+  double click use the picked object, then the column-density ray, then
+  the focus depth; a step never moves closer than the clearance to the
+  nearest pickable thing; a double click on empty space flies half way
+  toward the point under the cursor; a browser test zooms toward empty
+  space and checks the camera stops at the clearance and never inside a
+  star or wall.
+  Owner: Core 2 (the infinite zoom tree; behind DOC.47, PERF.105 and
+  UX.118, among the maps).
+  Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
 
 ## NAV: Navigation and courses
 
