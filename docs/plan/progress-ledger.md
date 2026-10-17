@@ -763,3 +763,6 @@ Baseline: PR #1817.
 | GEN.320 | 8.1 | Nebula and young stars |
 | GEN.406 | 8.1 | Galaxy laws build |
 | DB.65 | 8.3 | Positions as one object |
+| MAP.225 | 8.1 | Fly-through map |
+| MAP.227 | 8.1 | Fly-through map |
+| MAP.228 | 8.1 | Fly-through map |

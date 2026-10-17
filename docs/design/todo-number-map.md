@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.136 |
-| MAP | MAP.245 |
+| MAP | MAP.246 |
 | NAV | NAV.63 |
 | GEN | GEN.532 |
 | PERF | PERF.112 |
@@ -1408,10 +1408,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | open |
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | open |
-| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | open |
+| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | done, PR #2031 |
 | MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | done, PR #1859 |
-| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | open |
-| MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | open |
+| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | done, PR #2032 |
+| MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | done, PR #2032 |
 | MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | open |
 | MAP.230 | Names of stars, systems and sectors on the Galaxy Map | none | open |
 | MAP.231 | The Sector Map and the System Map use the label engine | none | open |
@@ -1428,6 +1428,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | none | open |
 | MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | none | open |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | none | open |
+| MAP.245 | The wheel zoom's remaining parts: the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
