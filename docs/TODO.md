@@ -9109,10 +9109,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approval; Boss has not approved it: docs/design/bulk-composition.md
   ends with a 'For Boss to approve' list with a recommendation per item;
   a ruling that differs changes this item.
-  Open Boss decision (bulk-composition.md approve item 10, the epoch;
-  Blocker 1 handoff): the data-table
-  epoch scope is open between this item's text and composition-model.md
-  section 3; the note follows section 3 and asks Boss to confirm.
+  Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in
+  words; bulk-composition.md approve item 10, composition-model.md
+  section 3): this item is a table in 8.1 phase 2 and bumps nothing; the
+  one epoch bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1.
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -10694,13 +10694,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. T15, the
   cometary organic fraction (no probability exists; N(0.60, 0.15)
   clipped to [0, 1] is the lane's proposal).
-  Open Boss decision (bulk-composition.md approve item 6, Decisions 25
-  and 26; Blocker 1, 2026-10-17): the compaction hand-over. The paper's
-  law is recommended; the 1e20 kg hand-over leaves a porosity jump, so
-  Boss chooses between moving it and coding viscous compaction after the
-  Eq. 3 sign check; a Galilean-class solver test is needed before the
-  1e20 kg to 0.1 Earth mass range is called validated. Needs Boss's
-  choice, not only approval.
+  Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in
+  words; bulk-composition.md approve item 6, Decisions 25 and 26): the
+  paper's compaction law stays and the 1e20 kg hand-over is shifted
+  until the porosity jump (0.86 to 1.55 g/cm3) disappears; a Galilean-
+  class solver test comes before the 1e20 kg to 0.1 Earth mass range is
+  called validated; viscous compaction can replace the hand-over later
+  once the Eq. 3 sign check passes.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
