@@ -19,6 +19,7 @@ from collections import namedtuple
 
 from planetgen.galaxy import spherical
 from planetgen.galaxy.span import Span
+from planetgen.util import detmath
 
 BALL_EDGE_ALLOWANCE = 0.75
 """float: Edges added to a radial fill's radius in sectors. A ball of exactly
@@ -81,7 +82,7 @@ class Region:
         return plane * math.cos(lon), plane * math.sin(lon), z
 
     def _inside(self, shell, band, wedge):
-        return math.dist(self._position(shell, band, wedge), self.center_pc) <= self.reach_pc + _EPS
+        return detmath.dist(self._position(shell, band, wedge), self.center_pc) <= self.reach_pc + _EPS
 
     def _band_arc(self, shell, band, cos_delta, delta, colat_c, lon_c):
         """The wedges of `band` of `shell` inside the ball, as a `BandArc`, or `None`; `delta` is the angle on the
@@ -120,7 +121,7 @@ class Region:
         reach = math.sqrt(cx * cx + cy * cy + cz * cz)
         if reach <= self.reach_pc + _EPS:
             yield BandArc(0, 0, 0, 1, True)
-        colat_c = math.atan2(math.hypot(cx, cy), cz)
+        colat_c = math.atan2(detmath.hypot(cx, cy), cz)
         lon_c = math.atan2(cy, cx) % (2 * math.pi)
         edge = self.edge_pc
         shell_min = max(1, math.ceil((reach - self.reach_pc) / edge - _EPS))
@@ -196,7 +197,7 @@ class Region:
         yields them: `(shell, band, wedge, x, y, z, distance_pc)`."""
         for shell, band, wedge in self.addresses(bounds):
             x, y, z = self._position(shell, band, wedge)
-            yield shell, band, wedge, x, y, z, math.dist((x, y, z), self.center_pc)
+            yield shell, band, wedge, x, y, z, detmath.dist((x, y, z), self.center_pc)
 
     def contains(self, shell, band, wedge):
         """Whether the sector at `(shell, band, wedge)` is in the region."""

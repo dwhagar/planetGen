@@ -318,6 +318,23 @@ connectivity to that specific schema rather than the default one.
   galaxy's stored outline; `null` before any plan). `400` for a bad or
   incomplete query, a negative shell, an address that is not a cell, or a
   cell too far out to compute.
+- `GET /api/galaxy/profile?shell=<i>&band=<j>&wedge=<k>` (or `?x=&y=&z=`, parsecs, for the cell holding that point) — the
+  Sector Profile of any cell of the grid, charted or not (API.27), so an uncharted sector can be previewed. Read only:
+  it is closed form in the stored skeleton and the address (`galaxy.profile.sector_profile`), draws no random number and
+  stores nothing, so two calls give the same answer. The body has `shell_index`/`band_index`/`wedge_index`, `center_pc`,
+  `edge_pc`, `volume_pc3`, `region` (`nuclear`, `bulge`, `disk`, `halo`, `cluster` or `satellite`), `density` and
+  `expected_systems` (the mean of the cell's Poisson draw), `mix` (population -> density), `populations` (for each of
+  `young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `satellite`, `nuclear_cluster`, `nuclear_disc`: `density`,
+  `share`, `age_gy` as `[youngest, oldest]`, `fe_h` as `[weight, mean, sigma]` peaks, `dispersion_kms`, `rotation`),
+  `gas` (`cold_fraction`, `ambient`, `ambient_density_cm3`, `mass_solar`, and `superbubble`: `null` or the cavity's
+  `radius_pc`, `ambient_density_cm3`, `temperature_k`, `center_pc`, `centre_distance_pc`), `dark_matter`
+  (`density_solar_pc3`, `mass_solar`), `kind_factors` (kind -> the factor the place applies to that kind's rate per star),
+  `sector_id` (the generated sector there, or `null`), `in_galaxy` (as in `/api/galaxy/cell`) and `unresolved` (as on a
+  sector: what a cell above the cell star ceiling leaves unresolved, else `null`) and `estimate` (UX.113: what filling this one
+  cell would make and take, from this server's stored speeds and sizes: `systems`, `stars`, `bytes`, `seconds`, and
+  `measured`, whether the speed is this server's own). `404` before a galaxy is planned,
+  `400` for a bad or incomplete query, a negative shell, a cell that does not exist or one past the grid's outermost
+  shell.
 - `GET /api/galaxy/uncharted?shell=<i>&band=<j>&wedge=<k>` — one cell's
   place and what the scatters left in it, for opening a cell nothing was
   generated in (MAP.162): `shell_index`/`band_index`/`wedge_index`,
@@ -840,6 +857,19 @@ forced credential change. They back the admin stats page
   `{"document": {...}, "expect_hash", "check_only"}` checks an export like an
   edit (the settings plan's answer; `request` holds the changes) and, unless
   `check_only`, saves it as `config.import`.
+- `GET /api/admin/images` — the site's icons and link-preview picture
+  (ADM.44): `{"images": [{"kind", "title", "help", "formats", "setting",
+  "name", "url", "mime", "width", "height"}], "built_in_preview",
+  "max_bytes"}`; `name` and `url` are `null` for the built-in one (or no
+  icon). `POST /api/admin/images/<kind>` `{"data": "<base64>"}` (kind is
+  `favicon_svg`, `favicon_png`, `apple_touch_icon` or `default_image`)
+  checks the picture (format, size, square where an icon must be, a
+  sandboxed SVG; 422 with the reason when it can't be used), stores it as
+  `<16 hex digits of its SHA-256>.<png|ico|jpg|svg>` (served at
+  `/site-assets/<name>`) and saves the setting that names it through the
+  settings writer, so it is backed up and audited as `config.update`.
+  `DELETE /api/admin/images/<kind>` resets the setting and removes the
+  file when no other setting names it. At most 1 MiB a picture.
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site

@@ -127,6 +127,11 @@ def collect(options, form):
                 changes[path] = raw                    # the model words the error ("not a valid integer")
             elif parsed != option["value"]:
                 changes[path] = parsed
+        elif option.get("multiline"):
+            raw = form.get(name, "").replace("\r\n", "\n").replace("\r", "\n")
+            submitted[path] = raw
+            if raw != _text(option["value"]):
+                changes[path] = raw
         else:
             raw = form.get(name, "").replace("\r", "").replace("\n", "")
             submitted[path] = raw

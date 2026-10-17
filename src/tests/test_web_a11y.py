@@ -401,6 +401,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "phenomenon_id": phenomenon["id"],
         "scatter_id": scatter_id,  # web.uncharted_phenomenon
         "quadrant": "I",
+        "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
         "page": 1,
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
@@ -410,10 +411,15 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "polity_id": items("/api/polities")[0]["id"],
         "node_id": sample_job_tree,  # web.admin_queue_tree
         "action": "queue-pause",  # web.admin_queue_confirm
-        # web.admin_backup: no backup exists here, so it only redirects and is skipped; the real page is
+        # web.admin_backup: no backup exists here, so it answers 404 and is skipped (NO_SAMPLE_OBJECT); the real page is
         # checked in test_web_settings_browser.py.
         "archive": "20200101T000000Z.tar.bz2",
     }
+
+
+NO_SAMPLE_OBJECT = frozenset({"web.admin_backup"})
+"""frozenset: Pages for an object this database does not hold (a backup archive), which answer 404 for it; their
+real page is checked in test_web_settings_browser.py."""
 
 
 def _page_url(app, endpoint, samples):
@@ -443,6 +449,8 @@ def page_targets(site_app, sample_params, admin_token):
         admin_status = admin.get(path).status_code
         if admin_status == 200:
             targets[endpoint] = (path, True)
+        elif admin_status == 404 and endpoint in NO_SAMPLE_OBJECT:
+            targets[endpoint] = (None, f"{path} has no sample object here")
         elif 300 <= status < 400 and 300 <= admin_status < 400:
             targets[endpoint] = (None, f"{path} only redirects")
         else:

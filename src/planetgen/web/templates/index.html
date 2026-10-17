@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block heading %}<h1 class="page-title">{{ site_name }}</h1>{% endblock %}
+{% block heading %}<h1 class="page-title">{{ site_name }}</h1>
+{%- if site_tagline %}<p class="tagline">{{ site_tagline }}</p>{% endif %}{% endblock %}
 {% block content %}
 {#- The front door (UX.55): what is here, each count a link to its list, and the tools. -#}
 <section class="panel" aria-labelledby="home-counts-heading">

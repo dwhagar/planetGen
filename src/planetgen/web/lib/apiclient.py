@@ -568,6 +568,13 @@ def get_uncharted_sector(db, shell_index, band_index, wedge_index):
     })
 
 
+def get_galaxy_profile(db, shell_index, band_index, wedge_index):
+    """`GET /api/galaxy/profile`'s payload (API.27, UX.113): the Sector Profile of one cell of the grid, charted or
+    not, with `sector_id`, `unresolved` and the `estimate` of filling it."""
+    _require_db(db)
+    return _request("/galaxy/profile", {"db": db, "shell": shell_index, "band": band_index, "wedge": wedge_index})
+
+
 def get_galaxy_tiles(db, tile_keys):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/
@@ -1013,6 +1020,26 @@ def admin_settings_save(cookie_header, changes, expect_hash=None):
     `ApiError` (409) (ADM.84)."""
     body, _set_cookie_headers = _auth_request("POST", "/admin/settings", cookie_header=cookie_header,
                                               json_body={"changes": changes, "expect_hash": expect_hash})
+    return body
+
+
+def admin_images(cookie_header):
+    """`GET /api/admin/images` -- each upload kind with the stored file in use (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/images", cookie_header=cookie_header)
+    return body
+
+
+def admin_image_upload(cookie_header, kind, data_base64):
+    """`POST /api/admin/images/<kind>` -- stores the picture (base64 text) and saves the setting that names it;
+    a picture that can't be used raises `ApiError` (422) with the reason (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/images/{kind}", cookie_header=cookie_header,
+                                              json_body={"data": data_base64})
+    return body
+
+
+def admin_image_remove(cookie_header, kind):
+    """`DELETE /api/admin/images/<kind>` -- the built-in picture (or no icon) applies again (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("DELETE", f"/admin/images/{kind}", cookie_header=cookie_header)
     return body
 
 
