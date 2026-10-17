@@ -1853,14 +1853,16 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     page.wait_for_timeout(1000)
     # One step in, so the glow of the bright stars around them (every star of
     # a tile comes in together, MAP.152) leaves the dark blue neutron star clear.
-    # The wheel zooms about the view's center (MAP.199): Shift-click the
-    # neutron star to center the view on it, then step in.
+    # The wheel zooms toward what is under the pointer (MAP.225): Shift-click the
+    # neutron star to center the view on it, then step in with the pointer on the center.
     pulsar = next(point for point in POINT_FIELD if point["type"] == "neutron_star")
     spot = _screen_of(page, (pulsar["x"], pulsar["y"], pulsar["z"]))
     page.keyboard.down("Shift")
     page.mouse.click(*spot)
     page.keyboard.up("Shift")
     _camera(page)
+    middle = page.locator(GALAXY_CANVAS).bounding_box()
+    page.mouse.move(middle["x"] + middle["width"] / 2, middle["y"] + middle["height"] / 2)
     page.mouse.wheel(0, -400)
     page.wait_for_timeout(600)
     _settle(page)
