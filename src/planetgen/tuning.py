@@ -562,7 +562,7 @@ WD_IFMR_INTERCEPT_SOL = 0.394
 WD_MASS_RANGE_SOL = (0.5, 1.35)
 WD_COOLING_L0_SOL = 1.0e-3
 WD_COOLING_EXPONENT = -1.4
-WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 100.0)
+WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 50.0)
 WD_MIN_COOLING_AGE_GY = 1.0e-4
 
 # `+large_star` draws from the same model with the IMF truncated below
@@ -830,6 +830,10 @@ FILL_LUMINOSITY_CAP_SOL = 100.0
 """float: The default fill luminosity cap, solar luminosities: the dimmest star a cell above the ceiling resolves.
 The lowest a cap can be is the brightest white dwarf (`WD_LUMINOSITY_RANGE_SOL`), the dimmest threshold the star
 model takes."""
+TIER_DOMINANCE_SHARE = 0.5
+"""float: The share of a band's density a term must reach for the band to take that term's tier
+(`galaxy.scatter_limits`): the nuclear terms for the core tier, the halo for the halo tier (GEN.333)."""
+
 CORE_TIER_FACTOR = 1.10
 """float: How much higher than the baseline the core's scatter limits default (docs/design/realistic-galactic-core.md
 5.1, Boss): the core luminosity floor and mass limit follow the galaxy's baseline times this until they are set."""
