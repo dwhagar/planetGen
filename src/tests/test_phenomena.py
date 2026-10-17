@@ -24,7 +24,7 @@ import math
 import pytest
 
 from planetgen.db import store
-from planetgen.physics import constants
+from planetgen.physics import constants, neutron_star
 from planetgen import tuning
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
@@ -137,7 +137,8 @@ def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
     for _ in range(TRIALS):
         ns = NeutronStar(make_config())
         assert tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[0] <= ns.mass_solar <= tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[1]
-        assert tuning.NEUTRON_STAR_RADIUS_RANGE_KM[0] <= ns.radius <= tuning.NEUTRON_STAR_RADIUS_RANGE_KM[1]
+        low, high = neutron_star.radius_limits_km(ns.mass_solar)
+        assert low - 1e-9 <= ns.radius <= high + 1e-9  # GEN.463: the band at its mass
         assert tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[0] <= ns.surface_temperature_k <= tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[1]
         assert ns.pulsar_type in ("young", "millisecond", "magnetar", "non-pulsing")
         assert ns.yerkes_class == "NS"

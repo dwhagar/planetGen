@@ -43,7 +43,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import activity, constants, spin
+from planetgen.physics import activity, constants, neutron_star, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -504,7 +504,7 @@ class NeutronStar(CompactRemnant):
 
         self.mass_solar = mass_solar or draw.uniform(*_within(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR, mass_range))
         self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
-        self.radius = draw.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
+        self.radius = neutron_star.radius_km(self.mass_solar, draw.gauss())
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
         if age_gy is None and magnetar:

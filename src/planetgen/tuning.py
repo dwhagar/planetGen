@@ -2262,11 +2262,14 @@ GALAXY_DISK_SCALE_LENGTH_PC = 2600.0
 # Freire 2016, ARA&A 54:401, compiling radio pulsar timing masses).
 NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
-# Neutron star radius range in km, from NICER x-ray pulse-profile
-# modeling of PSR J0030+0451 and PSR J0740+6620 (Miller et al. 2019,
-# ApJL 887:L24; Miller et al. 2021, ApJL 918:L28), which converged on
-# radii clustering near 11-13 km across the measured mass range.
-NEUTRON_STAR_RADIUS_RANGE_KM = (10.0, 13.0)
+# Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
+# spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
+# arXiv:2105.06979): R(1.4 Msun) = 12.45 +- 0.65 and R(2.08 Msun) = 12.35 +-
+# 0.75, the full range of the 68% intervals over three equation-of-state
+# frameworks; a star draws a normal deviation about the line between them,
+# clipped at NEUTRON_STAR_RADIUS_CLIP_SIGMA deviations (the 95% band).
+NEUTRON_STAR_RADIUS_ANCHORS = ((1.4, 12.45, 0.65), (2.08, 12.35, 0.75))
+NEUTRON_STAR_RADIUS_CLIP_SIGMA = 2.0
 
 # Pulsar spin period, in milliseconds, split into the two real observed
 # populations (Lorimer 2008, "Binary and Millisecond Pulsars", Living

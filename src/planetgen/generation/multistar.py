@@ -50,7 +50,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import constants, ms_lifetime, pre_main_sequence, roche, stability
+from planetgen.physics import constants, ms_lifetime, neutron_star, pre_main_sequence, roche, stability
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -139,7 +139,6 @@ BROWN_DWARF_DESERT_KEEP = 0.01
 """A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
 
 BROWN_DWARF_RADIUS_SOL = 0.1
-NEUTRON_STAR_RADIUS_KM = 12.0
 REMNANT_WINDOW_FRACTION = 1.0 / 3.0
 """float: A remnant companion of a living star exists only in the last third of the star's
 life, so the table value (a mean over all ages) is divided by this inside the window."""
@@ -415,7 +414,8 @@ def _remnant_leaf(kind, progenitor, mass, direct=False):
         radius = evolution.white_dwarf_radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M
         return _Leaf(kind, "VII", mass, progenitor, radius)
     if kind == "neutron-star":
-        return _Leaf(kind, None, mass, progenitor, NEUTRON_STAR_RADIUS_KM * constants.KM_TO_M_FACTOR / constants.AU_M)
+        return _Leaf(kind, None, mass, progenitor,
+                     neutron_star.radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M)
     return _Leaf(kind, None, mass, progenitor, _schwarzschild_au(mass), MEMBER_DIRECT_COLLAPSE if direct else 0)
 
 
