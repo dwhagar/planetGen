@@ -604,36 +604,6 @@ with `clamp()`.
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
-- [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
-  Step 8 (design note 11 item 8). The sector and bright-star pages list
-  the stored members of an unbuilt scatter row and the Galaxy Map shows
-  the system mass; a `Members` column in the Phenomena table. Done: an
-  unbuilt row with companions shows them and its total mass on its page
-  and in the table. Owner: Interface (2026-10-15); asks Core for any
-  schema change. Boss (2026-10-15 5:51 PM EDT): stellar companions of
-  stars and star-like objects, including neutron star and black hole
-  pairs, are generated at scatter time because they matter for gravity;
-  planets, moons and belts stay at sector fill. Defaults taken
-  (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
-  catalogue), hierarchical trees only, a row's members deleted when its
-  sector builds it, pair rates from the middle of the evidence.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 6).
-  Core 2's NAV.60 (#1977, 2:12 AM EDT as the lane reported) replaced the
-  answer fields `sectors_in_range` and `sectors_generated` by
-  `not_generated` and `not_generated_total` (the API docs and the CLI
-  are updated); this item's pages read the new fields.
-  Gate 1 (Core 4, build 07b08de92ff11081, started 1:18 AM EDT, FAIL in
-  78 min 4 s: 18,654 passed, 12 failed, 104 skipped, as the lane
-  reported at 2:44 AM EDT): ten failures were this item's own and are
-  fixed in its branch (the new route had no test value, no SEO class and
-  an underline on a badge link; `format_members` printed 'nan members'
-  for a non-finite count, caught by a new sweep test); two are not this
-  item's and are filed as TEST.216 and TEST.217. Gate 2 started 2:42 AM
-  EDT (build 49bf9a8656ac115e), expected to end about 4:00 AM EDT.
-  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -16601,45 +16571,12 @@ clears each one.
   Fix: `_placed_nebula(holds_ly=6)` redraws until the 27 points around
   the system point are inside; 80 of 80 solo runs passed (3:03 to 3:12
   AM EDT). Retires on Bug Hunt's merge.
+  Occurrence record (Core 4, UX.114 PR #1989, merged 4:01 AM EDT as the
+  lane reported): it did not recur in the second UX.114 gate (build
+  49bf9a8656ac115e, 2:42 to 3:58 AM EDT, 18,849 passed, 1 failed, the
+  round-trip column of TEST.217), consistent with a 1 in 40 draw. Bug
+  Hunt's `_placed_nebula(holds_ly=6)` fix is still the open fix.
   Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
-
-- [ ] **TEST.217 `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug)**
-  Found by Core 4 (2026-10-17, 2:44 AM EDT as the lane reported, in the
-  full gate of UX.114: build 07b08de92ff11081 started 1:18 AM EDT, FAIL
-  in 78 min 4 s with 18,654 passed, 12 failed and 104 skipped; the other
-  ten failures were UX.114's own and are fixed in its branch), filed by
-  the TODO thread. Kind: test. Test:
-  `src/tests/test_db_column_round_trip.py::test_every_column_is_written`.
-  Failure: `NULL in every row (never written?): [('moons',
-  'evolutionary_speed')]`. Fails on main: no (it passes alone on main
-  and on the branch, the same 42 s run). Frequency: 1 of 1 full gate
-  runs. Reproducer: the full run only; it looks like a test that writes
-  `moons` rows ran alongside or ahead of the round trip, or the
-  round-trip test's own moon rows lose the column. Not reproduced in
-  isolation, so it is flagged as needing the full-run reproduction
-  first. Done: the cause is found, the test passes in the full parallel
-  run, and the round trip does not depend on which other tests ran, with
-  no quarantine. Owner: Bug Hunt (proposed).
-  Investigation record (2026-10-17): fails on main, and not only in the
-  full gate. Core 2 (3:2x AM EDT as the lane reported, on a worktree of
-  current main with NAV.60, no PERF.97): passes alone every time, fails
-  in the same process after `tests/test_workers.py
-  tests/test_update_guard_work.py tests/test_api_jobs.py` (2 of 2 runs
-  of that order; once in the PERF.97 gate, not in the NAV.60 gate);
-  reproducer `cd src && python -m pytest tests/test_workers.py
-  tests/test_update_guard_work.py tests/test_api_jobs.py
-  tests/test_db_column_round_trip.py -q`, idle box, 148 s. Core 3 saw
-  the same failure in its GEN.407 gate (1:53 AM EDT start, 15,540
-  passed, 1 failed; passes alone 4 of 4). TODO thread reproduced it on
-  main a5acb516 (run 3:13 to 3:16 AM EDT, box idle, load 0.17): 66 passed, 1
-  failed, 203.86 s, the same assertion. Cause (Bug Hunt, 3:13 AM EDT as
-  the lane reported): `moons.evolutionary_speed` is None on every
-  lifeless moon (life.py:216, GEN.206), and the test galaxy's draws
-  shift with every generator change (GEN.103), so whether any moon has
-  life depends on the draw; the column joins the CHANCE list beside
-  life_chemical. Fixed on Bug Hunt's branch (passes, 51 s at 3:08 AM
-  EDT); retires on its merge.
-  Prerequisites: none. Related: TEST.213, TEST.208.
 
 ## USR: User accounts
 
