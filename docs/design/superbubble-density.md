@@ -1,6 +1,6 @@
 # Superbubbles shape the stars: the bubble field as a density modulation
 
-**Status:** plan. Boss asked for it on 2026-10-16 at 9:27 PM EDT; nothing is built. GEN.391 turns this plan into the checked design before any code.
+**Status:** plan. Boss asked for it on 2026-10-16 at 9:27 PM EDT; nothing is built. GEN.391 turns this plan into the checked design before any code. Boss decided the three open choices on 2026-10-16 at 9:38 and 9:39 PM EDT (section 7).
 
 Boss (2026-10-16, 9:27 PM EDT): "instead of drawing the bubbles, we need a way to store the regions and have them adjust the star density function for the space they occupy, which means finding a way to shift the probability to favor one part of a sector over another. TODO should think about how to do that so when sectors get built they follow the bubbles without having to draw them."
 
@@ -12,7 +12,7 @@ Boss (2026-10-16, 9:27 PM EDT): "instead of drawing the bubbles, we need a way t
 - The sector fill takes its count from a point value at the cell centre (`profile_at`, `profile.py:291-316`, then `generation/run_sector.py:654`) and places stars uniformly in the cell (`galaxy/sector.py:874-880`). The bright-star scatter thins by true density over a certified bound (`generation/object_first.py:98-132` `band_majorants`, `generation/bright_stars.py:433-457`); the phenomena scatter has no certified bound and uses bin-centre values with uniform positions inside the wedge (`generation/phenomenon_scatter.py:312-338`).
 - Planned and different: `region_density_overrides` (DB.38, ADM.94, 8.6) store one 0.1 to 10 multiplier per whole sector region at fill; a bubble is a continuous seeded factor, so the two are complementary and share only the multiplicative read.
 
-## 2. What a bubble does to the stars (to be checked in GEN.391)
+## 2. What a bubble does to the stars (young only, Boss 9:38 PM EDT; strengths checked in GEN.391)
 
 A bubble is a gas structure, so it acts on young populations and leaves old ones alone: stars are collisionless and a 100 Myr-old star does not notice a cavity. The effect is a factor on the population weights, not a cut of the whole density.
 
@@ -54,10 +54,10 @@ The chain waits until Core 3's GEN.322, GEN.323 and GEN.319 have merged, so no l
 
 ## 6. The drawn layer
 
-MAP.235 (the layer, toggle and key row) and MAP.236 (clearer bounds, more transparent) draw the bubbles. Once the stars follow the bubbles, a drawn bubble is a debug and explanation layer, not the way the bubbles are shown. Default (stands unless Boss decides otherwise, card to follow): keep it as an optional layer that is off by default and keep MAP.236 for when it is on.
+MAP.235 (the layer, toggle and key row) and MAP.236 (clearer bounds, more transparent) draw the bubbles. Once the stars follow the bubbles, a drawn bubble is a debug and explanation layer, not the way the bubbles are shown. Decided (Boss, 9:38 PM EDT): keep it as an optional layer that is off by default and keep MAP.236, at lower priority, for when it is on.
 
-## 7. Questions for Boss
+## 7. Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT)
 
-1. Does a bubble change only the young and intermediate stars (default, physically right) or every star's density?
-2. Keep the drawn layer as an optional overlay, off by default (default), or drop it?
-3. Not a Boss decision but a slot choice: the chain sits in 8.1 phase 3 (design) and phase 5 (build) because it waits on the whole-sphere scatter work; it does not hold the 8.1 headline GEN.301 but it does hold the 8.1 stamp.
+1. **Young only.** A bubble changes the young and intermediate star density only; old stars, halo, bulge, clusters and satellites are unchanged.
+2. **Optional overlay.** The drawn layer (MAP.235) stays, off by default; MAP.236 stays at lower priority.
+3. **Stay in 8.1.** The chain (GEN.391 to GEN.395, TEST.206, DOC.61) stays in 8.1 as planned: design in phase 3, build in phase 5. It does not hold the 8.1 headline GEN.301 but it does hold the 8.1 stamp.
