@@ -5543,6 +5543,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `static/orbitpositions.js` read the stored state vectors and advance
   them by the universal-step solver for the quiet case, with the Python
   and JavaScript parity test kept; NAV.27, ADM.72 and MAP.169 need it.
+  Owner: Blocker 1 (Boss, 2026-10-17, 3:40 PM EDT, typed in the project
+  chat: DB.53, then GEN.289 and GEN.294, go to Blocker 1; confirmed not
+  in progress in Core 1 at 3:42 PM EDT, and Core 1 dropped it from its
+  queue; order DB.53, GEN.289, GEN.294). This replaces any earlier owner
+  line on this item. It had no owner before.
 
 - [ ] **GEN.290 An encounter search that cannot miss a pass at large steps (100 years per second)**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
@@ -5759,6 +5764,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Waits on GEN.372, the numeric precision audit, before it closes (Boss,
   2026-10-16, 6:54 PM EDT); the audit does not hold up DB.55, GEN.336 or
   GEN.337, which Core 1 starts first.
+  Owner: Blocker 1 (Boss, 2026-10-17, 3:40 PM EDT, typed in the project
+  chat: DB.53, then GEN.289 and GEN.294, go to Blocker 1; confirmed not
+  in progress in Core 1 at 3:42 PM EDT, and Core 1 dropped it from its
+  queue; order DB.53, GEN.289, GEN.294). This replaces any earlier owner
+  line on this item. Its earlier waits (GEN.335, DB.55, GEN.336,
+  GEN.337) are all done.
 
 - [ ] **GEN.295 Nebulae as point groups whose shape follows the orbital update (design and research)**
   Boss asked (2026-10-16, 1:01 AM EDT, project chat): "should nebulae be
@@ -14851,6 +14862,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration takes the next free number when it merges, and its author
   tells the owners of the migrations still waiting (Core 3 for GEN.324,
   Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
+  Owner: Blocker 1 (Boss, 2026-10-17, 3:40 PM EDT, typed in the project
+  chat: DB.53, then GEN.289 and GEN.294, go to Blocker 1; confirmed not
+  in progress in Core 1 at 3:42 PM EDT, and Core 1 dropped it from its
+  queue; order DB.53, GEN.289, GEN.294). This replaces any earlier owner
+  line on this item. The first slice is merged (#1952); an old untested
+  local draft branch claude/db53 (GEN.336 and DB.53, 'draft, untested',
+  Oct 16 evening) exists for Blocker 1 to reuse or ignore.
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
