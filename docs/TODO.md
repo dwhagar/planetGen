@@ -17704,6 +17704,17 @@ clears each one.
   of 6 alone runs since about 1:37 PM EDT (Blocker 1 two, Core 2 two,
   Core 5 two). Reproducer: that one node id alone. Bug Hunt owns it and
   has it next.
+  Sighting (Core 3, 2026-10-17, about 2:41 to 2:45 PM EDT as the lane
+  reported, relayed by the coordinator, GEN.528 changed gate): failed 3
+  of 3 runs in its lane, including the GEN.528 changed gate, and failed
+  alone on a clean worktree of origin/main at 2a22d340 (about 2:41 PM
+  EDT, lane clock): 'the system's scene never came in', assert [] at
+  line 231 of src/tests/test_web_browser_sector_reach.py. Fails on main:
+  yes. Frequency: 7 of 7 alone runs since about 1:37 PM EDT (Blocker 1
+  two, Core 2 two, Core 5 two, Core 3 one), plus Core 3's three lane
+  runs. Reproducer: python -m pytest
+  src/tests/test_web_browser_sector_reach.py -k fades_in (about 2
+  minutes). Bug Hunt owns it.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
