@@ -11,7 +11,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import state_vectors as sv
+from planetgen.physics import body_state, state_vectors as sv
 from planetgen.physics.planets import update_orbital_position
 
 TWO_PI = 2.0 * math.pi
@@ -40,7 +40,10 @@ def test_a_planets_orbit_from_its_vector_is_the_circle_it_was_generated_on():
     assert orbit["inclination"] == pytest.approx(math.radians(planet.orbital_inclination_deg), abs=1e-9)
     if planet.orbital_inclination_deg > 1e-6:
         assert _angle_close(orbit["ascending_node"], math.radians(planet.orbital_ascending_node_deg))
-    assert _angle_close(orbit["true_anomaly"], math.radians(planet.orbital_phase_deg))
+    phase_deg = body_state.argument_of_latitude_deg(
+        (planet.position_x, planet.position_y, planet.position_z),
+        planet.orbital_inclination_deg, planet.orbital_ascending_node_deg)
+    assert _angle_close(orbit["true_anomaly"], math.radians(phase_deg))
 
 
 def test_a_moons_orbit_from_its_vector_is_about_its_planet():

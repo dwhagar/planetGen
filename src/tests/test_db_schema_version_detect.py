@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE planets ADD COLUMN orbital_phase_deg DOUBLE NOT NULL DEFAULT 0")  # v109
         conn.execute("ALTER TABLE bright_stars MODIFY COLUMN band_index SMALLINT NOT NULL")  # v108
         conn.execute("ALTER TABLE star_systems MODIFY COLUMN cell_key BIGINT UNSIGNED GENERATED ALWAYS AS (NULL) STORED")  # v106
         conn.execute("ALTER TABLE planets DROP COLUMN host_node_id")  # v104

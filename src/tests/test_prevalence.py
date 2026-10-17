@@ -66,9 +66,10 @@ def test_every_feature_has_a_usual_share():
     assert all(0 < share < 1 for share in prevalence.USUAL_SHARES.values())
 
 
-@pytest.mark.parametrize("share, percent", [(0.242, 0), (0.0, -100), (0.484, 100), (0.121, -50)])
-def test_percent_for_share(share, percent):
-    assert prevalence.percent_for_share("habitable_world", share) == pytest.approx(percent)
+@pytest.mark.parametrize("factor, percent", [(1.0, 0), (0.0, -100), (2.0, 100), (0.5, -50)])
+def test_percent_for_share(factor, percent):
+    usual = tuning.PREVALENCE_BASE_SHARES["habitable_world"]
+    assert prevalence.percent_for_share("habitable_world", usual * factor) == pytest.approx(percent)
 
 
 @pytest.mark.parametrize("feature, percent", [
@@ -86,12 +87,16 @@ def test_a_measured_feature_moves_by_the_percentage(feature, percent):
 ])
 def test_a_drawn_feature_moves_by_the_percentage(feature, base, percent):
     # Each star of a wide pair draws its own comets, so those systems have
-    # two chances.
+    # two chances, but a pair a few AU apart leaves each star a stable limit
+    # under most comets' orbits (GEN.448): the second star's comets are mostly
+    # dropped. The share lies between one chance and two for every wide pair.
     chance = min(1.0, base * (1 + percent / 100))
     wide = tuning.PREVALENCE_DRAW_SHARES["binary_system"] * tuning.PREVALENCE_DRAW_SHARES["wide_binary"]
-    expected = (1 - wide) * chance + wide * (1 - (1 - chance) ** 2)
+    two = (1 - wide) * chance + wide * (1 - (1 - chance) ** 2)
     share = _shares({feature: percent}, seed=7)[feature]
-    assert share == pytest.approx(expected, abs=_tolerance(expected))
+    assert chance - _tolerance(chance) <= share <= two + _tolerance(two)
+    if percent == 100:
+        assert share > chance - _tolerance(chance) and share > _shares({}, seed=7)[feature]
 
 
 def test_no_binaries_at_minus_100_and_more_at_plus_50():

@@ -4,10 +4,12 @@
 // planetgen/physics/body_positions.py, over the scene
 // GET /api/systems/<id>/scene returns. positionsAt(scene, years) moves each
 // body `years` past the scene's epoch along its stored orbit and answers
-// {ref: [x, y, z]} in kilometres: planets, moons and a pair's second star on
-// circular orbits (phase plus 360 degrees a period), comets on Kepler or
-// Barker orbits, a close pair either side of the barycenter by the other's
-// mass fraction. tests/test_js_unit.py checks the two copies against each other.
+// {ref: [x, y, z]} in kilometres: planets and moons by their stored state
+// vectors moved with the universal-variable Kepler step (GEN.289), a pair's
+// second star on a circular orbit (phase plus 360 degrees a period), comets on
+// Kepler or Barker orbits, a close pair either side of the barycenter by the
+// other's mass fraction. tests/test_js_unit.py checks the two copies against
+// each other.
 
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -71,6 +73,116 @@ function relativeCircularKm(orbit, years) {
   return [p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM];
 }
 
+// The Stumpff functions c2 and c3 (kepler.stumpff_c2_c3).
+function stumpff(z) {
+  if (Math.abs(z) < 1e-3) {
+    return [
+      1 / 2 - z / 24 + (z * z) / 720 - z ** 3 / 40320 + z ** 4 / 3628800 - z ** 5 / 479001600,
+      1 / 6 - z / 120 + (z * z) / 5040 - z ** 3 / 362880 + z ** 4 / 39916800 - z ** 5 / 6227020800,
+    ];
+  }
+  if (z > 0) {
+    const root = Math.sqrt(z);
+    return [(1 - Math.cos(root)) / z, (root - Math.sin(root)) / root ** 3];
+  }
+  const root = Math.sqrt(-z);
+  return [(Math.cosh(root) - 1) / -z, (Math.sinh(root) - root) / root ** 3];
+}
+
+const UNIVERSAL_TOLERANCE = 1e-13;
+const UNIVERSAL_MAX_ITERATIONS = 60;
+
+// kepler.universal_step: a two-body state `dt` on, whatever the conic, in any
+// consistent units. Halley's method on the universal anomaly kept inside a
+// bracket that holds the root, bisecting when a step leaves it; a whole number
+// of orbits is dropped first. Returns {position, velocity} (arrays of three)
+// and throws on a bad input or no convergence, as the Python does.
+export function universalStep(position, velocity, mu, dt) {
+  if (!(mu > 0) || !Number.isFinite(mu)) throw new Error(`universalStep: mu must be positive, got ${mu}`);
+  if (![...position, ...velocity, dt].every(Number.isFinite)) throw new Error("universalStep: the state and step must be finite");
+  if (dt === 0) return { position: [...position], velocity: [...velocity] };
+  const r0 = Math.hypot(...position);
+  if (r0 === 0) throw new Error("universalStep: the body sits on its primary");
+  const v0Sq = velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2];
+  const sqrtMu = Math.sqrt(mu);
+  const s0 = (position[0] * velocity[0] + position[1] * velocity[1] + position[2] * velocity[2]) / sqrtMu;
+  const alpha = 2 / r0 - v0Sq / mu;
+  let step = dt;
+
+  const residual = (chi) => {
+    const z = alpha * chi * chi;
+    const [c2, c3] = stumpff(z);
+    const f = s0 * chi * chi * c2 + (1 - alpha * r0) * chi ** 3 * c3 + r0 * chi - sqrtMu * step;
+    const df = s0 * chi * (1 - z * c3) + (1 - alpha * r0) * chi * chi * c2 + r0;
+    const d2f = s0 * (1 - z * c2) + (1 - alpha * r0) * chi * (1 - z * c3);
+    return [f, df, d2f];
+  };
+
+  let chi;
+  if (alpha > 1e-12 / r0) {
+    chi = sqrtMu * step * alpha;
+    const period = (2 * Math.PI) / (sqrtMu * alpha ** 1.5);
+    if (Math.abs(step) > period) {
+      step %= period;
+      chi = sqrtMu * step * alpha;
+    }
+  } else if (alpha < -1e-12 / r0) {
+    const a = 1 / alpha;
+    const sign = step > 0 ? 1 : -1;
+    const inner = (-2 * mu * alpha * step) / (s0 * sqrtMu + sign * Math.sqrt(-mu * a) * (1 - r0 * alpha));
+    chi = inner > 0 ? sign * Math.sqrt(-a) * Math.log(inner) : sign * Math.sqrt(-a);
+  } else {
+    chi = (sqrtMu * step) / r0;
+  }
+
+  const guess = Math.abs(chi) || 1;
+  let [low, high] = step > 0 ? [0, guess] : [-guess, 0];
+  for (let n = 0; n < 200; n += 1) {
+    if (step > 0 && residual(high)[0] < 0) [low, high] = [high, high * 2];
+    else if (step < 0 && residual(low)[0] > 0) [low, high] = [low * 2, low];
+    else break;
+  }
+  if (!(low <= chi && chi <= high)) chi = 0.5 * (low + high);
+
+  let converged = false;
+  for (let n = 0; n < UNIVERSAL_MAX_ITERATIONS; n += 1) {
+    const [f, df, d2f] = residual(chi);
+    if (f > 0) high = chi;
+    else low = chi;
+    const denominator = 2 * df * df - f * d2f;
+    let next = chi - (denominator !== 0 ? (2 * f * df) / denominator : f / df);
+    if (!(low < next && next < high)) next = 0.5 * (low + high);
+    const done = Math.abs(next - chi) <= UNIVERSAL_TOLERANCE * Math.max(1, Math.abs(next))
+      || high - low <= 4e-16 * Math.max(1, Math.abs(next));
+    chi = next;
+    if (done) { converged = true; break; }
+  }
+  if (!converged) throw new Error(`universalStep: no convergence in ${UNIVERSAL_MAX_ITERATIONS} iterations`);
+
+  const z = alpha * chi * chi;
+  const [c2, c3] = stumpff(z);
+  const f = 1 - (chi * chi * c2) / r0;
+  const g = step - (chi ** 3 * c3) / sqrtMu;
+  const r = position.map((a, i) => f * a + g * velocity[i]);
+  const rLength = Math.hypot(...r);
+  const gDot = 1 - (chi * chi * c2) / rLength;
+  const fDot = (sqrtMu * chi * (z * c3 - 1)) / (rLength * r0);
+  return { position: r, velocity: position.map((a, i) => fDot * a + gDot * velocity[i]) };
+}
+
+const SECONDS_PER_YEAR = 365.25 * 86400;
+
+// A planet's or moon's position relative to what it goes round, km (GEN.289):
+// its stored state vector moved from the epoch it is true at to `years` past
+// the scene's epoch (body_positions._relative_state_km). The pull is
+// mu = (2 pi / period)^2 distance^3, in km and seconds.
+function relativeStateKm(orbit, years, sceneEpochUnix) {
+  const offset = orbit.epoch_unix == null || sceneEpochUnix == null ? 0 : sceneEpochUnix - orbit.epoch_unix;
+  const omega = TWO_PI / (orbit.period_years * SECONDS_PER_YEAR);
+  const mu = omega * omega * orbit.distance_km ** 3;
+  return universalStep(orbit.position_km, orbit.velocity_kms, mu, years * SECONDS_PER_YEAR + offset).position;
+}
+
 function cometRelativeKm(orbit, years) {
   const k = orbit.kepler;
   const q = k.perihelion_distance_km / AU_KM;
@@ -126,9 +238,9 @@ export function relativeAt(scene, years) {
     }
   }
   for (const planet of scene.planets) {
-    out[planet.ref] = { around: planet.orbit.around, rel: relativeCircularKm(planet.orbit, years) };
+    out[planet.ref] = { around: planet.orbit.around, rel: relativeStateKm(planet.orbit, years, scene.epoch_unix) };
     for (const moon of planet.moons) {
-      out[moon.ref] = { around: planet.ref, rel: relativeCircularKm(moon.orbit, years) };
+      out[moon.ref] = { around: planet.ref, rel: relativeStateKm(moon.orbit, years, scene.epoch_unix) };
     }
   }
   for (const comet of scene.comets) {

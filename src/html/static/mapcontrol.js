@@ -134,6 +134,29 @@ export function limitApproach(factor, distance, clearance) {
   return 1 - step / distance;
 }
 
+// MAP.245: how much of the straight move from `from` to `to` ([x, y, z]) may be made before the eye comes within
+// `clearance` of any of `points` (the pickable things): 1 for the whole move, less when one lies close to the way,
+// so the eye never passes through a star on its way to the point under the cursor. A point the eye is already
+// within `clearance` of does not limit the move (the eye can still come on in).
+export function limitPathClearance(from, to, points, clearance) {
+  const move = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
+  const length2 = move[0] * move[0] + move[1] * move[1] + move[2] * move[2];
+  if (!(length2 > 0) || !(clearance > 0)) return 1;
+  let allowed = 1;
+  points.forEach(function (point) {
+    const rel = [point[0] - from[0], point[1] - from[1], point[2] - from[2]];
+    const away2 = rel[0] * rel[0] + rel[1] * rel[1] + rel[2] * rel[2];
+    if (away2 <= clearance * clearance) return;
+    const along = (rel[0] * move[0] + rel[1] * move[1] + rel[2] * move[2]) / length2;
+    if (!(along > 0)) return;
+    const room2 = clearance * clearance - (away2 - along * along * length2);
+    if (!(room2 > 0)) return;
+    const entry = along - Math.sqrt(room2 / length2);
+    if (entry < allowed) allowed = Math.max(0, entry);
+  });
+  return allowed;
+}
+
 // MAP.225: the new center of a view that zooms by `factor` (the distance becomes `factor` times what it was) with
 // `anchor` staying where it is on the screen: the center scales about the anchor, `anchor + factor * (center -
 // anchor)`, because the eye moves along the line to the anchor by the same factor and the view direction is kept.

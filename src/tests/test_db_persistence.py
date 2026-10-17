@@ -28,7 +28,7 @@ from planetgen.util import detmath
 
 from planetgen.db import store
 from planetgen import tuning
-from planetgen.physics import constants as pc
+from planetgen.physics import body_state, constants as pc
 from planetgen.generation.comet import Comet
 from planetgen.generation.phenomena.compact_remnant import BlackHole
 from planetgen.generation.config import SystemConfig
@@ -593,7 +593,6 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
     for planet, reloaded_planet in zip(planets, reloaded_planets):
         assert reloaded_planet.orbital_inclination_deg == pytest.approx(planet.orbital_inclination_deg)
         assert reloaded_planet.orbital_ascending_node_deg == pytest.approx(planet.orbital_ascending_node_deg)
-        assert reloaded_planet.orbital_phase_deg == pytest.approx(planet.orbital_phase_deg)
         assert reloaded_planet.position_x == pytest.approx(planet.position_x)
         assert reloaded_planet.position_y == pytest.approx(planet.position_y)
         assert reloaded_planet.position_z == pytest.approx(planet.position_z)
@@ -605,7 +604,6 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
         for moon, reloaded_moon in zip(planet.moons, reloaded_planet.moons):
             assert reloaded_moon.orbital_inclination_deg == pytest.approx(moon.orbital_inclination_deg)
             assert reloaded_moon.orbital_ascending_node_deg == pytest.approx(moon.orbital_ascending_node_deg)
-            assert reloaded_moon.orbital_phase_deg == pytest.approx(moon.orbital_phase_deg)
             assert reloaded_moon.position_x == pytest.approx(moon.position_x)
             assert reloaded_moon.position_y == pytest.approx(moon.position_y)
             assert reloaded_moon.position_z == pytest.approx(moon.position_z)
@@ -636,7 +634,7 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
             store.insert_star_system(conn, system, cfg)
 
         before = conn.execute(
-            "SELECT id, orbital_phase_deg, orbital_inclination_deg, orbital_ascending_node_deg, "
+            "SELECT id, orbital_inclination_deg, orbital_ascending_node_deg, "
             "rotation_period_hours, period_years, distance_km, "
             "position_x_km, position_y_km, position_z_km, orbital_speed_kms FROM planets"
         ).fetchall()
@@ -648,7 +646,7 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
         store.finish_orbit_update(conn, clock)
 
         after = conn.execute(
-            "SELECT id, orbital_phase_deg, orbital_inclination_deg, orbital_ascending_node_deg, "
+            "SELECT id, orbital_inclination_deg, orbital_ascending_node_deg, "
             "rotation_period_hours, period_years, distance_km, "
             "position_x_km, position_y_km, position_z_km, orbital_speed_kms FROM planets"
         ).fetchall()
@@ -666,16 +664,21 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
         assert updated["rotation_period_hours"] == pytest.approx(row["rotation_period_hours"])
         assert updated["orbital_speed_kms"] == pytest.approx(row["orbital_speed_kms"])
 
-        expected_phase = (row["orbital_phase_deg"] + (0.5 / row["period_years"]) * 360) % 360
-        assert updated["orbital_phase_deg"] == pytest.approx(expected_phase, abs=1e-6)
+        # GEN.289: no stored phase; the old phase is where the stored position was, and the stepped state lands where
+        # a circular orbit of that period puts it half a year later.
+        old_phase = body_state.argument_of_latitude_deg(
+            (row["position_x_km"], row["position_y_km"], row["position_z_km"]),
+            row["orbital_inclination_deg"], row["orbital_ascending_node_deg"])
+        expected_phase = (old_phase + (0.5 / row["period_years"]) * 360) % 360
 
         expected_x_au, expected_y_au, expected_z_au = orbital_position_au(
             row["distance_km"] / pc.AU_TO_KM, row["orbital_inclination_deg"],
             row["orbital_ascending_node_deg"], expected_phase,
         )
-        assert updated["position_x_km"] == pytest.approx(expected_x_au * pc.AU_TO_KM, abs=1e-3)
-        assert updated["position_y_km"] == pytest.approx(expected_y_au * pc.AU_TO_KM, abs=1e-3)
-        assert updated["position_z_km"] == pytest.approx(expected_z_au * pc.AU_TO_KM, abs=1e-3)
+        tolerance = 1e-9 * row["distance_km"]
+        assert updated["position_x_km"] == pytest.approx(expected_x_au * pc.AU_TO_KM, abs=tolerance)
+        assert updated["position_y_km"] == pytest.approx(expected_y_au * pc.AU_TO_KM, abs=tolerance)
+        assert updated["position_z_km"] == pytest.approx(expected_z_au * pc.AU_TO_KM, abs=tolerance)
 
     # The clock now stands at the end of the step (half a year from now,
     # since no update had run), not None.

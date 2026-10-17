@@ -884,6 +884,26 @@ with `clamp()`.
   themes and at phone width. Owner: Core 2 (proposed).
   Prerequisites: none. Related: PERF.105, UX.118.
 
+- [ ] **UX.137 The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: the Generate page and the
+  settings page show the two switches as two controls (both default
+  off), each with a one-line plain explanation that halo and satellite
+  galaxies are separate, each running its own command (GEN.539, GEN.540)
+  as a step; turning one on offers the commands that will run (the step
+  list, with its estimate); turning one off says that nothing is
+  deleted; the command line and the API set them through the same
+  commands. Owner: Core 2 (proposed).
+  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116.
+
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -1204,7 +1224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.245.
+  Prerequisites: MAP.247.
   Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -2257,12 +2277,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane starts first.
   Prerequisites: MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
-  Possible second sighting (Boss, 2026-10-17, 3:09 PM EDT, screenshots
-  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/): a loose
-  group of stars far above the disc on a fresh galaxy cannot be reached
-  or selected; filed as MAP.246 for Bug Hunt to reproduce and say
-  whether this item's cause explains it, and folded into this item if it
-  does.
+  Second sighting, confirmed (Boss, 2026-10-17, 3:09 PM EDT, screenshots
+  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/, folded in
+  from MAP.246): a loose group of stars far above the disc on a fresh
+  galaxy cannot be reached or selected. Bug Hunt reproduced it on Boss's
+  seed 2AFA1AD866D4BEB8646BF53C77A43DD6 (PlanetGen 8.0.1737; run: galaxy
+  --then-scatter --phenomenon-min-mass 14 --compact-min-mass star
+  --bright-star-min-luminosity 9000) at 4:30 PM EDT as the lane
+  reported: the group is one of the 11 satellite galaxies the plan drew,
+  5.7 kpc out and 2.3 kpc above the plane; the disc outline ends at
+  shell 1,511 and the group's stars sit at shells 1,604 to 1,620, so no
+  block or window exists there; the wheel stops at a camera distance of
+  6,912 pc and a click on one of its stars reports "Block 0·0·0, 0
+  sectors charted" instead of the star. This is exactly cause (1) and
+  (2) above; MAP.225's anchor problem is not involved. Screenshot of the
+  reproduction:
+  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/repro-zoom-stops-at-6911pc.png
+  (Bug Hunt's regeneration was cut off in its last stage, so star counts
+  may differ slightly). A fix lets Boss reach the satellite stars, so a
+  browser test on this seed (or a seeded satellite) selects a satellite
+  star and zooms to it.
+  Order (TODO thread, 2026-10-17, 4:25 PM EDT): this is the only open
+  bug that stops Boss reaching stars he can see, so it is worth taking
+  before the end of the infinite zoom tree. Its one hard prerequisite is
+  MAP.239 (the tile root to the reach: small, no prerequisite, Core 2,
+  queue position 31); the scatter rows beyond the outline of GEN.322 and
+  GEN.323 are only needed for the tile part, not for the pick and the
+  hand-off. It edits the wheel hand-off `zoomAcross` in
+  galaxystageview.js, which MAP.245 is also changing, so one lane should
+  hold both: Core 2 right after MAP.245 merges.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -2277,83 +2320,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is gone (no shim).
   Prerequisites: GEN.420. Related: GEN.420.
 
-- [ ] **MAP.245 The wheel zoom's remaining parts: the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click**
-  Split from MAP.225 by the TODO thread (2026-10-17, after Core 2's
-  report of #2031 at 11:33 AM EDT as the lane reported): MAP.225's PR
-  built only the wheel part (zoom toward the point under the cursor, the
-  point staying fixed on screen; retired with #2031). Not built, and
-  kept here: the point under the cursor is, in order, the picked star,
-  remnant or cell, else the first sample along the cursor ray where the
-  integrated column density passes a threshold (the column-density ray
-  fallback), else the point at the current focus depth; each step moves
-  by `min(requested, 0.5 * (d_nearest - d_clear))`, so the speed is
-  logarithmic in the distance to the nearest pickable thing and the
-  camera never lands on a star or inside a wall by accident (the
-  clearance); and the "half way toward the point under the cursor"
-  double click on empty space (from Core 2, 2026-10-16, 4:03 PM EDT,
-  MAP.226 merged as #1859: a double click on empty space or a block
-  stays two clicks until this is built; a second click within 350 ms and
-  8 px is a double click). Boss (2026-10-09 22:24Z): "have them based on
-  the center of where the cursor is clicked. So that we always are
-  drilling down exactly where the user wants." Done: the wheel and the
-  double click use the picked object, then the column-density ray, then
-  the focus depth; a step never moves closer than the clearance to the
-  nearest pickable thing; a double click on empty space flies half way
-  toward the point under the cursor; a browser test zooms toward empty
-  space and checks the camera stops at the clearance and never inside a
-  star or wall.
-  Owner: Core 2 (the infinite zoom tree; behind PERF.105 and
-  UX.118, among the maps).
-  Case to cover (Bug Hunt finding, relayed by the coordinator,
-  2026-10-17, 3:22 PM EDT): MAP.225's wheel zoom toward the pointer can
-  anchor on the sector's choice mesh behind a star and slide the camera
-  away from the star. This is the cause of TEST.213
-  (`test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star`,
-  'the system's scene never came in') and is a real product problem, not
-  a test fault. The clearance rule of this item must cover that exact
-  case: the step toward a point never anchors on a mesh behind the
-  picked object, and a browser test zooms toward a star in front of its
-  choice mesh and ends at the star. Core 2 was told by the coordinator
-  to make sure of this and to add that test.
-  Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
+- [ ] **MAP.247 The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold**
+  Split from MAP.245 (Core 2, 2026-10-17, 4:24 PM EDT as the lane
+  reported: the cell scene has no density field where the cursor ray
+  hits nothing, so the fallback was not built; relayed by the
+  coordinator). The wheel's point under the cursor is, in order, the
+  picked star, remnant or cell, else the first sample along the cursor
+  ray where the integrated column density passes a threshold (this
+  item), else the point at the current focus depth (built). Done: the
+  cell scene carries the density the ray integrates (or reads it from
+  the stage's density tiles), the threshold is a named constant with its
+  reason, and a browser test zooms with the cursor over empty space
+  between the stars of a dense region and ends where the column passes
+  the threshold, not at the focus depth. Owner: Core 2 (proposed).
+  Prerequisites: none. Related: MAP.225, MAP.245.
 
-- [ ] **MAP.246 A loose group of stars far above the disc on a fresh galaxy cannot be reached by zoom or navigation and cannot be selected (bug)**
-  Boss (2026-10-17, 3:09 PM EDT, typed in the project chat, two
-  screenshots at
-  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/boss-screenshot-1.png
-  and boss-screenshot-2.png), filed by the TODO thread at the
-  coordinator's relay: "Ok, we've got a bug... fresh galaxy... We can
-  see the group of stars off to one corner there, I cannot get near them
-  nor can I select them." What the screenshots show: the Galaxy Map of a
-  fresh galaxy at 'In Sector 2·0·0', scale bar '500 sectors, 2 kpc
-  (6,523 ly)', the disc edge-on in the middle and a loose, roughly round
-  group of white points well above the disc (upper middle in the first,
-  upper right in the second, after Boss turned the view). Not reproduced
-  yet and the kind of object is not known (a satellite galaxy, a
-  globular cluster or a swarm of wanderers are all drawn beyond the disc
-  outline). Suspected relation, not checked in a browser: MAP.243
-  describes the halo's objects as drawn points that cannot be picked and
-  a zoom that stops short because blocks and hand-offs exist only inside
-  the outline; this may be the same cause seen on a group instead of a
-  black hole. Do: reproduce on a fresh galaxy (ask Boss for the seed
-  through the coordinator if the same group does not appear), name what
-  the group is, say whether MAP.243's cause explains it, and fix the
-  cause when it is bug-sized. Done: the cause is recorded on this item;
-  if it is exactly the cause MAP.243 names (no block or window outside
-  the outline), this item is folded into MAP.243 with the screenshots as
-  its sighting and reported here; otherwise a click or wheel run onto
-  the group selects and reaches it, a browser test on a seeded galaxy
-  places such a group and selects it, and nothing is quarantined. Owner:
-  Bug Hunt (Boss's lanes, strictly bugs; assigned by the coordinator at
-  3:09 PM EDT).
-  Boss's seed (2026-10-17, 3:22 PM EDT, typed in the project chat,
-  relayed by the coordinator): galaxy seed
-  2AFA1AD866D4BEB8646BF53C77A43DD6, PlanetGen 8.0.1737
-  (000800000006C9030C0300), run: galaxy --then-scatter
-  --phenomenon-min-mass 14 --compact-min-mass star
-  --bright-star-min-luminosity 9000. Reproduce on this seed first; the
-  screenshots show it.
-  Prerequisites: none. Related: MAP.243, MAP.207, MAP.219, MAP.210.
+- [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: the Galaxy Map and the
+  pages read the boundaries and the two switches from the plan
+  configuration (GEN.538); with the halo off they draw no halo scatter
+  beyond the outline and offer no halo layer toggle, with the satellite
+  galaxies off no satellites are drawn or listed (each switch
+  independent of the other), "Show on Galaxy Map" and the uncharted
+  address pages for an address outside the configured boundaries say it
+  is outside the generated galaxy and which switch is off (not just
+  "outside the galaxy"), the tiles carry nothing beyond them, and the
+  pick and the zoom hand-off of MAP.243 are not offered where nothing
+  exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
+  works as built in 8.1; a browser test per combination of the switches.
+  Owner: Core 2 (proposed).
+  Prerequisites: GEN.538, GEN.539, GEN.540, MAP.243. Related: GEN.538,
+  GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
+
 
 ## NAV: Navigation and courses
 
@@ -5860,9 +5866,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.282,
-  GEN.284, GEN.298, TEST.159, TEST.160, GEN.447, GEN.448, GEN.449,
-  GEN.450, TEST.196, GEN.463, GEN.467, GEN.469, GEN.502, GEN.529,
-  GEN.530.
+  GEN.284, GEN.298, TEST.159, TEST.160, GEN.450, TEST.196, GEN.463,
+  GEN.467, GEN.469, GEN.502, GEN.529, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -5892,6 +5897,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (job-20261017-162736-67d4) has not been rerun: the full job has to be
   rerun to confirm no other overflow before the scatter is called safe
   at that depth.
+  Note (Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first"): this headline stays
+  as written, the halo and intergalactic generation always on, because
+  8.1 gets it working first; 8.5 makes it a switch that defaults to off
+  (GEN.537 design, GEN.538, MAP.248, UX.137, TEST.226, goal #2095). The
+  whole-sphere audits of 8.1 (TEST.159, TEST.160, TEST.185) will run
+  with the switch on once it exists.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -9907,133 +9920,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   composition statements it would write come from the checked values
   only.
 
-- [ ] **GEN.447 The wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass**
-  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
-  (2026-10-17, 12:45 AM EDT as the lane reported). The sharp cut at
-  a_1/2 (Jiang and Tremaine 2010: a_1/2 = 3.1e4 AU for sigma 50 km/s,
-  rho_2 0.03, 10 Gyr) reads sigma as the population's own dispersion,
-  but the paper's sigma is the dispersion of the relative velocity
-  (about the square root of 2 larger), and rho_2 uses the mass-weighted
-  perturber mass <M^2>/<M>, not the 0.4 solar mass used. The two
-  simplifications go opposite ways (about -30 percent and plus). Done:
-  the limit is computed from the galaxy's own velocity dispersion by
-  component (GEN.406) and its own mass function, with the
-  relative-velocity factor and the mass-weighted mean written out; the
-  two corrections are named in the code and the note; a test compares
-  the limit for the Sun's neighbourhood values (a test value, not an
-  input) with the paper's 3.1e4 AU. Owner: Core 4, with the multi-star
-  items.
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The tables live in generation/multistar.py and tuning.py, not in
-  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.447,
-  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
-  tables.
-  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
-  the values this item cannot source from a read paper are filled by the
-  plan's section 5 (derived D, bracket B, theory prior T, or labelled
-  placeholder P) and registered in one stand-in registry (plan section
-  6: fill id, kind, evidence label, source state, form, assumptions,
-  validity range, knobs, target id, falsifier test, replaced-by research
-  item, sources, licence, epoch). A lead such as Gemini may only widen a
-  bracket, and on a contradiction the verified source wins. A stand-in
-  replaced later changes stored output and rides the pending epoch. GR4
-  (age-velocity normalisation for any disc, plan 4.3, derived and ready,
-  group X2) is the gap GEN.301's own prerequisite line reaches through
-  this item; it has one closure target (the Milky Way, Sharma and Hayden
-  2020 Table 2) and is not yet tested on a second galaxy.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512)
-  is a research-thread read for the age-velocity normalisation (GR4), no
-  need for Boss.
-  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-  clock reported; docs/design/gemini-batch1-check.md): age-velocity
-  normalisation (Sharma and Hayden 2020 Table 2, verified): sigma_z(10
-  Gyr) 21.1 ± 0.2 km/s, sigma_R(10 Gyr) 39.4 ± 0.3, vertical heating
-  index 0.441 ± 0.007, radial index 0.251 ± 0.006; Gemini's 38.5, 62.0,
-  0.46 and 0.42 are contradicted. The Vc exponent of the vertical
-  normalisation (Gemini gamma 0.50) has no source: Martinsson prints
-  sigma_z,0 = (0.248 ± 0.038) V(2.2 hR), proportional to the rotation
-  speed.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): GR4 for the Milky Way: Aumer and
-  Binney 2009 Eq. 16, sigma(t) = v10 ((t + tau1)/(10 Gyr + tau1))^beta,
-  Table 6: sigma_U beta 0.307, tau1 0.001, v10 41.899 km/s; sigma_V
-  0.430, 0.715, 28.823; sigma_W 0.445, 0.001, 23.831; 3D (Table 2 best
-  fit) 0.349, 0.149, 55.179; star formation alpha -2.549, gamma 0.117
-  per Gyr, tau_max 12.602 Gyr; beta = 0.5 is excluded [V]. The ratio
-  sigma_W/sigma_U runs from 0.41 at 1 Gyr to 0.57 at 10 Gyr, so the
-  plan's constant 0.54 is an old-age value. Their v10_W 23.8 km/s
-  compares with the plan's Sharma and Hayden 21.1 km/s (exponent 0.441),
-  and their beta_U 0.307 with the plan's radial 0.251. Table 5 row 3
-  prints sigma_final 61.82 where Eq. 16 gives 59.8 (a misprint). Nothing
-  covers other galaxies: that stays the Martinsson scaling with the 20
-  percent closure check.
-  Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
-
-- [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
-  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
-  (2026-10-17, 12:45 AM EDT as the lane reported). The generator has no
-  binaries between 0.25 and 50 AU, although massive stars peak near 10
-  AU (Moe and Di Stefano 2017; Sana 2012), so the metallicity trend (a <
-  10 AU) is applied only to the 0.05 to 0.25 AU class. Done: the
-  separation classes cover the whole range with the pooled Moe trend at
-  each star's own [Fe/H] in the odds form of GEN.103, the mass
-  dependence of the peak is drawn, the class counts stay reproducible
-  (GEN.56), and TEST.196 compares the fractions by primary mass and
-  [Fe/H] bin against the published ranges. Owner: Core 4, with the
-  multi-star items.
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The tables live in generation/multistar.py and tuning.py, not in
-  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.447,
-  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
-  tables.
-  Finding (Core 4, 2026-10-17, 10:16 AM EDT as the lane reported;
-  relayed by the coordinator): with the new binaries the G-dwarf level
-  inside 10 AU is 0.13 at [Fe/H] 0 against the pooled line's 0.20, and
-  the O and B flatness ratios are 1.32 and 1.43. The built branch is in
-  its gate (ends near 11:30 AM EDT); TEST.196 carries the check.
-  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.196.
-
-- [ ] **GEN.449 The companion table for mid and early B stars is raised to the observed frequencies**
-  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
-  (2026-10-17, 12:45 AM EDT as the lane reported). The has-a-companion
-  table matches Moe and Di Stefano 2017 Table 13 for G, A and O stars
-  (0.44, 0.55 and 0.90 against 40, 59 and 94 percent) but is 10 to 20
-  points low for mid and early B stars (0.65 against 76 and 84 percent).
-  The same table also gives the close-binary frequency by mass bin
-  (0.15, 0.37, 0.63, 0.8, 1.0), the single-star fractions (0.60, 0.41,
-  0.24, 0.16, 0.06) and 35 +-10 percent of mid-B stars with a companion
-  (q above 0.1, P under 400 d), and the solar-type companion frequency
-  is 0.50 +-0.04. Done: `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`
-  and the star-count table are rederived from those figures, with the
-  table named in the constants; TEST.196 checks the bins. Owner: Core 4,
-  with the multi-star items.
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The tables live in generation/multistar.py and tuning.py, not in
-  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.447,
-  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
-  tables.
-  Prerequisites: none. Related: GEN.103, GEN.269, TEST.196.
-
 - [ ] **GEN.450 The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named**
   Follow-up from the Core 4 citation re-check of GEN.134 (2026-10-17,
   12:45 AM EDT as the lane reported), filed for Boss (2026-10-17, 12:21
@@ -13726,6 +13612,207 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research lane). This is a Boss research item.
   Prerequisites: none. Related: GEN.532, GEN.531.
 
+- [ ] **GEN.537 Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." What exists (read from main,
+  2026-10-17): the plan's boundaries are `GalaxyBounds`
+  (galaxy/skeleton.py): the reach (`reach_shell_index`, set by `plan
+  --reach-shells`, stored in `galaxy_shape` with the outline in
+  `galaxy_shell`), whose `contains` says which sector addresses are
+  valid and is today the only refusal a generation path has (GEN.235),
+  and the outline, whose `qualifies` is where the paths that pick cells
+  nobody named stay; how far a scatter goes is not in the plan but the
+  program constant `tuning.SCATTER_COVERS_REACH = True`, read in
+  generation/run_plan.py (the bright-star and phenomena scatters);
+  satellite galaxies are placed unconditionally by
+  `satellites.place_satellites` inside the plan build (run_plan.py,
+  `generation/satellites.py`). Version 8.1 builds the halo and the
+  satellite galaxies first, always on (GEN.301). Done: a design note
+  (docs/design) that settles, with Boss by card: (1) the plan
+  configuration as the single source of the boundaries of the sector
+  plan, how far each scatter can go around the galaxy, and which sector
+  addresses are valid, read by the scatter commands and by sector
+  generation, which never decide those themselves (it replaces the
+  `SCATTER_COVERS_REACH` constant and the reach and outline checks
+  scattered through generation, and extends `GalaxyBounds`, which
+  already holds the reach and the outline); (2) two switches, halo and
+  satellite galaxies, both default off and independent (halo does not
+  mean satellite galaxies): what each adds to the valid addresses and to
+  the scatter reach (halo: the cells beyond the outline out to the reach
+  and the scatter rows there; satellite galaxies: the volumes of the
+  satellite galaxies and their stars, which may lie beyond the outline),
+  and what off means (nothing generated or stored there, the interior
+  the same stars for the same seed whether either is on or off, an
+  address outside the configured boundaries answers "outside the
+  generated galaxy" with the reason); (3) each switch is set by its own
+  command under the one-command rule (PERF.118, PERF.120): a halo
+  command and a satellite-galaxies command, each doing only that and
+  writing only the plan configuration, with their own parameters; the
+  262 kpc reach and the 96-bit IDs stay as addressing; (4) where the
+  configuration is stored (proposed: beside the galaxy shape, set by a
+  migration from what an existing galaxy holds, so a galaxy built in 8.1
+  with both on keeps them on, and default off for a galaxy created after
+  8.5); (5) what turning a switch on later does (the missing part only,
+  no interior regeneration) and what turning it off does (generation
+  stops and the maps hide it; deleting what exists is the separate admin
+  delete); (6) how the wrapper uses it: the step list holds the halo and
+  satellite commands only when the configuration allows them, so a
+  switch that is off means those commands are never selected and never
+  touched. Owner: the design thread (coordinator to assign); Boss
+  approves the choices by card.
+  Prerequisites: none. Related: GEN.301, PERF.118, PERF.121, GEN.235,
+  MAP.243, MAP.207.
+  Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy setting will also
+  tell the scatter functions if they can scatter the halo and / or the
+  satellite galaxies, either / or"): the stored galaxy setting (halo on
+  or off, satellite galaxies on or off) is read by every scatter
+  command, and each scatter kind checks only the switch that concerns
+  it: the halo scatter kinds read the halo switch, the satellite and
+  satellite-component scatter kinds read the satellite switch, the kinds
+  that concern neither (the disc, bulge and core scatters) read neither;
+  either switch can be on without the other. The design settles which
+  scatter kind reads which switch.
+  Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
+  relayed by the coordinator): a galaxy created in 8.1 keeps its halo
+  and satellite content, and the 8.5 migration sets that galaxy's halo
+  and satellite galaxy switches to on if it holds that content (each
+  switch on its own); only a galaxy created after 8.5 defaults both off.
+  No change to 8.1. Point (4) of this design is therefore settled.
+
+
+- [ ] **GEN.538 The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." What exists (read from main,
+  2026-10-17): the plan's boundaries are `GalaxyBounds`
+  (galaxy/skeleton.py): the reach (`reach_shell_index`, set by `plan
+  --reach-shells`, stored in `galaxy_shape` with the outline in
+  `galaxy_shell`), whose `contains` says which sector addresses are
+  valid and is today the only refusal a generation path has (GEN.235),
+  and the outline, whose `qualifies` is where the paths that pick cells
+  nobody named stay; how far a scatter goes is not in the plan but the
+  program constant `tuning.SCATTER_COVERS_REACH = True`, read in
+  generation/run_plan.py (the bright-star and phenomena scatters);
+  satellite galaxies are placed unconditionally by
+  `satellites.place_satellites` inside the plan build (run_plan.py,
+  `generation/satellites.py`). Done: the design of the plan
+  configuration item (GEN.537) is built: the stored configuration
+  (extending `galaxy_shape` and `GalaxyBounds`) holds the boundaries of
+  the sector plan (reach and outline), how far each scatter can go, the
+  two switches, and which sector addresses are valid; the scatter
+  commands (PERF.121) and sector generation (the sector, shell, band,
+  wedge, course, neighbourhood and random-start paths, `span.py`,
+  `ensure_sector_generated`) read them from it and no generation code
+  decides a boundary, a reach or an address by its own constant (a grep
+  test finds `SCATTER_COVERS_REACH`, the `min(high, reach)` clamps and
+  the like gone); the migration sets the stored values for an existing
+  galaxy from what it holds; the interior is the same stars for the same
+  seed whatever the configuration. Owner: Core 1 or Core 3 (proposed,
+  whichever holds the plan and scatter code after 8.1).
+  Prerequisites: GEN.537, GEN.301, PERF.121. Related: GEN.537, GEN.301,
+  GEN.235, PERF.121.
+  Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy setting will also
+  tell the scatter functions if they can scatter the halo and / or the
+  satellite galaxies, either / or"): the stored galaxy setting (halo on
+  or off, satellite galaxies on or off) is read by every scatter
+  command, and each scatter kind checks only the switch that concerns
+  it: the halo scatter kinds read the halo switch, the satellite and
+  satellite-component scatter kinds read the satellite switch, the kinds
+  that concern neither (the disc, bulge and core scatters) read neither;
+  either switch can be on without the other. Done also: a test per
+  scatter kind that it reads only its own switch.
+  Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
+  relayed by the coordinator): a galaxy created in 8.1 keeps its halo
+  and satellite content, and the 8.5 migration sets that galaxy's halo
+  and satellite galaxy switches to on if it holds that content (each
+  switch on its own); only a galaxy created after 8.5 defaults both off.
+  No change to 8.1.
+
+- [ ] **GEN.539 The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: one command, doing only
+  this, switches the halo on or off in the plan configuration and sets
+  its parameters (how far out the halo scatter and the valid sector
+  addresses beyond the outline reach, up to the 262 kpc reach); it does
+  not touch the satellite galaxies, never scatters anything itself, and
+  writes only the plan configuration; with the halo on, the scatter and
+  sector generation commands read the wider boundary from the
+  configuration (GEN.538) and the wrapper lists the halo scatter
+  commands; with it off they are never selected; default off for a new
+  galaxy; the interior is unchanged either way (a test); the Generate
+  page and the API run it as a step (UX.137). Owner: Core 1 or Core 3
+  (proposed).
+  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.540,
+  PERF.120.
+  Boss, 2026-10-17, 4:49 PM EDT: the halo scatter kinds read this switch
+  from the stored galaxy setting, and no other scatter kind does.
+
+- [ ] **GEN.540 The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: one command, doing only
+  this, switches the satellite galaxies on or off in the plan
+  configuration and sets their parameters (how many and how far, from
+  the satellite draw of the plan); halo does not mean satellite
+  galaxies, so it does not touch the halo and the halo does not touch
+  it; it never places or scatters anything itself and writes only the
+  plan configuration; with the satellite galaxies on, the valid sector
+  addresses include their volumes (which may lie beyond the outline) and
+  the wrapper lists the satellite placement and the component scatters;
+  with them off the plan places none (`satellites.place_satellites` is
+  only called when the configuration says so, and nothing else decides),
+  and the satellite commands are never selected; default off for a new
+  galaxy; a test per switch state and for each combination of the two
+  switches. Owner: Core 1 or Core 3 (proposed).
+  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.539,
+  PERF.120, GEN.371.
+  Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
+  switch from the stored galaxy setting, and no other scatter kind does.
+
+- [ ] **GEN.541 The wide-pair perturber mass: black holes carry about twice the second moment of all stars; decide whether remnants stay in it, with the black-hole mass function checked**
+  Finding from Core 4 (2026-10-17, 5:16 PM EDT as the lane reported,
+  GEN.447 merged as #2100): in the mass-weighted perturber mass of the
+  wide-pair encounter limit, black holes carry about twice the second
+  moment of all stars together; with `remnants=False` the stars-only
+  figure is 0.59 against 1.46 with them. Remnants are real perturbers,
+  so the default stands: they stay in. Done: the black-hole share of the
+  second moment is traced to its inputs (the black-hole number and mass
+  function the galaxy draws, with the sources read first, verified
+  sources before unverified, NO FIXED CONTENT), the figure that results
+  is written beside the limit with the stars-only value, and, if the
+  inputs do not hold, the limit is corrected; if they hold, the note
+  says so and the item closes. The change of any stored value bumps the
+  generator epoch with the OPS.56 rule. Owner: Core 4 (proposed, the
+  GEN.447 author).
+  Prerequisites: none. Related: GEN.447, GEN.450.
+
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -14559,6 +14646,217 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage itself. Owner: Core 5 (proposed; the PERF.118 chain).
   Prerequisites: PERF.123. Related: PERF.31, PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.129 Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Goal (done when its subitems are): the Galaxy Map answers any
+  tile of the first several zoom levels at once from a stored compressed
+  copy; a visit to any zoom level builds and caches the surrounding
+  tiles and the next level's tiles before they are asked for; every
+  stored tile stays until the data under it changes; and an admin can
+  see and clear the cache. Subitems: PERF.130 (build the first levels
+  ahead), PERF.131 (store and serve compressed), PERF.132 (proactive
+  neighbours and next levels on a visit), PERF.133 (keep until the data
+  changes), PERF.134 (admin: see and clear). It touches PERF.41 (the
+  TILE_FORMAT stamp: a format change must drop the stored tiles once),
+  MAP.239 (the tile root rises to the reach, which changes every level's
+  geometry, so the build waits for it), MAP.195 (finer tiles leave out
+  what a coarser tile sent, which changes what a tile holds), PERF.127
+  (warm_map: the tile build is one of its families, each its own
+  command, PERF.120), and the plan commands (a regenerated galaxy
+  changes tile content, so the build is a step the wrapper lists after
+  the generation commands, never a part of one). Owner: Core 2
+  (proposed; the map and cache lane).
+  Prerequisites: PERF.130, PERF.131, PERF.132, PERF.133, PERF.134.
+  Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
+  MAP.195, MAP.239.
+
+- [ ] **PERF.130 Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: a command (its own command, one job, PERF.118 and
+  PERF.120) builds every tile and stage view of the first N levels of
+  the tile octree (`TILE_ROOT_EDGE_PC` down; N a named setting, default
+  chosen from the measured count and size on a real galaxy and written
+  in the PR) into the cache; it runs as a step the wrapper lists after
+  the generation commands and after an update (the family of PERF.127),
+  as chunks of tiles on the queue (PERF.118) and not in the web process,
+  with progress bars of what it will build; a second run builds nothing
+  that is current; a browser test opens the map at each built level and
+  finds every tile a cache hit. Owner: Core 2 (proposed).
+  Prerequisites: PERF.118, PERF.127, MAP.239. Related: PERF.129,
+  PERF.127, PERF.104, MAP.239.
+
+- [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Today the stored packed tile is joined per request and Apache
+  compresses the response (`mod_brotli`, else `mod_deflate`), and
+  joining several gzip members in one body was tried and dropped because
+  Chromium decodes only the first member (the docstring of
+  tilecache.py). Done: each tile is stored once packed and once
+  compressed (brotli, with gzip for a client that does not accept it,
+  chosen by measuring the size and the decode cost on a real galaxy and
+  written in the PR), a request for one or more tiles is answered from
+  the stored compressed bytes with `Content-Encoding` and no
+  recompression (tiles that cannot be concatenated stay separate
+  responses or a length-prefixed body of compressed members that the
+  browser unpacks, whichever the measurement favours), the disk size of
+  the cache is reported for both forms, and the response is the same
+  data as today for the same tiles (a test). Owner: Core 2 (proposed).
+  Prerequisites: PERF.118. Related: PERF.129, MAP.159, MAP.158.
+
+- [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: when a visitor asks for a tile, the stages and windows
+  around that view, the neighbouring tiles at the same level and the
+  tiles of the next level inside it are queued as low-priority
+  background units (the bulk queue, never ahead of an interactive job,
+  PERF.118), de-duplicated against the cache and against units already
+  queued, capped per visit and per minute by named settings, and dropped
+  when the cache is full or the queue is busy; a visit to an already
+  built area queues nothing; a test visits a level and finds the
+  neighbours and the next level in the cache afterwards, and a second
+  visitor to the same area causes no new build. Owner: Core 2
+  (proposed).
+  Prerequisites: PERF.118, PERF.130, PERF.131. Related: PERF.129,
+  PERF.130, PERF.131.
+
+- [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: a stored tile is kept until the data under it changes, as
+  the content stamp and the `modified_at` check already decide; a change
+  rebuilds the tiles it touched (the changed tiles and their coarser
+  parents, in the background at once rather than on the next visit);
+  `prune` no longer deletes a valid tile because of age, so
+  `tile_cache.max_mb` is sized from the measured size of the built
+  levels plus the visited ones and the admin page says when the cache is
+  over it instead of evicting; a new tile format or a new generator
+  epoch (PERF.41) drops the stored tiles once and starts a new
+  generation; the generation and stamp logic keeps working for stage and
+  window payloads; tests for a change inside one sector (only its tiles
+  and parents rebuilt), a re-planned galaxy (a new generation) and a
+  full cache (nothing valid deleted). Owner: Core 2 (proposed).
+  Prerequisites: PERF.130. Related: PERF.129, PERF.41, PERF.104.
+
+- [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: the admin page lists, per database, the tiles per zoom
+  level (built ahead and built on a visit), the bytes in each stored
+  form, the hit rate since the last restart, the waiting and running
+  background builds, and the cache's age by generation; an admin can
+  clear the whole cache, one level or one database, and start the build
+  of the first levels now, each through the command of PERF.130 and with
+  the confirmation the other admin actions use; the actions are in the
+  admin log; a test per action. Owner: Core 2 (proposed).
+  Prerequisites: PERF.130, PERF.133. Related: PERF.129, PERF.130,
+  PERF.133.
 
 ## DB: Database and schema
 
@@ -16837,6 +17135,19 @@ clears each one.
   Core 2's worktree). Fails on main: not checked. The MAP.227 breadcrumb
   change is in main, so the next capture decides whether this is the
   load timeout of this item or a real breadcrumb race.
+  Sighting (Core 2, 2026-10-17, 5:13 PM EDT as the lane reported, gate
+  for MAP.245):
+  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names`
+  failed in the browser phase at load about 9 with AssertionError
+  ('Escape', 'http://127.0.0.1:39173/galaxy?sector=3000000001&cam=...',
+  ['Galaxy', 'Block 0·0·0 (243)', 'Block 0·0·0 (81)', ...]) at line
+  2199, `assert live == _crumbs_on_a_fresh_load(page)`; the diff is at
+  index 6, 'Sector 1·0·2 (1)' against 'Sector 1·0·1 (1)', the live list
+  holding one extra item 'Sector 1·0·1'. Passes alone (93.56 s at load
+  9.4, and again at 5:15 PM EDT at load 4.5, 97 s). Fails on main: not
+  run on main. Frequency: 2 of Core 2's last 3 gates (also its UX.118
+  gate). Reproducer: run `scripts/test.py changed` while another lane's
+  gate shares the box.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -17724,6 +18035,23 @@ clears each one.
   against this check's 1.3 edge. The check's expectations for them are
   to be set from the built tables (TEST.196), not the other way round,
   once GEN.448 and GEN.449 merge.
+  Merged-state findings (Core 4, 2026-10-17, 5:16 PM EDT as the lane
+  reported, GEN.447, GEN.448 and GEN.449 merged as #2100, #2101, #2102,
+  epochs 14, 15, 16): (1) the G-dwarf level inside 10 AU is 0.13 at
+  [Fe/H] 0 against the pooled line's 0.20 (Table 13's own figure is 0.15
+  +-0.03; the cause is open); Boss's 12:39 PM EDT rule (the newest
+  verified source wins) would point to the 2019 line; this check
+  compares ratios, not absolutes, so an offset in the level does not
+  fail it. (2) The O and B flatness ratios at [Fe/H] -0.7 are 1.32 and
+  1.43 against this check's 1.3 edge. Default until Boss says otherwise
+  (his rule that when two sources are both in question the widest range
+  wins, 12:39 PM EDT): the edge is widened to the range the sources give
+  once they are read, and the check is not narrowed to O only; Boss may
+  overrule. (3) Table 13's close-binary frequency by primary mass (0.15,
+  0.37, 0.63, 0.8, 1.0) sits in
+  `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` and nothing draws from it;
+  default: it is a reference for this check and never an input to the
+  draw, as the ranges above are.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
@@ -18171,6 +18499,12 @@ clears each one.
   runs pass) is held at /tmp/claude-0/test213-held.patch in Bug Hunt's
   container; per the coordinator the test PR is held until MAP.245's
   fix, because the product bug is real.
+  MAP.245's clearance fix is on main (Core 2, merged as #2103,
+  2026-10-17, 5:16 PM EDT as the lane reported, relayed by the
+  coordinator). The test is right and stays as it is; Bug Hunt's held
+  test-side change is released (coordinator, 5:17 PM EDT). This item
+  closes when the test passes on main with the fix and the test change
+  merged, with no wait lengthened and nothing quarantined.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -18436,7 +18770,54 @@ clears each one.
   'passes alone' only means a different draw. Done: the cause is on this
   item, the test passes for the pinned draw and for 100 fresh draws, and
   nothing is quarantined. Owner: Bug Hunt.
+  Reproduced on main and narrowed (Core 3, 2026-10-17, 5:25 PM EDT as
+  the lane reported, its GEN.321 gate, relayed directly): the gate run
+  failed with 38,567 systems against a predicted 261,983. Forcing a
+  dense random start with `--min-start-density 1000` on clean
+  origin/main (3f14c273) failed 2 of 3 runs (shell 9, band -6: 3 against
+  690,692; shell 5, band 1: 31,972 against 571,426) and 1 stopped early.
+  18 normal runs plus 2 with density 5 and 50 (shell 8) on Core 3's
+  branch all passed in 15 to 430 s. Only starts in the dense core fail
+  (shells 5 to 9, and one at shell 54), about 1 gate in 3. Fails on
+  main: yes. Reproducer: add "--min-start-density", "1000" to the
+  `_run_cli` argv in the test and run it alone. The actual count is far
+  under a third of the plan in the core; the cause is not found, so the
+  cap question above (the cell or sector star ceiling against an
+  uncapped estimate) is the first thing to check, with the density-1000
+  start as the pinned case.
   Prerequisites: none. Related: TEST.213, GEN.76.
+
+- [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: a test that generates the
+  same seed with every combination of the halo and the satellite
+  galaxies (both off, either, both on) and compares the interior
+  sectors, bright stars and phenomena inside the outline row for row; a
+  test that with a switch off no row exists beyond the boundary it
+  controls and none of its commands was selected; a test that sector
+  generation refuses an address outside the configured boundaries with
+  the reason, and that scatter and sector generation take their
+  boundaries only from the configuration; the whole-sphere audits
+  (TEST.159, TEST.160, TEST.185) run with both switches on and say so; a
+  migration test that an existing galaxy with halo or satellite content
+  reads those switches as on and one without as off. Owner: Quality
+  (proposed).
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
+  GEN.540, TEST.159, TEST.160, TEST.185.
+  Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
+  relayed by the coordinator): a galaxy created in 8.1 keeps its halo
+  and satellite content, and the 8.5 migration sets that galaxy's halo
+  and satellite galaxy switches to on if it holds that content (each
+  switch on its own); only a galaxy created after 8.5 defaults both off.
+  No change to 8.1.
+
 
 ## USR: User accounts
 
@@ -19215,8 +19596,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   address, the user, all, or the forgotten devices);
   `cli.version_history` only records the version key, and listing is
   only `planetgen versions` (`--list` removed, no shim); a test per
-  command; the docs and `update.sh` lines follow. Owner: unassigned
-  (small).
+  command; the docs and `update.sh` lines follow.
+  Owner: Bug Hunt (Boss, 2026-10-17, 4:25 PM EDT, relayed by the
+  coordinator: "hand OPS.60 and OPS.61 to bug hunt to work on while
+  the galaxy generates"; Boss's explicit exception to "Bug Hunt
+  strictly bugs", for these two items only).
   Prerequisites: none. Related: PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
@@ -19232,7 +19616,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and the database is at revision 0108. Done: both modules, their tests
   (src/tests/test_admin_script_cli.py and the render-parity cases of
   src/tests/test_system_render.py) and their docs lines are removed with
-  no shim; nothing else imports them. Owner: unassigned (small).
+  no shim; nothing else imports them.
+  Owner: Bug Hunt (Boss, 2026-10-17, 4:25 PM EDT, relayed by the
+  coordinator: "hand OPS.60 and OPS.61 to bug hunt to work on while
+  the galaxy generates"; Boss's explicit exception to "Bug Hunt
+  strictly bugs", for these two items only).
   Prerequisites: none. Related: PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 

@@ -90,6 +90,9 @@ LEFT_OUT_TABLES = frozenset({
 docstring; a system configuration counts through the systems that use
 it)."""
 
+_PARENT_TABLES = {"star": "stars", "planet": "planets", "system": "star_systems"}
+"""dict: The table a body's `parent_id` names for each `parent_type` (GEN.289): not a foreign key, so named here."""
+
 LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
 """frozenset: Columns left out of every table: the row id and the clocks."""
 
@@ -210,6 +213,8 @@ class _Reader:
             value = row[column]
             if column in foreign:
                 value = None if value is None else self.key(foreign[column], value)
+            elif column == "parent_id" and "parent_type" in row.keys():
+                value = None if value is None else self.key(_PARENT_TABLES[row["parent_type"]], value)
             canon[column] = canonical_value(value)
         return _line(table, canon)
 
