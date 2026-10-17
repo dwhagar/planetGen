@@ -7,6 +7,7 @@ import argparse
 
 import pytest
 
+from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.generation import prevalence
 
@@ -20,9 +21,10 @@ def test_the_usual_mix_gives_no_change():
 
 def test_a_mix_becomes_binary_and_wide_prevalences():
     got = prevalence.star_mix_prevalences(50, 30, 20)
-    # Half the systems are binary (0.303 usual); two fifths of those wide (0.499 usual).
-    assert got["binary_system"] == pytest.approx((0.5 / 0.303 - 1) * 100)
-    assert got["wide_binary"] == pytest.approx((0.4 / 0.499 - 1) * 100)
+    # Half the systems are binary; two fifths of those wide.
+    binary, wide = tuning.PREVALENCE_DRAW_SHARES["binary_system"], tuning.PREVALENCE_DRAW_SHARES["wide_binary"]
+    assert got["binary_system"] == pytest.approx((0.5 / binary - 1) * 100)
+    assert got["wide_binary"] == pytest.approx((0.4 / wide - 1) * 100)
 
 
 def test_all_single_leaves_nothing_binary():

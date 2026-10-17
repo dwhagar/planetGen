@@ -434,6 +434,8 @@ export function createSectorStage(host) {
       if (changed && host.kindsChanged) host.kindsChanged();
     },
     entries: function () { return live() ? open.sector.entries : []; },
+    // Whether an entry of the open sector is left off the map (a hidden kind, class or the luminosity floor).
+    hides: function (entry) { return live() ? open.sector.hides(entry) : false; },
     // The entry picked in the open sector, if any.
     selectedEntry: function () { return live() ? open.selectedEntry : null; },
   };

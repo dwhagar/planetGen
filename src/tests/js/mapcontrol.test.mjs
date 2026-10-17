@@ -229,6 +229,21 @@ test("a wheel step in moves the eye by at most half the way to the thing under t
   assert.ok(distance >= 2, `${distance} stays outside the clearance`);
 });
 
+test("the eye stops short of a star on its way to the point under the pointer (MAP.245)", () => {
+  const from = [0, 0, 0];
+  const to = [0, 0, 100];
+  assert.equal(MC.limitPathClearance(from, to, [], 2), 1, "nothing in the way");
+  assert.equal(MC.limitPathClearance(from, to, [[10, 0, 50]], 2), 1, "a star well to the side");
+  assert.equal(MC.limitPathClearance(from, to, [[0, 0, -50]], 2), 1, "a star behind the eye");
+  assert.equal(MC.limitPathClearance(from, to, [[0, 0, 200]], 2), 1, "a star past the end of the move");
+  const onTheWay = MC.limitPathClearance(from, to, [[0, 0, 50]], 2);
+  assert.ok(Math.abs(onTheWay - 0.48) < 1e-12, `stops at the clearance: ${onTheWay}`);
+  const grazing = MC.limitPathClearance(from, to, [[1, 0, 50], [0, 0, 80]], 2);
+  assert.ok(grazing < 0.5 && grazing > 0.45, `the nearer star decides: ${grazing}`);
+  assert.equal(MC.limitPathClearance(from, to, [[0, 0, 1]], 2), 1, "already within the clearance: the eye can come on in");
+  assert.equal(MC.limitPathClearance(from, from, [[0, 0, 50]], 2), 1, "no move");
+});
+
 test("zooming about an anchor keeps the anchor where it is on the screen (MAP.225)", () => {
   const eye = [10, -4, 30];
   const target = [0, 0, 0];

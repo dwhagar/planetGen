@@ -111,19 +111,29 @@ def test_mutual_hill_radius_scales_with_average_distance():
 # these check distributional shape/range, not exact values).
 # ---------------------------------------------------------------------------
 
-def test_separation_sampler_stays_in_range_and_is_log_uniform():
+def test_separation_sampler_stays_in_range_and_follows_the_companions_per_decade():
     lo = tuning.WIDE_BINARY_SEPARATION_MIN_AU
     hi = 10_000.0
-    samples = [sample_wide_binary_separation_au(hi) for _ in range(500)]
+    samples = [sample_wide_binary_separation_au(hi) for _ in range(2000)]
     assert all(lo <= s <= hi for s in samples)
 
-    # Log-uniform: log10(samples) should be roughly uniformly distributed
-    # between log10(lo) and log10(hi), so its mean should land near the
-    # midpoint of that log range (a generous tolerance since this is a
-    # randomized statistical check, not an exact one).
+    # Moe & Di Stefano's solar-type line rises from 0.057 companions per decade at log P 3 (1.4 AU) to 0.095 at log P 5
+    # (about 30 AU) and stays near that to log P 7, so the axes are denser per decade outward from 1 AU, and
+    # the mid-point of log a lies above that of a log-uniform draw (G dwarf, pair of 2 solar masses).
     log_samples = [math.log10(s) for s in samples]
-    expected_mean = (math.log10(lo) + math.log10(hi)) / 2
-    assert abs(statistics.mean(log_samples) - expected_mean) < 0.3
+    assert statistics.mean(log_samples) > (math.log10(lo) + math.log10(hi)) / 2
+    inside_ten = sum(1 for s in samples if s < 10.0) / len(samples)
+    assert 0.15 < inside_ten < 0.45
+
+
+def test_the_inner_boost_moves_weight_to_the_inner_range_only():
+    plain = [sample_wide_binary_separation_au(10_000.0) for _ in range(2000)]
+    boosted = [sample_wide_binary_separation_au(10_000.0, inner_boost=3.0) for _ in range(2000)]
+    assert sum(s < 10.0 for s in boosted) > 1.5 * sum(s < 10.0 for s in plain)
+
+
+def test_a_limit_under_the_lower_edge_gives_the_lower_edge():
+    assert sample_wide_binary_separation_au(tuning.WIDE_BINARY_SEPARATION_MIN_AU / 2) == tuning.WIDE_BINARY_SEPARATION_MIN_AU
 
 
 def test_eccentricity_sampler_stays_in_range_and_follows_thermal_distribution():

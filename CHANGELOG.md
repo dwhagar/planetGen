@@ -2,6 +2,65 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1748] - 2026-10-17
+
+**Headline:** The wheel zoom toward a star in an opened sector now ends at the star instead of sliding past it, never passes through a star on the way, and a double click on empty space flies half way toward the point under the pointer.
+
+### Changed
+- In an opened sector the point the wheel zooms toward is the star under the pointer (within 14 px of it on the screen; one with a system, not left off the map). Before, the picker's cell behind the star (2.3 pc away when the star was 0.28 pc away) was taken for the point, so the camera slid sideways past the star; this was the real cause of TEST.213 (`test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star`, "the system's scene never came in"). The sector's own cell is never the point inside the opened sector; the focus plane is, when no star is there.
+- A wheel step in is also limited so the eye never comes within the clearance (2% of the view's distance) of any star of the sector on its way to the point (`limitPathClearance` in `mapcontrol.js`).
+- A double click on empty space (nothing picked) flies half way toward the point under the pointer, which stays where it is on the screen; on a block it is still two clicks, on a star or other object the flight to it.
+- `docs/design/fly-through-view-distance.md` says what is built.
+
+### Added
+- `canvasEl.galaxyAnchorUnder` (the point the wheel zooms toward at a screen point) for the browser tests; `sectorStage.hides(entry)`.
+- A node test for `limitPathClearance`, and browser tests in `tests/test_web_browser_sector_reach.py`: the anchor is the star under and a few pixels from the pointer, twelve wheel ticks bring the eye nearer the star every time with the star staying under the pointer, and a double click on empty space halves the distance.
+- Not built, as a new item for TODO: the column-density ray fallback. It would only act where the cursor ray meets no cell, and the cell scene has no density field to sample there.
+
+TODO items resolved: MAP.245 (the clearance and the half-way double click; TEST.213 fixed) / Added: the column-density ray fallback as its own item
+
+## [8.0.1747] - 2026-10-17
+
+**Headline:** Mid and early B stars now have companions at the frequencies Moe and Di Stefano measured: 76% and 84%, with more triples and quadruples.
+
+### Changed
+- B stars of 5 to 9 solar masses at birth (mid B) have a companion with chance 0.76 and those of 9 to 16 (early B) 0.84, from Table 13's single-star fractions of 0.24 and 0.16, where every B star had 0.65. B stars under 5 solar masses keep 0.65, which sits inside the 0.59 +-0.11 of Table 13's bin for A and late B.
+- The star counts of those two classes follow Table 13's single, binary and triple-or-more fractions (mid B 0.24, 0.36, 0.40; early B 0.16, 0.32, 0.52; was 0.25, 0.40, 0.35 for all B), the rest split across three to seven stars in the B row's proportions. Mean star count 2.37 and 2.63 against 2.28.
+- `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` names Table 13's rows (companion frequency, close frequency, single, binary and multiple fractions by mass bin), `tuning.B_SUBCLASS_LOWER_MASS_SOL` the B bins, and `multistar.companion_class` picks the class from the birth mass.
+- `docs/design/multistar-and-compact-systems.md` 3.3 records the rows and the check against the table.
+
+generation-output: changed
+
+TODO items resolved: GEN.449 / Added: Table 13's close-binary frequency by mass (0.15 to 1.0) is named in `tuning` but not yet drawn from, for TEST.196
+
+## [8.0.1746] - 2026-10-17
+
+**Headline:** Stars now have companions at every separation from 0.05 AU outward, from one distribution over orbital period, instead of a close pair or one 50 AU and wider with nothing between.
+
+### Changed
+- A star's companion chance is shared between three ranges by Moe and Di Stefano's (2017, Table 13) companions per decade of period for its mass: close (0.05 to 0.25 AU, a P-type pair), inner (0.25 to 10 AU) and outer (10 AU and out). The coin flip between close and wide (`WIDE_BINARY_DEFAULT_CHANCE`) is gone. For a G dwarf about 5.7% of its companions are inside 0.25 AU, 24% from 0.25 to 10 AU and the rest beyond; massive stars have more close ones.
+- A wide pair now starts at 0.25 AU (`WIDE_BINARY_SEPARATION_MIN_AU`, was 50 AU) and its axis is drawn from the same lines up to the place's survival limit, so pairs of a few AU exist and their planets and comets are limited to the fraction of an AU the Holman and Wiegert limit leaves. A forced comet with no room around a tight pair is reported as an unmet requirement (`StarSystem.unmet_requirements`).
+- The metallicity trend of GEN.103 now moves the odds of the close and inner ranges together (Moe, Kratter and Badenes 2019 measured periods under 10^4 days, 10 AU); the outer range stays flat in [Fe/H]. A place that keeps no pair wider than 0.25 AU loses the wide chance; one that keeps part of the range loses that part.
+- The usual shares on the Generate page and in the prevalence checks are remeasured over 20,000 systems: systems with two stars 0.260 (was 0.303; the metallicity boost now applies to the inside-10-AU part only, not to the whole close half), binaries that are wide 0.928 (was 0.499, the close class being 0.05 to 0.25 AU only), systems with comets 0.321 (was 0.334), habitable world 0.257 (was 0.242), asteroid belt 0.607 (was 0.590).
+- New `generation/companion_classes.py`, `tuning.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS` and `tuning.COMPANION_LOG_PERIODS_DAYS`; `docs/design/multistar-and-compact-systems.md` 4 and `placement-by-population.md` 3.1 to 3.3 describe the model and its levels (a G dwarf inside 10 AU is about 0.6 of the pooled line's level; the cause is open).
+
+generation-output: changed
+
+TODO items resolved: GEN.448 / Added: the inside-10-AU level against the pooled line (0.13 against 0.20 at [Fe/H] 0) and the O and B flatness ratios (1.32, 1.43) for TEST.196 and Boss
+
+## [8.0.1745] - 2026-10-17
+
+**Headline:** The widest orbit a wide pair keeps now uses the relative velocity of the passing stars and the mass-weighted mass of everything that passes, remnants included.
+
+### Changed
+- The encounter limit of a wide pair (Jiang and Tremaine 2010, equation 1) takes the dispersion of the relative velocity, root 2 times a population's own, where it used the population's own, and the second moment of the perturbers' mass over its first, `<M^2> / <M>`, where it used the mean system mass (0.4 solar masses). The mass function is the generator's own initial mass function aged to each population's age range, with the white dwarfs, neutron stars and black holes of what has left the main sequence. For the stars alone it gives 0.59 solar masses against Jiang and Tremaine's 0.64; with the remnants 1.46 for the whole disk, and the black holes alone hold about twice the second moment of all the stars. The widest axis a wide pair keeps is about 2.5 times narrower than before in every place (11,400 AU at the Sun's distance for two solar masses at 10 Gyr, against 29,000).
+- `place_terms.mass_weighted_perturber_mass_solar(populations, remnants=True)` (the stars alone with `remnants=False`) and `place_terms.RELATIVE_VELOCITY_FACTOR`; `PlaceTerms.perturber_mass_solar` defaults to the whole disk's value; `from_profile` mixes the populations a cell holds.
+- `docs/design/placement-by-population.md` 3.3 records the derivation, the paper's definitions and the new table.
+
+generation-output: changed
+
+TODO items resolved: GEN.447 / Added: whether the dark remnants should count as perturbers (the black holes do most of the second moment), for Boss and TEST.196
+
 ## [8.0.1744] - 2026-10-17
 
 **Headline:** The Phenomena list and the Search page show a progress bar while a slow answer is being built, then swap the finished page in without a reload.
