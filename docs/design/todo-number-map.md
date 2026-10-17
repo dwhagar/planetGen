@@ -26,7 +26,7 @@ release is stamped.
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.65 |
-| VIEW | VIEW.18 |
+| VIEW | VIEW.19 |
 | POP | POP.15 |
 
 ## Why this exists
@@ -1775,6 +1775,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.15 | Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API | none | open |
 | VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | none | open |
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | none | open |
+| VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | none | open |
 
 ## Tree IDs to flat IDs
 

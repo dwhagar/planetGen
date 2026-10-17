@@ -139,7 +139,7 @@ item has no row there.
 | 8.8 | [version-8-8-deep-sky.md](plan/version-8-8-deep-sky.md) | The deep sky |
 | 8.9 | [version-8-9-generate-anywhere.md](plan/version-8-9-generate-anywhere.md) | Generate anywhere |
 | 9.0 | [version-9-0-atmosphere-colour.md](plan/version-9-0-atmosphere-colour.md) | Atmosphere colour |
-| 9.1 | [version-9-1-gravity-map.md](plan/version-9-1-gravity-map.md) | The gravity map and the view from a planet |
+| 9.1 | [version-9-1-view-from-a-planet.md](plan/version-9-1-view-from-a-planet.md) | The view from a planet, with the gravity map |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
 | 9.4 | [version-9-4-galaxy-types.md](plan/version-9-4-galaxy-types.md) | Galaxy types |
@@ -164,7 +164,8 @@ Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
 (MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
 sign-up by an email invitation only an admin can send (USR.1), 8.3 the
 orbital update system (GEN.105), 8.5 courses that bend around gravity wells
-(NAV.59), 8.6 edit everything (ADM.57), 9.1 the gravity map (MAP.167),
+(NAV.59), 8.6 edit everything (ADM.57), 9.1 the view from a planet (VIEW.18),
+with the gravity map (MAP.167) as the second feature,
 10.0 roles and permissions with user edit requests and moderators
 (USR.25, Boss 1:43 PM EDT). 9.0 the atmosphere colour (GEN.421, Boss,
 11:25 PM EDT: the seminal feature of 9.0; everything planned for 9.0 before
@@ -13672,6 +13673,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   card, and a browser test that toggles the figures and finds a named
   constellation.
   Prerequisites: VIEW.15, VIEW.16. Related: VIEW.3.
+
+- [ ] **VIEW.18 Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations**
+  Boss (2026-10-16, 11:42 PM EDT, card "View from a planet"): the view
+  from a planet is the headline of 9.1 and the gravity map is the second
+  feature. This item is done when its items are: the starmap seen from a
+  planet (VIEW.2) and the picture of the view with constellations
+  (VIEW.3), which carry the sky catalogue, the photometry library, the
+  galactic band, the horizon and the constellations beneath them, on the
+  sky data and research of 8.9 and the atmosphere colour of 9.0.
+  Headline: 9.1 (the view from a planet: the sky from any planet or
+  moon, with real constellations, rendered as a picture). A hand version
+  bump needs Boss's word.
+  Prerequisites: VIEW.2, VIEW.3. Related: VIEW.1, MAP.167, GEN.421.
 
 ## POP: Population and politics
 
