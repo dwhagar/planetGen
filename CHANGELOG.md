@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1677] - 2026-10-17
+
+**Headline:** The NH3 photolysis lifetime figures of the two research lanes are reconciled, and the activity factor becomes a research item.
+
+### Changed
+
+- The 5.6e3 s (quiet and active Sun mean) and 6.7e3 s (quiet Sun) figures are not a conflict; GEN.496 stores the quiet-Sun rate plus an activity factor per species, and GEN.455, `docs/design/atmosphere-composition.md` and section 15.1 of `docs/design/body-composition-research.md` say so.
+- New GEN.501 asks for the NH3 activity factor from the Huebner and Mukherjee rate tables.
+
+TODO items resolved: none / Added: GEN.501
+
 ## [8.0.1676] - 2026-10-17
 
 **Headline:** The atmosphere research lane's check of Boss's second research note is merged into the design notes, and the affected items carry what changed.
