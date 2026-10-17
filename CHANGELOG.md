@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1753] - 2026-10-17
+
+**Headline:** A light star's red giant branch now follows the published core-mass-luminosity law, so its length, its top and how many giants are bright come from the star, and the horizontal branch lasts the same 100 Myr in every star.
+
+### Changed
+- **The red giant branch of a star lighter than 2.2 solar masses is the Hurley, Pols and Tout 2000 branch (GEN.502).** It started at a fixed 1.1 of the star's main-sequence lifetime, ended at a fixed 1.2, brightened by a fixed 3.5 times and ran to a fixed 2,500 solar luminosities at a fixed time slope. It now starts at the paper's time to the base of the branch, its base luminosity is the paper's equation 10, the helium core grows by the shell's burning with the luminosity a power of the core mass, and the branch ends at helium ignition (equation 49). For 0.95 solar masses the branch lasts 750 Myr from 2.5 to 2,700 solar luminosities (the median giant is 5.7), and the paper's Table 1 durations are reproduced (6.4% of the time to the base at one solar mass, 2.0% at two). At Z = 1e-4 the tip is 1,900 solar luminosities against the 1,650 to 1,780 of Serenelli et al. 2017 (`physics/giant_branch.py`). The scatter's tables, windows and bounds, the multi-star progenitor ages and the star's own phases all read the same functions, so a scattered star and a filled one agree. A heavier star, a bright giant, a supergiant and the asymptotic giant branch are unchanged.
+- **The horizontal branch lasts 100 Myr in every star** (`HORIZONTAL_BRANCH_DURATION_GY`), where it was 0.010 of the main-sequence lifetime (114 Myr at 0.95 solar masses and 250 Myr at 0.8). The ratio of its time to the red giant branch's time above it is 1.45 for 0.8 to 1.0 solar masses, against the 1.47 +- 0.025 of the 57 globular clusters of Salaris et al. 2004 (it was 1.8 at 0.95 and 2.8 at 0.85).
+
+generation-output: changed
+
+TODO items resolved: GEN.502. Added: none.
+
 ## [8.0.1752] - 2026-10-17
 
 **Headline:** How long a star lives on the main sequence now comes from a published fit to stellar models, not a law anchored on the Sun.
