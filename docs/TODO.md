@@ -4468,7 +4468,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multi-star-systems.md sections 13 to 16): the young
   non-hierarchical groups and trapezia of section 13.1 are built by
   GEN.273 on this item's cores.
-  Prerequisites: GEN.319, GEN.320, GEN.321. Related: MAP.172, GEN.150,
+  Prerequisites: GEN.320, GEN.321. Related: MAP.172, GEN.150,
   GEN.202, GEN.99. Built-on note (Core 1, 2026-10-16, 8:41 AM EDT,
   GEN.251 merged as #1815): the stage F required stars (the stars a
   nebula needs as real systems) are not built by GEN.251; fill stages
@@ -5789,10 +5789,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244,
-  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
-  TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196,
-  GEN.463, GEN.467, GEN.469, GEN.502, GEN.526.
+  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259,
+  GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159,
+  TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463,
+  GEN.467, GEN.469, GEN.502, GEN.526, GEN.528.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6072,25 +6072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Prerequisites: DB.53, GEN.314. Related: GEN.130.
-
-- [ ] **GEN.319 Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields**
-  Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The class rates of the nebula
-  field and the scatter must follow the place: emission, reflection,
-  Wolf-Rayet and core-collapse remnants scale with the young share of
-  the profile's mix, planetary nebulae and Type Ia remnants with the old
-  share, molecular clouds and protostars with `gas`; the Type Ia remnant
-  share becomes a profile field (1 where there is no young population);
-  nebula_field reads the cell's gas, not the disk position alone. Done:
-  an asked halo cell never shows an H II region or a pulsar-bearing
-  remnant, a Magellanic cell can show every class, and the rates of the
-  Milky Way default are unchanged inside the disk (a test compares
-  them).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: none. Related: GEN.241.
 
 - [ ] **GEN.320 build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q)**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7255,7 +7236,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   calculated or drawn law with its source named. No fixed content (Boss,
   4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
   reference galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.319, GEN.405,
+  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.405,
   GEN.406. Related:
   GEN.385, GEN.320.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -7417,7 +7398,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on the sector gate (within 5 percent). No fixed content (Boss, 4:11
   and 4:14 PM EDT): the bubbles stay derived from the seed; every
   strength is a calculated or drawn law with its source named.
-  Prerequisites: GEN.392, GEN.319. Related: GEN.379, GEN.134, GEN.322.
+  Prerequisites: GEN.392. Related: GEN.379, GEN.134, GEN.322.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 - [ ] **GEN.394 The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning**
@@ -12519,6 +12500,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.336's path).
   Prerequisites: none. Related: GEN.336, TEST.193.
 
+- [ ] **GEN.528 The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share**
+  Residual of GEN.319 (merged #2003, 6:22 AM EDT as Core 3 reported),
+  filed by the TODO thread from Core 3's report. GEN.319 made the Type
+  Ia share and the old-star share profile fields and had the profile's
+  kind factors read them; two parts of its Done list are not met. (1) A
+  Magellanic cell can show every class: it cannot until the satellites
+  have young and intermediate populations (GEN.526, waiting on Boss's
+  card), so the Clouds still lack the young-star classes. (2) The
+  scatter's planetary nebulae are not yet weighted by the old share (the
+  profile's factor is), so the stored scatter rows still use the old
+  rate; that changes stored values, so it is a generator epoch change
+  (epoch 8 is pending and rides the next generation change) joined to
+  the one rescatter. Do: after GEN.526, check a cell inside the LMC and
+  the SMC for every class of nebula and remnant the profile allows, and
+  weight the planetary-nebula scatter by the old share the way the
+  profile's factor does. Done: an asked Magellanic cell can show every
+  class, the planetary nebula scatter's yield follows the old share (a
+  test compares a high-old-share cell with a low one), and the epoch
+  rule and `planetgen plan --redo-scatters phenomena` apply. Owner: Core
+  3 (proposed, GEN.319's author).
+  Prerequisites: GEN.526. Related: GEN.319, GEN.526, GEN.324, GEN.322.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -15677,6 +15680,17 @@ clears each one.
   prefetch test in `test_web_browser_fixture_maps.py`) stays a separate
   item until a failure text shows the same cause. Agreed by Bug Hunt
   (2026-10-17, 12:33 AM EDT as the lane reported).
+  Sighting (Core 3, 2026-10-17, 6:22 AM EDT as the lane reported,
+  GEN.319 gate, load average 8.9):
+  test_page_is_accessible_and_fits[web.sector-phone-light] failed with
+  "/sector/1000000000 at phone/light: request failed:
+  .../galaxy/tiles?tiles=... (net::ERR_ABORTED)"; the gate's own re-run
+  passed in 11.75 s and two runs alone passed (about 50 s each). Fails
+  on main: not checked. Frequency: 1 of 1 gate run. Cause as the lane
+  reads it: all four cores busy, the page is torn down while a tile
+  fetch is in flight, and the test counts an aborted request as a
+  failure. TEST.219 (requests still running 8 s after the server stops)
+  is the same kind of leftover.
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
