@@ -18,6 +18,9 @@ Everything a job needs lives in Redis (PERF.86, Option A), all under `planetgen:
   was queued, started and finished, whether a cancel was asked, and the id of its queue job.
 - `planetgen:slowtime:<db>:<digest>` -> how long the last build of the request took (`record_duration`), which
   the cost rule trusts over the row estimate.
+- `planetgen:slowpath:<db>:<digest of the route>` -> the slowest build of any request on the route in the last
+  `tuning.SLOW_PAGE_PATH_SECONDS`, which the cost rule uses for a request not timed itself (a search for a new
+  name), before it falls back on the row estimate.
 
 A job's progress is an estimate, not a count: the answer is one query, so there is no step to count. While the
 job runs, `done` of `total` rows is the elapsed share of the expected time (never past 95 %), `eta_seconds` the
@@ -86,24 +89,44 @@ def time_key(db, target):
     return f"planetgen:slowtime:{_digest(db, target)}"
 
 
+def path_key(db, path):
+    """The Redis key holding the slowest recent build of any request on route `path` in `db`."""
+    return f"planetgen:slowpath:{_digest(db, path)}"
+
+
 def record_duration(db, target, seconds):
-    """Remembers that building `target` in `db` took `seconds`. Never raises: the time is only a hint."""
+    """Remembers that building `target` in `db` took `seconds`, for the request and for its route (the slowest
+    build within `SLOW_PAGE_PATH_SECONDS`). Never raises: the time is only a hint."""
+    path = target.partition("?")[0]
     try:
-        _redis().set(time_key(db, target), f"{seconds:.3f}", ex=tuning.SLOW_PAGE_TIMING_SECONDS)
-    except (redis.RedisError, OSError):
+        connection = _redis()
+        connection.set(time_key(db, target), f"{seconds:.3f}", ex=tuning.SLOW_PAGE_TIMING_SECONDS)
+        slowest = connection.get(path_key(db, path))
+        if slowest is None or seconds >= float(slowest):
+            connection.set(path_key(db, path), f"{seconds:.3f}", ex=tuning.SLOW_PAGE_PATH_SECONDS)
+    except (redis.RedisError, OSError, ValueError):
         pass
 
 
-def last_duration(db, target):
-    """How long the last build of `target` took, in seconds, or `None` when none was timed or Redis can't say."""
+def _duration(key):
     try:
-        found = _redis().get(time_key(db, target))
+        found = _redis().get(key)
     except (redis.RedisError, OSError):
         return None
     try:
         return None if found is None else float(found)
     except ValueError:
         return None
+
+
+def last_duration(db, target):
+    """How long the last build of `target` took, in seconds, or `None` when none was timed or Redis can't say."""
+    return _duration(time_key(db, target))
+
+
+def slowest_recent_duration(db, path):
+    """The slowest build of any request on route `path` within `SLOW_PAGE_PATH_SECONDS`, or `None`."""
+    return _duration(path_key(db, path))
 
 
 def _read_meta(job_id):

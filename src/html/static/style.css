@@ -3530,6 +3530,33 @@ body.app {
   accent-color: var(--accent);
 }
 
+/* The loading state of a slow page (static/slowload.js, UX.118). */
+.slow-load .job-progress progress {
+  min-width: 10rem;
+}
+
+.slow-load .job-progress [data-slow-percent] {
+  min-width: 3ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.slow-load-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.slow-load [hidden] {
+  display: none;
+}
+
+/* A bar with no value moves by itself; for a reader who asked for less motion the words say it instead. */
+@media (prefers-reduced-motion: reduce) {
+  .slow-load progress:not([value]) {
+    display: none;
+  }
+}
+
 .job-log {
   font-family: var(--font-mono);
   font-size: 0.8rem;
