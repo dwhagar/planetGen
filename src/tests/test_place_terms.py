@@ -49,10 +49,46 @@ def test_the_factor_falls_as_metallicity_rises():
 
 
 def test_the_encounter_limit_reproduces_jiang_and_tremaines_worked_value():
-    # 3.1e4 AU for M1 + M2 = 2, sigma = 50 km/s, rho_2 = 0.03 and t = 10 Gyr (design note 3.3): rho_2 is the mass
-    # density times the perturber mass, so 0.075 times 0.4.
-    terms = place_terms.PlaceTerms(mass_density_solar_pc3=0.075, dispersion_kms=50.0, perturber_mass_solar=0.4)
+    # 3.1e4 AU for M1 + M2 = 2, sigma = 50 km/s, rho_2 = 0.03 and t = 10 Gyr (design note 3.3). Their sigma is the
+    # dispersion of the *relative* velocity, root 2 times the field's one-dimensional dispersion (their section 5:
+    # 29 km/s becoming 40 km/s), and rho_2 the mass density times the mass-weighted perturber mass (GEN.447).
+    one_dimensional = 50.0 / math.sqrt(2.0)
+    terms = place_terms.PlaceTerms(mass_density_solar_pc3=0.075, dispersion_kms=one_dimensional,
+                                   perturber_mass_solar=0.4)
     assert place_terms.encounter_limit_au(terms, 2.0, 10.0) == pytest.approx(3.1e4, rel=0.01)
+    assert place_terms.RELATIVE_VELOCITY_FACTOR == pytest.approx(math.sqrt(2.0))
+    # Jiang and Tremaine's own solar neighbourhood: 29 km/s one-dimensional, rho_2 0.029 (their equation 47).
+    local = place_terms.PlaceTerms(mass_density_solar_pc3=0.029 / 0.4, dispersion_kms=29.0, perturber_mass_solar=0.4)
+    assert place_terms.encounter_limit_au(local, 2.0, 10.0) == pytest.approx(
+        3.1e4 * (29.0 * math.sqrt(2.0) / 50.0) * (0.03 / 0.029), rel=0.01)
+
+
+def test_the_mass_weighted_perturber_mass_of_the_stars_matches_jiang_and_tremaines_neighbourhood():
+    # Their equation 47: rho_2 / rho_1 = 0.029 / 0.045 = 0.64 solar masses, from the observed stars alone. The
+    # generator's initial mass function, aged over the disk's star formation history with no remnants, gives 0.59.
+    disk = [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]
+    stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
+    assert stars == pytest.approx(0.029 / 0.045, rel=0.15)
+
+
+def test_the_remnants_raise_the_perturber_mass_and_the_black_holes_do_most_of_it():
+    disk = [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]
+    stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
+    everything = place_terms.mass_weighted_perturber_mass_solar(disk)
+    assert 2.0 < everything / stars < 4.0
+    assert place_terms.PlaceTerms(1.0, 30.0).perturber_mass_solar == pytest.approx(everything)
+
+
+def test_a_young_population_has_the_heavier_perturbers():
+    young = place_terms.mass_weighted_perturber_mass_solar([(1.0, tuning.STELLAR_POPULATION_AGE_RANGES_GY["young"])])
+    old = place_terms.mass_weighted_perturber_mass_solar([(1.0, tuning.STELLAR_POPULATION_AGE_RANGES_GY["old"])])
+    assert young > old > 1.0
+    mixed = place_terms.mass_weighted_perturber_mass_solar([(0.5, (0.0, 0.1)), (0.5, (3.0, 10.0))])
+    assert old < mixed < young
+
+
+def test_a_cell_with_no_stars_falls_back_to_the_mean_system_mass():
+    assert place_terms.mass_weighted_perturber_mass_solar([]) == tuning.MEAN_SYSTEM_MASS_SOLAR
 
 
 def test_the_limits_scale_the_way_the_formulas_do():
@@ -67,9 +103,10 @@ def test_the_limits_scale_the_way_the_formulas_do():
 
 
 def test_the_design_notes_table_follows():
-    # docs/design/placement-by-population.md 3.3, 2 solar masses, 10 Gyr.
-    for density, sigma, encounter, tide in ((0.048, 30, 29_000, 500_000), (6.9, 120, 800, 95_000),
-                                            (77, 120, 73, 42_000), (660, 120, 9, 21_000)):
+    # docs/design/placement-by-population.md 3.3, 2 solar masses, 10 Gyr, the default perturber mass (<M^2> / <M> of the
+    # whole disk with remnants).
+    for density, sigma, encounter, tide in ((0.048, 30, 11_400, 500_000), (6.9, 120, 317, 95_000),
+                                            (77, 120, 28, 42_000), (660, 120, 3.3, 21_000)):
         terms = place_terms.PlaceTerms(density, float(sigma))
         assert place_terms.encounter_limit_au(terms, 2.0, 10.0) == pytest.approx(encounter, rel=0.1)
         assert place_terms.tidal_limit_au(terms, 2.0) == pytest.approx(tide, rel=0.1)
@@ -82,14 +119,16 @@ def test_no_density_or_no_age_leaves_nothing_to_cut_the_axis():
 
 
 def test_terms_from_a_profile_read_its_density_and_the_weighted_dispersion():
-    def pop(share, sigma):
-        return SimpleNamespace(share=share, dispersion_kms=sigma)
+    def pop(share, sigma, age_gy=(3.0, 10.0)):
+        return SimpleNamespace(share=share, dispersion_kms=sigma, age_gy=age_gy)
 
     profile = SimpleNamespace(expected_systems=50.0, volume_pc3=100.0,
                               populations={"a": pop(0.75, 20.0), "b": pop(0.25, 60.0)})
     terms = place_terms.from_profile(profile)
     assert terms.mass_density_solar_pc3 == pytest.approx(0.5 * tuning.MEAN_SYSTEM_MASS_SOLAR)
     assert terms.dispersion_kms == pytest.approx(math.sqrt(0.75 * 400 + 0.25 * 3600))
+    assert terms.perturber_mass_solar == pytest.approx(
+        place_terms.mass_weighted_perturber_mass_solar([(1.0, (3.0, 10.0))]))
     empty = SimpleNamespace(expected_systems=0.0, volume_pc3=100.0, populations={"a": pop(0.0, 20.0)})
     assert place_terms.from_profile(empty).dispersion_kms == tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS
 

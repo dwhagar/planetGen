@@ -170,13 +170,36 @@ the pairs of age t survive** is
 
     a_1/2 = 0.002 * (M_1 + M_2) * sigma / (G * rho_2 * t)
 
-with sigma the velocity dispersion of the field, t the pair's age and rho_2 the density of the perturbers weighted by
-their mass (units of solar masses squared per cubic parsec, about the mass density times the mean perturber mass)
-[S: a secondary source quoting the paper; the constant 0.002 is that source's, and what it folds in (the Coulomb logarithm, the encounter integral) was not checked].
+with sigma the dispersion of the **relative** velocity between the pair and the perturbers (3 sigma^2 is their mean-square relative
+velocity; Jiang and Tremaine take 29 km/s one-dimensional for the Sun's neighbourhood and "choose the relative velocity dispersion to be
+2^(1/2) times this, so sigma = 40 km/s"), t the pair's age and rho_2 = the integral of n(M) M^2 dM, the second moment of the perturbers' mass
+function (units of solar masses squared per cubic parsec; their equation 47 gives 0.029 for rho_2 and 0.045 solar masses per cubic parsec
+for the mass density rho_1, so the mass-weighted perturber mass rho_2 / rho_1 is 0.64 solar masses) [S: read in the paper, 2026-10-17]. The
+constant 0.002 is Bahcall, Hut and Tremaine's, reproduced through equation (1).
 The same source gives its worked value: 3.1 x 10^4 AU for M_1 + M_2 = 2, sigma = 50 km/s, rho_2 = 0.03 and t = 10 Gyr, which I
 reproduced to 31,300 AU [C]. It is linear in 1/rho_2 and 1/t, which is what the code needs: a_1/2 follows the cell's density
-and the star's age with nothing stored by place. In the solar neighbourhood (sigma 30 km/s, rho 0.08 solar masses per pc^3, a perturber
-mass of 0.4) it gives 1.8 x 10^4 AU, near Boss's 2 to 5 x 10^4 AU and Jiang and Tremaine's 50% survival near 30,000 AU.
+and the star's age with nothing stored by place. In the solar neighbourhood (a one-dimensional sigma of 30 km/s, rho 0.08 solar masses per pc^3, the default
+mass-weighted perturber mass of 1.46 solar masses below) it gives 1.1 x 10^4 AU for two solar masses at 10 Gyr, under Boss's
+2 to 5 x 10^4 AU and Jiang and Tremaine's 50% survival near 30,000 AU, because the generator counts the remnants they leave out (see GEN.447 below).
+
+**GEN.447 (built, 2026-10-17).** Two corrections to the first version of this limit, which read sigma as the population's own
+dispersion and used 0.4 solar masses for the perturber mass: `place_terms.RELATIVE_VELOCITY_FACTOR` (root 2) multiplies the
+population dispersion (`STELLAR_POPULATION_DISPERSION_KMS` are one-dimensional), and `place_terms.mass_weighted_perturber_mass_solar`
+computes `<M^2> / <M>` from the generator's own initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`), aged to each
+population's age range at a steady rate (`tuning.STELLAR_POPULATION_AGE_RANGES_GY`), with the remnants of what has left the main
+sequence: stars up to the turn-off where `SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT` reaches the age, white dwarfs from the
+`WHITE_DWARF_PROGENITOR_SOL` range by the initial-final relation (`WD_IFMR_*`), neutron stars from there to the black hole range's
+start (`BLACK_HOLE_PROGENITOR_SOL[0]`, 20 solar masses) and black holes above it, the last two uniform over their mass ranges as
+the generator draws them. A cell takes the share-weighted mix of the populations it holds (`from_profile`). The two corrections go
+opposite ways: root 2 makes the limit 1.41 times longer, and the perturber mass, 1.46 solar masses for the whole disk against
+the 0.4 used before, makes it about 3.6 times shorter, so the limit is about 2.5 times shorter than the first version's. For the stars alone,
+aged over the disk's 10 Gyr of star formation, the mass-weighted mean is 0.594, 8% under Jiang and Tremaine's 0.644 (the check in
+`tests/test_place_terms.py`); the rest of the 1.46 is remnants.
+**The black holes do most of it:** 0.18% of the stars formed (those above 20 solar masses) leave a 12.5 solar mass hole, which holds
+about 2.2 times the second moment of all the stars. That is the initial mass function's arithmetic (it gives about 1e8 holes for
+1e11 stars, the order of the Galaxy's estimated number), but it rests on every such hole staying in the disk; kicks that eject
+holes would lower it, and Jiang and Tremaine count observed stars only. The follow-up question for Boss and TEST.196 is whether the
+perturbers should include the dark remnants; the stars-only value is `remnants=False`.
 
 **The tidal limit.** A pair of total mass M has a Jacobi radius of (G M / (4 Omega^2 - kappa^2))^(1/3), and
 4 Omega^2 - kappa^2 = 4 A (A - B) from Oort's constants. Boss's text wrote the last form with 2 A (A - B), which does not match
@@ -191,18 +214,18 @@ place of the fixed 10,000 AU cap (`WIDE_BINARY_SEPARATION_MAX_AU`, answer 5), as
 from the 50 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 50 AU keeps no wide pair: the wide roll then gives the primary alone
 (the pair dissolved), which is the whole effect in the bulge. The wide *chance* (0.5 of the binary chance) does not change where the limit is
 above 50 AU; scaling it by the share of the log range kept would need a natal upper bound the sources do not give, so it is left out (a design default). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
-model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4), perturber mass 0.4 [C]:
+model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4), the default perturber mass of 1.46 and the one-dimensional sigma [C]:
 
 | Place | rho (solar masses per pc^3) | sigma (km/s) | Encounter limit a_1/2 | Tidal limit | Widest axis kept |
 |---|---|---|---|---|---|
-| 8.2 kpc out, in the plane | 0.048 | 30 | 29,000 AU | 500,000 AU | 29,000 AU |
-| bulge, 500 pc from the centre | 6.9 | 120 | 800 AU | 95,000 AU | 800 AU |
-| bulge, 100 pc from the centre | 77 | 120 | 73 AU | 42,000 AU | 73 AU |
-| 10 pc from the centre | 660 | 120 | 9 AU | 21,000 AU | none (under the 50 AU lower edge) |
+| 8.2 kpc out, in the plane | 0.048 | 30 | 11,400 AU | 500,000 AU | 11,400 AU |
+| bulge, 500 pc from the centre | 6.9 | 120 | 317 AU | 95,000 AU | 317 AU |
+| bulge, 100 pc from the centre | 77 | 120 | 28 AU | 42,000 AU | 28 AU |
+| 10 pc from the centre | 660 | 120 | 3 AU | 21,000 AU | none (under the 50 AU lower edge) |
 | 2 pc from the centre | 61,000 | 150 | under 1 AU | 4,600 AU | none |
 
-So the encounter limit, not the tide, decides everywhere but the quiet disc, and the old fixed cap of 10,000 AU is exceeded
-in the disc (29,000 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
+So the encounter limit, not the tide, decides everywhere, and the old fixed cap of 10,000 AU is a little under the disc's limit
+(11,400 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
 bulge sector would hold almost no wide pairs. The reference density `rho_2` and sigma come from the profile (`gas.mass_solar`
 and `dark_matter` are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
 cell's populations (`tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.
