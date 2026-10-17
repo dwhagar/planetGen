@@ -16314,7 +16314,7 @@ clears each one.
   Sighting (Core 2, 2026-10-17, 6:31 AM EDT as the lane reported,
   MAP.217 gate, work stashed, 336 s run, load 10): a different symptom,
   "the system's scene never came in", assert [] (the shares list was
-  empty, not a share below 1). Checked idle by the TODO thread (6:36 AM
+  empty, not a share below 1). Checked idle by the TODO thread (6:28 AM
   EDT, main with #2004, load 0.1): passed in 124.68 s. So it fails only
   under load; the two symptoms (the disc share short of 1, the scene
   never loading) both point to waits that are too short under load.
