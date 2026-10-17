@@ -3132,6 +3132,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     reported): population streams are keyed on the homeworld's unique
     ID; the golden files still do not exist, so the epoch and its note
     went in together, as for epoch 2.
+    Epoch plan (Core 3, as the coordinator reported at 11:42 PM EDT):
+    the horizontal branch change (GEN.286, GEN.287, #1932) shipped
+    without an epoch entry (the golden files do not exist yet, so the PR
+    rule did not fail). A small PR carrying GEN.286/287's note and the
+    GEN.407 constants takes generator epoch 4 with the
+    `generation-output: changed` line; GEN.322 (which adds rows) takes
+    epoch 5.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Prerequisites: GEN.304, OPS.57, GEN.57.
 
@@ -8208,6 +8215,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until this lands. Owner: Core 3 proposed.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.322, GEN.396,
   GEN.259.
+  Epoch (Core 3, as the coordinator reported at 11:42 PM EDT): the
+  constants of this item ship in the small PR that takes generator epoch
+  4 together with GEN.286/287's note; GEN.322 takes epoch 5.
 
 - [ ] **GEN.408 Research: verify the atmosphere sources and say what is missing**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
