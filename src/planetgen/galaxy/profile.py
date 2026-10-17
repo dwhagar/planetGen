@@ -126,6 +126,9 @@ class SectorProfile:
         dark_matter (DarkMatter): The cell's dark matter.
         kind_factors (dict): Kind -> the factor the place applies to that kind's rate per star (`kind_factors_at`);
             a kind not in it is not scaled by place.
+        type_ia_share (float): The share of the place's supernova remnants that are Type Ia (`type_ia_share_at`): 1
+            where no young population is, `tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE` against the solar circle's
+            mix.
     """
     address: tuple | None
     position_pc: tuple
@@ -140,6 +143,7 @@ class SectorProfile:
     gas: GasProfile
     dark_matter: DarkMatter
     kind_factors: dict = field(default_factory=dict)
+    type_ia_share: float = tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
 
     @property
     def center_pc(self):
@@ -188,6 +192,40 @@ def _reference_young_share(shape):
     return sum(shares) / len(shares)
 
 
+def _young_and_old_against_the_solar_circle(populations, shape):
+    """`(young, old)`, the young stars' share of the place's stars and the share that is not young, each divided by
+    the same share around the solar circle (`_reference_young_share`): 1 and 1 for the solar circle's mix."""
+    reference = _reference_young_share(shape)
+    young_share = populations["young"].share
+    young = 0.0 if reference <= 0.0 else young_share / reference
+    old = (1.0 - young_share) / (1.0 - reference) if reference < 1.0 else 0.0
+    return young, old
+
+
+def type_ia_share_at(populations, shape):
+    """
+    The share of a place's supernova remnants that are Type Ia (GEN.319). Core-collapse remnants come from the young
+    stars and Type Ia from the stars that are not young, so the odds of a Type Ia remnant are the solar circle's odds
+    (`tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE`, three core collapses to a Type Ia) times the place's old share over
+    its young share, each against the solar circle's. A place with no young stars has only Type Ia (a halo, a cluster,
+    an old satellite: no neutron star or black hole in the remnant), one with only young stars has none.
+
+    Args:
+        populations (dict): Population -> `PopulationProfile`.
+        shape (GalaxyShape): The galaxy's shape.
+
+    Returns:
+        float: In 0 to 1.
+    """
+    young, old = _young_and_old_against_the_solar_circle(populations, shape)
+    chance = tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
+    type_ia, core_collapse = chance * old, (1.0 - chance) * young
+    total = type_ia + core_collapse
+    if total <= 0.0:
+        return 1.0
+    return type_ia / total
+
+
 def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     """
     The factors by which a place scales the rate per star of each kind that is not a plain per-star rate (GEN.236;
@@ -196,11 +234,14 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
 
     * **1 everywhere**: `neutron-star` and `black-hole` (bound remnants are born where massive stars were and kicked
       into the disk's thickness, so they follow the stars; the kick's thickening belongs to the disk populations'
-      motion, not to the rate), `planetary-nebula` and `brown-dwarf` (every population makes both). The 9,000 L_sun
+      motion, not to the rate) and `brown-dwarf` (every population makes it). The 9,000 L_sun
       floor under the bright stars is not a rate and stays. A runaway flag is a speed against the neighbours, so it
       needs no factor either.
     * **`supernova-remnant`**: the gas fraction (the remnant of a core collapse shines only where the shell meets gas),
       0 in the halo and in clusters. Not zeroed in a superbubble: the hot cavity is where the explosions went off.
+    * **`planetary-nebula`** (GEN.319): the share of the place's stars that are not young against the solar circle's,
+      capped at 1: the young are too young to have made one, every older population makes them, so 1 in the disk
+      (within 3%) and in every older place.
     * **`molecular-cloud`**: the cold gas fraction times the young share against the solar circle's, so the disk's
       young, gas-rich places carry them and the old and halo ones none.
     * **`nebula`** (the emission and reflection nebulae grown around a sector's own hot stars): the cold gas fraction.
@@ -222,10 +263,10 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     if total > 0.0:
         occurrence = sum(pop.share * metallicity.expected_factor(metallicity.planet_occurrence_factor, pop.fe_h)
                          for pop in populations.values()) / total
-    reference = _reference_young_share(shape)
-    young = 0.0 if reference <= 0.0 else min(1.0, populations["young"].share / reference)
+    young, old = _young_and_old_against_the_solar_circle(populations, shape)
+    young = min(1.0, young)
     return {
-        "neutron-star": 1.0, "black-hole": 1.0, "planetary-nebula": 1.0, "brown-dwarf": 1.0,
+        "neutron-star": 1.0, "black-hole": 1.0, "planetary-nebula": min(1.0, old), "brown-dwarf": 1.0,
         "supernova-remnant": gas_fraction * (1.0 - populations["cluster"].share),
         "molecular-cloud": cold_fraction * young,
         "nebula": cold_fraction,
@@ -311,7 +352,8 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
         volume_pc3=volume, shape=shape, region=_region(mix), density=density,
         expected_systems=expected_at_density_1 * density, mix=mix, populations=populations, gas=gas,
         dark_matter=DarkMatter(density_solar_pc3=rho, mass_solar=rho * volume),
-        kind_factors=kind_factors_at(populations, gas_fraction, cold, shape))
+        kind_factors=kind_factors_at(populations, gas_fraction, cold, shape),
+        type_ia_share=type_ia_share_at(populations, shape))
 
 
 def sector_profile(address, skeleton):

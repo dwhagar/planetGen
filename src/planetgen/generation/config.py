@@ -45,6 +45,12 @@ class SystemConfig:
         formatted in Wikitext. Defaults to False.
         """
 
+        self.TYPE_IA_SHARE = None
+        """
+        float or None: The share of supernova remnants that are Type Ia where the remnant is made (the sector
+        profile's `type_ia_share`, GEN.319). None for the solar circle's, `tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE`.
+        """
+
         self.HABITABLE_WORLD = None
         """
         bool or None: If True, the system generation will attempt to force the
