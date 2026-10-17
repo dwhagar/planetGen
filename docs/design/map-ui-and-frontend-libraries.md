@@ -708,7 +708,7 @@ as a net difference by stable address, not database id. So:
    reproduction replays the override rows in order, then regenerates.
 4. Only unfilled sectors are affected ("later fills use" it); the UI says how many
    sectors in view are filled and unaffected.
-5. The settings file carries the rows (reproducibility doc, section 7) as part of
+5. The galaxy's record carries the rows (reproducibility doc, section 7) as part of
    the net difference: a new admin change kind for GEN.59 and GEN.61.
 6. Range 0.1 to 10 on a log scale, beyond that a typed override with a warning;
    store a decimal string or rational.

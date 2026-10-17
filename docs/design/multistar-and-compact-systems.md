@@ -550,6 +550,13 @@ number before any of it is coded.**
    derived limit takes the place of the fixed 10,000 AU cap, and it shrinks in the bulge, clusters and halo
    because the density and dispersion there are higher.
 
+**Boss's decisions (2026-10-16, 6:12 to 6:15 PM EDT, by cards in the project chat).** (1) The close-binary trend is
+the pooled one, read at the star's own [Fe/H]. (2) The metallicity effect applies to every star mass, and the
+generator is checked that it behaves as expected: TEST.196 compares the generated close-companion share, by primary-mass
+bin and [Fe/H] bin, to the published ranges and flags any bin outside them. (3) Wide pairs have no metallicity
+dependence. (4) The encounter limit is a sharp cut at a_1/2, the smaller of the two limits above. (5) The fixed
+10,000 AU wide-pair cap is replaced by the derived limit. The last card, whether the metallicity effect fades above about 2 solar masses, was answered "all masses": there is no fade, and the check is the safeguard. A last card (2026-10-16, 7:19 PM EDT) chose the form: the factor F/F(0) is applied to the odds p/(1-p) of a close companion, not to the chance p, for every mass. It cannot pass 1, and a star already likely to have a companion rises less.
+
 ## 7. Compact-object primaries
 
 ### 7.1 How they arise

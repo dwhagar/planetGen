@@ -283,14 +283,14 @@ def test_plan_options_conflict():
     args = parser.parse_args(["--no-bright-stars", "--bright-stars-only"])
     with pytest.raises(SystemExit):
         generate_cli.validate_plan_args(args, parser)
-    args = parser.parse_args(["--bright-star-min-luminosity", "50"])
+    args = parser.parse_args(["--bright-star-min-luminosity", "49"])
     with pytest.raises(SystemExit):
         generate_cli.validate_plan_args(args, parser)
     for extra in (["--bright-stars-only"], ["--no-bright-stars"]):
         args = parser.parse_args(["--bright-stars-down-to", "100", *extra])
         with pytest.raises(SystemExit):
             generate_cli.validate_plan_args(args, parser)
-    args = parser.parse_args(["--bright-stars-down-to", "50"])
+    args = parser.parse_args(["--bright-stars-down-to", "49"])
     with pytest.raises(SystemExit):
         generate_cli.validate_plan_args(args, parser)
 
