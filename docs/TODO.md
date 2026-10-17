@@ -18463,6 +18463,16 @@ clears each one.
   test-side change is released (coordinator, 5:17 PM EDT). This item
   closes when the test passes on main with the fix and the test change
   merged, with no wait lengthened and nothing quarantined.
+  Check on main after the fix (Bug Hunt, 2026-10-17, 5:55 PM EDT as the
+  lane reported): on main 62bca47c, which has #2103, the unmodified test
+  passes (one idle run, 83 s), so Bug Hunt's held test-side change is
+  dropped and no test PR will be opened; its big gate (build 4632033c,
+  finished 5:51 PM EDT, 19,420 passed) failed only this test because
+  that branch predated #2103. Core 2's MAP.245 gate also ran it green on
+  the branch with the fix. Closes when later gates on main (Core 3's
+  GEN.321, Core 5's bundle, Core 1's GEN.532/533) pass it too; the TODO
+  thread retires it on the first merge report of a gate that ran after
+  #2103 with this test green.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
