@@ -7969,6 +7969,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   read. Cluster half-light radius (R9): 2.7 ± 0.35 pc after correction,
   red about 17 percent smaller than blue, invariant to about 10 percent
   over a factor of about 350 in host luminosity.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. GR7, the radius
+  ratio of the blue to the red cluster system, stays widened with both
+  papers kept (11:19 AM EDT answer).
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -8893,6 +8898,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checked in the report); Bogaard 1978 becomes a check, not a
   dependency. Measured errors win over the generic 5 to 9 percent (2.5
   to 4 percent Ar and N2, 7 CO2, 10 to 18 CO, CH4, N2O).
+  Boss, 1:23 PM EDT (typed in the project chat, relayed by the
+  coordinator): AD1 is Boss's to research (Karkoschka and Tomasko 2010
+  and related, paid); the labelled stand-in stays until he supplies the
+  bands.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9373,6 +9382,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4.11): BC4: the 2014 Palme and O'Neill values, if the 2014 edition is
   read, make two verified editions disagree and the newest (2014) wins;
   until then the 2003 edition values, labelled so, stand.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. BC11 (volatile
+  stripping at ejection, uniform 0 to 1 loss fraction) and BC18 (core
+  light elements, Dirichlet over S, Si, O, H).
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -10987,6 +11001,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   either is in doubt. T19 Kuiper Belt rock fraction: rising with size
   against a constant 70 percent with porosity; the dates were not
   recorded, so the draw stays.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. T15, the
+  cometary organic fraction (no probability exists; N(0.60, 0.15)
+  clipped to [0, 1] is the lane's proposal).
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -11443,6 +11462,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   either is in doubt. T19 Kuiper Belt rock fraction: rising with size
   against a constant 70 percent with porosity; the dates were not
   recorded, so the draw stays.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. BC6, moon
+  composition against distance and origin: no confirmed exomoon.
 
 - [ ] **GEN.467 The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -12307,6 +12330,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): AT.b5 sub-percent water:
   ships as a labelled placeholder, log-uniform.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.b5, the
+  sub-percent water fraction.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
@@ -12576,6 +12603,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of water in Hale-Bopp, NH3 about 1.5 percent (the 3.6 percent bound is
   unsupported); one comet: rule M, the widest. Gas trapped in amorphous
   ice by deposition temperature is the nearest law.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.k7, the
+  single-comet species (67P alone for N2, O2, Ar, Kr and Xe).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
@@ -12631,6 +12662,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bulk silicate Earth; rows m3, m4, m11 are design flags (no exoplanet
   N2O, PH3, NO2 or CH3Cl measurement exists). Builders GEN.524 and
   GEN.525.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.m3, m4 and
+  m11, the N2O, PH3, NO2 and CH3Cl presence: no detection on any
+  exoplanet; flagged bracket, default off, never tuned.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.491 Source the cloud and haze windows and yields (AR12)**
@@ -12691,6 +12727,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   12 should read ln x_j and Eq. 11 lacks a minus sign. No paper here
   prints the acid vapour pressure: it needs Ayers 1980 (paid) or the
   Kulmala-Laaksonen form already in the files; the stand-in stays.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.n7, the haze
+  yield (laboratory rates span 250 times).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -14055,6 +14095,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   behind a captcha (nothing blocked). BC13 weights and limits are free
   from IAEA GSR Part 3, and the SO2 and H2S Rayleigh numbers can be
   computed, so Bogaard 1978 leaves the fetch list.
+  Boss, 1:23 PM EDT (typed in the project chat, relayed by the
+  coordinator): AD1 (the visible methane and ammonia absorption of the
+  giants, GEN.422) he will research himself (Karkoschka and Tomasko 2010
+  and the related papers, B5 and B6 of papers-to-fetch.md); the stand-in
+  stays until then. The lines where math cannot help (GR7, BC6, BC11,
+  BC18, AT.b5, AT.n7, AT.m3, m4 and m11, AT.k7, T15) he reads as having
+  no data to find: each stays a labelled stand-in at the widest bracket
+  under the widest-range rule. GR7 stays widened with both kept (11:19
+  AM EDT answer).
 
 - [ ] **GEN.532 The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up)**
   Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
