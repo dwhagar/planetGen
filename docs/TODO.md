@@ -7175,6 +7175,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated (as MAP.190 does). USR.11, a user's own home field, is a
   different thing and stays. GEN.388 (the home position by family, 9.4)
   is dropped.
+  Boss decisions reported by Core 1 (Boss, 2026-10-16, 9:40 to 9:43 PM
+  EDT, in the Core 1 thread): (1) the first family's stellar mass range
+  is 3e9 to 2e11 solar; (2) every derived law draws its natural scatter
+  from the seed (a log-normal about the median); (3) Boss allows
+  arxiv.org for one verifying thread (waiting on him to add it to the
+  environment's allowed domains). Core 1's draft table is
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md (rows 1 to
+  14, nothing yet verified against a paper; research requests in
+  5.13.6). Fixed content found beyond this item's first list (draft
+  table 5.13.4), all to be replaced or listed as a stay-constant by the
+  same table: the five different Sun radii (removed with the home
+  position), the supernova, GRB and AGN rates (`physics/activity.py`),
+  the dark matter, hot halo and ambient density values (`profile.py`,
+  `tuning.py:859-871`), the population ages, dispersions, arm contrast
+  and scale heights (`tuning.py:608-614,800`), the metallicity gradient,
+  the phenomenon densities, the nebula and superbubble field values, the
+  hypervelocity reference radius, the fixed halo fraction, the 8000 and
+  1000 in `clusters.py:92`, the two local stellar densities, and
+  `MILKY_WAY_STELLAR_LUMINOSITY_W` (becomes the galaxy's own luminosity
+  from its mass-to-light ratio). Section 5.13.5 of the draft still says
+  the draw returns "the home position"; Core 1 removes it.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
@@ -7483,6 +7504,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are generated."): the family design stores no home or Sun position;
   GEN.388 is dropped and the design lists no home row. Per-position
   calculations replace every Sun-radius use.
+  The first family's stellar mass range is 3e9 to 2e11 solar and every
+  derived law draws its natural scatter from the seed (Boss, 2026-10-16,
+  9:40 to 9:43 PM EDT, reported by Core 1); GEN.368's draft table
+  (/mnt/project-files/reports/gen368-laws-table-2026-10-17.md, 5.13.1
+  chain, rows 1 to 10) is the spiral family's start, and the family
+  table here extends it.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
@@ -7530,6 +7557,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no family or mass appears as a default. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
+  Mass limits: the first family's range is 3e9 to 2e11 solar stellar
+  mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
+  states the other families' ranges.
   Prerequisites: GEN.378, GEN.379. Related: GEN.368, GEN.369, GEN.381.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
