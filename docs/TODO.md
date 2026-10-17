@@ -18854,35 +18854,6 @@ clears each one.
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
 
-- [ ] **TEST.230 test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug)**
-  Found by Core 5 (2026-10-17, 7:34 PM EDT as the lane reported, 1 of 1
-  runs on main 2473bf2), bisected and reproduced by the TODO thread
-  (7:34 to 7:38 PM EDT).
-  `src/tests/test_sector_gen.py::test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing`
-  fails at `assert nebula.hosts.startswith("O5V x1")` (line 168): the
-  test places one O5V, one G2V and one M3V, but the nebula's hosts read
-  `O5V x2, B1V x3, B2V x3, B3V x2, B5V x1` on a re-run, and `O5V x4, O7V
-  x6, O9V x7, B0V x9, B1V x19, B2V x15, B3V x18, B5V x8` in Core 5's
-  run: the nebula now hosts a whole cluster of O and B stars, not the
-  one O star the test placed. The result is random per run: 12 of 12
-  passes at 62bca47c and at 6a54b8c1~1 (the parent of the stellar
-  bundle, #2112), 10 failures in 12 runs at 6a54b8c1 (#2112, GEN.529,
-  GEN.467, GEN.463, GEN.502, GEN.259), and 1 failure in 3 runs on main
-  a43963f8. So the bundle changed what the test's nebula draws; whether
-  the test or the generator is wrong is not yet known (the bundle
-  changed the star population and the lifetimes, and the `hosts` text
-  counts every star a cloud lights). Fails on main: yes, intermittently.
-  Frequency: about 1 run in 3 to 5 in 6 depending on the seed.
-  Reproducer: `PYTHONPATH=src python3 -m pytest -n0
-  src/tests/test_sector_gen.py::test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing`
-  repeated 12 times. Do: find where the extra hosts come from (the
-  test's sector holds three stars, so a cluster must be drawn by the
-  phenomena pass) and fix the cause in the generator or the test's
-  setup, with no loosening of the assert. Done: the cause is on this
-  item and the test passes 30 of 30 runs. Owner: Core 5 (proposed, its
-  #2112 changed the behaviour).
-  Prerequisites: none. Related: GEN.529, GEN.467.
-
 - [ ] **TEST.231 test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug)**
   Found by Blocker 1 (2026-10-17, about 7:38 PM EDT, relayed by the
   coordinator), filed by the TODO thread.
@@ -20249,6 +20220,27 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   behind its stellar bundle (GEN.463, 467, 502, 529) and GEN.259, 238,
   298; the owner line above is no longer only proposed.
   Prerequisites: none. Related: DOC.47, DOC.52, DOC.18.
+
+- [ ] **DOC.68 Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages**
+  Asked by Core 5 through the coordinator (2026-10-17, 7:51 PM EDT),
+  filed by the TODO thread. The execution plan page is the only page in
+  docs/plan/ with no generator in the repo: the TODO thread rebuilt it
+  on 2026-10-17 with a script that lives outside the repo, from
+  docs/TODO.md and the lane report in /mnt/project-files, and
+  tests/test_docs_index.py (Core 5's DOC.67 branch) checks that the page
+  keeps its `<meta name="description">` and its "Docs index" link, which
+  a regeneration can drop. Do: move the generator into
+  scripts/todo_docs/ with a template, in the same pass as todo-tree.html
+  and version-plan.html (lanes board from a file in the repo, for
+  example docs/plan/lanes.md that the TODO lane keeps, headline panel,
+  open items by version and phase, goal issues table, conflicts and
+  needs-Boss lists), keep the meta description and the Docs index link
+  in the template, and add the page to the freshness test that covers
+  the other generated pages. Done: `python3 scripts/build_todo_docs.py`
+  writes the page, a test fails when the committed page differs from the
+  generated one, and tests/test_docs_index.py passes on it. Owner: Core
+  5 (proposed, it owns the docs index work, DOC.67).
+  Prerequisites: none. Related: DOC.67.
 
 ## VIEW: The view from a planet
 
