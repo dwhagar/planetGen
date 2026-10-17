@@ -42,8 +42,7 @@
     },
     {
       "epoch": 9,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1703",
       "reason": "A star younger than 10 Myr and under 8 solar masses is a protostar (Class 0 and I) or a pre-main-sequence star drawn from a derived contraction track with a disk descriptor, protostars take Perseus' companion share, and the companions of young systems follow the same track (GEN.242)."
     }
   ]
