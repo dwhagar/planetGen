@@ -5737,6 +5737,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159,
   TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463,
   GEN.467, GEN.469, GEN.502, GEN.526, GEN.528, GEN.529.
+  Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
+  the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
+  coordinator): a new generation lane takes Core 3's stellar tables and
+  small items so the nebula and cluster line (GEN.320, 321, 243, 241,
+  244, 282) and the stellar line run at once. Boss did not choose a test
+  lane or the other lane-less chains; they stay as they are. The split
+  list is /mnt/project-files/reports/core3-split-list-2026-10-17.md;
+  items move only after Core 3 confirms which it has not started, and
+  their owner lines change then.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
