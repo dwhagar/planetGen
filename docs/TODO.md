@@ -10778,6 +10778,9 @@ clears each one.
   (passes alone). Fails on main: yes (the same two failed in the OPS.56
   gate). Frequency: every full gate this evening, so it is no longer rare
   and costs each lane about 15 minutes a gate; one root cause is likely.
+  Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
+  its current stack and the GEN.372 audit merge, ahead of its bug phase.
+  TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -10814,6 +10817,9 @@ clears each one.
   (passes alone). Fails on main: yes (the same two failed in the OPS.56
   gate). Frequency: every full gate this evening, so it is no longer rare
   and costs each lane about 15 minutes a gate; one root cause is likely.
+  Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
+  its current stack and the GEN.372 audit merge, ahead of its bug phase.
+  TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
   Prerequisites: none.
 
 - [ ] **TEST.196 Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged**
