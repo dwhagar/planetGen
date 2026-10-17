@@ -47,7 +47,7 @@ def test_a_v105_point_at_the_edge_takes_the_last_cube_after_the_migration(mysql_
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert _key(conn) == cellkey.cell_key(JUST_UNDER, 0.0, 0.0)
-        assert store.detect_schema_version(conn) == 106
+        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION      # 106 at DB.65; later migrations move it on
         for table, _ in migration.CELL_TABLES:
             expression = conn.execute(
                 "SELECT generation_expression AS e FROM information_schema.columns WHERE table_schema = DATABASE()"

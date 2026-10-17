@@ -442,7 +442,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     elif age_gy < t_horizontal:
         if fe_h is None:
             # A cluster or satellite star with no distribution of its own is drawn as the halo's.
-            origin = "halo" if population in ("cluster", "satellite") and not fe_h_peaks else population
+            origin = "halo" if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate") and not fe_h_peaks else population
             fe_h = metallicity.sample_fe_h(origin, constants.GALACTIC_CENTER_DISTANCE_LY, rng, peaks=fe_h_peaks)
             state["metallicity_fe_h"] = fe_h
         colour = sample_horizontal_branch_colour(fe_h, age_gy, rng)

@@ -135,6 +135,40 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
     assert collisions["distinct_base_names"] == 3
 
 
+def test_slow_database_figures_are_kept_and_made_again_before_they_go_stale(admin_client, monkeypatch):
+    """PERF.110: figures that took long to make are served for a while, and a fast galaxy always shows live ones."""
+    from planetgen.api import admin
+    from planetgen.web.lib import xfetch
+
+    class Clock:
+        now = 1000.0
+
+    builds = []
+    real = admin._database_figures
+
+    def slow(conn, config, name):
+        builds.append(Clock.now)
+        Clock.now += cost[0]
+        return dict(real(conn, config, name), built=len(builds))
+
+    cost = [2.0]
+    monkeypatch.setattr(admin, "_database_figures", slow)
+    monkeypatch.setattr(admin, "_DATABASE_FIGURES",
+                        xfetch.AgedCache(30, min_cost=0.5, clock=lambda: Clock.now, rand=lambda: 0.5))
+
+    def built():
+        return admin_client.get("/api/admin/stats").get_json()["database"]["built"]
+
+    assert [built(), built()] == [1, 1]          # the second answer is the kept one
+    Clock.now += 25.0                              # stored at 1002, stale at 1032: 1027 is before the window (1030.6)
+    assert built() == 1
+    Clock.now = 1031.0                             # inside the window: one request makes the figures again
+    assert built() == 2 and built() == 2
+    Clock.now = 2000.0
+    cost[0] = 0.01                                 # a galaxy that counts quickly is never kept
+    assert [built(), built()] == [3, 4]
+
+
 def test_duplicate_names_lists_every_row_for_each_base_name(admin_client, colliding_names):
     response = admin_client.get("/api/admin/duplicate-names")
     assert response.status_code == 200

@@ -131,7 +131,7 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often, redi
         assert body == _body(db, target), (db, target)
     assert len(cache) <= 50
     assert cache._entries.currsize == _stored_bytes(cache)
-    for (db, target), (_incarnation, _tags, body) in cache._entries.items():
+    for (db, target), (_incarnation, _tags, body, _stored_at, _cost) in cache._entries.items():
         assert body == _body(db, target)
 
     cache.clear()

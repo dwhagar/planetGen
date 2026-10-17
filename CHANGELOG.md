@@ -2,6 +2,64 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1729] - 2026-10-17
+
+**Headline:** A new galaxy now draws its size, thickness, bulge, bar and spiral arms from its seed instead of every galaxy being built to the Milky Way's measurements.
+
+### Changed
+- **The spiral shape is drawn (GEN.401).** `planetgen plan` and the Generate page leave `--disk-scale-length-pc`, `--disk-scale-height-pc`, `--bulge-scale-radius-pc`, `--bulge-amplitude`, `--arm-count` and `--pitch-angle-deg` blank by default; blank means drawn from the galaxy seed (`galaxy/shape_draw.py`). The disk length follows the size-mass relation of late-type galaxies from the seed's stellar mass (GEN.400), the height follows the length, the bulge's share and size follow the galaxy's stage, and the arm count and pitch angle follow the arm statistics. An option given still replaces its draw, and the bulge's density is solved for the disk used. The plan prints what it drew.
+- The old defaults (2,600 pc, 300 pc, 1,580 pc, 3.11, two arms at 15 degrees) are gone from the plan, the CLI and the page. They stay only as the reference shape the math check measures the model against.
+- Bar presence and the bar's axes and angle stay the model's constants until the shape columns of DB.66; the stage rule is a stand-in (design note 5.13.8).
+
+TODO items resolved: GEN.401. Added: none.
+
+## [8.0.1728] - 2026-10-17
+
+**Headline:** The Generate page answers a repeated size-and-time estimate from a cache, and costly cached answers are refreshed just before they expire.
+
+### Added
+- **The Generate page's estimate is cached (PERF.109).** The estimate (`--estimate-only`, up to two minutes for a large shell) is kept in Redis for five minutes under the job kind, its command line and the database, and served only while the generator epoch, the galaxy's data version and the recorded speed statistics are unchanged. Two admins asking for the same estimate at once run it once.
+- **XFetch for costly entries that expire by age (PERF.110).** An answer in the page cache that took half a second or more to fetch (the Search page's facets, for one) is fetched again by one reader shortly before it expires, so a burst of visitors does not all miss in the same second. The admin Stats page keeps its database figures for 30 seconds when they take half a second or more to count, and one request makes them again just before they go stale; a galaxy that counts quickly always shows live figures.
+
+### Changed
+- `singleflight.claim` and `singleflight.wait` take the length of the claim and of the wait, for builds that take longer than a tile.
+
+## [8.0.1727] - 2026-10-17
+
+**Headline:** The benchmark records the buffer pool, table sizes and worker start-up cost, and the test suite is quieter and uses the shell, band and wedge words.
+
+### Changed
+- **The PERF.31 benchmark records its setting (PERF.47).** A run now stores the InnoDB buffer pool size, the size of each table and how long a worker takes to start, and prints them in the setup lines, so two runs on different machines can be compared.
+- **A multi-row literal INSERT is built in one place (PERF.48).** The bright-stars and phenomenon-scatter inserts share one builder that splits a statement at a size limit; a numeric-only row no longer goes through the driver's escaping.
+- **Browser-test failures are no longer buried in the request log (TEST.187).** The test server's request log is set to WARNING.
+- **The marching-cubes call no longer floods the log with a NumPy 2.5 deprecation (TEST.188).** The warning comes from inside scikit-image, so the nebula mesh builder filters it around the call; remove the filter when scikit-image stops raising it.
+- **Tests that named ring, layer and slot now name shell, band and wedge (TEST.156).** The migration tests that describe the old schema keep the old words.
+
+## [8.0.1726] - 2026-10-17
+
+**Headline:** The Magellanic Clouds now hold young and massive stars, from a star formation history worked out for each satellite instead of a typed share.
+
+### Added
+- **A satellite's star formation history (GEN.526).** Each satellite galaxy's young and intermediate stars come from a history set by its stellar mass, size and mean stellar age: the rate rises or falls over 13 Gyr to give that mean age, the gas the present rate needs follows from the Schmidt-Kennicutt law, and a satellite whose gas is under the star formation threshold forms no stars now. The Large Cloud comes out at 1.4% young and 36% intermediate stars, with 0.36 solar masses a year and 4.4e8 solar masses of gas; the Small Cloud at 1.0% and 26%; Sagittarius, Fornax and the dwarf spheroidals form no stars now.
+- Two stellar populations, `satellite_young` and `satellite_intermediate`, beside `satellite` (which is now the stars of 3 to 13 Gyr). The sector profile lists all three, and `bright_stars.population` takes them (migration 0107, which also widens the column to 24 characters).
+
+### Changed
+- The Clouds place massive stars: at the default floor of 9,000 solar luminosities the Clouds hold about 3.8e4 bright stars (none before) and 1.8e4 stars above the mass cut. A galaxy scattered before this needs `planetgen plan --redo-scatters luminosity mass phenomena`.
+- A satellite place counts its young stars as young in the Type Ia share, the planetary nebula share and the molecular cloud share.
+
+generation-output: changed
+
+TODO items resolved: GEN.526. Added: none.
+
+## [8.0.1725] - 2026-10-17
+
+**Headline:** The test suite has one census harness that fills seeded sectors per region class and checks the counts of each kind against their expectation.
+
+### Added
+- **The census audit harness (`src/tests/audit/census.py`).** It fills a fixed set of seeded sectors for each region class, counts what each fill made by stage and kind, tests each count against its expectation within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a kind found where its gate expects none, and writes one report. The representation, fill-stage, multiplicity, catalogue-type and whole-sphere audits add their checks to it and keep no counters of their own.
+
+TODO items resolved: TEST.186. Added: none.
+
 ## [8.0.1724] - 2026-10-17
 
 **Headline:** The illustrated architecture page is rebuilt from the current architecture document.

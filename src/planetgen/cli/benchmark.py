@@ -13,6 +13,9 @@ shell with the scatter on), and prints for each worker count asked:
   the stage reports it did (shells, sectors, objects);
 - the database's share: the statements and rows the server counted while the
   run went (`Com_*` and `Innodb_rows_*`), per second of the run;
+- the server's `innodb_buffer_pool_size`, the size and row count of each of the run's largest tables and the
+  worker start-up cost (a new Python process importing what a sector worker imports and opening its first
+  database connection), so a result can be compared with the next (PERF.47);
 - with `--profile`, the functions the fill spent most time in, by
   cumulative time, from a `cProfile` of one single-worker run.
 
@@ -46,6 +49,24 @@ STATUS_VARIABLES = ("Questions", "Com_select", "Com_insert", "Com_update", "Com_
 
 PROFILE_TOP = 25
 """int: Functions listed by `--profile`."""
+
+TABLES_LISTED = 8
+"""int: The run's largest tables the report lists (all of them go in the JSON)."""
+
+STARTUP_RUNS = 3
+"""int: How many fresh processes the worker start-up cost is measured over (the median is reported)."""
+
+_STARTUP_PROBE = """
+import json, sys, time
+began = time.perf_counter()
+from planetgen.generation import run_galaxy
+from planetgen.db import store
+imported = time.perf_counter()
+store.get_connection(store.MySQLConfig(database=sys.argv[1])).close()
+print(json.dumps({"import_seconds": imported - began, "connect_seconds": time.perf_counter() - imported}))
+"""
+"""str: What a worker does before its first task, timed in a process of its own: the imports of a sector worker and the
+first database connection."""
 
 
 def add_benchmark_arguments(parser):
@@ -85,6 +106,48 @@ def _status(connection):
         cur.execute("SHOW GLOBAL STATUS")
         rows = {name: value for name, value in cur.fetchall()}
     return {name: int(rows.get(name, 0)) for name in STATUS_VARIABLES}
+
+
+def _buffer_pool_bytes(connection):
+    """The server's `innodb_buffer_pool_size`, in bytes (None where the server doesn't have the variable)."""
+    with connection.cursor() as cur:
+        cur.execute("SELECT @@innodb_buffer_pool_size")
+        row = cur.fetchone()
+    return None if row is None or row[0] is None else int(row[0])
+
+
+def _table_sizes(connection, database):
+    """Every table of `database` as `{"table", "rows", "data_bytes", "index_bytes"}`, the largest first. `rows` is
+    the server's estimate. MySQL 8 caches these figures for a day unless told not to."""
+    with connection.cursor() as cur:
+        try:
+            cur.execute("SET SESSION information_schema_stats_expiry = 0")
+        except pymysql.MySQLError:
+            pass  # MariaDB reads them live
+        cur.execute("SELECT table_name, table_rows, data_length, index_length FROM information_schema.tables "
+                    "WHERE table_schema = %s AND table_type = 'BASE TABLE'", (database,))
+        rows = cur.fetchall()
+    tables = [{"table": name, "rows": int(count or 0), "data_bytes": int(data or 0), "index_bytes": int(index or 0)}
+              for name, count, data, index in rows]
+    tables.sort(key=lambda table: (-(table["data_bytes"] + table["index_bytes"]), table["table"]))
+    return tables
+
+
+def _startup_seconds(config, database, env, runs=STARTUP_RUNS):
+    """The worker start-up cost: the median over `runs` fresh Python processes of the seconds each took to import
+    what a sector worker imports and to open its first connection to `database`, plus the whole process's wall
+    time, as `{"import_seconds", "connect_seconds", "process_seconds"}`."""
+    found = []
+    for _ in range(runs):
+        started = time.perf_counter()
+        done = subprocess.run([sys.executable, "-c", _STARTUP_PROBE, database], env=env, stdin=subprocess.DEVNULL,
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        seconds = time.perf_counter() - started
+        if done.returncode:
+            raise SystemExit(f"planetgen benchmark: the start-up probe failed ({done.returncode}):\n{done.stdout[-2000:]}")
+        found.append({**json.loads(done.stdout.strip().splitlines()[-1]), "process_seconds": seconds})
+    return {name: sorted(run[name] for run in found)[len(found) // 2]
+            for name in ("import_seconds", "connect_seconds", "process_seconds")}
 
 
 def _child_env(config, control, workers):
@@ -206,6 +269,9 @@ def run_benchmark(args):
                 "workers": workers, "plan_seconds": plan_seconds, "fill_seconds": fill_seconds,
                 "stages": _stages(config, control, database),
                 "database": {name: after[name] - before[name] for name in STATUS_VARIABLES},
+                "buffer_pool_bytes": _buffer_pool_bytes(admin),
+                "tables": _table_sizes(admin, database),
+                "worker_startup": _startup_seconds(config, database, env),
                 "total_seconds": total,
             })
         profile = None
@@ -227,6 +293,30 @@ def run_benchmark(args):
                       f, indent=2)
 
 
+def _megabytes(count):
+    return f"{count / 1048576:,.1f} MB"
+
+
+def _setup_lines(run):
+    """The report lines about the machine a run was made on: the buffer pool, the largest tables and the worker
+    start-up cost (nothing for a result saved before they were recorded)."""
+    lines = []
+    if run.get("buffer_pool_bytes") is not None:
+        lines.append(f"  innodb_buffer_pool_size: {_megabytes(run['buffer_pool_bytes'])}")
+    tables = run.get("tables") or []
+    if tables:
+        total = sum(table["data_bytes"] + table["index_bytes"] for table in tables)
+        lines.append(f"  tables: {len(tables)}, {_megabytes(total)} in all; the largest:")
+        for table in tables[:TABLES_LISTED]:
+            lines.append(f"    {table['table'][:36]:36} {table['rows']:>10,} rows  data {_megabytes(table['data_bytes']):>11}"
+                         f"  indexes {_megabytes(table['index_bytes']):>11}")
+    startup = run.get("worker_startup")
+    if startup:
+        lines.append(f"  worker start-up: {startup['process_seconds']:.2f} s a process (imports {startup['import_seconds']:.2f} s, "
+                     f"first connection {startup['connect_seconds']:.2f} s), median of {STARTUP_RUNS}")
+    return lines
+
+
 def format_report(args, results, profile):
     """The report as text (see this module's docstring)."""
     lines = [f"Benchmark: plan to shell {args.max_shell}, then {args.sectors} sector(s) from shell {args.shell}, "
@@ -245,6 +335,7 @@ def format_report(args, results, profile):
         per = max(run["total_seconds"], 1e-9)
         lines.append("  database: " + ", ".join(f"{name} {value:,} ({value / per:,.0f}/s)"
                                                 for name, value in counters.items() if value))
+        lines += _setup_lines(run)
     if profile is not None:
         seconds, rows = profile
         lines += ["", f"Profile of one single-worker fill ({seconds:.1f} s with the profiler on): "

@@ -12,11 +12,20 @@ connection.
 """
 
 import contextlib
+import logging
 import threading
 import time
 import warnings
 
 from werkzeug.serving import make_server
+
+def make_quiet_server(host, port, app, **kwargs):
+    """`werkzeug.serving.make_server` with the `werkzeug` logger at WARNING (TEST.187): its one INFO line per
+    request ("GET /static/... 200") otherwise fills the captured log, and a failing browser test's report ends
+    in hundreds of them, below the assertion. Every test server is made here."""
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)
+    return make_server(host, port, app, **kwargs)
+
 
 DRAIN_SECONDS = 8
 """How long the stop waits for requests still running when the server is shut down."""
@@ -77,7 +86,7 @@ class InFlight:
 def served(app, drain_seconds=DRAIN_SECONDS):
     """Runs `app` on a free local port in a thread and yields its base URL (`http://127.0.0.1:<port>`)."""
     counted = InFlight(app)
-    server = make_server("127.0.0.1", 0, counted, threaded=True)
+    server = make_quiet_server("127.0.0.1", 0, counted, threaded=True)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:

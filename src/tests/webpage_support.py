@@ -12,7 +12,7 @@ real HTTP; the pages themselves are tested with Flask's test client.
 import threading
 
 import pytest
-from werkzeug.serving import make_server
+from tests.served import make_quiet_server
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def live_api(mysql_config):
         CONTROL_MYSQL_CONFIG = mysql_config
 
     app = create_app(TestConfig)
-    server = make_server("127.0.0.1", 0, app)
+    server = make_quiet_server("127.0.0.1", 0, app)
     port = server.server_port
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

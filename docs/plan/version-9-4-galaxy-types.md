@@ -18,7 +18,7 @@ The type draw and the Sérsic spheroid component, which every family reads.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | GEN.378, GEN.379, GEN.401 | Step 4 of the galaxy types chain. |
+| GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | GEN.378, GEN.379 | Step 4 of the galaxy types chain. |
 
 ### Spheroid component
 
@@ -40,7 +40,7 @@ Three independent families.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.382 | The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage | GEN.379, GEN.380, GEN.401 | Step 5 of the galaxy types chain; generalizes the shape row of GEN.368. |
+| GEN.382 | The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage | GEN.379, GEN.380 | Step 5 of the galaxy types chain; generalizes the shape row of GEN.368. |
 
 ### Elliptical family
 

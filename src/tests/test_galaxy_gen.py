@@ -1089,6 +1089,13 @@ def _fake_args_for_direct_generation(mysql_config):
 # generation, no bypass.
 # ---------------------------------------------------------------------------
 
+REFERENCE_SHAPE_ARGV = [
+    "--disk-scale-length-pc", "2600", "--disk-scale-height-pc", "300",
+    "--bulge-scale-radius-pc", "1580", "--bulge-amplitude", "3.11", "--arm-count", "2", "--pitch-angle-deg", "15",
+]
+"""list: The Milky Way's published shape as `planetgen plan` options. A plan draws its shape from the seed (GEN.401);
+a test whose counts were written for one galaxy's density pins this one."""
+
 _PLAN_SHAPE_ARGV = [
     "--disk-scale-length-pc", "40", "--disk-scale-height-pc", "12",
     "--bulge-scale-radius-pc", "10", "--bulge-amplitude", "2.0",

@@ -107,6 +107,16 @@ def no_spawn(monkeypatch):
     return started
 
 
+@pytest.fixture(autouse=True)
+def _uncached_estimates(monkeypatch):
+    """The estimate cache (PERF.109) lives in Redis and would carry one test's fake estimate to the next: it
+    can't tell its versions, so every request runs the estimate, unless a test gives it versions."""
+    def unreadable(database):
+        raise OSError("estimate versions are not read in these tests")
+
+    monkeypatch.setattr(generate_page, "_estimate_versions", unreadable)
+
+
 def _token(client):
     client.get("/admin/generate")
     nonce = client.get_cookie(csrf.COOKIE_NAME).value
@@ -267,7 +277,7 @@ def test_plan_defaults_match_generate_py():
     defaults = vars(parsers["plan"].parse_args([]))
     for name, flag, _label, kind, default, _minimum, _maximum in generate_page.PLAN_FIELDS:
         assert defaults[flag.lstrip("-").replace("-", "_")] == default, flag
-        assert isinstance(default, kind)
+        assert default is None or isinstance(default, kind)
 
 
 # --- Building jobs ----------------------------------------------------------------
@@ -402,6 +412,30 @@ def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn,
     assert 'name="estimate_ok" value="1"' in form
     assert 'name="mode" value="shell"' in form and 'name="shell_index" value="40"' in form
     assert 'name="action" value="galaxy"' in form
+
+
+def test_a_repeated_estimate_answers_from_the_cache_until_the_versions_change(site, client, no_spawn, monkeypatch,
+                                                                              redis_server):
+    """PERF.109: the same form asked twice runs the estimate once; new stage statistics make it run again."""
+    asked = []
+    versions = {"speeds": "1@t/0@None"}
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: asked.append(argv) or dict(_ESTIMATE))
+    monkeypatch.setattr(generate_page, "_estimate_versions", lambda database: dict(versions))
+    try:
+        first = _post(client, action="galaxy", mode="shell", shell_index="40").get_data(as_text=True)
+        second = _post(client, action="galaxy", mode="shell", shell_index="40").get_data(as_text=True)
+        assert len(asked) == 1 and "About 8.4 MB" in first and "About 8.4 MB" in second
+        _post(client, action="galaxy", mode="shell", shell_index="41")
+        assert len(asked) == 2
+        versions["speeds"] = "2@t/0@None"
+        _post(client, action="galaxy", mode="shell", shell_index="40")
+        assert len(asked) == 3
+    finally:
+        import redis
+
+        server = redis.Redis.from_url(redis_server)
+        for key in server.scan_iter(match=f"planetgen:estimate:{DB}:*"):
+            server.delete(key)
 
 
 def test_a_refused_galaxy_job_offers_generate_anyway(site, client, no_spawn, monkeypatch):
