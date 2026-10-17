@@ -17543,6 +17543,14 @@ clears each one.
   fixes both; optionally `_nearest` handles an empty ring where that is
   a real edge (the TEST.132 edge). Agreed by Bug Hunt (2026-10-17, 12:33
   AM EDT as the lane reported).
+  Sighting (Core 3, 2026-10-17, 6:50 PM EDT as the lane reported,
+  GEN.321's second changed gate, ended 6:41 PM EDT: 19,437 passed, 4
+  failed): failed once with `assert some_scattered > 0` (0 stars
+  scattered); passed 7 of 7 alone on Core 3's branch; not reproduced.
+  Fails on main: not run on main. Frequency: 1 gate in this series.
+  Reproducer: run `scripts/test.py changed` while another lane's gate
+  shares the box. Bug Hunt's big branch carries the fix for this item
+  (#1694).
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -17599,6 +17607,13 @@ clears each one.
   captured yet (full reports are in .test-failures.jsonl in Core 2's
   worktree). Fails on main: not checked. Frequency: now 4 loaded gate
   runs seen for this test.
+  Sighting (Core 3, 2026-10-17, 6:50 PM EDT as the lane reported,
+  GEN.321's second changed gate, load 8 to 10):
+  `src/tests/test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
+  (the TEST.202 test folded into this item) failed in the browser phase
+  and passed alone. Fails on main: not run on main. Frequency: 1 of this
+  gate; Core 5's gate saw it at about 3:58 PM EDT too. Bug Hunt's big
+  branch carries the fix (#1694).
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -18550,6 +18565,23 @@ clears each one.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
+
+- [ ] **TEST.227 test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug)**
+  Found by Core 3 (2026-10-17, 6:50 PM EDT as the lane reported,
+  GEN.321's second changed gate, ended 6:41 PM EDT, load 8 to 10; 19,437
+  passed, 4 failed), filed by the TODO thread.
+  `src/tests/test_web_browser_slow_pages.py::test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
+  failed in the browser phase and passed when run alone. The failure
+  text was not relayed. Fails on main: not run on main. Frequency: 1 of
+  1 gates since this test was seen; unknown before. Reproducer: run
+  `scripts/test.py changed` with another lane's gate sharing the box, or
+  the test alone repeated under `stress` load. Do: take the failure text
+  from the gate log (Core 3's `.test-failures.jsonl`), find whether the
+  wait is too short under load or the page races the job, fix the cause
+  in the test or the page without lengthening a wait blindly and without
+  quarantining. Done: the cause is on this item and the test passes
+  under load in a gate. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
 
 
 ## USR: User accounts
