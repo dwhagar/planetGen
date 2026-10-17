@@ -12655,6 +12655,28 @@ clears each one.
   root cause with the setup or teardown hang (Core 1 takes both); if the
   metadata-lock fix does not stop this symptom, it is split back out.
   Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane reported).
+  Investigation record (Core 1, 2026-10-17, 12:59 AM EDT as the lane
+  reported): reproduced twice (12:32 and 12:38 AM EDT) with `pytest -m
+  browser -n 2` on test_web_browser_sector_open, _sector_reach and
+  _units, load average 5 to 8 from other lanes. The holder was a server
+  request thread of `/api/galaxy/tiles` (`galaxy_tiles_route`) still
+  running when the module fixture `site_db` dropped `planetgen_a11y_*`
+  (connection state 'Creating tmp table'; pooled checkouts held 4 to 6 s
+  under load; peak simultaneous checkouts 3, so the pool is not
+  exhausted; every tile piece is fast, at most 0.1 s, the request just
+  loops over many tiles). The old drop waited on that connection's lock
+  with no limit (853 s seen in gates). Fix (commit on claude/test193,
+  its gate started 12:56 AM EDT and widens to everything because
+  conftest.py and dbpool.py change): `tests/served.py` waits up to 8 s
+  for running requests at server stop, and `dbpool.drop_database` waits
+  at most 10 s and kills and names the holders. TEST.195's 30 s stall
+  could NOT be reproduced (three runs at 12:32, 12:38 and 12:49 AM EDT,
+  12 and 157 tests passing); the `/sector/<id>/galaxy` fetch is a
+  trivial redirect, so a stall there means the server thread was
+  starved. Core 1 removed that fetch from the tests (the designation is
+  computed in-process; the redirect stays tested in
+  test_web_sector_nav), so for TEST.195 the status is: fetch removed,
+  stall unreproduced, not cause found.
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -12969,6 +12991,23 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
+
+- [ ] **TEST.213 `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug)**
+  Found by Core 1 (2026-10-17, 12:49 AM EDT as the lane reported), filed
+  by the TODO thread.
+  `src/tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star`
+  failed in a five-file run (`-n 2`, load about 4 to 6): `assert
+  shares[-1] == approx(1.0)` got [0.7507684], because the loop opened
+  the system (the URL had `&system=...`) before the disc reached full
+  share; it passed alone in 131 s at 12:49 AM EDT. Fails on main: not
+  checked. Frequency: 1 of 2 runs. Reproducer: that file with `-n 2`
+  under load. Same family as TEST.194 (fixed waits in a wheel loop).
+  Done: the cause is found (a fixed wait in the wheel loop, or a real
+  race between the disc fade and the system open), the test waits on the
+  condition it needs (the disc share) and not a fixed time, and it
+  passes under the same load, with no quarantine. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: TEST.194, TEST.126.
 
 ## USR: User accounts
 
