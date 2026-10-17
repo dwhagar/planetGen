@@ -594,11 +594,9 @@ with `clamp()`.
   table in the union or double counting). Owner: Database
   (count and cache). Queued behind the Spherical Sector Coordinates stop
   (Boss, 2026-10-15 06:39Z).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
 - [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
@@ -840,6 +838,7 @@ with `clamp()`.
   a galaxy with no pass. Fails on main: yes. Frequency: always on a
   galaxy before the first population pass. Reproducer: start a fresh
   galaxy and request both URLs.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **UX.134 Generate page: the galaxy type shows what the seed drew and can be pinned**
@@ -7898,6 +7897,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fresh database and read the first stage-2 line. Done: the line states
   the expected rows and the progress weight is not shown as a count; a
   test pins the wording to the sum of `shell_expected`.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: GEN.240, GEN.323.
 
 - [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
@@ -10568,11 +10568,9 @@ clears each one.
   on the same code that timed out alone at 4:20 PM EDT, so it is not
   deterministic; GEN.232 merged in #1660, so Quality re-checks it in the
   next full run.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -10590,11 +10588,9 @@ clears each one.
   open for the first recurrence (with the captured seed): the test pins
   the star type, so a different stored type may be a real pin bug in the
   product, not test luck. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -10655,11 +10651,9 @@ clears each one.
   playwright error) and ::test_nav_ends_picked_from_bookmarks_on_every_page
   failed once and pass alone, not checked on main. Same family; the
   rebuild's captured traceback and serial re-run tell load from real.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -10677,11 +10671,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -10702,11 +10694,9 @@ clears each one.
   with PERF.89): tests/test_work_queue_admin.py::
   test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
   passes alone: the same parallel-run family on the shared database.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -10732,11 +10722,9 @@ clears each one.
   (2026-10-14, #1313, suite green): the stored last-updated time is
   compared the way MySQL 8.4 rounds it. Retire this item once the
   scheduled MySQL 8.4 CI run on main is green.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -10759,11 +10747,9 @@ clears each one.
   not reproducible; the test now builds comets by construction so it
   exercises the comet path every time. Stays open until the cause is
   found or five clean full runs pass.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -10794,11 +10780,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -10831,11 +10815,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
@@ -10857,11 +10839,9 @@ clears each one.
   under load; same family, same fix.
   Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
   it, reopen only on a captured traceback (2026-10-16 review).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -10881,11 +10861,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -10902,11 +10880,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -10924,11 +10900,9 @@ clears each one.
   Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
   it (2026-10-16 review).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
@@ -11142,11 +11116,9 @@ clears each one.
   check whether it still hangs). Done: the cause is found and the test
   is made reliable without skipping or loosening it, or the product bug
   it hides is fixed. Owner: Quality (2026-10-15).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, GEN.232.
 
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
@@ -11205,11 +11177,9 @@ clears each one.
   Scope after the 2026-10-16 review: only the
   `test_math_check::test_whole_run_is_fast` timing test (a relative
   budget); the breadcrumb folding test joins the TEST.126 family.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.138, TEST.163, TEST.167.
 
 - [ ] **TEST.171 test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug)**
@@ -11225,11 +11195,9 @@ clears each one.
   proves, and the same gate shows it green. Owner: unassigned.
   Owns pinning the random galaxy seed in the shared `_seed_galaxy` test
   helper (2026-10-16 review); TEST.173 shares the helper.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -11247,11 +11215,9 @@ clears each one.
   entered, or the click really does nothing on an empty rim block) and
   the test or the page is fixed without loosening what the test proves.
   Owner: unassigned.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Second sighting (Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate: full
   `changed`, 118 minutes, load 16): failed again under load and passed
   alone (call 28 s on a loaded worker); the same gate failed
@@ -11278,11 +11244,9 @@ clears each one.
   unassigned.
   No separate seed fix (2026-10-16 review): check that its nearest
   backfill cell draws a star under the seed TEST.171 pins.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -11304,11 +11268,9 @@ clears each one.
   Scope after the 2026-10-16 review: capture the failure text on the
   next sighting; the phone-light sighting (an aborted `/galaxy/tiles`
   request) is a page-stat flake of the TEST.126 family.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
@@ -11498,6 +11460,7 @@ clears each one.
   on main: yes, when that test runs. Frequency: every run of the test.
   Reproducer: run the migrate test, then `cat
   /var/lib/planetGen/state/maintenance.json`.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
@@ -11511,6 +11474,7 @@ clears each one.
   run in seconds. Fails on main: yes. Frequency: whenever a session
   fixture fails. Reproducer: make the server fixture raise after its
   start and time the run.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.167.
 
 - [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
@@ -11576,6 +11540,7 @@ clears each one.
   unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
   full browser phase; try the file with two browser workers and a busy
   machine.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
@@ -11638,6 +11603,7 @@ clears each one.
   and not a fixed time, and it passes under the same load, with no
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
@@ -11650,6 +11616,7 @@ clears each one.
   condition it needs, and it passes under the same load, with no
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
@@ -11677,7 +11644,8 @@ clears each one.
   (the precision audit). Related: TEST.192 (an earlier fuzz bound).
   Second sighting (Settings lane, 2026-10-16, 4:57 PM EDT, reported again at 8:45 PM EDT
   from its ADM.85 full run): the same test failed in that run too.
-  Owner: Core 1 (proposed: its bug phase and GEN.372).
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT); the
+  GEN.372 audit stays with Core 1.
   Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
 
 - [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
@@ -11720,7 +11688,7 @@ clears each one.
   condition it needs, it passes under the same load, and no quarantine.
   Likely the same family as TEST.197 (a timing assumption under load)
   and the browser hangs of TEST.193 and TEST.195, so Core 1 reads them
-  together. Owner: Core 1, bug phase.
+  together. Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.172, TEST.197, TEST.193, TEST.195.
 
 - [ ] **TEST.203 `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug)**
@@ -11735,8 +11703,8 @@ clears each one.
   by a worker restart under load, or the test races the worker), the
   test waits on the condition it needs or the job is not cancelled, it
   passes under the same load, and no quarantine. Likely related to the
-  load flakes of TEST.197 and TEST.202. Owner: Core 1, bug phase
-  (one-off load flakes).
+  load flakes of TEST.197 and TEST.202. Owner: Bug Hunt (proposed,
+  Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.197, TEST.202, TEST.193.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
@@ -12517,6 +12485,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   process is left. Fails on main: yes. Frequency: every SIGTERM during a
   run. Reproducer: start the command, `kill -TERM` it, then `ps` for the
   child.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 ## DOC: Documentation
