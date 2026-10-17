@@ -7674,6 +7674,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the stellar halo fraction. They stay until this item researches the
   stellar halo fraction and replaces them with a law; the
   old-constants-are-gone check of GEN.400 does not cover them.
+  Owner: the read-only research thread "Galaxy laws research GEN.406
+  (2026-10-17)" (Boss, 2026-10-17, 10:20 AM EDT, card "Who does the
+  GEN.406 galaxy research?", tapped "New research thread"; relayed in
+  words by the coordinator). Not Core 1: it leaves Core 1's queue. The
+  thread writes
+  /mnt/project-files/reports/gen-406-galaxy-research-2026-10-17.md; the
+  TODO thread files the note when the coordinator says it is done, and
+  the numbers then go to GEN.401, GEN.403, GEN.405 and GEN.369.
   Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
 
 - [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
