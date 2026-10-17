@@ -667,23 +667,6 @@ with `clamp()`.
   Prerequisites: GEN.240, NAV.61, API.27, UX.113, NAV.45.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
-- [ ] **UX.116 Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page**
-  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "Each control will
-  be a slider and clearly labeled with a text box at the end of the
-  slider that shows the number in the slider. Use existing layout and
-  segments to design all the slider controls for scatter floors and
-  ceilings." Done (spec: section 5.2 of
-  docs/design/realistic-galactic-core.md): one limit_slider macro (a
-  range with a number box at the end that shows the value and accepts a
-  typed one; log scale for luminosities) replacing mass_slider; the
-  baseline luminosity select becomes a slider too; three new segments
-  under the existing scatter-limits row (Core, Halo and intergalactic
-  space, Dense cells); core sliders follow the baseline until touched;
-  defaults shown and a Reset per segment; the halo luminosity floor
-  slider runs from 50 (default 500; Boss, 2026-10-15 10:06 PM EDT, was
-  100). Owner Core 3 (Boss, 1:09 AM EDT).
-  Prerequisites: DB.54. Related: GEN.234, ADM.43, UX.49.
-
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
   Boss (2026-10-16, 12:21 PM EDT): "have a progress bar in the search
   page so the user knows it is loading, that is one of the main issues".
@@ -9549,40 +9532,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.85 Settings backups, restore, import and export on the settings page**
-  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
-  somewhere, that needs to get bumped up because we're starting to
-  desperately need that." Part of the configuration page of ADM.43
-  (GitHub issue
-  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. The settings page is also the one screen for
-  backups (ADM.87): it lists the archives (time, who, the parts each
-  holds and their sizes), takes "Back up now" (every part available),
-  downloads one (the Owner only, because an archive holds the whole
-  `config.json` with its secrets; until the Owner exists in 8.2 the
-  archives are owner-only files and an admin can export a version
-  without secrets), shows the diff of an
-  archive's settings part against the current settings, and restores the
-  whole archive or one part after a confirmation and an audit row (on
-  the web a restore of the settings part puts back only the options an
-  admin may change; only the command line restores the whole file); the
-  control database part (ADM.88, restore ADM.89) and the parity part
-  (DB.40, restore DB.41) arrive in 9.0 and show up in the same list and
-  restore through the same screen, with the guard of ADM.89, so this
-  screen is built once for every part. Export and import are for the
-  settings part alone: export
-  downloads the editable options as JSON without secrets (a secret shows
-  only "(changed)") or command-line-only options;
-  import reads
-  such a file through the same validation and diff as an edit. Done: the
-  list, back up now, download, whole and one-part restore, export and
-  import with a browser test and a test that an import with one bad
-  value changes nothing.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.84. Related: ADM.43.
-
 - [ ] **ADM.86 Owner-tier settings: Owner-only options behind a recent-password prompt**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
   somewhere, that needs to get bumped up because we're starting to
@@ -9646,7 +9595,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   archive from a newer version, a refused restore while the guard is on,
   and a restore that fails in the scratch schema and leaves the live
   schema untouched.
-  Prerequisites: ADM.88, ADM.85, OPS.41. Related: ADM.85, ADM.43,
+  Prerequisites: ADM.88, OPS.41. Related: ADM.85, ADM.43,
   ADM.91.
 
 - [ ] **ADM.90 Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job**
@@ -10921,6 +10870,8 @@ clears each one.
   full run; no quarantine, no loosened tolerance without the stated
   reason. It is also a precision finding, so it is attached to GEN.372
   (the precision audit). Related: TEST.192 (an earlier fuzz bound).
+  Second sighting (Settings lane, 2026-10-16, 4:57 PM EDT, reported again at 8:45 PM EDT
+  from its ADM.85 full run): the same test failed in that run too.
   Owner: Core 1 (proposed: its bug phase and GEN.372).
   Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
 
@@ -10966,6 +10917,22 @@ clears each one.
   and the browser hangs of TEST.193 and TEST.195, so Core 1 reads them
   together. Owner: Core 1, bug phase.
   Prerequisites: none. Related: TEST.172, TEST.197, TEST.193, TEST.195.
+
+- [ ] **TEST.203 `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug)**
+  Found by the Settings lane (2026-10-16, 8:45 PM EDT, in its ADM.85
+  full `changed` run: 133 minutes, two full runs on the machine), filed
+  by the TODO thread.
+  `src/tests/test_parallel_generation.py::test_one_worker_leaves_the_runs_own_random_stream_alone`
+  failed once with `WorkerDied` "the task's job ended canceled" under
+  heavy load and passes alone. Fails on main: not checked under load.
+  Frequency: once in two runs. Reproducer: none beyond a loaded full
+  run. Done: the cause is found (the RQ job is cancelled by a timeout or
+  by a worker restart under load, or the test races the worker), the
+  test waits on the condition it needs or the job is not cancelled, it
+  passes under the same load, and no quarantine. Likely related to the
+  load flakes of TEST.197 and TEST.202. Owner: Core 1, bug phase
+  (one-off load flakes).
+  Prerequisites: none. Related: TEST.197, TEST.202, TEST.193.
 
 ## USR: User accounts
 

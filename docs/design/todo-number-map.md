@@ -22,7 +22,7 @@ release is stamped.
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.203 |
+| TEST | TEST.204 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.59 |
@@ -438,7 +438,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) | none | done, PR #846 |
 | ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge | none | done, PR #1116 |
-| ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | done, PR ##1896 |
+| ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | done, PR #1896 |
 | ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | done, PR #1374 |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | ADM.53 | Admin login returns an error 500 when another job holds the row it updates, and slow pages time out (bug) | none | done, PR #1318 |
@@ -473,7 +473,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons | none | open |
 | ADM.83 | Settings writer: validate, write and back up the user's config.json, with an audit row per change | none | done, PR #1857 |
 | ADM.84 | Settings page under Admin: every option with its help, edit, validate and save, with a diff before saving | none | done, PR #1875 |
-| ADM.85 | Settings backups, restore, import and export on the settings page | none | open |
+| ADM.85 | Settings backups, restore, import and export on the settings page | none | done, PR #1905 |
 | ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | none | open |
 | ADM.87 | Backup archive: one bz2 tarball per backup holding the settings, the control database and the parity data as parts, with retention and restore of the whole or one part | none | done, PR #1857 |
 | ADM.88 | Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive | none | open |
@@ -532,7 +532,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.15 | A migration progress bar with the time remaining | none | done, PR #924 |
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | open |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
-| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | done, PR ##1901 |
+| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | done, PR #1901 |
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
@@ -920,7 +920,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 | none | done, PR #1855 |
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | none | done, PR #1820 |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | none | open |
-| GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else | none | done, PR ##1904 |
+| GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else | none | done, PR #1904 |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | none | open |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | none | open |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model | none | open |
@@ -970,7 +970,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | none | open |
 | GEN.331 | Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions | none | open |
 | GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | none | open |
-| GEN.333 | Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill | none | done, PR ##1904 |
+| GEN.333 | Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill | none | done, PR #1904 |
 | GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking | none | open |
 | GEN.335 | One definition of the stored point columns, and a test that lists every object table | none | done, PR #1883 |
 | GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | none | open |
@@ -1679,7 +1679,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | open |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass | none | open |
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | none | open |
-| UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | none | open |
+| UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | none | done, PR #1911 |
 | UX.117 | The Apply filters button on the phenomena list disappears while the list loads (bug) | none | done, PR #1778 |
 | UX.118 | Slow pages show a progress bar while their data loads: the search page and the phenomena list pages | none | open |
 | UX.119 | An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes | none | open |
@@ -2003,6 +2003,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` | none | open |
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test | none | open |
 | TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | open |
+| TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
