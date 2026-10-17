@@ -12913,6 +12913,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   expiry time one recompute happens before it and none after.
   Prerequisites: none. Related: PERF.20.
 
+- [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
+  Found by Core 2 (2026-10-17, 6:31 AM EDT as the lane reported, MAP.217
+  gate unit phase), filed by the TODO thread, who read the code.
+  `src/planetgen/web/lib/pagecache.py` `ResponseCache.put`: the `db is
+  None` branch stores the entry and returns without the `while
+  len(self._entries) > self._max_entries: popitem()` that the keyed
+  branch (and `_recall`) have, so entries of the no-database kind are
+  never evicted. Test:
+  `src/tests/test_caches_threads.py::test_page_cache_fills_reads_and_clears_from_many_threads`
+  failed with `assert 51 <= 50`. Fails on main: yes (deterministic).
+  Frequency: 1 of 1 in the MAP.217 gate unit phase (1 failed, 18,311
+  passed, 3,793 s); it passes alone 3 of 3 because it fails only when
+  the last put of the run is a db=None one. Reproducer, no threads:
+  `cache = pagecache.ResponseCache(lambda db, since: {"stamp": "s",
+  "state": None}, dict(pagecache.DEFAULTS, max_entries=3,
+  stamp_seconds=0))`, then 6 times `cache.put(None, f"/x/{n}", "body",
+  cache.begin(None))`: `len(cache)` is 6, should be 3. Do: the same trim
+  loop in the db-None branch (inside the lock, after the store), and a
+  deterministic test of the reproducer above next to the thread test.
+  Done: the reproducer gives 3, the thread test passes whatever the last
+  put is, and a test asserts the bound for db=None puts alone. Owner:
+  Core 2 (proposed; it offered to carry the three lines in its next PR,
+  which is the cheapest route).
+  Checked by the TODO thread (2026-10-17, 6:28 AM EDT, main with #2004):
+  the reproducer above gives len(cache) 6 with max_entries 3, so the
+  finding stands.
+  Prerequisites: none. Related: PERF.104, TEST.54.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16283,6 +16311,13 @@ clears each one.
   branch (113 to 120 s each, idle box). Fails on main: not seen.
   Frequency: now 1 of 1 more full gates (NAV.45 gate); with the 12:49 AM
   EDT run, a loaded run only.
+  Sighting (Core 2, 2026-10-17, 6:31 AM EDT as the lane reported,
+  MAP.217 gate, work stashed, 336 s run, load 10): a different symptom,
+  "the system's scene never came in", assert [] (the shares list was
+  empty, not a share below 1). Checked idle by the TODO thread (6:36 AM
+  EDT, main with #2004, load 0.1): passed in 124.68 s. So it fails only
+  under load; the two symptoms (the disc share short of 1, the scene
+  never loading) both point to waits that are too short under load.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
