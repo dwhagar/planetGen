@@ -99,6 +99,7 @@ var sceneData = readSceneData(dataEl);
 var pickStart = sceneData || {};
 var navPick = createNavPick({
   navUrl: pickStart.navUrl, pick: pickStart.pick, other: pickStart.pickOther, cancelUrl: pickStart.pickCancel,
+  nearbyUrl: pickStart.nearbyUrl,
   onChange: function () { if (onPickChanged) onPickChanged(); },
 });
 var onPickChanged = null; // set once the map is built
@@ -219,7 +220,8 @@ function showPlacedInfo(entry) {
       ["Designation", entry.designation],
     ],
     bookmark: sectorBookmark(entry),
-    links: sceneData.sectorUrl && entry.id != null ? [{ href: sectorUrl(entry.id), label: "View sector →" }] : [],
+    links: (sceneData.sectorUrl && entry.id != null ? [{ href: sectorUrl(entry.id), label: "View sector →" }] : [])
+      .concat(entry.id != null ? navPick.nearbyLinks("sector:" + entry.id) : []),
   });
 }
 
@@ -299,6 +301,8 @@ function showCellInfo(cell) {
   showInfo({
     title: cell.uncharted ? "Uncharted sector" : "Sector cell",
     fields: fields, after: isFullTurn(b) ? [] : [corners], generate: generate,
+    // NAV.45: the cell's middle, so a sector nothing is generated in can still be asked about.
+    links: navPick.nearbyLinks(cellCoordinates(b).cartesian),
   });
 }
 
@@ -387,6 +391,10 @@ function phenomenonActions(item) {
   }
   if (sceneData.navUrl) {
     spec.nav = navPick.actionsFor(endpoint, item.name);
+  }
+  // NAV.45: not for a scattered point nothing has built yet, which has no record to ask from.
+  if (!item.scattered) {
+    spec.links = (spec.links || []).concat(navPick.nearbyLinks(endpoint));
   }
   return spec;
 }

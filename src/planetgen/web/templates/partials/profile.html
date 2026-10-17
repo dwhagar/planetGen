@@ -18,6 +18,7 @@
   {%- endif %}
   <p class="sector-details"><strong>Gas:</strong> {{ view.gas.ambient }}, about {{ view.gas.ambient_density_cm3 }} atoms per cm³, {{ view.gas.mass_solar }} solar masses in the cell. Molecular gas is {{ view.gas.cold_percent }}% of the solar circle's.
   {%- if view.gas.superbubble %} The place lies in a cavity {{ "%g"|format(view.gas.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(view.gas.superbubble.centre_distance_pc) }} pc from its centre, where no molecular cloud survives.{% endif %}</p>
+  <p class="sector-details"><strong>Supernova remnants:</strong> {{ view.type_ia_percent }}% are Type Ia (no neutron star or black hole left behind); the rest come from massive stars.</p>
   <p class="sector-details"><strong>Dark matter:</strong> {{ view.dark_matter.density_solar_pc3 }} solar masses per pc³ at the centre of the cell, {{ view.dark_matter.mass_solar }} solar masses in it. It pulls and makes no stars.</p>
   {%- if view.heavy %}
   <p class="hint" id="heavy-cell" role="status"><strong>Heavy cell:</strong>

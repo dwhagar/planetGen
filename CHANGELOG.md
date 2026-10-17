@@ -2,6 +2,84 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1699] - 2026-10-17
+
+**Headline:** A page cache that never trims its no-database entries is filed, with the reproducer checked on main.
+
+### Changed
+
+- PERF.111 is filed (bug, found by Core 2 in the MAP.217 gate): `ResponseCache.put` without a database skips the eviction loop, so the cache passes `max_entries`; the reproducer gives 6 entries for a bound of 3 on main.
+- TEST.213 gets a sighting with a second symptom (the system's scene never came in, under load 10); it passed in 124.68 s on an idle box.
+
+TODO items resolved: none / Added: PERF.111
+
+## [8.0.1698] - 2026-10-17
+
+**Headline:** The Type Ia and old-star shares as profile fields are merged and retired, and the two parts of the item that are not met are filed.
+
+### Changed
+
+- GEN.319 (#2003) is retired: the Type Ia share and the old-star share are profile fields and the kind factors read them.
+- GEN.528 is filed for the rest of it: a Magellanic cell showing every class (waits on GEN.526) and the scatter's planetary nebulae weighted by the old share (generator epoch 8 rides the next generation change).
+- TEST.174 gets another sighting: the a11y sector page under load aborts a tile fetch.
+
+TODO items resolved: GEN.319 / Added: GEN.528
+
+## [8.0.1697] - 2026-10-17
+
+**Headline:** A place's supernova remnants are Type Ia or core-collapse by who lives there, so a halo never shows a remnant with a pulsar in it.
+
+### Added
+- **The Type Ia share (GEN.319).** The sector profile (and `/api/galaxy/profile` and the profile page) carries `type_ia_share`: the share of the place's supernova remnants that are Type Ia, worked out from the odds at the solar circle (three core collapses to one Type Ia) and the place's share of young stars against its share of older ones. It is 1 where no young stars are (the halo, clusters, old satellites), and the fill and the scatter's remnants are built with it, so a halo or cluster remnant never keeps a neutron star or a black hole.
+
+### Changed
+- The planetary nebula factor of the sector profile is the share of stars that are not young against the solar circle's, capped at 1: 1 in every older place and within 3% of 1 in the disk.
+- A galaxy generated before this keeps its stored sectors; sectors generated after have remnants built with their place's share.
+
+generation-output: changed
+
+TODO items resolved: GEN.319. Added: none.
+
+## [8.0.1696] - 2026-10-17
+
+**Headline:** The "what is within N pc" pages are merged and retired.
+
+### Changed
+
+- NAV.45 (#2001) is retired: systems, sectors and scatter objects link to what is within 10 pc; NAV.61 and MAP.243 are the remaining prerequisites of the item that waited on it.
+- TEST.213 gets a second sighting (the disc fade measured 0.884 in the NAV.45 gate), and TEST.216 a note that it did not recur in two gates.
+
+TODO items resolved: NAV.45 / Added: none
+
+## [8.0.1695] - 2026-10-17
+
+**Headline:** Selecting a sector, system, planet, moon or phenomenon on a map now offers "What's within 10 pc", which opens the What's nearby page with that place filled in.
+
+### Added
+
+- A "What's within 10 pc" link in the info panel of the Galaxy Map (a generated sector, a sector cell by its middle, a black hole, neutron star, quasar or cloud) and the Sector Map (a system, a phenomenon, a charted neighbouring sector). It is also in the panel of a body (star, planet, moon, belt, comet) on the System Map in both views and in a system opened inside the Galaxy Map, and it is left out while a NAV course is being picked.
+- The link asks for 10 pc; the distance is changed on the page it opens.
+- A scattered object nothing has built yet has no record to ask from, so it gets no link.
+
+TODO items resolved: NAV.45 / Added: none
+
+## [8.0.1694] - 2026-10-17
+
+**Headline:** The massive-star scatter on the new work queue is merged and retired.
+
+### Changed
+
+- PERF.97 (#1999) is retired: the massive-star scatter runs as static units on the Redis run record, with the far-shell and component tasks as units too; PERF.106 carries Core 2's built-on note.
+
+TODO items resolved: PERF.97 / Added: none
+
+## [8.0.1693] - 2026-10-17
+
+**Headline:** The massive-star scatter runs on the new work queue: its units are queued on Redis, followed from the run's record, and give the same stars at any worker count.
+
+### Changed
+- **The massive-star pass of the scatter is the first stage on the Redis work queue (PERF.97, step 3 of PERF.86).** `planetgen galaxy` and `planetgen plan` start a run record in Redis for the stage, queue its units on the bulk queue as JSON (the database's name, host, port and user, the shells, their expected stars, the sectors to leave out, the floors and the seed; never a password), start up to `--workers` idle-timeout workers and follow the units' results and progress until the stage is done. One worker uses the same path as many. The units are cut from the work alone (about 512 runs of shells of equal expected work, never more than 4,000), so the same galaxy and seed give the same stars at any worker count and the same stars the old queue drew. A unit that fails ends the run with the unit and the error recorded; Ctrl+C cancels it and frees the machine. Redis is required for this stage. The luminosity pass, the phenomena, the sectors and the backfill still run on the old queue until PERF.98.
+
 ## [8.0.1692] - 2026-10-17
 
 **Headline:** The browser-test teardown hang is retired, and two leftovers from its fix are filed.

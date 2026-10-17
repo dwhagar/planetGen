@@ -28,7 +28,8 @@ def profile_report(profile):
             sigma]`, `dispersion_kms`, `rotation`), `gas` (`cold_fraction`, `ambient`, `ambient_density_cm3`,
             `mass_solar`, `superbubble` as `null` or the cavity's `radius_pc`, `ambient_density_cm3`,
             `temperature_k`, `center_pc` and `centre_distance_pc`), `dark_matter` (`density_solar_pc3`, `mass_solar`)
-            and `kind_factors` (kind -> factor).
+            `kind_factors` (kind -> factor) and `type_ia_share` (the share of the place's supernova remnants that are
+            Type Ia).
     """
     shell, band, wedge = profile.address if profile.address is not None else (None, None, None)
     gas = profile.gas
@@ -47,5 +48,5 @@ def profile_report(profile):
                 "superbubble": _bubble(gas.superbubble, profile.position_pc)},
         "dark_matter": {"density_solar_pc3": profile.dark_matter.density_solar_pc3,
                         "mass_solar": profile.dark_matter.mass_solar},
-        "kind_factors": dict(profile.kind_factors),
+        "kind_factors": dict(profile.kind_factors), "type_ia_share": profile.type_ia_share,
     }
