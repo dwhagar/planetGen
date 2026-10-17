@@ -804,3 +804,4 @@ Baseline: PR #1817.
 | GEN.448 | 8.1 | Multi-star and compact systems |
 | GEN.447 | 8.1 | Multi-star and compact systems |
 | MAP.245 | 8.1 | Fly-through map |
+| GEN.289 | 8.3 | Positions as one object |

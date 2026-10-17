@@ -943,7 +943,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model | none | done, PR #1932 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) | none | done, PR #1932 |
 | GEN.288 | Rename the PHI-6 equipment tier "Sealed suit" to "Environment suit" everywhere | none | done, PR #1779 |
-| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | none | open |
+| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | none | done, PR #2108 |
 | GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | none | open |
 | GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | none | open |
 | GEN.292 | Run the orbital update for a stated span in one go from the command line (elapsed years) | none | open |

@@ -23,7 +23,6 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree |  | GEN.372 audit. |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
-| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land |  |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
 
 ### Nightly maintenance
@@ -65,9 +64,9 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.338, GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
 | GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking |  | Foundation found in the review. |
-| GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | GEN.289 | Split from GEN.109. |
+| GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check |  | Split from GEN.109. |
 | GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.341, GEN.338, GEN.340 | Split from GEN.109. |
-| GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342, GEN.289, GEN.140 | Split from GEN.109. |
+| GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342, GEN.140 | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | GEN.341, GEN.342 | Split from GEN.109. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.341, GEN.342, GEN.343, GEN.344 |  |
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings |  | Split from GEN.143. Core 1 owns migrations. |
@@ -75,9 +74,9 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation |  | Split from GEN.110. |
 | GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197 | Split from GEN.110. |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.345, GEN.346 |  |
-| GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.289, GEN.341, GEN.343, GEN.334 |  |
-| GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.289, GEN.290, GEN.343, GEN.346, GEN.197 |  |
-| GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110, GEN.289, GEN.290, GEN.291 | Parent of the orbital update work. |
+| GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.341, GEN.343, GEN.334 |  |
+| GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.290, GEN.343, GEN.346, GEN.197 |  |
+| GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110, GEN.290, GEN.291 | Parent of the orbital update work. |
 
 ### The Quantity class
 
